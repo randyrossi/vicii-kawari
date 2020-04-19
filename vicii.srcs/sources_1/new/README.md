@@ -1,7 +1,7 @@
-
 Compile and install verilator
 sudo apt-get install pulseview
 
+WARNING: Old pulseview (0.4.0) has VCD import bugs.  v0.5.0 works.
 
 make
 make run

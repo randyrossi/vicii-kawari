@@ -13,6 +13,9 @@
 // Current simulation time (64-bit unsigned)
 static vluint64_t ticks = 0;
 
+// How much to divide our ticks (which is always picoseconds) down to our VCD timescale
+#define PICOSECONDS_TO_TIMESCALE 1000L
+
 // Add new input/output here
 #define NUM_SIGNALS 10
 #define OUT_PHI 0
@@ -32,16 +35,13 @@ const char *signal_ids[] = { "p", "c", "r" ,  "r0", "r1", "g0", "g1", "b0", "b1"
 
 unsigned char *signal_src[NUM_SIGNALS];
 unsigned int signal_bit[NUM_SIGNALS];
+bool signal_monitor[NUM_SIGNALS];
 unsigned char prev_signal_values[NUM_SIGNALS];
 
 #define GETVAL(signum) (*signal_src[signum] & signal_bit[signum] ? 1 : 0)
-#define HASCHANGED(signum) ( GETVAL(signum) != prev_signal_values[signum] )
-/*
-static bool HASCHANGED(int signum) {
-   return GETVAL(signum) != prev_signal_values[signum];
-}
-*/
+#define HASCHANGED(signum) ( signal_monitor[signum] && GETVAL(signum) != prev_signal_values[signum] )
 
+// Convert microseconds to ticks (picoseconds)
 #define US_TO_TICKS(t) (t * 1000L * 1000L)
 
 // We can drive our simulated clock gen every pico second but that would
@@ -65,7 +65,6 @@ static vluint64_t nextTick(Vtop* top) {
    return ticks + diff2;
 }
 
-
 static void vcd_header(Vtop* top) {
    printf ("$date\n");
    printf ("   January 1, 1979.\n");
@@ -76,7 +75,9 @@ static void vcd_header(Vtop* top) {
    printf ("$comment\n");
    printf ("   VCD vicii\n");
    printf ("$end\n");
-   printf ("$timescale 1ps $end\n");
+
+   // Use 1ns timescale. Required PICOSECONDS_TO_TIMESCALE to be 1000L
+   printf ("$timescale 1ns $end\n");
    printf ("$scope module logic $end\n");
 
    for (int i=0;i<NUM_SIGNALS;i++)
@@ -99,7 +100,7 @@ static void vcd_header(Vtop* top) {
 
 int main(int argc, char** argv, char** env) {
     bool capture = true;
-    vluint64_t endTicks = US_TO_TICKS(100);
+    vluint64_t endTicks = US_TO_TICKS(20000);
 
     // Prevent unused variable warnings
     if (0 && argc && argv && env) {}
@@ -114,9 +115,11 @@ int main(int argc, char** argv, char** env) {
     top->green = 0;
     top->blue = 0;
 
-    // Default all signals to bit 1
-    for (int i = 0; i < NUM_SIGNALS; i++)
+    // Default all signals to bit 1 and include in monitoring.
+    for (int i = 0; i < NUM_SIGNALS; i++) {
       signal_bit[i] = 1;
+      signal_monitor[i] = true;
+    }
 
     // Add new input/output here.
     signal_src[OUT_PHI] = &top->clk_phi;   
@@ -150,7 +153,7 @@ int main(int argc, char** argv, char** env) {
 
 #ifdef TEST_RESET
         // Test reset between approx 30 and approx 40 us
-        if (ticks >= 30L * 1000L * 1000L && ticks <= 40L * 1000L * 1000L)
+        if (ticks >= US_TO_TICKS(30L) && ticks <= US_TO_TICKS(40L))
            top->rst = 1;
         else
            top->rst = 0;
@@ -169,7 +172,7 @@ int main(int argc, char** argv, char** env) {
           }      
 
           if (anyChanged) {
-             printf ("#%" VL_PRI64 "d\n", ticks);
+             printf ("#%" VL_PRI64 "d\n", ticks/PICOSECONDS_TO_TIMESCALE);
              for (int i = 0; i < NUM_SIGNALS; i++) {
                 if (HASCHANGED(i))
                    printf ("%x%s\n", GETVAL(i), signal_ids[i]);
