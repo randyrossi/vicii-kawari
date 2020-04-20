@@ -17,7 +17,7 @@ static vluint64_t ticks = 0;
 #define PICOSECONDS_TO_TIMESCALE 1000L
 
 // Add new input/output here
-#define NUM_SIGNALS 10
+#define NUM_SIGNALS 11
 #define OUT_PHI 0
 #define OUT_COLREF 1
 #define IN_RST 2
@@ -28,10 +28,11 @@ static vluint64_t ticks = 0;
 #define OUT_B0 7
 #define OUT_B1 8
 #define OUT_DOT 9
+#define OUT_CSYNC 10
 
 // Add new input/output here
-const char *signal_labels[] = { "phi", "col", "rst", "r0", "r1", "g0", "g1", "b0", "b1" , "dot"};
-const char *signal_ids[] = { "p", "c", "r" ,  "r0", "r1", "g0", "g1", "b0", "b1" , "dot" };
+const char *signal_labels[] = { "phi", "col", "rst", "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "csync"};
+const char *signal_ids[] = { "p", "c", "r" ,  "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "s" };
 
 unsigned char *signal_src[NUM_SIGNALS];
 unsigned int signal_bit[NUM_SIGNALS];
@@ -114,6 +115,7 @@ int main(int argc, char** argv, char** env) {
     top->red = 0;
     top->green = 0;
     top->blue = 0;
+    top->cSync = 0;
 
     // Default all signals to bit 1 and include in monitoring.
     for (int i = 0; i < NUM_SIGNALS; i++) {
@@ -135,6 +137,7 @@ int main(int argc, char** argv, char** env) {
     signal_src[OUT_B1] = &top->blue;   
     signal_bit[OUT_B1] = 2;
     signal_src[OUT_DOT] = &top->top__DOT__clk_dot;   
+    signal_src[OUT_CSYNC] = &top->cSync;   
 
     for (int i = 0; i < NUM_SIGNALS; i++) {
        prev_signal_values[i] = GETVAL(i);

@@ -5,7 +5,7 @@ module top(
    input rst,          // reset
    output clk_colref,  // output color ref clock 3.579545 Mhz NTSC for CXA1545P 
    output clk_phi,     // output phi clock 1.022727 Mhz NTSC
-   //output sync,        // composite sync signal for CXA1545P 
+   output cSync,       // composite sync signal for CXA1545P 
    output[1:0] red,    // red out for CXA1545P
    output[1:0] green,  // green out for CXA1545P
    output[1:0] blue    // blue out for CXA1545P
@@ -58,7 +58,8 @@ vicii vic_inst(
    .red(red),
    .green(green),
    .blue(blue),
-   .reset(rst)
+   .reset(rst),
+   .cSync(cSync)
 );
 
 endmodule

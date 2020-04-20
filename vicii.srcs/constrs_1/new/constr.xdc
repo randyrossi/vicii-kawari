@@ -19,5 +19,8 @@ set_property -dict {PACKAGE_PIN L3 IOSTANDARD LVCMOS33} [get_ports clk_phi]
 # A16 = Pin03
 set_property -dict { PACKAGE_PIN A16 IOSTANDARD LVCMOS33 } [get_ports { rst }];
 
+# K3 = Pin04
+set_property -dict { PACKAGE_PIN K3 IOSTANDARD LVCMOS33 } [get_ports { cSync  }];
+
 # L17 = Internal clock pin 
 set_property -dict { PACKAGE_PIN L17 IOSTANDARD LVCMOS33 } [get_ports { sys_clock }]; 

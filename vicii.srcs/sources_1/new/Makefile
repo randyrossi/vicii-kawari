@@ -34,7 +34,7 @@ VERILATOR = $(VERILATOR_ROOT)/bin/verilator
 endif
 
 default:
-	$(VERILATOR) -cc --exe top.v clockgen_sim.v clockdivs.v vicii.v sim_main.cpp
+	$(VERILATOR) -cc --exe top.v clockgen_sim.v clockdivs.v vicii.v sync.v serration.v equalization.v sim_main.cpp
 	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
 
 run:

@@ -1,12 +1,17 @@
 `timescale 1ns / 1ps
 
+// This intent of this module is to drive the CXA1545P to generate a
+// display. It simply excercises the circuitry attached to the r,g,b
+// sync and color clock signals. It is not meant to be a functioning
+// vicii.  Only a test pattern is generated.
 module vicii(
    input reset,
    input clk_dot,
    input clk_phi,
    output reg[1:0] red,
    output reg[1:0] green,
-   output reg[1:0] blue
+   output reg[1:0] blue,
+   output cSync
 );
 
   reg [9:0] x_pos;
@@ -21,8 +26,11 @@ module vicii(
 
   assign bit_cycle = x_pos[2:0];
   assign line_cycle_num = x_pos[8:3];
-  assign visible_vertical = (y_pos > 55) & (y_pos < 255) ? 1 : 0;
-  assign visible_horizontal = (line_cycle_num >= 4) & (line_cycle_num <= 43) ? 1 : 0;
+  // Stuff like this won't work in the real core. There is no comparitor controlling
+  // when the border is visible like this.
+  assign visible_vertical = (y_pos >= 51) & (y_pos < 251) ? 1 : 0;
+  // Official datasheet says 28-348 but Christian's doc says 24-344
+  assign visible_horizontal = (x_pos >= 24) & (x_pos < 344) ? 1 : 0;
   assign WE = visible_horizontal & visible_vertical & (bit_cycle == 2) & (char_line_num == 0);
           
   always @(posedge clk_dot)
@@ -31,7 +39,7 @@ module vicii(
     x_pos <= 0;
     y_pos <= 0;
   end
-  else if (x_pos < 512)
+  else if (x_pos < 520) // 64 cycles
     x_pos <= x_pos + 1;
   else
   begin
@@ -204,4 +212,12 @@ module vicii(
             blue = 2'h02;
          end
     endcase
+    
+    sync vicsync(
+       .rst(reset),
+       .clk(clk_dot),
+       .rasterX(x_pos),
+       .rasterY(y_pos),
+       .cSync(cSync)
+    );
 endmodule
