@@ -122,7 +122,7 @@ wire clk_in2_clockgen_clk_wiz_0_0;
   wire        reset_high;
 
   MMCME2_ADV
-  #(.BANDWIDTH            ("HIGH"),
+  #(.BANDWIDTH            ("OPTIMIZED"),
     .CLKOUT4_CASCADE      ("FALSE"),
     .COMPENSATION         ("ZHOLD"),
     .STARTUP_WAIT         ("FALSE"),

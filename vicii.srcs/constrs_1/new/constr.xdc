@@ -24,3 +24,21 @@ set_property -dict { PACKAGE_PIN K3 IOSTANDARD LVCMOS33 } [get_ports { cSync  }]
 
 # L17 = Internal clock pin 
 set_property -dict { PACKAGE_PIN L17 IOSTANDARD LVCMOS33 } [get_ports { sys_clock }]; 
+
+# V8 = 48 = RED0
+set_property -dict { PACKAGE_PIN V8 IOSTANDARD LVCMOS33 } [get_ports { red[0] }];
+
+# U8 = 47 = RED1
+set_property -dict { PACKAGE_PIN U8 IOSTANDARD LVCMOS33 } [get_ports { red[1] }];
+
+# U3 = 44 = GREEN0
+set_property -dict { PACKAGE_PIN U3 IOSTANDARD LVCMOS33 } [get_ports { green[0] }];
+
+# W6 = 43 = GREEN1
+set_property -dict { PACKAGE_PIN W6 IOSTANDARD LVCMOS33 } [get_ports { green[1] }];
+
+# W4 = 40 = BLUE0
+set_property -dict { PACKAGE_PIN W4 IOSTANDARD LVCMOS33 } [get_ports { blue[0] }];
+
+# V5 = 39 = BLUE1
+set_property -dict { PACKAGE_PIN V5 IOSTANDARD LVCMOS33 } [get_ports { blue[1] }];

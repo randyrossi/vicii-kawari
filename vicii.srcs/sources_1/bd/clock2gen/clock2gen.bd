@@ -12,26 +12,6 @@
       "clk_wiz_0": ""
     },
     "ports": {
-      "sys_clock": {
-        "type": "clk",
-        "direction": "I",
-        "parameters": {
-          "CLK_DOMAIN": {
-            "value": "clock2gen_sys_clock",
-            "value_src": "default"
-          },
-          "FREQ_HZ": {
-            "value": "12000000"
-          },
-          "INSERT_VIP": {
-            "value": "0",
-            "value_src": "default"
-          },
-          "PHASE": {
-            "value": "0.000"
-          }
-        }
-      },
       "clk_col4x": {
         "type": "clk",
         "direction": "O",
@@ -63,6 +43,26 @@
           },
           "POLARITY": {
             "value": "ACTIVE_HIGH"
+          }
+        }
+      },
+      "sys_clock": {
+        "type": "clk",
+        "direction": "I",
+        "parameters": {
+          "CLK_DOMAIN": {
+            "value": "clock2gen_sys_clock",
+            "value_src": "default"
+          },
+          "FREQ_HZ": {
+            "value": "12000000"
+          },
+          "INSERT_VIP": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "PHASE": {
+            "value": "0.000"
           }
         }
       }
@@ -133,12 +133,6 @@
       }
     },
     "nets": {
-      "sys_clock_1": {
-        "ports": [
-          "sys_clock",
-          "clk_wiz_0/clk_in1"
-        ]
-      },
       "clk_wiz_0_clk_out1": {
         "ports": [
           "clk_wiz_0/clk_out1",
@@ -149,6 +143,12 @@
         "ports": [
           "reset",
           "clk_wiz_0/reset"
+        ]
+      },
+      "sys_clock_1": {
+        "ports": [
+          "sys_clock",
+          "clk_wiz_0/clk_in1"
         ]
       }
     }

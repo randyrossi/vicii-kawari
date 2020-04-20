@@ -167,9 +167,6 @@ proc create_root_design { parentCell } {
    CONFIG.POLARITY {ACTIVE_HIGH} \
  ] $reset
   set sys_clock [ create_bd_port -dir I -type clk -freq_hz 12000000 sys_clock ]
-  set_property -dict [ list \
-   CONFIG.PHASE {0.000} \
- ] $sys_clock
 
   # Create instance: clk_wiz_0, and set properties
   set clk_wiz_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:clk_wiz:6.0 clk_wiz_0 ]
@@ -178,35 +175,24 @@ proc create_root_design { parentCell } {
    CONFIG.CLKOUT1_DRIVES {BUFG} \
    CONFIG.CLKOUT1_JITTER {543.204} \
    CONFIG.CLKOUT1_PHASE_ERROR {674.235} \
-   CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {32.72727} \
+   CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {32.727272} \
    CONFIG.CLKOUT2_DRIVES {BUFG} \
-   CONFIG.CLKOUT2_JITTER {547.193} \
-   CONFIG.CLKOUT2_PHASE_ERROR {664.259} \
-   CONFIG.CLKOUT2_REQUESTED_OUT_FREQ {32.72726} \
-   CONFIG.CLKOUT2_USED {false} \
    CONFIG.CLKOUT3_DRIVES {BUFG} \
    CONFIG.CLKOUT4_DRIVES {BUFG} \
    CONFIG.CLKOUT5_DRIVES {BUFG} \
    CONFIG.CLKOUT6_DRIVES {BUFG} \
    CONFIG.CLKOUT7_DRIVES {BUFG} \
    CONFIG.CLK_IN1_BOARD_INTERFACE {sys_clock} \
-   CONFIG.CLK_OUT1_PORT {clk_out1} \
-   CONFIG.CLK_OUT2_PORT {clk_out2} \
-   CONFIG.JITTER_SEL {Min_O_Jitter} \
-   CONFIG.MMCM_BANDWIDTH {HIGH} \
    CONFIG.MMCM_CLKFBOUT_MULT_F {63.750} \
    CONFIG.MMCM_CLKIN1_PERIOD {83.333} \
    CONFIG.MMCM_CLKIN2_PERIOD {10.0} \
    CONFIG.MMCM_CLKOUT0_DIVIDE_F {23.375} \
-   CONFIG.MMCM_CLKOUT1_DIVIDE {1} \
-   CONFIG.NUM_OUT_CLKS {1} \
-   CONFIG.PRIM_IN_FREQ {12.000} \
    CONFIG.SECONDARY_SOURCE {Single_ended_clock_capable_pin} \
-   CONFIG.USE_BOARD_FLOW {true} \
    CONFIG.USE_PHASE_ALIGNMENT {false} \
  ] $clk_wiz_0
 
   # Create port connections
+  connect_bd_net -net clk_wiz_0_clk_out1 [get_bd_ports clk_dot4x] [get_bd_pins clk_wiz_0/clk_out1]
   connect_bd_net -net reset_1 [get_bd_ports reset] [get_bd_pins clk_wiz_0/reset]
   connect_bd_net -net sys_clock_1 [get_bd_ports sys_clock] [get_bd_pins clk_wiz_0/clk_in1]
 
