@@ -113,7 +113,12 @@ module vicii(
   else
       pixel_shift_reg <= {pixel_shift_reg[6:0],1'b0};
 
+  // 416 is start of hsync, give at least 10.9us after hsync for
+  // color burst and black level to be output by the composite encoder
+  // before outputting pixel changes. Also, 14-22 is vertical sync so
+  // don't output during that interval either.
    always @*
+   if ((x_pos < 416 || x_pos > 504) && (y_pos < 14 || y_pos > 22))
      case (out_pixel)
       4'd0:
          begin
@@ -212,6 +217,12 @@ module vicii(
             blue = 2'h02;
          end
     endcase
+  else
+    begin
+       red = 2'h00;
+       green = 2'h00;
+       blue = 2'h00;
+    end
     
     sync vicsync(
        .rst(reset),

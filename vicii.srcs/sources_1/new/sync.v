@@ -45,7 +45,7 @@ SerrationPulse usep1
 
 always @(posedge clk)
     // TODO make configurable based on chip
-    // Rob's code used 0-9 but datasheet says 14-22
+    // Rob's code used 0-8 but datasheet says 14-22
 	case(rasterY)
 	9'd14:	cSync <= ~EQ;
 	9'd15:	cSync <= ~EQ;
