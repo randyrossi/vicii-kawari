@@ -1,24 +1,28 @@
 #include <SDL2/SDL.h>
 
+#include <iostream>
+
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <iostream>
-
-// Include common routines
 #include <verilated.h>
 
-// Include model header, generated from Verilating "top.v"
 #include "Vtop.h"
+#include "constants.h"
 
-// Current simulation time (64-bit unsigned)
+// Current simulation time (64-bit unsigned). See
+// constants.h for how much each tick represents.
 static vluint64_t ticks = 0;
-
-// How much to divide our ticks (which is always picoseconds) down to our VCD
-// timescale
-#define PICOSECONDS_TO_TIMESCALE 1000L
+static vluint64_t half4XDotPS;
+static vluint64_t half4XColorPS;
+static vluint64_t startTicks;
+static vluint64_t endTicks;
+static vluint64_t nextClk1;
+static vluint64_t nextClk2;
+static int maxDotX;
+static int maxDotY;
 
 // Add new input/output here
 #define NUM_SIGNALS 11
@@ -40,10 +44,13 @@ const char *signal_labels[] = {
 const char *signal_ids[] = {
    "p", "c", "r" ,  "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "s" };
 
-unsigned char *signal_src[NUM_SIGNALS];
-unsigned int signal_bit[NUM_SIGNALS];
-bool signal_monitor[NUM_SIGNALS];
-unsigned char prev_signal_values[NUM_SIGNALS];
+static unsigned char *signal_src[NUM_SIGNALS];
+static unsigned int signal_bit[NUM_SIGNALS];
+static bool signal_monitor[NUM_SIGNALS];
+static unsigned char prev_signal_values[NUM_SIGNALS];
+
+// Some utility macros
+// Use RISING/FALLING in combination with HASCHANGED
 
 #define GETVAL(signum) \
    (*signal_src[signum] & signal_bit[signum] ? 1 : 0)
@@ -51,30 +58,23 @@ unsigned char prev_signal_values[NUM_SIGNALS];
    ( signal_monitor[signum] && GETVAL(signum) != prev_signal_values[signum] )
 #define RISING(signum) \
    ( signal_monitor[signum] && GETVAL(signum))
-
-// Convert microseconds to ticks (picoseconds)
-#define US_TO_TICKS(t) (t * 1000L * 1000L)
-
-vluint64_t startTicks;
-vluint64_t endTicks;
+#define FALLING(signum) \
+   ( signal_monitor[signum] && !GETVAL(signum))
 
 // We can drive our simulated clock gen every pico second but that would
 // be a waste since nothing happens between clock edges. This function
 // will determine how many ticks(picoseconds) to advance our clock
 // given our two periods.
-static vluint64_t nextClk1 = 15275;
-static vluint64_t nextClk2 = 34920;
-
 static vluint64_t nextTick(Vtop* top) {
    vluint64_t diff1 = nextClk1 - ticks;
    vluint64_t diff2 = nextClk2 - ticks;
 
    if (diff1 < diff2) {
-      nextClk1 += 15275;
+      nextClk1 += half4XDotPS;
       top->top__DOT__clk_dot4x = ~top->top__DOT__clk_dot4x;
       return ticks + diff1;
    }
-   nextClk2 += 34920;
+   nextClk2 += half4XColorPS;
    top->top__DOT__clk_col4x = ~top->top__DOT__clk_col4x;
    return ticks + diff2;
 }
@@ -90,8 +90,7 @@ static void vcd_header(Vtop* top) {
    printf ("   VCD vicii\n");
    printf ("$end\n");
 
-   // Use 1ns timescale. Required PICOSECONDS_TO_TIMESCALE to be 1000L
-   printf ("$timescale 1ns $end\n");
+   printf (VCD_TIMESCALE);
    printf ("$scope module logic $end\n");
 
    for (int i=0;i<NUM_SIGNALS;i++)
@@ -106,13 +105,14 @@ static void vcd_header(Vtop* top) {
    printf ("$end\n");
 
    // Start time
-   printf ("#%" VL_PRI64 "d\n", startTicks/PICOSECONDS_TO_TIMESCALE);
+   printf ("#%" VL_PRI64 "d\n", startTicks/TICKS_TO_TIMESCALE);
    for (int i=0;i<NUM_SIGNALS;i++)
       printf ("%x%s\n",GETVAL(i), signal_ids[i]);
    fflush(stdout);
 }
 
 int main(int argc, char** argv, char** env) {
+    bool isNtsc = true;
     bool capture = false;
     bool show_vcd = false;
     bool show_window = false;
@@ -125,8 +125,14 @@ int main(int argc, char** argv, char** env) {
     char *cvalue = nullptr;
     char c;
 
-    while ((c = getopt (argc, argv, "s:t:vw")) != -1)
+    while ((c = getopt (argc, argv, "s:t:vwnp")) != -1)
     switch (c) {
+      case 'n':
+        isNtsc = true;
+        break;
+      case 'p':
+        isNtsc = false;
+        break;
       case 'v':
         show_vcd = true;
         break;
@@ -144,6 +150,8 @@ int main(int argc, char** argv, char** env) {
         printf ("  -s [uS] : start at uS\n");
         printf ("  -t [uS] : run for uS\n");
         printf ("  -v      : generate vcd to stdout\n");
+        printf ("  -p      : pal\n");
+        printf ("  -n      : ntsc (default)\n");
         printf ("  -w      : show SDL2 window\n");
         exit(0);
       case '?':
@@ -157,9 +165,21 @@ int main(int argc, char** argv, char** env) {
                    optopt);
         return 1;
       default:
-        abort ();
+        exit(-1);
     }
 
+    if (isNtsc) {
+       half4XDotPS = NTSC_HALF_4X_DOT_PS;
+       half4XColorPS = NTSC_HALF_4X_COLOR_PS;
+       maxDotX = NTSC_MAX_DOT_X;
+       maxDotY = NTSC_MAX_DOT_Y;
+    } else {
+       fprintf (stderr, "PAL not supported\n");
+       exit(-1);
+    }
+
+    nextClk1 = half4XDotPS;
+    nextClk2 = half4XColorPS;
     endTicks = startTicks + durationTicks;
 
     int sdl_init_mode = SDL_INIT_VIDEO;
@@ -174,8 +194,8 @@ int main(int argc, char** argv, char** env) {
 
     if (show_window) {
       SDL_DisplayMode current;
-      int width = 520; // NTSC
-      int height = 262; // NTSC
+      int width = maxDotX;
+      int height = maxDotY;
 
       win = SDL_CreateWindow("VICII",
                              SDL_WINDOWPOS_CENTERED,
@@ -266,7 +286,7 @@ int main(int argc, char** argv, char** env) {
 
           if (anyChanged) {
              if (show_vcd)
-                printf ("#%" VL_PRI64 "d\n", ticks/PICOSECONDS_TO_TIMESCALE);
+                printf ("#%" VL_PRI64 "d\n", ticks/TICKS_TO_TIMESCALE);
              for (int i = 0; i < NUM_SIGNALS; i++) {
                 if (HASCHANGED(i)) {
                    if (show_vcd)
@@ -276,24 +296,24 @@ int main(int argc, char** argv, char** env) {
              }
           }
 
-        // If rendering, draw current color on dot clock
-        if (show_window && HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
-           SDL_SetRenderDrawColor(ren,
-              top->red << 6,
-              top->green << 6,
-              top->blue << 6,
-              255);
-           SDL_RenderDrawPoint(ren,
-              top->top__DOT__vic_inst__DOT__x_pos,
-              top->top__DOT__vic_inst__DOT__y_pos);
+          // If rendering, draw current color on dot clock
+          if (show_window && HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
+             SDL_SetRenderDrawColor(ren,
+                top->red << 6,
+                top->green << 6,
+                top->blue << 6,
+                255);
+             SDL_RenderDrawPoint(ren,
+                top->top__DOT__vic_inst__DOT__x_pos,
+                top->top__DOT__vic_inst__DOT__y_pos);
 
-           if (prev_y != top->top__DOT__vic_inst__DOT__y_pos) {
-              SDL_RenderPresent(ren);
-              prev_y = top->top__DOT__vic_inst__DOT__y_pos;
+             if (prev_y != top->top__DOT__vic_inst__DOT__y_pos) {
+                SDL_RenderPresent(ren);
+                prev_y = top->top__DOT__vic_inst__DOT__y_pos;
 
-              SDL_PollEvent(&event);
-           }
-        }
+                SDL_PollEvent(&event);
+             }
+          }
         }
 
 
@@ -303,7 +323,6 @@ int main(int argc, char** argv, char** env) {
 
         if (ticks >= endTicks)
            break;
-
     }
 
     if (show_window) {
