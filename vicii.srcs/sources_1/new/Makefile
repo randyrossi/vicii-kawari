@@ -34,14 +34,17 @@ VERILATOR = $(VERILATOR_ROOT)/bin/verilator
 endif
 
 default:
-	$(VERILATOR) -cc --exe top.v clockgen_sim.v clockdivs.v vicii.v sync.v serration.v equalization.v sim_main.cpp
+	$(VERILATOR) -cc --exe top.v clockgen_sim.v clockdivs.v vicii.v sync.v serration.v equalization.v sim_main.cpp -LDFLAGS '-lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
 
-run:
-	@obj_dir/Vtop > session.vcd
-
-view:
+# Bring up the logic analyser on a frame's worth of data
+logic:
+	@obj_dir/Vtop -v > session.vcd
 	pulseview -I vcd -i session.vcd
+
+# Render a frame in the window
+view:
+	@obj_dir/Vtop -w
 
 ######################################################################
 
