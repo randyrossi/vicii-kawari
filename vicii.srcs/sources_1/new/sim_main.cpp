@@ -1,8 +1,7 @@
-// DESCRIPTION: Verilator: Verilog example module
-//
-// This file ONLY is placed into the Public Domain, for any use,
-// without warranty, 2017 by Wilson Snyder.
-//======================================================================
+#include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 // Include common routines
 #include <verilated.h>
@@ -13,7 +12,8 @@
 // Current simulation time (64-bit unsigned)
 static vluint64_t ticks = 0;
 
-// How much to divide our ticks (which is always picoseconds) down to our VCD timescale
+// How much to divide our ticks (which is always picoseconds) down to our VCD
+// timescale
 #define PICOSECONDS_TO_TIMESCALE 1000L
 
 // Add new input/output here
@@ -31,19 +31,26 @@ static vluint64_t ticks = 0;
 #define OUT_CSYNC 10
 
 // Add new input/output here
-const char *signal_labels[] = { "phi", "col", "rst", "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "csync"};
-const char *signal_ids[] = { "p", "c", "r" ,  "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "s" };
+const char *signal_labels[] = {
+   "phi", "col", "rst", "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "csync"};
+const char *signal_ids[] = {
+   "p", "c", "r" ,  "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "s" };
 
 unsigned char *signal_src[NUM_SIGNALS];
 unsigned int signal_bit[NUM_SIGNALS];
 bool signal_monitor[NUM_SIGNALS];
 unsigned char prev_signal_values[NUM_SIGNALS];
 
-#define GETVAL(signum) (*signal_src[signum] & signal_bit[signum] ? 1 : 0)
-#define HASCHANGED(signum) ( signal_monitor[signum] && GETVAL(signum) != prev_signal_values[signum] )
+#define GETVAL(signum) \
+   (*signal_src[signum] & signal_bit[signum] ? 1 : 0)
+#define HASCHANGED(signum) \
+   ( signal_monitor[signum] && GETVAL(signum) != prev_signal_values[signum] )
 
 // Convert microseconds to ticks (picoseconds)
 #define US_TO_TICKS(t) (t * 1000L * 1000L)
+
+vluint64_t startTicks;
+vluint64_t endTicks;
 
 // We can drive our simulated clock gen every pico second but that would
 // be a waste since nothing happens between clock edges. This function
@@ -92,19 +99,50 @@ static void vcd_header(Vtop* top) {
       printf ("x%s\n",signal_ids[i]);
    printf ("$end\n");
 
-   // Time zero
-   printf ("#0\n");
+   // Start time
+   printf ("#%" VL_PRI64 "d\n", startTicks/PICOSECONDS_TO_TIMESCALE);
    for (int i=0;i<NUM_SIGNALS;i++)
       printf ("%x%s\n",GETVAL(i), signal_ids[i]);
    fflush(stdout);
 }
 
 int main(int argc, char** argv, char** env) {
-    bool capture = true;
-    vluint64_t endTicks = US_TO_TICKS(20000);
+    bool capture = false;
 
-    // Prevent unused variable warnings
-    if (0 && argc && argv && env) {}
+    // Default to 20ms starting at 0
+    startTicks = US_TO_TICKS(0);
+    endTicks = US_TO_TICKS(20000L);
+
+    char *cvalue = NULL;
+    char c;
+
+    while ((c = getopt (argc, argv, "s:t:")) != -1)
+    switch (c)
+      {
+      case 's':
+        startTicks = US_TO_TICKS(atol(optarg));
+        break;
+      case 't':
+        endTicks = startTicks + US_TO_TICKS(atol(optarg));
+        break;
+      case 'h':
+        printf ("Usage\n");
+        printf ("  -s start uS\n");
+        printf ("  -t duration uS\n");
+        exit(0);
+      case '?':
+        if (optopt == 't' || optopt == 's')
+          fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+        else if (isprint (optopt))
+          fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+        else
+          fprintf (stderr,
+                   "Unknown option character `\\x%x'.\n",
+                   optopt);
+        return 1;
+      default:
+        abort ();
+      }
 
     // Add new input/output here.
     Vtop* top = new Vtop;
@@ -165,6 +203,7 @@ int main(int argc, char** argv, char** env) {
         // Evaluate model
         top->eval();
 
+        capture = (ticks >= startTicks) && (ticks <=endTicks);
         if (capture) {
           bool anyChanged = false;
           for (int i = 0; i < NUM_SIGNALS; i++) {
