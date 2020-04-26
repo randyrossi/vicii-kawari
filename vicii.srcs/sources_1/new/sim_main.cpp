@@ -25,7 +25,6 @@ static int maxDotX;
 static int maxDotY;
 
 // Add new input/output here
-#define NUM_SIGNALS 11
 #define OUT_PHI 0
 #define OUT_COLREF 1
 #define IN_RST 2
@@ -37,14 +36,47 @@ static int maxDotY;
 #define OUT_B1 8
 #define OUT_DOT 9
 #define OUT_CSYNC 10
+#define INOUT_A0 11
+#define INOUT_A1 12
+#define INOUT_A2 13
+#define INOUT_A3 14
+#define INOUT_A4 15
+#define INOUT_A5 16
+#define INOUT_A6 17
+#define INOUT_A7 18
+#define INOUT_A8 19
+#define INOUT_A9 20
+#define INOUT_A10 21
+#define INOUT_A11 22
+#define INOUT_D0 23
+#define INOUT_D1 24
+#define INOUT_D2 25
+#define INOUT_D3 26
+#define INOUT_D4 27
+#define INOUT_D5 28
+#define INOUT_D6 29
+#define INOUT_D7 30
+#define INOUT_D8 31
+#define INOUT_D9 32
+#define INOUT_D10 33
+#define INOUT_D11 34
+#define NUM_SIGNALS 35
 
 // Add new input/output here
 const char *signal_labels[] = {
-   "phi", "col", "rst", "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "csync"};
+   "phi", "col", "rst", "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "csync",
+   "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11",
+   "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "d9", "d10", "d11",
+};
 const char *signal_ids[] = {
-   "p", "c", "r" ,  "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "s" };
+   "p", "c", "r" ,  "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "s",
+   "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11",
+   "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "d9", "d10", "d11",
+};
 
-static unsigned char *signal_src[NUM_SIGNALS];
+static unsigned int signal_width[NUM_SIGNALS];
+static unsigned char *signal_src8[NUM_SIGNALS];
+static unsigned short *signal_src16[NUM_SIGNALS];
 static unsigned int signal_bit[NUM_SIGNALS];
 static bool signal_monitor[NUM_SIGNALS];
 static unsigned char prev_signal_values[NUM_SIGNALS];
@@ -52,8 +84,16 @@ static unsigned char prev_signal_values[NUM_SIGNALS];
 // Some utility macros
 // Use RISING/FALLING in combination with HASCHANGED
 
-#define GETVAL(signum) \
-   (*signal_src[signum] & signal_bit[signum] ? 1 : 0)
+static int GETVAL(int signum) {
+  if (signal_width[signum] <= 8) {
+     return (*signal_src8[signum] & signal_bit[signum] ? 1 : 0);
+  } else if (signal_width[signum] > 8 && signal_width[signum] < 16) {
+     return (*signal_src16[signum] & signal_bit[signum] ? 1 : 0);
+  } else {
+    abort();
+  }
+}
+
 #define HASCHANGED(signum) \
    ( signal_monitor[signum] && GETVAL(signum) != prev_signal_values[signum] )
 #define RISING(signum) \
@@ -94,24 +134,31 @@ static void vcd_header(Vtop* top) {
    printf ("$scope module logic $end\n");
 
    for (int i=0;i<NUM_SIGNALS;i++)
-      printf ("$var wire 1 %s %s $end\n", signal_ids[i], signal_labels[i]);
+      if (signal_monitor[i])
+         printf ("$var wire 1 %s %s $end\n", signal_ids[i], signal_labels[i]);
    printf ("$upscope $end\n");
 
    printf ("$enddefinitions $end\n");
    printf ("$dumpvars\n");
 
    for (int i=0;i<NUM_SIGNALS;i++)
-      printf ("x%s\n",signal_ids[i]);
+      if (signal_monitor[i])
+         printf ("x%s\n",signal_ids[i]);
    printf ("$end\n");
 
    // Start time
    printf ("#%" VL_PRI64 "d\n", startTicks/TICKS_TO_TIMESCALE);
-   for (int i=0;i<NUM_SIGNALS;i++)
-      printf ("%x%s\n",GETVAL(i), signal_ids[i]);
+   for (int i=0;i<NUM_SIGNALS;i++) {
+      if (signal_monitor[i])
+         printf ("%x%s\n",GETVAL(i), signal_ids[i]);
+   }
    fflush(stdout);
 }
 
 int main(int argc, char** argv, char** env) {
+    bool includeDataBus = true;
+    bool includeAddressBus = true;
+    bool includeColors = true;
     bool isNtsc = true;
     bool capture = false;
     bool show_vcd = false;
@@ -125,8 +172,17 @@ int main(int argc, char** argv, char** env) {
     char *cvalue = nullptr;
     char c;
 
-    while ((c = getopt (argc, argv, "s:t:vwnp")) != -1)
+    while ((c = getopt (argc, argv, "hs:t:vwnpa:d:c:")) != -1)
     switch (c) {
+      case 'c':
+        includeColors = atoi(optarg) == 1 ? true: false;
+        break;
+      case 'a':
+        includeAddressBus = atoi(optarg) == 1 ? true: false;
+        break;
+      case 'd':
+        includeDataBus = atoi(optarg) == 1 ? true: false;
+        break;
       case 'n':
         isNtsc = true;
         break;
@@ -147,12 +203,15 @@ int main(int argc, char** argv, char** env) {
         break;
       case 'h':
         printf ("Usage\n");
-        printf ("  -s [uS] : start at uS\n");
-        printf ("  -t [uS] : run for uS\n");
-        printf ("  -v      : generate vcd to stdout\n");
-        printf ("  -p      : pal\n");
-        printf ("  -n      : ntsc (default)\n");
-        printf ("  -w      : show SDL2 window\n");
+        printf ("  -s [uS]  : start at uS\n");
+        printf ("  -t [uS]  : run for uS\n");
+        printf ("  -v       : generate vcd to stdout\n");
+        printf ("  -p       : pal\n");
+        printf ("  -n       : ntsc (default)\n");
+        printf ("  -w       : show SDL2 window\n");
+        printf ("  -a [0|1] : include/exclude address bus\n");
+        printf ("  -d [0|1] : include/exclude data bus\n");
+        printf ("  -c [0|1] : include/exclude colors\n");
         exit(0);
       case '?':
         if (optopt == 't' || optopt == 's')
@@ -228,28 +287,68 @@ int main(int argc, char** argv, char** env) {
     top->green = 0;
     top->blue = 0;
     top->cSync = 0;
+    top->ad = 0;
+    top->db = 0;
 
     // Default all signals to bit 1 and include in monitoring.
     for (int i = 0; i < NUM_SIGNALS; i++) {
+      signal_width[i] = 1;
       signal_bit[i] = 1;
       signal_monitor[i] = true;
     }
 
+    if (!includeColors) {
+      signal_monitor[OUT_R0] = false;
+      signal_monitor[OUT_R1] = false;
+      signal_monitor[OUT_G0] = false;
+      signal_monitor[OUT_G1] = false;
+      signal_monitor[OUT_B0] = false;
+      signal_monitor[OUT_B1] = false;
+      signal_monitor[OUT_COLREF] = false;
+    }
+
+    if (!includeAddressBus) {
+      for (int i=INOUT_A0; i<= INOUT_A11; i++) {
+        signal_monitor[i] = false;
+      }
+    }
+
+    if (!includeDataBus) {
+      for (int i=INOUT_D0; i<= INOUT_D11; i++) {
+        signal_monitor[i] = false;
+      }
+    }
+
     // Add new input/output here.
-    signal_src[OUT_PHI] = &top->clk_phi;
-    signal_src[OUT_COLREF] = &top->clk_colref;
-    signal_src[IN_RST] = &top->rst;
-    signal_src[OUT_R0] = &top->red;
-    signal_src[OUT_R1] = &top->red;
+    signal_src8[OUT_PHI] = &top->clk_phi;
+    signal_src8[OUT_COLREF] = &top->clk_colref;
+    signal_src8[IN_RST] = &top->rst;
+    signal_src8[OUT_R0] = &top->red;
+    signal_src8[OUT_R1] = &top->red;
     signal_bit[OUT_R1] = 2;
-    signal_src[OUT_G0] = &top->green;
-    signal_src[OUT_G1] = &top->green;
+    signal_src8[OUT_G0] = &top->green;
+    signal_src8[OUT_G1] = &top->green;
     signal_bit[OUT_G1] = 2;
-    signal_src[OUT_B0] = &top->blue;
-    signal_src[OUT_B1] = &top->blue;
+    signal_src8[OUT_B0] = &top->blue;
+    signal_src8[OUT_B1] = &top->blue;
     signal_bit[OUT_B1] = 2;
-    signal_src[OUT_DOT] = &top->top__DOT__clk_dot;
-    signal_src[OUT_CSYNC] = &top->cSync;
+    signal_src8[OUT_DOT] = &top->top__DOT__clk_dot;
+    signal_src8[OUT_CSYNC] = &top->cSync;
+
+    int bt = 1;
+    for (int i=INOUT_A0; i<= INOUT_A11; i++) {
+       signal_width[i] = 12;
+       signal_bit[i] = bt;
+       signal_src16[i] = &top->ad;
+       bt = bt * 2;
+    }
+    bt = 1;
+    for (int i=INOUT_D0; i<= INOUT_D11; i++) {
+       signal_width[i] = 12;
+       signal_bit[i] = bt;
+       signal_src16[i] = &top->ad;
+       bt = bt * 2;
+    }
 
     for (int i = 0; i < NUM_SIGNALS; i++) {
        prev_signal_values[i] = GETVAL(i);
