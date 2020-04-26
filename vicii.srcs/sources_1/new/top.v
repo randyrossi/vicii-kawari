@@ -8,7 +8,9 @@ module top(
    output cSync,       // composite sync signal for CXA1545P 
    output[1:0] red,    // red out for CXA1545P
    output[1:0] green,  // green out for CXA1545P
-   output[1:0] blue    // blue out for CXA1545P
+   output[1:0] blue,   // blue out for CXA1545P
+   inout [11:0] ad,    // address lines
+   inout tri [11:0] db // data bus lines
 );
 
 wire sys_clockb;
