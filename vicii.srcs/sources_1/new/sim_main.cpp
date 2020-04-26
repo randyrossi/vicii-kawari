@@ -346,7 +346,7 @@ int main(int argc, char** argv, char** env) {
     for (int i=INOUT_D0; i<= INOUT_D11; i++) {
        signal_width[i] = 12;
        signal_bit[i] = bt;
-       signal_src16[i] = &top->ad;
+       signal_src16[i] = &top->db;
        bt = bt * 2;
     }
 
@@ -406,6 +406,7 @@ int main(int argc, char** argv, char** env) {
                 top->top__DOT__vic_inst__DOT__x_pos,
                 top->top__DOT__vic_inst__DOT__y_pos);
 
+             // Show updated pixels per raster line
              if (prev_y != top->top__DOT__vic_inst__DOT__y_pos) {
                 SDL_RenderPresent(ren);
                 prev_y = top->top__DOT__vic_inst__DOT__y_pos;
@@ -414,7 +415,6 @@ int main(int argc, char** argv, char** env) {
              }
           }
         }
-
 
         for (int i = 0; i < NUM_SIGNALS; i++) {
            prev_signal_values[i] = GETVAL(i);
