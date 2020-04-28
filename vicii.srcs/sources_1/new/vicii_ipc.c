@@ -115,6 +115,7 @@ void ipc_close(struct vicii_ipc* ipc) {
   shmdt(ipc->dspInBuf);
   ipc->dspOutBuf = NULL;
   ipc->dspInBuf = NULL;
+  free(ipc);
 }
 
 int ipc_send(struct vicii_ipc* ipc, unsigned char *b) {

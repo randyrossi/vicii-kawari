@@ -117,10 +117,18 @@ static vluint64_t nextTick(Vtop* top) {
       nextClk1 += half4XDotPS;
       top->top__DOT__clk_dot4x = ~top->top__DOT__clk_dot4x;
       return ticks + diff1;
+   } else if (diff2 < diff1) {
+      nextClk2 += half4XColorPS;
+      top->top__DOT__clk_col4x = ~top->top__DOT__clk_col4x;
+      return ticks + diff2;
+   } else {
+      // Equal, both tick
+      nextClk1 += half4XDotPS;
+      nextClk2 += half4XColorPS;
+      top->top__DOT__clk_dot4x = ~top->top__DOT__clk_dot4x;
+      top->top__DOT__clk_col4x = ~top->top__DOT__clk_col4x;
+      return ticks + diff1;
    }
-   nextClk2 += half4XColorPS;
-   top->top__DOT__clk_col4x = ~top->top__DOT__clk_col4x;
-   return ticks + diff2;
 }
 
 static void vcd_header(Vtop* top) {
