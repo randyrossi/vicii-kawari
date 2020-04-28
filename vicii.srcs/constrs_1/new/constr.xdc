@@ -90,3 +90,9 @@ set_property -dict { PACKAGE_PIN J3  IOSTANDARD LVCMOS33 } [get_ports { db[9] }]
 set_property -dict { PACKAGE_PIN J1  IOSTANDARD LVCMOS33 } [get_ports { db[10] }];
 # db[11] inout, Pin 12
 set_property -dict { PACKAGE_PIN K2  IOSTANDARD LVCMOS33 } [get_ports { db[11] }];
+
+# cs input, Pin 13
+set_property -dict { PACKAGE_PIN L1    IOSTANDARD LVCMOS33 } [get_ports { cs }];
+
+# rw input, Pin 14
+set_property -dict { PACKAGE_PIN L2    IOSTANDARD LVCMOS33 } [get_ports { rw }];

@@ -64,18 +64,22 @@ static int maxDotY;
 #define INOUT_D9 32
 #define INOUT_D10 33
 #define INOUT_D11 34
-#define NUM_SIGNALS 35
+#define IN_CE 35
+#define IN_RW 36
+#define NUM_SIGNALS 37
 
 // Add new input/output here
 const char *signal_labels[] = {
    "phi", "col", "rst", "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "csync",
    "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11",
    "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "d9", "d10", "d11",
+   "ce", "rw",
 };
 const char *signal_ids[] = {
    "p", "c", "r" ,  "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "s",
    "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11",
    "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "d9", "d10", "d11",
+   "ce", "rw",
 };
 
 static unsigned int signal_width[NUM_SIGNALS];
@@ -323,6 +327,8 @@ int main(int argc, char** argv, char** env) {
     top->cSync = 0;
     top->ad = 0;
     top->db = 0;
+    top->ce = 1;
+    top->rw = 1;
 
     // Default all signals to bit 1 and include in monitoring.
     for (int i = 0; i < NUM_SIGNALS; i++) {
@@ -368,6 +374,8 @@ int main(int argc, char** argv, char** env) {
     signal_bit[OUT_B1] = 2;
     signal_src8[OUT_DOT] = &top->top__DOT__clk_dot;
     signal_src8[OUT_CSYNC] = &top->cSync;
+    signal_src8[IN_CE] = &top->ce;
+    signal_src8[IN_RW] = &top->rw;
 
     int bt = 1;
     for (int i=INOUT_A0; i<= INOUT_A11; i++) {
@@ -413,6 +421,8 @@ int main(int argc, char** argv, char** env) {
 
            capture = (state->flags & VICII_OP_CAPTURE);
 
+           top->ce = state->ce;
+           top->rw = state->rw;
            top->ad = state->addr;
            top->db = state->data;
 

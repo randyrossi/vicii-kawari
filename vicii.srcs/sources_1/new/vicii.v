@@ -13,7 +13,9 @@ module vicii(
    output reg[1:0] blue,
    output cSync,
    inout [11:0] ad,
-   inout tri [11:0] db
+   inout tri [11:0] db,
+   input ce,
+   input rw
 );
 
   reg [9:0] x_pos;

@@ -12,7 +12,9 @@ module top(
    output[1:0] green,  // green out for CXA1545P
    output[1:0] blue,   // blue out for CXA1545P
    inout [11:0] ad,    // address lines
-   inout tri [11:0] db // data bus lines
+   inout tri [11:0] db,// data bus lines
+   input ce,           // chip enable (LOW=enable, HIGH=disabled)
+   input rw            // read/write (LOW=write, HIGH=read)
 );
 
 wire sys_clockb;
@@ -69,7 +71,9 @@ vicii vic_inst(
    .reset(rst),
    .cSync(cSync),
    .ad(ad),
-   .db(db)
+   .db(db),
+   .ce(ce),
+   .rw(rw)
 );
 
 endmodule
