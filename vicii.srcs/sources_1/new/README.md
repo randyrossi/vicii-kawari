@@ -10,7 +10,7 @@ Build
     make logic - show logic analyser on simulation
     make view  - show frame
 
-Design Notes
+FPGA Design Notes
 
     Created two clock sources using MMCM
     4x dot clock = 32.727272 with reset
@@ -30,9 +30,23 @@ Usage
    our modified VICE-3.4 code to shadow it's vic.  See vicii-vice-3.4
    repo.
 
-   ./obj_dir/Vtop -z
+   ./obj_dir/Vtop -z -v
 
-   Then run the modified VICE code to act as the sender.  It will single
-   step the evaluations of the fpga design and set the address, data, BA
-   lines etc and 'shadow' VICE's vic.  Stepping can be at the half dot clock
-   period resolution.
+   Then run the modified VICE code to act as the sender.
+
+   Capture can be started by poking $d3ff to set capture flags.
+
+   POKE 54271,1 - Set bit 1 enables FPGA sync
+   POKE 54271,3 - Set bit 2 disables FPGA sync (auto clears bit 1)
+
+   When sync is enabled, VICE will single step the fpga design 16 half cycles
+   after every CPU cycle.  If a write or read to/from a VIC register happens,
+   this also sets address, data, ba, ce, rw lines appropriately so the fpga
+   eval can operate on those values.
+
+   You can keep VICE running and start/stop multiple captures. You have to end
+   the fpga sync in a fairly short time or else you will generate too much
+   data to view at once in pulseview.  It also takes a really long time
+   to sync one whole frame as the fpga is evaluated every half dot clock cycle.
+
+

@@ -167,14 +167,21 @@ static void vcd_header(Vtop* top) {
    fflush(stdout);
 }
 
+// TODO : Do we really need two?
+unsigned char ipc_out_buf[IPC_BUFSIZE];
+unsigned char ipc_in_buf[IPC_BUFSIZE];
+
 int main(int argc, char** argv, char** env) {
-    unsigned char ipc_buf[IPC_BUFSIZE];
+
+    struct vicii_state* state = ((struct vicii_state*)ipc_in_buf);
+    bool capture = false;
+
     bool includeDataBus = true;
     bool includeAddressBus = true;
     bool includeColors = true;
     bool isNtsc = true;
-    bool capture = false;
-    bool showVcd = false;
+    bool captureByTime = true;
+    bool outputVcd = false;
     bool showWindow = false;
     bool shadowVic = false;
     bool renderEachPixel = false;
@@ -191,9 +198,12 @@ int main(int argc, char** argv, char** env) {
     while ((c = getopt (argc, argv, "hs:t:vwnpa:d:c:zb")) != -1)
     switch (c) {
       case 'b':
+        // Render after every pixel instead of after every line
         renderEachPixel = true;
         break;
       case 'z':
+        // IPC tells us when to start/stop capture
+        captureByTime = false;
         shadowVic = true;
         break;
       case 'c':
@@ -212,7 +222,7 @@ int main(int argc, char** argv, char** env) {
         isNtsc = false;
         break;
       case 'v':
-        showVcd = true;
+        outputVcd = true;
         break;
       case 'w':
         showWindow = true;
@@ -378,7 +388,7 @@ int main(int argc, char** argv, char** env) {
        prev_signal_values[i] = SGETVAL(i);
     }
 
-    if (showVcd)
+    if (outputVcd)
        vcd_header(top);
 
     if (shadowVic) {
@@ -394,12 +404,19 @@ int main(int argc, char** argv, char** env) {
 
     while (!Verilated::gotFinish()) {
 
+        // Are we shadowing from VICE? Wait for sync data, then
+        // step until next dot clock tick.
         if (shadowVic && !needDotTick) {
-           if (ipc_receive(ipc, &ipc_buf[0]))
+           if (ipc_receive(ipc, &ipc_in_buf[0]))
               break;
-           // Set address, data lines etc here.
-           // Did request want next dot tick?
            needDotTick = true;
+
+           capture = (state->flags & VICII_OP_CAPTURE);
+
+           top->ad = state->addr;
+           top->db = state->data;
+
+           // TODO : Set ce, rw etc
         }
 
         // Advance simulation time. Each tick represents 1 picosecond.
@@ -416,7 +433,9 @@ int main(int argc, char** argv, char** env) {
         // Evaluate model
         top->eval();
 
-        capture = (ticks >= startTicks) && (ticks <= endTicks);
+        if (captureByTime)
+           capture = (ticks >= startTicks) && (ticks <= endTicks);
+
         if (capture) {
           bool anyChanged = false;
           for (int i = 0; i < NUM_SIGNALS; i++) {
@@ -427,11 +446,11 @@ int main(int argc, char** argv, char** env) {
           }
 
           if (anyChanged) {
-             if (showVcd)
+             if (outputVcd)
                 printf ("#%" VL_PRI64 "d\n", ticks/TICKS_TO_TIMESCALE);
              for (int i = 0; i < NUM_SIGNALS; i++) {
                 if (HASCHANGED(i)) {
-                   if (showVcd)
+                   if (outputVcd)
                       printf ("%x%s\n", SGETVAL(i), signal_ids[i]);
 
                 }
@@ -463,18 +482,27 @@ int main(int argc, char** argv, char** env) {
         }
 
         if (shadowVic && HASCHANGED(OUT_DOT) && needDotTick) {
-           // Report back any outputs like data, address, ba, etc. here
-           if (ipc_send(ipc, &ipc_buf[0]))
+           // TODO : Report back any outputs like data, ba, aec, etc. here
+           if (ipc_send(ipc, &ipc_out_buf[0]))
               break;
            needDotTick = false;
         }
 
+        // End of eval. Remember current values for previous compares.
         for (int i = 0; i < NUM_SIGNALS; i++) {
            prev_signal_values[i] = SGETVAL(i);
         }
 
-        if (ticks >= endTicks)
+        // Is it time to stop?
+        if (captureByTime && ticks >= endTicks)
            break;
+
+        // Did we get an end signal?
+        // Must make sure we're not still waiting for a dot tick before
+        // ending  because we need to send a response.
+        if ((state->flags & VICII_OP_CAPTURE_END) && !needDotTick) {
+           break;
+        }
     }
 
     if (shadowVic) {

@@ -20,6 +20,21 @@ union semun {
   ushort* array;
 };
 
+// When bit 1 is flipped, fpga sync will start
+#define VICII_OP_CAPTURE      1
+// When bit 2 if flipped, fpga sync will stop, bit 1&2 are turned off
+#define VICII_OP_CAPTURE_END  2
+
+// Must not exceed IPC_BUFSIZE
+struct vicii_state {
+  unsigned int flags;
+
+  unsigned char ce;
+  unsigned char rw;
+  unsigned short addr;
+  unsigned char data;
+};
+
 #define END1_PRODUCER_SIG_END2_CONSUME_OK 0
 #define END2_CONSUMER_SIG_END1_PRODUCE_OK 1
 #define END2_PRODUCER_SIG_END1_CONSUME_OK 2
