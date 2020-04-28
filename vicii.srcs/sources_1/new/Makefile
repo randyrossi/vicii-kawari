@@ -33,9 +33,27 @@ export VERILATOR_ROOT
 VERILATOR = $(VERILATOR_ROOT)/bin/verilator
 endif
 
-default:
-	$(VERILATOR) -cc --exe top.v clockgen_sim.v clockdivs.v vicii.v sync.v serration.v equalization.v sim_main.cpp -LDFLAGS '-lSDL2'
+default: ipc_test vicii_ipc.o libvicii_ipc.so
+	$(VERILATOR) -cc --exe top.v clockgen_sim.v clockdivs.v vicii.v sync.v serration.v equalization.v sim_main.cpp -LDFLAGS '../vicii_ipc.o -lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
+
+vicii_ipc.o: vicii_ipc.c
+	$(CC) -o vicii_ipc.o -fPIC -c vicii_ipc.c
+
+ipc_test: libvicii_ipc.so
+	$(CC) -o ipc_test ipc_test.o -L /usr/lib -lvicii_ipc
+
+libvicii_ipc.so: vicii_ipc.o
+	$(CC) -shared vicii_ipc.o -o libvicii_ipc.so
+
+# Install our libvicii_ipc library so VICE can link against it
+# TODO: Change this to specify where vice build is instead of installing
+# system wide.
+install: libvicii_ipc.so
+	sudo cp libvicii_ipc.so /usr/lib
+	sudo chmod oug+r /usr/lib/libvicii_ipc.so
+	sudo cp vicii_ipc.h /usr/include
+	sudo chmod oug+r /usr/include/vicii_ipc.h
 
 # Bring up the logic analyser on a frame's worth of data
 logic:
@@ -51,3 +69,4 @@ view:
 maintainer-copy::
 clean mostlyclean distclean maintainer-clean::
 	-rm -rf obj_dir *.log *.dmp *.vpd core
+	-rm -f vicii_ipc.o ipc_test libvicii_ipc.so

@@ -12,6 +12,10 @@
 #include "Vtop.h"
 #include "constants.h"
 
+extern "C" {
+#include "vicii_ipc.h"
+}
+
 // Current simulation time (64-bit unsigned). See
 // constants.h for how much each tick represents.
 static vluint64_t ticks = 0;
@@ -84,7 +88,7 @@ static unsigned char prev_signal_values[NUM_SIGNALS];
 // Some utility macros
 // Use RISING/FALLING in combination with HASCHANGED
 
-static int GETVAL(int signum) {
+static int SGETVAL(int signum) {
   if (signal_width[signum] <= 8) {
      return (*signal_src8[signum] & signal_bit[signum] ? 1 : 0);
   } else if (signal_width[signum] > 8 && signal_width[signum] < 16) {
@@ -95,11 +99,11 @@ static int GETVAL(int signum) {
 }
 
 #define HASCHANGED(signum) \
-   ( signal_monitor[signum] && GETVAL(signum) != prev_signal_values[signum] )
+   ( signal_monitor[signum] && SGETVAL(signum) != prev_signal_values[signum] )
 #define RISING(signum) \
-   ( signal_monitor[signum] && GETVAL(signum))
+   ( signal_monitor[signum] && SGETVAL(signum))
 #define FALLING(signum) \
-   ( signal_monitor[signum] && !GETVAL(signum))
+   ( signal_monitor[signum] && !SGETVAL(signum))
 
 // We can drive our simulated clock gen every pico second but that would
 // be a waste since nothing happens between clock edges. This function
@@ -150,20 +154,24 @@ static void vcd_header(Vtop* top) {
    printf ("#%" VL_PRI64 "d\n", startTicks/TICKS_TO_TIMESCALE);
    for (int i=0;i<NUM_SIGNALS;i++) {
       if (signal_monitor[i])
-         printf ("%x%s\n",GETVAL(i), signal_ids[i]);
+         printf ("%x%s\n",SGETVAL(i), signal_ids[i]);
    }
    fflush(stdout);
 }
 
 int main(int argc, char** argv, char** env) {
+    unsigned char ipc_buf[IPC_BUFSIZE];
     bool includeDataBus = true;
     bool includeAddressBus = true;
     bool includeColors = true;
     bool isNtsc = true;
     bool capture = false;
-    bool show_vcd = false;
-    bool show_window = false;
+    bool showVcd = false;
+    bool showWindow = false;
+    bool shadowVic = false;
+    bool renderEachPixel = false;
     int prev_y = -1;
+    struct vicii_ipc* ipc;
 
     // Default to 16.7us starting at 0
     startTicks = US_TO_TICKS(0);
@@ -172,8 +180,14 @@ int main(int argc, char** argv, char** env) {
     char *cvalue = nullptr;
     char c;
 
-    while ((c = getopt (argc, argv, "hs:t:vwnpa:d:c:")) != -1)
+    while ((c = getopt (argc, argv, "hs:t:vwnpa:d:c:zb")) != -1)
     switch (c) {
+      case 'b':
+        renderEachPixel = true;
+        break;
+      case 'z':
+        shadowVic = true;
+        break;
       case 'c':
         includeColors = atoi(optarg) == 1 ? true: false;
         break;
@@ -190,10 +204,10 @@ int main(int argc, char** argv, char** env) {
         isNtsc = false;
         break;
       case 'v':
-        show_vcd = true;
+        showVcd = true;
         break;
       case 'w':
-        show_window = true;
+        showWindow = true;
         break;
       case 's':
         startTicks = US_TO_TICKS(atol(optarg));
@@ -212,6 +226,8 @@ int main(int argc, char** argv, char** env) {
         printf ("  -a [0|1] : include/exclude address bus\n");
         printf ("  -d [0|1] : include/exclude data bus\n");
         printf ("  -c [0|1] : include/exclude colors\n");
+        printf ("  -z       : single step eval for shadow vic via ipc\n");
+        printf ("  -b       : render each pixel instead of each line\n");
         exit(0);
       case '?':
         if (optopt == 't' || optopt == 's')
@@ -251,7 +267,7 @@ int main(int argc, char** argv, char** env) {
     SDL_Renderer* ren = nullptr;
     SDL_Window* win;
 
-    if (show_window) {
+    if (showWindow) {
       SDL_DisplayMode current;
       int width = maxDotX;
       int height = maxDotY;
@@ -351,20 +367,39 @@ int main(int argc, char** argv, char** env) {
     }
 
     for (int i = 0; i < NUM_SIGNALS; i++) {
-       prev_signal_values[i] = GETVAL(i);
+       prev_signal_values[i] = SGETVAL(i);
     }
 
-    if (show_vcd)
+    if (showVcd)
        vcd_header(top);
 
+    if (shadowVic) {
+       ipc = ipc_init(IPC_RECEIVER);
+       ipc_open(ipc);
+    }
+
+    // This lets us iterate the eval loop until we see the
+    // dot clock tick forward one half its period.
+    bool needDotTick = false;
+
     // Simulate until $finish
+
     while (!Verilated::gotFinish()) {
+
+        if (shadowVic && !needDotTick) {
+           if (ipc_receive(ipc, &ipc_buf[0]))
+              break;
+           // Set address, data lines etc here.
+           // Did request want next dot tick?
+           needDotTick = true;
+        }
+
         // Advance simulation time. Each tick represents 1 picosecond.
         ticks = nextTick(top);
 
 #ifdef TEST_RESET
-        // Test reset between approx 30 and approx 40 us
-        if (ticks >= US_TO_TICKS(30L) && ticks <= US_TO_TICKS(40L))
+        // Test reset between approx 7 and approx 8 us
+        if (ticks >= US_TO_TICKS(7000L) && ticks <= US_TO_TICKS(8000L))
            top->rst = 1;
         else
            top->rst = 0;
@@ -384,19 +419,19 @@ int main(int argc, char** argv, char** env) {
           }
 
           if (anyChanged) {
-             if (show_vcd)
+             if (showVcd)
                 printf ("#%" VL_PRI64 "d\n", ticks/TICKS_TO_TIMESCALE);
              for (int i = 0; i < NUM_SIGNALS; i++) {
                 if (HASCHANGED(i)) {
-                   if (show_vcd)
-                      printf ("%x%s\n", GETVAL(i), signal_ids[i]);
+                   if (showVcd)
+                      printf ("%x%s\n", SGETVAL(i), signal_ids[i]);
 
                 }
              }
           }
 
           // If rendering, draw current color on dot clock
-          if (show_window && HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
+          if (showWindow && HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
              SDL_SetRenderDrawColor(ren,
                 top->red << 6,
                 top->green << 6,
@@ -413,18 +448,32 @@ int main(int argc, char** argv, char** env) {
 
                 SDL_PollEvent(&event);
              }
+             if (renderEachPixel) {
+                SDL_RenderPresent(ren);
+             }
           }
         }
 
+        if (shadowVic && HASCHANGED(OUT_DOT) && needDotTick) {
+           // Report back any outputs like data, address, ba, etc. here
+           if (ipc_send(ipc, &ipc_buf[0]))
+              break;
+           needDotTick = false;
+        }
+
         for (int i = 0; i < NUM_SIGNALS; i++) {
-           prev_signal_values[i] = GETVAL(i);
+           prev_signal_values[i] = SGETVAL(i);
         }
 
         if (ticks >= endTicks)
            break;
     }
 
-    if (show_window) {
+    if (shadowVic) {
+       ipc_close(ipc);
+    }
+
+    if (showWindow) {
        bool quit = false;
        while (!quit) {
           while (SDL_PollEvent(&event)) {

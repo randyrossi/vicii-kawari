@@ -24,4 +24,15 @@ Design Notes
     Top outputs RGB222, SYNC + COLOREF
        Feeds into CX1645P composite encoder to produce luma/chroma/composite
 
+Usage
 
+   Use the -z option to have the simulator wait for a IPC request from
+   our modified VICE-3.4 code to shadow it's vic.  See vicii-vice-3.4
+   repo.
+
+   ./obj_dir/Vtop -z
+
+   Then run the modified VICE code to act as the sender.  It will single
+   step the evaluations of the fpga design and set the address, data, BA
+   lines etc and 'shadow' VICE's vic.  Stepping can be at the half dot clock
+   period resolution.
