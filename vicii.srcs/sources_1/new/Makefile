@@ -55,7 +55,7 @@ install: libvicii_ipc.so
 	sudo cp vicii_ipc.h /usr/include
 	sudo chmod oug+r /usr/include/vicii_ipc.h
 
-SIGNALS=csync,a[0-9]*,d[0-9]*,ba,aec,irq,phi
+SIGNALS=csync,a[0-9]*,d[0-9]*,ba,aec,irq,phi,r[0-9],g[0-9],b[0-9]
 
 # Bring up the logic analyser on a frame's worth of data
 logic:

@@ -8,9 +8,9 @@ module vicii(
    input reset,
    input clk_dot,
    input clk_phi,
-   output reg[1:0] red,
-   output reg[1:0] green,
-   output reg[1:0] blue,
+   output[1:0] red,
+   output[1:0] green,
+   output[1:0] blue,
    output cSync,
    inout [11:0] ad,
    inout tri [11:0] db,
@@ -125,8 +125,8 @@ module vicii(
   reg [7:0] pixel_shift_reg;
   reg [3:0] color_buffered_val;
 
-  assign out_color = pixel_shift_reg[7] == 1 ? color_buffered_val : b0c;
-  assign out_pixel = visible_vertical & visible_horizontal ? out_color : ec;
+  assign out_color = pixel_shift_reg[7] == 1 ? color_buffered_val : b0c; // 4'd6
+  assign out_pixel = visible_vertical & visible_horizontal ? out_color : ec; // 4'd14
 
   always @(posedge clk_dot)
   if (bit_cycle == 7)
@@ -138,122 +138,22 @@ module vicii(
   else
       pixel_shift_reg <= {pixel_shift_reg[6:0],1'b0};
 
-  // 416 is start of hsync, give at least 10.9us after hsync for
-  // color burst and black level to be output by the composite encoder
-  // before outputting pixel changes. Also, 14-22 is vertical sync so
-  // don't output during that interval either.
-   always @*
-   if ((x_pos < 416 || x_pos > 504) && (y_pos < 14 || y_pos > 22))
-     case (out_pixel)
-      4'd0:
-         begin
-            red = 2'h00;
-            green = 2'h00;
-            blue = 2'h00;
-         end
-      4'd1:
-         begin
-            red = 2'h03;
-            green = 2'h03;
-            blue = 2'h03;
-         end
-      4'd2:
-         begin
-            red = 2'h02;
-            green = 2'h00;
-            blue = 2'h00;
-         end
-      4'd3:
-         begin
-            red = 2'h02;
-            green = 2'h03;
-            blue = 2'h03;
-         end
-      4'd4:
-         begin
-            red = 2'h03;
-            green = 2'h01;
-            blue = 2'h03;
-         end
-      4'd5:
-         begin
-            red = 2'h00;
-            green = 2'h03;
-            blue = 2'h01;
-         end
-      4'd6:
-         begin
-            red = 2'h00;
-            green = 2'h00;
-            blue = 2'h02;
-         end
-      4'd7:
-         begin
-            red = 2'h03;
-            green = 2'h03;
-            blue = 2'h01;
-         end
-      4'd8:
-         begin
-            red = 2'h03;
-            green = 2'h02;
-            blue = 2'h01;
-         end
-      4'd9:
-         begin
-            red = 2'h01;
-            green = 2'h01;
-            blue = 2'h00;
-         end
-      4'd10:
-         begin
-            red = 2'h03;
-            green = 2'h01;
-            blue = 2'h01;
-         end
-      4'd11:
-         begin
-            red = 2'h00;
-            green = 2'h00;
-            blue = 2'h00;
-         end
-      4'd12:
-         begin
-            red = 2'h01;
-            green = 2'h01;
-            blue = 2'h01;
-         end
-      4'd13:
-         begin
-            red = 2'h02;
-            green = 2'h03;
-            blue = 2'h01;
-         end
-      4'd14:
-         begin
-            red = 2'h00;
-            green = 2'h02;
-            blue = 2'h03;
-         end
-      4'd15:
-         begin
-            red = 2'h02;
-            green = 2'h02;
-            blue = 2'h02;
-         end
-    endcase
-  else
-    begin
-       red = 2'h00;
-       green = 2'h00;
-       blue = 2'h00;
-    end
+  // Translate out_pixel (indexed) to RGB values
+  color viccolor(
+     .x_pos(x_pos),
+     .y_pos(y_pos),
+     .out_pixel(out_pixel),
+     .red(red),
+     .green(green),
+     .blue(blue)
+  );
 
-    sync vicsync(
-       .rst(reset),
-       .clk(clk_dot),
-       .rasterX(x_pos),
-       .rasterY(y_pos),
-       .cSync(cSync)
-    );
+  // Generate cSync signal
+  sync vicsync(
+     .rst(reset),
+     .clk(clk_dot),
+     .rasterX(x_pos),
+     .rasterY(y_pos),
+     .cSync(cSync)
+  );
 endmodule
