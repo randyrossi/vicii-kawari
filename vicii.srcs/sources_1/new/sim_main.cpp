@@ -66,20 +66,23 @@ static int maxDotY;
 #define INOUT_D11 34
 #define IN_CE 35
 #define IN_RW 36
-#define NUM_SIGNALS 37
+#define IN_BA 37
+#define IN_AEC 38
+#define IN_IRQ 39
+#define NUM_SIGNALS 40
 
 // Add new input/output here
 const char *signal_labels[] = {
    "phi", "col", "rst", "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "csync",
    "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11",
    "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "d9", "d10", "d11",
-   "ce", "rw",
+   "ce", "rw", "ba", "aec", "irq"
 };
 const char *signal_ids[] = {
    "p", "c", "r" ,  "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "s",
    "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11",
    "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "d9", "d10", "d11",
-   "ce", "rw",
+   "ce", "rw", "ba", "aec", "irq"
 };
 
 static unsigned int signal_width[NUM_SIGNALS];
@@ -326,6 +329,9 @@ int main(int argc, char** argv, char** env) {
     top->db = 0;
     top->ce = 1;
     top->rw = 1;
+    top->ba = 0;
+    top->aec = 0;
+    top->irq = 1;
 
     // Default all signals to bit 1 and include in monitoring.
     for (int i = 0; i < NUM_SIGNALS; i++) {
@@ -373,6 +379,9 @@ int main(int argc, char** argv, char** env) {
     signal_src8[OUT_CSYNC] = &top->cSync;
     signal_src8[IN_CE] = &top->ce;
     signal_src8[IN_RW] = &top->rw;
+    signal_src8[IN_BA] = &top->ba;
+    signal_src8[IN_AEC] = &top->aec;
+    signal_src8[IN_IRQ] = &top->irq;
 
     int bt = 1;
     for (int i=INOUT_A0; i<= INOUT_A11; i++) {
@@ -429,13 +438,20 @@ int main(int argc, char** argv, char** env) {
 
            capture = (state->flags & VICII_OP_CAPTURE);
 
+           // TODO : Capture just enabled? Need to sync all
+           // state in fpga design (line_cycle, bit_cycle, y,
+           // registers, etc..)
+
            if (state->flags & VICII_OP_BUS_ACCESS) {
               assert(top->clk_phi);
            }
+
            top->ad = state->addr;
            top->ce = state->ce;
            top->rw = state->rw;
-           if (top->rw == 0 && top->ce == 0) {
+
+           if (top->ce == 0 && top->rw == 0) {
+              // chip select and write, set data
               top->db = state->data;
            }
         }
@@ -502,6 +518,7 @@ int main(int argc, char** argv, char** env) {
            // TODO : Report back any outputs like data, ba, aec, etc. here
 
            if (top->ce == 0 && top->rw == 1) {
+              // Chip selected and read, set data in state
               state->data = top->db;
            }
 

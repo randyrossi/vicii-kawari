@@ -14,7 +14,10 @@ module top(
    inout [11:0] ad,    // address lines
    inout tri [11:0] db,// data bus lines
    input ce,           // chip enable (LOW=enable, HIGH=disabled)
-   input rw            // read/write (LOW=write, HIGH=read)
+   input rw,           // read/write (LOW=write, HIGH=read)
+   output irq,         // irq
+   output aec,         // aec
+   output ba           // ba
 );
 
 wire sys_clockb;
@@ -73,7 +76,10 @@ vicii vic_inst(
    .ad(ad),
    .db(db),
    .ce(ce),
-   .rw(rw)
+   .rw(rw),
+   .aec(aec),
+   .irq(irq),
+   .ba(ba)
 );
 
 endmodule

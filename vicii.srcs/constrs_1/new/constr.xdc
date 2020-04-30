@@ -92,7 +92,16 @@ set_property -dict { PACKAGE_PIN J1  IOSTANDARD LVCMOS33 } [get_ports { db[10] }
 set_property -dict { PACKAGE_PIN K2  IOSTANDARD LVCMOS33 } [get_ports { db[11] }];
 
 # cs input, Pin 13
-set_property -dict { PACKAGE_PIN L1    IOSTANDARD LVCMOS33 } [get_ports { cs }];
+set_property -dict { PACKAGE_PIN L1    IOSTANDARD LVCMOS33 } [get_ports { ce }];
 
 # rw input, Pin 14
 set_property -dict { PACKAGE_PIN L2    IOSTANDARD LVCMOS33 } [get_ports { rw }];
+
+# aec, Pin 20
+set_property -dict { PACKAGE_PIN M2    IOSTANDARD LVCMOS33 } [get_ports { aec }];
+
+# ba, Pin 21 
+set_property -dict { PACKAGE_PIN N1    IOSTANDARD LVCMOS33 } [get_ports { ba }];
+
+# irq, Pin 37
+set_property -dict { PACKAGE_PIN V4    IOSTANDARD LVCMOS33 } [get_ports { irq }];

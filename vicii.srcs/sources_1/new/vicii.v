@@ -15,7 +15,10 @@ module vicii(
    inout [11:0] ad,
    inout tri [11:0] db,
    input ce,
-   input rw
+   input rw,
+   output irq,
+   output aec,
+   output reg ba
 );
 
   // current raster x and y position
@@ -254,4 +257,3 @@ module vicii(
        .cSync(cSync)
     );
 endmodule
-
