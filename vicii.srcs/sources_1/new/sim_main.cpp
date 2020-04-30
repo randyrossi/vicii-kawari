@@ -8,6 +8,7 @@
 #include <unistd.h>
 
 #include <verilated.h>
+#include <regex.h> 
 
 #include "Vtop.h"
 #include "constants.h"
@@ -180,9 +181,6 @@ int main(int argc, char** argv, char** env) {
     struct vicii_state* state;
     bool capture = false;
 
-    bool includeDataBus = true;
-    bool includeAddressBus = true;
-    bool includeColors = true;
     bool isNtsc = true;
     bool captureByTime = true;
     bool outputVcd = false;
@@ -198,9 +196,36 @@ int main(int argc, char** argv, char** env) {
 
     char *cvalue = nullptr;
     char c;
+    char *token;
+    regex_t regex;
+    int reti, reti2;
+    char regex_buf[32];
 
-    while ((c = getopt (argc, argv, "hs:t:vwnpa:d:c:zb")) != -1)
+    while ((c = getopt (argc, argv, "hs:t:vwnpi:zb")) != -1)
     switch (c) {
+      case 'i':
+        token = strtok(optarg, ",");
+        while (token != NULL) {
+           strcpy (regex_buf, "^");
+           strcat (regex_buf, token);
+           strcat (regex_buf, "$");
+           reti = regcomp(&regex, regex_buf, 0);
+           for (int i = 0; i < NUM_SIGNALS; i++) {
+              if (strcmp(signal_labels[i],token) == 0) {
+                 signal_monitor[i] = true;
+                 break;
+              }
+              if (!reti) {
+                 reti2 = regexec(&regex, signal_labels[i], 0, NULL, 0);
+                 if (!reti2) {
+                    signal_monitor[i] = true;
+                 }
+              }
+           }
+           regfree(&regex);
+           token = strtok(NULL, ",");
+        }
+        break;
       case 'b':
         // Render after every pixel instead of after every line
         renderEachPixel = true;
@@ -209,15 +234,6 @@ int main(int argc, char** argv, char** env) {
         // IPC tells us when to start/stop capture
         captureByTime = false;
         shadowVic = true;
-        break;
-      case 'c':
-        includeColors = atoi(optarg) == 1 ? true: false;
-        break;
-      case 'a':
-        includeAddressBus = atoi(optarg) == 1 ? true: false;
-        break;
-      case 'd':
-        includeDataBus = atoi(optarg) == 1 ? true: false;
         break;
       case 'n':
         isNtsc = true;
@@ -245,11 +261,10 @@ int main(int argc, char** argv, char** env) {
         printf ("  -p       : pal\n");
         printf ("  -n       : ntsc (default)\n");
         printf ("  -w       : show SDL2 window\n");
-        printf ("  -a [0|1] : include/exclude address bus\n");
-        printf ("  -d [0|1] : include/exclude data bus\n");
-        printf ("  -c [0|1] : include/exclude colors\n");
         printf ("  -z       : single step eval for shadow vic via ipc\n");
         printf ("  -b       : render each pixel instead of each line\n");
+        printf ("  -i       : list signals to include (phi, ce, csync, etc.) \n");
+        
         exit(0);
       case '?':
         if (optopt == 't' || optopt == 's')
@@ -337,30 +352,9 @@ int main(int argc, char** argv, char** env) {
     for (int i = 0; i < NUM_SIGNALS; i++) {
       signal_width[i] = 1;
       signal_bit[i] = 1;
-      signal_monitor[i] = true;
     }
 
-    if (!includeColors) {
-      signal_monitor[OUT_R0] = false;
-      signal_monitor[OUT_R1] = false;
-      signal_monitor[OUT_G0] = false;
-      signal_monitor[OUT_G1] = false;
-      signal_monitor[OUT_B0] = false;
-      signal_monitor[OUT_B1] = false;
-      signal_monitor[OUT_COLREF] = false;
-    }
-
-    if (!includeAddressBus) {
-      for (int i=INOUT_A0; i<= INOUT_A11; i++) {
-        signal_monitor[i] = false;
-      }
-    }
-
-    if (!includeDataBus) {
-      for (int i=INOUT_D0; i<= INOUT_D11; i++) {
-        signal_monitor[i] = false;
-      }
-    }
+    signal_monitor[OUT_DOT] = true;
 
     // Add new input/output here.
     signal_src8[OUT_PHI] = &top->clk_phi;

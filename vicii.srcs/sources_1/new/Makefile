@@ -55,19 +55,21 @@ install: libvicii_ipc.so
 	sudo cp vicii_ipc.h /usr/include
 	sudo chmod oug+r /usr/include/vicii_ipc.h
 
+SIGNALS=csync,a[0-9]*,d[0-9]*,ba,aec,irq,phi
+
 # Bring up the logic analyser on a frame's worth of data
 logic:
-	@obj_dir/Vtop -v > session.vcd
+	obj_dir/Vtop -i $(SIGNALS) -v > session.vcd
 	pulseview -I vcd -i session.vcd
 
 # Bring up the logic analyzer after capturing a session from VICE
 logic_vice:
-	@obj_dir/Vtop -v -z > session.vcd
+	obj_dir/Vtop -v -i $(SIGNALS) -z > session.vcd
 	pulseview -I vcd -i session.vcd
 
 # Show a window while capturing and then bring up the logic analyser
 logic_window_vice:
-	@obj_dir/Vtop -w -v -z > session.vcd
+	obj_dir/Vtop -w -i $(SIGNALS) -v -z > session.vcd
 	pulseview -I vcd -i session.vcd
 
 # Render a frame in the window
