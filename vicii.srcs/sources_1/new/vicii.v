@@ -18,15 +18,33 @@ module vicii(
    input rw
 );
 
+  // current raster x and y position
   reg [9:0] x_pos;
   reg [8:0] y_pos;
 
-  wire [2:0] bit_cycle;
+  // line_cycle_num : The cycle we're in on the current raster line. Each
+  //                  cycle is 8 pixels.
+  // 6567R56A : 0-63
+  // 6567R8   : 0-64
+  // 6569     : 0-63
   wire [5:0] line_cycle_num;
+
+  // bit_cycle : The pixel number within the line cycle.
+  wire [2:0] bit_cycle;
+
+  // char_line_num : For text mode, what character line are we on.
+  reg [2:0] char_line_num;
+
+  // ec : border (edge) color
+  reg [3:0] ec;
+  // b#c : background color registers
+  reg [3:0] b0c,b1c,b2c,b3c;
+  reg [3:0] mm0,mm1;
+
+  // Temporary
   wire visible_horizontal;
   wire visible_vertical;
   wire WE;
-  reg [2:0] char_line_num;
 
   assign bit_cycle = x_pos[2:0];
   assign line_cycle_num = x_pos[8:3];
@@ -36,19 +54,20 @@ module vicii(
   // Official datasheet says 28-348 but Christian's doc says 24-344
   assign visible_horizontal = (x_pos >= 24) & (x_pos < 344) ? 1 : 0;
   assign WE = visible_horizontal & visible_vertical & (bit_cycle == 2) & (char_line_num == 0);
-          
+
+  // Update x,y position
   always @(posedge clk_dot)
   if (reset)
   begin
     x_pos <= 0;
     y_pos <= 0;
   end
-  else if (x_pos < 520) // 64 cycles
+  else if (x_pos < 520) // TODO : 64 cycles needs to be configurable
     x_pos <= x_pos + 1;
   else
   begin
     x_pos <= 0;
-    y_pos <= (y_pos < 262) ? y_pos + 1 : 0; 
+    y_pos <= (y_pos < 262) ? y_pos + 1 : 0;
   end
 
   reg [11:0] char_buffer [39:0];
@@ -80,32 +99,31 @@ module vicii(
       else
         char_buf_pos <= 0;
     end
-     
-     
+
   reg [9:0] screen_mem_pos;
   always @(posedge clk_dot)
     if (!visible_vertical)
        screen_mem_pos <= 0;
     else if (bit_cycle == 0 & visible_horizontal & char_line_num == 0)
        screen_mem_pos <= screen_mem_pos + 1;
-       
+
 //  always @*
 //    if (bit_cycle == 1)
-//       addr = {4'b1, screen_mem_pos};     
-     
+//       addr = {4'b1, screen_mem_pos};
+
 //    always @*
 //     if (bit_cycle == 1)
 //       addr = {4'b1, screen_mem_pos};
 //     else
 //       addr = {3'b010,char_buffer_out[7:0],char_line_num};
-     
+
   wire [3:0] out_color;
   wire [3:0] out_pixel;
   reg [7:0] pixel_shift_reg;
   reg [3:0] color_buffered_val;
 
-  assign out_color = pixel_shift_reg[7] == 1 ? color_buffered_val : 4'd6;
-  assign out_pixel = visible_vertical & visible_horizontal ? out_color : 4'd14;
+  assign out_color = pixel_shift_reg[7] == 1 ? color_buffered_val : b0c;
+  assign out_pixel = visible_vertical & visible_horizontal ? out_color : ec;
 
   always @(posedge clk_dot)
   if (bit_cycle == 7)
@@ -227,7 +245,7 @@ module vicii(
        green = 2'h00;
        blue = 2'h00;
     end
-    
+
     sync vicsync(
        .rst(reset),
        .clk(clk_dot),

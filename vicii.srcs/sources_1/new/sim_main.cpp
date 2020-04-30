@@ -392,10 +392,6 @@ int main(int argc, char** argv, char** env) {
        bt = bt * 2;
     }
 
-    for (int i = 0; i < NUM_SIGNALS; i++) {
-       prev_signal_values[i] = SGETVAL(i);
-    }
-
     if (outputVcd)
        vcd_header(top);
 
@@ -408,8 +404,20 @@ int main(int argc, char** argv, char** env) {
     // dot clock tick forward one half its period.
     bool needDotTick = false;
 
-    // Simulate until $finish
+    // For our VICE hook to work properly, we need to tick
+    // forward until phi goes HIGH since the 6510 should
+    // only be accessing the bus when phi is in the 2nd
+    // phase.
+    while (!top->clk_phi) {
+       ticks = nextTick(top);
+       top->eval();
+    }
 
+    for (int i = 0; i < NUM_SIGNALS; i++) {
+       prev_signal_values[i] = SGETVAL(i);
+    }
+
+    // Simulate until $finish
     while (!Verilated::gotFinish()) {
 
         // Are we shadowing from VICE? Wait for sync data, then
@@ -421,16 +429,23 @@ int main(int argc, char** argv, char** env) {
 
            capture = (state->flags & VICII_OP_CAPTURE);
 
-           top->ce = state->ce;
-           top->rw = state->rw;
-           top->ad = state->addr;
-           top->db = state->data;
-
-           // TODO : Set ce, rw etc
+           if (state->flags & VICII_OP_BUS_ADDR) {
+              assert(top->clk_phi);
+              top->ad = state->addr;
+           }
+           if (state->flags & VICII_OP_BUS_DATA) {
+              assert(top->clk_phi);
+              top->db = state->data;
+           }
+           if (state->flags & VICII_OP_CE) {
+              assert(top->clk_phi);
+              top->ce = state->ce;
+           }
+           if (state->flags & VICII_OP_RW) {
+              assert(top->clk_phi);
+              top->rw = state->rw;
+           }
         }
-
-        // Advance simulation time. Each tick represents 1 picosecond.
-        ticks = nextTick(top);
 
 #ifdef TEST_RESET
         // Test reset between approx 7 and approx 8 us
@@ -462,7 +477,6 @@ int main(int argc, char** argv, char** env) {
                 if (HASCHANGED(i)) {
                    if (outputVcd)
                       printf ("%x%s\n", SGETVAL(i), signal_ids[i]);
-
                 }
              }
           }
@@ -513,6 +527,9 @@ int main(int argc, char** argv, char** env) {
         if ((state->flags & VICII_OP_CAPTURE_END) && !needDotTick) {
            break;
         }
+
+        // Advance simulation time. Each tick represents 1 picosecond.
+        ticks = nextTick(top);
     }
 
     if (shadowVic) {

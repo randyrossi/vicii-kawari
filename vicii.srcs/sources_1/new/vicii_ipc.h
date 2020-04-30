@@ -24,6 +24,14 @@ union semun {
 #define VICII_OP_CAPTURE      1
 // When bit 2 if flipped, fpga sync will stop, bit 1&2 are turned off
 #define VICII_OP_CAPTURE_END  2
+// Indicates this update is setting addr, must be done on PHI HIGH
+#define VICII_OP_BUS_ADDR     4
+// Indicates this update is setting data, must be done on PHI HIGH
+#define VICII_OP_BUS_DATA     8
+// Indicates this update is setting rw, must be done on PHI HIGH
+#define VICII_OP_RW          16
+// Indicates this update is setting ce, must be done on PHI HIGH
+#define VICII_OP_CE          32
 
 // Must not exceed IPC_BUFSIZE
 struct vicii_state {
