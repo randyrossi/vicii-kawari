@@ -171,13 +171,10 @@ static void vcd_header(Vtop* top) {
    fflush(stdout);
 }
 
-// TODO : Do we really need two?
-unsigned char ipc_out_buf[IPC_BUFSIZE];
-unsigned char ipc_in_buf[IPC_BUFSIZE];
-
+static int ccc = 0;
 int main(int argc, char** argv, char** env) {
 
-    struct vicii_state* state = ((struct vicii_state*)ipc_in_buf);
+    struct vicii_state* state;
     bool capture = false;
 
     bool includeDataBus = true;
@@ -398,6 +395,7 @@ int main(int argc, char** argv, char** env) {
     if (shadowVic) {
        ipc = ipc_init(IPC_RECEIVER);
        ipc_open(ipc);
+       state = ((struct vicii_state*)ipc->dspOutBuf);
     }
 
     // This lets us iterate the eval loop until we see the
@@ -417,33 +415,28 @@ int main(int argc, char** argv, char** env) {
        prev_signal_values[i] = SGETVAL(i);
     }
 
-    // Simulate until $finish
+    // IMPORTANT: Any and all state reads/writes MUST occur between ipc_receive
+    // and ipc_send inside this loop.
     while (!Verilated::gotFinish()) {
 
         // Are we shadowing from VICE? Wait for sync data, then
         // step until next dot clock tick.
         if (shadowVic && !needDotTick) {
-           if (ipc_receive(ipc, &ipc_in_buf[0]))
+           if (ipc_receive(ipc))
               break;
+
            needDotTick = true;
 
            capture = (state->flags & VICII_OP_CAPTURE);
 
-           if (state->flags & VICII_OP_BUS_ADDR) {
+           if (state->flags & VICII_OP_BUS_ACCESS) {
               assert(top->clk_phi);
-              top->ad = state->addr;
            }
-           if (state->flags & VICII_OP_BUS_DATA) {
-              assert(top->clk_phi);
+           top->ad = state->addr;
+           top->ce = state->ce;
+           top->rw = state->rw;
+           if (top->rw == 0 && top->ce == 0) {
               top->db = state->data;
-           }
-           if (state->flags & VICII_OP_CE) {
-              assert(top->clk_phi);
-              top->ce = state->ce;
-           }
-           if (state->flags & VICII_OP_RW) {
-              assert(top->clk_phi);
-              top->rw = state->rw;
            }
         }
 
@@ -507,9 +500,24 @@ int main(int argc, char** argv, char** env) {
 
         if (shadowVic && HASCHANGED(OUT_DOT) && needDotTick) {
            // TODO : Report back any outputs like data, ba, aec, etc. here
-           if (ipc_send(ipc, &ipc_out_buf[0]))
+
+           if (top->ce == 0 && top->rw == 1) {
+              state->data = top->db;
+           }
+
+           bool needQuit = false;
+           if (state->flags & VICII_OP_CAPTURE_END) {
+              needQuit = true;
+           }
+
+           if (ipc_send(ipc))
               break;
            needDotTick = false;
+
+           if (needQuit) {
+              // Safe to quit now. We sent our response.
+              break;
+           }
         }
 
         // End of eval. Remember current values for previous compares.
@@ -520,13 +528,6 @@ int main(int argc, char** argv, char** env) {
         // Is it time to stop?
         if (captureByTime && ticks >= endTicks)
            break;
-
-        // Did we get an end signal?
-        // Must make sure we're not still waiting for a dot tick before
-        // ending  because we need to send a response.
-        if ((state->flags & VICII_OP_CAPTURE_END) && !needDotTick) {
-           break;
-        }
 
         // Advance simulation time. Each tick represents 1 picosecond.
         ticks = nextTick(top);
