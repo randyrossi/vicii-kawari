@@ -195,7 +195,9 @@ int main(int argc, char** argv, char** env) {
     struct vicii_state* state;
     bool capture = false;
 
-    bool isNtsc = true;
+    int chip = CHIP6569;
+    bool isNtsc = false;
+
     bool captureByTime = true;
     bool outputVcd = false;
     bool showWindow = false;
@@ -206,7 +208,17 @@ int main(int argc, char** argv, char** env) {
 
     // Default to 16.7us starting at 0
     startTicks = US_TO_TICKS(0);
-    vluint64_t durationTicks = US_TO_TICKS(16700L);
+    vluint64_t durationTicks;
+
+    switch (chip) {
+       case CHIP6567R8:
+       case CHIP6567R56A:
+          durationTicks = US_TO_TICKS(16700L);
+          break;
+       case CHIP6569:
+          durationTicks = US_TO_TICKS(20000L);
+          break;
+    }
 
     char *cvalue = nullptr;
     char c;
@@ -297,11 +309,31 @@ int main(int argc, char** argv, char** env) {
     if (isNtsc) {
        half4XDotPS = NTSC_HALF_4X_DOT_PS;
        half4XColorPS = NTSC_HALF_4X_COLOR_PS;
-       maxDotX = NTSC_MAX_DOT_X;
-       maxDotY = NTSC_MAX_DOT_Y;
+       switch (chip) {
+          case CHIP6567R56A:
+             maxDotX = NTSC_6567R56A_MAX_DOT_X;
+             maxDotY = NTSC_6567R56A_MAX_DOT_Y;
+             break;
+          case CHIP6567R8:
+             maxDotX = NTSC_6567R8_MAX_DOT_X;
+             maxDotY = NTSC_6567R8_MAX_DOT_Y;
+             break;
+          default:
+             fprintf (stderr, "wrong chip?\n");
+             exit(-1);
+       }
     } else {
-       fprintf (stderr, "PAL not supported\n");
-       exit(-1);
+       half4XDotPS = PAL_HALF_4X_DOT_PS;
+       half4XColorPS = PAL_HALF_4X_COLOR_PS;
+       switch (chip) {
+          case CHIP6569:
+             maxDotX = NTSC_6569_MAX_DOT_X;
+             maxDotY = NTSC_6569_MAX_DOT_Y;
+             break;
+          default:
+             fprintf (stderr, "wrong chip?\n");
+             exit(-1);
+       }
     }
 
     nextClk1 = half4XDotPS;
@@ -346,6 +378,7 @@ int main(int argc, char** argv, char** env) {
 
     // Add new input/output here.
     Vvicii* top = new Vvicii;
+    top->chip = chip;
     top->clk_colref = 0;
     top->clk_phi = 0;
     top->rst = 0;
@@ -361,6 +394,8 @@ int main(int argc, char** argv, char** env) {
     top->ba = 0;
     top->aec = 1; // TODO
     top->irq = 1;
+    top->vicii__DOT__b0c = 14;
+    top->vicii__DOT__ec = 6;
 
     // Default all signals to bit 1 and include in monitoring.
     for (int i = 0; i < NUM_SIGNALS; i++) {

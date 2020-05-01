@@ -1,30 +1,27 @@
 `define TRUE	1'b1
 `define FALSE	1'b0
 
-module sync(rst, clk, rasterX, rasterY, cSync);
+module sync(chip, rst, clk, rasterX, rasterY, hSyncStart, hSyncEnd, cSync);
 
+parameter CHIP6567R8   = 2'd0;
+parameter CHIP6567R56A = 2'd1;
+parameter CHIP6569     = 2'd2;
+parameter CHIPUNUSED   = 2'd3;
+
+input [1:0] chip;
 input rst;
 input clk;
 input [9:0] rasterX;
 input [8:0] rasterY;
+input [9:0] hSyncStart;
+input [9:0] hSyncEnd;
 output reg cSync;
-reg vSync;
 reg hSync;
-
-always @(posedge clk)
-if (rst)
-	vSync <= `FALSE;
-else begin
-    if (rasterY >= 3 && rasterY < 6)
-		vSync <= `TRUE;
-	else
-		vSync <= `FALSE;
-end
 
 always @(posedge clk)
 begin
 	hSync <= `FALSE;
-	if (rasterX >= 10'd416 && rasterX <= 10'd453)  // TODO configure on chip
+	if (rasterX >= hSyncStart && rasterX <= hSyncEnd)  // TODO configure on chip
 		hSync <= `TRUE;
 end
 
@@ -44,8 +41,8 @@ SerrationPulse usep1
 );
 
 always @(posedge clk)
-    // TODO make configurable based on chip
-    // Rob's code used 0-8 but datasheet says 14-22
+  case(chip)
+  CHIP6567R8,CHIP6567R56A:
 	case(rasterY)
 	9'd14:	cSync <= ~EQ;
 	9'd15:	cSync <= ~EQ;
@@ -59,5 +56,19 @@ always @(posedge clk)
 	default:
 			cSync <= ~hSync;
 	endcase
-
+  CHIP6569,CHIPUNUSED:
+	case(rasterY)
+	9'd301:	cSync <= ~EQ;
+	9'd302:	cSync <= ~EQ;
+	9'd303:	cSync <= ~EQ;
+	9'd304:	cSync <= ~SE;
+	9'd305:	cSync <= ~SE;
+	9'd306:	cSync <= ~SE;
+	9'd307:	cSync <= ~EQ;
+	9'd308:	cSync <= ~EQ;
+	9'd309:	cSync <= ~EQ;
+	default:
+			cSync <= ~hSync;
+	endcase
+  endcase
 endmodule

@@ -44,6 +44,7 @@ clock2gen g2clock(
 reg[11:0] dbo;
 
 vicii vic_inst(
+   .chip(2'd1), // for now, not wired to jumpers
    .clk_dot4x(clk_dot4x),
    .clk_col4x(clk_col4x),
    .clk_colref(clk_colref),

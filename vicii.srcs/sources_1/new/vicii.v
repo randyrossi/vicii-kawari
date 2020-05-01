@@ -5,6 +5,7 @@
 // sync and color clock signals. It is not meant to be a functioning
 // vicii.  Only a test pattern is generated.
 module vicii(
+   input [1:0] chip,
    input rst,
    input clk_dot4x,
    input clk_col4x,
@@ -24,11 +25,63 @@ module vicii(
    output reg ba
 );
 
+parameter CHIP6567R8   = 2'd0;
+parameter CHIP6567R56A = 2'd1;
+parameter CHIP6569     = 2'd2;
+parameter CHIPUNUSED   = 2'd3;
+
+
+// Limits for different chips
+reg [9:0] rasterXMax;
+reg [8:0] rasterYMax;
+reg [9:0] hSyncStart;
+reg [9:0] hSyncEnd;
+reg [9:0] hVisibleStart;
+reg [8:0] vBlankStart;
+reg [8:0] vBlankEnd;
+
+
 //clk_dot4x;     32.272768 Mhz NTSC
 //clk_col4x;     14.381818 Mhz NTSC
 wire clk_dot;  // 8.18181 Mhz NTSC
 // clk_colref     3.579545 Mhz NTSC
 // clk_phi        1.02272 Mhz NTSC
+
+// Set Limits
+always @(chip)
+case(chip)
+CHIP6567R8:
+   begin
+      rasterXMax = 10'd519;     // 520 pixels 
+      rasterYMax = 9'd261;      // 262 lines
+      hSyncStart = 10'd416;
+      hSyncEnd = 10'd453;      // 4.6us
+      hVisibleStart = 10'd504; // 10.7us after hSyncStart seems to work
+      vBlankStart = 9'd14;
+      vBlankEnd = 9'd22;
+   end
+CHIP6567R56A:
+   begin
+      rasterXMax = 10'd511;    // 512 pixels
+      rasterYMax = 9'd260;     // 261 lines
+      hSyncStart = 10'd416;
+      hSyncEnd = 10'd453;      // 4.6us
+      hVisibleStart = 10'd504; // 10.7us after hSyncStart seems to work
+      vBlankStart = 9'd14;
+      vBlankEnd = 9'd22;
+   end
+CHIP6569,CHIPUNUSED:
+   begin
+      rasterXMax = 10'd503;    // 504 pixels
+      rasterYMax = 9'd311;     // 312
+      hSyncStart = 10'd408;
+      hSyncEnd = 10'd444;      // ~4.6us
+      hVisibleStart = 10'd492; // ~10.7 after hSyncStart
+      vBlankStart = 9'd301;
+      vBlankEnd = 9'd309;
+   end
+endcase
+
 
   clk_div4 clk_colorgen (
      .clk_in(clk_col4x),     // from 4x color clock
@@ -92,12 +145,12 @@ wire clk_dot;  // 8.18181 Mhz NTSC
     x_pos <= 0;
     y_pos <= 0;
   end
-  else if (x_pos < 520) // TODO : 64 cycles needs to be configurable
+  else if (x_pos < rasterXMax)
     x_pos <= x_pos + 1;
   else
   begin
     x_pos <= 0;
-    y_pos <= (y_pos < 262) ? y_pos + 1 : 0;
+    y_pos <= (y_pos < rasterYMax) ? y_pos + 1 : 0;
   end
 
   reg [11:0] char_buffer [39:0];
@@ -167,9 +220,14 @@ wire clk_dot;  // 8.18181 Mhz NTSC
 
   // Translate out_pixel (indexed) to RGB values
   color viccolor(
+     .chip(chip),
      .x_pos(x_pos),
      .y_pos(y_pos),
      .out_pixel(out_pixel),
+     .hSyncStart(hSyncStart),
+     .hVisibleStart(hVisibleStart),
+     .vBlankStart(vBlankStart),
+     .vBlankEnd(vBlankEnd),
      .red(red),
      .green(green),
      .blue(blue)
@@ -177,10 +235,13 @@ wire clk_dot;  // 8.18181 Mhz NTSC
 
   // Generate cSync signal
   sync vicsync(
+     .chip(chip),
      .rst(rst),
      .clk(clk_dot),
      .rasterX(x_pos),
      .rasterY(y_pos),
+     .hSyncStart(hSyncStart),
+     .hSyncEnd(hSyncEnd),
      .cSync(cSync)
   );
   
