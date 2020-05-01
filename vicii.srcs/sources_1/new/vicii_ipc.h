@@ -21,11 +21,13 @@ union semun {
 };
 
 // When bit 1 is flipped, fpga sync will start
-#define VICII_OP_CAPTURE      1
+#define VICII_OP_CAPTURE_START 1
 // When bit 2 if flipped, fpga sync will stop, bit 1&2 are turned off
-#define VICII_OP_CAPTURE_END  2
-// This state change should be happening on phi HIGH
-#define VICII_OP_BUS_ACCESS   4
+#define VICII_OP_CAPTURE_END   2
+// Indicates this state change should be happening on phi HIGH only
+#define VICII_OP_BUS_ACCESS    4
+// Indicates this state change includes sync info
+#define VICII_OP_SYNC_STATE    8
 
 // Must not exceed IPC_BUFSIZE
 struct vicii_state {
@@ -35,6 +37,9 @@ struct vicii_state {
   unsigned char rw;
   unsigned short addr;
   unsigned char data;
+
+  unsigned int cycle_num;  // for initial sync
+  unsigned int raster_line;  // for initial sync
 };
 
 #define END1_PRODUCER_SIG_END2_CONSUME_OK 0

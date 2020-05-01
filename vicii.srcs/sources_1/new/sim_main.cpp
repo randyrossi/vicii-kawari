@@ -486,11 +486,15 @@ int main(int argc, char** argv, char** env) {
 
            needDotTick = true;
 
-           capture = (state->flags & VICII_OP_CAPTURE);
+           capture = (state->flags & VICII_OP_CAPTURE_START);
 
-           // TODO : Capture just enabled? Need to sync all
-           // state in fpga design (line_cycle, bit_cycle, y,
-           // registers, etc..)
+           if (state->flags & VICII_OP_SYNC_STATE) {
+               // Sync state
+               top->vicii__DOT__x_pos = 8 * state->cycle_num;
+               top->vicii__DOT__y_pos = state->raster_line;
+               printf ("Sync FPGA cycle=%u, raster_line=%u\n",state->cycle_num, state->raster_line);
+           }
+           state->flags &= ~VICII_OP_SYNC_STATE;
 
            if (state->flags & VICII_OP_BUS_ACCESS) {
               assert(top->clk_phi);
