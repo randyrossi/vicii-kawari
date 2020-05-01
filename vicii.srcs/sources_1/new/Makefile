@@ -34,8 +34,8 @@ VERILATOR = $(VERILATOR_ROOT)/bin/verilator
 endif
 
 default: ipc_test vicii_ipc.o libvicii_ipc.so
-	$(VERILATOR) -cc --exe top.v clockgen_sim.v clockdivs.v vicii.v sync.v serration.v equalization.v sim_main.cpp -LDFLAGS '../vicii_ipc.o -lSDL2'
-	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
+	$(VERILATOR) -cc --exe vicii.v clockdivs.v sync.v serration.v equalization.v sim_main.cpp -LDFLAGS '../vicii_ipc.o -lSDL2'
+	$(MAKE) -j 4 -C obj_dir -f Vvicii.mk
 
 vicii_ipc.o: vicii_ipc.c
 	$(CC) -o vicii_ipc.o -fPIC -c vicii_ipc.c
@@ -55,26 +55,30 @@ install: libvicii_ipc.so
 	sudo cp vicii_ipc.h /usr/include
 	sudo chmod oug+r /usr/include/vicii_ipc.h
 
-SIGNALS=csync,a[0-9]*,d[0-9]*,ba,aec,irq,phi,r[0-9],g[0-9],b[0-9]
+# Everything
+SIGNALS=csync,a[0-9]*,do[0-9]*,di[0-9]*,ba,aec,irq,phi,r[0-9],g[0-9],b[0-9]
+
+# Just data
+#SIGNALS=rw,ce,do[0-9]*,di[0-9]*,phi
 
 # Bring up the logic analyser on a frame's worth of data
 logic:
-	obj_dir/Vtop -i $(SIGNALS) -v > session.vcd
+	obj_dir/Vvicii -i $(SIGNALS) -v > session.vcd
 	pulseview -I vcd -i session.vcd
 
 # Bring up the logic analyzer after capturing a session from VICE
 logic_vice:
-	obj_dir/Vtop -v -i $(SIGNALS) -z > session.vcd
+	obj_dir/Vvicii -v -i $(SIGNALS) -z > session.vcd
 	pulseview -I vcd -i session.vcd
 
 # Show a window while capturing and then bring up the logic analyser
 logic_window_vice:
-	obj_dir/Vtop -w -i $(SIGNALS) -v -z > session.vcd
+	obj_dir/Vvicii -w -i $(SIGNALS) -v -z > session.vcd
 	pulseview -I vcd -i session.vcd
 
 # Render a frame in the window
 view:
-	@obj_dir/Vtop -w
+	@obj_dir/Vvicii -w
 
 ######################################################################
 

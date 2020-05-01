@@ -10,7 +10,7 @@
 #include <verilated.h>
 #include <regex.h> 
 
-#include "Vtop.h"
+#include "Vvicii.h"
 #include "constants.h"
 
 extern "C" {
@@ -53,36 +53,50 @@ static int maxDotY;
 #define INOUT_A9 20
 #define INOUT_A10 21
 #define INOUT_A11 22
-#define INOUT_D0 23
-#define INOUT_D1 24
-#define INOUT_D2 25
-#define INOUT_D3 26
-#define INOUT_D4 27
-#define INOUT_D5 28
-#define INOUT_D6 29
-#define INOUT_D7 30
-#define INOUT_D8 31
-#define INOUT_D9 32
-#define INOUT_D10 33
-#define INOUT_D11 34
-#define IN_CE 35
-#define IN_RW 36
-#define IN_BA 37
-#define IN_AEC 38
-#define IN_IRQ 39
-#define NUM_SIGNALS 40
+#define OUT_D0 23
+#define OUT_D1 24
+#define OUT_D2 25
+#define OUT_D3 26
+#define OUT_D4 27
+#define OUT_D5 28
+#define OUT_D6 29
+#define OUT_D7 30
+#define OUT_D8 31
+#define OUT_D9 32
+#define OUT_D10 33
+#define OUT_D11 34
+#define IN_D0 35
+#define IN_D1 36
+#define IN_D2 37
+#define IN_D3 38
+#define IN_D4 39
+#define IN_D5 40
+#define IN_D6 41
+#define IN_D7 42
+#define IN_D8 43
+#define IN_D9 44
+#define IN_D10 45
+#define IN_D11 46
+#define IN_CE 47
+#define IN_RW 48
+#define IN_BA 49
+#define IN_AEC 50
+#define IN_IRQ 51
+#define NUM_SIGNALS 52
 
 // Add new input/output here
 const char *signal_labels[] = {
    "phi", "col", "rst", "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "csync",
    "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11",
-   "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "d9", "d10", "d11",
+   "do0", "do1", "do2", "do3", "do4", "do5", "do6", "do7", "do8", "do9", "do10", "do11",
+   "di0", "di1", "di2", "di3", "di4", "di5", "di6", "di7", "di8", "di9", "di10", "di11",
    "ce", "rw", "ba", "aec", "irq"
 };
 const char *signal_ids[] = {
    "p", "c", "r" ,  "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "s",
    "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11",
-   "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "d9", "d10", "d11",
+   "do0", "do1", "do2", "do3", "do4", "do5", "do6", "do7", "do8", "do9", "do10", "do11",
+   "di0", "di1", "di2", "di3", "di4", "di5", "di6", "di7", "di8", "di9", "di10", "di11",
    "ce", "rw", "ba", "aec", "irq"
 };
 
@@ -117,29 +131,29 @@ static int SGETVAL(int signum) {
 // be a waste since nothing happens between clock edges. This function
 // will determine how many ticks(picoseconds) to advance our clock
 // given our two periods.
-static vluint64_t nextTick(Vtop* top) {
+static vluint64_t nextTick(Vvicii* top) {
    vluint64_t diff1 = nextClk1 - ticks;
    vluint64_t diff2 = nextClk2 - ticks;
 
    if (diff1 < diff2) {
       nextClk1 += half4XDotPS;
-      top->top__DOT__clk_dot4x = ~top->top__DOT__clk_dot4x;
+      top->clk_dot4x = ~top->clk_dot4x;
       return ticks + diff1;
    } else if (diff2 < diff1) {
       nextClk2 += half4XColorPS;
-      top->top__DOT__clk_col4x = ~top->top__DOT__clk_col4x;
+      top->clk_col4x = ~top->clk_col4x;
       return ticks + diff2;
    } else {
       // Equal, both tick
       nextClk1 += half4XDotPS;
       nextClk2 += half4XColorPS;
-      top->top__DOT__clk_dot4x = ~top->top__DOT__clk_dot4x;
-      top->top__DOT__clk_col4x = ~top->top__DOT__clk_col4x;
+      top->clk_dot4x = ~top->clk_dot4x;
+      top->clk_col4x = ~top->clk_col4x;
       return ticks + diff1;
    }
 }
 
-static void vcd_header(Vtop* top) {
+static void vcd_header(Vvicii* top) {
    printf ("$date\n");
    printf ("   January 1, 1979.\n");
    printf ("$end\n");
@@ -331,8 +345,7 @@ int main(int argc, char** argv, char** env) {
     }
 
     // Add new input/output here.
-    Vtop* top = new Vtop;
-    top->sys_clock = 0;
+    Vvicii* top = new Vvicii;
     top->clk_colref = 0;
     top->clk_phi = 0;
     top->rst = 0;
@@ -341,11 +354,12 @@ int main(int argc, char** argv, char** env) {
     top->blue = 0;
     top->cSync = 0;
     top->ad = 0;
-    top->db = 0;
+    top->dbo = 0;
+    top->dbi = 0;
     top->ce = 1;
     top->rw = 1;
     top->ba = 0;
-    top->aec = 0;
+    top->aec = 1; // TODO
     top->irq = 1;
 
     // Default all signals to bit 1 and include in monitoring.
@@ -369,7 +383,7 @@ int main(int argc, char** argv, char** env) {
     signal_src8[OUT_B0] = &top->blue;
     signal_src8[OUT_B1] = &top->blue;
     signal_bit[OUT_B1] = 2;
-    signal_src8[OUT_DOT] = &top->top__DOT__clk_dot;
+    signal_src8[OUT_DOT] = &top->vicii__DOT__clk_dot;
     signal_src8[OUT_CSYNC] = &top->cSync;
     signal_src8[IN_CE] = &top->ce;
     signal_src8[IN_RW] = &top->rw;
@@ -385,10 +399,17 @@ int main(int argc, char** argv, char** env) {
        bt = bt * 2;
     }
     bt = 1;
-    for (int i=INOUT_D0; i<= INOUT_D11; i++) {
+    for (int i=OUT_D0; i<= OUT_D11; i++) {
        signal_width[i] = 12;
        signal_bit[i] = bt;
-       signal_src16[i] = &top->db;
+       signal_src16[i] = &top->dbo;
+       bt = bt * 2;
+    }
+    bt = 1;
+    for (int i=IN_D0; i<= IN_D11; i++) {
+       signal_width[i] = 12;
+       signal_bit[i] = bt;
+       signal_src16[i] = &top->dbi;
        bt = bt * 2;
     }
 
@@ -446,7 +467,7 @@ int main(int argc, char** argv, char** env) {
 
            if (top->ce == 0 && top->rw == 0) {
               // chip select and write, set data
-              top->db = state->data;
+              top->dbi = state->data;
            }
         }
 
@@ -492,13 +513,13 @@ int main(int argc, char** argv, char** env) {
                 top->blue << 6,
                 255);
              SDL_RenderDrawPoint(ren,
-                top->top__DOT__vic_inst__DOT__x_pos,
-                top->top__DOT__vic_inst__DOT__y_pos);
+                top->vicii__DOT__x_pos,
+                top->vicii__DOT__y_pos);
 
              // Show updated pixels per raster line
-             if (prev_y != top->top__DOT__vic_inst__DOT__y_pos) {
+             if (prev_y != top->vicii__DOT__y_pos) {
                 SDL_RenderPresent(ren);
-                prev_y = top->top__DOT__vic_inst__DOT__y_pos;
+                prev_y = top->vicii__DOT__y_pos;
 
                 SDL_PollEvent(&event);
              }
@@ -513,7 +534,7 @@ int main(int argc, char** argv, char** env) {
 
            if (top->ce == 0 && top->rw == 1) {
               // Chip selected and read, set data in state
-              state->data = top->db;
+              state->data = top->dbo;
            }
 
            bool needQuit = false;
