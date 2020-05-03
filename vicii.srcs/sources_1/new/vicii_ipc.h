@@ -39,6 +39,7 @@ struct vicii_state {
   unsigned char data;
 
   unsigned int cycle_num;  // for initial sync
+  unsigned int xpos;  // for initial sync
   unsigned int raster_line;  // for initial sync
 };
 

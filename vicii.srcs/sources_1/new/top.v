@@ -20,6 +20,11 @@ module top(
    output ba           // ba
 );
 
+parameter CHIP6567R8   = 2'd0;
+parameter CHIP6567R56A = 2'd1;
+parameter CHIP6569     = 2'd2;
+parameter CHIPUNUSED   = 2'd3;
+
 wire sys_clockb;
 
 BUFG sysbuf1 (
@@ -41,10 +46,10 @@ clock2gen g2clock(
    .clk_col4x(clk_col4x)     // generated 4x col clock
 );
 
-reg[11:0] dbo;
+wire[11:0] dbo;
 
 vicii vic_inst(
-   .chip(2'd1), // for now, not wired to jumpers
+   .chip(CHIP6567R56A), // for now, not wired to jumpers
    .clk_dot4x(clk_dot4x),
    .clk_col4x(clk_col4x),
    .clk_colref(clk_colref),
@@ -52,7 +57,7 @@ vicii vic_inst(
    .red(red),
    .green(green),
    .blue(blue),
-   .reset(rst),
+   .rst(rst),
    .cSync(cSync),
    .ad(ad),
    .dbi(db),

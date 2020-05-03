@@ -29,5 +29,5 @@
 #define NTSC_6567R8_MAX_DOT_X 512     // 63 cycles per line
 #define NTSC_6567R8_MAX_DOT_Y 261
 
-#define NTSC_6569_MAX_DOT_X 504       // 62 cycles per line
-#define NTSC_6569_MAX_DOT_Y 312
+#define PAL_6569_MAX_DOT_X 504       // 62 cycles per line
+#define PAL_6569_MAX_DOT_Y 312

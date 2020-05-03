@@ -129,74 +129,65 @@ static int SGETVAL(int signum) {
 
 // We can drive our simulated clock gen every pico second but that would
 // be a waste since nothing happens between clock edges. This function
-// will determine how many ticks(picoseconds) to advance our clock
-// given our two periods.
+// will determine how many ticks(picoseconds) to advance our clock.
 static vluint64_t nextTick(Vvicii* top) {
    vluint64_t diff1 = nextClk1 - ticks;
-   vluint64_t diff2 = nextClk2 - ticks;
 
-   if (diff1 < diff2) {
-      nextClk1 += half4XDotPS;
-      top->clk_dot4x = ~top->clk_dot4x;
-      return ticks + diff1;
-   } else if (diff2 < diff1) {
-      nextClk2 += half4XColorPS;
-      top->clk_col4x = ~top->clk_col4x;
-      return ticks + diff2;
-   } else {
-      // Equal, both tick
-      nextClk1 += half4XDotPS;
-      nextClk2 += half4XColorPS;
-      top->clk_dot4x = ~top->clk_dot4x;
-      top->clk_col4x = ~top->clk_col4x;
-      return ticks + diff1;
-   }
+   nextClk1 += half4XDotPS;
+   top->clk_dot4x = ~top->clk_dot4x;
+   return ticks + diff1;
 }
 
-static void vcd_header(Vvicii* top) {
-   printf ("$date\n");
-   printf ("   January 1, 1979.\n");
-   printf ("$end\n");
-   printf ("$version\n");
-   printf ("   1.0\n");
-   printf ("$end\n");
-   printf ("$comment\n");
-   printf ("   VCD vicii\n");
-   printf ("$end\n");
+static void vcd_header(Vvicii* top, FILE* fp) {
+   fprintf (fp, "$date\n");
+   fprintf (fp, "   January 1, 1979.\n");
+   fprintf (fp, "$end\n");
+   fprintf (fp,"$version\n");
+   fprintf (fp,"   1.0\n");
+   fprintf (fp,"$end\n");
+   fprintf (fp,"$comment\n");
+   fprintf (fp,"   VCD vicii\n");
+   fprintf (fp,"$end\n");
 
-   printf (VCD_TIMESCALE);
-   printf ("$scope module logic $end\n");
-
-   for (int i=0;i<NUM_SIGNALS;i++)
-      if (signal_monitor[i])
-         printf ("$var wire 1 %s %s $end\n", signal_ids[i], signal_labels[i]);
-   printf ("$upscope $end\n");
-
-   printf ("$enddefinitions $end\n");
-   printf ("$dumpvars\n");
+   fprintf (fp,VCD_TIMESCALE);
+   fprintf (fp,"$scope module logic $end\n");
 
    for (int i=0;i<NUM_SIGNALS;i++)
       if (signal_monitor[i])
-         printf ("x%s\n",signal_ids[i]);
-   printf ("$end\n");
+         fprintf (fp,"$var wire 1 %s %s $end\n", signal_ids[i], signal_labels[i]);
+   fprintf (fp,"$upscope $end\n");
+
+   fprintf (fp,"$enddefinitions $end\n");
+   fprintf (fp,"$dumpvars\n");
+
+   for (int i=0;i<NUM_SIGNALS;i++)
+      if (signal_monitor[i])
+         fprintf (fp,"x%s\n",signal_ids[i]);
+   fprintf (fp,"$end\n");
 
    // Start time
-   printf ("#%" VL_PRI64 "d\n", startTicks/TICKS_TO_TIMESCALE);
+   fprintf (fp,"#%" VL_PRI64 "d\n", startTicks/TICKS_TO_TIMESCALE);
    for (int i=0;i<NUM_SIGNALS;i++) {
       if (signal_monitor[i])
-         printf ("%x%s\n",SGETVAL(i), signal_ids[i]);
+         fprintf (fp,"%x%s\n",SGETVAL(i), signal_ids[i]);
    }
-   fflush(stdout);
+   fflush(fp);
 }
 
-static int ccc = 0;
+static void drawPixel(SDL_Renderer* ren, int x,int y) {
+   SDL_RenderDrawPoint(ren, x*2,y*2);
+   SDL_RenderDrawPoint(ren, x*2+1,y*2);
+   SDL_RenderDrawPoint(ren, x*2,y*2+1);
+   SDL_RenderDrawPoint(ren, x*2+1,y*2+1);
+}
+
 int main(int argc, char** argv, char** env) {
 
     struct vicii_state* state;
     bool capture = false;
 
     int chip = CHIP6569;
-    bool isNtsc = false;
+    bool isNtsc = true;
 
     bool captureByTime = true;
     bool outputVcd = false;
@@ -210,15 +201,6 @@ int main(int argc, char** argv, char** env) {
     startTicks = US_TO_TICKS(0);
     vluint64_t durationTicks;
 
-    switch (chip) {
-       case CHIP6567R8:
-       case CHIP6567R56A:
-          durationTicks = US_TO_TICKS(16700L);
-          break;
-       case CHIP6569:
-          durationTicks = US_TO_TICKS(20000L);
-          break;
-    }
 
     char *cvalue = nullptr;
     char c;
@@ -226,9 +208,13 @@ int main(int argc, char** argv, char** env) {
     regex_t regex;
     int reti, reti2;
     char regex_buf[32];
+    FILE* outFile = NULL;
 
-    while ((c = getopt (argc, argv, "hs:t:vwnpi:zb")) != -1)
+    while ((c = getopt (argc, argv, "c:hs:t:vwi:zbo:")) != -1)
     switch (c) {
+      case 'c':
+        chip = atoi(optarg);
+        break;
       case 'i':
         token = strtok(optarg, ",");
         while (token != NULL) {
@@ -252,6 +238,9 @@ int main(int argc, char** argv, char** env) {
            token = strtok(NULL, ",");
         }
         break;
+      case 'o':
+        outFile = fopen(optarg,"w");
+        break;
       case 'b':
         // Render after every pixel instead of after every line
         renderEachPixel = true;
@@ -260,12 +249,6 @@ int main(int argc, char** argv, char** env) {
         // IPC tells us when to start/stop capture
         captureByTime = false;
         shadowVic = true;
-        break;
-      case 'n':
-        isNtsc = true;
-        break;
-      case 'p':
-        isNtsc = false;
         break;
       case 'v':
         outputVcd = true;
@@ -281,15 +264,15 @@ int main(int argc, char** argv, char** env) {
         break;
       case 'h':
         printf ("Usage\n");
-        printf ("  -s [uS]  : start at uS\n");
-        printf ("  -t [uS]  : run for uS\n");
-        printf ("  -v       : generate vcd to stdout\n");
-        printf ("  -p       : pal\n");
-        printf ("  -n       : ntsc (default)\n");
-        printf ("  -w       : show SDL2 window\n");
-        printf ("  -z       : single step eval for shadow vic via ipc\n");
-        printf ("  -b       : render each pixel instead of each line\n");
-        printf ("  -i       : list signals to include (phi, ce, csync, etc.) \n");
+        printf ("  -s [uS]   : start at uS\n");
+        printf ("  -t [uS]   : run for uS\n");
+        printf ("  -v        : generate vcd to file\n");
+        printf ("  -o <file> : specify filename\n");
+        printf ("  -w        : show SDL2 window\n");
+        printf ("  -z        : single step eval for shadow vic via ipc\n");
+        printf ("  -b        : render each pixel instead of each line\n");
+        printf ("  -i        : list signals to include (phi, ce, csync, etc.) \n");
+        printf ("  -c <chip> : 0=CHIP6567R8, 1=CHIP6567R56A 2=CHIP65669\n");
         
         exit(0);
       case '?':
@@ -304,6 +287,44 @@ int main(int argc, char** argv, char** env) {
         return 1;
       default:
         exit(-1);
+    }
+
+    if (outputVcd && outFile == NULL) {
+       printf ("error: need out file with -o\n");
+       exit(-1);
+    }
+
+    switch (chip) {
+       case CHIP6567R8:
+       case CHIP6567R56A:
+          durationTicks = US_TO_TICKS(16700L);
+          break;
+       case CHIP6569:
+          durationTicks = US_TO_TICKS(20000L);
+          break;
+       default:
+          durationTicks = US_TO_TICKS(20000L);
+    }
+
+    switch (chip) {
+       case CHIP6567R8:
+          isNtsc = true;
+          printf ("CHIP: 6567R8\n");
+          printf ("VIDEO: NTSC\n");
+          break;
+       case CHIP6567R56A:
+          isNtsc = true;
+          printf ("CHIP: 6567R56A\n");
+          printf ("VIDEO: NTSC\n");
+          break;
+       case CHIP6569:
+          isNtsc = false;
+          printf ("CHIP: 6569\n");
+          printf ("VIDEO: PAL\n");
+          break;
+       default:
+          printf ("error: unknown chip\n");
+          break;
     }
 
     if (isNtsc) {
@@ -327,8 +348,8 @@ int main(int argc, char** argv, char** env) {
        half4XColorPS = PAL_HALF_4X_COLOR_PS;
        switch (chip) {
           case CHIP6569:
-             maxDotX = NTSC_6569_MAX_DOT_X;
-             maxDotY = NTSC_6569_MAX_DOT_Y;
+             maxDotX = PAL_6569_MAX_DOT_X;
+             maxDotY = PAL_6569_MAX_DOT_Y;
              break;
           default:
              fprintf (stderr, "wrong chip?\n");
@@ -352,8 +373,8 @@ int main(int argc, char** argv, char** env) {
 
     if (showWindow) {
       SDL_DisplayMode current;
-      int width = maxDotX;
-      int height = maxDotY;
+      int width = maxDotX*2;
+      int height = maxDotY*2;
 
       win = SDL_CreateWindow("VICII",
                              SDL_WINDOWPOS_CENTERED,
@@ -379,21 +400,10 @@ int main(int argc, char** argv, char** env) {
     // Add new input/output here.
     Vvicii* top = new Vvicii;
     top->chip = chip;
-    top->clk_colref = 0;
-    top->clk_phi = 0;
     top->rst = 0;
-    top->red = 0;
-    top->green = 0;
-    top->blue = 0;
-    top->cSync = 0;
     top->ad = 0;
-    top->dbo = 0;
     top->dbi = 0;
-    top->ce = 1;
-    top->rw = 1;
-    top->ba = 0;
     top->aec = 1; // TODO
-    top->irq = 1;
     top->vicii__DOT__b0c = 14;
     top->vicii__DOT__ec = 6;
 
@@ -448,8 +458,17 @@ int main(int argc, char** argv, char** env) {
        bt = bt * 2;
     }
 
+    top->eval();
+
+
     if (outputVcd)
-       vcd_header(top);
+       vcd_header(top,outFile);
+
+    // After this loop, the next tick will bring DOT high
+    for (int t =0; t < 32; t++) {
+       ticks = nextTick(top);
+       top->eval();
+    }
 
     if (shadowVic) {
        ipc = ipc_init(IPC_RECEIVER);
@@ -461,18 +480,11 @@ int main(int argc, char** argv, char** env) {
     // dot clock tick forward one half its period.
     bool needDotTick = false;
 
-    // For our VICE hook to work properly, we need to tick
-    // forward until phi goes HIGH since the 6510 should
-    // only be accessing the bus when phi is in the 2nd
-    // phase.
-    while (!top->clk_phi) {
-       ticks = nextTick(top);
-       top->eval();
-    }
-
     for (int i = 0; i < NUM_SIGNALS; i++) {
        prev_signal_values[i] = SGETVAL(i);
     }
+
+    int verifyNextDotXPos = -1;
 
     // IMPORTANT: Any and all state reads/writes MUST occur between ipc_receive
     // and ipc_send inside this loop.
@@ -489,10 +501,16 @@ int main(int argc, char** argv, char** env) {
            capture = (state->flags & VICII_OP_CAPTURE_START);
 
            if (state->flags & VICII_OP_SYNC_STATE) {
-               // Sync state
-               top->vicii__DOT__x_pos = 8 * state->cycle_num;
-               top->vicii__DOT__y_pos = state->raster_line;
-               printf ("Sync FPGA cycle=%u, raster_line=%u\n",state->cycle_num, state->raster_line);
+               // We sync state always when phi is high (2nd phase)
+               assert(~top->clk_phi);
+               // Add 3 because the next dot tick will increment xpos.
+               top->vicii__DOT__raster_x = 8 * state->cycle_num + 3;
+               top->vicii__DOT__raster_line = state->raster_line;
+
+               verifyNextDotXPos = state->xpos + 4;
+
+               printf ("info: syncing FPGA to cycle=%u, raster_line=%u, xpos=%u\n",
+                  state->cycle_num, state->raster_line, verifyNextDotXPos);
            }
            state->flags &= ~VICII_OP_SYNC_STATE;
 
@@ -535,32 +553,53 @@ int main(int argc, char** argv, char** env) {
 
           if (anyChanged) {
              if (outputVcd)
-                printf ("#%" VL_PRI64 "d\n", ticks/TICKS_TO_TIMESCALE);
+                fprintf (outFile, "#%" VL_PRI64 "d\n", ticks/TICKS_TO_TIMESCALE);
              for (int i = 0; i < NUM_SIGNALS; i++) {
                 if (HASCHANGED(i)) {
                    if (outputVcd)
-                      printf ("%x%s\n", SGETVAL(i), signal_ids[i]);
+                      fprintf (outFile, "%x%s\n", SGETVAL(i), signal_ids[i]);
                 }
              }
           }
 
           // If rendering, draw current color on dot clock
           if (showWindow && HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
+
+             if (verifyNextDotXPos >= 0) {
+                // This is a check to make sure the next dot is what
+                // we expected from the fpga sync step above.
+                if (top->xpos != verifyNextDotXPos) {
+                   printf ("error: expected next dot to have xpos=%u but got xpos=%u\n",
+                       verifyNextDotXPos, top->xpos);
+                } else {
+                   printf ("info: got expected next dot with xpos=%u\n", top->xpos);
+                }
+                verifyNextDotXPos = -1;
+             }
+
              SDL_SetRenderDrawColor(ren,
                 top->red << 6,
                 top->green << 6,
                 top->blue << 6,
                 255);
-             SDL_RenderDrawPoint(ren,
-                top->vicii__DOT__x_pos,
-                top->vicii__DOT__y_pos);
+             drawPixel(ren,
+                top->vicii__DOT__raster_x,
+                top->vicii__DOT__raster_line
+             );
 
              // Show updated pixels per raster line
-             if (prev_y != top->vicii__DOT__y_pos) {
+             if (prev_y != top->vicii__DOT__raster_line) {
                 SDL_RenderPresent(ren);
-                prev_y = top->vicii__DOT__y_pos;
+                prev_y = top->vicii__DOT__raster_line;
 
                 SDL_PollEvent(&event);
+                switch (event.type) {
+                   case SDL_QUIT:
+                      state->flags |= VICII_OP_CAPTURE_END;
+                      break;
+                   default:
+                      break;
+                }
              }
              if (renderEachPixel) {
                 SDL_RenderPresent(ren);
@@ -602,6 +641,10 @@ int main(int argc, char** argv, char** env) {
 
         // Advance simulation time. Each tick represents 1 picosecond.
         ticks = nextTick(top);
+    }
+
+    if (outputVcd) {
+        fclose(outFile);
     }
 
     if (shadowVic) {
