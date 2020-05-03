@@ -11,7 +11,8 @@ module vicii(
    output[1:0] green,
    output[1:0] blue,
    output cSync,
-   inout [11:0] ad,
+   output [11:0] ado,
+   input [11:0] adi,
    output reg [11:0] dbo,
    input [11:0] dbi,
    input ce,
@@ -51,29 +52,29 @@ CHIP6567R8:
    begin
       rasterXMax = 10'd519;     // 520 pixels 
       rasterYMax = 9'd261;      // 262 lines
-      hSyncStart = 10'd416;
-      hSyncEnd = 10'd453;      // 4.6us
-      hVisibleStart = 10'd504; // 10.7us after hSyncStart seems to work
-      vBlankStart = 9'd14;
-      vBlankEnd = 9'd22;
+      hSyncStart = 10'd406;
+      hSyncEnd = 10'd443;       // 4.6us
+      hVisibleStart = 10'd494;  // 10.7us after hSyncStart seems to work
+      vBlankStart = 9'd11;
+      vBlankEnd = 9'd19;
    end
 CHIP6567R56A:
    begin
-      rasterXMax = 10'd511;    // 512 pixels
-      rasterYMax = 9'd260;     // 261 lines
-      hSyncStart = 10'd416;
-      hSyncEnd = 10'd453;      // 4.6us
-      hVisibleStart = 10'd504; // 10.7us after hSyncStart seems to work
-      vBlankStart = 9'd14;
-      vBlankEnd = 9'd22;
+      rasterXMax = 10'd511;     // 512 pixels
+      rasterYMax = 9'd260;      // 261 lines
+      hSyncStart = 10'd406;
+      hSyncEnd = 10'd443;       // 4.6us
+      hVisibleStart = 10'd494;  // 10.7us after hSyncStart seems to work
+      vBlankStart = 9'd11;
+      vBlankEnd = 9'd19;
    end
 CHIP6569,CHIPUNUSED:
    begin
-      rasterXMax = 10'd503;    // 504 pixels
-      rasterYMax = 9'd311;     // 312
+      rasterXMax = 10'd503;     // 504 pixels
+      rasterYMax = 9'd311;      // 312
       hSyncStart = 10'd408;
-      hSyncEnd = 10'd444;      // ~4.6us
-      hVisibleStart = 10'd492; // ~10.7 after hSyncStart
+      hSyncEnd = 10'd444;       // ~4.6us
+      hVisibleStart = 10'd492;  // ~10.7 after hSyncStart
       vBlankStart = 9'd301;
       vBlankEnd = 9'd309;
    end
@@ -101,6 +102,9 @@ endcase
   reg [9:0] raster_x;
   reg [8:0] raster_line;
 
+  // VIC read address
+  reg [13:0] vicAddr;
+  
   // cycle_num : Each cycle is 8 pixels.
   // 6567R56A : 0-63
   // 6567R8   : 0-64
@@ -125,11 +129,24 @@ endcase
   wire visible_vertical;
   wire WE;
 
+  // lower 8 bits of ado are muxed
+  reg [7:0] ado8;
+  wire mux;
+
+  // Initialization section
   initial
   begin
     raster_x = 0;
     raster_line = 0;
   end
+  
+  always @(posedge clk_dot)
+    if (rst)
+       ado8 <= 8'hFF;
+    else
+       ado8 <= mux ? {2'b11,vicAddr[13:8]} : vicAddr[7:0];
+  assign ado = {vicAddr[11:8], ado8};
+
 
   // The bit_cycle (0-7) is taken from the raster_x
   assign bit_cycle = raster_x[2:0];
@@ -285,7 +302,7 @@ else begin
    // READ
    if (clk_phi && rw) begin
       dbo <= 12'hFF;
-      case(ad[5:0])
+      case(adi[5:0])
       6'h20:  dbo[3:0] <= ec;
       6'h21:  dbo[3:0] <= b0c;
       default:  dbo <= 12'hFF;
@@ -293,7 +310,7 @@ else begin
    end
    // WRITE
    else if (!rw) begin
-      case(ad[5:0])
+      case(adi[5:0])
       6'h20:  ec = dbi[3:0];
       6'h21:  b0c = dbi[3:0];
       default: ec = ec;

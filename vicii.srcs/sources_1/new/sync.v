@@ -44,15 +44,15 @@ always @(posedge clk)
   case(chip)
   CHIP6567R8,CHIP6567R56A:
 	case(rasterY)
-	9'd14:	cSync <= ~EQ;
-	9'd15:	cSync <= ~EQ;
-	9'd16:	cSync <= ~EQ;
-	9'd17:	cSync <= ~SE;
-	9'd18:	cSync <= ~SE;
-	9'd19:	cSync <= ~SE;
-	9'd20:	cSync <= ~EQ;
-	9'd21:	cSync <= ~EQ;
-	9'd22:	cSync <= ~EQ;
+	9'd11:	cSync <= ~EQ;
+	9'd12:	cSync <= ~EQ;
+	9'd13:	cSync <= ~EQ;
+	9'd14:	cSync <= ~SE;
+	9'd15:	cSync <= ~SE;
+	9'd16:	cSync <= ~SE;
+	9'd17:	cSync <= ~EQ;
+	9'd18:	cSync <= ~EQ;
+	9'd19:	cSync <= ~EQ;
 	default:
 			cSync <= ~hSync;
 	endcase

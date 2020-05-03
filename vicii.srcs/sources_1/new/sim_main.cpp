@@ -30,71 +30,45 @@ static int maxDotX;
 static int maxDotY;
 
 // Add new input/output here
-#define OUT_PHI 0
-#define OUT_COLREF 1
-#define IN_RST 2
-#define OUT_R0 3
-#define OUT_R1 4
-#define OUT_G0 5
-#define OUT_G1 6
-#define OUT_B0 7
-#define OUT_B1 8
-#define OUT_DOT 9
-#define OUT_CSYNC 10
-#define INOUT_A0 11
-#define INOUT_A1 12
-#define INOUT_A2 13
-#define INOUT_A3 14
-#define INOUT_A4 15
-#define INOUT_A5 16
-#define INOUT_A6 17
-#define INOUT_A7 18
-#define INOUT_A8 19
-#define INOUT_A9 20
-#define INOUT_A10 21
-#define INOUT_A11 22
-#define OUT_D0 23
-#define OUT_D1 24
-#define OUT_D2 25
-#define OUT_D3 26
-#define OUT_D4 27
-#define OUT_D5 28
-#define OUT_D6 29
-#define OUT_D7 30
-#define OUT_D8 31
-#define OUT_D9 32
-#define OUT_D10 33
-#define OUT_D11 34
-#define IN_D0 35
-#define IN_D1 36
-#define IN_D2 37
-#define IN_D3 38
-#define IN_D4 39
-#define IN_D5 40
-#define IN_D6 41
-#define IN_D7 42
-#define IN_D8 43
-#define IN_D9 44
-#define IN_D10 45
-#define IN_D11 46
-#define IN_CE 47
-#define IN_RW 48
-#define IN_BA 49
-#define IN_AEC 50
-#define IN_IRQ 51
-#define NUM_SIGNALS 52
+enum {
+   OUT_PHI = 0,
+   OUT_COLREF,
+   IN_RST,
+   OUT_R0, OUT_R1,
+   OUT_G0, OUT_G1,
+   OUT_B0, OUT_B1,
+   OUT_DOT,
+   OUT_CSYNC,
+   OUT_A0, OUT_A1, OUT_A2, OUT_A3, OUT_A4, OUT_A5, OUT_A6, OUT_A7,
+   OUT_A8, OUT_A9, OUT_A10, OUT_A11,
+   IN_A0, IN_A1, IN_A2, IN_A3, IN_A4, IN_A5, IN_A6, IN_A7,
+   IN_A8, IN_A9, IN_A10, IN_A11,
+   OUT_D0, OUT_D1, OUT_D2, OUT_D3, OUT_D4, OUT_D5, OUT_D6, OUT_D7,
+   OUT_D8, OUT_D9, OUT_D10, OUT_D11,
+   IN_D0, IN_D1, IN_D2, IN_D3, IN_D4, IN_D5, IN_D6, IN_D7,
+   IN_D8, IN_D9, IN_D10, IN_D11,
+   IN_CE,
+   IN_RW,
+   IN_BA,
+   IN_AEC,
+   IN_IRQ,
+};
+
+#define NUM_SIGNALS 64
 
 // Add new input/output here
 const char *signal_labels[] = {
    "phi", "col", "rst", "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "csync",
-   "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11",
+   "ao0", "ao1", "ao2", "ao3", "ao4", "ao5", "ao6", "ao7", "ao8", "ao9", "ao10", "ao11",
+   "ai0", "ai1", "ai2", "ai3", "ai4", "ai5", "ai6", "ai7", "ai8", "ai9", "ai10", "ai11",
    "do0", "do1", "do2", "do3", "do4", "do5", "do6", "do7", "do8", "do9", "do10", "do11",
    "di0", "di1", "di2", "di3", "di4", "di5", "di6", "di7", "di8", "di9", "di10", "di11",
    "ce", "rw", "ba", "aec", "irq"
 };
 const char *signal_ids[] = {
    "p", "c", "r" ,  "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "s",
-   "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11",
+   "ao0", "ao1", "ao2", "ao3", "ao4", "ao5", "ao6", "ao7", "ao8", "ao9", "ao10", "ao11",
+   "ai0", "ai1", "ai2", "ai3", "ai4", "ai5", "ai6", "ai7", "ai8", "ai9", "ai10", "ai11",
    "do0", "do1", "do2", "do3", "do4", "do5", "do6", "do7", "do8", "do9", "do10", "do11",
    "di0", "di1", "di2", "di3", "di4", "di5", "di6", "di7", "di8", "di9", "di10", "di11",
    "ce", "rw", "ba", "aec", "irq"
@@ -401,7 +375,7 @@ int main(int argc, char** argv, char** env) {
     Vvicii* top = new Vvicii;
     top->chip = chip;
     top->rst = 0;
-    top->ad = 0;
+    top->adi = 0;
     top->dbi = 0;
     top->aec = 1; // TODO
     top->vicii__DOT__b0c = 14;
@@ -437,10 +411,17 @@ int main(int argc, char** argv, char** env) {
     signal_src8[IN_IRQ] = &top->irq;
 
     int bt = 1;
-    for (int i=INOUT_A0; i<= INOUT_A11; i++) {
+    for (int i=OUT_A0; i<= OUT_A11; i++) {
        signal_width[i] = 12;
        signal_bit[i] = bt;
-       signal_src16[i] = &top->ad;
+       signal_src16[i] = &top->ado;
+       bt = bt * 2;
+    }
+    bt = 1;
+    for (int i=IN_A0; i<= IN_A11; i++) {
+       signal_width[i] = 12;
+       signal_bit[i] = bt;
+       signal_src16[i] = &top->adi;
        bt = bt * 2;
     }
     bt = 1;
@@ -518,7 +499,7 @@ int main(int argc, char** argv, char** env) {
               assert(top->clk_phi);
            }
 
-           top->ad = state->addr;
+           top->adi = state->addr;
            top->ce = state->ce;
            top->rw = state->rw;
 
@@ -609,6 +590,9 @@ int main(int argc, char** argv, char** env) {
 
         if (shadowVic && HASCHANGED(OUT_DOT) && needDotTick) {
            // TODO : Report back any outputs like data, ba, aec, etc. here
+
+           // 
+           state->phi = top->clk_phi;
 
            if (top->ce == 0 && top->rw == 1) {
               // Chip selected and read, set data in state

@@ -47,6 +47,7 @@ clock2gen g2clock(
 );
 
 wire[11:0] dbo;
+wire[11:0] ado;
 
 vicii vic_inst(
    .chip(CHIP6567R56A), // for now, not wired to jumpers
@@ -59,7 +60,8 @@ vicii vic_inst(
    .blue(blue),
    .rst(rst),
    .cSync(cSync),
-   .ad(ad),
+   .adi(ad),
+   .ado(ado),
    .dbi(db),
    .dbo(dbo),
    .ce(ce),
@@ -71,5 +73,6 @@ vicii vic_inst(
 
 // Write to bus condition, else tri state.
 assign db = (aec && ~rw && !ce) ? dbo : 12'bz;
+assign ad = aec ? 12'bz : ado;
 
 endmodule
