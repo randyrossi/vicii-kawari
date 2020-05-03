@@ -620,6 +620,12 @@ int main(int argc, char** argv, char** env) {
               needQuit = true;
            }
 
+           // After we have one full frame, exit the loop.
+           if ((state->flags & VICII_OP_CAPTURE_ONE_FRAME) !=0 &&
+              top->xpos == 0 && top->vicii__DOT__raster_line == 0) {
+              needQuit = true;
+           }
+
            if (ipc_send(ipc))
               break;
            needDotTick = false;

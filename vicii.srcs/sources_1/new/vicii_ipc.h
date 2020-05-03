@@ -28,6 +28,8 @@ union semun {
 #define VICII_OP_BUS_ACCESS    4
 // Indicates this state change includes sync info
 #define VICII_OP_SYNC_STATE    8
+// Only start capture when x,y hit 0,0 and do one frame only
+#define VICII_OP_CAPTURE_ONE_FRAME 16
 
 // Must not exceed IPC_BUFSIZE
 struct vicii_state {
