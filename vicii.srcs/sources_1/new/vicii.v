@@ -99,16 +99,11 @@ endcase
   reg [9:0] raster_x;
   reg [8:0] raster_line;
   
-  // xpos is the xposition at the start of either a high or low
-  // phi phase.  There are 4 positions between  xpos position.
-  // It is used to construct the raster_x_rel which is the x position
-  // relative to raster irq.  raster_x_rel is not simply raster_x with
-  // an offset, it does not increment on certain cycles for 6567R8
+  // xpos is the x coordinate relative to raster irq
+  // It is not simply raster_x with an offset, it does not
+  // increment on certain cycles for 6567R8
   // chips and wraps at the high phase of cycle 12.
   reg [9:0] xpos;
-
-  // the raster x relative to raster IRQ
-  wire [9:0] raster_x_rel;  
 
   // VIC read address
   reg [13:0] vicAddr;
@@ -165,7 +160,7 @@ endcase
   // when the border is visible like this.
   assign visible_vertical = (raster_line >= 51) & (raster_line < 251) ? 1 : 0;
   // Official datasheet says 28-348 but Christian's doc says 24-344
-  assign visible_horizontal = (raster_x_rel >= 24) & (raster_x_rel < 344) ? 1 : 0;
+  assign visible_horizontal = (xpos >= 24) & (xpos < 344) ? 1 : 0;
   assign WE = visible_horizontal & visible_vertical & (bit_cycle == 2) & (char_line_num == 0);
 
   // Update x,y position
@@ -223,10 +218,6 @@ endcase
       xpos <= 10'h194;
     endcase
   end
-
-  // The x position relative to raster irq is the upper 8 bits of xpos
-  // and lower 2 bits determined by the bit cycle. 
-  assign raster_x_rel = {xpos[9:2], bit_cycle[1:0]};
 
   reg [11:0] char_buffer [39:0];
   reg [11:0] char_buffer_out;
@@ -296,7 +287,7 @@ endcase
   // Translate out_pixel (indexed) to RGB values
   color viccolor(
      .chip(chip),
-     .x_pos(raster_x_rel),
+     .x_pos(xpos),
      .y_pos(raster_line),
      .out_pixel(out_pixel),
      .hSyncStart(hSyncStart),
@@ -313,7 +304,7 @@ endcase
      .chip(chip),
      .rst(rst),
      .clk(clk_dot),
-     .rasterX(raster_x_rel),
+     .rasterX(xpos),
      .rasterY(raster_line),
      .hSyncStart(hSyncStart),
      .hSyncEnd(hSyncEnd),

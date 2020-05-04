@@ -22,6 +22,12 @@ extern "C" {
 #define LOG_WARN  2
 #define LOG_INFO  3
 
+static const char* logLevelStr[4] = { "None","error","warn","info" };
+
+int logLevel = LOG_ERROR;
+
+#define LOG(minLevel, FORMAT, ...)  if (logLevel >= minLevel) { printf ("(%s) %s: " FORMAT "\n", __FUNCTION__, logLevelStr[logLevel], ##__VA_ARGS__); }
+
 // Current simulation time (64-bit unsigned). See
 // constants.h for how much each tick represents.
 static vluint64_t ticks = 0;
@@ -167,7 +173,6 @@ static void drawPixel(SDL_Renderer* ren, int x,int y) {
 }
 
 int main(int argc, char** argv, char** env) {
-    int logLevel = LOG_INFO;
 
     struct vicii_state* state;
     bool capture = false;
@@ -196,8 +201,11 @@ int main(int argc, char** argv, char** env) {
     char regex_buf[32];
     FILE* outFile = NULL;
 
-    while ((c = getopt (argc, argv, "c:hs:t:vwi:zbo:")) != -1)
+    while ((c = getopt (argc, argv, "c:hs:t:vwi:zbo:d:")) != -1)
     switch (c) {
+      case 'd':
+        logLevel = atoi(optarg);
+        break;
       case 'c':
         chip = atoi(optarg);
         break;
@@ -262,21 +270,20 @@ int main(int argc, char** argv, char** env) {
         
         exit(0);
       case '?':
-        if (optopt == 't' || optopt == 's')
-          fprintf (stderr, "Option -%c requires an argument.\n", optopt);
-        else if (isprint (optopt))
-          fprintf (stderr, "Unknown option `-%c'.\n", optopt);
-        else
-          fprintf (stderr,
-                   "Unknown option character `\\x%x'.\n",
-                   optopt);
+        if (optopt == 't' || optopt == 's') {
+          LOG(LOG_ERROR, "Option -%c requires an argument", optopt);
+        } else if (isprint (optopt)) {
+          LOG(LOG_ERROR, "Unknown option `-%c'", optopt);
+        } else {
+          LOG(LOG_ERROR, "Unknown option character `\\x%x'", optopt);
+        }
         return 1;
       default:
         exit(-1);
     }
 
     if (outputVcd && outFile == NULL) {
-       printf ("error: need out file with -o\n");
+       LOG(LOG_ERROR, "need out file with -o");
        exit(-1);
     }
 
@@ -309,9 +316,11 @@ int main(int argc, char** argv, char** env) {
           printf ("VIDEO: PAL\n");
           break;
        default:
-          printf ("error: unknown chip\n");
+          LOG(LOG_ERROR, "unknown chip");
+          exit(-1);
           break;
     }
+    printf ("Log Level: %d\n", logLevel);
 
     if (isNtsc) {
        half4XDotPS = NTSC_HALF_4X_DOT_PS;
@@ -326,7 +335,7 @@ int main(int argc, char** argv, char** env) {
              maxDotY = NTSC_6567R8_MAX_DOT_Y;
              break;
           default:
-             fprintf (stderr, "wrong chip?\n");
+             LOG(LOG_ERROR, "wrong chip?");
              exit(-1);
        }
     } else {
@@ -338,7 +347,7 @@ int main(int argc, char** argv, char** env) {
              maxDotY = PAL_6569_MAX_DOT_Y;
              break;
           default:
-             fprintf (stderr, "wrong chip?\n");
+             LOG(LOG_ERROR, "wrong chip?");
              exit(-1);
        }
     }
@@ -349,7 +358,7 @@ int main(int argc, char** argv, char** env) {
 
     int sdl_init_mode = SDL_INIT_VIDEO;
     if (SDL_Init(sdl_init_mode) != 0) {
-      std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
+      LOG(LOG_ERROR, "SDL_Init %s", SDL_GetError());
       return 1;
     }
 
@@ -461,9 +470,7 @@ int main(int argc, char** argv, char** env) {
        ticks = nextTick(top);
        top->eval();
        if (HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
-          if (logLevel >= LOG_INFO) {
-             printf ("info: xpos=%03x, cycle=%d, bit=%d\n",top->vicii__DOT__xpos, top->vicii__DOT__cycle_num, top->vicii__DOT__bit_cycle);
-          }
+          LOG(LOG_INFO, "xpos=%03x, cycle=%d, bit=%d",top->vicii__DOT__xpos, top->vicii__DOT__cycle_num, top->vicii__DOT__bit_cycle);
        }
        STORE_PREV();
     }
@@ -497,13 +504,16 @@ int main(int argc, char** argv, char** env) {
            if (state->flags & VICII_OP_SYNC_STATE) {
                // We sync state always when phi is high (2nd phase)
                assert(~top->clk_phi);
-               // Add 3 because the next dot tick will increment xpos.
+               // Add 3 because the next dot tick will increment x to bring us
+               // to 2nd phase of phi within the cycle.
                top->vicii__DOT__raster_x = 8 * state->cycle_num + 3;
+               top->vicii__DOT__xpos = state->xpos;
                top->vicii__DOT__raster_line = state->raster_line;
 
-               verifyNextDotXPos = state->xpos + 4;
+               // Add one because the next dot tick will increment xpos
+               verifyNextDotXPos = state->xpos + 1;
 
-               printf ("info: syncing FPGA to cycle=%u, raster_line=%u, xpos=%u\n",
+               LOG(LOG_INFO, "syncing FPGA to cycle=%u, raster_line=%u, xpos=%03x",
                   state->cycle_num, state->raster_line, verifyNextDotXPos);
            }
            state->flags &= ~VICII_OP_SYNC_STATE;
@@ -558,17 +568,16 @@ int main(int argc, char** argv, char** env) {
 
           // If rendering, draw current color on dot clock
           if (showWindow && HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
-             if (logLevel >= LOG_INFO) {
-                printf ("info: xpos=%03x, cycle=%d, bit=%d\n",top->vicii__DOT__xpos, top->vicii__DOT__cycle_num, top->vicii__DOT__bit_cycle);
-             }
+             LOG(LOG_INFO, "xpos=%03x, cycle=%d, bit=%d",top->vicii__DOT__xpos, top->vicii__DOT__cycle_num, top->vicii__DOT__bit_cycle);
              if (verifyNextDotXPos >= 0) {
                 // This is a check to make sure the next dot is what
                 // we expected from the fpga sync step above.
                 if (top->vicii__DOT__xpos != verifyNextDotXPos) {
-                   printf ("error: expected next dot to have xpos=%u but got xpos=%u\n",
-                       verifyNextDotXPos, top->vicii__DOT__xpos);
+                   LOG(LOG_ERROR, "expected next dot to have xpos=%03x but got xpos=%03x @ cycle=%d bit_cycle=%d",
+                                   verifyNextDotXPos, top->vicii__DOT__xpos, top->vicii__DOT__cycle_num, top->vicii__DOT__bit_cycle);
+                   exit(-1);
                 } else {
-                   printf ("info: got expected next dot with xpos=%u\n", top->vicii__DOT__xpos);
+                   LOG(LOG_INFO, "got expected next dot with xpos=%03x", top->vicii__DOT__xpos);
                 }
                 verifyNextDotXPos = -1;
              }
