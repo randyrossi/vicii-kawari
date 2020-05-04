@@ -34,7 +34,7 @@ VERILATOR = $(VERILATOR_ROOT)/bin/verilator
 endif
 
 default: ipc_test vicii_ipc.o libvicii_ipc.so
-	$(VERILATOR) -cc --exe vicii.v clockdivs.v sync.v serration.v equalization.v cycles.v sim_main.cpp -LDFLAGS '../vicii_ipc.o -lSDL2'
+	$(VERILATOR) -cc --exe vicii.v clockdivs.v sync.v serration.v equalization.v sim_main.cpp -LDFLAGS '../vicii_ipc.o -lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vvicii.mk
 
 vicii_ipc.o: vicii_ipc.c

@@ -17,6 +17,11 @@ extern "C" {
 #include "vicii_ipc.h"
 }
 
+#define LOG_NONE  0
+#define LOG_ERROR 1
+#define LOG_WARN  2
+#define LOG_INFO  3
+
 // Current simulation time (64-bit unsigned). See
 // constants.h for how much each tick represents.
 static vluint64_t ticks = 0;
@@ -94,6 +99,12 @@ static int SGETVAL(int signum) {
   }
 }
 
+static void STORE_PREV() {
+  for (int i = 0; i < NUM_SIGNALS; i++) {
+     prev_signal_values[i] = SGETVAL(i);
+  }
+}
+
 #define HASCHANGED(signum) \
    ( signal_monitor[signum] && SGETVAL(signum) != prev_signal_values[signum] )
 #define RISING(signum) \
@@ -156,12 +167,13 @@ static void drawPixel(SDL_Renderer* ren, int x,int y) {
 }
 
 int main(int argc, char** argv, char** env) {
+    int logLevel = LOG_INFO;
 
     struct vicii_state* state;
     bool capture = false;
 
     int chip = CHIP6569;
-    bool isNtsc = true;
+    bool isNtsc = false;
 
     bool captureByTime = true;
     bool outputVcd = false;
@@ -441,7 +453,6 @@ int main(int argc, char** argv, char** env) {
 
     top->eval();
 
-
     if (outputVcd)
        vcd_header(top,outFile);
 
@@ -449,6 +460,12 @@ int main(int argc, char** argv, char** env) {
     for (int t =0; t < 32; t++) {
        ticks = nextTick(top);
        top->eval();
+       if (HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
+          if (logLevel >= LOG_INFO) {
+             printf ("info: xpos=%03x, cycle=%d, bit=%d\n",top->vicii__DOT__xpos, top->vicii__DOT__cycle_num, top->vicii__DOT__bit_cycle);
+          }
+       }
+       STORE_PREV();
     }
 
     if (shadowVic) {
@@ -460,10 +477,6 @@ int main(int argc, char** argv, char** env) {
     // This lets us iterate the eval loop until we see the
     // dot clock tick forward one half its period.
     bool needDotTick = false;
-
-    for (int i = 0; i < NUM_SIGNALS; i++) {
-       prev_signal_values[i] = SGETVAL(i);
-    }
 
     int verifyNextDotXPos = -1;
 
@@ -545,18 +558,36 @@ int main(int argc, char** argv, char** env) {
 
           // If rendering, draw current color on dot clock
           if (showWindow && HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
-
+             if (logLevel >= LOG_INFO) {
+                printf ("info: xpos=%03x, cycle=%d, bit=%d\n",top->vicii__DOT__xpos, top->vicii__DOT__cycle_num, top->vicii__DOT__bit_cycle);
+             }
              if (verifyNextDotXPos >= 0) {
                 // This is a check to make sure the next dot is what
                 // we expected from the fpga sync step above.
-                if (top->xpos != verifyNextDotXPos) {
+                if (top->vicii__DOT__xpos != verifyNextDotXPos) {
                    printf ("error: expected next dot to have xpos=%u but got xpos=%u\n",
-                       verifyNextDotXPos, top->xpos);
+                       verifyNextDotXPos, top->vicii__DOT__xpos);
                 } else {
-                   printf ("info: got expected next dot with xpos=%u\n", top->xpos);
+                   printf ("info: got expected next dot with xpos=%u\n", top->vicii__DOT__xpos);
                 }
                 verifyNextDotXPos = -1;
              }
+
+             // Make sure xpos is what we expect at key points
+             if (top->vicii__DOT__cycle_num == 12 && top->vicii__DOT__bit_cycle == 4)
+               assert (top->vicii__DOT__xpos == 0); // rollover
+
+             if (top->vicii__DOT__cycle_num == 0 && top->vicii__DOT__bit_cycle == 0)
+               if (chip == CHIP6569)
+                  assert (top->vicii__DOT__xpos == 0x194); // reset
+               else
+                  assert (top->vicii__DOT__xpos == 0x19c); // reset
+
+             if (chip == CHIP6567R8)
+               if (top->vicii__DOT__cycle_num == 61 && (top->vicii__DOT__bit_cycle == 0 || top->vicii__DOT__bit_cycle == 4))
+                  assert (top->vicii__DOT__xpos == 0x184); // repeat cases
+               else if (top->vicii__DOT__cycle_num == 62 && top->vicii__DOT__bit_cycle == 0)
+                  assert (top->vicii__DOT__xpos == 0x184); // repeat case
 
              SDL_SetRenderDrawColor(ren,
                 top->red << 6,
@@ -606,7 +637,7 @@ int main(int argc, char** argv, char** env) {
 
            // After we have one full frame, exit the loop.
            if ((state->flags & VICII_OP_CAPTURE_ONE_FRAME) !=0 &&
-              top->xpos == 0 && top->vicii__DOT__raster_line == 0) {
+              top->vicii__DOT__xpos == 0 && top->vicii__DOT__raster_line == 0) {
               needQuit = true;
            }
 
@@ -621,9 +652,7 @@ int main(int argc, char** argv, char** env) {
         }
 
         // End of eval. Remember current values for previous compares.
-        for (int i = 0; i < NUM_SIGNALS; i++) {
-           prev_signal_values[i] = SGETVAL(i);
-        }
+        STORE_PREV();
 
         // Is it time to stop?
         if (captureByTime && ticks >= endTicks)

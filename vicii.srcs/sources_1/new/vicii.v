@@ -19,10 +19,7 @@ module vicii(
    input rw,
    output irq,
    output aec,
-   output reg ba,
-   
-   // xpos is exposed for simulation verification
-   output reg [9:0] xpos
+   output reg ba
 );
 
 parameter CHIP6567R8   = 2'd0;
@@ -101,6 +98,17 @@ endcase
   // current raster x and line position
   reg [9:0] raster_x;
   reg [8:0] raster_line;
+  
+  // xpos is the xposition at the start of either a high or low
+  // phi phase.  There are 4 positions between  xpos position.
+  // It is used to construct the raster_x_rel which is the x position
+  // relative to raster irq.  raster_x_rel is not simply raster_x with
+  // an offset, it does not increment on certain cycles for 6567R8
+  // chips and wraps at the high phase of cycle 12.
+  reg [9:0] xpos;
+
+  // the raster x relative to raster IRQ
+  wire [9:0] raster_x_rel;  
 
   // VIC read address
   reg [13:0] vicAddr;
@@ -152,18 +160,6 @@ endcase
   assign bit_cycle = raster_x[2:0];
   // This is simply raster_x divided by 8.
   assign cycle_num = raster_x[9:3];
-
-  // We have to calc out xpos (see below)
-  wire [9:0] raster_xpos;
-  cycles cycle_to_xpos(
-     .chip(chip),
-     .super_cycle({cycle_num, raster_x[2]}),
-     .xpos(raster_xpos)
-  );
-  
-  // the raster x relative to raster IRQ
-  wire [9:0] raster_x_rel;  
-  assign raster_x_rel = {raster_xpos[9:2], bit_cycle[1:0]};
   
   // Stuff like this won't work in the real core. There is no comparitor controlling
   // when the border is visible like this.
@@ -172,34 +168,65 @@ endcase
   assign visible_horizontal = (raster_x_rel >= 24) & (raster_x_rel < 344) ? 1 : 0;
   assign WE = visible_horizontal & visible_vertical & (bit_cycle == 2) & (char_line_num == 0);
 
-  // xpos is the xposition at the start of either a high or low
-  // phi phase.  There are 4 positions between each
-  // xpos position.  It is used to construct the raster_x_rel
-  // which is the x position relative to raster irq.  raster_x_rel
-  // is not simply raster_x with an offset, it does not increment
-  // on certain cycles for one of the chips.
-  // We expose xpos for debugging/verification from sim_main.cpp
-  always @(posedge clk_dot)
-  begin
-     xpos <= raster_xpos;
-  end
-
   // Update x,y position
   always @(posedge clk_dot)
   if (rst)
   begin
     raster_x <= 0;
     raster_line <= 0;
+    case(chip)
+    CHIP6567R56A, CHIP6567R8:
+      xpos <= 10'h19c;
+    CHIP6569, CHIPUNUSED:
+      xpos <= 10'h194;
+    endcase
   end
   else if (raster_x < rasterXMax)
   begin
     raster_x <= raster_x + 1;
+    case(chip)
+    CHIP6567R8:
+        if (cycle_num == 7'd0 && bit_cycle == 3'd0)
+           xpos <= 10'h19d;
+        else if (cycle_num == 7'd60 && bit_cycle == 3'd7)
+           xpos <= 10'h184;
+        else if (cycle_num == 7'd61 && (bit_cycle == 3'd3 || bit_cycle == 3'd7))
+           xpos <= 10'h184;
+        else if (cycle_num == 7'd12 && bit_cycle == 3'd3)
+           xpos <= 10'h0;
+        else
+           xpos <= xpos + 10'd1;
+    CHIP6567R56A:
+        if (cycle_num == 7'd0 && bit_cycle == 3'd0)
+           xpos <= 10'h19d;
+        else if (cycle_num == 7'd12 && bit_cycle == 3'd3)
+           xpos <= 10'h0;
+        else
+           xpos <= xpos + 10'd1;
+    CHIP6569, CHIPUNUSED:
+        if (cycle_num == 7'd0 && bit_cycle == 3'd0)
+           xpos <= 10'h195;
+        else if (cycle_num == 7'd12 && bit_cycle == 3'd3)
+           xpos <= 10'h0;
+        else
+           xpos <= xpos + 10'd1;
+    endcase
   end
-  else
+  else  
   begin
     raster_x <= 0;
     raster_line <= (raster_line < rasterYMax) ? raster_line + 1 : 0;
+    case(chip)
+    CHIP6567R56A, CHIP6567R8:
+      xpos <= 10'h19c;
+    CHIP6569, CHIPUNUSED:
+      xpos <= 10'h194;
+    endcase
   end
+
+  // The x position relative to raster irq is the upper 8 bits of xpos
+  // and lower 2 bits determined by the bit cycle. 
+  assign raster_x_rel = {xpos[9:2], bit_cycle[1:0]};
 
   reg [11:0] char_buffer [39:0];
   reg [11:0] char_buffer_out;
