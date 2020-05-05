@@ -19,13 +19,29 @@ module vicii(
    input rw,
    output irq,
    output aec,
-   output reg ba
+   output ba
 );
 
 parameter CHIP6567R8   = 2'd0;
 parameter CHIP6567R56A = 2'd1;
 parameter CHIP6569     = 2'd2;
 parameter CHIPUNUSED   = 2'd3;
+
+// Cycles
+parameter VIC_I   = 0;  // idle (both phases)
+parameter VIC_P   = 1;  // sprite pointer phase 1
+parameter VIC_PS  = 2;  // sprite pointer phase 1, sprite data byte 1 phase 2
+parameter VIC_SS  = 3;  // sprite data byte 1 phase 1, sprite data byte 2 phase 2
+parameter VIC_R   = 4;  // DRAM refresh phase 1
+parameter VIC_RC  = 5;  // DRAM refresh phase 1, video matrix and color ram phase 2
+parameter VIC_GC  = 6;  // chargen or bitmap phase 1, video matrix and color ram phase 2 
+parameter VIC_G   = 7;  // chargen or bitmap phase 1
+
+// BA must go low 3 cycles before VIC_PS, VIC_RC & VIC_GC
+// BA can go high again at VIC_I, VIC_P, VIC_R, VIC_G unless
+// one of VIC_PS, VIC_RC & VIC_GC are within 3 phi cycles
+// in the future
+
 
 // Limits for different chips
 reg [9:0] rasterXMax;
@@ -77,6 +93,22 @@ CHIP6569,CHIPUNUSED:
    end
 endcase
 
+  // cycle steal - current : 1 bit high that represents the
+  // current cycle we are in. Used to check cycle_stba to
+  // determine the value of BA
+  reg [64:0] cycle_stc;
+  
+  // cycle steal - ba : When masked with cycle_stc, determines
+  // whether BA should be HIGH or LOW.  > 0 = HIGH, otherwise LOW
+  reg [64:0] cycle_stba;
+  
+  // cycle steal - When a condition arises that makes it known that
+  // N cycles need be stolen M cycles from now, these registers
+  // are ANDed with cycle_stba to make sure BA goes low in advance. 
+  // cycle_st_N_in_M
+  reg [64:0] cycle_st1_in_3;
+  reg [64:0] cycle_st2_in_3;
+  
   clk_div4 clk_colorgen (
      .clk_in(clk_col4x),     // from 4x color clock
      .reset(rst),
@@ -105,6 +137,12 @@ endcase
   // chips and wraps at the high phase of cycle 12.
   reg [9:0] xpos;
 
+  // What cycle we are on:
+  reg [2:0] vicCycle;
+
+  // DRAM refresh counter
+  reg [7:0] refc;
+
   // VIC read address
   reg [13:0] vicAddr;
   
@@ -127,10 +165,11 @@ endcase
   reg [3:0] b0c,b1c,b2c,b3c;
   reg [3:0] mm0,mm1;
   
-  // Temporary
+  ///////////// TEMPORARY STUFF
   wire visible_horizontal;
   wire visible_vertical;
   wire WE;
+  ///////////// END TEMPORARY STUFF
 
   // lower 8 bits of ado are muxed
   reg [7:0] ado8;
@@ -139,8 +178,15 @@ endcase
   // Initialization section
   initial
   begin
-    raster_x = 0;
-    raster_line = 0;
+    raster_x = 10'd0;
+    raster_line = 9'd0;
+    cycle_stc      = 65'b1;
+    cycle_stba     = 65'b11111111111111111111111111111111111111111111111111111111111111111;
+    cycle_st1_in_3 = 65'b11111111111111111111111111111111111111111111111111111111111100001;
+    cycle_st2_in_3 = 65'b11111111111111111111111111111111111111111111111111111111111000001;
+
+    refc = 8'hff;
+    vicCycle = VIC_P;
   end
   
   always @(posedge clk_dot)
@@ -156,6 +202,10 @@ endcase
   // This is simply raster_x divided by 8.
   assign cycle_num = raster_x[9:3];
   
+  
+  
+  //////// BEGIN TEMP STUFF
+  
   // Stuff like this won't work in the real core. There is no comparitor controlling
   // when the border is visible like this.
   assign visible_vertical = (raster_line >= 51) & (raster_line < 251) ? 1 : 0;
@@ -163,22 +213,33 @@ endcase
   assign visible_horizontal = (xpos >= 24) & (xpos < 344) ? 1 : 0;
   assign WE = visible_horizontal & visible_vertical & (bit_cycle == 2) & (char_line_num == 0);
 
+  //////// END TEMP STUFF
+
+
+
+
+
   // Update x,y position
   always @(posedge clk_dot)
   if (rst)
   begin
     raster_x <= 0;
     raster_line <= 0;
+    refc <= 8'hff;
     case(chip)
     CHIP6567R56A, CHIP6567R8:
       xpos <= 10'h19c;
     CHIP6569, CHIPUNUSED:
       xpos <= 10'h194;
     endcase
+    vicCycle <= VIC_P;
   end
   else if (raster_x < rasterXMax)
   begin
-    raster_x <= raster_x + 1;
+    // Can advance to next pixel
+    raster_x <= raster_x + 10'd1;
+    
+    // Handle xpos move but deal with special cases
     case(chip)
     CHIP6567R8:
         if (cycle_num == 7'd0 && bit_cycle == 3'd0)
@@ -209,15 +270,65 @@ endcase
   end
   else  
   begin
-    raster_x <= 0;
-    raster_line <= (raster_line < rasterYMax) ? raster_line + 1 : 0;
+    // Time to go back to x coord 0
+    raster_x <= 10'd0;
+
+    // xpos also goes back to start value
     case(chip)
     CHIP6567R56A, CHIP6567R8:
       xpos <= 10'h19c;
     CHIP6569, CHIPUNUSED:
       xpos <= 10'h194;
     endcase
+
+    if (raster_line < rasterYMax)
+    begin
+       // Move to next raster line
+       raster_line <= raster_line + 9'd1;
+    end
+    else
+       // Time to go back to y coord 0, reset refresh counter
+       raster_line <= 9'd0;
+       refc <= 8'hff;
+    begin
+    end
   end
+
+// cycle stealing registers are shifted 
+always @(posedge clk_dot)
+  if (rst) begin
+    cycle_stc <= 65'b1;
+    cycle_stba     <= 65'b11111111111111111111111111111111111111111111111111111111111111111;
+    cycle_st1_in_3 <= 65'b11111111111111111111111111111111111111111111111111111111111100001;
+    cycle_st2_in_3 <= 65'b11111111111111111111111111111111111111111111111111111111111000001;
+  end
+  else if (bit_cycle == 3'd7)
+  begin
+     case (chip)
+     CHIP6567R8:
+     begin
+        cycle_stc <= {cycle_stc[63:0],cycle_stc[64]};
+        cycle_st1_in_3 <= {cycle_st1_in_3[63:0],cycle_st1_in_3[64]};
+        cycle_st2_in_3 <= {cycle_st2_in_3[63:0],cycle_st2_in_3[64]};
+     end
+     CHIP6567R56A:
+     begin
+        cycle_stc <= {1'b0,cycle_stc[62:0],cycle_stc[63]};
+        cycle_st1_in_3 <= {1'b0,cycle_st1_in_3[62:0],cycle_st1_in_3[63]};
+        cycle_st2_in_3 <= {1'b0,cycle_st2_in_3[62:0],cycle_st2_in_3[63]};
+     end
+     CHIP6569,CHIPUNUSED:
+     begin
+        cycle_stc <= {2'b00,cycle_stc[61:0],cycle_stc[62]};
+        cycle_st1_in_3 <= {2'b00,cycle_st1_in_3[61:0],cycle_st1_in_3[62]};
+        cycle_st2_in_3 <= {2'b00,cycle_st2_in_3[61:0],cycle_st2_in_3[62]};
+     end
+     endcase
+  end
+
+  assign ba = (cycle_stba & cycle_stc) > 0 ? 1 : 0;
+
+  ///////// BEGIN TEMP STUFF
 
   reg [11:0] char_buffer [39:0];
   reg [11:0] char_buffer_out;
@@ -283,6 +394,10 @@ endcase
       pixel_shift_reg <= 8'b00000000;  //    pixel_shift_reg <= data[7:0];
   else
       pixel_shift_reg <= {pixel_shift_reg[6:0],1'b0};
+
+
+  ///////// END TEMP STUFF
+
 
   // Translate out_pixel (indexed) to RGB values
   color viccolor(

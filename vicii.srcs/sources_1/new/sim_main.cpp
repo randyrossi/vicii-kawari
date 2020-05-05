@@ -28,6 +28,8 @@ int logLevel = LOG_ERROR;
 
 #define LOG(minLevel, FORMAT, ...)  if (logLevel >= minLevel) { printf ("(%s) %s: " FORMAT "\n", __FUNCTION__, logLevelStr[logLevel], ##__VA_ARGS__); }
 
+#define STATE() LOG(LOG_INFO, "xpos=%03x, cycle=%d, bit=%d ba=%d",top->vicii__DOT__xpos, top->vicii__DOT__cycle_num, top->vicii__DOT__bit_cycle, top->ba);
+
 // Current simulation time (64-bit unsigned). See
 // constants.h for how much each tick represents.
 static vluint64_t ticks = 0;
@@ -470,7 +472,7 @@ int main(int argc, char** argv, char** env) {
        ticks = nextTick(top);
        top->eval();
        if (HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
-          LOG(LOG_INFO, "xpos=%03x, cycle=%d, bit=%d",top->vicii__DOT__xpos, top->vicii__DOT__cycle_num, top->vicii__DOT__bit_cycle);
+          STATE();
        }
        STORE_PREV();
     }
@@ -566,9 +568,9 @@ int main(int argc, char** argv, char** env) {
              }
           }
 
-          // If rendering, draw current color on dot clock
-          if (showWindow && HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
-             LOG(LOG_INFO, "xpos=%03x, cycle=%d, bit=%d",top->vicii__DOT__xpos, top->vicii__DOT__cycle_num, top->vicii__DOT__bit_cycle);
+          // On dot clock...
+          if (HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
+             STATE();
              if (verifyNextDotXPos >= 0) {
                 // This is a check to make sure the next dot is what
                 // we expected from the fpga sync step above.
@@ -598,6 +600,13 @@ int main(int argc, char** argv, char** env) {
                else if (top->vicii__DOT__cycle_num == 62 && top->vicii__DOT__bit_cycle == 0)
                   assert (top->vicii__DOT__xpos == 0x184); // repeat case
 
+             // Refresh counter is supposed to reset at raster 0 - TODO ENABLE WHEN AVAILABLE
+             //if (top->vicii__DOT__raster_line == 0)
+             //   assert (top->vicii__DOT__refc == 0xff);
+          }
+
+          // If rendering, draw current color on dot clock
+          if (showWindow && HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
              SDL_SetRenderDrawColor(ren,
                 top->red << 6,
                 top->green << 6,
