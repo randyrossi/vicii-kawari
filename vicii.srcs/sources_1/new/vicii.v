@@ -28,19 +28,18 @@ parameter CHIP6569     = 2'd2;
 parameter CHIPUNUSED   = 2'd3;
 
 // Cycles
-parameter VIC_I   = 0;  // idle (both phases)
-parameter VIC_P   = 1;  // sprite pointer phase 1
+parameter VIC_I   = 0;  // idle phase 1, CPU phase 2
+parameter VIC_P   = 1;  // sprite pointer phase 1, CPU phase 2
 parameter VIC_PS  = 2;  // sprite pointer phase 1, sprite data byte 1 phase 2
 parameter VIC_SS  = 3;  // sprite data byte 1 phase 1, sprite data byte 2 phase 2
-parameter VIC_R   = 4;  // DRAM refresh phase 1
+parameter VIC_R   = 4;  // DRAM refresh phase 1, CPU phase 2
 parameter VIC_RC  = 5;  // DRAM refresh phase 1, video matrix and color ram phase 2
 parameter VIC_GC  = 6;  // chargen or bitmap phase 1, video matrix and color ram phase 2 
-parameter VIC_G   = 7;  // chargen or bitmap phase 1
+parameter VIC_G   = 7;  // chargen or bitmap phase 1, CPU phase 2
 
 // BA must go low 3 cycles before VIC_PS, VIC_RC & VIC_GC
 // BA can go high again at VIC_I, VIC_P, VIC_R, VIC_G unless
-// one of VIC_PS, VIC_RC & VIC_GC are within 3 phi cycles
-// in the future
+// one of VIC_PS, VIC_RC & VIC_GC are within 3 upcoming cycles
 
 
 // Limits for different chips
@@ -106,8 +105,14 @@ endcase
   // N cycles need be stolen M cycles from now, these registers
   // are ANDed with cycle_stba to make sure BA goes low in advance. 
   // cycle_st_N_in_M
-  reg [64:0] cycle_st1_in_3;
-  reg [64:0] cycle_st2_in_3;
+  reg [64:0] cycle_st1_in_3_ba;
+  reg [64:0] cycle_st2_in_3_ba;
+
+  // Same idea as cycle steal above except marks when AEC should
+  // remain low in 2nd phi phase.
+  reg [64:0] cycle_staec;
+  reg [64:0] cycle_st1_in_3_aec;
+  reg [64:0] cycle_st2_in_3_aec;
   
   clk_div4 clk_colorgen (
      .clk_in(clk_col4x),     // from 4x color clock
@@ -180,11 +185,13 @@ endcase
   begin
     raster_x = 10'd0;
     raster_line = 9'd0;
-    cycle_stc      = 65'b1;
-    cycle_stba     = 65'b11111111111111111111111111111111111111111111111111111111111111111;
-    cycle_st1_in_3 = 65'b11111111111111111111111111111111111111111111111111111111111100001;
-    cycle_st2_in_3 = 65'b11111111111111111111111111111111111111111111111111111111111000001;
-
+    cycle_stc          = 65'b1;
+    cycle_stba         = 65'b11111111111111111111111111111111111111111111111111111111111111111;
+    cycle_st1_in_3_ba  = 65'b11111111111111111111111111111111111111111111111111111111111100001;
+    cycle_st2_in_3_ba  = 65'b11111111111111111111111111111111111111111111111111111111111000001;
+    cycle_staec        = 65'b11111111111111111111111111111111111111111111111111111111111111111;
+    cycle_st1_in_3_aec = 65'b11111111111111111111111111111111111111111111111111111111111101111;
+    cycle_st2_in_3_aec = 65'b11111111111111111111111111111111111111111111111111111111111001111;
     refc = 8'hff;
     vicCycle = VIC_P;
   end
@@ -298,35 +305,53 @@ endcase
 always @(posedge clk_dot)
   if (rst) begin
     cycle_stc <= 65'b1;
-    cycle_stba     <= 65'b11111111111111111111111111111111111111111111111111111111111111111;
-    cycle_st1_in_3 <= 65'b11111111111111111111111111111111111111111111111111111111111100001;
-    cycle_st2_in_3 <= 65'b11111111111111111111111111111111111111111111111111111111111000001;
+    cycle_stba         <= 65'b11111111111111111111111111111111111111111111111111111111111111111;
+    cycle_st1_in_3_ba  <= 65'b11111111111111111111111111111111111111111111111111111111111100001;
+    cycle_st2_in_3_ba  <= 65'b11111111111111111111111111111111111111111111111111111111111000001;
+    cycle_staec        <= 65'b11111111111111111111111111111111111111111111111111111111111111111;
+    cycle_st1_in_3_aec <= 65'b11111111111111111111111111111111111111111111111111111111111101111;
+    cycle_st2_in_3_aec <= 65'b11111111111111111111111111111111111111111111111111111111111001111;
   end
   else if (bit_cycle == 3'd7)
   begin
      case (chip)
      CHIP6567R8:
      begin
-        cycle_stc <= {cycle_stc[63:0],cycle_stc[64]};
-        cycle_st1_in_3 <= {cycle_st1_in_3[63:0],cycle_st1_in_3[64]};
-        cycle_st2_in_3 <= {cycle_st2_in_3[63:0],cycle_st2_in_3[64]};
+        cycle_stc <= {cycle_stc[63:0], cycle_stc[64]};
+        cycle_st1_in_3_ba <= {cycle_st1_in_3_ba[63:0], cycle_st1_in_3_ba[64]};
+        cycle_st2_in_3_ba <= {cycle_st2_in_3_ba[63:0], cycle_st2_in_3_ba[64]};
+        cycle_st1_in_3_aec <= {cycle_st1_in_3_aec[63:0], cycle_st1_in_3_aec[64]};
+        cycle_st2_in_3_aec <= {cycle_st2_in_3_aec[63:0], cycle_st2_in_3_aec[64]};
      end
      CHIP6567R56A:
      begin
         cycle_stc <= {1'b0,cycle_stc[62:0],cycle_stc[63]};
-        cycle_st1_in_3 <= {1'b0,cycle_st1_in_3[62:0],cycle_st1_in_3[63]};
-        cycle_st2_in_3 <= {1'b0,cycle_st2_in_3[62:0],cycle_st2_in_3[63]};
+        cycle_st1_in_3_ba <= {1'b0, cycle_st1_in_3_ba[62:0], cycle_st1_in_3_ba[63]};
+        cycle_st2_in_3_ba <= {1'b0, cycle_st2_in_3_ba[62:0], cycle_st2_in_3_ba[63]};
+        cycle_st1_in_3_aec <= {1'b0, cycle_st1_in_3_aec[62:0], cycle_st1_in_3_aec[63]};
+        cycle_st2_in_3_aec <= {1'b0, cycle_st2_in_3_aec[62:0], cycle_st2_in_3_aec[63]};
      end
      CHIP6569,CHIPUNUSED:
      begin
         cycle_stc <= {2'b00,cycle_stc[61:0],cycle_stc[62]};
-        cycle_st1_in_3 <= {2'b00,cycle_st1_in_3[61:0],cycle_st1_in_3[62]};
-        cycle_st2_in_3 <= {2'b00,cycle_st2_in_3[61:0],cycle_st2_in_3[62]};
+        cycle_st1_in_3_ba <= {2'b00, cycle_st1_in_3_ba[61:0],cycle_st1_in_3_ba[62]};
+        cycle_st2_in_3_ba <= {2'b00, cycle_st2_in_3_ba[61:0],cycle_st2_in_3_ba[62]};
+        cycle_st1_in_3_aec <= {2'b00, cycle_st1_in_3_aec[61:0],cycle_st1_in_3_aec[62]};
+        cycle_st2_in_3_aec <= {2'b00, cycle_st2_in_3_aec[61:0],cycle_st2_in_3_aec[62]};
      end
      endcase
   end
-
+  
+  // cycle_stba masked with cycle_stc tells us if ba should go low
   assign ba = (cycle_stba & cycle_stc) > 0 ? 1 : 0;
+  
+  // First phase, always low
+  // Second phase, low if cycle steal reg says so, otherwise high for CPU
+  assign aec = bit_cycle < 4 ? 0 : ((cycle_staec & cycle_stc) == 0 ? 0 : 1);
+  
+  // RAS/CAS profiles
+  
+
 
   ///////// BEGIN TEMP STUFF
 
