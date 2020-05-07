@@ -17,7 +17,9 @@ module top(
    input rw,           // read/write (LOW=write, HIGH=read)
    output irq,         // irq
    output aec,         // aec
-   output ba           // ba
+   output ba,          // ba
+   output cas,         // cas
+   output ras          // ras
 );
 
 parameter CHIP6567R8   = 2'd0;
@@ -68,7 +70,9 @@ vicii vic_inst(
    .rw(rw),
    .aec(aec),
    .irq(irq),
-   .ba(ba)
+   .ba(ba),
+   .cas(cas),
+   .ras(ras)
 );
 
 // Write to bus condition, else tri state.

@@ -28,7 +28,7 @@ int logLevel = LOG_ERROR;
 
 #define LOG(minLevel, FORMAT, ...)  if (logLevel >= minLevel) { printf ("%s: " FORMAT "\n", logLevelStr[logLevel], ##__VA_ARGS__); }
 
-#define STATE() LOG(LOG_INFO, "%c xpos=%03x, cycle=%d, dot=%d phi=%d bit=%d ba=%d aec=%d vcycle=%d ras=%d cas=%d x=%d %s",HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ',top->vicii__DOT__xpos, top->vicii__DOT__cycle_num, top->vicii__DOT__clk_dot, top->clk_phi, top->vicii__DOT__bit_cycle, top->ba, top->aec, top->vicCycle, top->ras, top->cas, top->vicii__DOT__raster_x, toBin(top->rasr));
+#define STATE() LOG(LOG_INFO, "%c xpos=%03x, cycle=%d, dot=%d phi=%d bit=%d ba=%d aec=%d vcycle=%d ras=%d cas=%d ras=%d x=%d %s",HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ',top->vicii__DOT__xpos, top->vicii__DOT__cycle_num, top->vicii__DOT__clk_dot, top->clk_phi, top->vicii__DOT__bit_cycle, top->ba, top->aec, top->vicCycle, top->ras, top->cas, top->ras, top->vicii__DOT__raster_x, toBin(top->rasr));
 
 // Current simulation time (64-bit unsigned). See
 // constants.h for how much each tick represents.
