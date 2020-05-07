@@ -1,5 +1,15 @@
 `timescale 1ns / 1ps
 
+// It's easier to initialize our state registers to
+// raster_x,raster_y = (0,0) and let the fist tick bring us to
+// raster_x=1 because that initial state is common to all chip types.
+// If we wanted the first tick to produce raster_x,raster_y=(0,0)
+// then we would have to initialize registers to that last pixel
+// of a frame which is different for each chip.  So remember we are
+// starting things off with PHI LOW but already 1/4 the way
+// through its phase and with DOT high but already on the second
+// pixel.
+
 module vicii(
    input [1:0] chip,
    input rst,
@@ -19,7 +29,16 @@ module vicii(
    input rw,
    output irq,
    output aec,
-   output ba
+   output ba,
+   output ras,
+   output cas,
+   
+   // For simulation
+   reg [2:0] vicCycle,
+   output reg[15:0] rasr,
+   output reg[15:0] casr,
+   output reg[15:0] muxr,
+   output reg[7:0] refc
 );
 
 parameter CHIP6567R8   = 2'd0;
@@ -27,19 +46,29 @@ parameter CHIP6567R56A = 2'd1;
 parameter CHIP6569     = 2'd2;
 parameter CHIPUNUSED   = 2'd3;
 
-// Cycles
-parameter VIC_I   = 0;  // idle phase 1, CPU phase 2
-parameter VIC_P   = 1;  // sprite pointer phase 1, CPU phase 2
-parameter VIC_PS  = 2;  // sprite pointer phase 1, sprite data byte 1 phase 2
-parameter VIC_SS  = 3;  // sprite data byte 1 phase 1, sprite data byte 2 phase 2
-parameter VIC_R   = 4;  // DRAM refresh phase 1, CPU phase 2
-parameter VIC_RC  = 5;  // DRAM refresh phase 1, video matrix and color ram phase 2
-parameter VIC_GC  = 6;  // chargen or bitmap phase 1, video matrix and color ram phase 2 
-parameter VIC_G   = 7;  // chargen or bitmap phase 1, CPU phase 2
+// Cycle types possible in each phase of phi:
+// I  idle, phase 1 or 2
+// P  sprite pointer, always phase 1
+// S  sprite dma, phase 1 or 2
+// R  DRAM refresh, always phase 1
+// C  video matrix and color ram, always phase 2
+// G  chargen or bitmap, always phase 1
+parameter VIC_I = 0;
+parameter VIC_P = 1;
+parameter VIC_S = 2;
+parameter VIC_R = 3;
+parameter VIC_C = 4;
+parameter VIC_G = 5;
 
-// BA must go low 3 cycles before VIC_PS, VIC_RC & VIC_GC
-// BA can go high again at VIC_I, VIC_P, VIC_R, VIC_G unless
-// one of VIC_PS, VIC_RC & VIC_GC are within 3 upcoming cycles
+// These are the only valid combinations
+// for phase 1 and 2. Idle 2nd phase is
+// CPU bus access.
+// II, PI, PS, SS, RI, RC, GC, GI
+
+// BA must go low 3 cycles before PS, SS, RC & GC
+// BA can go high again at any *I unless
+// one of PS, SS, RC & GC are within 3 upcoming
+// cycles
 
 
 // Limits for different chips
@@ -91,10 +120,14 @@ CHIP6569,CHIPUNUSED:
       vBlankEnd = 9'd309;
    end
 endcase
-
+  reg [15:0] clk8r; // DOCUMENT AND RENAME
+  wire clken8;
+  
+  
   // cycle steal - current : 1 bit high that represents the
   // current cycle we are in. Used to check cycle_stba to
-  // determine the value of BA
+  // determine the value of BA and cycle_staec to determine
+  // the value of AEC
   reg [64:0] cycle_stc;
   
   // cycle steal - ba : When masked with cycle_stc, determines
@@ -143,10 +176,10 @@ endcase
   reg [9:0] xpos;
 
   // What cycle we are on:
-  reg [2:0] vicCycle;
+  //reg [2:0] vicCycle;
 
   // DRAM refresh counter
-  reg [7:0] refc;
+//  reg [7:0] refc;
 
   // VIC read address
   reg [13:0] vicAddr;
@@ -160,6 +193,9 @@ endcase
   // bit_cycle : The pixel number within the line cycle.
   // 0-7
   wire [2:0] bit_cycle;
+  
+  // phi_phase: 0 low, 1 high
+  wire phi_phase;
 
   // char_line_num : For text mode, what character line are we on.
   reg [2:0] char_line_num;
@@ -178,6 +214,11 @@ endcase
 
   // lower 8 bits of ado are muxed
   reg [7:0] ado8;
+  reg [15:0] phi_period_start;
+  //reg [15:0] rasr;
+  //reg [15:0] casr;
+  //reg [15:0] muxr;
+
   wire mux;
 
   // Initialization section
@@ -185,7 +226,7 @@ endcase
   begin
     raster_x = 10'd0;
     raster_line = 9'd0;
-    cycle_stc          = 65'b1;
+    cycle_stc          = 65'b00000000000000000000000000000000000000000000000000000000000000001;
     cycle_stba         = 65'b11111111111111111111111111111111111111111111111111111111111111111;
     cycle_st1_in_3_ba  = 65'b11111111111111111111111111111111111111111111111111111111111100001;
     cycle_st2_in_3_ba  = 65'b11111111111111111111111111111111111111111111111111111111111000001;
@@ -193,41 +234,49 @@ endcase
     cycle_st1_in_3_aec = 65'b11111111111111111111111111111111111111111111111111111111111101111;
     cycle_st2_in_3_aec = 65'b11111111111111111111111111111111111111111111111111111111111001111;
     refc = 8'hff;
+    vicAddr = 14'b0;
     vicCycle = VIC_P;
+    phi_period_start = 16'b1000000000000000;
+    clk8r = 16'b1000100010001000;
+
+    // I don't know why this has to start out after
+    // two rotations. 
+    rasr = 16'b1111000000000000;
+    casr = 16'b1111110000000000;
+    muxr = 16'b1111100000000000;
   end
   
-  always @(posedge clk_dot)
-    if (rst)
-       ado8 <= 8'hFF;
-    else
-       ado8 <= mux ? {2'b11,vicAddr[13:8]} : vicAddr[7:0];
-  assign ado = {vicAddr[11:8], ado8};
+  // clken8 lets us trigger behavior on the positive edge
+  // the dot clock within an always block at the 4x dot clock
+  always @(posedge clk_dot4x)
+  if (rst) begin
+        clk8r <= 16'b1000100010001000;
+  end
+  else begin
+        if (phi_period_start[15])
+            clk8r <= 16'b0001000100010001;
+        else
+            clk8r <= {clk8r[14:0],clk8r[15]};
+  end
+  assign clken8 = clk8r[15];
 
+  
+  always @(posedge clk_dot4x)
+  if (rst)
+     ado8 <= 8'hFF;
+  else
+     ado8 <= mux ? {2'b11,vicAddr[13:8]} : vicAddr[7:0];
+  assign ado = {vicAddr[11:8], ado8};
 
   // The bit_cycle (0-7) is taken from the raster_x
   assign bit_cycle = raster_x[2:0];
   // This is simply raster_x divided by 8.
   assign cycle_num = raster_x[9:3];
+  // This is just bit 2 of raster_x
+  assign phi_phase = raster_x[2];
   
-  
-  
-  //////// BEGIN TEMP STUFF
-  
-  // Stuff like this won't work in the real core. There is no comparitor controlling
-  // when the border is visible like this.
-  assign visible_vertical = (raster_line >= 51) & (raster_line < 251) ? 1 : 0;
-  // Official datasheet says 28-348 but Christian's doc says 24-344
-  assign visible_horizontal = (xpos >= 24) & (xpos < 344) ? 1 : 0;
-  assign WE = visible_horizontal & visible_vertical & (bit_cycle == 2) & (char_line_num == 0);
-
-  //////// END TEMP STUFF
-
-
-
-
-
   // Update x,y position
-  always @(posedge clk_dot)
+  always @(posedge clk_dot4x)
   if (rst)
   begin
     raster_x <= 0;
@@ -235,13 +284,13 @@ endcase
     refc <= 8'hff;
     case(chip)
     CHIP6567R56A, CHIP6567R8:
-      xpos <= 10'h19c;
+      xpos <= 10'h19d;
     CHIP6569, CHIPUNUSED:
-      xpos <= 10'h194;
+      xpos <= 10'h195;
     endcase
-    vicCycle <= VIC_P;
   end
-  else if (raster_x < rasterXMax)
+  else if (clken8)
+  if (raster_x < rasterXMax)
   begin
     // Can advance to next pixel
     raster_x <= raster_x + 10'd1;
@@ -294,17 +343,24 @@ endcase
        raster_line <= raster_line + 9'd1;
     end
     else
+    begin
        // Time to go back to y coord 0, reset refresh counter
        raster_line <= 9'd0;
        refc <= 8'hff;
-    begin
     end
   end
 
-// cycle stealing registers are shifted 
-always @(posedge clk_dot)
+// cycle stealing registers let us 'schedule' when ba/aec
+// should be held low a number of cycles in advance and for
+// a number of cycles.  For example, if a condition arises
+// in which you know you will need the bus for two phi HIGH
+// cycles 3 cycles from now, you would do this:
+// cycle_stba <= cycle_stba & cycle_st2_in_3_ba
+// cycle_staec <= cycle_st2_in_3_aec & cycle_st2_in_3_aec
+
+always @(posedge clk_dot4x)
   if (rst) begin
-    cycle_stc <= 65'b1;
+    cycle_stc          <= 65'b00000000000000000000000000000000000000000000000000000000000000001;
     cycle_stba         <= 65'b11111111111111111111111111111111111111111111111111111111111111111;
     cycle_st1_in_3_ba  <= 65'b11111111111111111111111111111111111111111111111111111111111100001;
     cycle_st2_in_3_ba  <= 65'b11111111111111111111111111111111111111111111111111111111111000001;
@@ -312,7 +368,8 @@ always @(posedge clk_dot)
     cycle_st1_in_3_aec <= 65'b11111111111111111111111111111111111111111111111111111111111101111;
     cycle_st2_in_3_aec <= 65'b11111111111111111111111111111111111111111111111111111111111001111;
   end
-  else if (bit_cycle == 3'd7)
+  else if (clken8)
+  if (bit_cycle == 3'd7) // going to next cycle?
   begin
      case (chip)
      CHIP6567R8:
@@ -326,34 +383,138 @@ always @(posedge clk_dot)
      CHIP6567R56A:
      begin
         cycle_stc <= {1'b0,cycle_stc[62:0],cycle_stc[63]};
-        cycle_st1_in_3_ba <= {1'b0, cycle_st1_in_3_ba[62:0], cycle_st1_in_3_ba[63]};
-        cycle_st2_in_3_ba <= {1'b0, cycle_st2_in_3_ba[62:0], cycle_st2_in_3_ba[63]};
-        cycle_st1_in_3_aec <= {1'b0, cycle_st1_in_3_aec[62:0], cycle_st1_in_3_aec[63]};
-        cycle_st2_in_3_aec <= {1'b0, cycle_st2_in_3_aec[62:0], cycle_st2_in_3_aec[63]};
+        cycle_st1_in_3_ba <= {1'b1, cycle_st1_in_3_ba[62:0], cycle_st1_in_3_ba[63]};
+        cycle_st2_in_3_ba <= {1'b1, cycle_st2_in_3_ba[62:0], cycle_st2_in_3_ba[63]};
+        cycle_st1_in_3_aec <= {1'b1, cycle_st1_in_3_aec[62:0], cycle_st1_in_3_aec[63]};
+        cycle_st2_in_3_aec <= {1'b1, cycle_st2_in_3_aec[62:0], cycle_st2_in_3_aec[63]};
      end
      CHIP6569,CHIPUNUSED:
      begin
         cycle_stc <= {2'b00,cycle_stc[61:0],cycle_stc[62]};
-        cycle_st1_in_3_ba <= {2'b00, cycle_st1_in_3_ba[61:0],cycle_st1_in_3_ba[62]};
-        cycle_st2_in_3_ba <= {2'b00, cycle_st2_in_3_ba[61:0],cycle_st2_in_3_ba[62]};
-        cycle_st1_in_3_aec <= {2'b00, cycle_st1_in_3_aec[61:0],cycle_st1_in_3_aec[62]};
-        cycle_st2_in_3_aec <= {2'b00, cycle_st2_in_3_aec[61:0],cycle_st2_in_3_aec[62]};
+        cycle_st1_in_3_ba <= {2'b11, cycle_st1_in_3_ba[61:0],cycle_st1_in_3_ba[62]};
+        cycle_st2_in_3_ba <= {2'b11, cycle_st2_in_3_ba[61:0],cycle_st2_in_3_ba[62]};
+        cycle_st1_in_3_aec <= {2'b11, cycle_st1_in_3_aec[61:0],cycle_st1_in_3_aec[62]};
+        cycle_st2_in_3_aec <= {2'b11, cycle_st2_in_3_aec[61:0],cycle_st2_in_3_aec[62]};
      end
      endcase
   end
   
   // cycle_stba masked with cycle_stc tells us if ba should go low
-  assign ba = (cycle_stba & cycle_stc) > 0 ? 1 : 0;
+  assign ba = (cycle_stba & cycle_stc) == 0 ? 0 : 1;
   
   // First phase, always low
   // Second phase, low if cycle steal reg says so, otherwise high for CPU
   assign aec = bit_cycle < 4 ? 0 : ((cycle_staec & cycle_stc) == 0 ? 0 : 1);
-  
-  // RAS/CAS profiles
-  
 
+// Set vicCycle to the half cycle enum
+always @(raster_x)
+  case (chip)
+  CHIP6569,CHIPUNUSED:
+    casez(raster_x)
+    /* cycle0,phi1,spr3 */ 10'b00000000??: vicCycle = VIC_P;
+    /* cycle0,phi2,dma0 */ 10'b00000001??: vicCycle = VIC_I;
+    /* cycle1,phi1,dma1 */ 10'b00000010??: vicCycle = VIC_I;
+    /* cycle1,phi2,dma2 */ 10'b00000011??: vicCycle = VIC_I;
+    /* cycle2,phi1,spr4 */ 10'b00000100??: vicCycle = VIC_P;
+    /* cycle2,phi2,dma0 */ 10'b00000101??: vicCycle = VIC_I;
+    /* cycle3,phi1,dma1 */ 10'b00000110??: vicCycle = VIC_I;
+    /* cycle3,phi2,dma2 */ 10'b00000111??: vicCycle = VIC_I;
+    /* cycle4,phi1,spr5 */ 10'b00001000??: vicCycle = VIC_P;
+    /* cycle4,phi2,dma0 */ 10'b00001001??: vicCycle = VIC_I;
+    /* cycle5,phi1,dma1 */ 10'b00001010??: vicCycle = VIC_I;
+    /* cycle5,phi2,dma2 */ 10'b00001011??: vicCycle = VIC_I;
+    /* cycle6,phi1,spr6 */ 10'b00001100??: vicCycle = VIC_P;
+    /* cycle6,phi2,dma0 */ 10'b00001101??: vicCycle = VIC_I;
+    /* cycle7,phi1,dma1 */ 10'b00001110??: vicCycle = VIC_I;
+    /* cycle7,phi2,dma2 */ 10'b00001111??: vicCycle = VIC_I;
+    /* cycle8,phi1,spr7 */ 10'b00010000??: vicCycle = VIC_P;
+    /* cycle8,phi2,dma0 */ 10'b00010001??: vicCycle = VIC_I;
+    /* cycle9,phi1,dma1 */ 10'b00010010??: vicCycle = VIC_I;
+    /* cycle9,phi2,dma2 */ 10'b00010011??: vicCycle = VIC_I;
+    default:  vicCycle = VIC_I; 
+  endcase
+  CHIP6567R56A:
+     vicCycle = VIC_I;
+  CHIP6567R8:
+     vicCycle = VIC_I;
+  endcase
+  
+  always @(posedge clk_dot4x)
+     phi_period_start <= {phi_period_start[14:0], phi_period_start[15]};
+  
+  // RAS/CAS/MUX profiles
+  always @(posedge clk_dot4x)
+  if (rst) begin
+     rasr <= 16'b1111111111111111;
+     casr <= 16'b1111111111111111;
+     muxr <= 16'b1111111111111111;
+     phi_period_start <= 16'b1000000000000000;
+  end
+  // On first dot4x tick, we initialized everyting
+  // on the pixel 1 which means we are 4 4x dot clock
+  // ticks out of sync with respect to the start of 
+  // a phase. Hence 11 here and not 15.
+  else if (phi_period_start[11])
+    // Here we check bit cycle = 7 to indicate we just
+    // transitioned from high low phi
+    if (bit_cycle == 3'd7)
+    case (vicCycle)
+    VIC_I: begin
+             rasr <= 16'b1111111111111111;
+             casr <= 16'b1111111111111111;
+             muxr <= 16'b1111111111111111;
+           end
+    VIC_P, VIC_S, VIC_G: begin
+             rasr <= 16'b1111111000000000;
+             casr <= 16'b1111111110000000;
+             muxr <= 16'b1111111100000000;
+           end
+    VIC_R: begin
+             rasr <= 16'b1111111000000000;
+             casr <= 16'b1111111110000000;
+             muxr <= 16'b0000000000000000;
+           end
+    default: begin
+             rasr <= 16'b1111111111111111;
+             casr <= 16'b1111111111111111;
+             muxr <= 16'b1111111111111111;
+           end
+    endcase
+    else // phi high
+    case (vicCycle)
+    VIC_I: begin
+             rasr <= 16'b1111111000000000;
+             casr <= 16'b1111111110000000;
+             muxr <= 16'b1111111100000000;
+           end
+    VIC_S, VIC_C: begin
+             rasr <= 16'b1111111000000000;
+             casr <= 16'b1111111110000000;
+             muxr <= 16'b1111111100000000;
+           end
+    default: begin
+             rasr <= 16'b1111111000000000;
+             casr <= 16'b1111111110000000;
+             muxr <= 16'b1111111100000000;
+           end
+    endcase
+  else begin
+    rasr <= {rasr[14:0],1'b0};
+    casr <= {casr[14:0],1'b0};
+    muxr <= {casr[14:0],1'b0};
+  end
+    
+  assign ras = rasr[15];
+  assign mux = muxr[15];
+  assign cas = casr[15];
 
   ///////// BEGIN TEMP STUFF
+ // Stuff like this won't work in the real core. There is no comparitor controlling
+  // when the border is visible like this.
+  assign visible_vertical = (raster_line >= 51) & (raster_line < 251) ? 1 : 0;
+  // Official datasheet says 28-348 but Christian's doc says 24-344
+  assign visible_horizontal = (xpos >= 24) & (xpos < 344) ? 1 : 0;
+  assign WE = visible_horizontal & visible_vertical & (bit_cycle == 2) & (char_line_num == 0);
 
   reg [11:0] char_buffer [39:0];
   reg [11:0] char_buffer_out;
@@ -443,7 +604,7 @@ always @(posedge clk_dot)
   sync vicsync(
      .chip(chip),
      .rst(rst),
-     .clk(clk_dot),
+     .clk(clk_dot4x),
      .rasterX(xpos),
      .rasterY(raster_line),
      .hSyncStart(hSyncStart),
@@ -452,7 +613,7 @@ always @(posedge clk_dot)
   );
   
 // Register Read/Write
-always @(posedge clk_dot)
+always @(posedge clk_dot4x)
 if (rst) begin
 end
 else begin
@@ -469,9 +630,9 @@ else begin
    // WRITE
    else if (!rw) begin
       case(adi[5:0])
-      6'h20:  ec = dbi[3:0];
-      6'h21:  b0c = dbi[3:0];
-      default: ec = ec;
+      6'h20:  ec <= dbi[3:0];
+      6'h21:  b0c <= dbi[3:0];
+      default: ec <= ec;
       endcase
    end
  end

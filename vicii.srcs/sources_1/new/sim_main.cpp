@@ -26,9 +26,9 @@ static const char* logLevelStr[4] = { "None","error","warn","info" };
 
 int logLevel = LOG_ERROR;
 
-#define LOG(minLevel, FORMAT, ...)  if (logLevel >= minLevel) { printf ("(%s) %s: " FORMAT "\n", __FUNCTION__, logLevelStr[logLevel], ##__VA_ARGS__); }
+#define LOG(minLevel, FORMAT, ...)  if (logLevel >= minLevel) { printf ("%s: " FORMAT "\n", logLevelStr[logLevel], ##__VA_ARGS__); }
 
-#define STATE() LOG(LOG_INFO, "xpos=%03x, cycle=%d, bit=%d ba=%d aec=%d",top->vicii__DOT__xpos, top->vicii__DOT__cycle_num, top->vicii__DOT__bit_cycle, top->ba, top->aec);
+#define STATE() LOG(LOG_INFO, "%c xpos=%03x, cycle=%d, dot=%d phi=%d bit=%d ba=%d aec=%d vcycle=%d ras=%d cas=%d x=%d %s",HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ',top->vicii__DOT__xpos, top->vicii__DOT__cycle_num, top->vicii__DOT__clk_dot, top->clk_phi, top->vicii__DOT__bit_cycle, top->ba, top->aec, top->vicCycle, top->ras, top->cas, top->vicii__DOT__raster_x, toBin(top->rasr));
 
 // Current simulation time (64-bit unsigned). See
 // constants.h for how much each tick represents.
@@ -96,6 +96,17 @@ static unsigned char prev_signal_values[NUM_SIGNALS];
 
 // Some utility macros
 // Use RISING/FALLING in combination with HASCHANGED
+
+static char binBuf[17];
+char* toBin(unsigned short reg) {
+   unsigned short b =1;
+   for (int c = 0 ; c < 16; c++) {
+      binBuf[15-c] = reg & b ? '1' : '0';
+      b=b*2;
+   }
+   binBuf[16] = '\0';
+   return binBuf;
+}
 
 static int SGETVAL(int signum) {
   if (signal_width[signum] <= 8) {
@@ -468,14 +479,18 @@ int main(int argc, char** argv, char** env) {
        vcd_header(top,outFile);
 
     // After this loop, the next tick will bring DOT high
-    for (int t =0; t < 32; t++) {
+    // into PHI phase 2
+    for (int t =0; t < 24; t++) {
        ticks = nextTick(top);
        top->eval();
-       if (HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
+       //if (HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
+       if (top->clk_dot4x) {
           STATE();
        }
        STORE_PREV();
     }
+    printf ("VICE WAIT\n");
+
 
     if (shadowVic) {
        ipc = ipc_init(IPC_RECEIVER);
@@ -521,6 +536,7 @@ int main(int argc, char** argv, char** env) {
            state->flags &= ~VICII_OP_SYNC_STATE;
 
            if (state->flags & VICII_OP_BUS_ACCESS) {
+              if (!top->clk_phi) STATE();
               assert(top->clk_phi);
            }
 
@@ -568,9 +584,13 @@ int main(int argc, char** argv, char** env) {
              }
           }
 
+          //if (HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
+          if (top->clk_dot4x)
+             STATE();
+          //}
+
           // On dot clock...
           if (HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
-             STATE();
              if (verifyNextDotXPos >= 0) {
                 // This is a check to make sure the next dot is what
                 // we expected from the fpga sync step above.
@@ -582,6 +602,11 @@ int main(int argc, char** argv, char** env) {
                    LOG(LOG_INFO, "got expected next dot with xpos=%03x", top->vicii__DOT__xpos);
                 }
                 verifyNextDotXPos = -1;
+             }
+
+             // AEC should always be low in first phase
+             if (top->vicii__DOT__bit_cycle < 4) {
+               assert(top->aec == 0);
              }
 
              // Make sure xpos is what we expect at key points
@@ -601,8 +626,8 @@ int main(int argc, char** argv, char** env) {
                   assert (top->vicii__DOT__xpos == 0x184); // repeat case
 
              // Refresh counter is supposed to reset at raster 0 - TODO ENABLE WHEN AVAILABLE
-             //if (top->vicii__DOT__raster_line == 0)
-             //   assert (top->vicii__DOT__refc == 0xff);
+             if (top->vicii__DOT__raster_line == 0)
+                assert (top->refc == 0xff);
           }
 
           // If rendering, draw current color on dot clock
