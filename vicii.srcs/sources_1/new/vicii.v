@@ -260,14 +260,6 @@ endcase
   end
   assign clken8 = clk8r[15];
 
-  
-  always @(posedge clk_dot4x)
-  if (rst)
-     ado8 <= 8'hFF;
-  else
-     ado8 <= mux ? {2'b11,vicAddr[13:8]} : vicAddr[7:0];
-  assign ado = {vicAddr[11:8], ado8};
-
   // The bit_cycle (0-7) is taken from the raster_x
   assign bit_cycle = raster_x[2:0];
   // This is simply raster_x divided by 8.
@@ -440,6 +432,9 @@ always @(raster_x)
   endcase
   
   always @(posedge clk_dot4x)
+  if (rst) begin
+     phi_period_start <= 16'b1000000000000000;
+  end else
      phi_period_start <= {phi_period_start[14:0], phi_period_start[15]};
   
   // RAS/CAS/MUX profiles
@@ -447,8 +442,6 @@ always @(raster_x)
   if (rst) begin
      rasr <= 16'b1111111111111111;
      casr <= 16'b1111111111111111;
-     muxr <= 16'b1111111111111111;
-     phi_period_start <= 16'b1000000000000000;
   end
   // On first dot4x tick, we initialized everyting
   // on the pixel 1 which means we are 4 4x dot clock
@@ -467,17 +460,14 @@ always @(raster_x)
     VIC_P, VIC_S, VIC_G: begin
              rasr <= 16'b1111111000000000;
              casr <= 16'b1111111110000000;
-             muxr <= 16'b1111111100000000;
            end
     VIC_R: begin
              rasr <= 16'b1111111000000000;
              casr <= 16'b1111111110000000;
-             muxr <= 16'b0000000000000000;
            end
     default: begin
              rasr <= 16'b1111111111111111;
              casr <= 16'b1111111111111111;
-             muxr <= 16'b1111111111111111;
            end
     endcase
     else // phi high
@@ -485,29 +475,73 @@ always @(raster_x)
     VIC_I: begin
              rasr <= 16'b1111111000000000;
              casr <= 16'b1111111110000000;
-             muxr <= 16'b1111111100000000;
            end
     VIC_S, VIC_C: begin
              rasr <= 16'b1111111000000000;
              casr <= 16'b1111111110000000;
-             muxr <= 16'b1111111100000000;
            end
     default: begin
              rasr <= 16'b1111111000000000;
              casr <= 16'b1111111110000000;
-             muxr <= 16'b1111111100000000;
            end
     endcase
   else begin
     rasr <= {rasr[14:0],1'b0};
     casr <= {casr[14:0],1'b0};
-    muxr <= {casr[14:0],1'b0};
   end
     
   assign ras = rasr[15];
-  assign mux = muxr[15];
   assign cas = casr[15];
 
+  always @(posedge clk_dot4x)
+  if (rst) begin
+     muxr <= 16'b1111111111111111;
+  end
+  // Must be dot4x cycle earlier than condition above
+  // because ado is delayed assignment not like ras/cas
+  // above. 
+  else if (phi_period_start[10])
+    // Here we check bit cycle = 7 to indicate we just
+    // transitioned from high low phi
+    if (bit_cycle == 3'd7)
+    case (vicCycle)
+    VIC_I: begin
+             muxr <= 16'b1111111111111111;
+           end
+    VIC_P, VIC_S, VIC_G: begin
+             muxr <= 16'b1111111100000000;
+           end
+    VIC_R: begin
+             muxr <= 16'b0000000000000000;
+           end
+    default: begin
+             muxr <= 16'b1111111111111111;
+           end
+    endcase
+    else // phi high
+    case (vicCycle)
+    VIC_I: begin
+             muxr <= 16'b1111111100000000;
+           end
+    VIC_S, VIC_C: begin
+             muxr <= 16'b1111111100000000;
+           end
+    default: begin
+             muxr <= 16'b1111111100000000;
+           end
+    endcase
+  else begin
+    muxr <= {muxr[14:0],1'b0};
+  end
+  assign mux = muxr[15];
+
+  always @(posedge clk_dot4x)
+  if (rst)
+     ado8 <= 8'hFF;
+  else
+     ado8 <= mux ? {2'b11, vicAddr[13:8]} : vicAddr[7:0];
+  assign ado = {vicAddr[11:8], ado8};
+  
   ///////// BEGIN TEMP STUFF
  // Stuff like this won't work in the real core. There is no comparitor controlling
   // when the border is visible like this.

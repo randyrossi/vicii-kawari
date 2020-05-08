@@ -28,7 +28,7 @@ int logLevel = LOG_ERROR;
 
 #define LOG(minLevel, FORMAT, ...)  if (logLevel >= minLevel) { printf ("%s: " FORMAT "\n", logLevelStr[logLevel], ##__VA_ARGS__); }
 
-#define STATE() LOG(LOG_INFO, "%c xpos=%03x, cycle=%d, dot=%d phi=%d bit=%d ba=%d aec=%d vcycle=%d ras=%d cas=%d ras=%d x=%d %s",HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ',top->vicii__DOT__xpos, top->vicii__DOT__cycle_num, top->vicii__DOT__clk_dot, top->clk_phi, top->vicii__DOT__bit_cycle, top->ba, top->aec, top->vicCycle, top->ras, top->cas, top->ras, top->vicii__DOT__raster_x, toBin(top->rasr));
+#define STATE() LOG(LOG_INFO, "%c xpos=%03x, cycle=%d, dot=%d phi=%d bit=%d ba=%d aec=%d vcycle=%d ras=%d cas=%d mux=%d x=%d %s",HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ',top->vicii__DOT__xpos, top->vicii__DOT__cycle_num, top->vicii__DOT__clk_dot, top->clk_phi, top->vicii__DOT__bit_cycle, top->ba, top->aec, top->vicCycle, top->ras, top->cas, top->muxr&32768?1:0, top->vicii__DOT__raster_x, toBin(top->rasr));
 
 // Current simulation time (64-bit unsigned). See
 // constants.h for how much each tick represents.
@@ -65,9 +65,10 @@ enum {
    IN_BA,
    IN_AEC,
    IN_IRQ,
+   OUT_RAS, OUT_CAS
 };
 
-#define NUM_SIGNALS 64
+#define NUM_SIGNALS 66
 
 // Add new input/output here
 const char *signal_labels[] = {
@@ -76,7 +77,8 @@ const char *signal_labels[] = {
    "ai0", "ai1", "ai2", "ai3", "ai4", "ai5", "ai6", "ai7", "ai8", "ai9", "ai10", "ai11",
    "do0", "do1", "do2", "do3", "do4", "do5", "do6", "do7", "do8", "do9", "do10", "do11",
    "di0", "di1", "di2", "di3", "di4", "di5", "di6", "di7", "di8", "di9", "di10", "di11",
-   "ce", "rw", "ba", "aec", "irq"
+   "ce", "rw", "ba", "aec", "irq",
+   "ras", "cas"
 };
 const char *signal_ids[] = {
    "p", "c", "r" ,  "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "s",
@@ -85,6 +87,7 @@ const char *signal_ids[] = {
    "do0", "do1", "do2", "do3", "do4", "do5", "do6", "do7", "do8", "do9", "do10", "do11",
    "di0", "di1", "di2", "di3", "di4", "di5", "di6", "di7", "di8", "di9", "di10", "di11",
    "ce", "rw", "ba", "aec", "irq"
+   "ras", "cas"
 };
 
 static unsigned int signal_width[NUM_SIGNALS];
@@ -411,7 +414,6 @@ int main(int argc, char** argv, char** env) {
     top->rst = 0;
     top->adi = 0;
     top->dbi = 0;
-    top->aec = 1; // TODO
     top->vicii__DOT__b0c = 14;
     top->vicii__DOT__ec = 6;
 
@@ -443,6 +445,8 @@ int main(int argc, char** argv, char** env) {
     signal_src8[IN_BA] = &top->ba;
     signal_src8[IN_AEC] = &top->aec;
     signal_src8[IN_IRQ] = &top->irq;
+    signal_src8[OUT_RAS] = &top->ras;
+    signal_src8[OUT_CAS] = &top->cas;
 
     int bt = 1;
     for (int i=OUT_A0; i<= OUT_A11; i++) {
