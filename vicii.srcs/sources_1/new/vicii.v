@@ -214,7 +214,11 @@ endcase
 
   // lower 8 bits of ado are muxed
   reg [7:0] ado8;
+  
+  // lets us detect when phi peiod 
+  // starts within a 4x dot always block
   reg [15:0] phi_period_start;
+
   //reg [15:0] rasr;
   //reg [15:0] casr;
   //reg [15:0] muxr;
@@ -224,8 +228,8 @@ endcase
   // Initialization section
   initial
   begin
-    raster_x = 10'd0;
-    raster_line = 9'd0;
+    raster_x           = 10'd0;
+    raster_line        = 9'd0;
     cycle_stc          = 65'b00000000000000000000000000000000000000000000000000000000000000001;
     cycle_stba         = 65'b11111111111111111111111111111111111111111111111111111111111111111;
     cycle_st1_in_3_ba  = 65'b11111111111111111111111111111111111111111111111111111111111100001;
@@ -233,14 +237,16 @@ endcase
     cycle_staec        = 65'b11111111111111111111111111111111111111111111111111111111111111111;
     cycle_st1_in_3_aec = 65'b11111111111111111111111111111111111111111111111111111111111101111;
     cycle_st2_in_3_aec = 65'b11111111111111111111111111111111111111111111111111111111111001111;
-    refc = 8'hff;
-    vicAddr = 14'b0;
-    vicCycle = VIC_P;
-    phi_period_start = 16'b1000000000000000;
-    clk8r = 16'b1000100010001000;
+    refc               = 8'hff;
+    vicAddr            = 14'b0;
+    vicCycle           = VIC_P;
+    phi_period_start   = 16'b1000000000000000;
+    clk8r              = 16'b1000100010001000;
 
-    // I don't know why this has to start out after
-    // two rotations. 
+    // These start after 3 rotations from their usual start
+    // positions since we always begin on pixel 1 (not 0)./
+    // So that's 4 dot4x ticks to get to the right spot
+    // 3 on init and 1 more initial tick makes 4.
     rasr = 16'b1111000000000000;
     casr = 16'b1111110000000000;
     muxr = 16'b1111100000000000;
@@ -249,15 +255,14 @@ endcase
   // clken8 lets us trigger behavior on the positive edge
   // the dot clock within an always block at the 4x dot clock
   always @(posedge clk_dot4x)
-  if (rst) begin
+  if (rst)
         clk8r <= 16'b1000100010001000;
-  end
-  else begin
-        if (phi_period_start[15])
+  else
+        if (phi_period_start[11])
             clk8r <= 16'b0001000100010001;
         else
             clk8r <= {clk8r[14:0],clk8r[15]};
-  end
+
   assign clken8 = clk8r[15];
 
   // The bit_cycle (0-7) is taken from the raster_x
@@ -329,13 +334,11 @@ endcase
       xpos <= 10'h194;
     endcase
 
-    if (raster_line < rasterYMax)
-    begin
+    if (raster_line < rasterYMax) begin
        // Move to next raster line
        raster_line <= raster_line + 9'd1;
     end
-    else
-    begin
+    else begin
        // Time to go back to y coord 0, reset refresh counter
        raster_line <= 9'd0;
        refc <= 8'hff;
@@ -360,36 +363,36 @@ always @(posedge clk_dot4x)
     cycle_st1_in_3_aec <= 65'b11111111111111111111111111111111111111111111111111111111111101111;
     cycle_st2_in_3_aec <= 65'b11111111111111111111111111111111111111111111111111111111111001111;
   end
-  else if (clken8)
-  if (bit_cycle == 3'd7) // going to next cycle?
-  begin
-     case (chip)
-     CHIP6567R8:
-     begin
+  else if (clken8) // rising dot
+    if (bit_cycle == 3'd7) // going to next cycle?
+    begin
+      case (chip)
+      CHIP6567R8:
+      begin
         cycle_stc <= {cycle_stc[63:0], cycle_stc[64]};
         cycle_st1_in_3_ba <= {cycle_st1_in_3_ba[63:0], cycle_st1_in_3_ba[64]};
         cycle_st2_in_3_ba <= {cycle_st2_in_3_ba[63:0], cycle_st2_in_3_ba[64]};
         cycle_st1_in_3_aec <= {cycle_st1_in_3_aec[63:0], cycle_st1_in_3_aec[64]};
         cycle_st2_in_3_aec <= {cycle_st2_in_3_aec[63:0], cycle_st2_in_3_aec[64]};
-     end
-     CHIP6567R56A:
-     begin
+      end
+      CHIP6567R56A:
+      begin
         cycle_stc <= {1'b0,cycle_stc[62:0],cycle_stc[63]};
         cycle_st1_in_3_ba <= {1'b1, cycle_st1_in_3_ba[62:0], cycle_st1_in_3_ba[63]};
         cycle_st2_in_3_ba <= {1'b1, cycle_st2_in_3_ba[62:0], cycle_st2_in_3_ba[63]};
         cycle_st1_in_3_aec <= {1'b1, cycle_st1_in_3_aec[62:0], cycle_st1_in_3_aec[63]};
         cycle_st2_in_3_aec <= {1'b1, cycle_st2_in_3_aec[62:0], cycle_st2_in_3_aec[63]};
-     end
-     CHIP6569,CHIPUNUSED:
-     begin
+      end
+      CHIP6569,CHIPUNUSED:
+      begin
         cycle_stc <= {2'b00,cycle_stc[61:0],cycle_stc[62]};
         cycle_st1_in_3_ba <= {2'b11, cycle_st1_in_3_ba[61:0],cycle_st1_in_3_ba[62]};
         cycle_st2_in_3_ba <= {2'b11, cycle_st2_in_3_ba[61:0],cycle_st2_in_3_ba[62]};
         cycle_st1_in_3_aec <= {2'b11, cycle_st1_in_3_aec[61:0],cycle_st1_in_3_aec[62]};
         cycle_st2_in_3_aec <= {2'b11, cycle_st2_in_3_aec[61:0],cycle_st2_in_3_aec[62]};
-     end
-     endcase
-  end
+      end
+      endcase
+    end
   
   // cycle_stba masked with cycle_stc tells us if ba should go low
   assign ba = (cycle_stba & cycle_stc) == 0 ? 0 : 1;
@@ -444,12 +447,12 @@ always @(raster_x)
      casr <= 16'b1111111111111111;
   end
   // On first dot4x tick, we initialized everyting
-  // on the pixel 1 which means we are 4 4x dot clock
-  // ticks out of sync with respect to the start of 
-  // a phase. Hence 11 here and not 15.
+  // on the pixel 1 which means we were already 4
+  // 4x dot clock ticks ahead so next period starts
+  // at 11 and not 15.
   else if (phi_period_start[11])
     // Here we check bit cycle = 7 to indicate we just
-    // transitioned from high low phi
+    // transitioned from high to low phi
     if (bit_cycle == 3'd7)
     case (vicCycle)
     VIC_I: begin
@@ -494,45 +497,31 @@ always @(raster_x)
   assign cas = casr[15];
 
   always @(posedge clk_dot4x)
-  if (rst) begin
+  if (rst)
      muxr <= 16'b1111111111111111;
-  end
-  // Must be dot4x cycle earlier than condition above
+  // Must be one dot4x cycle earlier than condition above
   // because ado is delayed assignment not like ras/cas
-  // above. 
+  // above. Necessary to get mux to happen between ras/cas
+  // as expected.
   else if (phi_period_start[10])
     // Here we check bit cycle = 7 to indicate we just
     // transitioned from high low phi
     if (bit_cycle == 3'd7)
     case (vicCycle)
-    VIC_I: begin
-             muxr <= 16'b1111111111111111;
-           end
-    VIC_P, VIC_S, VIC_G: begin
-             muxr <= 16'b1111111100000000;
-           end
-    VIC_R: begin
-             muxr <= 16'b0000000000000000;
-           end
-    default: begin
-             muxr <= 16'b1111111111111111;
-           end
+    VIC_I:               muxr <= 16'b1111111111111111;
+    VIC_P, VIC_S, VIC_G: muxr <= 16'b1111111100000000;
+    VIC_R:               muxr <= 16'b0000000000000000;
+    default:             muxr <= 16'b1111111111111111;
     endcase
     else // phi high
     case (vicCycle)
-    VIC_I: begin
-             muxr <= 16'b1111111100000000;
-           end
-    VIC_S, VIC_C: begin
-             muxr <= 16'b1111111100000000;
-           end
-    default: begin
-             muxr <= 16'b1111111100000000;
-           end
+    VIC_I:               muxr <= 16'b1111111100000000;
+    VIC_S, VIC_C:        muxr <= 16'b1111111100000000;
+    default:             muxr <= 16'b1111111100000000;
     endcase
-  else begin
+  else
     muxr <= {muxr[14:0],1'b0};
-  end
+
   assign mux = muxr[15];
 
   always @(posedge clk_dot4x)
