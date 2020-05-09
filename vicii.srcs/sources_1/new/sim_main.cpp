@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 #include <verilated.h>
-#include <regex.h> 
+#include <regex.h>
 
 #include "Vvicii.h"
 #include "constants.h"
@@ -28,7 +28,7 @@ int logLevel = LOG_ERROR;
 
 #define LOG(minLevel, FORMAT, ...)  if (logLevel >= minLevel) { printf ("%s: " FORMAT "\n", logLevelStr[logLevel], ##__VA_ARGS__); }
 
-#define STATE() LOG(LOG_INFO, "%c xpos=%03x, cycle=%d, dot=%d phi=%d bit=%d ba=%d aec=%d vcycle=%d ras=%d cas=%d mux=%d x=%d %s",HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ',top->vicii__DOT__xpos, top->vicii__DOT__cycle_num, top->vicii__DOT__clk_dot, top->clk_phi, top->vicii__DOT__bit_cycle, top->ba, top->aec, top->vicCycle, top->ras, top->cas, top->muxr&32768?1:0, top->vicii__DOT__raster_x, toBin(top->rasr));
+#define STATE() LOG(LOG_INFO, "%c xpos=%03x cycle=%d dot=%d phi=%d bit=%d ba=%d aec=%d vcycle=%d ras=%d cas=%d mux=%d x=%d y=%d %s %03x %02x rw=%d ce=%d %d",HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ',top->vicii__DOT__xpos, top->vicii__DOT__cycle_num, top->vicii__DOT__clk_dot, top->clk_phi, top->vicii__DOT__bit_cycle, top->ba, top->aec, top->vicCycle, top->ras, top->cas, top->muxr&32768?1:0, top->vicii__DOT__raster_x, top->vicii__DOT__raster_line, toBin(top->rasr), top->adi, top->dbi, top->rw, top->ce, top->vicii__DOT__ec);
 
 // Current simulation time (64-bit unsigned). See
 // constants.h for how much each tick represents.
@@ -134,6 +134,15 @@ static void STORE_PREV() {
 #define FALLING(signum) \
    ( signal_monitor[signum] && !SGETVAL(signum))
 
+
+static void CHECK(Vvicii *top, int cond, int line) {
+  if (!cond) {
+     printf ("FAIL line %d:", line);
+     STATE();
+     exit(-1);
+  }
+}
+
 // We can drive our simulated clock gen every pico second but that would
 // be a waste since nothing happens between clock edges. This function
 // will determine how many ticks(picoseconds) to advance our clock.
@@ -201,7 +210,8 @@ int main(int argc, char** argv, char** env) {
     bool showWindow = false;
     bool shadowVic = false;
     bool renderEachPixel = false;
-    int prev_y = -1;
+    int prevY = -1;
+    int prevX = -1;
     struct vicii_ipc* ipc;
 
     // Default to 16.7us starting at 0
@@ -283,7 +293,7 @@ int main(int argc, char** argv, char** env) {
         printf ("  -b        : render each pixel instead of each line\n");
         printf ("  -i        : list signals to include (phi, ce, csync, etc.) \n");
         printf ("  -c <chip> : 0=CHIP6567R8, 1=CHIP6567R56A 2=CHIP65669\n");
-        
+
         exit(0);
       case '?':
         if (optopt == 't' || optopt == 's') {
@@ -414,6 +424,8 @@ int main(int argc, char** argv, char** env) {
     top->rst = 0;
     top->adi = 0;
     top->dbi = 0;
+    top->rw = 1;
+    top->ce = 1;
     top->vicii__DOT__b0c = 14;
     top->vicii__DOT__ec = 6;
 
@@ -482,76 +494,72 @@ int main(int argc, char** argv, char** env) {
     if (outputVcd)
        vcd_header(top,outFile);
 
-    // After this loop, the next tick will bring DOT high
-    // into PHI phase 2
-    for (int t =0; t < 24; t++) {
-       ticks = nextTick(top);
-       top->eval();
-       //if (HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
-       if (top->clk_dot4x) {
-          STATE();
-       }
-       STORE_PREV();
-    }
-    printf ("VICE WAIT\n");
-
-
     if (shadowVic) {
        ipc = ipc_init(IPC_RECEIVER);
        ipc_open(ipc);
        state = ((struct vicii_state*)ipc->dspOutBuf);
+       state->rw = 1;
+       state->ce = 1;
     }
 
-    // This lets us iterate the eval loop until we see the
-    // dot clock tick forward one half its period.
-    bool needDotTick = false;
-
-    int verifyNextDotXPos = -1;
-
     // IMPORTANT: Any and all state reads/writes MUST occur between ipc_receive
-    // and ipc_send inside this loop.
+    // and ipc_receive_done inside this loop.
+    int ticksUntilDone = 0;
     while (!Verilated::gotFinish()) {
 
         // Are we shadowing from VICE? Wait for sync data, then
         // step until next dot clock tick.
-        if (shadowVic && !needDotTick) {
+        if (shadowVic && ticksUntilDone == 0) {
+           // Do not change state before this line
            if (ipc_receive(ipc))
               break;
 
-           needDotTick = true;
-
+           ticksUntilDone = 4;
            capture = (state->flags & VICII_OP_CAPTURE_START);
 
            if (state->flags & VICII_OP_SYNC_STATE) {
+               state->flags &= ~VICII_OP_SYNC_STATE;
+               // Step forward until we get to the target xpos, rasterline
+               // and when dot4x just ticked low (we always tick into high
+               // when beginning to step so we must leave dot4x low.
+               while (top->vicii__DOT__xpos != (state->xpos + 7) ||
+                         top->vicii__DOT__raster_line != state->raster_line ||
+                            top->clk_dot4x) {
+                  STORE_PREV();
+                  ticks = nextTick(top);
+                  top->eval();
+                  if (top->clk_dot4x)
+                     STATE();
+               }
+
+               // Now 6 more ticks so the next ipc_send will start on the
+               // actual target we desire (xpos + 8)
+               for (int i=0; i< 6; i++) {
+                  STORE_PREV();
+                  ticks = nextTick(top);
+                  top->eval();
+                  if (top->clk_dot4x)
+                     STATE();
+               }
+
                // We sync state always when phi is high (2nd phase)
-               assert(~top->clk_phi);
-               // Add 3 because the next dot tick will increment x to bring us
-               // to 2nd phase of phi within the cycle.
-               top->vicii__DOT__raster_x = 8 * state->cycle_num + 3;
-               top->vicii__DOT__xpos = state->xpos;
-               top->vicii__DOT__raster_line = state->raster_line;
+               CHECK(top, ~top->clk_phi, __LINE__);
 
-               // Add one because the next dot tick will increment xpos
-               verifyNextDotXPos = state->xpos + 1;
-
-               LOG(LOG_INFO, "syncing FPGA to cycle=%u, raster_line=%u, xpos=%03x",
-                  state->cycle_num, state->raster_line, verifyNextDotXPos);
+               LOG(LOG_INFO, "synced FPGA to cycle=%u, raster_line=%u, xpos=%03x",
+                  state->cycle_num, state->raster_line, state->xpos);
            }
-           state->flags &= ~VICII_OP_SYNC_STATE;
 
            if (state->flags & VICII_OP_BUS_ACCESS) {
-              if (!top->clk_phi) STATE();
-              assert(top->clk_phi);
+              CHECK(top, top->clk_phi, __LINE__);
            }
+        }
 
+        if (shadowVic) {
+           // VICE -> SIM state sync
            top->adi = state->addr;
            top->ce = state->ce;
            top->rw = state->rw;
-
-           if (top->ce == 0 && top->rw == 0) {
-              // chip select and write, set data
-              top->dbi = state->data;
-           }
+           top->dbi = state->data;
         }
 
 #ifdef TEST_RESET
@@ -562,8 +570,13 @@ int main(int argc, char** argv, char** env) {
            top->rst = 0;
 #endif
 
+        prevX = top->vicii__DOT__raster_x;
+        prevY = top->vicii__DOT__raster_line;
+
         // Evaluate model
         top->eval();
+        if (top->clk_dot4x)
+           STATE();
 
         if (captureByTime)
            capture = (ticks >= startTicks) && (ticks <= endTicks);
@@ -588,50 +601,32 @@ int main(int argc, char** argv, char** env) {
              }
           }
 
-          //if (HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
-          if (top->clk_dot4x)
-             STATE();
-          //}
-
           // On dot clock...
           if (HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
-             if (verifyNextDotXPos >= 0) {
-                // This is a check to make sure the next dot is what
-                // we expected from the fpga sync step above.
-                if (top->vicii__DOT__xpos != verifyNextDotXPos) {
-                   LOG(LOG_ERROR, "expected next dot to have xpos=%03x but got xpos=%03x @ cycle=%d bit_cycle=%d",
-                                   verifyNextDotXPos, top->vicii__DOT__xpos, top->vicii__DOT__cycle_num, top->vicii__DOT__bit_cycle);
-                   exit(-1);
-                } else {
-                   LOG(LOG_INFO, "got expected next dot with xpos=%03x", top->vicii__DOT__xpos);
-                }
-                verifyNextDotXPos = -1;
-             }
-
              // AEC should always be low in first phase
              if (top->vicii__DOT__bit_cycle < 4) {
-               assert(top->aec == 0);
+               CHECK(top, top->aec == 0, __LINE__);
              }
 
              // Make sure xpos is what we expect at key points
              if (top->vicii__DOT__cycle_num == 12 && top->vicii__DOT__bit_cycle == 4)
-               assert (top->vicii__DOT__xpos == 0); // rollover
+               CHECK (top, top->vicii__DOT__xpos == 0, __LINE__); // rollover
 
              if (top->vicii__DOT__cycle_num == 0 && top->vicii__DOT__bit_cycle == 0)
                if (chip == CHIP6569)
-                  assert (top->vicii__DOT__xpos == 0x194); // reset
+                  CHECK (top, top->vicii__DOT__xpos == 0x194, __LINE__); // reset
                else
-                  assert (top->vicii__DOT__xpos == 0x19c); // reset
+                  CHECK (top, top->vicii__DOT__xpos == 0x19c, __LINE__); // reset
 
              if (chip == CHIP6567R8)
                if (top->vicii__DOT__cycle_num == 61 && (top->vicii__DOT__bit_cycle == 0 || top->vicii__DOT__bit_cycle == 4))
-                  assert (top->vicii__DOT__xpos == 0x184); // repeat cases
+                  CHECK (top, top->vicii__DOT__xpos == 0x184, __LINE__); // repeat cases
                else if (top->vicii__DOT__cycle_num == 62 && top->vicii__DOT__bit_cycle == 0)
-                  assert (top->vicii__DOT__xpos == 0x184); // repeat case
+                  CHECK (top, top->vicii__DOT__xpos == 0x184, __LINE__); // repeat case
 
              // Refresh counter is supposed to reset at raster 0 - TODO ENABLE WHEN AVAILABLE
              if (top->vicii__DOT__raster_line == 0)
-                assert (top->refc == 0xff);
+                CHECK (top, top->refc == 0xff, __LINE__);
           }
 
           // If rendering, draw current color on dot clock
@@ -647,9 +642,8 @@ int main(int argc, char** argv, char** env) {
              );
 
              // Show updated pixels per raster line
-             if (prev_y != top->vicii__DOT__raster_line) {
+             if (prevY != top->vicii__DOT__raster_line) {
                 SDL_RenderPresent(ren);
-                prev_y = top->vicii__DOT__raster_line;
 
                 SDL_PollEvent(&event);
                 switch (event.type) {
@@ -666,11 +660,12 @@ int main(int argc, char** argv, char** env) {
           }
         }
 
-        if (shadowVic && HASCHANGED(OUT_DOT) && needDotTick) {
-           // TODO : Report back any outputs like data, ba, aec, etc. here
-
-           // 
+        // SIM -> VICE state sync
+        if (shadowVic) {
            state->phi = top->clk_phi;
+        }
+
+        if (shadowVic) {
 
            if (top->ce == 0 && top->rw == 1) {
               // Chip selected and read, set data in state
@@ -688,9 +683,13 @@ int main(int argc, char** argv, char** env) {
               needQuit = true;
            }
 
-           if (ipc_send(ipc))
-              break;
-           needDotTick = false;
+           ticksUntilDone--;
+
+           if (ticksUntilDone == 0) {
+              // Do not change state after this line
+              if (ipc_receive_done(ipc))
+                 break;
+           }
 
            if (needQuit) {
               // Safe to quit now. We sent our response.

@@ -83,4 +83,6 @@ int ipc_send(struct vicii_ipc* ipc);
 // Return 1 on error, 0 success
 int ipc_receive(struct vicii_ipc* ipc);
 
+int ipc_receive_done(struct vicii_ipc* ipc);
+
 #endif

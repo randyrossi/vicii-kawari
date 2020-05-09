@@ -123,7 +123,9 @@ int ipc_receive(struct vicii_ipc* ipc) {
       if (p(ipc, END2_PRODUCER_SIG_END1_CONSUME_OK))
          return 1;
     }
- 
+}
+
+int ipc_receive_done(struct vicii_ipc* ipc) {
     if (ipc->endPoint == IPC_SENDER) {
       if (v(ipc, END2_CONSUMER_SIG_END1_PRODUCE_OK))
          return 1;

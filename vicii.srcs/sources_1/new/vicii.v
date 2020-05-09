@@ -49,7 +49,7 @@ parameter CHIPUNUSED   = 2'd3;
 // Cycle types possible in each phase of phi:
 // I  idle, phase 1 or 2
 // P  sprite pointer, always phase 1
-// S  sprite dma, phase 1 or 2
+// S  sprite dma, phase 1 or 2 after a P
 // R  DRAM refresh, always phase 1
 // C  video matrix and color ram, always phase 2
 // G  chargen or bitmap, always phase 1
@@ -70,6 +70,9 @@ parameter VIC_G = 5;
 // one of PS, SS, RC & GC are within 3 upcoming
 // cycles
 
+// AEC is high for phi low phase (vic) and low for phi 
+// high phase (cpu) but kept low in phi high phase if vic
+// 'stole' a cpu cycle.
 
 // Limits for different chips
 reg [9:0] rasterXMax;
@@ -215,9 +218,9 @@ endcase
   // lower 8 bits of ado are muxed
   reg [7:0] ado8;
   
-  // lets us detect when phi peiod 
-  // starts within a 4x dot always block
-  reg [15:0] phi_period_start;
+  // lets us detect when a phi phase is
+  // starting within a 4x dot always block
+  reg [15:0] phi_phase_start;
 
   //reg [15:0] rasr;
   //reg [15:0] casr;
@@ -240,7 +243,7 @@ endcase
     refc               = 8'hff;
     vicAddr            = 14'b0;
     vicCycle           = VIC_P;
-    phi_period_start   = 16'b1000000000000000;
+    phi_phase_start    = 16'b1000000000000000;
     clk8r              = 16'b1000100010001000;
 
     // These start after 3 rotations from their usual start
@@ -258,7 +261,7 @@ endcase
   if (rst)
         clk8r <= 16'b1000100010001000;
   else
-        if (phi_period_start[11])
+        if (phi_phase_start[11])
             clk8r <= 16'b0001000100010001;
         else
             clk8r <= {clk8r[14:0],clk8r[15]};
@@ -436,9 +439,9 @@ always @(raster_x)
   
   always @(posedge clk_dot4x)
   if (rst) begin
-     phi_period_start <= 16'b1000000000000000;
+     phi_phase_start <= 16'b1000000000000000;
   end else
-     phi_period_start <= {phi_period_start[14:0], phi_period_start[15]};
+     phi_phase_start <= {phi_phase_start[14:0], phi_phase_start[15]};
   
   // RAS/CAS/MUX profiles
   always @(posedge clk_dot4x)
@@ -450,7 +453,7 @@ always @(raster_x)
   // on the pixel 1 which means we were already 4
   // 4x dot clock ticks ahead so next period starts
   // at 11 and not 15.
-  else if (phi_period_start[11])
+  else if (phi_phase_start[11]) begin
     // Here we check bit cycle = 7 to indicate we just
     // transitioned from high to low phi
     if (bit_cycle == 3'd7)
@@ -473,7 +476,7 @@ always @(raster_x)
              casr <= 16'b1111111111111111;
            end
     endcase
-    else // phi high
+    else if (bit_cycle == 3'd3) // phi going low
     case (vicCycle)
     VIC_I: begin
              rasr <= 16'b1111111000000000;
@@ -488,7 +491,7 @@ always @(raster_x)
              casr <= 16'b1111111110000000;
            end
     endcase
-  else begin
+  end else begin
     rasr <= {rasr[14:0],1'b0};
     casr <= {casr[14:0],1'b0};
   end
@@ -503,7 +506,7 @@ always @(raster_x)
   // because ado is delayed assignment not like ras/cas
   // above. Necessary to get mux to happen between ras/cas
   // as expected.
-  else if (phi_period_start[10])
+  else if (phi_phase_start[10])
     // Here we check bit cycle = 7 to indicate we just
     // transitioned from high low phi
     if (bit_cycle == 3'd7)
@@ -638,6 +641,8 @@ always @(raster_x)
 // Register Read/Write
 always @(posedge clk_dot4x)
 if (rst) begin
+  ec <= 4'd0;
+  b0c <= 4'd0;
 end
 else begin
  if (!ce) begin
@@ -650,7 +655,10 @@ else begin
       default:  dbo <= 12'hFF;
       endcase
    end
-   // WRITE
+   // WRITE -
+   //  This sets the register at any time rw and ce are low but
+   //  it may be more correct to do it only on the falling edge
+   // of phi. ie.  (phi_phase_start[11] && bit_cycle == 3'd7 && !rw)
    else if (!rw) begin
       case(adi[5:0])
       6'h20:  ec <= dbi[3:0];
