@@ -28,7 +28,7 @@ int logLevel = LOG_ERROR;
 
 #define LOG(minLevel, FORMAT, ...)  if (logLevel >= minLevel) { printf ("%s: " FORMAT "\n", logLevelStr[logLevel], ##__VA_ARGS__); }
 
-#define STATE() LOG(LOG_INFO, "%c xpos=%03x cycle=%d dot=%d phi=%d bit=%d ba=%d aec=%d vcycle=%d ras=%d cas=%d mux=%d x=%d y=%d %s %03x %02x rw=%d ce=%d %d",HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ',top->vicii__DOT__xpos, top->vicii__DOT__cycle_num, top->vicii__DOT__clk_dot, top->clk_phi, top->vicii__DOT__bit_cycle, top->ba, top->aec, top->vicCycle, top->ras, top->cas, top->muxr&32768?1:0, top->vicii__DOT__raster_x, top->vicii__DOT__raster_line, toBin(top->rasr), top->adi, top->dbi, top->rw, top->ce, top->vicii__DOT__ec);
+#define STATE() LOG(LOG_INFO, "%c xpos=%03x cycle=%d dot=%d phi=%d bit=%d ba=%d aec=%d vcycle=%d ras=%d cas=%d mux=%d x=%d y=%d %s %03x %02x rw=%d ce=%d %d %d",HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ',top->vicii__DOT__xpos, top->vicii__DOT__cycle_num, top->vicii__DOT__clk_dot, top->clk_phi, top->vicii__DOT__bit_cycle, top->ba, top->aec, top->vicCycle, top->ras, top->cas, top->muxr&32768?1:0, top->vicii__DOT__raster_x, top->vicii__DOT__raster_line, toBin(top->rasr), top->adi, top->dbi, top->rw, top->ce, top->vicii__DOT__ec, top->vicii__DOT__phi_phase_start);
 
 // Current simulation time (64-bit unsigned). See
 // constants.h for how much each tick represents.
@@ -206,6 +206,9 @@ int main(int argc, char** argv, char** env) {
     bool isNtsc = false;
 
     bool captureByTime = true;
+    bool captureByFrame = false;
+    int  captureByFrameStopXpos = 0;
+    int  captureByFrameStopYpos = 0;
     bool outputVcd = false;
     bool showWindow = false;
     bool shadowVic = false;
@@ -421,13 +424,15 @@ int main(int argc, char** argv, char** env) {
     // Add new input/output here.
     Vvicii* top = new Vvicii;
     top->chip = chip;
+    top->clk_phi = 1;
+    top->vicii__DOT__clk_dot = 1;
     top->rst = 0;
     top->adi = 0;
     top->dbi = 0;
     top->rw = 1;
     top->ce = 1;
-    top->vicii__DOT__b0c = 14;
-    top->vicii__DOT__ec = 6;
+    top->vicii__DOT__b0c = 6;
+    top->vicii__DOT__ec = 14;
 
     // Default all signals to bit 1 and include in monitoring.
     for (int i = 0; i < NUM_SIGNALS; i++) {
@@ -490,6 +495,7 @@ int main(int argc, char** argv, char** env) {
     }
 
     top->eval();
+    STORE_PREV();
 
     if (outputVcd)
        vcd_header(top,outFile);
@@ -516,6 +522,11 @@ int main(int argc, char** argv, char** env) {
 
            ticksUntilDone = 4;
            capture = (state->flags & VICII_OP_CAPTURE_START);
+           if (!captureByFrame) {
+              captureByFrame = (state->flags & VICII_OP_CAPTURE_ONE_FRAME); 
+              captureByFrameStopXpos = 0x1f7;
+              captureByFrameStopYpos = 311;
+           }
 
            if (state->flags & VICII_OP_SYNC_STATE) {
                state->flags &= ~VICII_OP_SYNC_STATE;
@@ -525,9 +536,9 @@ int main(int argc, char** argv, char** env) {
                while (top->vicii__DOT__xpos != (state->xpos + 7) ||
                          top->vicii__DOT__raster_line != state->raster_line ||
                             top->clk_dot4x) {
-                  STORE_PREV();
                   ticks = nextTick(top);
                   top->eval();
+                  STORE_PREV();
                   if (top->clk_dot4x)
                      STATE();
                }
@@ -535,9 +546,9 @@ int main(int argc, char** argv, char** env) {
                // Now 6 more ticks so the next ipc_send will start on the
                // actual target we desire (xpos + 8)
                for (int i=0; i< 6; i++) {
-                  STORE_PREV();
                   ticks = nextTick(top);
                   top->eval();
+                  STORE_PREV();
                   if (top->clk_dot4x)
                      STATE();
                }
@@ -678,9 +689,11 @@ int main(int argc, char** argv, char** env) {
            }
 
            // After we have one full frame, exit the loop.
-           if ((state->flags & VICII_OP_CAPTURE_ONE_FRAME) !=0 &&
-              top->vicii__DOT__xpos == 0 && top->vicii__DOT__raster_line == 0) {
-              needQuit = true;
+           if (captureByFrame && 
+              top->vicii__DOT__xpos == captureByFrameStopXpos &&
+                 top->vicii__DOT__raster_line == captureByFrameStopYpos) {
+              ipc_receive_done(ipc);
+              break;
            }
 
            ticksUntilDone--;
@@ -690,6 +703,7 @@ int main(int argc, char** argv, char** env) {
               if (ipc_receive_done(ipc))
                  break;
            }
+
 
            if (needQuit) {
               // Safe to quit now. We sent our response.
@@ -716,6 +730,15 @@ int main(int argc, char** argv, char** env) {
        ipc_close(ipc);
     }
 
+    if (captureByFrame) {
+       while (true) {
+          if (ipc_receive(ipc))
+             break;
+          if (ipc_receive_done(ipc))
+             break;
+       }
+    }
+
     if (showWindow) {
        bool quit = false;
        while (!quit) {
@@ -734,6 +757,7 @@ int main(int argc, char** argv, char** env) {
        SDL_DestroyWindow(win);
        SDL_Quit();
     }
+
 
     // Final model cleanup
     top->final();

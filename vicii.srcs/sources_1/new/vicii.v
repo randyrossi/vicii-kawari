@@ -4,7 +4,7 @@
 // raster_x,raster_y = (0,0) and let the fist tick bring us to
 // raster_x=1 because that initial state is common to all chip types.
 // If we wanted the first tick to produce raster_x,raster_y=(0,0)
-// then we would have to initialize registers to that last pixel
+// then we would have to initialize state to the last pixel
 // of a frame which is different for each chip.  So remember we are
 // starting things off with PHI LOW but already 1/4 the way
 // through its phase and with DOT high but already on the second
@@ -123,9 +123,11 @@ CHIP6569,CHIPUNUSED:
       vBlankEnd = 9'd309;
    end
 endcase
-  reg [15:0] clk8r; // DOCUMENT AND RENAME
-  wire clken8;
-  
+
+  reg [31:0] phir;
+  reg [31:0] dotr;
+  reg [15:0] dot_risingr;
+  wire dot_rising;
   
   // cycle steal - current : 1 bit high that represents the
   // current cycle we are in. Used to check cycle_stba to
@@ -154,18 +156,6 @@ endcase
      .clk_in(clk_col4x),     // from 4x color clock
      .reset(rst),
      .clk_out(clk_colref)    // create color ref clock
-  );
-
-  clk_div32 clk_phigen (
-     .clk_in(clk_dot4x),     // from 4x dot clock
-     .reset(rst),
-     .clk_out(clk_phi)       // create phi clock
-  );
-
-  clk_div4 clk_dotgen (
-     .clk_in(clk_dot4x),    // from 4x dot clock
-     .reset(rst),
-     .clk_out(clk_dot)      // create dot clock
   );
 
   // current raster x and line position
@@ -243,9 +233,11 @@ endcase
     refc               = 8'hff;
     vicAddr            = 14'b0;
     vicCycle           = VIC_P;
-    phi_phase_start    = 16'b1000000000000000;
-    clk8r              = 16'b1000100010001000;
-
+    phi_phase_start    = 16'b0000000000000100;
+    dot_risingr        = 16'b0100010001000100;
+    phir               = 32'b00000000000000111111111111111100;
+    dotr               = 32'b00110011001100110011001100110011;
+    
     // These start after 3 rotations from their usual start
     // positions since we always begin on pixel 1 (not 0)./
     // So that's 4 dot4x ticks to get to the right spot
@@ -259,14 +251,25 @@ endcase
   // the dot clock within an always block at the 4x dot clock
   always @(posedge clk_dot4x)
   if (rst)
-        clk8r <= 16'b1000100010001000;
+        dot_risingr <= 16'b1000100010001000;
   else
-        if (phi_phase_start[11])
-            clk8r <= 16'b0001000100010001;
-        else
-            clk8r <= {clk8r[14:0],clk8r[15]};
+        dot_risingr <= {dot_risingr[14:0], dot_risingr[15]};
+  assign dot_rising = dot_risingr[15];
 
-  assign clken8 = clk8r[15];
+  always @(posedge clk_dot4x)
+  if (rst)
+        phir <= 32'b00000000000000001111111111111111;
+  else
+        phir <= {phir[30:0], phir[31]};
+  assign clk_phi = phir[31];
+
+
+  always @(posedge clk_dot4x)
+  if (rst)
+        dotr <= 32'b11001100110011001100110011001100;
+  else
+        dotr <= {dotr[30:0], dotr[31]};
+  assign clk_dot = dotr[31];
 
   // The bit_cycle (0-7) is taken from the raster_x
   assign bit_cycle = raster_x[2:0];
@@ -289,7 +292,7 @@ endcase
       xpos <= 10'h195;
     endcase
   end
-  else if (clken8)
+  else if (dot_rising)
   if (raster_x < rasterXMax)
   begin
     // Can advance to next pixel
@@ -366,7 +369,7 @@ always @(posedge clk_dot4x)
     cycle_st1_in_3_aec <= 65'b11111111111111111111111111111111111111111111111111111111111101111;
     cycle_st2_in_3_aec <= 65'b11111111111111111111111111111111111111111111111111111111111001111;
   end
-  else if (clken8) // rising dot
+  else if (dot_rising)
     if (bit_cycle == 3'd7) // going to next cycle?
     begin
       case (chip)
@@ -449,11 +452,7 @@ always @(raster_x)
      rasr <= 16'b1111111111111111;
      casr <= 16'b1111111111111111;
   end
-  // On first dot4x tick, we initialized everyting
-  // on the pixel 1 which means we were already 4
-  // 4x dot clock ticks ahead so next period starts
-  // at 11 and not 15.
-  else if (phi_phase_start[11]) begin
+  else if (phi_phase_start[15]) begin
     // Here we check bit cycle = 7 to indicate we just
     // transitioned from high to low phi
     if (bit_cycle == 3'd7)
@@ -461,7 +460,6 @@ always @(raster_x)
     VIC_I: begin
              rasr <= 16'b1111111111111111;
              casr <= 16'b1111111111111111;
-             muxr <= 16'b1111111111111111;
            end
     VIC_P, VIC_S, VIC_G: begin
              rasr <= 16'b1111111000000000;
@@ -506,7 +504,7 @@ always @(raster_x)
   // because ado is delayed assignment not like ras/cas
   // above. Necessary to get mux to happen between ras/cas
   // as expected.
-  else if (phi_phase_start[10])
+  else if (phi_phase_start[14])
     // Here we check bit cycle = 7 to indicate we just
     // transitioned from high low phi
     if (bit_cycle == 3'd7)
@@ -658,7 +656,7 @@ else begin
    // WRITE -
    //  This sets the register at any time rw and ce are low but
    //  it may be more correct to do it only on the falling edge
-   // of phi. ie.  (phi_phase_start[11] && bit_cycle == 3'd7 && !rw)
+   // of phi. ie.  (phi_phase_start[15] && bit_cycle == 3'd7 && !rw)
    else if (!rw) begin
       case(adi[5:0])
       6'h20:  ec <= dbi[3:0];

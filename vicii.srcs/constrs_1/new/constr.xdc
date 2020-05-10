@@ -1,4 +1,4 @@
-# External clock 12Mhz
+  # External clock 12Mhz
 create_clock -add -name sys_clk_pin -period 83.33 -waveform {0 41.66} [get_ports {sys_clock}];
 
 #set_output_delay -clock [get_clocks x_clk] -min -add_delay 0.000 [get_ports clk_colref]
@@ -106,8 +106,8 @@ set_property -dict { PACKAGE_PIN N1    IOSTANDARD LVCMOS33 } [get_ports { ba }];
 # irq, Pin 37
 set_property -dict { PACKAGE_PIN V4    IOSTANDARD LVCMOS33 } [get_ports { irq }];
 
-# RAS
+# RAS, Pin 22
 set_property -dict { PACKAGE_PIN N2    IOSTANDARD LVCMOS33 } [get_ports { ras }];
 
-# CAS
+# CAS, Pin 23
 set_property -dict { PACKAGE_PIN P1    IOSTANDARD LVCMOS33 } [get_ports { cas }];
