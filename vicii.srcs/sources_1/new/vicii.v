@@ -70,8 +70,8 @@ parameter VIC_G = 5;
 // one of PS, SS, RC & GC are within 3 upcoming
 // cycles
 
-// AEC is high for phi low phase (vic) and low for phi 
-// high phase (cpu) but kept low in phi high phase if vic
+// AEC is LOW for PHI LOW phase (vic) and HIGH for PHI 
+// HIGH phase (cpu) but kept LOW in PHI HIGH phase if vic
 // 'stole' a cpu cycle.
 
 // Limits for different chips
@@ -124,8 +124,11 @@ CHIP6569,CHIPUNUSED:
    end
 endcase
 
+  // used to generate phi and dot clocks
   reg [31:0] phir;
   reg [31:0] dotr;
+  
+  // used to detect rising edge of dot clock inside a dot4x always block
   reg [15:0] dot_risingr;
   wire dot_rising;
   
@@ -152,6 +155,7 @@ endcase
   reg [64:0] cycle_st1_in_3_aec;
   reg [64:0] cycle_st2_in_3_aec;
   
+  // Divides the color4x clock by 4 to get color reference clock
   clk_div4 clk_colorgen (
      .clk_in(clk_col4x),     // from 4x color clock
      .reset(rst),
@@ -187,9 +191,6 @@ endcase
   // 0-7
   wire [2:0] bit_cycle;
   
-  // phi_phase: 0 low, 1 high
-  wire phi_phase;
-
   // char_line_num : For text mode, what character line are we on.
   reg [2:0] char_line_num;
 
@@ -239,7 +240,7 @@ endcase
     dotr               = 32'b00110011001100110011001100110011;
     
     // These start after 3 rotations from their usual start
-    // positions since we always begin on pixel 1 (not 0)./
+    // positions since we always begin on pixel 1 (not 0).
     // So that's 4 dot4x ticks to get to the right spot
     // 3 on init and 1 more initial tick makes 4.
     rasr = 16'b1111000000000000;
@@ -247,8 +248,6 @@ endcase
     muxr = 16'b1111100000000000;
   end
   
-  // clken8 lets us trigger behavior on the positive edge
-  // the dot clock within an always block at the 4x dot clock
   always @(posedge clk_dot4x)
   if (rst)
         dot_risingr <= 16'b1000100010001000;
@@ -263,7 +262,6 @@ endcase
         phir <= {phir[30:0], phir[31]};
   assign clk_phi = phir[31];
 
-
   always @(posedge clk_dot4x)
   if (rst)
         dotr <= 32'b11001100110011001100110011001100;
@@ -271,12 +269,16 @@ endcase
         dotr <= {dotr[30:0], dotr[31]};
   assign clk_dot = dotr[31];
 
+  always @(posedge clk_dot4x)
+  if (rst) begin
+     phi_phase_start <= 16'b1000000000000000;
+  end else
+     phi_phase_start <= {phi_phase_start[14:0], phi_phase_start[15]};
+
   // The bit_cycle (0-7) is taken from the raster_x
   assign bit_cycle = raster_x[2:0];
   // This is simply raster_x divided by 8.
   assign cycle_num = raster_x[9:3];
-  // This is just bit 2 of raster_x
-  assign phi_phase = raster_x[2];
   
   // Update x,y position
   always @(posedge clk_dot4x)
@@ -439,13 +441,7 @@ always @(raster_x)
   CHIP6567R8:
      vicCycle = VIC_I;
   endcase
-  
-  always @(posedge clk_dot4x)
-  if (rst) begin
-     phi_phase_start <= 16'b1000000000000000;
-  end else
-     phi_phase_start <= {phi_phase_start[14:0], phi_phase_start[15]};
-  
+    
   // RAS/CAS/MUX profiles
   always @(posedge clk_dot4x)
   if (rst) begin
