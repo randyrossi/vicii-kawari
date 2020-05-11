@@ -82,6 +82,7 @@ reg [9:0] hSyncEnd;
 reg [9:0] hVisibleStart;
 reg [8:0] vBlankStart;
 reg [8:0] vBlankEnd;
+reg [9:0] startXPos;
 
 //clk_dot4x;     32.272768 Mhz NTSC
 //clk_col4x;     14.381818 Mhz NTSC
@@ -101,6 +102,7 @@ CHIP6567R8:
       hVisibleStart = 10'd494;  // 10.7us after hSyncStart seems to work
       vBlankStart = 9'd11;
       vBlankEnd = 9'd19;
+      startXPos = 10'h19c;
    end
 CHIP6567R56A:
    begin
@@ -111,6 +113,7 @@ CHIP6567R56A:
       hVisibleStart = 10'd494;  // 10.7us after hSyncStart seems to work
       vBlankStart = 9'd11;
       vBlankEnd = 9'd19;
+      startXPos = 10'h19c;
    end
 CHIP6569,CHIPUNUSED:
    begin
@@ -121,6 +124,7 @@ CHIP6569,CHIPUNUSED:
       hVisibleStart = 10'd492;  // ~10.7 after hSyncStart
       vBlankStart = 9'd301;
       vBlankEnd = 9'd309;
+      startXPos = 10'h194;
    end
 endcase
 
@@ -217,7 +221,34 @@ endcase
   //reg [15:0] casr;
   //reg [15:0] muxr;
 
+  // mux last 8 bits of read address
   wire mux;
+
+  // tracks whether the condition for triggering these
+  // types of interrupts happened, but may not be
+  // reported via irq unless enabled
+  reg irst;
+  reg ilp;
+  reg immc;
+  reg imbc;
+
+  // interrupt latches for $d019, these are set HIGH when
+  // an interrupt of that type occurs. They are not automatically
+  // cleared by the VIC.
+  reg irst_clr;
+  reg imbc_clr;
+  reg immc_clr;
+  reg ilp_clr;
+
+  // interrupt enable registers for $d01a, these determine
+  // if these types of interrupts will make irq low
+  reg erst;
+  reg embc;
+  reg emmc;
+  reg elp;
+
+  reg [8:0] rasterCmp;
+  reg rasterIrqDone;
 
   // Initialization section
   initial
@@ -246,6 +277,13 @@ endcase
     rasr = 16'b1111000000000000;
     casr = 16'b1111110000000000;
     muxr = 16'b1111100000000000;
+
+    rasterIrqDone = 1'b1;    
+    rasterCmp = 9'b100;
+    irst = 1'b0;
+    embc = 1'b0;
+    emmc = 1'b0;
+    elp = 1'b0;
   end
   
   always @(posedge clk_dot4x)
@@ -279,6 +317,29 @@ endcase
   assign bit_cycle = raster_x[2:0];
   // This is simply raster_x divided by 8.
   assign cycle_num = raster_x[9:3];
+  
+  
+  // Raise raster irq once per raster line
+  // On raster line 0, it happens on cycle 1, otherwise, cycle 0
+  always @(posedge clk_dot4x)
+  begin
+     if (clk_phi && phi_phase_start[15] &&
+       ((raster_line == 0 && cycle_num == 1) || (raster_line != 0 && cycle_num == 0)))
+       rasterIrqDone <= 1'b0;
+     if (irst_clr)
+       irst <= 1'b0;
+     if (rasterIrqDone == 1'b0 && raster_line == rasterCmp) begin
+       rasterIrqDone <= 1'b1;
+       if ((raster_line == 0 && cycle_num == 1) || (raster_line != 0 && cycle_num == 0)) begin
+          irst <= 1'b1;
+       end
+     end
+  end
+  
+  assign irq = (ilp & elp) | (immc & emmc) | (imbc & embc) | (irst & erst);
+ 
+  
+  
   
   // Update x,y position
   always @(posedge clk_dot4x)
@@ -644,6 +705,8 @@ else begin
    if (clk_phi && rw) begin
       dbo <= 12'hFF;
       case(adi[5:0])
+      6'h19:  dbo[7:0] <= {!irq,3'b111,ilp,immc,imbc,irst};
+      6'h1A:  dbo[7:0] <= {4'b1111,elp,emmc,embc,erst};
       6'h20:  dbo[3:0] <= ec;
       6'h21:  dbo[3:0] <= b0c;
       default:  dbo <= 12'hFF;
@@ -654,7 +717,24 @@ else begin
    //  it may be more correct to do it only on the falling edge
    // of phi. ie.  (phi_phase_start[15] && bit_cycle == 3'd7 && !rw)
    else if (!rw) begin
+      irst_clr <= 1'b0;
+      imbc_clr <= 1'b0;
+      immc_clr <= 1'b0;
+      ilp_clr <= 1'b0;
+
       case(adi[5:0])
+      6'h19:  begin
+        irst_clr <= dbi[0];
+        imbc_clr <= dbi[1];
+        immc_clr <= dbi[2];
+        ilp_clr <= dbi[3];
+        end
+      6'h1A:  begin
+        erst <= dbi[0];
+        embc <= dbi[1];
+        emmc <= dbi[2];
+        elp <= dbi[3];
+        end
       6'h20:  ec <= dbi[3:0];
       6'h21:  b0c <= dbi[3:0];
       default: ec <= ec;

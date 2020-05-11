@@ -28,7 +28,7 @@ int logLevel = LOG_ERROR;
 
 #define LOG(minLevel, FORMAT, ...)  if (logLevel >= minLevel) { printf ("%s: " FORMAT "\n", logLevelStr[logLevel], ##__VA_ARGS__); }
 
-#define STATE() LOG(LOG_INFO, "%c xpos=%03x cycle=%d dot=%d phi=%d bit=%d ba=%d aec=%d vcycle=%d ras=%d cas=%d mux=%d x=%d y=%d %s %03x %02x rw=%d ce=%d %d %d",HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ',top->vicii__DOT__xpos, top->vicii__DOT__cycle_num, top->vicii__DOT__clk_dot, top->clk_phi, top->vicii__DOT__bit_cycle, top->ba, top->aec, top->vicCycle, top->ras, top->cas, top->muxr&32768?1:0, top->vicii__DOT__raster_x, top->vicii__DOT__raster_line, toBin(top->rasr), top->adi, top->dbi, top->rw, top->ce, top->vicii__DOT__ec, top->vicii__DOT__phi_phase_start);
+#define STATE() LOG(LOG_INFO, "%c xpos=%03x cycle=%d dot=%d phi=%d bit=%d irq=%d ba=%d aec=%d vcycle=%d ras=%d cas=%d mux=%d x=%d y=%d %s %03x %02x rw=%d ce=%d %d %d",HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ',top->vicii__DOT__xpos, top->vicii__DOT__cycle_num, top->vicii__DOT__clk_dot, top->clk_phi, top->vicii__DOT__bit_cycle, top->irq, top->ba, top->aec, top->vicCycle, top->ras, top->cas, top->muxr&32768?1:0, top->vicii__DOT__raster_x, top->vicii__DOT__raster_line, toBin(top->rasr), top->adi, top->dbi, top->rw, top->ce, top->vicii__DOT__ec, top->vicii__DOT__phi_phase_start);
 
 // Current simulation time (64-bit unsigned). See
 // constants.h for how much each tick represents.
@@ -638,6 +638,13 @@ int main(int argc, char** argv, char** env) {
              // Refresh counter is supposed to reset at raster 0 - TODO ENABLE WHEN AVAILABLE
              if (top->vicii__DOT__raster_line == 0)
                 CHECK (top, top->refc == 0xff, __LINE__);
+
+             if(top->vicii__DOT__bit_cycle == 0 || top->vicii__DOT__bit_cycle == 4) {
+                // CAS & RAS should be high at the start of each phase
+                // Timing and vicycle will determine when they fall if ever
+                CHECK (top, top->cas != 0, __LINE__);
+                CHECK (top, top->ras != 0, __LINE__);
+             }
           }
 
           // If rendering, draw current color on dot clock
