@@ -28,7 +28,49 @@ int logLevel = LOG_ERROR;
 
 #define LOG(minLevel, FORMAT, ...)  if (logLevel >= minLevel) { printf ("%s: " FORMAT "\n", logLevelStr[logLevel], ##__VA_ARGS__); }
 
-#define STATE() LOG(LOG_INFO, "%c xpos=%03x cycle=%d dot=%d phi=%d bit=%d irq=%d ba=%d aec=%d vcycle=%d ras=%d cas=%d mux=%d x=%d y=%d %s %03x %02x rw=%d ce=%d %d %d",HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ',top->vicii__DOT__xpos, top->vicii__DOT__cycle_num, top->vicii__DOT__clk_dot, top->clk_phi, top->vicii__DOT__bit_cycle, top->irq, top->ba, top->aec, top->vicCycle, top->ras, top->cas, top->muxr&32768?1:0, top->vicii__DOT__raster_x, top->vicii__DOT__raster_line, toBin(top->rasr), top->adi, top->dbi, top->rw, top->ce, top->vicii__DOT__ec, top->vicii__DOT__phi_phase_start);
+#define STATE() LOG(LOG_INFO, \
+   "%c " \
+   "xps=%03x " \
+   "cyc=%02d " \
+   "dot=%d " \
+   "phi=%d " \
+   "bit=%d " \
+   "irq=%d " \
+   "ba=%d " \
+   "aec=%d " \
+   "vcy=%d " \
+   "ras=%d " \
+   "cas=%d " \
+   "mux=%d " \
+   "x=%03d " \
+   "y=%03d " \
+   "rasr=%s " \
+   "adi=%03x " \
+   "dbi=%02x " \
+   "rw=%d " \
+   "ce=%d " \
+   "pps=%s", \
+   HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ', \
+   top->vicii__DOT__xpos, \
+   top->vicii__DOT__cycle_num, \
+   top->vicii__DOT__clk_dot, \
+   top->clk_phi, \
+   top->vicii__DOT__bit_cycle, \
+   top->irq, \
+   top->ba, \
+   top->aec, \
+   top->vicCycle, \
+   top->ras, \
+   top->cas, \
+   top->muxr&32768?1:0, \
+   top->vicii__DOT__raster_x, \
+   top->vicii__DOT__raster_line, \
+   toBin(top->rasr), \
+   top->adi, \
+   top->dbi, \
+   top->rw, \
+   top->ce, \
+   toBin(top->vicii__DOT__phi_phase_start));
 
 // Current simulation time (64-bit unsigned). See
 // constants.h for how much each tick represents.
@@ -100,15 +142,18 @@ static unsigned char prev_signal_values[NUM_SIGNALS];
 // Some utility macros
 // Use RISING/FALLING in combination with HASCHANGED
 
-static char binBuf[17];
+static int binBufNum=0;
+static char binBuf[8][17];
 char* toBin(unsigned short reg) {
    unsigned short b =1;
    for (int c = 0 ; c < 16; c++) {
-      binBuf[15-c] = reg & b ? '1' : '0';
+      binBuf[binBufNum][15-c] = reg & b ? '1' : '0';
       b=b*2;
    }
-   binBuf[16] = '\0';
-   return binBuf;
+   binBuf[binBufNum][16] = '\0';
+   char *buf = binBuf[binBufNum];
+   binBufNum = (binBufNum + 1) % 8;
+   return buf;
 }
 
 static int SGETVAL(int signum) {
@@ -230,7 +275,7 @@ int main(int argc, char** argv, char** env) {
     char regex_buf[32];
     FILE* outFile = NULL;
 
-    while ((c = getopt (argc, argv, "c:hs:t:vwi:zbo:d:")) != -1)
+    while ((c = getopt (argc, argv, "c:hs:t:wi:zbo:d:")) != -1)
     switch (c) {
       case 'd':
         logLevel = atoi(optarg);
@@ -262,6 +307,7 @@ int main(int argc, char** argv, char** env) {
         }
         break;
       case 'o':
+        outputVcd = true;
         outFile = fopen(optarg,"w");
         break;
       case 'b':
@@ -272,9 +318,6 @@ int main(int argc, char** argv, char** env) {
         // IPC tells us when to start/stop capture
         captureByTime = false;
         shadowVic = true;
-        break;
-      case 'v':
-        outputVcd = true;
         break;
       case 'w':
         showWindow = true;

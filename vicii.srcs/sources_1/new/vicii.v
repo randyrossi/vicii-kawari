@@ -82,7 +82,6 @@ reg [9:0] hSyncEnd;
 reg [9:0] hVisibleStart;
 reg [8:0] vBlankStart;
 reg [8:0] vBlankEnd;
-reg [9:0] startXPos;
 
 //clk_dot4x;     32.272768 Mhz NTSC
 //clk_col4x;     14.381818 Mhz NTSC
@@ -102,7 +101,6 @@ CHIP6567R8:
       hVisibleStart = 10'd494;  // 10.7us after hSyncStart seems to work
       vBlankStart = 9'd11;
       vBlankEnd = 9'd19;
-      startXPos = 10'h19c;
    end
 CHIP6567R56A:
    begin
@@ -113,7 +111,6 @@ CHIP6567R56A:
       hVisibleStart = 10'd494;  // 10.7us after hSyncStart seems to work
       vBlankStart = 9'd11;
       vBlankEnd = 9'd19;
-      startXPos = 10'h19c;
    end
 CHIP6569,CHIPUNUSED:
    begin
@@ -124,7 +121,6 @@ CHIP6569,CHIPUNUSED:
       hVisibleStart = 10'd492;  // ~10.7 after hSyncStart
       vBlankStart = 9'd301;
       vBlankEnd = 9'd309;
-      startXPos = 10'h194;
    end
 endcase
 
@@ -215,6 +211,7 @@ endcase
   
   // lets us detect when a phi phase is
   // starting within a 4x dot always block
+  // phi_phase_start[15]==1 means phi will be HIGH next tick
   reg [15:0] phi_phase_start;
 
   //reg [15:0] rasr;
@@ -254,6 +251,11 @@ endcase
   initial
   begin
     raster_x           = 10'd0;
+    case(chip)
+    CHIP6567R8:          xpos = 10'h19c;
+    CHIP6567R56A:        xpos = 10'h19c;
+    CHIP6569,CHIPUNUSED: xpos = 10'h194;
+    endcase
     raster_line        = 9'd0;
     cycle_stc          = 65'b00000000000000000000000000000000000000000000000000000000000000001;
     cycle_stba         = 65'b11111111111111111111111111111111111111111111111111111111111111111;
@@ -510,8 +512,9 @@ always @(raster_x)
      casr <= 16'b1111111111111111;
   end
   else if (phi_phase_start[15]) begin
-    // Here we check bit cycle = 7 to indicate we just
-    // transitioned from high to low phi
+    // Here we check bit cycle = 7 to indicate we will
+    // transition from high to low phi for this delayed
+    // assignment.
     if (bit_cycle == 3'd7)
     case (vicCycle)
     VIC_I: begin
@@ -531,7 +534,7 @@ always @(raster_x)
              casr <= 16'b1111111111111111;
            end
     endcase
-    else if (bit_cycle == 3'd3) // phi going low
+    else if (bit_cycle == 3'd3) // phi high to low
     case (vicCycle)
     VIC_I: begin
              rasr <= 16'b1111111000000000;
@@ -562,8 +565,9 @@ always @(raster_x)
   // above. Necessary to get mux to happen between ras/cas
   // as expected.
   else if (phi_phase_start[14])
-    // Here we check bit cycle = 7 to indicate we just
-    // transitioned from high low phi
+    // Here we check bit cycle = 7 to indicate we will be
+    // transitioning from high low phi on next tick for
+    // this delayed assignment
     if (bit_cycle == 3'd7)
     case (vicCycle)
     VIC_I:               muxr <= 16'b1111111111111111;
@@ -709,7 +713,7 @@ else begin
       6'h1A:  dbo[7:0] <= {4'b1111,elp,emmc,embc,erst};
       6'h20:  dbo[3:0] <= ec;
       6'h21:  dbo[3:0] <= b0c;
-      default:  dbo <= 12'hFF;
+      default: ;
       endcase
    end
    // WRITE -
@@ -737,7 +741,7 @@ else begin
         end
       6'h20:  ec <= dbi[3:0];
       6'h21:  b0c <= dbi[3:0];
-      default: ec <= ec;
+      default: ;
       endcase
    end
  end
