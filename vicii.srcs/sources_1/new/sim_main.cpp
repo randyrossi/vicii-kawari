@@ -570,8 +570,9 @@ int main(int argc, char** argv, char** env) {
 
            if (state->flags & VICII_OP_SYNC_STATE) {
                state->flags &= ~VICII_OP_SYNC_STATE;
-               // Step forward until we get to the target xpos, rasterline
-               // and when dot4x just ticked low (we always tick into high
+               // Step forward until we get to the target xpos (which
+               // will be xpos + 7 = one tick before we hit xpos + 8) and
+               // rasterline and when dot4x just ticked low (we always tick into high
                // when beginning to step so we must leave dot4x low.
                while (top->vicii__DOT__xpos != (state->xpos + 7) ||
                          top->vicii__DOT__raster_line != state->raster_line ||
@@ -751,6 +752,7 @@ int main(int argc, char** argv, char** env) {
            if (captureByFrame && 
               top->vicii__DOT__xpos == captureByFrameStopXpos &&
                  top->vicii__DOT__raster_line == captureByFrameStopYpos) {
+              state->flags &= ~VICII_OP_CAPTURE_START;
               ipc_receive_done(ipc);
               break;
            }
@@ -787,15 +789,6 @@ int main(int argc, char** argv, char** env) {
 
     if (shadowVic) {
        ipc_close(ipc);
-    }
-
-    if (captureByFrame) {
-       while (true) {
-          if (ipc_receive(ipc))
-             break;
-          if (ipc_receive_done(ipc))
-             break;
-       }
     }
 
     if (showWindow) {

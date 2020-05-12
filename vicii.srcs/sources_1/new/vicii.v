@@ -705,7 +705,7 @@ if (rst) begin
 end
 else begin
  if (!ce) begin
-   // READ
+   // READ from register
    if (clk_phi && rw) begin
       dbo <= 12'hFF;
       case(adi[5:0])
@@ -716,33 +716,42 @@ else begin
       default: ;
       endcase
    end
-   // WRITE -
-   //  This sets the register at any time rw and ce are low but
-   //  it may be more correct to do it only on the falling edge
-   // of phi. ie.  (phi_phase_start[15] && bit_cycle == 3'd7 && !rw)
-   else if (!rw) begin
+   // WRITE to register
+   // This sets the register at any time rw and ce are low but
+   // it may be more correct to do it only on the falling edge
+   // of phi. VICE seems to think registers can get set by
+   // the 2nd rising dot within it's phi phase but I doubt that's
+   // the case on real hardware.  This is probably because VICE
+   // first emulates the CPU ticks which changes memory followed
+   // by all VIC 8 pixels so it 'sees' the change too early. But
+   // on real hardware, vic's pixels are output in parallel with
+   // the CPU phase and it would not be able to see the register
+   // change (likely) until the falling edge of phi.  Does it
+   // change registers on some other edge perhaps?
+   else begin //if (phi_phase_start[15] && bit_cycle == 3'd7 ) begin // falling phi edge
       irst_clr <= 1'b0;
       imbc_clr <= 1'b0;
       immc_clr <= 1'b0;
       ilp_clr <= 1'b0;
-
-      case(adi[5:0])
-      6'h19:  begin
-        irst_clr <= dbi[0];
-        imbc_clr <= dbi[1];
-        immc_clr <= dbi[2];
-        ilp_clr <= dbi[3];
-        end
-      6'h1A:  begin
-        erst <= dbi[0];
-        embc <= dbi[1];
-        emmc <= dbi[2];
-        elp <= dbi[3];
-        end
-      6'h20:  ec <= dbi[3:0];
-      6'h21:  b0c <= dbi[3:0];
-      default: ;
-      endcase
+      if (!rw) begin
+         case(adi[5:0])
+         6'h19:  begin
+           irst_clr <= dbi[0];
+           imbc_clr <= dbi[1];
+           immc_clr <= dbi[2];
+           ilp_clr <= dbi[3];
+           end
+         6'h1A:  begin
+           erst <= dbi[0];
+           embc <= dbi[1];
+           emmc <= dbi[2];
+           elp <= dbi[3];
+           end
+         6'h20:  ec <= dbi[3:0];
+         6'h21:  b0c <= dbi[3:0];
+         default: ;
+         endcase
+      end
    end
  end
 end
