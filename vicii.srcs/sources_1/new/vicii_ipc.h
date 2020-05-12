@@ -62,10 +62,10 @@ struct vicii_ipc {
   int semsId;
   struct sembuf operation[4][1];
 
-  int dspOutBufKey;
-  int dspOutBufShmId;
+  int bufKey;
+  int bufShmId;
 
-  unsigned char* dspOutBuf;
+  struct vicii_state* state;
 };
 
 // IPC_RECEIVER must init first

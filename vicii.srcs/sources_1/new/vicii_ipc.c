@@ -43,7 +43,7 @@ struct vicii_ipc* ipc_init(int endPoint) {
        malloc(sizeof(struct vicii_ipc));
    ipc->endPoint = endPoint;
    ipc->semsKey = 1240;
-   ipc->dspOutBufKey = 1241;
+   ipc->bufKey = 1241;
    return ipc;
 }
 
@@ -74,18 +74,18 @@ int ipc_open(struct vicii_ipc* ipc) {
     }
   }
 
-  ipc->dspOutBufShmId = shmget(ipc->dspOutBufKey, IPC_BUFSIZE, mode | 0644);
-  if (ipc->dspOutBufShmId < 0) {
+  ipc->bufShmId = shmget(ipc->bufKey, IPC_BUFSIZE, mode | 0644);
+  if (ipc->bufShmId < 0) {
     fprintf(stderr, "%s: can't allocate shared memory segment for outbuf %d\n",
             MODULE_NAME, IPC_BUFSIZE);
     perror("REASON");
     return -1;
   }
 
-  ipc->dspOutBuf = (unsigned char*)shmat(ipc->dspOutBufShmId, NULL, 0);
-  memset(ipc->dspOutBuf, 0, IPC_BUFSIZE);
+  ipc->state = (struct vicii_state*)shmat(ipc->bufShmId, NULL, 0);
+  memset(ipc->state, 0, IPC_BUFSIZE);
 
-  if (ipc->dspOutBuf == NULL) {
+  if (ipc->state == NULL) {
     fprintf(stderr, "%s: can't allocate dsp buffer\n", MODULE_NAME);
     return -1;
   }
@@ -95,8 +95,8 @@ int ipc_open(struct vicii_ipc* ipc) {
 
 void ipc_close(struct vicii_ipc* ipc) {
   // Now free up all the memory and close handles
-  shmdt(ipc->dspOutBuf);
-  ipc->dspOutBuf = NULL;
+  shmdt(ipc->state);
+  ipc->state = NULL;
   free(ipc);
 }
 

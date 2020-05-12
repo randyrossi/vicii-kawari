@@ -29,7 +29,8 @@ int logLevel = LOG_ERROR;
 #define LOG(minLevel, FORMAT, ...)  if (logLevel >= minLevel) { printf ("%s: " FORMAT "\n", logLevelStr[logLevel], ##__VA_ARGS__); }
 
 #define STATE() LOG(LOG_INFO, \
-   "%c " \
+   "%c" \
+   "%02d " \
    "xps=%03x " \
    "cyc=%02d " \
    "dot=%d " \
@@ -51,6 +52,7 @@ int logLevel = LOG_ERROR;
    "ce=%d " \
    "pps=%s", \
    HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ', \
+   nextClkCnt, \
    top->vicii__DOT__xpos, \
    top->vicii__DOT__cycle_num, \
    top->vicii__DOT__clk_dot, \
@@ -76,11 +78,10 @@ int logLevel = LOG_ERROR;
 // constants.h for how much each tick represents.
 static vluint64_t ticks = 0;
 static vluint64_t half4XDotPS;
-static vluint64_t half4XColorPS;
 static vluint64_t startTicks;
 static vluint64_t endTicks;
-static vluint64_t nextClk1;
-static vluint64_t nextClk2;
+static vluint64_t nextClk;
+static int nextClkCnt = 5;
 static int maxDotX;
 static int maxDotY;
 
@@ -104,9 +105,9 @@ enum {
    IN_D8, IN_D9, IN_D10, IN_D11,
    IN_CE,
    IN_RW,
-   IN_BA,
-   IN_AEC,
-   IN_IRQ,
+   OUT_BA,
+   OUT_AEC,
+   OUT_IRQ,
    OUT_RAS, OUT_CAS
 };
 
@@ -128,7 +129,7 @@ const char *signal_ids[] = {
    "ai0", "ai1", "ai2", "ai3", "ai4", "ai5", "ai6", "ai7", "ai8", "ai9", "ai10", "ai11",
    "do0", "do1", "do2", "do3", "do4", "do5", "do6", "do7", "do8", "do9", "do10", "do11",
    "di0", "di1", "di2", "di3", "di4", "di5", "di6", "di7", "di8", "di9", "di10", "di11",
-   "ce", "rw", "ba", "aec", "irq"
+   "ce", "rw", "ba", "aec", "irq",
    "ras", "cas"
 };
 
@@ -192,9 +193,10 @@ static void CHECK(Vvicii *top, int cond, int line) {
 // be a waste since nothing happens between clock edges. This function
 // will determine how many ticks(picoseconds) to advance our clock.
 static vluint64_t nextTick(Vvicii* top) {
-   vluint64_t diff1 = nextClk1 - ticks;
+   vluint64_t diff1 = nextClk - ticks;
 
-   nextClk1 += half4XDotPS;
+   nextClk += half4XDotPS;
+   nextClkCnt = (nextClkCnt + 1 ) % 32;
    top->clk_dot4x = ~top->clk_dot4x;
    return ticks + diff1;
 }
@@ -396,7 +398,6 @@ int main(int argc, char** argv, char** env) {
 
     if (isNtsc) {
        half4XDotPS = NTSC_HALF_4X_DOT_PS;
-       half4XColorPS = NTSC_HALF_4X_COLOR_PS;
        switch (chip) {
           case CHIP6567R56A:
              maxDotX = NTSC_6567R56A_MAX_DOT_X;
@@ -412,7 +413,6 @@ int main(int argc, char** argv, char** env) {
        }
     } else {
        half4XDotPS = PAL_HALF_4X_DOT_PS;
-       half4XColorPS = PAL_HALF_4X_COLOR_PS;
        switch (chip) {
           case CHIP6569:
              maxDotX = PAL_6569_MAX_DOT_X;
@@ -424,8 +424,7 @@ int main(int argc, char** argv, char** env) {
        }
     }
 
-    nextClk1 = half4XDotPS;
-    nextClk2 = half4XColorPS;
+    nextClk = half4XDotPS;
     endTicks = startTicks + durationTicks;
 
     int sdl_init_mode = SDL_INIT_VIDEO;
@@ -502,9 +501,9 @@ int main(int argc, char** argv, char** env) {
     signal_src8[OUT_CSYNC] = &top->cSync;
     signal_src8[IN_CE] = &top->ce;
     signal_src8[IN_RW] = &top->rw;
-    signal_src8[IN_BA] = &top->ba;
-    signal_src8[IN_AEC] = &top->aec;
-    signal_src8[IN_IRQ] = &top->irq;
+    signal_src8[OUT_BA] = &top->ba;
+    signal_src8[OUT_AEC] = &top->aec;
+    signal_src8[OUT_IRQ] = &top->irq;
     signal_src8[OUT_RAS] = &top->ras;
     signal_src8[OUT_CAS] = &top->cas;
 
@@ -546,9 +545,7 @@ int main(int argc, char** argv, char** env) {
     if (shadowVic) {
        ipc = ipc_init(IPC_RECEIVER);
        ipc_open(ipc);
-       state = ((struct vicii_state*)ipc->dspOutBuf);
-       state->rw = 1;
-       state->ce = 1;
+       state = ipc->state;
     }
 
     // IMPORTANT: Any and all state reads/writes MUST occur between ipc_receive
@@ -579,21 +576,21 @@ int main(int argc, char** argv, char** env) {
                while (top->vicii__DOT__xpos != (state->xpos + 7) ||
                          top->vicii__DOT__raster_line != state->raster_line ||
                             top->clk_dot4x) {
-                  ticks = nextTick(top);
                   top->eval();
-                  STORE_PREV();
                   if (top->clk_dot4x)
                      STATE();
+                  STORE_PREV();
+                  ticks = nextTick(top);
                }
 
                // Now 6 more ticks so the next ipc_send will start on the
                // actual target we desire (xpos + 8)
                for (int i=0; i< 6; i++) {
-                  ticks = nextTick(top);
                   top->eval();
-                  STORE_PREV();
                   if (top->clk_dot4x)
                      STATE();
+                  STORE_PREV();
+                  ticks = nextTick(top);
                }
 
                // We sync state always when phi is high (2nd phase)
@@ -606,9 +603,21 @@ int main(int argc, char** argv, char** env) {
            if (state->flags & VICII_OP_BUS_ACCESS) {
               CHECK(top, top->clk_phi, __LINE__);
            }
+
         }
 
+
         if (shadowVic) {
+           // Simulate cs and rw going back high. This is the same
+           // timing as what vice hook does when it lowers ce for the
+           // CPU writes on the phi high side.
+           if (top->clk_phi == 0 && nextClkCnt == 4) {
+              state->ce = 1;
+              state->rw = 1;
+              state->addr = 0;
+              state->data = 0;
+           }
+
            // VICE -> SIM state sync
            top->adi = state->addr;
            top->ce = state->ce;
