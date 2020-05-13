@@ -413,7 +413,7 @@ int main(int argc, char** argv, char** env) {
     top->V_B0C = 6;
     top->V_EC = 14;
 
-    if (testDriver >= 0 && do_test_start(testDriver, top, setGolden) != TEST_CONTINUE) {
+    if (testDriver >= 0 && do_test_start(testDriver, top, setGolden) == TEST_FAIL) {
        LOG(LOG_ERROR, "test %d failed\n", testDriver);
        exit(-1);
     }
@@ -671,9 +671,10 @@ int main(int argc, char** argv, char** env) {
 
         // Evaluate model
         top->eval();
-        if (top->clk_dot4x)
-           STATE();
 
+        bool showState = true;
+        // When driving a test, it's nice to only show what's being captured
+        // by that test.
         if (testDriver >= 0) {
            int tst = do_test_post(testDriver, top, setGolden);
            if (tst == TEST_END) break;
@@ -681,7 +682,11 @@ int main(int argc, char** argv, char** env) {
               LOG(LOG_ERROR, "test %d failed\n", testDriver);
               exit(-1);
            }
+           showState = tst == TEST_CONTINUE_CAPTURING ? true : false;
         }
+
+        if (showState && top->clk_dot4x)
+           STATE();
 
         if (captureByTime)
            capture = (ticks >= startTicks) && (ticks <= endTicks);

@@ -23,7 +23,7 @@ int test1_start(Vvicii *top, int golden) {
       return TEST_FAIL; 
    } 
     
-   return TEST_CONTINUE;
+   return TEST_CONTINUE_NOT_CAPTURING;
 }
 
 int test1_post(Vvicii* top, int golden) {
@@ -45,6 +45,7 @@ int test1_post(Vvicii* top, int golden) {
             return TEST_FAIL;
          }
       }
+      return TEST_CONTINUE_CAPTURING;
    }
-   return TEST_CONTINUE;
+   return TEST_CONTINUE_NOT_CAPTURING;
 }

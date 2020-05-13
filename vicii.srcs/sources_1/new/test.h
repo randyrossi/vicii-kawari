@@ -4,9 +4,10 @@
 #include "Vvicii.h"
 #include "constants.h"
 
-#define TEST_CONTINUE 0
-#define TEST_FAIL     1
-#define TEST_END      2 
+#define TEST_CONTINUE_NOT_CAPTURING 0
+#define TEST_CONTINUE_CAPTURING     1
+#define TEST_FAIL                   2
+#define TEST_END                    3
 
 int do_test_start(int driver, Vvicii *top, int golden);
 int do_test_post(int driver, Vvicii* top, int golden);

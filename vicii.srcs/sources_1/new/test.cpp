@@ -23,18 +23,15 @@ int do_test_start(int driver, Vvicii* top, int golden) {
 int do_test_post(int driver, Vvicii* top, int golden) {
    if (top->clk_dot4x)
       return test_post[driver-1](top, golden);
-   return TEST_CONTINUE;
+   return TEST_CONTINUE_NOT_CAPTURING;
 }
 
 FILE* do_start_file(const char* name, int golden) {
    FILE* fp;
-   if (golden) {
-      fp = fopen(name,"w");
-      if (!fp) LOG(LOG_ERROR,"Can't open goden for write"); 
-   } else {
-      fp = fopen(name,"r");
-      if (!fp) LOG(LOG_ERROR,"Can't open golden data");
-   }
+   if (golden)
+      fp = fopen(name, "w");
+   else
+      fp = fopen(name, "r");
    return fp;
 }
 
