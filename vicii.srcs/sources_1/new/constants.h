@@ -24,16 +24,16 @@
 
 // Must match fpga design being simulated
 #define NTSC_6567R56A_NUM_CYCLES 64
-#define NTSC_6567R56A_MAX_DOT_X 520   // 64 cycles per line
-#define NTSC_6567R56A_MAX_DOT_Y 262
+#define NTSC_6567R56A_MAX_DOT_X 519   // 64 cycles per line
+#define NTSC_6567R56A_MAX_DOT_Y 261
 
 #define NTSC_6567R8_NUM_CYCLES 63
-#define NTSC_6567R8_MAX_DOT_X 512     // 63 cycles per line
-#define NTSC_6567R8_MAX_DOT_Y 261
+#define NTSC_6567R8_MAX_DOT_X 511     // 63 cycles per line
+#define NTSC_6567R8_MAX_DOT_Y 260
 
 #define PAL_6569_NUM_CYCLES 62
-#define PAL_6569_MAX_DOT_X 504       // 62 cycles per line
-#define PAL_6569_MAX_DOT_Y 312
+#define PAL_6569_MAX_DOT_X 503       // 62 cycles per line
+#define PAL_6569_MAX_DOT_Y 311
 
 #define VIC_LP    0
 #define VIC_LPI2  1
@@ -61,3 +61,4 @@
 #define V_RASTER_LINE  vicii__DOT__raster_line
 #define V_B0C          vicii__DOT__b0c
 #define V_EC           vicii__DOT__ec
+#define V_DMAEN        vicii__DOT__spriteDmaEn

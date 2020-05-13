@@ -95,7 +95,7 @@ wire clk_dot;  // 8.18181 Mhz NTSC
 // Set Limits
 always @(chip)
 case(chip)
-CHIP6567R8:
+CHIP6567R56A:
    begin
       rasterXMax = 10'd519;     // 520 pixels 
       rasterYMax = 9'd261;      // 262 lines
@@ -105,7 +105,7 @@ CHIP6567R8:
       vBlankStart = 9'd11;
       vBlankEnd = 9'd19;
    end
-CHIP6567R56A:
+CHIP6567R8:
    begin
       rasterXMax = 10'd511;     // 512 pixels
       rasterYMax = 9'd260;      // 261 lines

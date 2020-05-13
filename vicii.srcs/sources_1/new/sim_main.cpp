@@ -36,13 +36,13 @@ extern "C" {
    "mux=%d " \
    "x=%03d " \
    "y=%03d " \
-   "rasr=%s " \
+   /* "rasr=%s " */ \
+   "pps=%s " \
    "adi=%03x " \
    "dbi=%02x " \
    "rw=%d " \
    "ce=%d " \
    "rct=%02x " \
-   /*"pps=%s"*/ \
    ,\
    HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ', \
    nextClkCnt, \
@@ -60,13 +60,13 @@ extern "C" {
    top->muxr&32768?1:0, \
    top->V_RASTER_X, \
    top->V_RASTER_LINE, \
-   toBin(top->rasr), \
+   /*toBin(top->rasr), */\
+   toBin(top->V_PPS), \
    top->adi, \
    top->dbi, \
    top->rw, \
    top->ce, \
    top->refc \
-   /*toBin(top->V_PPS)*/ \
 ); 
 
 // Current simulation time (64-bit unsigned). See
@@ -77,8 +77,8 @@ static vluint64_t startTicks;
 static vluint64_t endTicks;
 static vluint64_t nextClk;
 static int nextClkCnt = 5;
-static int maxDotX;
-static int maxDotY;
+static int screenWidth;
+static int screenHeight;
 
 // Add new input/output here
 enum {
@@ -413,7 +413,7 @@ int main(int argc, char** argv, char** env) {
     top->V_B0C = 6;
     top->V_EC = 14;
 
-    if (testDriver >= 0 && do_test_start(testDriver, top, setGolden)) {
+    if (testDriver >= 0 && do_test_start(testDriver, top, setGolden) != TEST_CONTINUE) {
        LOG(LOG_ERROR, "test %d failed\n", testDriver);
        exit(-1);
     }
@@ -457,12 +457,12 @@ int main(int argc, char** argv, char** env) {
        half4XDotPS = NTSC_HALF_4X_DOT_PS;
        switch (top->chip) {
           case CHIP6567R56A:
-             maxDotX = NTSC_6567R56A_MAX_DOT_X;
-             maxDotY = NTSC_6567R56A_MAX_DOT_Y;
+             screenWidth = NTSC_6567R56A_MAX_DOT_X+1;
+             screenHeight = NTSC_6567R56A_MAX_DOT_Y+1;
              break;
           case CHIP6567R8:
-             maxDotX = NTSC_6567R8_MAX_DOT_X;
-             maxDotY = NTSC_6567R8_MAX_DOT_Y;
+             screenWidth = NTSC_6567R8_MAX_DOT_X+1;
+             screenHeight = NTSC_6567R8_MAX_DOT_Y+1;
              break;
           default:
              LOG(LOG_ERROR, "wrong chip?");
@@ -472,8 +472,8 @@ int main(int argc, char** argv, char** env) {
        half4XDotPS = PAL_HALF_4X_DOT_PS;
        switch (top->chip) {
           case CHIP6569:
-             maxDotX = PAL_6569_MAX_DOT_X;
-             maxDotY = PAL_6569_MAX_DOT_Y;
+             screenWidth = PAL_6569_MAX_DOT_X+1;
+             screenHeight = PAL_6569_MAX_DOT_Y+1;
              break;
           default:
              LOG(LOG_ERROR, "wrong chip?");
@@ -486,13 +486,11 @@ int main(int argc, char** argv, char** env) {
 
     if (showWindow) {
       SDL_DisplayMode current;
-      int width = maxDotX*2;
-      int height = maxDotY*2;
 
       win = SDL_CreateWindow("VICII",
                              SDL_WINDOWPOS_CENTERED,
                              SDL_WINDOWPOS_CENTERED,
-                             width, height, SDL_WINDOW_SHOWN);
+                             screenWidth*2, screenHeight*2, SDL_WINDOW_SHOWN);
       if (win == nullptr) {
         std::cerr << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
         SDL_Quit();
@@ -660,11 +658,6 @@ int main(int argc, char** argv, char** env) {
            top->dbi = state->data;
         }
 
-        if (testDriver >= 0 && do_test_pre(testDriver, top, setGolden)) {
-           LOG(LOG_ERROR, "test %d failed\n", testDriver);
-           exit(-1);
-        }
-
 #ifdef TEST_RESET
         // Test reset between approx 7 and approx 8 us
         if (ticks >= US_TO_TICKS(7000L) && ticks <= US_TO_TICKS(8000L))
@@ -681,9 +674,13 @@ int main(int argc, char** argv, char** env) {
         if (top->clk_dot4x)
            STATE();
 
-        if (testDriver >= 0 && do_test_post(testDriver, top, setGolden)) {
-           LOG(LOG_ERROR, "test %d failed\n", testDriver);
-           exit(-1);
+        if (testDriver >= 0) {
+           int tst = do_test_post(testDriver, top, setGolden);
+           if (tst == TEST_END) break;
+           if (tst == TEST_FAIL) {
+              LOG(LOG_ERROR, "test %d failed\n", testDriver);
+              exit(-1);
+           }
         }
 
         if (captureByTime)
@@ -821,9 +818,6 @@ int main(int argc, char** argv, char** env) {
 
         // Is it time to stop?
         if (captureByTime && ticks >= endTicks)
-           break;
-
-        if (testDriver >= 0 && do_test_end(testDriver, top, setGolden))
            break;
 
         // Advance simulation time. Each tick represents 1 picosecond.

@@ -4,12 +4,18 @@
 #include "../log.h"
 
 static FILE* fp;
-static int tickCount;
+bool quit;
+bool enabled;
 
 int test1_start(Vvicii *top, int golden) {
-   LOG(LOG_INFO, "Cycles Test");
-   char name[32];
-   sprintf (name,"tests/test1_c%d.dat", top->chip);
+   LOG(LOG_INFO, "cycles_no_sprites_no_badlines");
+   char format[64];
+   char name[64];
+   strcpy (format, "tests/");
+   strcat (format, "cycles_no_sprites_no_badlines");
+   strcat (format, "_chip%d.dat");
+   
+   sprintf (name, format, top->chip);
    
    fp = do_start_file((const char*)name, golden);
    if (!fp) {
@@ -17,28 +23,28 @@ int test1_start(Vvicii *top, int golden) {
       return TEST_FAIL; 
    } 
     
-   return TEST_OK;
-}
-
-int test1_pre(Vvicii* top, int golden) {
-   return TEST_OK;
+   return TEST_CONTINUE;
 }
 
 int test1_post(Vvicii* top, int golden) {
-   int cycle = -1;
-   if (golden) {
-      fprintf (fp, "%d\n", top->vicCycle);
-   } else {
-      fscanf (fp, "%d\n", &cycle);
-      if (top->vicCycle != cycle) {
-         LOG(LOG_ERROR,"Expected vicCycle=%d but got %d\n", cycle, top->vicCycle);
-         return TEST_FAIL;
+   if (is_about_to_start_line(top, 1)) {
+      enabled = true;
+   } else if (is_about_to_start_line(top, 2)) {
+      enabled = false;
+      return TEST_END;
+   }
+
+   if (enabled) {
+      int cycle = -1;
+      if (golden) {
+         fprintf (fp, "%d\n", top->vicCycle);
+      } else {
+         fscanf (fp, "%d\n", &cycle);
+         if (top->vicCycle != cycle) {
+            LOG(LOG_ERROR,"Expected vicCycle=%d but got %d\n", cycle, top->vicCycle);
+            return TEST_FAIL;
+         }
       }
    }
-   return TEST_OK;
-}
-
-int test1_end(Vvicii* top, int golden) {
-   if (do_frame_end(top, golden)) { fclose(fp); return TEST_END; }
-   return TEST_OK;
+   return TEST_CONTINUE;
 }
