@@ -23,11 +23,41 @@
 #define PAL_HALF_4X_COLOR_PS 28194   // half the period of 17.734475Mhz
 
 // Must match fpga design being simulated
+#define NTSC_6567R56A_NUM_CYCLES 64
 #define NTSC_6567R56A_MAX_DOT_X 520   // 64 cycles per line
 #define NTSC_6567R56A_MAX_DOT_Y 262
 
+#define NTSC_6567R8_NUM_CYCLES 63
 #define NTSC_6567R8_MAX_DOT_X 512     // 63 cycles per line
 #define NTSC_6567R8_MAX_DOT_Y 261
 
+#define PAL_6569_NUM_CYCLES 62
 #define PAL_6569_MAX_DOT_X 504       // 62 cycles per line
 #define PAL_6569_MAX_DOT_Y 312
+
+#define VIC_LP    0
+#define VIC_LPI2  1
+#define VIC_LS2   2
+#define VIC_LR    3
+#define VIC_LG    4
+#define VIC_HS1   5
+#define VIC_HPI1  6
+#define VIC_HPI2  7
+#define VIC_HS3   8
+#define VIC_HRI   9
+#define VIC_HRC   10
+#define VIC_HGC   11
+#define VIC_HGI   12
+#define VIC_HI    13
+#define VIC_LI    14
+
+
+#define V_PPS          vicii__DOT__phi_phase_start
+#define V_XPOS         vicii__DOT__xpos
+#define V_CYCLE_NUM    vicii__DOT__cycle_num
+#define V_CLK_DOT      vicii__DOT__clk_dot
+#define V_BIT_CYCLE    vicii__DOT__bit_cycle
+#define V_RASTER_X     vicii__DOT__raster_x
+#define V_RASTER_LINE  vicii__DOT__raster_line
+#define V_B0C          vicii__DOT__b0c
+#define V_EC           vicii__DOT__ec

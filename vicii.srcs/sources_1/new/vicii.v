@@ -34,7 +34,7 @@ module vicii(
    output cas,
    
    // For simulation
-   reg [2:0] vicCycle,
+   reg [3:0] vicCycle,
    output reg[15:0] rasr,
    output reg[15:0] casr,
    output reg[15:0] muxr,
@@ -46,19 +46,22 @@ parameter CHIP6567R56A = 2'd1;
 parameter CHIP6569     = 2'd2;
 parameter CHIPUNUSED   = 2'd3;
 
-// Cycle types possible in each phase of phi:
-// I  idle, phase 1 or 2
-// P  sprite pointer, always phase 1
-// S  sprite dma, phase 1 or 2 after a P
-// R  DRAM refresh, always phase 1
-// C  video matrix and color ram, always phase 2
-// G  chargen or bitmap, always phase 1
-parameter VIC_I = 0;
-parameter VIC_P = 1;
-parameter VIC_S = 2;
-parameter VIC_R = 3;
-parameter VIC_C = 4;
-parameter VIC_G = 5;
+// Cycle types
+parameter VIC_LP   = 0; // low phase, sprite pointer
+parameter VIC_LPI2 = 1; // low phase, sprite idle
+parameter VIC_LS2  = 2; // low phase, sprite dma byte 2 
+parameter VIC_LR   = 3; // low phase, dram refresh
+parameter VIC_LG   = 4; // low phase, g-access
+parameter VIC_HS1  = 5; // high phase, sprite dma byte 1
+parameter VIC_HPI1 = 6; // high phase, sprite idle
+parameter VIC_HPI2 = 7; // high phase, sprite idle
+parameter VIC_HS3  = 8; // high phase, sprite dma byte 3
+parameter VIC_HRI  = 9; // high phase, refresh idle
+parameter VIC_HRC  = 10; // high phase, c-access after r
+parameter VIC_HGC  = 11; // high phase, c-access after g
+parameter VIC_HGI  = 12; // high phase, idle after g
+parameter VIC_HI   = 13; // high phase, idle
+parameter VIC_LI   = 14; // low phase, idle
 
 // These are the only valid combinations
 // for phase 1 and 2. Idle 2nd phase is
@@ -178,6 +181,14 @@ endcase
   // DRAM refresh counter
 //  reg [7:0] refc;
 
+  // When enabled, sprite bytes are fetched in sprite cycles
+  reg spriteDmaEn;
+  
+  // Counters for sprite, refresh and idle cycles
+  reg [2:0] spriteCnt;
+  reg [2:0] refreshCnt;
+  reg [2:0] idleCnt;
+
   // VIC read address
   reg [13:0] vicAddr;
   
@@ -266,7 +277,7 @@ endcase
     cycle_st2_in_3_aec = 65'b11111111111111111111111111111111111111111111111111111111111001111;
     refc               = 8'hff;
     vicAddr            = 14'b0;
-    vicCycle           = VIC_P;
+    vicCycle           = VIC_LP;
     phi_phase_start    = 16'b0000000000000100;
     dot_risingr        = 16'b0100010001000100;
     phir               = 32'b00000000000000111111111111111100;
@@ -286,6 +297,11 @@ endcase
     embc = 1'b0;
     emmc = 1'b0;
     elp = 1'b0;
+    
+    spriteCnt = 3'd3;
+    refreshCnt = 3'd0;
+    idleCnt = 3'd0;
+    spriteDmaEn = 1'b0;
   end
   
   always @(posedge clk_dot4x)
@@ -340,7 +356,18 @@ endcase
   
   assign irq = (ilp & elp) | (immc & emmc) | (imbc & embc) | (irst & erst);
  
-  
+ 
+  // DRAM refresh counter
+  always @(posedge clk_dot4x)
+  if (rst)
+     refc <= 8'hff;
+  else if (phi_phase_start[15]) begin
+     // About to leave LR into HRC or HRI
+     if (vicCycle == VIC_LR)
+         refc <= refc - 8'd1;
+     else if (raster_x == rasterXMax && raster_line == rasterYMax)
+         refc <= 8'hff;
+  end
   
   
   // Update x,y position
@@ -349,7 +376,6 @@ endcase
   begin
     raster_x <= 0;
     raster_line <= 0;
-    refc <= 8'hff;
     case(chip)
     CHIP6567R56A, CHIP6567R8:
       xpos <= 10'h19d;
@@ -412,9 +438,10 @@ endcase
     else begin
        // Time to go back to y coord 0, reset refresh counter
        raster_line <= 9'd0;
-       refc <= 8'hff;
     end
   end
+
+
 
 // cycle stealing registers let us 'schedule' when ba/aec
 // should be held low a number of cycles in advance and for
@@ -472,38 +499,101 @@ always @(posedge clk_dot4x)
   // Second phase, low if cycle steal reg says so, otherwise high for CPU
   assign aec = bit_cycle < 4 ? 0 : ((cycle_staec & cycle_stc) == 0 ? 0 : 1);
 
-// Set vicCycle to the half cycle enum
-always @(raster_x)
-  case (chip)
-  CHIP6569,CHIPUNUSED:
-    casez(raster_x)
-    /* cycle0,phi1,spr3 */ 10'b00000000??: vicCycle = VIC_P;
-    /* cycle0,phi2,dma0 */ 10'b00000001??: vicCycle = VIC_I;
-    /* cycle1,phi1,dma1 */ 10'b00000010??: vicCycle = VIC_I;
-    /* cycle1,phi2,dma2 */ 10'b00000011??: vicCycle = VIC_I;
-    /* cycle2,phi1,spr4 */ 10'b00000100??: vicCycle = VIC_P;
-    /* cycle2,phi2,dma0 */ 10'b00000101??: vicCycle = VIC_I;
-    /* cycle3,phi1,dma1 */ 10'b00000110??: vicCycle = VIC_I;
-    /* cycle3,phi2,dma2 */ 10'b00000111??: vicCycle = VIC_I;
-    /* cycle4,phi1,spr5 */ 10'b00001000??: vicCycle = VIC_P;
-    /* cycle4,phi2,dma0 */ 10'b00001001??: vicCycle = VIC_I;
-    /* cycle5,phi1,dma1 */ 10'b00001010??: vicCycle = VIC_I;
-    /* cycle5,phi2,dma2 */ 10'b00001011??: vicCycle = VIC_I;
-    /* cycle6,phi1,spr6 */ 10'b00001100??: vicCycle = VIC_P;
-    /* cycle6,phi2,dma0 */ 10'b00001101??: vicCycle = VIC_I;
-    /* cycle7,phi1,dma1 */ 10'b00001110??: vicCycle = VIC_I;
-    /* cycle7,phi2,dma2 */ 10'b00001111??: vicCycle = VIC_I;
-    /* cycle8,phi1,spr7 */ 10'b00010000??: vicCycle = VIC_P;
-    /* cycle8,phi2,dma0 */ 10'b00010001??: vicCycle = VIC_I;
-    /* cycle9,phi1,dma1 */ 10'b00010010??: vicCycle = VIC_I;
-    /* cycle9,phi2,dma2 */ 10'b00010011??: vicCycle = VIC_I;
-    default:  vicCycle = VIC_I; 
-  endcase
-  CHIP6567R56A:
-     vicCycle = VIC_I;
-  CHIP6567R8:
-     vicCycle = VIC_I;
-  endcase
+  // LP --dmaEn--> HS1 -> LS2 -> HS3  --<7?--> LP
+  //                                  --else-> LR
+  //    --else---> HPI -> LPI2-> HPI2 --<7>--> LP 
+  //                                  --else-> LR
+  //
+  // LR --4&d?--> HRC -> LG
+  // LR --else--> HRI --4?--> LG
+  //                  -else-> LR
+  //
+  // LG --54?--> HI
+  //    --d? --> HC
+  //    --else-> HGI
+  //
+  // HC -> LG
+  // HGI -> LG
+  // HI --2|3|4?--> LP
+  //      --else--> LI
+  // LI -> HI
+   
+  always @(posedge clk_dot4x)
+     if (phi_phase_start[15]) begin
+       if (clk_phi == 1'b0) begin // about to go phi high
+          case (vicCycle)
+             VIC_LP: begin
+                if (spriteDmaEn)
+                   vicCycle <= VIC_HS1;
+                else
+                   vicCycle <= VIC_HPI1;
+             end
+             VIC_LPI2:
+                   vicCycle <= VIC_HPI2;
+             VIC_LS2:
+                vicCycle <= VIC_HS3;
+             VIC_LR: begin
+                if (refreshCnt == 4 && raster_line == 1)
+                    vicCycle <= VIC_HRC;
+                else
+                    vicCycle <= VIC_HRI;
+             end
+             VIC_LG: begin
+                if (cycle_num == 54) begin
+                      vicCycle <= VIC_HI;
+                      idleCnt <= 0;
+                end else
+                   if (raster_line == 1)
+                      vicCycle <= VIC_HGC;
+                   else
+                      vicCycle <= VIC_HGI;
+                end
+             VIC_LI: vicCycle <= VIC_HI;
+             default: ;
+          endcase
+       end else begin // about to go phi low
+          case (vicCycle)
+             VIC_HS1: vicCycle <= VIC_LS2;
+             VIC_HPI1: vicCycle <= VIC_LPI2;
+             VIC_HS3, VIC_HPI2: begin
+                 if (spriteCnt == 7) begin
+                    vicCycle <= VIC_LR;
+                    spriteCnt <= 0;
+                    refreshCnt <= 0;
+                 end else begin
+                    vicCycle <= VIC_LP;
+                    spriteCnt <= spriteCnt + 1'd1;
+                 end
+             end
+             VIC_HRI: begin
+                 if (refreshCnt == 4) begin
+                    vicCycle <= VIC_LG;
+                 end else begin
+                    vicCycle <= VIC_LR;
+                    refreshCnt <= refreshCnt + 1'd1;
+                 end
+             end
+             VIC_HRC: begin
+                 vicCycle <= VIC_LG;
+             end
+             VIC_HGC, VIC_HGI: vicCycle <= VIC_LG;
+             VIC_HI: begin
+                 if (chip == CHIP6567R56A && idleCnt == 3)
+                    vicCycle <= VIC_LP;
+                 else if (chip == CHIP6567R8 && idleCnt == 4)
+                    vicCycle <= VIC_LP;
+                 else if (chip == CHIP6569 && idleCnt == 2)
+                    vicCycle <= VIC_LP;
+                 else begin
+                    idleCnt <= idleCnt + 1'd1;
+                    vicCycle <= VIC_LI;
+                 end
+             end
+             default: ;
+          endcase
+       end
+     end
+     
     
   // RAS/CAS/MUX profiles
   always @(posedge clk_dot4x)
@@ -515,40 +605,21 @@ always @(raster_x)
     // Here we check bit cycle = 7 to indicate we will
     // transition from high to low phi for this delayed
     // assignment.
-    if (bit_cycle == 3'd7)
+    if (bit_cycle == 3'd7) // phi going low
     case (vicCycle)
-    VIC_I: begin
+    VIC_LPI2, VIC_LI: begin
              rasr <= 16'b1111111111111111;
              casr <= 16'b1111111111111111;
-           end
-    VIC_P, VIC_S, VIC_G: begin
-             rasr <= 16'b1111111000000000;
-             casr <= 16'b1111111110000000;
-           end
-    VIC_R: begin
-             rasr <= 16'b1111111000000000;
-             casr <= 16'b1111111110000000;
-           end
-    default: begin
-             rasr <= 16'b1111111111111111;
-             casr <= 16'b1111111111111111;
-           end
-    endcase
-    else if (bit_cycle == 3'd3) // phi high to low
-    case (vicCycle)
-    VIC_I: begin
-             rasr <= 16'b1111111000000000;
-             casr <= 16'b1111111110000000;
-           end
-    VIC_S, VIC_C: begin
-             rasr <= 16'b1111111000000000;
-             casr <= 16'b1111111110000000;
            end
     default: begin
              rasr <= 16'b1111111000000000;
              casr <= 16'b1111111110000000;
            end
     endcase
+    else if (bit_cycle == 3'd3) begin // phi going high
+       rasr <= 16'b1111111000000000;
+       casr <= 16'b1111111110000000;
+    end
   end else begin
     rasr <= {rasr[14:0],1'b0};
     casr <= {casr[14:0],1'b0};
@@ -568,19 +639,14 @@ always @(raster_x)
     // Here we check bit cycle = 7 to indicate we will be
     // transitioning from high low phi on next tick for
     // this delayed assignment
-    if (bit_cycle == 3'd7)
+    if (bit_cycle == 3'd7) // phi going low
     case (vicCycle)
-    VIC_I:               muxr <= 16'b1111111111111111;
-    VIC_P, VIC_S, VIC_G: muxr <= 16'b1111111100000000;
-    VIC_R:               muxr <= 16'b0000000000000000;
-    default:             muxr <= 16'b1111111111111111;
+    VIC_LPI2, VIC_LI: muxr <= 16'b1111111111111111;
+    VIC_LR:           muxr <= 16'b0000000000000000;
+    default:          muxr <= 16'b1111111100000000;
     endcase
-    else // phi high
-    case (vicCycle)
-    VIC_I:               muxr <= 16'b1111111100000000;
-    VIC_S, VIC_C:        muxr <= 16'b1111111100000000;
-    default:             muxr <= 16'b1111111100000000;
-    endcase
+    else if (bit_cycle == 3'd3) // phi going high
+                      muxr <= 16'b1111111100000000;
   else
     muxr <= {muxr[14:0],1'b0};
 

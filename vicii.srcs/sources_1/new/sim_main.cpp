@@ -16,17 +16,8 @@
 extern "C" {
 #include "vicii_ipc.h"
 }
-
-#define LOG_NONE  0
-#define LOG_ERROR 1
-#define LOG_WARN  2
-#define LOG_INFO  3
-
-static const char* logLevelStr[4] = { "None","error","warn","info" };
-
-int logLevel = LOG_ERROR;
-
-#define LOG(minLevel, FORMAT, ...)  if (logLevel >= minLevel) { printf ("%s: " FORMAT "\n", logLevelStr[logLevel], ##__VA_ARGS__); }
+#include "log.h"
+#include "test.h"
 
 #define STATE() LOG(LOG_INFO, \
    "%c" \
@@ -39,7 +30,7 @@ int logLevel = LOG_ERROR;
    "irq=%d " \
    "ba=%d " \
    "aec=%d " \
-   "vcy=%d " \
+   "vcy=%c " \
    "ras=%d " \
    "cas=%d " \
    "mux=%d " \
@@ -50,29 +41,33 @@ int logLevel = LOG_ERROR;
    "dbi=%02x " \
    "rw=%d " \
    "ce=%d " \
-   "pps=%s", \
+   "rct=%02x " \
+   /*"pps=%s"*/ \
+   ,\
    HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ', \
    nextClkCnt, \
-   top->vicii__DOT__xpos, \
-   top->vicii__DOT__cycle_num, \
-   top->vicii__DOT__clk_dot, \
+   top->V_XPOS, \
+   top->V_CYCLE_NUM, \
+   top->V_CLK_DOT, \
    top->clk_phi, \
-   top->vicii__DOT__bit_cycle, \
+   top->V_BIT_CYCLE, \
    top->irq, \
    top->ba, \
    top->aec, \
-   top->vicCycle, \
+   cycleToChar(top->vicCycle), \
    top->ras, \
    top->cas, \
    top->muxr&32768?1:0, \
-   top->vicii__DOT__raster_x, \
-   top->vicii__DOT__raster_line, \
+   top->V_RASTER_X, \
+   top->V_RASTER_LINE, \
    toBin(top->rasr), \
    top->adi, \
    top->dbi, \
    top->rw, \
    top->ce, \
-   toBin(top->vicii__DOT__phi_phase_start));
+   top->refc \
+   /*toBin(top->V_PPS)*/ \
+); 
 
 // Current simulation time (64-bit unsigned). See
 // constants.h for how much each tick represents.
@@ -156,6 +151,30 @@ char* toBin(unsigned short reg) {
    binBufNum = (binBufNum + 1) % 8;
    return buf;
 }
+
+static char cycleToChar(int cycle){
+  switch (cycle) {
+    case VIC_LP   : return '#';
+    case VIC_LPI2 : return ' ';
+    case VIC_LS2  : return 's';
+    case VIC_LR   : return 'r';
+    case VIC_LG   : return 'g';
+    case VIC_HS1  : return 's';
+    case VIC_HPI1 : return ' ';
+    case VIC_HPI2 : return ' ';
+    case VIC_HS3  : return 's';
+    case VIC_HRI  : return ' ';
+    case VIC_HRC  : return 'c';
+    case VIC_HGC  : return 'c';
+    case VIC_HGI  : return ' ';
+    case VIC_HI   : return ' ';
+    case VIC_LI   : return ' ';
+    default:
+       LOG(LOG_ERROR,"bad cycle");
+       exit(-1);
+  }
+}
+
 
 static int SGETVAL(int signum) {
   if (signal_width[signum] <= 8) {
@@ -245,6 +264,9 @@ static void drawPixel(SDL_Renderer* ren, int x,int y) {
 }
 
 int main(int argc, char** argv, char** env) {
+    SDL_Event event;
+    SDL_Renderer* ren = nullptr;
+    SDL_Window* win;
 
     struct vicii_state* state;
     bool capture = false;
@@ -268,17 +290,27 @@ int main(int argc, char** argv, char** env) {
     startTicks = US_TO_TICKS(0);
     vluint64_t durationTicks;
 
-
     char *cvalue = nullptr;
     char c;
     char *token;
     regex_t regex;
     int reti, reti2;
     char regex_buf[32];
-    FILE* outFile = NULL;
+    FILE* outFile = nullptr;
+    int testDriver = -1;
+    int setGolden = 0;
 
-    while ((c = getopt (argc, argv, "c:hs:t:wi:zbo:d:")) != -1)
+    while ((c = getopt (argc, argv, "c:hs:t:wi:zbo:d:r:g")) != -1)
     switch (c) {
+      case 'g':
+        setGolden = 1;
+        break;
+      case 'r':
+        testDriver = atoi(optarg);
+        if (testDriver < 1) testDriver = 1;
+        captureByTime = false;
+        captureByFrame = false;
+        break;
       case 'd':
         logLevel = atoi(optarg);
         break;
@@ -287,7 +319,7 @@ int main(int argc, char** argv, char** env) {
         break;
       case 'i':
         token = strtok(optarg, ",");
-        while (token != NULL) {
+        while (token != nullptr) {
            strcpy (regex_buf, "^");
            strcat (regex_buf, token);
            strcat (regex_buf, "$");
@@ -298,14 +330,14 @@ int main(int argc, char** argv, char** env) {
                  break;
               }
               if (!reti) {
-                 reti2 = regexec(&regex, signal_labels[i], 0, NULL, 0);
+                 reti2 = regexec(&regex, signal_labels[i], 0, nullptr, 0);
                  if (!reti2) {
                     signal_monitor[i] = true;
                  }
               }
            }
            regfree(&regex);
-           token = strtok(NULL, ",");
+           token = strtok(nullptr, ",");
         }
         break;
       case 'o':
@@ -341,6 +373,8 @@ int main(int argc, char** argv, char** env) {
         printf ("  -b        : render each pixel instead of each line\n");
         printf ("  -i        : list signals to include (phi, ce, csync, etc.) \n");
         printf ("  -c <chip> : 0=CHIP6567R8, 1=CHIP6567R56A 2=CHIP65669\n");
+        printf ("  -r <test> : run test driver #\n");
+        printf ("  -g <test> : make golden master for test #\n");
 
         exit(0);
       case '?':
@@ -356,24 +390,35 @@ int main(int argc, char** argv, char** env) {
         exit(-1);
     }
 
-    if (outputVcd && outFile == NULL) {
+    if (outputVcd && outFile == nullptr) {
        LOG(LOG_ERROR, "need out file with -o");
        exit(-1);
     }
 
-    switch (chip) {
-       case CHIP6567R8:
-       case CHIP6567R56A:
-          durationTicks = US_TO_TICKS(16700L);
-          break;
-       case CHIP6569:
-          durationTicks = US_TO_TICKS(20000L);
-          break;
-       default:
-          durationTicks = US_TO_TICKS(20000L);
+    int sdl_init_mode = SDL_INIT_VIDEO;
+    if (SDL_Init(sdl_init_mode) != 0) {
+      LOG(LOG_ERROR, "SDL_Init %s", SDL_GetError());
+      return 1;
     }
 
-    switch (chip) {
+    // Add new input/output here.
+    Vvicii* top = new Vvicii;
+    top->rw = 1;
+    top->ce = 1;
+    top->clk_phi = 0;
+    top->rst = 0;
+    top->adi = 0;
+    top->dbi = 0;
+    top->chip = chip;
+    top->V_B0C = 6;
+    top->V_EC = 14;
+
+    if (testDriver >= 0 && do_test_start(testDriver, top, setGolden)) {
+       LOG(LOG_ERROR, "test %d failed\n", testDriver);
+       exit(-1);
+    }
+
+    switch (top->chip) {
        case CHIP6567R8:
           isNtsc = true;
           printf ("CHIP: 6567R8\n");
@@ -396,9 +441,21 @@ int main(int argc, char** argv, char** env) {
     }
     printf ("Log Level: %d\n", logLevel);
 
+    switch (top->chip) {
+       case CHIP6567R8:
+       case CHIP6567R56A:
+          durationTicks = US_TO_TICKS(16700L);
+          break;
+       case CHIP6569:
+          durationTicks = US_TO_TICKS(20000L);
+          break;
+       default:
+          durationTicks = US_TO_TICKS(20000L);
+    }
+
     if (isNtsc) {
        half4XDotPS = NTSC_HALF_4X_DOT_PS;
-       switch (chip) {
+       switch (top->chip) {
           case CHIP6567R56A:
              maxDotX = NTSC_6567R56A_MAX_DOT_X;
              maxDotY = NTSC_6567R56A_MAX_DOT_Y;
@@ -413,7 +470,7 @@ int main(int argc, char** argv, char** env) {
        }
     } else {
        half4XDotPS = PAL_HALF_4X_DOT_PS;
-       switch (chip) {
+       switch (top->chip) {
           case CHIP6569:
              maxDotX = PAL_6569_MAX_DOT_X;
              maxDotY = PAL_6569_MAX_DOT_Y;
@@ -426,16 +483,6 @@ int main(int argc, char** argv, char** env) {
 
     nextClk = half4XDotPS;
     endTicks = startTicks + durationTicks;
-
-    int sdl_init_mode = SDL_INIT_VIDEO;
-    if (SDL_Init(sdl_init_mode) != 0) {
-      LOG(LOG_ERROR, "SDL_Init %s", SDL_GetError());
-      return 1;
-    }
-
-    SDL_Event event;
-    SDL_Renderer* ren = nullptr;
-    SDL_Window* win;
 
     if (showWindow) {
       SDL_DisplayMode current;
@@ -463,19 +510,6 @@ int main(int argc, char** argv, char** env) {
       }
     }
 
-    // Add new input/output here.
-    Vvicii* top = new Vvicii;
-    top->chip = chip;
-    top->clk_phi = 1;
-    top->vicii__DOT__clk_dot = 1;
-    top->rst = 0;
-    top->adi = 0;
-    top->dbi = 0;
-    top->rw = 1;
-    top->ce = 1;
-    top->vicii__DOT__b0c = 6;
-    top->vicii__DOT__ec = 14;
-
     // Default all signals to bit 1 and include in monitoring.
     for (int i = 0; i < NUM_SIGNALS; i++) {
       signal_width[i] = 1;
@@ -497,7 +531,7 @@ int main(int argc, char** argv, char** env) {
     signal_src8[OUT_B0] = &top->blue;
     signal_src8[OUT_B1] = &top->blue;
     signal_bit[OUT_B1] = 2;
-    signal_src8[OUT_DOT] = &top->vicii__DOT__clk_dot;
+    signal_src8[OUT_DOT] = &top->V_CLK_DOT;
     signal_src8[OUT_CSYNC] = &top->cSync;
     signal_src8[IN_CE] = &top->ce;
     signal_src8[IN_RW] = &top->rw;
@@ -574,8 +608,8 @@ int main(int argc, char** argv, char** env) {
                // will be xpos + 7 = one tick before we hit xpos + 8) and
                // rasterline and when dot4x just ticked low (we always tick into high
                // when beginning to step so we must leave dot4x low.
-               while (top->vicii__DOT__xpos != (state->xpos + 7) ||
-                         top->vicii__DOT__raster_line != state->raster_line ||
+               while (top->V_XPOS != (state->xpos + 7) ||
+                         top->V_RASTER_LINE != state->raster_line ||
                             top->clk_dot4x) {
                   top->eval();
                   if (top->clk_dot4x)
@@ -626,6 +660,11 @@ int main(int argc, char** argv, char** env) {
            top->dbi = state->data;
         }
 
+        if (testDriver >= 0 && do_test_pre(testDriver, top, setGolden)) {
+           LOG(LOG_ERROR, "test %d failed\n", testDriver);
+           exit(-1);
+        }
+
 #ifdef TEST_RESET
         // Test reset between approx 7 and approx 8 us
         if (ticks >= US_TO_TICKS(7000L) && ticks <= US_TO_TICKS(8000L))
@@ -634,13 +673,18 @@ int main(int argc, char** argv, char** env) {
            top->rst = 0;
 #endif
 
-        prevX = top->vicii__DOT__raster_x;
-        prevY = top->vicii__DOT__raster_line;
+        prevX = top->V_RASTER_X;
+        prevY = top->V_RASTER_LINE;
 
         // Evaluate model
         top->eval();
         if (top->clk_dot4x)
            STATE();
+
+        if (testDriver >= 0 && do_test_post(testDriver, top, setGolden)) {
+           LOG(LOG_ERROR, "test %d failed\n", testDriver);
+           exit(-1);
+        }
 
         if (captureByTime)
            capture = (ticks >= startTicks) && (ticks <= endTicks);
@@ -668,31 +712,31 @@ int main(int argc, char** argv, char** env) {
           // On dot clock...
           if (HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
              // AEC should always be low in first phase
-             if (top->vicii__DOT__bit_cycle < 4) {
+             if (top->V_BIT_CYCLE < 4) {
                CHECK(top, top->aec == 0, __LINE__);
              }
 
              // Make sure xpos is what we expect at key points
-             if (top->vicii__DOT__cycle_num == 12 && top->vicii__DOT__bit_cycle == 4)
-               CHECK (top, top->vicii__DOT__xpos == 0, __LINE__); // rollover
+             if (top->V_CYCLE_NUM == 12 && top->V_BIT_CYCLE == 4)
+               CHECK (top, top->V_XPOS == 0, __LINE__); // rollover
 
-             if (top->vicii__DOT__cycle_num == 0 && top->vicii__DOT__bit_cycle == 0)
+             if (top->V_CYCLE_NUM == 0 && top->V_BIT_CYCLE == 0)
                if (chip == CHIP6569)
-                  CHECK (top, top->vicii__DOT__xpos == 0x194, __LINE__); // reset
+                  CHECK (top, top->V_XPOS == 0x194, __LINE__); // reset
                else
-                  CHECK (top, top->vicii__DOT__xpos == 0x19c, __LINE__); // reset
+                  CHECK (top, top->V_XPOS == 0x19c, __LINE__); // reset
 
              if (chip == CHIP6567R8)
-               if (top->vicii__DOT__cycle_num == 61 && (top->vicii__DOT__bit_cycle == 0 || top->vicii__DOT__bit_cycle == 4))
-                  CHECK (top, top->vicii__DOT__xpos == 0x184, __LINE__); // repeat cases
-               else if (top->vicii__DOT__cycle_num == 62 && top->vicii__DOT__bit_cycle == 0)
-                  CHECK (top, top->vicii__DOT__xpos == 0x184, __LINE__); // repeat case
+               if (top->V_CYCLE_NUM == 61 && (top->V_BIT_CYCLE == 0 || top->V_BIT_CYCLE == 4))
+                  CHECK (top, top->V_XPOS == 0x184, __LINE__); // repeat cases
+               else if (top->V_CYCLE_NUM == 62 && top->V_BIT_CYCLE == 0)
+                  CHECK (top, top->V_XPOS == 0x184, __LINE__); // repeat case
 
-             // Refresh counter is supposed to reset at raster 0 - TODO ENABLE WHEN AVAILABLE
-             if (top->vicii__DOT__raster_line == 0)
+             // Refresh counter is supposed to reset at raster 0
+             if (top->V_RASTER_X == 0 && top->V_RASTER_LINE == 0)
                 CHECK (top, top->refc == 0xff, __LINE__);
 
-             if(top->vicii__DOT__bit_cycle == 0 || top->vicii__DOT__bit_cycle == 4) {
+             if(top->V_BIT_CYCLE == 0 || top->V_BIT_CYCLE == 4) {
                 // CAS & RAS should be high at the start of each phase
                 // Timing and vicycle will determine when they fall if ever
                 CHECK (top, top->cas != 0, __LINE__);
@@ -708,12 +752,12 @@ int main(int argc, char** argv, char** env) {
                 top->blue << 6,
                 255);
              drawPixel(ren,
-                top->vicii__DOT__raster_x,
-                top->vicii__DOT__raster_line
+                top->V_RASTER_X,
+                top->V_RASTER_LINE
              );
 
              // Show updated pixels per raster line
-             if (prevY != top->vicii__DOT__raster_line) {
+             if (prevY != top->V_RASTER_LINE) {
                 SDL_RenderPresent(ren);
 
                 SDL_PollEvent(&event);
@@ -750,8 +794,8 @@ int main(int argc, char** argv, char** env) {
 
            // After we have one full frame, exit the loop.
            if (captureByFrame && 
-              top->vicii__DOT__xpos == captureByFrameStopXpos &&
-                 top->vicii__DOT__raster_line == captureByFrameStopYpos) {
+              top->V_XPOS == captureByFrameStopXpos &&
+                 top->V_RASTER_LINE == captureByFrameStopYpos) {
               state->flags &= ~VICII_OP_CAPTURE_START;
               ipc_receive_done(ipc);
               break;
@@ -777,6 +821,9 @@ int main(int argc, char** argv, char** env) {
 
         // Is it time to stop?
         if (captureByTime && ticks >= endTicks)
+           break;
+
+        if (testDriver >= 0 && do_test_end(testDriver, top, setGolden))
            break;
 
         // Advance simulation time. Each tick represents 1 picosecond.
