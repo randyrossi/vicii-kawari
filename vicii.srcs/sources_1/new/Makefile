@@ -33,8 +33,10 @@ export VERILATOR_ROOT
 VERILATOR = $(VERILATOR_ROOT)/bin/verilator
 endif
 
+TESTS=tests/test1.cpp tests/test2.cpp
+
 default: ipc_test vicii_ipc.o libvicii_ipc.so
-	$(VERILATOR) -cc --exe vicii.v clockdivs.v sync.v serration.v equalization.v sim_main.cpp test.cpp tests/test1.cpp log.cpp -CFLAGS -g -LDFLAGS '../vicii_ipc.o -lSDL2'
+	$(VERILATOR) -cc --exe vicii.v clockdivs.v sync.v serration.v equalization.v sim_main.cpp test.cpp log.cpp $(TESTS) -CFLAGS -g -LDFLAGS '../vicii_ipc.o -lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vvicii.mk
 
 vicii_ipc.o: vicii_ipc.c

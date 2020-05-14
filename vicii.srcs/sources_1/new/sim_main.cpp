@@ -37,14 +37,17 @@ extern "C" {
    "x=%03d " \
    "y=%03d " \
    /* "rasr=%s " */ \
-   "pps=%s " \
+   "bin=%s " \
+   /* "pps=%s " */ \
    "adi=%03x " \
+   "ado=%03x " \
    "dbi=%02x " \
+   "dbo=%02x " \
    "rw=%d " \
    "ce=%d " \
    "rct=%02x " \
    ,\
-   HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ', \
+   top->rst ? 'R' : HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ', \
    nextClkCnt, \
    top->V_XPOS, \
    top->V_CYCLE_NUM, \
@@ -60,10 +63,11 @@ extern "C" {
    top->muxr&32768?1:0, \
    top->V_RASTER_X, \
    top->V_RASTER_LINE, \
-   /*toBin(top->rasr), */\
-   toBin(top->V_PPS), \
+   toBin(top->rasr), \
    top->adi, \
+   top->ado, \
    top->dbi, \
+   top->dbo, \
    top->rw, \
    top->ce, \
    top->refc \
@@ -139,14 +143,15 @@ static unsigned char prev_signal_values[NUM_SIGNALS];
 // Use RISING/FALLING in combination with HASCHANGED
 
 static int binBufNum=0;
-static char binBuf[8][17];
-char* toBin(unsigned short reg) {
-   unsigned short b =1;
-   for (int c = 0 ; c < 16; c++) {
-      binBuf[binBufNum][15-c] = reg & b ? '1' : '0';
+static char binBuf[8][65];
+char* toBin(unsigned long reg) {
+   int len = 32;
+   unsigned long b =1;
+   for (int c = 0 ; c < len; c++) {
+      binBuf[binBufNum][len-1-c] = reg & b ? '1' : '0';
       b=b*2;
    }
-   binBuf[binBufNum][16] = '\0';
+   binBuf[binBufNum][len] = '\0';
    char *buf = binBuf[binBufNum];
    binBufNum = (binBufNum + 1) % 8;
    return buf;
@@ -155,20 +160,20 @@ char* toBin(unsigned short reg) {
 static char cycleToChar(int cycle){
   switch (cycle) {
     case VIC_LP   : return '#';
-    case VIC_LPI2 : return ' ';
+    case VIC_LPI2 : return 'i';
     case VIC_LS2  : return 's';
     case VIC_LR   : return 'r';
     case VIC_LG   : return 'g';
-    case VIC_HS1  : return 's';
-    case VIC_HPI1 : return ' ';
-    case VIC_HPI2 : return ' ';
-    case VIC_HS3  : return 's';
-    case VIC_HRI  : return ' ';
-    case VIC_HRC  : return 'c';
-    case VIC_HGC  : return 'c';
-    case VIC_HGI  : return ' ';
-    case VIC_HI   : return ' ';
-    case VIC_LI   : return ' ';
+    case VIC_HS1  : return 'S';
+    case VIC_HPI1 : return 'I';
+    case VIC_HPI2 : return 'I';
+    case VIC_HS3  : return 'S';
+    case VIC_HRI  : return 'I';
+    case VIC_HRC  : return 'C';
+    case VIC_HGC  : return 'C';
+    case VIC_HGI  : return 'I';
+    case VIC_HI   : return 'I';
+    case VIC_LI   : return 'I';
     default:
        LOG(LOG_ERROR,"bad cycle");
        exit(-1);
@@ -659,11 +664,15 @@ int main(int argc, char** argv, char** env) {
         }
 
 #ifdef TEST_RESET
-        // Test reset between approx 7 and approx 8 us
-        if (ticks >= US_TO_TICKS(7000L) && ticks <= US_TO_TICKS(8000L))
+        // Test reset between approx 3 and approx 4 us
+        if (ticks >= US_TO_TICKS(3000L) && ticks <= US_TO_TICKS(4000L)) {
            top->rst = 1;
-        else
+           nextClkCnt = 7;
+        } else {
            top->rst = 0;
+           top->V_B0C = 6;
+           top->V_EC = 14;
+        }
 #endif
 
         prevX = top->V_RASTER_X;

@@ -22,4 +22,21 @@ int is_frame_end(Vvicii* top);
 int is_about_to_start_line(Vvicii* top, int line);
 int is_about_to_start_cycle(Vvicii* top, int cycle);
 
+#define TEST_START(name, test_id) \
+int name##_start(Vvicii *top, int golden) { \
+   LOG(LOG_INFO, test_id); \
+   char format[64]; \
+   char name[64]; \
+   strcpy (format, "tests/"); \
+   strcat (format, test_id); \
+   strcat (format, "_chip%d.dat"); \
+   sprintf (name, format, top->chip); \
+   fp = do_start_file((const char*)name, golden); \
+   if (!fp) {\
+      LOG(LOG_ERROR,"Can't open goden for %s", golden ? "write" : "read");\
+      return TEST_FAIL;\
+   }\
+   return TEST_CONTINUE_NOT_CAPTURING; \
+}
+
 #endif

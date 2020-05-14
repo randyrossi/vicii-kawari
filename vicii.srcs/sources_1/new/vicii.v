@@ -288,8 +288,8 @@ endcase
     // So that's 4 dot4x ticks to get to the right spot
     // 3 on init and 1 more initial tick makes 4.
     rasr = 16'b1111000000000000;
+    muxr = 16'b1111110000000000;
     casr = 16'b1111110000000000;
-    muxr = 16'b1111100000000000;
 
     rasterIrqDone = 1'b1;    
     rasterCmp = 9'b100;
@@ -298,6 +298,11 @@ endcase
     emmc = 1'b0;
     elp = 1'b0;
     
+    irst_clr = 1'b0;
+    imbc_clr = 1'b0;
+    immc_clr = 1'b0;
+    ilp_clr = 1'b0;
+  
     spriteCnt = 3'd3;
     refreshCnt = 3'd0;
     idleCnt = 3'd0;
@@ -313,21 +318,21 @@ endcase
 
   always @(posedge clk_dot4x)
   if (rst)
-        phir <= 32'b00000000000000001111111111111111;
+        phir <= 32'b00000000000001111111111111111000;
   else
         phir <= {phir[30:0], phir[31]};
   assign clk_phi = phir[31];
 
   always @(posedge clk_dot4x)
   if (rst)
-        dotr <= 32'b11001100110011001100110011001100;
+        dotr <= 32'b01100110011001100110011001100110;
   else
         dotr <= {dotr[30:0], dotr[31]};
   assign clk_dot = dotr[31];
 
   always @(posedge clk_dot4x)
   if (rst) begin
-     phi_phase_start <= 16'b1000000000000000;
+     phi_phase_start <= 16'b0000000000001000;
   end else
      phi_phase_start <= {phi_phase_start[14:0], phi_phase_start[15]};
 
@@ -341,6 +346,12 @@ endcase
   // On raster line 0, it happens on cycle 1, otherwise, cycle 0
   always @(posedge clk_dot4x)
   begin
+     if (rst)
+     begin
+       irst_clr <= 1'b0;
+       irst <= 1'b0;
+     end
+     else begin
      if (clk_phi && phi_phase_start[15] &&
        ((raster_line == 0 && cycle_num == 1) || (raster_line != 0 && cycle_num == 0)))
        rasterIrqDone <= 1'b0;
@@ -351,6 +362,7 @@ endcase
        if ((raster_line == 0 && cycle_num == 1) || (raster_line != 0 && cycle_num == 0)) begin
           irst <= 1'b1;
        end
+     end
      end
   end
   
@@ -378,9 +390,9 @@ endcase
     raster_line <= 0;
     case(chip)
     CHIP6567R56A, CHIP6567R8:
-      xpos <= 10'h19d;
+      xpos <= 10'h19c;
     CHIP6569, CHIPUNUSED:
-      xpos <= 10'h195;
+      xpos <= 10'h194;
     endcase
   end
   else if (dot_rising)
@@ -453,13 +465,13 @@ endcase
 
 always @(posedge clk_dot4x)
   if (rst) begin
-    cycle_stc          <= 65'b00000000000000000000000000000000000000000000000000000000000000001;
+    cycle_stc          <= 65'b10000000000000000000000000000000000000000000000000000000000000000;
     cycle_stba         <= 65'b11111111111111111111111111111111111111111111111111111111111111111;
-    cycle_st1_in_3_ba  <= 65'b11111111111111111111111111111111111111111111111111111111111100001;
-    cycle_st2_in_3_ba  <= 65'b11111111111111111111111111111111111111111111111111111111111000001;
+    cycle_st1_in_3_ba  <= 65'b11111111111111111111111111111111111111111111111111111111111110000;
+    cycle_st2_in_3_ba  <= 65'b11111111111111111111111111111111111111111111111111111111111100000;
     cycle_staec        <= 65'b11111111111111111111111111111111111111111111111111111111111111111;
-    cycle_st1_in_3_aec <= 65'b11111111111111111111111111111111111111111111111111111111111101111;
-    cycle_st2_in_3_aec <= 65'b11111111111111111111111111111111111111111111111111111111111001111;
+    cycle_st1_in_3_aec <= 65'b11111111111111111111111111111111111111111111111111111111111110111;
+    cycle_st2_in_3_aec <= 65'b11111111111111111111111111111111111111111111111111111111111100111;
   end
   else if (dot_rising)
     if (bit_cycle == 3'd7) // going to next cycle?
@@ -519,7 +531,9 @@ always @(posedge clk_dot4x)
   // LI -> HI
    
   always @(posedge clk_dot4x)
-     if (phi_phase_start[15]) begin
+     if (rst)
+        vicCycle <= VIC_LP;
+     else if (phi_phase_start[15]) begin
        if (clk_phi == 1'b0) begin // about to go phi high
           case (vicCycle)
              VIC_LP: begin
@@ -598,8 +612,8 @@ always @(posedge clk_dot4x)
   // RAS/CAS/MUX profiles
   always @(posedge clk_dot4x)
   if (rst) begin
-     rasr <= 16'b1111111111111111;
-     casr <= 16'b1111111111111111;
+     rasr <= 16'b0111111100000000;
+     casr <= 16'b0111111111000000;
   end
   else if (phi_phase_start[15]) begin
     // Here we check bit cycle = 7 to indicate we will
@@ -630,12 +644,8 @@ always @(posedge clk_dot4x)
 
   always @(posedge clk_dot4x)
   if (rst)
-     muxr <= 16'b1111111111111111;
-  // Must be one dot4x cycle earlier than condition above
-  // because ado is delayed assignment not like ras/cas
-  // above. Necessary to get mux to happen between ras/cas
-  // as expected.
-  else if (phi_phase_start[14])
+     muxr <= 16'b0111111110000000;
+  else if (phi_phase_start[15]) begin
     // Here we check bit cycle = 7 to indicate we will be
     // transitioning from high low phi on next tick for
     // this delayed assignment
@@ -647,11 +657,19 @@ always @(posedge clk_dot4x)
     endcase
     else if (bit_cycle == 3'd3) // phi going high
                       muxr <= 16'b1111111100000000;
-  else
+  end else
     muxr <= {muxr[14:0],1'b0};
+  assign mux = muxr[14]; // 1 cycle early due to delayed use of mux
 
-  assign mux = muxr[15];
-
+  // Address generation
+  always @*
+  begin
+     case(vicCycle)
+     VIC_LR: vicAddr = {6'b111111, refc};
+     default: vicAddr = 14'h3FFF;
+     endcase
+  end
+  
   always @(posedge clk_dot4x)
   if (rst)
      ado8 <= 8'hFF;
@@ -659,6 +677,7 @@ always @(posedge clk_dot4x)
      ado8 <= mux ? {2'b11, vicAddr[13:8]} : vicAddr[7:0];
   assign ado = {vicAddr[11:8], ado8};
   
+   
   ///////// BEGIN TEMP STUFF
  // Stuff like this won't work in the real core. There is no comparitor controlling
   // when the border is visible like this.

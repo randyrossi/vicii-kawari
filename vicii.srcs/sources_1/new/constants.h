@@ -62,3 +62,6 @@
 #define V_B0C          vicii__DOT__b0c
 #define V_EC           vicii__DOT__ec
 #define V_DMAEN        vicii__DOT__spriteDmaEn
+#define V_DOTRISINGR   vicii__DOT__dot_risingr
+#define V_PHIR         vicii__DOT__phir
+#define V_DOTR         vicii__DOT__dotr

@@ -3,6 +3,7 @@
 #include "log.h"
 #include "test.h"
 #include "tests/test1.h"
+#include "tests/test2.h"
 
 typedef int (*test_func)(Vvicii*, int);
 
@@ -10,10 +11,12 @@ static int tickCount;
 
 test_func test_start[] = {
    test1_start,
+   test2_start,
 };
 
 test_func test_post[] = {
    test1_post,
+   test2_post,
 };
 
 int do_test_start(int driver, Vvicii* top, int golden) {
