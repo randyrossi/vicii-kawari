@@ -58,20 +58,17 @@ install: libvicii_ipc.so
 	sudo chmod oug+r /usr/include/vicii_ipc.h
 
 # Everything
-SIGNALS=ba,aec,irq,phi,rw,ce
-
-# Just data
-#SIGNALS=rw,ce,d.*[0-9]*,phi
+SIGNALS=cas,ras,phi,rw,ce
 
 # Bring up the logic analyser on a frame's worth of data
 logic:
 	obj_dir/Vvicii -i $(SIGNALS) -o session.vcd
-	pulseview -I vcd -i session.vcd
+	gtkwave session.vcd
 
 # Bring up the logic analyzer after capturing a session from VICE
 logic_vice:
 	obj_dir/Vvicii -i $(SIGNALS) -z -o session.vcd
-	pulseview -I vcd -i session.vcd
+	gtkwave session.vcd
 
 # Show a window while capturing and then bring up the logic analyser
 logic_window_vice:

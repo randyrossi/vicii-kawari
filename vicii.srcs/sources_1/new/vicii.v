@@ -278,18 +278,14 @@ endcase
     refc               = 8'hff;
     vicAddr            = 14'b0;
     vicCycle           = VIC_LP;
-    phi_phase_start    = 16'b0000000000000100;
-    dot_risingr        = 16'b0100010001000100;
-    phir               = 32'b00000000000000111111111111111100;
+    phir               = 32'b00000000000001111111111111111000;
+    phi_phase_start    = 16'b000000000000100;
     dotr               = 32'b00110011001100110011001100110011;
+    dot_risingr        = 16'b0100010001000100;
     
-    // These start after 3 rotations from their usual start
-    // positions since we always begin on pixel 1 (not 0).
-    // So that's 4 dot4x ticks to get to the right spot
-    // 3 on init and 1 more initial tick makes 4.
-    rasr = 16'b1111000000000000;
+    rasr = 16'b1111100000000000;
     muxr = 16'b1111110000000000;
-    casr = 16'b1111110000000000;
+    casr = 16'b1111111000000000;
 
     rasterIrqDone = 1'b1;    
     rasterCmp = 9'b100;
@@ -309,6 +305,7 @@ endcase
     spriteDmaEn = 1'b0;
   end
   
+  // dot_rising[15] means dot going high next cycle
   always @(posedge clk_dot4x)
   if (rst)
         dot_risingr <= 16'b1000100010001000;
@@ -318,18 +315,20 @@ endcase
 
   always @(posedge clk_dot4x)
   if (rst)
-        phir <= 32'b00000000000001111111111111111000;
-  else
-        phir <= {phir[30:0], phir[31]};
-  assign clk_phi = phir[31];
-
-  always @(posedge clk_dot4x)
-  if (rst)
         dotr <= 32'b01100110011001100110011001100110;
   else
         dotr <= {dotr[30:0], dotr[31]};
   assign clk_dot = dotr[31];
 
+  // phir[31] means phi is high next cycle
+  always @(posedge clk_dot4x)
+  if (rst)
+        phir <= 32'b00000000000011111111111111110000;
+  else
+        phir <= {phir[30:0], phir[31]};
+  assign clk_phi = phir[0];
+
+  // phi_phase_start[15] means phi is high next cycle
   always @(posedge clk_dot4x)
   if (rst) begin
      phi_phase_start <= 16'b0000000000001000;
@@ -612,8 +611,8 @@ always @(posedge clk_dot4x)
   // RAS/CAS/MUX profiles
   always @(posedge clk_dot4x)
   if (rst) begin
-     rasr <= 16'b0111111100000000;
-     casr <= 16'b0111111111000000;
+     rasr <= 16'b1111000000000000;
+     casr <= 16'b1111110000000000;
   end
   else if (phi_phase_start[15]) begin
     // Here we check bit cycle = 7 to indicate we will
@@ -644,7 +643,7 @@ always @(posedge clk_dot4x)
 
   always @(posedge clk_dot4x)
   if (rst)
-     muxr <= 16'b0111111110000000;
+     muxr <= 16'b1111100000000000;
   else if (phi_phase_start[15]) begin
     // Here we check bit cycle = 7 to indicate we will be
     // transitioning from high low phi on next tick for

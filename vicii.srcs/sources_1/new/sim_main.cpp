@@ -13,66 +13,15 @@
 #include "Vvicii.h"
 #include "constants.h"
 
+#if VM_TRACE
+#include <verilated_vcd_c.h>
+#endif
+
 extern "C" {
 #include "vicii_ipc.h"
 }
 #include "log.h"
 #include "test.h"
-
-#define STATE() LOG(LOG_INFO, \
-   "%c" \
-   "%02d " \
-   "xps=%03x " \
-   "cyc=%02d " \
-   "dot=%d " \
-   "phi=%d " \
-   "bit=%d " \
-   "irq=%d " \
-   "ba=%d " \
-   "aec=%d " \
-   "vcy=%c " \
-   "ras=%d " \
-   "cas=%d " \
-   "mux=%d " \
-   "x=%03d " \
-   "y=%03d " \
-   /* "rasr=%s " */ \
-   "bin=%s " \
-   /* "pps=%s " */ \
-   "adi=%03x " \
-   "ado=%03x " \
-   "dbi=%02x " \
-   "dbo=%02x " \
-   "rw=%d " \
-   "ce=%d " \
-   "rct=%02x " \
-   ,\
-   top->rst ? 'R' : HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ', \
-   nextClkCnt, \
-   top->V_XPOS, \
-   top->V_CYCLE_NUM, \
-   top->V_CLK_DOT, \
-   top->clk_phi, \
-   top->V_BIT_CYCLE, \
-   top->irq, \
-   top->ba, \
-   top->aec, \
-   cycleToChar(top->vicCycle), \
-   top->ras, \
-   top->cas, \
-   top->muxr&32768?1:0, \
-   top->V_RASTER_X, \
-   top->V_RASTER_LINE, \
-   toBin(top->rasr), \
-   top->adi, \
-   top->ado, \
-   top->dbi, \
-   top->dbo, \
-   top->rw, \
-   top->ce, \
-   top->refc \
-); 
-
 // Current simulation time (64-bit unsigned). See
 // constants.h for how much each tick represents.
 static vluint64_t ticks = 0;
@@ -80,9 +29,17 @@ static vluint64_t half4XDotPS;
 static vluint64_t startTicks;
 static vluint64_t endTicks;
 static vluint64_t nextClk;
-static int nextClkCnt = 5;
+static int nextClkCnt = 0;
 static int screenWidth;
 static int screenHeight;
+
+#define HASCHANGED(signum) \
+   ( signal_monitor[signum] && SGETVAL(signum) != prev_signal_values[signum] )
+#define RISING(signum) \
+   ( signal_monitor[signum] && SGETVAL(signum))
+#define FALLING(signum) \
+   ( signal_monitor[signum] && !SGETVAL(signum))
+
 
 // Add new input/output here
 enum {
@@ -144,8 +101,7 @@ static unsigned char prev_signal_values[NUM_SIGNALS];
 
 static int binBufNum=0;
 static char binBuf[8][65];
-char* toBin(unsigned long reg) {
-   int len = 32;
+char* toBin(int len, unsigned long reg) {
    unsigned long b =1;
    for (int c = 0 ; c < len; c++) {
       binBuf[binBufNum][len-1-c] = reg & b ? '1' : '0';
@@ -173,13 +129,12 @@ static char cycleToChar(int cycle){
     case VIC_HGC  : return 'C';
     case VIC_HGI  : return 'I';
     case VIC_HI   : return 'I';
-    case VIC_LI   : return 'I';
+    case VIC_LI   : return 'i';
     default:
        LOG(LOG_ERROR,"bad cycle");
        exit(-1);
   }
 }
-
 
 static int SGETVAL(int signum) {
   if (signal_width[signum] <= 8) {
@@ -191,24 +146,112 @@ static int SGETVAL(int signum) {
   }
 }
 
+static void HEADER(Vvicii *top) {
+   LOG(LOG_INFO, 
+   "  " 
+   "D4X "
+   "CNT "
+   "POS "
+   "CYC "
+   "DOT "
+   "PHI "
+   "BIT "
+   "IRQ "
+   "BA " 
+   "AEC "
+   "VCY "
+   "RAS "
+   "MUX "
+   "CAS "
+   " X  "
+   " Y  "
+   "ADI "
+   "ADO "
+   "DBI "
+   "DBO "
+   "RW " 
+   "CE " 
+   "RFC "
+   "BIN"
+  );
+}
+
+static void STATE(Vvicii *top) {
+   if(HASCHANGED(OUT_DOT) && RISING(OUT_DOT))
+      HEADER(top);
+
+   LOG(LOG_INFO, 
+   "%c "      /*DOT*/ 
+   "%01d   "   /*D4x*/ 
+   "%02d  "   /*CNT*/ 
+   "%03x "   /*POS*/ 
+   " %02d "  /*CYC*/ 
+   " %01d  "   /*DOT*/ 
+   " %01d  "   /*PHI*/ 
+   " %01d  "   /*BIT*/ 
+   " %01d  "   /*IRQ*/ 
+   " %01d  "   /*BA */ 
+   " %01d  "   /*AEC*/ 
+   "%c  "     /*VCY*/ 
+   " %01d  "   /*RAS*/ 
+   " %01d  "   /*MUX*/ 
+   " %01d  "   /*CAS*/ 
+   "%03d "   /*  X*/ 
+   "%03d "   /*  Y*/ 
+   "%03x "   /*ADI*/ 
+   "%03x "   /*ADO*/ 
+   " %02x "   /*DBI*/ 
+   " %02x "   /*DBO*/ 
+   " %01d "   /* RW*/ 
+   " %01d "   /* CE*/ 
+   "%02x "   /*RFC*/ 
+   " %s"     /*BIN*/ 
+   " %s"     /*BIN*/ 
+   " %s"     /*BIN*/ 
+   ,
+   top->rst ? 'R' : HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ', 
+   top->clk_dot4x ? 1 : 0,
+   nextClkCnt, 
+   top->V_XPOS, 
+   top->V_CYCLE_NUM, 
+   top->V_CLK_DOT, 
+   top->clk_phi, 
+   top->V_BIT_CYCLE, 
+   top->irq, 
+   top->ba, 
+   top->aec,
+   cycleToChar(top->vicCycle), 
+   top->ras, 
+   top->muxr&32768?1:0, 
+   top->cas, 
+   top->V_RASTER_X, 
+   top->V_RASTER_LINE,
+   top->adi, 
+   top->ado, 
+   top->dbi, 
+   top->dbo, 
+   top->rw, 
+   top->ce, 
+   top->refc,
+   toBin(32, top->rasr),
+   toBin(32, top->muxr),
+   toBin(32, top->casr)
+   );
+}
+
+
+
 static void STORE_PREV() {
   for (int i = 0; i < NUM_SIGNALS; i++) {
      prev_signal_values[i] = SGETVAL(i);
   }
 }
 
-#define HASCHANGED(signum) \
-   ( signal_monitor[signum] && SGETVAL(signum) != prev_signal_values[signum] )
-#define RISING(signum) \
-   ( signal_monitor[signum] && SGETVAL(signum))
-#define FALLING(signum) \
-   ( signal_monitor[signum] && !SGETVAL(signum))
-
 
 static void CHECK(Vvicii *top, int cond, int line) {
   if (!cond) {
      printf ("FAIL line %d:", line);
-     STATE();
+     STATE(top);
      exit(-1);
   }
 }
@@ -220,8 +263,8 @@ static vluint64_t nextTick(Vvicii* top) {
    vluint64_t diff1 = nextClk - ticks;
 
    nextClk += half4XDotPS;
-   nextClkCnt = (nextClkCnt + 1 ) % 32;
    top->clk_dot4x = ~top->clk_dot4x;
+   nextClkCnt = (nextClkCnt + 1) % 32;
    return ticks + diff1;
 }
 
@@ -287,6 +330,8 @@ int main(int argc, char** argv, char** env) {
     bool showWindow = false;
     bool shadowVic = false;
     bool renderEachPixel = false;
+    bool startWithReset = false;
+    bool tracing = false;
     int prevY = -1;
     int prevX = -1;
     struct vicii_ipc* ipc;
@@ -294,6 +339,7 @@ int main(int argc, char** argv, char** env) {
     // Default to 16.7us starting at 0
     startTicks = US_TO_TICKS(0);
     vluint64_t durationTicks;
+    vluint64_t userDurationUs = -1;
 
     char *cvalue = nullptr;
     char c;
@@ -305,8 +351,14 @@ int main(int argc, char** argv, char** env) {
     int testDriver = -1;
     int setGolden = 0;
 
-    while ((c = getopt (argc, argv, "c:hs:t:wi:zbo:d:r:g")) != -1)
+    while ((c = getopt (argc, argv, "c:hs:d:wi:zbo:l:r:gjt")) != -1)
     switch (c) {
+      case 't':
+        tracing = true;
+        break;
+      case 'j':
+        startWithReset = true;
+        break;
       case 'g':
         setGolden = 1;
         break;
@@ -316,7 +368,7 @@ int main(int argc, char** argv, char** env) {
         captureByTime = false;
         captureByFrame = false;
         break;
-      case 'd':
+      case 'l':
         logLevel = atoi(optarg);
         break;
       case 'c':
@@ -364,13 +416,13 @@ int main(int argc, char** argv, char** env) {
       case 's':
         startTicks = US_TO_TICKS(atol(optarg));
         break;
-      case 't':
-        durationTicks = US_TO_TICKS(atol(optarg));
+      case 'd':
+        userDurationUs = atol(optarg);
         break;
       case 'h':
         printf ("Usage\n");
         printf ("  -s [uS]   : start at uS\n");
-        printf ("  -t [uS]   : run for uS\n");
+        printf ("  -d [uS]   : run for uS\n");
         printf ("  -v        : generate vcd to file\n");
         printf ("  -o <file> : specify filename\n");
         printf ("  -w        : show SDL2 window\n");
@@ -380,6 +432,9 @@ int main(int argc, char** argv, char** env) {
         printf ("  -c <chip> : 0=CHIP6567R8, 1=CHIP6567R56A 2=CHIP65669\n");
         printf ("  -r <test> : run test driver #\n");
         printf ("  -g <test> : make golden master for test #\n");
+        printf ("  -h        : start under reset\n");
+        printf ("  -l        : log level\n");
+
 
         exit(0);
       case '?':
@@ -418,6 +473,17 @@ int main(int argc, char** argv, char** env) {
     top->V_B0C = 6;
     top->V_EC = 14;
 
+#if VM_TRACE
+    VerilatedVcdC* tfp = NULL;
+    if (tracing) {
+        Verilated::traceEverOn(true);  // Verilator must compute traced signals
+        VL_PRINTF("verilog tracing into session.vcd\n");
+        tfp = new VerilatedVcdC;
+        top->trace(tfp, 99);  // Trace 99 levels of hierarchy
+        tfp->open("session.vcd");  // Open the dump file
+    }
+#endif
+
     if (testDriver >= 0 && do_test_start(testDriver, top, setGolden) == TEST_FAIL) {
        LOG(LOG_ERROR, "test %d failed\n", testDriver);
        exit(-1);
@@ -446,16 +512,20 @@ int main(int argc, char** argv, char** env) {
     }
     printf ("Log Level: %d\n", logLevel);
 
-    switch (top->chip) {
-       case CHIP6567R8:
-       case CHIP6567R56A:
-          durationTicks = US_TO_TICKS(16700L);
-          break;
-       case CHIP6569:
-          durationTicks = US_TO_TICKS(20000L);
-          break;
-       default:
-          durationTicks = US_TO_TICKS(20000L);
+    if (userDurationUs == -1) {
+       switch (top->chip) {
+          case CHIP6567R8:
+          case CHIP6567R56A:
+             durationTicks = US_TO_TICKS(16700L);
+             break;
+          case CHIP6569:
+             durationTicks = US_TO_TICKS(20000L);
+             break;
+          default:
+             durationTicks = US_TO_TICKS(20000L);
+       }
+    } else {
+       durationTicks = US_TO_TICKS(userDurationUs);
     }
 
     if (isNtsc) {
@@ -573,8 +643,25 @@ int main(int argc, char** argv, char** env) {
        bt = bt * 2;
     }
 
-    top->eval();
-    STORE_PREV();
+    HEADER(top);
+    // Hold the design under reset, simulating the time
+    // it takes to load the bitstream at startup.
+
+    if (startWithReset) {
+       top->rst = 1;
+       for (int i=0;i<32;i++) {
+          top->eval();
+          nextClkCnt = 0;
+#if VM_TRACE
+	  if (tfp) tfp->dump(ticks / TICKS_TO_TIMESCALE);
+#endif
+          STATE(top);
+          STORE_PREV();
+          ticks = nextTick(top);
+       }
+       nextClkCnt = 0;
+       top->rst = 0;
+    }
 
     if (outputVcd)
        vcd_header(top,outFile);
@@ -615,8 +702,10 @@ int main(int argc, char** argv, char** env) {
                          top->V_RASTER_LINE != state->raster_line ||
                             top->clk_dot4x) {
                   top->eval();
-                  if (top->clk_dot4x)
-                     STATE();
+#if VM_TRACE
+	          if (tfp) tfp->dump(ticks / TICKS_TO_TIMESCALE);
+#endif
+                  STATE(top);
                   STORE_PREV();
                   ticks = nextTick(top);
                }
@@ -625,8 +714,10 @@ int main(int argc, char** argv, char** env) {
                // actual target we desire (xpos + 8)
                for (int i=0; i< 6; i++) {
                   top->eval();
-                  if (top->clk_dot4x)
-                     STATE();
+#if VM_TRACE
+	          if (tfp) tfp->dump(ticks / TICKS_TO_TIMESCALE);
+#endif
+                  STATE(top);
                   STORE_PREV();
                   ticks = nextTick(top);
                }
@@ -663,23 +754,14 @@ int main(int argc, char** argv, char** env) {
            top->dbi = state->data;
         }
 
-#ifdef TEST_RESET
-        // Test reset between approx 3 and approx 4 us
-        if (ticks >= US_TO_TICKS(3000L) && ticks <= US_TO_TICKS(4000L)) {
-           top->rst = 1;
-           nextClkCnt = 7;
-        } else {
-           top->rst = 0;
-           top->V_B0C = 6;
-           top->V_EC = 14;
-        }
-#endif
-
         prevX = top->V_RASTER_X;
         prevY = top->V_RASTER_LINE;
 
         // Evaluate model
         top->eval();
+#if VM_TRACE
+	if (tfp) tfp->dump(ticks / TICKS_TO_TIMESCALE);
+#endif
 
         bool showState = true;
         // When driving a test, it's nice to only show what's being captured
@@ -694,8 +776,9 @@ int main(int argc, char** argv, char** env) {
            showState = tst == TEST_CONTINUE_CAPTURING ? true : false;
         }
 
-        if (showState && top->clk_dot4x)
-           STATE();
+        if (showState) {
+           STATE(top);
+        }
 
         if (captureByTime)
            capture = (ticks >= startTicks) && (ticks <= endTicks);
@@ -770,7 +853,6 @@ int main(int argc, char** argv, char** env) {
              // Show updated pixels per raster line
              if (prevY != top->V_RASTER_LINE) {
                 SDL_RenderPresent(ren);
-
                 SDL_PollEvent(&event);
                 switch (event.type) {
                    case SDL_QUIT:
@@ -865,9 +947,12 @@ int main(int argc, char** argv, char** env) {
        SDL_Quit();
     }
 
-
     // Final model cleanup
     top->final();
+
+#if VM_TRACE
+    if (tfp) { tfp->close(); tfp = NULL; }
+#endif
 
     // Destroy model
     delete top;
