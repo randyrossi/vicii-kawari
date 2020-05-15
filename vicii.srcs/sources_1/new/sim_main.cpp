@@ -99,20 +99,6 @@ static unsigned char prev_signal_values[NUM_SIGNALS];
 // Some utility macros
 // Use RISING/FALLING in combination with HASCHANGED
 
-static int binBufNum=0;
-static char binBuf[8][65];
-char* toBin(int len, unsigned long reg) {
-   unsigned long b =1;
-   for (int c = 0 ; c < len; c++) {
-      binBuf[binBufNum][len-1-c] = reg & b ? '1' : '0';
-      b=b*2;
-   }
-   binBuf[binBufNum][len] = '\0';
-   char *buf = binBuf[binBufNum];
-   binBufNum = (binBufNum + 1) % 8;
-   return buf;
-}
-
 static char cycleToChar(int cycle){
   switch (cycle) {
     case VIC_LP   : return '#';
@@ -177,6 +163,8 @@ static void HEADER(Vvicii *top) {
 }
 
 static void STATE(Vvicii *top) {
+   if ((top->clk_dot4x & 1) == 0) return;
+
    if(HASCHANGED(OUT_DOT) && RISING(OUT_DOT))
       HEADER(top);
 
@@ -222,7 +210,7 @@ static void STATE(Vvicii *top) {
    top->aec,
    cycleToChar(top->vicCycle), 
    top->ras, 
-   top->muxr&32768?1:0, 
+   top->mux,
    top->cas, 
    top->V_RASTER_X, 
    top->V_RASTER_LINE,
@@ -233,9 +221,18 @@ static void STATE(Vvicii *top) {
    top->rw, 
    top->ce, 
    top->refc,
-   toBin(32, top->rasr),
-   toBin(32, top->muxr),
-   toBin(32, top->casr)
+
+   toBin(16, top->rasr),
+   toBin(16, top->muxr),
+   toBin(16, top->casr)
+
+   //toBin(16, top->V_PPS),
+   //toBin(32, top->V_PHIR),
+   //" "
+
+   //toBin(16, top->V_DOTRISINGR),
+   //toBin(32, top->V_DOTR),
+   //" "
    );
 }
 

@@ -35,6 +35,7 @@ module vicii(
    
    // For simulation
    reg [3:0] vicCycle,
+   output mux,
    output reg[15:0] rasr,
    output reg[15:0] casr,
    output reg[15:0] muxr,
@@ -176,8 +177,9 @@ endcase
   reg [9:0] xpos;
 
   // What cycle we are on:
-  //reg [2:0] vicCycle;
-
+  //reg [3:0] vicCycle;
+  reg[3:0] vicPreCycle;
+  
   // DRAM refresh counter
 //  reg [7:0] refc;
 
@@ -230,7 +232,7 @@ endcase
   //reg [15:0] muxr;
 
   // mux last 8 bits of read address
-  wire mux;
+  //wire mux;
 
   // tracks whether the condition for triggering these
   // types of interrupts happened, but may not be
@@ -278,18 +280,25 @@ endcase
     refc               = 8'hff;
     vicAddr            = 14'b0;
     vicCycle           = VIC_LP;
+    vicPreCycle        = VIC_LP;
     phir               = 32'b00000000000001111111111111111000;
     phi_phase_start    = 16'b000000000000100;
     dotr               = 32'b00110011001100110011001100110011;
     dot_risingr        = 16'b0100010001000100;
     
     rasr = 16'b1111100000000000;
-    muxr = 16'b1111110000000000;
+    muxr = 16'b1111100000000000; // drops early to due delayed use for ado
     casr = 16'b1111111000000000;
 
     rasterIrqDone = 1'b1;    
-    rasterCmp = 9'b100;
+    rasterCmp = 9'b11; // for testing
+
     irst = 1'b0;
+    imbc = 1'b0;
+    immc = 1'b0;
+    ilp = 1'b0;
+    
+    erst = 1'b1;
     embc = 1'b0;
     emmc = 1'b0;
     elp = 1'b0;
@@ -351,7 +360,9 @@ endcase
        irst <= 1'b0;
      end
      else begin
-     if (clk_phi && phi_phase_start[15] &&
+     // TODO: What point in the phi low cycle does irq rise? This might
+     // be too early.  Find out.
+     if (clk_phi == 1'b0 && phi_phase_start[1] && // just went phi low
        ((raster_line == 0 && cycle_num == 1) || (raster_line != 0 && cycle_num == 0)))
        rasterIrqDone <= 1'b0;
      if (irst_clr)
@@ -372,8 +383,10 @@ endcase
   always @(posedge clk_dot4x)
   if (rst)
      refc <= 8'hff;
-  else if (phi_phase_start[15]) begin
-     // About to leave LR into HRC or HRI
+  else if (phi_phase_start[15]) begin // about to transition
+     // About to leave LR into HRC or HRI. Okay to use vicCycle here
+     // before the end of this phase because we know it's either heading
+     // into HRC or HRI.
      if (vicCycle == VIC_LR)
          refc <= refc - 8'd1;
      else if (raster_x == rasterXMax && raster_line == rasterYMax)
@@ -530,76 +543,77 @@ always @(posedge clk_dot4x)
   // LI -> HI
    
   always @(posedge clk_dot4x)
-     if (rst)
+     if (rst) begin
         vicCycle <= VIC_LP;
-     else if (phi_phase_start[15]) begin
+        vicPreCycle <= VIC_LP;
+     end else if (phi_phase_start[14]) begin
        if (clk_phi == 1'b0) begin // about to go phi high
           case (vicCycle)
              VIC_LP: begin
                 if (spriteDmaEn)
-                   vicCycle <= VIC_HS1;
+                   vicPreCycle <= VIC_HS1;
                 else
-                   vicCycle <= VIC_HPI1;
+                   vicPreCycle <= VIC_HPI1;
              end
              VIC_LPI2:
-                   vicCycle <= VIC_HPI2;
+                   vicPreCycle <= VIC_HPI2;
              VIC_LS2:
-                vicCycle <= VIC_HS3;
+                vicPreCycle <= VIC_HS3;
              VIC_LR: begin
                 if (refreshCnt == 4 && raster_line == 1)
-                    vicCycle <= VIC_HRC;
+                    vicPreCycle <= VIC_HRC;
                 else
-                    vicCycle <= VIC_HRI;
+                    vicPreCycle <= VIC_HRI;
              end
              VIC_LG: begin
                 if (cycle_num == 54) begin
-                      vicCycle <= VIC_HI;
+                      vicPreCycle <= VIC_HI;
                       idleCnt <= 0;
                 end else
                    if (raster_line == 1)
-                      vicCycle <= VIC_HGC;
+                      vicPreCycle <= VIC_HGC;
                    else
-                      vicCycle <= VIC_HGI;
+                      vicPreCycle <= VIC_HGI;
                 end
-             VIC_LI: vicCycle <= VIC_HI;
+             VIC_LI: vicPreCycle <= VIC_HI;
              default: ;
           endcase
        end else begin // about to go phi low
           case (vicCycle)
-             VIC_HS1: vicCycle <= VIC_LS2;
-             VIC_HPI1: vicCycle <= VIC_LPI2;
+             VIC_HS1: vicPreCycle <= VIC_LS2;
+             VIC_HPI1: vicPreCycle <= VIC_LPI2;
              VIC_HS3, VIC_HPI2: begin
                  if (spriteCnt == 7) begin
-                    vicCycle <= VIC_LR;
+                    vicPreCycle <= VIC_LR;
                     spriteCnt <= 0;
                     refreshCnt <= 0;
                  end else begin
-                    vicCycle <= VIC_LP;
+                    vicPreCycle <= VIC_LP;
                     spriteCnt <= spriteCnt + 1'd1;
                  end
              end
              VIC_HRI: begin
                  if (refreshCnt == 4) begin
-                    vicCycle <= VIC_LG;
+                    vicPreCycle <= VIC_LG;
                  end else begin
-                    vicCycle <= VIC_LR;
+                    vicPreCycle <= VIC_LR;
                     refreshCnt <= refreshCnt + 1'd1;
                  end
              end
              VIC_HRC: begin
-                 vicCycle <= VIC_LG;
+                 vicPreCycle <= VIC_LG;
              end
-             VIC_HGC, VIC_HGI: vicCycle <= VIC_LG;
+             VIC_HGC, VIC_HGI: vicPreCycle <= VIC_LG;
              VIC_HI: begin
                  if (chip == CHIP6567R56A && idleCnt == 3)
-                    vicCycle <= VIC_LP;
+                    vicPreCycle <= VIC_LP;
                  else if (chip == CHIP6567R8 && idleCnt == 4)
-                    vicCycle <= VIC_LP;
+                    vicPreCycle <= VIC_LP;
                  else if (chip == CHIP6569 && idleCnt == 2)
-                    vicCycle <= VIC_LP;
+                    vicPreCycle <= VIC_LP;
                  else begin
                     idleCnt <= idleCnt + 1'd1;
-                    vicCycle <= VIC_LI;
+                    vicPreCycle <= VIC_LI;
                  end
              end
              default: ;
@@ -607,19 +621,26 @@ always @(posedge clk_dot4x)
        end
      end
      
+  // transfer vicPreCycle to vicCycle. vicPreCycle lets us determine what
+  // cycle the state machine will be in on the last tick of a phase if
+  // we need to
+  always @(posedge clk_dot4x)
+     if (phi_phase_start[15])
+        vicCycle <= vicPreCycle;
     
   // RAS/CAS/MUX profiles
+  // Data must be stable by falling RAS edge
+  // Then stable by falling CAS edge
+  // MUX drops at the same time rasr drops due
+  // to its delayed use to set ado 
   always @(posedge clk_dot4x)
   if (rst) begin
      rasr <= 16'b1111000000000000;
      casr <= 16'b1111110000000000;
   end
-  else if (phi_phase_start[15]) begin
-    // Here we check bit cycle = 7 to indicate we will
-    // transition from high to low phi for this delayed
-    // assignment.
-    if (bit_cycle == 3'd7) // phi going low
-    case (vicCycle)
+  else if (phi_phase_start[15]) begin // about to transition
+    if (clk_phi) // phi going low
+    case (vicPreCycle)
     VIC_LPI2, VIC_LI: begin
              rasr <= 16'b1111111111111111;
              casr <= 16'b1111111111111111;
@@ -629,7 +650,7 @@ always @(posedge clk_dot4x)
              casr <= 16'b1111111110000000;
            end
     endcase
-    else if (bit_cycle == 3'd3) begin // phi going high
+    else begin // phi going high
        rasr <= 16'b1111111000000000;
        casr <= 16'b1111111110000000;
     end
@@ -637,28 +658,26 @@ always @(posedge clk_dot4x)
     rasr <= {rasr[14:0],1'b0};
     casr <= {casr[14:0],1'b0};
   end
-    
   assign ras = rasr[15];
   assign cas = casr[15];
 
+  // muxr drops 1 cycle early due to delayed use for
+  // ado.
   always @(posedge clk_dot4x)
   if (rst)
-     muxr <= 16'b1111100000000000;
-  else if (phi_phase_start[15]) begin
-    // Here we check bit cycle = 7 to indicate we will be
-    // transitioning from high low phi on next tick for
-    // this delayed assignment
-    if (bit_cycle == 3'd7) // phi going low
-    case (vicCycle)
+     muxr <= 16'b1111000000000000;
+  else if (phi_phase_start[15]) begin // about to transition
+    if (clk_phi) // phi going low
+    case (vicPreCycle)
     VIC_LPI2, VIC_LI: muxr <= 16'b1111111111111111;
     VIC_LR:           muxr <= 16'b0000000000000000;
-    default:          muxr <= 16'b1111111100000000;
+    default:          muxr <= 16'b1111111000000000;
     endcase
-    else if (bit_cycle == 3'd3) // phi going high
-                      muxr <= 16'b1111111100000000;
+    else        // phi going high
+                      muxr <= 16'b1111111000000000;
   end else
     muxr <= {muxr[14:0],1'b0};
-  assign mux = muxr[14]; // 1 cycle early due to delayed use of mux
+  assign mux = muxr[15]; 
 
   // Address generation
   always @*

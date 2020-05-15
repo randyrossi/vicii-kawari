@@ -12,4 +12,6 @@ extern int logLevel;
 
 #define LOG(minLevel, FORMAT, ...)  if (logLevel >= minLevel) { printf ("%s: " FORMAT "\n", logLevelStr[logLevel], ##__VA_ARGS__); }
 
+char* toBin(int len, unsigned long reg);
+
 #endif
