@@ -22,21 +22,26 @@ int is_frame_end(Vvicii* top);
 int is_about_to_start_line(Vvicii* top, int line);
 int is_about_to_start_cycle(Vvicii* top, int cycle);
 
-#define TEST_START(name, test_id, use_golden) \
+#define TEST_START(name, test_id) \
 int name##_start(Vvicii *top, int golden) { \
    LOG(LOG_INFO, test_id); \
-   if (use_golden) { \
-     char format[64]; \
-     char name[64]; \
-     strcpy (format, "tests/"); \
-     strcat (format, test_id); \
-     strcat (format, "_chip%d.dat"); \
-     sprintf (name, format, top->chip); \
-     fp = do_start_file((const char*)name, golden); \
-     if (!fp) {\
-        LOG(LOG_ERROR,"Can't open goden for %s", golden ? "write" : "read");\
-        return TEST_FAIL;\
-     }\
+   init(top); \
+   return TEST_CONTINUE_NOT_CAPTURING; \
+}
+
+#define TEST_START_WITH_GOLDEN(name, test_id) \
+int name##_start(Vvicii *top, int golden) { \
+   LOG(LOG_INFO, test_id); \
+   char format[64]; \
+   char name[64]; \
+   strcpy (format, "tests/"); \
+   strcat (format, test_id); \
+   strcat (format, "_chip%d.dat"); \
+   sprintf (name, format, top->chip); \
+   fp = do_start_file((const char*)name, golden); \
+   if (!fp) {\
+      LOG(LOG_ERROR,"Can't open goden for %s", golden ? "write" : "read");\
+      return TEST_FAIL;\
    }\
    init(top); \
    return TEST_CONTINUE_NOT_CAPTURING; \

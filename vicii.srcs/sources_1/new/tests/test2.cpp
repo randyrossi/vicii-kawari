@@ -7,7 +7,7 @@ static FILE* fp;
 static bool enabled;
 
 static void init(Vvicii*) {}
-TEST_START(test2, "cycles_all_sprites_no_badlines", true);
+TEST_START_WITH_GOLDEN(test2, "cycles_all_sprites_no_badlines");
 
 // Tests rasterline 1 has expected xpos and vicCycles
 // when all sprites active and no badlines active.
