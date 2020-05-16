@@ -8,6 +8,8 @@ static bool enabled;
 
 TEST_START(test2, "cycles_all_sprites_no_badlines");
 
+// Tests rasterline 1 has expected xpos and vicCycles
+// when all sprites active and no badlines active.
 int test2_run(Vvicii* top, int golden) {
    if (is_about_to_start_line(top, 1)) {
       top->V_DMAEN = 1;

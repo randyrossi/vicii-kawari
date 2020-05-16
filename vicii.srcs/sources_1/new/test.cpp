@@ -2,10 +2,11 @@
 
 #include "log.h"
 #include "test.h"
-#include "tests/test1.h"
-#include "tests/test2.h"
 
 typedef int (*test_func)(Vvicii*, int);
+
+TEST_BLOCK(test1);
+TEST_BLOCK(test2);
 
 static int tickCount;
 

@@ -8,6 +8,8 @@ static bool enabled;
 
 TEST_START(test1, "cycles_no_sprites_no_badlines");
 
+// Tests rasterline 1 has expected xpos and vicCycles
+// when no sprites and no badlines active.
 int test1_run(Vvicii* top, int golden) {
    if (is_about_to_start_line(top, 1)) {
       enabled = true;
