@@ -24,9 +24,7 @@ int do_test_start(int driver, Vvicii* top, int golden) {
 }
 
 int do_test(int driver, Vvicii* top, int golden) {
-   if (top->clk_dot4x)
-      return test_run[driver-1](top, golden);
-   return TEST_CONTINUE_NOT_CAPTURING;
+   return test_run[driver-1](top, golden);
 }
 
 FILE* do_start_file(const char* name, int golden) {

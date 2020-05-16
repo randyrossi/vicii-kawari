@@ -82,6 +82,17 @@ test:
 	obj_dir/Vvicii -r 1 -c 0
 	obj_dir/Vvicii -r 1 -c 1
 	obj_dir/Vvicii -r 1 -c 2
+	obj_dir/Vvicii -r 2 -c 0
+	obj_dir/Vvicii -r 2 -c 1
+	obj_dir/Vvicii -r 2 -c 2
+
+make_golden:
+	obj_dir/Vvicii -r 1 -c 0 -g -l3 > tests/test1_c0.log
+	obj_dir/Vvicii -r 1 -c 1 -g -l3 > tests/test1_c1.log
+	obj_dir/Vvicii -r 1 -c 2 -g -l3 > tests/test1_c2.log
+	obj_dir/Vvicii -r 2 -c 0 -g -l3 > tests/test2_c0.log
+	obj_dir/Vvicii -r 2 -c 1 -g -l3 > tests/test2_c1.log
+	obj_dir/Vvicii -r 2 -c 2 -g -l3 > tests/test2_c2.log
 
 ######################################################################
 

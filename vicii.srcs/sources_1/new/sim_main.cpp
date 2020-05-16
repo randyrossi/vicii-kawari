@@ -222,13 +222,13 @@ static void STATE(Vvicii *top) {
    top->ce, 
    top->V_REFC,
 
-   toBin(16, top->V_RASR),
-   toBin(16, top->V_MUXR),
-   toBin(16, top->V_CASR)
+   //toBin(16, top->V_RASR),
+   //toBin(16, top->V_MUXR),
+   //toBin(16, top->V_CASR)
 
-   //toBin(16, top->V_PPS),
-   //toBin(32, top->V_PHIR),
-   //" "
+   toBin(16, top->V_PPS),
+   toBin(32, top->V_PHIR),
+   " "
 
    //toBin(16, top->V_DOTRISINGR),
    //toBin(32, top->V_DOTR),
@@ -672,6 +672,7 @@ int main(int argc, char** argv, char** env) {
     // IMPORTANT: Any and all state reads/writes MUST occur between ipc_receive
     // and ipc_receive_done inside this loop.
     int ticksUntilDone = 0;
+    bool showState = true;
     while (!Verilated::gotFinish()) {
 
         // Are we shadowing from VICE? Wait for sync data, then
@@ -760,12 +761,16 @@ int main(int argc, char** argv, char** env) {
 	if (tfp) tfp->dump(ticks / TICKS_TO_TIMESCALE);
 #endif
 
-        bool showState = true;
         // When driving a test, it's nice to only show what's being captured
         // by that test.
         if (testDriver >= 0) {
            int tst = do_test(testDriver, top, setGolden);
-           if (tst == TEST_END) break;
+           if (tst == TEST_END) {
+              if (showState) {
+                 STATE(top);
+              }
+	      break;
+	   }
            if (tst == TEST_FAIL) {
               LOG(LOG_ERROR, "test %d failed\n", testDriver);
               exit(-1);

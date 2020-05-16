@@ -39,4 +39,11 @@ int name##_start(Vvicii *top, int golden) { \
    return TEST_CONTINUE_NOT_CAPTURING; \
 }
 
+#define EXPECT(name, have, expected) \
+   if (have != expected) { \
+      LOG(LOG_ERROR,"Expected " #name "=%d but got %d\n", expected, have); \
+      return TEST_FAIL; \
+   }
+
+
 #endif

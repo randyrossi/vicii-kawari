@@ -23,10 +23,7 @@ int test2_run(Vvicii* top, int golden) {
          fprintf (fp, "%d\n", top->vicCycle);
       } else {
          fscanf (fp, "%d\n", &cycle);
-         if (top->vicCycle != cycle) {
-            LOG(LOG_ERROR,"Expected vicCycle=%d but got %d\n", cycle, top->vicCycle);
-            return TEST_FAIL;
-         }
+	 EXPECT("vicCycle", top->vicCycle, cycle);
       }
       return TEST_CONTINUE_CAPTURING;
    }

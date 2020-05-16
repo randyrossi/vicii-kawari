@@ -91,20 +91,20 @@ wire clk_dot;  // 8.18181 Mhz NTSC
 // Set Limits
 always @(chip)
 case(chip)
-CHIP6567R56A:
+CHIP6567R8:
    begin
       rasterXMax = 10'd519;     // 520 pixels 
-      rasterYMax = 9'd261;      // 262 lines
+      rasterYMax = 9'd262;      // 263 lines
       hSyncStart = 10'd406;
       hSyncEnd = 10'd443;       // 4.6us
       hVisibleStart = 10'd494;  // 10.7us after hSyncStart seems to work
       vBlankStart = 9'd11;
       vBlankEnd = 9'd19;
    end
-CHIP6567R8:
+CHIP6567R56A:
    begin
       rasterXMax = 10'd511;     // 512 pixels
-      rasterYMax = 9'd260;      // 261 lines
+      rasterYMax = 9'd261;      // 262 lines
       hSyncStart = 10'd406;
       hSyncEnd = 10'd443;       // 4.6us
       hVisibleStart = 10'd494;  // 10.7us after hSyncStart seems to work
@@ -536,7 +536,7 @@ always @(posedge clk_dot4x)
   // HI --2|3|4?--> LP
   //      --else--> LI
   // LI -> HI
-   
+  wire badline = 1'b0; // TEMPORARY
   always @(posedge clk_dot4x)
      if (rst) begin
         vicCycle <= VIC_LP;
@@ -555,7 +555,7 @@ always @(posedge clk_dot4x)
              VIC_LS2:
                 vicPreCycle <= VIC_HS3;
              VIC_LR: begin
-                if (refreshCnt == 4 && raster_line == 1)
+                if (refreshCnt == 4 && badline == 1'b1)
                     vicPreCycle <= VIC_HRC;
                 else
                     vicPreCycle <= VIC_HRI;
@@ -565,7 +565,7 @@ always @(posedge clk_dot4x)
                       vicPreCycle <= VIC_HI;
                       idleCnt <= 0;
                 end else
-                   if (raster_line == 1)
+                   if (badline == 1'b1)
                       vicPreCycle <= VIC_HGC;
                    else
                       vicPreCycle <= VIC_HGI;

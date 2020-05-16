@@ -18,14 +18,13 @@ int test1_run(Vvicii* top, int golden) {
 
    if (enabled) {
       int cycle = -1;
+      int xpos = -1;
       if (golden) {
-         fprintf (fp, "%d\n", top->vicCycle);
+         fprintf (fp, "%3x %d\n", top->V_XPOS, top->vicCycle);
       } else {
-         fscanf (fp, "%d\n", &cycle);
-         if (top->vicCycle != cycle) {
-            LOG(LOG_ERROR,"Expected vicCycle=%d but got %d\n", cycle, top->vicCycle);
-            return TEST_FAIL;
-         }
+         fscanf (fp, "%3x %d\n", &xpos, &cycle);
+	 EXPECT("vicCycle", top->vicCycle, cycle);
+	 EXPECT("xpos", top->V_XPOS, xpos);
       }
       return TEST_CONTINUE_CAPTURING;
    }
