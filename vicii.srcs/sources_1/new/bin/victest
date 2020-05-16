@@ -1,0 +1,18 @@
+#!/bin/bash
+
+TESTS="1 2 3 4 5 6"
+CHIPS="0 1 2"
+GOLDEN=$1
+
+for n in $TESTS
+do
+   for c in $CHIPS
+   do
+      if [ "$GOLDEN" = "1" ]
+      then
+         vicsim -r $n -c $c -l3 -g > tests/test${n}_c${c}.log
+      else
+         vicsim -r $n -c $c
+      fi
+   done
+done

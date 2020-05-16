@@ -33,7 +33,7 @@ export VERILATOR_ROOT
 VERILATOR = $(VERILATOR_ROOT)/bin/verilator
 endif
 
-TESTS=tests/test1.cpp tests/test2.cpp tests/test3.cpp tests/test4.cpp
+TESTS=tests/test1.cpp tests/test2.cpp tests/test3.cpp tests/test4.cpp tests/test5.cpp tests/test6.cpp
 
 default: ipc_test vicii_ipc.o libvicii_ipc.so
 	$(VERILATOR) --trace -cc --exe vicii.v clockdivs.v sync.v serration.v equalization.v sim_main.cpp test.cpp log.cpp $(TESTS) -CFLAGS -g -LDFLAGS '../vicii_ipc.o -lSDL2'
@@ -79,32 +79,10 @@ view:
 	obj_dir/Vvicii -w
 
 test:
-	obj_dir/Vvicii -r 1 -c 0
-	obj_dir/Vvicii -r 1 -c 1
-	obj_dir/Vvicii -r 1 -c 2
-	obj_dir/Vvicii -r 2 -c 0
-	obj_dir/Vvicii -r 2 -c 1
-	obj_dir/Vvicii -r 2 -c 2
-	obj_dir/Vvicii -r 3 -c 0
-	obj_dir/Vvicii -r 3 -c 1
-	obj_dir/Vvicii -r 3 -c 2
-	obj_dir/Vvicii -r 4 -c 0
-	obj_dir/Vvicii -r 4 -c 1
-	obj_dir/Vvicii -r 4 -c 2
+	./bin/victest
 
 make_golden:
-	obj_dir/Vvicii -r 1 -c 0 -g -l3 > tests/test1_c0.log
-	obj_dir/Vvicii -r 1 -c 1 -g -l3 > tests/test1_c1.log
-	obj_dir/Vvicii -r 1 -c 2 -g -l3 > tests/test1_c2.log
-	obj_dir/Vvicii -r 2 -c 0 -g -l3 > tests/test2_c0.log
-	obj_dir/Vvicii -r 2 -c 1 -g -l3 > tests/test2_c1.log
-	obj_dir/Vvicii -r 2 -c 2 -g -l3 > tests/test2_c2.log
-	obj_dir/Vvicii -r 3 -c 0 -g -l3 > tests/test3_c0.log
-	obj_dir/Vvicii -r 3 -c 1 -g -l3 > tests/test3_c1.log
-	obj_dir/Vvicii -r 3 -c 2 -g -l3 > tests/test3_c2.log
-	obj_dir/Vvicii -r 4 -c 0 -g -l3 > tests/test4_c0.log
-	obj_dir/Vvicii -r 4 -c 1 -g -l3 > tests/test4_c1.log
-	obj_dir/Vvicii -r 4 -c 2 -g -l3 > tests/test4_c2.log
+	./bin/victest 1
 
 ######################################################################
 

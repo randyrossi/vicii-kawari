@@ -71,4 +71,5 @@
 #define V_REFC         vicii__DOT__refc
 #define V_ERST         vicii__DOT__erst
 #define V_IRST         vicii__DOT__irst
+#define V_IRST_CLR     vicii__DOT__irst_clr
 #define V_RASTERCMP    vicii__DOT__rasterCmp
