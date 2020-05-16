@@ -286,14 +286,14 @@ endcase
     casr = 16'b1111111000000000;
 
     rasterIrqDone = 1'b1;    
-    rasterCmp = 9'b11; // for testing
+    rasterCmp = 9'b0;
 
     irst = 1'b0;
     imbc = 1'b0;
     immc = 1'b0;
     ilp = 1'b0;
     
-    erst = 1'b1;
+    erst = 1'b0;
     embc = 1'b0;
     emmc = 1'b0;
     elp = 1'b0;

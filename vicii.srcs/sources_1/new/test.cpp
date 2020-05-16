@@ -7,17 +7,23 @@ typedef int (*test_func)(Vvicii*, int);
 
 TEST_BLOCK(test1);
 TEST_BLOCK(test2);
+TEST_BLOCK(test3);
+TEST_BLOCK(test4);
 
 static int tickCount;
 
 test_func test_start[] = {
    test1_start,
    test2_start,
+   test3_start,
+   test4_start,
 };
 
 test_func test_run[] = {
    test1_run,
    test2_run,
+   test3_run,
+   test4_run,
 };
 
 int do_test_start(int driver, Vvicii* top, int golden) {

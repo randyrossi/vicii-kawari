@@ -481,6 +481,8 @@ int main(int argc, char** argv, char** env) {
     }
 #endif
 
+    top->eval();
+
     if (testDriver >= 0 && do_test_start(testDriver, top, setGolden) == TEST_FAIL) {
        LOG(LOG_ERROR, "test %d failed\n", testDriver);
        exit(-1);
