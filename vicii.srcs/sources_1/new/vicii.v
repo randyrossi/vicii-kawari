@@ -33,13 +33,8 @@ module vicii(
    output ras,
    output cas,
    
-   // For simulation
-   reg [3:0] vicCycle,
    output mux,
-   output reg[15:0] rasr,
-   output reg[15:0] casr,
-   output reg[15:0] muxr,
-   output reg[7:0] refc
+   reg [3:0] vicCycle
 );
 
 parameter CHIP6567R8   = 2'd0;
@@ -181,7 +176,7 @@ endcase
   reg[3:0] vicPreCycle;
   
   // DRAM refresh counter
-//  reg [7:0] refc;
+  reg [7:0] refc;
 
   // When enabled, sprite bytes are fetched in sprite cycles
   reg spriteDmaEn;
@@ -227,9 +222,9 @@ endcase
   // phi_phase_start[15]==1 means phi will be HIGH next tick
   reg [15:0] phi_phase_start;
 
-  //reg [15:0] rasr;
-  //reg [15:0] casr;
-  //reg [15:0] muxr;
+  reg [15:0] rasr;
+  reg [15:0] casr;
+  reg [15:0] muxr;
 
   // mux last 8 bits of read address
   //wire mux;

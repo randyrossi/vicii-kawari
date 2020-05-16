@@ -65,3 +65,7 @@
 #define V_DOTRISINGR   vicii__DOT__dot_risingr
 #define V_PHIR         vicii__DOT__phir
 #define V_DOTR         vicii__DOT__dotr
+#define V_RASR         vicii__DOT__rasr
+#define V_CASR         vicii__DOT__casr
+#define V_MUXR         vicii__DOT__muxr
+#define V_REFC         vicii__DOT__refc

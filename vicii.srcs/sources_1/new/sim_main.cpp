@@ -220,11 +220,11 @@ static void STATE(Vvicii *top) {
    top->dbo, 
    top->rw, 
    top->ce, 
-   top->refc,
+   top->V_REFC,
 
-   toBin(16, top->rasr),
-   toBin(16, top->muxr),
-   toBin(16, top->casr)
+   toBin(16, top->V_RASR),
+   toBin(16, top->V_MUXR),
+   toBin(16, top->V_CASR)
 
    //toBin(16, top->V_PPS),
    //toBin(32, top->V_PHIR),
@@ -825,7 +825,7 @@ int main(int argc, char** argv, char** env) {
 
              // Refresh counter is supposed to reset at raster 0
              if (top->V_RASTER_X == 0 && top->V_RASTER_LINE == 0)
-                CHECK (top, top->refc == 0xff, __LINE__);
+                CHECK (top, top->V_REFC == 0xff, __LINE__);
 
              if(top->V_BIT_CYCLE == 0 || top->V_BIT_CYCLE == 4) {
                 // CAS & RAS should be high at the start of each phase
