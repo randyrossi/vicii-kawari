@@ -8,7 +8,7 @@ static bool enabled;
 
 TEST_START(test1, "cycles_no_sprites_no_badlines");
 
-int test1_post(Vvicii* top, int golden) {
+int test1_run(Vvicii* top, int golden) {
    if (is_about_to_start_line(top, 1)) {
       enabled = true;
    } else if (is_about_to_start_line(top, 2)) {

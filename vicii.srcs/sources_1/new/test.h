@@ -10,11 +10,11 @@
 #define TEST_END                    3
 
 int do_test_start(int driver, Vvicii *top, int golden);
-int do_test_post(int driver, Vvicii* top, int golden);
+int do_test(int driver, Vvicii* top, int golden);
 
 #define TEST_BLOCK(name) \
 int name##_start(Vvicii *top, int golden); \
-int name##_post(Vvicii* top, int golden);
+int name##_run(Vvicii* top, int golden);
 
 FILE* do_start_file(const char* name, int golden);
 

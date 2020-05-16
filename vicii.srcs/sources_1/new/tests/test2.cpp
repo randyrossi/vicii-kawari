@@ -8,7 +8,7 @@ static bool enabled;
 
 TEST_START(test2, "cycles_all_sprites_no_badlines");
 
-int test2_post(Vvicii* top, int golden) {
+int test2_run(Vvicii* top, int golden) {
    if (is_about_to_start_line(top, 1)) {
       top->V_DMAEN = 1;
       enabled = true;

@@ -14,18 +14,18 @@ test_func test_start[] = {
    test2_start,
 };
 
-test_func test_post[] = {
-   test1_post,
-   test2_post,
+test_func test_run[] = {
+   test1_run,
+   test2_run,
 };
 
 int do_test_start(int driver, Vvicii* top, int golden) {
    return test_start[driver-1](top, golden);
 }
 
-int do_test_post(int driver, Vvicii* top, int golden) {
+int do_test(int driver, Vvicii* top, int golden) {
    if (top->clk_dot4x)
-      return test_post[driver-1](top, golden);
+      return test_run[driver-1](top, golden);
    return TEST_CONTINUE_NOT_CAPTURING;
 }
 

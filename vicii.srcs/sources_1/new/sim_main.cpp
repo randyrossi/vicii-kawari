@@ -764,7 +764,7 @@ int main(int argc, char** argv, char** env) {
         // When driving a test, it's nice to only show what's being captured
         // by that test.
         if (testDriver >= 0) {
-           int tst = do_test_post(testDriver, top, setGolden);
+           int tst = do_test(testDriver, top, setGolden);
            if (tst == TEST_END) break;
            if (tst == TEST_FAIL) {
               LOG(LOG_ERROR, "test %d failed\n", testDriver);
