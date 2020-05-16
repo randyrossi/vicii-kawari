@@ -1,8 +1,15 @@
 #!/bin/bash
 
-TESTS="1 2 3 4 5 6"
-CHIPS="0 1 2"
+
+# if golden is 1, will create all golden masters for tests
+# that use comparisons
 GOLDEN=$1
+
+# Discover available test numbers from .cpp files
+TESTS=`ls tests/test[0-9]*.cpp | sed 's/tests.test//' | sed 's/.cpp//'`
+# Do all chips for every test
+CHIPS="0 1 2"
+
 
 for n in $TESTS
 do
@@ -10,9 +17,11 @@ do
    do
       if [ "$GOLDEN" = "1" ]
       then
-         vicsim -r $n -c $c -l3 -g > tests/test${n}_c${c}.log
+         vicsim -r $n -c $c -l4 -g > tests/test${n}_c${c}.log
       else
-         vicsim -r $n -c $c
+	 # Do both with and without reset at start
+         vicsim -r $n -c $c -l3
+         vicsim -j -r $n -c $c -l3
       fi
    done
 done

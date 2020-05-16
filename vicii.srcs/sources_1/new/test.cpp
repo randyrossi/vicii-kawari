@@ -11,6 +11,7 @@ TEST_BLOCK(test3);
 TEST_BLOCK(test4);
 TEST_BLOCK(test5);
 TEST_BLOCK(test6);
+TEST_BLOCK(test7);
 
 static int tickCount;
 
@@ -21,6 +22,7 @@ test_func test_start[] = {
    test4_start,
    test5_start,
    test6_start,
+   test7_start,
 };
 
 test_func test_run[] = {
@@ -30,6 +32,7 @@ test_func test_run[] = {
    test4_run,
    test5_run,
    test6_run,
+   test7_run,
 };
 
 int do_test_start(int driver, Vvicii* top, int golden) {

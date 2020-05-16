@@ -133,7 +133,7 @@ static int SGETVAL(int signum) {
 }
 
 static void HEADER(Vvicii *top) {
-   LOG(LOG_INFO, 
+   LOG(LOG_VERBOSE, 
    "  " 
    "D4X "
    "CNT "
@@ -168,7 +168,7 @@ static void STATE(Vvicii *top) {
    if(HASCHANGED(OUT_DOT) && RISING(OUT_DOT))
       HEADER(top);
 
-   LOG(LOG_INFO, 
+   LOG(LOG_VERBOSE, 
    "%c "      /*DOT*/ 
    "%01d   "   /*D4x*/ 
    "%02d  "   /*CNT*/ 
@@ -484,6 +484,7 @@ int main(int argc, char** argv, char** env) {
     top->eval();
 
     if (testDriver >= 0 && do_test_start(testDriver, top, setGolden) == TEST_FAIL) {
+       STATE(top);
        LOG(LOG_ERROR, "test %d failed\n", testDriver);
        exit(-1);
     }
@@ -647,6 +648,7 @@ int main(int argc, char** argv, char** env) {
     // it takes to load the bitstream at startup.
 
     if (startWithReset) {
+       printf ("(RESET)\n");
        top->rst = 1;
        for (int i=0;i<32;i++) {
           top->eval();
@@ -774,6 +776,7 @@ int main(int argc, char** argv, char** env) {
 	      break;
 	   }
            if (tst == TEST_FAIL) {
+              STATE(top);
               LOG(LOG_ERROR, "test %d failed\n", testDriver);
               exit(-1);
            }

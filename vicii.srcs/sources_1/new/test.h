@@ -53,5 +53,11 @@ int name##_start(Vvicii *top, int golden) { \
       return TEST_FAIL; \
    }
 
+#define EXPECTSTR(name, have, expected) \
+   if (strcmp(have, expected) != 0) { \
+      LOG(LOG_ERROR,"Expected " #name "=%s but got %s\n", expected, have); \
+      return TEST_FAIL; \
+   }
+
 
 #endif
