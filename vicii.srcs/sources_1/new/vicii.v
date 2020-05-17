@@ -32,6 +32,8 @@ module vicii(
    output ba,
    output ras,
    output cas,
+   output den,
+   output dir,
    
    output mux,
    reg [3:0] vicCycle
@@ -690,6 +692,9 @@ always @(posedge clk_dot4x)
      ado8 <= mux ? {2'b11, vicAddr[13:8]} : vicAddr[7:0];
   assign ado = {vicAddr[11:8], ado8};
   
+  assign den = aec ? ce : 1'b0;
+  assign dir = aec ? rw : 1'b0;
+
    
   ///////// BEGIN TEMP STUFF
  // Stuff like this won't work in the real core. There is no comparitor controlling

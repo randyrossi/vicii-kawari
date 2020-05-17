@@ -18,8 +18,10 @@ module top(
    output irq,         // irq
    output aec,         // aec
    output ba,          // ba
-   output cas,         // cas
-   output ras          // ras
+   output cas,         // column address strobe
+   output ras,         // row address strobe
+   output den,         // data enable for bus transceiver
+   output dir          // dir for bus transceiver
 );
 
 parameter CHIP6567R8   = 2'd0;
@@ -72,7 +74,9 @@ vicii vic_inst(
    .irq(irq),
    .ba(ba),
    .cas(cas),
-   .ras(ras)
+   .ras(ras),
+   .den(den),
+   .dir(dir)
 );
 
 // Write to bus condition, else tri state.

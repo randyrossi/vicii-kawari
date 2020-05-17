@@ -60,12 +60,12 @@ SIGNALS=cas,ras,mux,phi,rw,ce
 
 # Bring up the logic analyser on a frame's worth of data
 logic:
-	obj_dir/Vvicii -i $(SIGNALS) -o session.vcd
+	obj_dir/Vvicii -i $(SIGNALS) -t
 	gtkwave session.vcd
 
 # Bring up the logic analyzer after capturing a session from VICE
 logic_vice:
-	obj_dir/Vvicii -i $(SIGNALS) -z -o session.vcd
+	obj_dir/Vvicii -i $(SIGNALS) -z -t
 	gtkwave session.vcd
 
 # Show a window while capturing and then bring up the logic analyser
