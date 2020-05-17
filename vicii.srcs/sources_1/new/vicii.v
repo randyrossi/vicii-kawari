@@ -61,15 +61,7 @@ parameter VIC_HGI  = 12; // high phase, idle after g
 parameter VIC_HI   = 13; // high phase, idle
 parameter VIC_LI   = 14; // low phase, idle
 
-// These are the only valid combinations
-// for phase 1 and 2. Idle 2nd phase is
-// CPU bus access.
-// II, PI, PS, SS, RI, RC, GC, GI
-
-// BA must go low 3 cycles before PS, SS, RC & GC
-// BA can go high again at any *I unless
-// one of PS, SS, RC & GC are within 3 upcoming
-// cycles
+// BA must go low 3 cycles before HS1, HS3, HRC & HGC
 
 // AEC is LOW for PHI LOW phase (vic) and HIGH for PHI 
 // HIGH phase (cpu) but kept LOW in PHI HIGH phase if vic
@@ -84,11 +76,11 @@ reg [9:0] hVisibleStart;
 reg [8:0] vBlankStart;
 reg [8:0] vBlankEnd;
 
-//clk_dot4x;     32.272768 Mhz NTSC
-//clk_col4x;     14.381818 Mhz NTSC
-wire clk_dot;  // 8.18181 Mhz NTSC
-// clk_colref     3.579545 Mhz NTSC
-// clk_phi        1.02272 Mhz NTSC
+//clk_dot4x;     32.272768 Mhz NTSC, 31.527955 Mhz PAL
+//clk_col4x;     14.381818 Mhz NTSC, 17.734475 Mhz PAL
+wire clk_dot;  // 8.18181 Mhz NTSC, 7.8819888 Mhz PAL
+// clk_colref     3.579545 Mhz NTSC, 4.43361875 Mhz PAL
+// clk_phi        1.02272 Mhz NTSC, .985248 Mhz PAL
 
 // Set Limits
 always @(chip)
@@ -183,7 +175,8 @@ endcase
   // When enabled, sprite bytes are fetched in sprite cycles
   reg spriteDmaEn;
   
-  // Counters for sprite, refresh and idle cycles
+  // Counters for sprite, refresh and idle 'stretches' for
+  // the vicCycle state machine.
   reg [2:0] spriteCnt;
   reg [2:0] refreshCnt;
   reg [2:0] idleCnt;
@@ -221,14 +214,19 @@ endcase
   
   // lets us detect when a phi phase is
   // starting within a 4x dot always block
-  // phi_phase_start[15]==1 means phi will be HIGH next tick
+  // phi_phase_start[15]==1 means phi will transition next tick
   reg [15:0] phi_phase_start;
 
+  // determines timing within a phase when RAS,CAS and MUX will
+  // fall.  (MUX determines when address transition occurs which
+  // should be between RAS and CAS. MUXR falls one cycle early
+  // because mux is then used in a delayed assignment for ado
+  // which makes the transition happen between RAS and CAS.)
   reg [15:0] rasr;
   reg [15:0] casr;
   reg [15:0] muxr;
 
-  // mux last 8 bits of read address
+  // muxes the last 8 bits of our read address for CAS/RAS latches
   //wire mux;
 
   // tracks whether the condition for triggering these
@@ -254,10 +252,15 @@ endcase
   reg emmc;
   reg elp;
 
+  // if enabled, what raster line do we trigger irq for irst?
   reg [8:0] rasterCmp;
   reg rasterIrqDone;
 
   // Initialization section
+  // This section is not really necessary as we will hold RST
+  // high until our clock locks.  That means values will get reset by
+  // those always blocks anyway. But the simulator verifies
+  // these initial values are correct so keeping them here. 
   initial
   begin
     raster_x           = 10'd0;
@@ -319,6 +322,7 @@ endcase
         dot_risingr <= {dot_risingr[14:0], dot_risingr[15]};
   assign dot_rising = dot_risingr[15];
 
+  // drives the output dot clock
   always @(posedge clk_dot4x)
   if (rst)
         dotr <= 32'b01100110011001100110011001100110;
@@ -326,7 +330,7 @@ endcase
         dotr <= {dotr[30:0], dotr[31]};
   assign clk_dot = dotr[31];
 
-  // phir[31] means phi is high next cycle
+  // phir[31]=HIGH means phi is high next cycle
   always @(posedge clk_dot4x)
   if (rst)
         phir <= 32'b00000000000011111111111111110000;
@@ -334,7 +338,7 @@ endcase
         phir <= {phir[30:0], phir[31]};
   assign clk_phi = phir[0];
 
-  // phi_phase_start[15] means phi is high next cycle
+  // phi_phase_start[15]=HIGH means phi is high next cycle
   always @(posedge clk_dot4x)
   if (rst) begin
      phi_phase_start <= 16'b0000000000001000;
@@ -373,6 +377,12 @@ endcase
      end
   end
   
+  // NOTE: Things like raster irq conditions happen even if the enable bit is off.
+  // That means as soon as erst is enabled, for example, if the condition was
+  // met, it will trigger irq immediately.  This seems consistent with how the
+  // C64 works.  Even if you set rasterCmp to 11, when you first enable erst,
+  // your ISR will get called immediately on the next line. Then, only afer you clear
+  // the interrupt will you actually get the ISR on the desired line.
   assign irq = (ilp & elp) | (immc & emmc) | (imbc & embc) | (irst & erst);
  
  
@@ -520,20 +530,22 @@ always @(posedge clk_dot4x)
   // Second phase, low if cycle steal reg says so, otherwise high for CPU
   assign aec = bit_cycle < 4 ? 0 : ((cycle_staec & cycle_stc) == 0 ? 0 : 1);
 
-  // LP --dmaEn--> HS1 -> LS2 -> HS3  --<7?--> LP
+  // vicCycle state machine
+  //
+  // LP --dmaEn?-> HS1 -> LS2 -> HS3  --<7?--> LP
   //                                  --else-> LR
   //    --else---> HPI -> LPI2-> HPI2 --<7>--> LP 
   //                                  --else-> LR
   //
-  // LR --4&d?--> HRC -> LG
-  // LR --else--> HRI --4?--> LG
-  //                  -else-> LR
+  // LR --5th&bad?--> HRC -> LG
+  // LR --else--> HRI --5th?--> LG
+  //                  -else---> LR
   //
   // LG --54?--> HI
-  //    --d? --> HC
+  //    --bad?--> HGC
   //    --else-> HGI
   //
-  // HC -> LG
+  // HGC -> LG
   // HGI -> LG
   // HI --2|3|4?--> LP
   //      --else--> LI
@@ -543,6 +555,9 @@ always @(posedge clk_dot4x)
      if (rst) begin
         vicCycle <= VIC_LP;
         vicPreCycle <= VIC_LP;
+        spriteCnt <= 3'd3;
+        refreshCnt <= 3'd0;
+        idleCnt <= 3'd0;
      end else if (phi_phase_start[14]) begin
        if (clk_phi == 1'b0) begin // about to go phi high
           case (vicCycle)
