@@ -55,22 +55,19 @@ install: libvicii_ipc.so
 	sudo cp vicii_ipc.h /usr/include
 	sudo chmod oug+r /usr/include/vicii_ipc.h
 
-# Everything
-SIGNALS=cas,ras,mux,phi,rw,ce
-
-# Bring up the logic analyser on a frame's worth of data
+# Bring up the logic analyser on most recent session
 logic:
-	obj_dir/Vvicii -i $(SIGNALS) -t
-	gtkwave session.vcd
+	gtkwave session.vcd --script session.tcl
 
 # Bring up the logic analyzer after capturing a session from VICE
 logic_vice:
-	obj_dir/Vvicii -i $(SIGNALS) -z -t
-	gtkwave session.vcd
+	obj_dir/Vvicii -z -t
+	gtkwave session.vcd --script seession.tcl
 
 # Show a window while capturing and then bring up the logic analyser
 logic_window_vice:
-	obj_dir/Vvicii -w -z
+	obj_dir/Vvicii -w -z -t
+	gtkwave session.vcd --script seession.tcl
 
 # Render a frame in the window
 view:

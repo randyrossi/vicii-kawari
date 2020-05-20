@@ -29,7 +29,7 @@ static vluint64_t half4XDotPS;
 static vluint64_t startTicks;
 static vluint64_t endTicks;
 static vluint64_t nextClk;
-static int nextClkCnt = 0;
+static int nextClkCnt;
 static int screenWidth;
 static int screenHeight;
 
@@ -116,6 +116,7 @@ static char cycleToChar(int cycle){
     case VIC_HGI  : return 'I';
     case VIC_HI   : return 'I';
     case VIC_LI   : return 'i';
+    case VIC_HRX  : return 'x';
     default:
        LOG(LOG_ERROR,"bad cycle");
        exit(-1);
@@ -133,8 +134,8 @@ static int SGETVAL(int signum) {
 }
 
 static void HEADER(Vvicii *top) {
-   LOG(LOG_VERBOSE, 
-   "  " 
+   LOG(LOG_VERBOSE,
+   "  "
    "D4X "
    "CNT "
    "POS "
@@ -143,7 +144,7 @@ static void HEADER(Vvicii *top) {
    "PHI "
    "BIT "
    "IRQ "
-   "BA " 
+   "BA "
    "AEC "
    "VCY "
    "RAS "
@@ -151,12 +152,12 @@ static void HEADER(Vvicii *top) {
    "CAS "
    " X  "
    " Y  "
-   "ADI "
-   "ADO "
+   "ADI  "
+   "ADO  "
    "DBI "
    "DBO "
-   "RW " 
-   "CE " 
+   "RW "
+   "CE "
    "RFC "
    "BIN"
   );
@@ -168,71 +169,84 @@ static void STATE(Vvicii *top) {
    if(HASCHANGED(OUT_DOT) && RISING(OUT_DOT))
       HEADER(top);
 
-   LOG(LOG_VERBOSE, 
-   "%c "      /*DOT*/ 
-   "%01d   "   /*D4x*/ 
-   "%02d  "   /*CNT*/ 
-   "%03x "   /*POS*/ 
-   " %02d "  /*CYC*/ 
-   " %01d  "   /*DOT*/ 
-   " %01d  "   /*PHI*/ 
-   " %01d  "   /*BIT*/ 
-   " %01d  "   /*IRQ*/ 
-   " %01d  "   /*BA */ 
-   " %01d  "   /*AEC*/ 
-   "%c  "     /*VCY*/ 
-   " %01d  "   /*RAS*/ 
-   " %01d  "   /*MUX*/ 
-   " %01d  "   /*CAS*/ 
-   "%03d "   /*  X*/ 
-   "%03d "   /*  Y*/ 
-   "%03x "   /*ADI*/ 
-   "%03x "   /*ADO*/ 
-   " %02x "   /*DBI*/ 
-   " %02x "   /*DBO*/ 
-   " %01d "   /* RW*/ 
-   " %01d "   /* CE*/ 
-   "%02x "   /*RFC*/ 
-   " %s"     /*BIN*/ 
-   " %s"     /*BIN*/ 
-   " %s"     /*BIN*/ 
+   LOG(LOG_VERBOSE,
+   "%c "      /*DOT*/
+   "%01d   "   /*D4x*/
+   "%02d  "   /*CNT*/
+   "%03x "   /*POS*/
+   " %02d "  /*CYC*/
+   " %01d  "   /*DOT*/
+   " %01d  "   /*PHI*/
+   " %01d  "   /*BIT*/
+   " %01d  "   /*IRQ*/
+   " %01d  "   /*BA */
+   " %01d  "   /*AEC*/
+   "%c  "     /*VCY*/
+   " %01d  "   /*RAS*/
+   " %01d  "   /*MUX*/
+   " %01d  "   /*CAS*/
+   "%03d "   /*  X*/
+   "%03d "   /*  Y*/
+   "%04x "   /*ADI*/
+   "%04x "   /*ADO*/
+   " %02x "   /*DBI*/
+   " %02x "   /*DBO*/
+   " %01d "   /* RW*/
+   " %01d "   /* CE*/
+   "%02x "   /*RFC*/
+   " %s"     /*BIN*/
+   " %s"     /*BIN*/
+   " %s"     /*BIN*/
+
+   //" %03d"
+   //" %03d"
+   //" %01d"
+   //" %04x"
+   //" %x"
    ,
-   top->rst ? 'R' : HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ', 
+   top->rst ? 'R' : HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ',
    top->clk_dot4x ? 1 : 0,
-   nextClkCnt, 
-   top->V_XPOS, 
-   top->V_CYCLE_NUM, 
-   top->V_CLK_DOT, 
-   top->clk_phi, 
-   top->V_BIT_CYCLE, 
-   top->irq, 
-   top->ba, 
+   nextClkCnt,
+   top->V_XPOS,
+   top->V_CYCLE_NUM,
+   top->V_CLK_DOT,
+   top->clk_phi,
+   top->V_BIT_CYCLE,
+   top->irq,
+   top->ba,
    top->aec,
-   cycleToChar(top->vicCycle), 
-   top->ras, 
+   cycleToChar(top->vicCycle),
+   top->ras,
    top->mux,
-   top->cas, 
-   top->V_RASTER_X, 
+   top->cas,
+   top->V_RASTER_X,
    top->V_RASTER_LINE,
-   top->adi, 
-   top->ado, 
-   top->dbi, 
-   top->dbo, 
-   top->rw, 
-   top->ce, 
+   top->adi,
+   top->ado,
+   top->dbi,
+   top->dbo,
+   top->rw,
+   top->ce,
    top->V_REFC,
 
    //toBin(16, top->V_RASR),
    //toBin(16, top->V_MUXR),
-   //toBin(16, top->V_CASR)
+   //toBin(16, top->V_CASR),
 
    toBin(16, top->V_PPS),
    toBin(32, top->V_PHIR),
    " "
+   //,
 
    //toBin(16, top->V_DOTRISINGR),
    //toBin(32, top->V_DOTR),
-   //" "
+   //" ",
+
+   //top->V_VC,
+   //top->V_VCBASE,
+   //top->V_RC,
+   //top->V_VICADDR,
+   //top->V_NEXTCHAR
    );
 }
 
@@ -469,6 +483,8 @@ int main(int argc, char** argv, char** env) {
     top->chip = chip;
     top->V_B0C = 6;
     top->V_EC = 14;
+    top->V_VM = 1; // 0001
+    top->V_CB = 2; //  010
 
 #if VM_TRACE
     VerilatedVcdC* tfp = NULL;
@@ -660,8 +676,10 @@ int main(int argc, char** argv, char** env) {
           STORE_PREV();
           ticks = nextTick(top);
        }
-       nextClkCnt = 0;
+       nextClkCnt = 31;
        top->rst = 0;
+    } else {
+       nextClkCnt = 29;
     }
 
     if (outputVcd)
@@ -689,7 +707,7 @@ int main(int argc, char** argv, char** env) {
            ticksUntilDone = 4;
            capture = (state->flags & VICII_OP_CAPTURE_START);
            if (!captureByFrame) {
-              captureByFrame = (state->flags & VICII_OP_CAPTURE_ONE_FRAME); 
+              captureByFrame = (state->flags & VICII_OP_CAPTURE_ONE_FRAME);
               captureByFrameStopXpos = 0x1f7;
               captureByFrameStopYpos = 311;
            }
@@ -745,15 +763,13 @@ int main(int argc, char** argv, char** env) {
            if (top->clk_phi == 0 && nextClkCnt == 4) {
               state->ce = 1;
               state->rw = 1;
-              state->addr = 0;
-              state->data = 0;
            }
 
            // VICE -> SIM state sync
-           top->adi = state->addr;
+           top->adi = state->addr_to_sim;
+           top->dbi = state->data_to_sim;
            top->ce = state->ce;
            top->rw = state->rw;
-           top->dbi = state->data;
         }
 
         prevX = top->V_RASTER_X;
@@ -875,16 +891,12 @@ int main(int argc, char** argv, char** env) {
           }
         }
 
-        // SIM -> VICE state sync
         if (shadowVic) {
            state->phi = top->clk_phi;
-        }
-
-        if (shadowVic) {
-
+	   state->addr_from_sim = top->V_VICADDR; // cheat
            if (top->ce == 0 && top->rw == 1) {
               // Chip selected and read, set data in state
-              state->data = top->dbo;
+              state->data_from_sim = top->dbo;
            }
 
            bool needQuit = false;
@@ -893,7 +905,7 @@ int main(int argc, char** argv, char** env) {
            }
 
            // After we have one full frame, exit the loop.
-           if (captureByFrame && 
+           if (captureByFrame &&
               top->V_XPOS == captureByFrameStopXpos &&
                  top->V_RASTER_LINE == captureByFrameStopYpos) {
               state->flags &= ~VICII_OP_CAPTURE_START;

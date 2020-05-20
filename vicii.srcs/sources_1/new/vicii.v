@@ -32,11 +32,12 @@ module vicii(
    output ba,
    output ras,
    output cas,
-   output den,
+   output den_n,
    output dir,
    
    output mux,
-   reg [3:0] vicCycle
+   reg [3:0] vicCycle,
+   output clk_dot
 );
 
 parameter CHIP6567R8   = 2'd0;
@@ -60,6 +61,9 @@ parameter VIC_HGC  = 11; // high phase, c-access after g
 parameter VIC_HGI  = 12; // high phase, idle after g
 parameter VIC_HI   = 13; // high phase, idle
 parameter VIC_LI   = 14; // low phase, idle
+parameter VIC_HRX  = 15; // high phase, cached-c-access after r
+
+parameter MIBCNT = 16;
 
 // BA must go low 3 cycles before HS1, HS3, HRC & HGC
 
@@ -78,7 +82,7 @@ reg [8:0] vBlankEnd;
 
 //clk_dot4x;     32.272768 Mhz NTSC, 31.527955 Mhz PAL
 //clk_col4x;     14.381818 Mhz NTSC, 17.734475 Mhz PAL
-wire clk_dot;  // 8.18181 Mhz NTSC, 7.8819888 Mhz PAL
+//wire clk_dot;  // 8.18181 Mhz NTSC, 7.8819888 Mhz PAL
 // clk_colref     3.579545 Mhz NTSC, 4.43361875 Mhz PAL
 // clk_phi        1.02272 Mhz NTSC, .985248 Mhz PAL
 
@@ -183,7 +187,9 @@ endcase
 
   // VIC read address
   reg [13:0] vicAddr;
-  
+  reg [3:0] vm;
+  reg [2:0] cb;
+
   // cycle_num : Each cycle is 8 pixels.
   // 6567R56A : 0-63
   // 6567R8   : 0-64
@@ -194,21 +200,12 @@ endcase
   // 0-7
   wire [2:0] bit_cycle;
   
-  // char_line_num : For text mode, what character line are we on.
-  reg [2:0] char_line_num;
-
   // ec : border (edge) color
   reg [3:0] ec;
   // b#c : background color registers
   reg [3:0] b0c,b1c,b2c,b3c;
   reg [3:0] mm0,mm1;
   
-  ///////////// TEMPORARY STUFF
-  wire visible_horizontal;
-  wire visible_vertical;
-  wire WE;
-  ///////////// END TEMPORARY STUFF
-
   // lower 8 bits of ado are muxed
   reg [7:0] ado8;
   
@@ -255,6 +252,34 @@ endcase
   // if enabled, what raster line do we trigger irq for irst?
   reg [8:0] rasterCmp;
   reg rasterIrqDone;
+  
+  reg lastLine;
+  reg [9:0] vcBase; // video counter base
+  reg [9:0] vc; // video counter
+  reg [2:0] rc; // row counter
+  reg idle;
+  reg shiftChars;
+
+  reg den; // display enable
+  reg bmm; // bitmap mode
+  reg ecm; // extended color mode
+  reg [2:0] xscroll;
+  reg [2:0] yscroll;
+  
+  reg rsel; // border row select
+  reg csel; // border column select
+  reg mcm; // multi color mode
+  reg res; // no function
+
+  integer n;
+  reg [11:0] nextChar;
+  reg [11:0] charbuf [38:0];
+  
+  reg ismc;
+  reg [11:0] shiftingChar,waitingChar,readChar;
+  reg [7:0] shiftingPixels,waitingPixels,readPixels;
+
+  wire badline;
 
   // Initialization section
   // This section is not really necessary as we will hold RST
@@ -312,8 +337,26 @@ endcase
     refreshCnt = 3'd0;
     idleCnt = 3'd0;
     spriteDmaEn = 1'b0;
+    
+    lastLine = 1'b0;
+    vcBase = 10'b0;
+    vc = 10'b0;
+    rc = 3'b0;
+    idle = 1'b1;
+    shiftChars = 1'b0;
+    
+    den = 1'b1;
+    bmm = 1'b0;
+    ecm = 1'b0;
+    xscroll = 3'd0;
+    yscroll = 3'd3;
+    
+    rsel = 1'b0;
+    csel = 1'b0;
+    mcm = 1'b0;
+    res = 1'b0;
   end
-  
+
   // dot_rising[15] means dot going high next cycle
   always @(posedge clk_dot4x)
   if (rst)
@@ -350,7 +393,8 @@ endcase
   // This is simply raster_x divided by 8.
   assign cycle_num = raster_x[9:3];
   
-  
+  assign badline = raster_line[2:0] == yscroll && den && raster_line >=9'h30 && raster_line <= 9'hf7;
+
   // Raise raster irq once per raster line
   // On raster line 0, it happens on cycle 1, otherwise, cycle 0
   always @(posedge clk_dot4x)
@@ -363,7 +407,7 @@ endcase
      else begin
      // TODO: What point in the phi low cycle does irq rise? This might
      // be too early.  Find out.
-     if (clk_phi == 1'b0 && phi_phase_start[1] && // just went phi low
+     if (clk_phi == 1'b0 && phi_phase_start[0] && // just went phi low
        ((raster_line == 0 && cycle_num == 1) || (raster_line != 0 && cycle_num == 0)))
        rasterIrqDone <= 1'b0;
      if (irst_clr)
@@ -400,6 +444,25 @@ endcase
          refc <= 8'hff;
   end
   
+  // last line flag
+  always @(raster_line)
+  if (rst)
+     lastLine = 1'b0;
+  else begin
+     lastLine = 1'b0;
+     if (raster_line == rasterYMax)
+       lastLine = 1'b1;
+  end
+  
+  // shiftChars - should we be shifting char bits?
+  always @(raster_x)
+  if (rst)
+     shiftChars = 1'b0;
+  else begin
+     shiftChars = 1'b0;
+     if (cycle_num > 14 && cycle_num < 55)
+       shiftChars = 1'b1;
+  end
   
   // Update x,y position
   always @(posedge clk_dot4x)
@@ -413,6 +476,7 @@ endcase
     CHIP6569, CHIPUNUSED:
       xpos <= 10'h194;
     endcase
+    idle <= 1'b1;
   end
   else if (dot_rising)
   if (raster_x < rasterXMax)
@@ -472,6 +536,45 @@ endcase
     end
   end
 
+  // Update rc/vc/vcbase
+  always @(posedge clk_dot4x)
+  if (rst)
+  begin
+    vcBase <= 10'b0;
+    vc <= 10'b0;
+    rc <= 3'b0;
+  end
+  else if (clk_phi == 1'b0 && phi_phase_start[0]) begin
+    if (shiftChars && idle == 1'b0)
+        vc <= vc + 1'b1;
+  
+    case (vicPreCycle)
+    VIC_LR:
+        if (refreshCnt == 4) begin
+           vc <= vcBase;
+           if (badline)
+              rc <= 3'b0;
+        end
+    VIC_LP:
+        if (spriteCnt == 0) begin
+            if (rc == 3'd7) begin
+               vcBase <= vc;
+               idle <= 1;
+            end else begin
+               rc <= rc + 1'b1;
+            end
+            if (badline)
+               rc <= rc + 1'b1;
+        end
+    default: ;
+    endcase
+    
+    if (lastLine)
+       vcBase <= 10'b0;
+
+    if (badline)
+       idle <= 1'b0;
+  end
 
 
 // cycle stealing registers let us 'schedule' when ba/aec
@@ -538,10 +641,10 @@ always @(posedge clk_dot4x)
   //                                  --else-> LR
   //
   // LR --5th&bad?--> HRC -> LG
-  // LR --else--> HRI --5th?--> LG
-  //                  -else---> LR
+  // LR --5th&!bad?-> HRX -> LG
+  // LR --else--> HRI --> LR
   //
-  // LG --54?--> HI
+  // LG --55?--> HI
   //    --bad?--> HGC
   //    --else-> HGI
   //
@@ -550,7 +653,6 @@ always @(posedge clk_dot4x)
   // HI --2|3|4?--> LP
   //      --else--> LI
   // LI -> HI
-  wire badline = 1'b0; // TEMPORARY
   always @(posedge clk_dot4x)
      if (rst) begin
         vicCycle <= VIC_LP;
@@ -572,9 +674,12 @@ always @(posedge clk_dot4x)
              VIC_LS2:
                 vicPreCycle <= VIC_HS3;
              VIC_LR: begin
-                if (refreshCnt == 4 && badline == 1'b1)
+                if (refreshCnt == 4) begin
+                  if (badline == 1'b1)
                     vicPreCycle <= VIC_HRC;
-                else
+                  else
+                    vicPreCycle <= VIC_HRX;
+                end else
                     vicPreCycle <= VIC_HRI;
              end
              VIC_LG: begin
@@ -605,16 +710,11 @@ always @(posedge clk_dot4x)
                  end
              end
              VIC_HRI: begin
-                 if (refreshCnt == 4) begin
-                    vicPreCycle <= VIC_LG;
-                 end else begin
-                    vicPreCycle <= VIC_LR;
-                    refreshCnt <= refreshCnt + 1'd1;
-                 end
+                 vicPreCycle <= VIC_LR;
+                 refreshCnt <= refreshCnt + 1'd1;
              end
-             VIC_HRC: begin
-                 vicPreCycle <= VIC_LG;
-             end
+             VIC_HRC, VIC_HRX:
+                 vicPreCycle <= VIC_LG;            
              VIC_HGC, VIC_HGI: vicPreCycle <= VIC_LG;
              VIC_HI: begin
                  if (chip == CHIP6567R56A && idleCnt == 3)
@@ -691,15 +791,59 @@ always @(posedge clk_dot4x)
     muxr <= {muxr[14:0],1'b0};
   assign mux = muxr[15]; 
 
+  // c-access reads
+  always @(posedge clk_dot4x)
+  if (clk_phi == 1'b1 && phi_phase_start[14]) begin // phi going low
+     case (vicCycle)
+     VIC_HRC, VIC_HGC: // badline c-access
+         nextChar <= dbi;
+     VIC_HRX, VIC_HGI: // not badline idle (char from cache)
+         nextChar <= charbuf[38];
+     default: ;
+     endcase
+     
+     case (vicCycle)
+     VIC_HRC, VIC_HGC, VIC_HRX, VIC_HGI: begin
+         for (n = 38; n > 0; n = n - 1) begin
+           charbuf[n] = charbuf[n-1];
+         end
+         charbuf[0] <= nextChar;
+     end
+     default: ;
+     endcase
+  end
+
+  // g-access reads
+  always @(posedge clk_dot4x)
+  begin
+  if (clk_phi == 1'b0 && phi_phase_start[14]) // phi going high
+    if (vicCycle == VIC_LG) begin // g-access
+      readPixels <= dbi[7:0];
+      readChar <= nextChar;
+    end
+    waitingPixels <= readPixels;
+    waitingChar <= readChar;     
+  end
+
   // Address generation
   always @*
   begin
      case(vicCycle)
      VIC_LR: vicAddr = {6'b111111, refc};
+     VIC_LG: begin
+        if (bmm)
+          vicAddr = {cb[2], vc, rc};
+        else
+          vicAddr = {cb, nextChar[7:0], rc}; // character pixels
+        if (ecm)
+          vicAddr[10:9] = 2'b00;
+     end
+     VIC_HRC, VIC_HGC: vicAddr = {vm, vc}; // video matrix
      default: vicAddr = 14'h3FFF;
      endcase
   end
   
+  // Address out
   always @(posedge clk_dot4x)
   if (rst)
      ado8 <= 8'hFF;
@@ -707,93 +851,156 @@ always @(posedge clk_dot4x)
      ado8 <= mux ? {2'b11, vicAddr[13:8]} : vicAddr[7:0];
   assign ado = {vicAddr[11:8], ado8};
   
-  assign den = aec ? ce : 1'b0;
+  assign den_n = aec ? ce : 1'b0;
   assign dir = aec ? rw : 1'b0;
 
-   
-  ///////// BEGIN TEMP STUFF
- // Stuff like this won't work in the real core. There is no comparitor controlling
-  // when the border is visible like this.
-  assign visible_vertical = (raster_line >= 51) & (raster_line < 251) ? 1 : 0;
-  // Official datasheet says 28-348 but Christian's doc says 24-344
-  assign visible_horizontal = (xpos >= 24) & (xpos < 344) ? 1 : 0;
-  assign WE = visible_horizontal & visible_vertical & (bit_cycle == 2) & (char_line_num == 0);
 
-  reg [11:0] char_buffer [39:0];
-  reg [11:0] char_buffer_out;
-  reg [5:0] char_buf_pos;
+//------------------------------------------------------------------------------
+// Graphics mode pixel calc.
+//------------------------------------------------------------------------------
+reg loadPixels;
 
- always @(posedge clk_dot)
-  if (WE)
-    begin
-      char_buffer[char_buf_pos] <= 12'b000000000000;
-      char_buffer_out <= 12'b000000000000;
-    end
-  else
-    char_buffer_out <= char_buffer[char_buf_pos];
+reg pixelBgFlag;
+reg clkShift;
 
-  always @(posedge clk_dot)
-    if (!visible_vertical)
-      char_line_num <= 0;
-    else if (raster_x == 384)
-      char_line_num <= char_line_num + 1;
+reg [3:0] pixelColor;
 
-  always @(posedge clk_dot)
-    if (!visible_vertical)
-      char_buf_pos <= 0;
-    else if (bit_cycle == 0 & visible_horizontal)
-    begin
-      if (char_buf_pos < 39)
-        char_buf_pos <= char_buf_pos + 1;
-      else
-        char_buf_pos <= 0;
-    end
+always @*
+        loadPixels = xscroll == xpos[2:0];
 
-  reg [9:0] screen_mem_pos;
-  always @(posedge clk_dot)
-    if (!visible_vertical)
-       screen_mem_pos <= 0;
-    else if (bit_cycle == 0 & visible_horizontal & char_line_num == 0)
-       screen_mem_pos <= screen_mem_pos + 1;
+always @(posedge clk_dot4x)
+if (dot_risingr[0]) begin // rising dot
+        if (loadPixels)
+                clkShift <= ~(mcm & (bmm | ecm | waitingChar[11]));
+        else
+                clkShift <= ismc ? ~clkShift : clkShift;
+end
 
-//  always @*
-//    if (bit_cycle == 1)
-//       addr = {4'b1, screen_mem_pos};
+always @(posedge clk_dot4x)
+if (dot_risingr[0]) begin // rising dot
+        if (loadPixels)
+                shiftingChar <= waitingChar;
+end
 
-//    always @*
-//     if (bit_cycle == 1)
-//       addr = {4'b1, screen_mem_pos};
-//     else
-//       addr = {3'b010,char_buffer_out[7:0],char_line_num};
+// Pixel shifter
+always @(posedge clk_dot4x)
+if (dot_risingr[0]) begin // rising dot
+        if (loadPixels)
+                shiftingPixels <= waitingPixels;
+        else if (clkShift) begin
+                if (ismc)
+                        shiftingPixels <= {shiftingPixels[5:0],2'b0};
+                else
+                        shiftingPixels <= {shiftingPixels[6:0],1'b0};
+        end
+end
 
-  wire [3:0] out_color;
-  wire [3:0] out_pixel;
-  reg [7:0] pixel_shift_reg;
-  reg [3:0] color_buffered_val;
+always @(posedge clk_dot4x)
+if (dot_risingr[0]) // rising dot
+        pixelBgFlag <= shiftingPixels[7];
+        
+always @(posedge clk_dot4x)
+begin
+  if (dot_risingr[0]) begin  // rising dot
+    pixelColor <= 4'h0; // black
+    case({ecm,bmm,mcm})
+    3'b000:
+        pixelColor <= shiftingPixels[7] ? shiftingChar[11:8] : b0c;
+    3'b001:
+        if (shiftingChar[11])
+          case(shiftingPixels[7:6])
+          2'b00:  pixelColor <= b0c;
+          2'b01:  pixelColor <= b1c;
+          2'b10:  pixelColor <= b2c;
+          2'b11:  pixelColor <= shiftingChar[11:8];
+          endcase
+        else
+          pixelColor <= shiftingPixels[7] ? shiftingChar[11:8] : b0c;
+    3'b010,3'b110: 
+        pixelColor <= shiftingPixels[7] ? shiftingChar[7:4] : shiftingChar[3:0];
+    3'b011,3'b111:
+        case(shiftingPixels[7:6])
+        2'b00:  pixelColor <= b0c;
+        2'b01:  pixelColor <= shiftingChar[7:4];
+        2'b10:  pixelColor <= shiftingChar[3:0];
+        2'b11:  pixelColor <= shiftingChar[11:8];
+        endcase
+    3'b100:
+        case({shiftingPixels[7],shiftingChar[7:6]})
+        3'b000:  pixelColor <= b0c;
+        3'b001:  pixelColor <= b1c;
+        3'b010:  pixelColor <= b2c;
+        3'b011:  pixelColor <= b3c;
+        default:  pixelColor <= shiftingChar[11:8];
+        endcase
+    3'b101:
+        if (shiftingChar[11])
+          case(shiftingPixels[7:6])
+          2'b00:  pixelColor <= b0c;
+          2'b01:  pixelColor <= b1c;
+          2'b10:  pixelColor <= b2c;
+          2'b11:  pixelColor <= shiftingChar[11:8];
+          endcase
+        else
+          case({shiftingPixels[7],shiftingChar[7:6]})
+          3'b000:  pixelColor <= b0c;
+          3'b001:  pixelColor <= b1c;
+          3'b010:  pixelColor <= b2c;
+          3'b011:  pixelColor <= b3c;
+          default:  pixelColor <= shiftingChar[11:8];
+          endcase
+    endcase
+  end
+end
 
-  assign out_color = pixel_shift_reg[7] == 1 ? color_buffered_val : b0c; // 4'd6
-  assign out_pixel = visible_vertical & visible_horizontal ? out_color : ec; // 4'd14
+reg [3:0] color_code;
 
-  always @(posedge clk_dot)
-  if (bit_cycle == 7)
-    color_buffered_val <= char_buffer_out[11:8];
+always @(posedge clk_dot4x)
+begin
+  // Force the output color to black for "illegal" modes
+  case({ecm,bmm,mcm})
+  3'b101,3'b110,3'b111:
+    color_code <= 4'h0;
+  default: color_code <= pixelColor;
+  endcase
+  // See if the mib overrides the output
+//  for (n = 0; n < MIBCNT; n = n + 1) begin
+//    if (!mdp[n] || !pixelBgFlag) begin
+//      if (mmc[n]) begin  // multi-color mode ?
+//        case(MCurrentPixel[n])
+//        2'b00:  ;
+//        2'b01:  color_code <= mm0;
+//        2'b10:  color_code <= mc[n];
+//        2'b11:  color_code <= mm1;
+//        endcase
+//      end
+//      else if (MCurrentPixel[n][1])
+//        color_code <= mc[n];
+//    end
+//  end
+end
 
-  always @(posedge clk_dot)
-  if (bit_cycle == 7)
-      pixel_shift_reg <= 8'b00000000;  //    pixel_shift_reg <= data[7:0];
-  else
-      pixel_shift_reg <= {pixel_shift_reg[6:0],1'b0};
+  // TODO: Fix this to not use interval comparison
+  wire hBorderOn;
+  wire vBorderOn;
+  assign vBorderOn = (raster_line > 50) && (raster_line < 251) ? 0 : 1;
+  assign hBorderOn = (xpos > 24) && (xpos < 345) ? 0 : 1;
 
-
-  ///////// END TEMP STUFF
-
+  reg [3:0] color8;
+  always @(posedge clk_dot4x)
+  begin
+    if (hBorderOn | vBorderOn)
+      color8 <= ec;
+    else
+      color8 <= color_code;
+  end
 
   // Translate out_pixel (indexed) to RGB values
   color viccolor(
      .chip(chip),
      .x_pos(xpos),
      .y_pos(raster_line),
-     .out_pixel(out_pixel),
+     .out_pixel(color8),
      .hSyncStart(hSyncStart),
      .hVisibleStart(hVisibleStart),
      .vBlankStart(vBlankStart),
@@ -820,6 +1027,15 @@ always @(posedge clk_dot4x)
 if (rst) begin
   ec <= 4'd0;
   b0c <= 4'd0;
+  xscroll <= 3'd0;
+  yscroll <= 3'd3;
+  csel <= 1'b0;
+  rsel <= 1'b0;
+  den <= 1'b1;
+  bmm <= 1'b0;
+  ecm <= 1'b0;
+  res <= 1'b0;
+  mcm <= 1'b0;
 end
 else begin
  if (!ce) begin
@@ -827,6 +1043,21 @@ else begin
    if (clk_phi && rw) begin
       dbo <= 12'hFF;
       case(adi[5:0])
+      6'h11:  begin
+         dbo[2:0] <= yscroll;
+         dbo[3] <= rsel;
+         dbo[4] <= den;
+         dbo[5] <= bmm;
+         dbo[6] <= ecm;
+         dbo[7] <= raster_line[7];
+      end
+      6'h12:  dbo[7:0] <= raster_line[7:0];
+      6'h16:  dbo[7:0] <= {2'b11,res,mcm,csel,xscroll};
+      6'h18:  begin
+         dbo[0] <= 1'b1;
+         dbo[3:1] <= cb[2:0];
+         dbo[7:4] <= vm[3:0];
+      end
       6'h19:  dbo[7:0] <= {!irq,3'b111,ilp,immc,imbc,irst};
       6'h1A:  dbo[7:0] <= {4'b1111,elp,emmc,embc,erst};
       6'h20:  dbo[3:0] <= ec;
@@ -853,6 +1084,25 @@ else begin
       ilp_clr <= 1'b0;
       if (!rw) begin
          case(adi[5:0])
+         6'h11:  begin
+           yscroll <= dbi[2:0];
+           rsel <= dbi[3];
+           den <= dbi[4];
+           bmm <= dbi[5];
+           ecm <= dbi[6];
+           rasterCmp[8] <= dbi[7];
+           end
+         6'h12:  rasterCmp[7:0] <= dbi[7:0];
+         6'h16:  begin
+           xscroll <= dbi[2:0];
+           csel <= dbi[3];
+           mcm <= dbi[4];
+           res <= dbi[5];
+           end
+         6'h18:  begin
+           cb[2:0] <= dbi[3:1];
+           vm[3:0] <= dbi[7:4];
+         end
          6'h19:  begin
            irst_clr <= dbi[0];
            imbc_clr <= dbi[1];

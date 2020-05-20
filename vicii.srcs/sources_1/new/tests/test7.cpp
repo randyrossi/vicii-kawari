@@ -20,7 +20,7 @@ int test7_run(Vvicii* top, int golden) {
        phi = top->clk_phi;
        phic = -1;
        first_entry = false;
-       return TEST_CONTINUE_CAPTURING;
+       return TEST_CONTINUE_NOT_CAPTURING;
    }
    if (top->clk_phi != phi && top->V_XPOS % 4 == 0) {
       phi = top->clk_phi;
@@ -44,5 +44,5 @@ int test7_run(Vvicii* top, int golden) {
        phic++;
     }
 
-   return TEST_CONTINUE_CAPTURING;
+   return TEST_CONTINUE_NOT_CAPTURING;
 }

@@ -37,9 +37,13 @@ struct vicii_state {
 
   unsigned char ce;
   unsigned char rw;
-  unsigned short addr;
-  unsigned char data;
   unsigned char phi;
+
+  unsigned short addr_to_sim;
+  unsigned short data_to_sim;
+
+  unsigned short addr_from_sim;
+  unsigned short data_from_sim;
 
   unsigned int cycle_num;  // for initial sync
   unsigned int xpos;  // for initial sync

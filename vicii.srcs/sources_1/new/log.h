@@ -7,7 +7,7 @@
 #define LOG_INFO     3
 #define LOG_VERBOSE  4
 
-extern const char* logLevelStr[4];
+extern const char* logLevelStr[5];
 
 extern int logLevel;
 

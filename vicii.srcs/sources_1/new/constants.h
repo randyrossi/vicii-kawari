@@ -50,12 +50,12 @@
 #define VIC_HGI   12
 #define VIC_HI    13
 #define VIC_LI    14
-
+#define VIC_HRX   15
 
 #define V_PPS          vicii__DOT__phi_phase_start
 #define V_XPOS         vicii__DOT__xpos
 #define V_CYCLE_NUM    vicii__DOT__cycle_num
-#define V_CLK_DOT      vicii__DOT__clk_dot
+#define V_CLK_DOT      clk_dot
 #define V_BIT_CYCLE    vicii__DOT__bit_cycle
 #define V_RASTER_X     vicii__DOT__raster_x
 #define V_RASTER_LINE  vicii__DOT__raster_line
@@ -73,3 +73,11 @@
 #define V_IRST         vicii__DOT__irst
 #define V_IRST_CLR     vicii__DOT__irst_clr
 #define V_RASTERCMP    vicii__DOT__rasterCmp
+#define V_VICADDR      vicii__DOT__vicAddr
+#define V_CB           vicii__DOT__cb
+#define V_VM           vicii__DOT__vm
+#define V_NEXTCHAR     vicii__DOT__nextChar
+#define V_BADLINE      vicii__DOT__badline
+#define V_VC           vicii__DOT__vc
+#define V_VCBASE       vicii__DOT__vcBase
+#define V_RC           vicii__DOT__rc

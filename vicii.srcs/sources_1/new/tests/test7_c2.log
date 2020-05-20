@@ -1,4 +1,4 @@
-verb: raster_irq_once_per_line
+verb: cas_ras_mux
 CHIP: 6569
 VIDEO: PAL
 Log Level: 4

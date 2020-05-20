@@ -1,6 +1,6 @@
 #include "log.h"
 
-const char* logLevelStr[4] = { "None","error","warn","info" };
+const char* logLevelStr[5] = { "none","error","warn","info", "verb" };
 int logLevel = LOG_ERROR;
 
 static int binBufNum=0;
