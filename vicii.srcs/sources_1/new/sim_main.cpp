@@ -712,8 +712,8 @@ int main(int argc, char** argv, char** env) {
                // We sync state always when phi is high (2nd phase)
                CHECK(top, ~top->clk_phi, __LINE__);
 
-               LOG(LOG_INFO, "synced FPGA to cycle=%u, raster_line=%u, xpos=%03x",
-                  state->cycle_num, state->raster_line, state->xpos);
+               LOG(LOG_INFO, "synced FPGA to cycle=%u, raster_line=%u, xpos=%03x, bmm=%d, mcm=%d, ecm=%d",
+                  state->cycle_num, state->raster_line, state->xpos, top->V_BMM, top->V_MCM, top->V_ECM);
            }
 
            if (state->flags & VICII_OP_BUS_ACCESS) {
