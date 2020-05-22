@@ -129,29 +129,6 @@ endcase
   reg [15:0] dot_risingr;
   wire dot_rising;
   
-  // cycle steal - current : 1 bit high that represents the
-  // current cycle we are in. Used to check cycle_stba to
-  // determine the value of BA and cycle_staec to determine
-  // the value of AEC
-  reg [64:0] cycle_stc;
-  
-  // cycle steal - ba : When masked with cycle_stc, determines
-  // whether BA should be HIGH or LOW.  > 0 = HIGH, otherwise LOW
-  reg [64:0] cycle_stba;
-  
-  // cycle steal - When a condition arises that makes it known that
-  // N cycles need be stolen M cycles from now, these registers
-  // are ANDed with cycle_stba to make sure BA goes low in advance. 
-  // cycle_st_N_in_M
-  reg [64:0] cycle_st1_in_3_ba;
-  reg [64:0] cycle_st2_in_3_ba;
-
-  // Same idea as cycle steal above except marks when AEC should
-  // remain low in 2nd phi phase.
-  reg [64:0] cycle_staec;
-  reg [64:0] cycle_st1_in_3_aec;
-  reg [64:0] cycle_st2_in_3_aec;
-  
   // Divides the color4x clock by 4 to get color reference clock
   clk_div4 clk_colorgen (
      .clk_in(clk_col4x),     // from 4x color clock
@@ -162,6 +139,7 @@ endcase
   // current raster x and line position
   reg [9:0] raster_x;
   reg [8:0] raster_line;
+  reg [8:0] next_raster_line;
   reg raster_enable;
   
   // xpos is the x coordinate relative to raster irq
@@ -278,6 +256,7 @@ endcase
   reg [11:0] shiftingChar,waitingChar,readChar;
   reg [7:0] shiftingPixels,waitingPixels,readPixels;
 
+  reg baChars;
   reg badline;
 
   // Initialization section
@@ -294,13 +273,7 @@ endcase
     CHIP6569,CHIPUNUSED: xpos = 10'h194;
     endcase
     raster_line        = 9'd0;
-    cycle_stc          = 65'b00000000000000000000000000000000000000000000000000000000000000001;
-    cycle_stba         = 65'b11111111111111111111111111111111111111111111111111111111111111111;
-    cycle_st1_in_3_ba  = 65'b11111111111111111111111111111111111111111111111111111111111100001;
-    cycle_st2_in_3_ba  = 65'b11111111111111111111111111111111111111111111111111111111111000001;
-    cycle_staec        = 65'b11111111111111111111111111111111111111111111111111111111111111111;
-    cycle_st1_in_3_aec = 65'b11111111111111111111111111111111111111111111111111111111111101111;
-    cycle_st2_in_3_aec = 65'b11111111111111111111111111111111111111111111111111111111111001111;
+    next_raster_line   = 9'd1;
     refc               = 8'hff;
     vicAddr            = 14'b0;
     vicCycle           = VIC_LP;
@@ -349,10 +322,12 @@ endcase
     xscroll = 3'd0;
     yscroll = 3'd3;
     
-    rsel = 1'b0;
-    csel = 1'b0;
+    rsel = 1'b1;
+    csel = 1'b1;
     mcm = 1'b0;
     res = 1'b0;
+    
+    baChars = 1'b1;
   end
 
   // dot_rising[15] means dot going high next cycle
@@ -473,15 +448,16 @@ endcase
   always @(posedge clk_dot4x)
   if (rst)
   begin
-    raster_x <= 0;
-    raster_line <= 0;
+    raster_x <= 10'b0;
+    raster_line <= 9'b0;
+    next_raster_line <= 9'b1;
+    idle <= 1'b1;
     case(chip)
     CHIP6567R56A, CHIP6567R8:
       xpos <= 10'h19c;
     CHIP6569, CHIPUNUSED:
       xpos <= 10'h194;
     endcase
-    idle <= 1'b1;
   end
   else if (dot_rising)
   if (raster_x < rasterXMax)
@@ -534,10 +510,12 @@ endcase
     if (raster_line < rasterYMax) begin
        // Move to next raster line
        raster_line <= raster_line + 9'd1;
+       next_raster_line <= next_raster_line + 9'd1;
     end
     else begin
        // Time to go back to y coord 0, reset refresh counter
        raster_line <= 9'd0;
+       next_raster_line <= 9'd1;
     end
   end
 
@@ -582,61 +560,41 @@ endcase
   end
 
 
-// cycle stealing registers let us 'schedule' when ba/aec
-// should be held low a number of cycles in advance and for
-// a number of cycles.  For example, if a condition arises
-// in which you know you will need the bus for two phi HIGH
-// cycles 3 cycles from now, you would do this:
-// cycle_stba <= cycle_stba & cycle_st2_in_3_ba
-// cycle_staec <= cycle_st2_in_3_aec & cycle_st2_in_3_aec
-
-always @(posedge clk_dot4x)
-  if (rst) begin
-    cycle_stc          <= 65'b10000000000000000000000000000000000000000000000000000000000000000;
-    cycle_stba         <= 65'b11111111111111111111111111111111111111111111111111111111111111111;
-    cycle_st1_in_3_ba  <= 65'b11111111111111111111111111111111111111111111111111111111111110000;
-    cycle_st2_in_3_ba  <= 65'b11111111111111111111111111111111111111111111111111111111111100000;
-    cycle_staec        <= 65'b11111111111111111111111111111111111111111111111111111111111111111;
-    cycle_st1_in_3_aec <= 65'b11111111111111111111111111111111111111111111111111111111111110111;
-    cycle_st2_in_3_aec <= 65'b11111111111111111111111111111111111111111111111111111111111100111;
+  always @(*)
+  if (rst)
+     baChars = 1'b1;
+  else
+  begin
+     if (dot_risingr[0] && clk_phi == 1'b0) begin
+        if (cycle_num > 7'd10 && cycle_num < 7'd54 && badline)
+           baChars = 1'b0;
+        else  
+           baChars = 1'b1;      
+     end
   end
-  else if (dot_rising)
-    if (bit_cycle == 3'd7) // going to next cycle?
-    begin
-      case (chip)
-      CHIP6567R8:
-      begin
-        cycle_stc <= {cycle_stc[63:0], cycle_stc[64]};
-        cycle_st1_in_3_ba <= {cycle_st1_in_3_ba[63:0], cycle_st1_in_3_ba[64]};
-        cycle_st2_in_3_ba <= {cycle_st2_in_3_ba[63:0], cycle_st2_in_3_ba[64]};
-        cycle_st1_in_3_aec <= {cycle_st1_in_3_aec[63:0], cycle_st1_in_3_aec[64]};
-        cycle_st2_in_3_aec <= {cycle_st2_in_3_aec[63:0], cycle_st2_in_3_aec[64]};
-      end
-      CHIP6567R56A:
-      begin
-        cycle_stc <= {1'b0,cycle_stc[62:0],cycle_stc[63]};
-        cycle_st1_in_3_ba <= {1'b1, cycle_st1_in_3_ba[62:0], cycle_st1_in_3_ba[63]};
-        cycle_st2_in_3_ba <= {1'b1, cycle_st2_in_3_ba[62:0], cycle_st2_in_3_ba[63]};
-        cycle_st1_in_3_aec <= {1'b1, cycle_st1_in_3_aec[62:0], cycle_st1_in_3_aec[63]};
-        cycle_st2_in_3_aec <= {1'b1, cycle_st2_in_3_aec[62:0], cycle_st2_in_3_aec[63]};
-      end
-      CHIP6569,CHIPUNUSED:
-      begin
-        cycle_stc <= {2'b00,cycle_stc[61:0],cycle_stc[62]};
-        cycle_st1_in_3_ba <= {2'b11, cycle_st1_in_3_ba[61:0],cycle_st1_in_3_ba[62]};
-        cycle_st2_in_3_ba <= {2'b11, cycle_st2_in_3_ba[61:0],cycle_st2_in_3_ba[62]};
-        cycle_st1_in_3_aec <= {2'b11, cycle_st1_in_3_aec[61:0],cycle_st1_in_3_aec[62]};
-        cycle_st2_in_3_aec <= {2'b11, cycle_st2_in_3_aec[61:0],cycle_st2_in_3_aec[62]};
-      end
-      endcase
+
+  assign ba = baChars;
+
+  // Cascade ba through three cycles, making sure
+  // aec is lowered 3 cycles after ba went low
+  reg ba1,ba2,ba3;
+  always @(posedge clk_dot4x)
+  if (rst) begin
+    ba1 <= 1'b1;
+    ba2 <= 1'b1;
+    ba3 <= 1'b1;
+  end
+  else begin
+    if (clk_phi == 1'b1 && phi_phase_start[15]) begin
+      ba1 <= ba;
+      ba2 <= ba1 | ba;
+      ba3 <= ba2 | ba;
     end
+  end
   
-  // cycle_stba masked with cycle_stc tells us if ba should go low
-  assign ba = (cycle_stba & cycle_stc) == 0 ? 0 : 1;
-  
-  // First phase, always low
-  // Second phase, low if cycle steal reg says so, otherwise high for CPU
-  assign aec = bit_cycle < 4 ? 0 : ((cycle_staec & cycle_stc) == 0 ? 0 : 1);
+  // If ba not down, match phi
+  // If delayed ba3 is down, down otherwise match phi
+  assign aec = ba ? clk_phi : ba3 & clk_phi;
 
   // vicCycle state machine
   //

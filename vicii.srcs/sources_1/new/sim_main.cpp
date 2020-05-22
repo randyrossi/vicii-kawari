@@ -840,6 +840,7 @@ int main(int argc, char** argv, char** env) {
         }
 
         if (shadowVic) {
+           state->ba = top->ba;
            state->phi = top->clk_phi;
 	   state->addr_from_sim = top->V_VICADDR; // cheat
            if (top->ce == 0 && top->rw == 1) {
