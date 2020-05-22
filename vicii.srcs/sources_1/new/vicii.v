@@ -987,16 +987,50 @@ begin
 //  end
 end
 
-  // TODO: Fix this to not use interval comparison
-  wire hBorderOn;
-  wire vBorderOn;
-  assign vBorderOn = (raster_line > 50) && (raster_line < 251) ? 0 : 1;
-  assign hBorderOn = (xpos > 24) && (xpos < 345) ? 0 : 1;
+reg TBBorder = 1'b1;
+reg LRBorder = 1'b1;
+reg newTBBorder = 1'b1;
+
+always @(xpos, raster_line, rsel, raster_enable)
+begin
+    newTBBorder = TBBorder;
+    if (raster_line == 55 && rsel == 1'b0 && raster_enable == 1'b1)
+        newTBBorder = 1'b0;
+                               
+    if (raster_line == 51 && rsel == 1'b1 && raster_enable == 1'b1)
+        newTBBorder = 1'b0;
+                             
+    if (raster_line == 247 && rsel == 1'b0)
+       newTBBorder = 1'b1;
+                             
+    if (raster_line == 251 && rsel == 1'b1)
+       newTBBorder = 1'b1;
+end
+
+ always @(posedge clk_dot4x)
+ begin
+    if (dot_risingr[0]) begin
+       if (xpos == 32 && csel == 1'b0) begin
+          LRBorder <= newTBBorder;
+          TBBorder <= newTBBorder;
+       end
+       if (xpos == 25 && csel == 1'b1) begin
+          LRBorder <= newTBBorder;
+          TBBorder <= newTBBorder;
+       end
+       if (xpos == 336 && csel == 1'b0)
+          LRBorder <= 1'b1;
+                              
+       if (xpos == 345 && csel == 1'b1)
+          LRBorder <= 1'b1;
+    end
+ end
+
 
   reg [3:0] color8;
   always @(posedge clk_dot4x)
   begin
-    if (hBorderOn | vBorderOn)
+    if (LRBorder | TBBorder)
       color8 <= ec;
     else
       color8 <= color_code;
