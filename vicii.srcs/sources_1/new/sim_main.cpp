@@ -33,13 +33,15 @@ static int nextClkCnt;
 static int screenWidth;
 static int screenHeight;
 
-#define HASCHANGED(signum) \
-   ( signal_monitor[signum] && SGETVAL(signum) != prev_signal_values[signum] )
-#define RISING(signum) \
-   ( signal_monitor[signum] && SGETVAL(signum))
-#define FALLING(signum) \
-   ( signal_monitor[signum] && !SGETVAL(signum))
+// Some utility macros
+// Use RISING/FALLING in combination with HASCHANGED
 
+#define HASCHANGED(signum) \
+   ( SGETVAL(signum) != prev_signal_values[signum] )
+#define RISING(signum) \
+   ( SGETVAL(signum))
+#define FALLING(signum) \
+   ( !SGETVAL(signum))
 
 // Add new input/output here
 enum {
@@ -93,11 +95,7 @@ static unsigned int signal_width[NUM_SIGNALS];
 static unsigned char *signal_src8[NUM_SIGNALS];
 static unsigned short *signal_src16[NUM_SIGNALS];
 static unsigned int signal_bit[NUM_SIGNALS];
-static bool signal_monitor[NUM_SIGNALS];
 static unsigned char prev_signal_values[NUM_SIGNALS];
-
-// Some utility macros
-// Use RISING/FALLING in combination with HASCHANGED
 
 static char cycleToChar(int cycle){
   switch (cycle) {
@@ -351,29 +349,6 @@ int main(int argc, char** argv, char** env) {
       case 'c':
         chip = atoi(optarg);
         break;
-      case 'i':
-        token = strtok(optarg, ",");
-        while (token != nullptr) {
-           strcpy (regex_buf, "^");
-           strcat (regex_buf, token);
-           strcat (regex_buf, "$");
-           reti = regcomp(&regex, regex_buf, 0);
-           for (int i = 0; i < NUM_SIGNALS; i++) {
-              if (strcmp(signal_labels[i],token) == 0) {
-                 signal_monitor[i] = true;
-                 break;
-              }
-              if (!reti) {
-                 reti2 = regexec(&regex, signal_labels[i], 0, nullptr, 0);
-                 if (!reti2) {
-                    signal_monitor[i] = true;
-                 }
-              }
-           }
-           regfree(&regex);
-           token = strtok(nullptr, ",");
-        }
-        break;
       case 'b':
         // Render after every pixel instead of after every line
         renderEachPixel = true;
@@ -399,14 +374,11 @@ int main(int argc, char** argv, char** env) {
         printf ("  -w        : show SDL2 window\n");
         printf ("  -z        : single step eval for shadow vic via ipc\n");
         printf ("  -b        : render each pixel instead of each line\n");
-        printf ("  -i        : list signals to include (phi, ce, csync, etc.) \n");
         printf ("  -c <chip> : 0=CHIP6567R8, 1=CHIP6567R56A 2=CHIP65669\n");
         printf ("  -r <test> : run test driver #\n");
         printf ("  -g <test> : make golden master for test #\n");
         printf ("  -h        : start under reset\n");
         printf ("  -l        : log level\n");
-
-
         exit(0);
       case '?':
         if (optopt == 't' || optopt == 's') {
@@ -441,7 +413,6 @@ int main(int argc, char** argv, char** env) {
     top->V_VM = 1; // 0001
     top->V_CB = 2; //  010
 
-
 #if VM_TRACE
     VerilatedVcdC* tfp = NULL;
     if (tracing) {
@@ -454,7 +425,6 @@ int main(int argc, char** argv, char** env) {
 #endif
 
     top->eval();
-    //top->V_BMM = 1;
 
     if (testDriver >= 0 && do_test_start(testDriver, top, setGolden) == TEST_FAIL) {
        STATE(top);
@@ -561,8 +531,6 @@ int main(int argc, char** argv, char** env) {
       signal_width[i] = 1;
       signal_bit[i] = 1;
     }
-
-    signal_monitor[OUT_DOT] = true;
 
     // Add new input/output here.
     signal_src8[OUT_PHI] = &top->clk_phi;
