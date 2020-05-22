@@ -108,7 +108,7 @@ static char cycleToChar(int cycle){
     case VIC_LG   : return 'g';
     case VIC_HS1  : return 'S';
     case VIC_HPI1 : return 'I';
-    case VIC_HPI2 : return 'I';
+    case VIC_HPI3 : return 'I';
     case VIC_HS3  : return 'S';
     case VIC_HRI  : return 'I';
     case VIC_HRC  : return 'C';
@@ -197,12 +197,14 @@ static void STATE(Vvicii *top) {
    " %s"     /*BIN*/
    " %s"     /*BIN*/
    " %s"     /*BIN*/
+   " %d"     /*badline*/
 
-   //" %03d"
-   //" %03d"
-   //" %01d"
-   //" %04x"
-   //" %x"
+   " %03d"
+   " %03d"
+   " %01d"
+   " %04x"
+   " %01d"
+   
    ,
    top->rst ? 'R' : HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ',
    top->clk_dot4x ? 1 : 0,
@@ -235,17 +237,19 @@ static void STATE(Vvicii *top) {
 
    toBin(16, top->V_PPS),
    toBin(32, top->V_PHIR),
-   " "
-   //,
+   " ",
 
    //toBin(16, top->V_DOTRISINGR),
    //toBin(32, top->V_DOTR),
    //" ",
 
-   //top->V_VC,
-   //top->V_VCBASE,
-   //top->V_RC,
-   //top->V_VICADDR,
+   top->V_BADLINE,
+
+   top->V_VC,
+   top->V_VCBASE,
+   top->V_RC,
+   top->V_VICADDR,
+   top->V_BMM
    //top->V_NEXTCHAR
    );
 }
@@ -486,6 +490,7 @@ int main(int argc, char** argv, char** env) {
     top->V_VM = 1; // 0001
     top->V_CB = 2; //  010
 
+
 #if VM_TRACE
     VerilatedVcdC* tfp = NULL;
     if (tracing) {
@@ -498,6 +503,7 @@ int main(int argc, char** argv, char** env) {
 #endif
 
     top->eval();
+    //top->V_BMM = 1;
 
     if (testDriver >= 0 && do_test_start(testDriver, top, setGolden) == TEST_FAIL) {
        STATE(top);
@@ -741,6 +747,51 @@ int main(int argc, char** argv, char** env) {
                   STORE_PREV();
                   ticks = nextTick(top);
                }
+
+	       // Sync registers
+	       unsigned char val = state->reg[0x11];
+	       top->V_YSCROLL = val & 7;
+	       top->V_RSEL = val & 8 ? 1 : 0;
+	       top->V_DEN = val & 16 ? 1 : 0;
+	       top->V_BMM = val & 32 ? 1 : 0;
+	       top->V_ECM = val & 64 ? 1 : 0;
+	       int rasterCmp8 = (val & 128) << 1;
+
+	       val = state->reg[0x12];
+	       top->V_RASTERCMP = val | rasterCmp8;
+
+	       val = state->reg[0x16];
+               top->V_XSCROLL = val & 7;
+               top->V_CSEL = val & 8 ? 1 : 0;
+               top->V_MCM = val & 16 ? 1 : 0;
+               top->V_RES = val & 32 ? 1 : 0;
+
+	       val = state->reg[0x18];
+	       top->V_CB = (val & 14) >> 1;
+	       top->V_VM = (val & 240) >> 4;
+
+	       val = state->reg[0x19];
+	       top->V_IRST_CLR =  val & 1;
+               top->V_IMBC_CLR = val & 2 ? 1 : 0;
+               top->V_IMMC_CLR = val & 4 ? 1 : 0;
+               top->V_ILP_CLR =  val & 8 ? 1 : 0;
+
+	       val = state->reg[0x1A];
+	       top->V_ERST =  val & 1;
+               top->V_EMBC = val & 2 ? 1 : 0;
+               top->V_EMMC = val & 4 ? 1 : 0;
+               top->V_ELP = val & 8 ? 1 : 0;
+
+	       val = state->reg[0x20];
+	       top->V_EC = val & 15;
+	       val = state->reg[0x21];
+               top->V_B0C = val & 15;
+	       val = state->reg[0x22];
+               top->V_B1C = val & 15;
+	       val = state->reg[0x23];
+               top->V_B2C = val & 15;
+	       val = state->reg[0x24];
+               top->V_B3C = val & 15;
 
                // We sync state always when phi is high (2nd phase)
                CHECK(top, ~top->clk_phi, __LINE__);

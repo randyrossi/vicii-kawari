@@ -42,7 +42,7 @@
 #define VIC_LG    4
 #define VIC_HS1   5
 #define VIC_HPI1  6
-#define VIC_HPI2  7
+#define VIC_HPI3  7
 #define VIC_HS3   8
 #define VIC_HRI   9
 #define VIC_HRC   10
@@ -60,6 +60,9 @@
 #define V_RASTER_X     vicii__DOT__raster_x
 #define V_RASTER_LINE  vicii__DOT__raster_line
 #define V_B0C          vicii__DOT__b0c
+#define V_B1C          vicii__DOT__b1c
+#define V_B2C          vicii__DOT__b2c
+#define V_B3C          vicii__DOT__b3c
 #define V_EC           vicii__DOT__ec
 #define V_DMAEN        vicii__DOT__spriteDmaEn
 #define V_DOTRISINGR   vicii__DOT__dot_risingr
@@ -70,8 +73,14 @@
 #define V_MUXR         vicii__DOT__muxr
 #define V_REFC         vicii__DOT__refc
 #define V_ERST         vicii__DOT__erst
+#define V_EMBC         vicii__DOT__embc
+#define V_EMMC         vicii__DOT__emmc
+#define V_ELP         vicii__DOT__elp
 #define V_IRST         vicii__DOT__irst
 #define V_IRST_CLR     vicii__DOT__irst_clr
+#define V_IMBC_CLR     vicii__DOT__imbc_clr
+#define V_IMMC_CLR     vicii__DOT__immc_clr
+#define V_ILP_CLR     vicii__DOT__ilp_clr
 #define V_RASTERCMP    vicii__DOT__rasterCmp
 #define V_VICADDR      vicii__DOT__vicAddr
 #define V_CB           vicii__DOT__cb
@@ -81,3 +90,12 @@
 #define V_VC           vicii__DOT__vc
 #define V_VCBASE       vicii__DOT__vcBase
 #define V_RC           vicii__DOT__rc
+#define V_YSCROLL      vicii__DOT__yscroll
+#define V_XSCROLL      vicii__DOT__xscroll
+#define V_RSEL         vicii__DOT__rsel
+#define V_CSEL         vicii__DOT__csel
+#define V_DEN          vicii__DOT__den
+#define V_BMM          vicii__DOT__bmm
+#define V_ECM          vicii__DOT__ecm
+#define V_MCM          vicii__DOT__mcm
+#define V_RES          vicii__DOT__res

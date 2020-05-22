@@ -48,6 +48,9 @@ struct vicii_state {
   unsigned int cycle_num;  // for initial sync
   unsigned int xpos;  // for initial sync
   unsigned int raster_line;  // for initial sync
+
+  // registers for sync
+  unsigned char reg[64];
 };
 
 #define END1_PRODUCER_SIG_END2_CONSUME_OK 0

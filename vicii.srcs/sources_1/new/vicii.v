@@ -53,7 +53,7 @@ parameter VIC_LR   = 3; // low phase, dram refresh
 parameter VIC_LG   = 4; // low phase, g-access
 parameter VIC_HS1  = 5; // high phase, sprite dma byte 1
 parameter VIC_HPI1 = 6; // high phase, sprite idle
-parameter VIC_HPI2 = 7; // high phase, sprite idle
+parameter VIC_HPI3 = 7; // high phase, sprite idle
 parameter VIC_HS3  = 8; // high phase, sprite dma byte 3
 parameter VIC_HRI  = 9; // high phase, refresh idle
 parameter VIC_HRC  = 10; // high phase, c-access after r
@@ -162,6 +162,7 @@ endcase
   // current raster x and line position
   reg [9:0] raster_x;
   reg [8:0] raster_line;
+  reg raster_enable;
   
   // xpos is the x coordinate relative to raster irq
   // It is not simply raster_x with an offset, it does not
@@ -258,7 +259,6 @@ endcase
   reg [9:0] vc; // video counter
   reg [2:0] rc; // row counter
   reg idle;
-  reg shiftChars;
 
   reg den; // display enable
   reg bmm; // bitmap mode
@@ -275,11 +275,10 @@ endcase
   reg [11:0] nextChar;
   reg [11:0] charbuf [38:0];
   
-  reg ismc;
   reg [11:0] shiftingChar,waitingChar,readChar;
   reg [7:0] shiftingPixels,waitingPixels,readPixels;
 
-  wire badline;
+  reg badline;
 
   // Initialization section
   // This section is not really necessary as we will hold RST
@@ -343,7 +342,6 @@ endcase
     vc = 10'b0;
     rc = 3'b0;
     idle = 1'b1;
-    shiftChars = 1'b0;
     
     den = 1'b1;
     bmm = 1'b0;
@@ -393,8 +391,25 @@ endcase
   // This is simply raster_x divided by 8.
   assign cycle_num = raster_x[9:3];
   
-  assign badline = raster_line[2:0] == yscroll && den && raster_line >=9'h30 && raster_line <= 9'hf7;
+  always @(raster_line)
+  begin
+     if (rst)
+        raster_enable = 1'b0;
+     else if (dot_risingr[0]) begin
+       if (raster_line == 48 && den == 1'b1)
+          raster_enable = 1'b1;
+       if (raster_line == 248)
+          raster_enable = 1'b0;
+     end 
+  end
 
+  always @(raster_line, yscroll, raster_enable)
+  begin
+     badline = 1'b0;
+     if (raster_line[2:0] == yscroll && raster_enable == 1'b1)
+        badline = 1'b1;
+  end
+  
   // Raise raster irq once per raster line
   // On raster line 0, it happens on cycle 1, otherwise, cycle 0
   always @(posedge clk_dot4x)
@@ -407,14 +422,14 @@ endcase
      else begin
      // TODO: What point in the phi low cycle does irq rise? This might
      // be too early.  Find out.
-     if (clk_phi == 1'b0 && phi_phase_start[0] && // just went phi low
-       ((raster_line == 0 && cycle_num == 1) || (raster_line != 0 && cycle_num == 0)))
+     if (clk_phi == 1'b1 && phi_phase_start[15] && // phi going low
+       (vicCycle == VIC_HPI3 || vicCycle == VIC_HS3) && spriteCnt == 2)
        rasterIrqDone <= 1'b0;
      if (irst_clr)
        irst <= 1'b0;
      if (rasterIrqDone == 1'b0 && raster_line == rasterCmp) begin
-       rasterIrqDone <= 1'b1;
        if ((raster_line == 0 && cycle_num == 1) || (raster_line != 0 && cycle_num == 0)) begin
+          rasterIrqDone <= 1'b1;
           irst <= 1'b1;
        end
      end
@@ -453,17 +468,7 @@ endcase
      if (raster_line == rasterYMax)
        lastLine = 1'b1;
   end
-  
-  // shiftChars - should we be shifting char bits?
-  always @(raster_x)
-  if (rst)
-     shiftChars = 1'b0;
-  else begin
-     shiftChars = 1'b0;
-     if (cycle_num > 14 && cycle_num < 55)
-       shiftChars = 1'b1;
-  end
-  
+    
   // Update x,y position
   always @(posedge clk_dot4x)
   if (rst)
@@ -544,11 +549,11 @@ endcase
     vc <= 10'b0;
     rc <= 3'b0;
   end
-  else if (clk_phi == 1'b0 && phi_phase_start[0]) begin
-    if (shiftChars && idle == 1'b0)
+  else if (clk_phi == 1'b0 && phi_phase_start[15]) begin
+    if (cycle_num > 14 && cycle_num < 55 && idle == 1'b0)
         vc <= vc + 1'b1;
   
-    case (vicPreCycle)
+    case (vicCycle)
     VIC_LR:
         if (refreshCnt == 4) begin
            vc <= vcBase;
@@ -637,7 +642,7 @@ always @(posedge clk_dot4x)
   //
   // LP --dmaEn?-> HS1 -> LS2 -> HS3  --<7?--> LP
   //                                  --else-> LR
-  //    --else---> HPI -> LPI2-> HPI2 --<7>--> LP 
+  //    --else---> HPI1 -> LPI2-> HPI2 --<7>--> LP 
   //                                  --else-> LR
   //
   // LR --5th&bad?--> HRC -> LG
@@ -670,7 +675,7 @@ always @(posedge clk_dot4x)
                    vicPreCycle <= VIC_HPI1;
              end
              VIC_LPI2:
-                   vicPreCycle <= VIC_HPI2;
+                   vicPreCycle <= VIC_HPI3;
              VIC_LS2:
                 vicPreCycle <= VIC_HS3;
              VIC_LR: begin
@@ -699,7 +704,7 @@ always @(posedge clk_dot4x)
           case (vicCycle)
              VIC_HS1: vicPreCycle <= VIC_LS2;
              VIC_HPI1: vicPreCycle <= VIC_LPI2;
-             VIC_HS3, VIC_HPI2: begin
+             VIC_HS3, VIC_HPI3: begin
                  if (spriteCnt == 7) begin
                     vicPreCycle <= VIC_LR;
                     spriteCnt <= 0;
@@ -822,7 +827,7 @@ always @(posedge clk_dot4x)
       readChar <= nextChar;
     end
     waitingPixels <= readPixels;
-    waitingChar <= readChar;     
+    waitingChar <= readChar;
   end
 
   // Address generation
@@ -832,7 +837,7 @@ always @(posedge clk_dot4x)
      VIC_LR: vicAddr = {6'b111111, refc};
      VIC_LG: begin
         if (bmm)
-          vicAddr = {cb[2], vc, rc};
+          vicAddr = {cb[2], vc, rc}; // bitmap data
         else
           vicAddr = {cb, nextChar[7:0], rc}; // character pixels
         if (ecm)
@@ -859,14 +864,16 @@ always @(posedge clk_dot4x)
 // Graphics mode pixel calc.
 //------------------------------------------------------------------------------
 reg loadPixels;
-
 reg pixelBgFlag;
 reg clkShift;
+reg ismc;
 
 reg [3:0] pixelColor;
 
-always @*
+always @* begin
         loadPixels = xscroll == xpos[2:0];
+        ismc = mcm & (bmm | ecm | shiftingChar[11]);
+end
 
 always @(posedge clk_dot4x)
 if (dot_risingr[0]) begin // rising dot
@@ -889,9 +896,9 @@ if (dot_risingr[0]) begin // rising dot
                 shiftingPixels <= waitingPixels;
         else if (clkShift) begin
                 if (ismc)
-                        shiftingPixels <= {shiftingPixels[5:0],2'b0};
+                        shiftingPixels <= {shiftingPixels[5:0], 2'b0};
                 else
-                        shiftingPixels <= {shiftingPixels[6:0],1'b0};
+                        shiftingPixels <= {shiftingPixels[6:0], 1'b0};
         end
 end
 
@@ -912,7 +919,7 @@ begin
           2'b00:  pixelColor <= b0c;
           2'b01:  pixelColor <= b1c;
           2'b10:  pixelColor <= b2c;
-          2'b11:  pixelColor <= shiftingChar[11:8];
+          2'b11:  pixelColor <= {1'b0, shiftingChar[10:8]};
           endcase
         else
           pixelColor <= shiftingPixels[7] ? shiftingChar[11:8] : b0c;
@@ -926,7 +933,7 @@ begin
         2'b11:  pixelColor <= shiftingChar[11:8];
         endcase
     3'b100:
-        case({shiftingPixels[7],shiftingChar[7:6]})
+        case({shiftingPixels[7], shiftingChar[7:6]})
         3'b000:  pixelColor <= b0c;
         3'b001:  pixelColor <= b1c;
         3'b010:  pixelColor <= b2c;
@@ -942,7 +949,7 @@ begin
           2'b11:  pixelColor <= shiftingChar[11:8];
           endcase
         else
-          case({shiftingPixels[7],shiftingChar[7:6]})
+          case({shiftingPixels[7], shiftingChar[7:6]})
           3'b000:  pixelColor <= b0c;
           3'b001:  pixelColor <= b1c;
           3'b010:  pixelColor <= b2c;
@@ -1049,7 +1056,7 @@ else begin
          dbo[4] <= den;
          dbo[5] <= bmm;
          dbo[6] <= ecm;
-         dbo[7] <= raster_line[7];
+         dbo[7] <= raster_line[8];
       end
       6'h12:  dbo[7:0] <= raster_line[7:0];
       6'h16:  dbo[7:0] <= {2'b11,res,mcm,csel,xscroll};
@@ -1062,6 +1069,9 @@ else begin
       6'h1A:  dbo[7:0] <= {4'b1111,elp,emmc,embc,erst};
       6'h20:  dbo[3:0] <= ec;
       6'h21:  dbo[3:0] <= b0c;
+      6'h22:  dbo[3:0] <= b1c;
+      6'h23:  dbo[3:0] <= b2c;
+      6'h24:  dbo[3:0] <= b3c;
       default: ;
       endcase
    end
@@ -1117,6 +1127,9 @@ else begin
            end
          6'h20:  ec <= dbi[3:0];
          6'h21:  b0c <= dbi[3:0];
+         6'h22:  b1c <= dbi[3:0];
+         6'h23:  b2c <= dbi[3:0];
+         6'h24:  b3c <= dbi[3:0];
          default: ;
          endcase
       end
