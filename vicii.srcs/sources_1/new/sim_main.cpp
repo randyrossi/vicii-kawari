@@ -283,42 +283,6 @@ static vluint64_t nextTick(Vvicii* top) {
    return ticks + diff1;
 }
 
-static void vcd_header(Vvicii* top, FILE* fp) {
-   fprintf (fp, "$date\n");
-   fprintf (fp, "   January 1, 1979.\n");
-   fprintf (fp, "$end\n");
-   fprintf (fp,"$version\n");
-   fprintf (fp,"   1.0\n");
-   fprintf (fp,"$end\n");
-   fprintf (fp,"$comment\n");
-   fprintf (fp,"   VCD vicii\n");
-   fprintf (fp,"$end\n");
-
-   fprintf (fp,VCD_TIMESCALE);
-   fprintf (fp,"$scope module logic $end\n");
-
-   for (int i=0;i<NUM_SIGNALS;i++)
-      if (signal_monitor[i])
-         fprintf (fp,"$var wire 1 %s %s $end\n", signal_ids[i], signal_labels[i]);
-   fprintf (fp,"$upscope $end\n");
-
-   fprintf (fp,"$enddefinitions $end\n");
-   fprintf (fp,"$dumpvars\n");
-
-   for (int i=0;i<NUM_SIGNALS;i++)
-      if (signal_monitor[i])
-         fprintf (fp,"x%s\n",signal_ids[i]);
-   fprintf (fp,"$end\n");
-
-   // Start time
-   fprintf (fp,"#%" VL_PRI64 "d\n", startTicks/TICKS_TO_TIMESCALE);
-   for (int i=0;i<NUM_SIGNALS;i++) {
-      if (signal_monitor[i])
-         fprintf (fp,"%x%s\n",SGETVAL(i), signal_ids[i]);
-   }
-   fflush(fp);
-}
-
 static void drawPixel(SDL_Renderer* ren, int x,int y) {
    SDL_RenderDrawPoint(ren, x*2,y*2);
    SDL_RenderDrawPoint(ren, x*2+1,y*2);
@@ -341,7 +305,6 @@ int main(int argc, char** argv, char** env) {
     bool captureByFrame = false;
     int  captureByFrameStopXpos = 0;
     int  captureByFrameStopYpos = 0;
-    bool outputVcd = false;
     bool showWindow = false;
     bool shadowVic = false;
     bool renderEachPixel = false;
@@ -362,11 +325,10 @@ int main(int argc, char** argv, char** env) {
     regex_t regex;
     int reti, reti2;
     char regex_buf[32];
-    FILE* outFile = nullptr;
     int testDriver = -1;
     int setGolden = 0;
 
-    while ((c = getopt (argc, argv, "c:hs:d:wi:zbo:l:r:gjt")) != -1)
+    while ((c = getopt (argc, argv, "c:hs:d:wi:zb:l:r:gjt")) != -1)
     switch (c) {
       case 't':
         tracing = true;
@@ -412,10 +374,6 @@ int main(int argc, char** argv, char** env) {
            token = strtok(nullptr, ",");
         }
         break;
-      case 'o':
-        outputVcd = true;
-        outFile = fopen(optarg,"w");
-        break;
       case 'b':
         // Render after every pixel instead of after every line
         renderEachPixel = true;
@@ -438,8 +396,6 @@ int main(int argc, char** argv, char** env) {
         printf ("Usage\n");
         printf ("  -s [uS]   : start at uS\n");
         printf ("  -d [uS]   : run for uS\n");
-        printf ("  -v        : generate vcd to file\n");
-        printf ("  -o <file> : specify filename\n");
         printf ("  -w        : show SDL2 window\n");
         printf ("  -z        : single step eval for shadow vic via ipc\n");
         printf ("  -b        : render each pixel instead of each line\n");
@@ -463,11 +419,6 @@ int main(int argc, char** argv, char** env) {
         return 1;
       default:
         exit(-1);
-    }
-
-    if (outputVcd && outFile == nullptr) {
-       LOG(LOG_ERROR, "need out file with -o");
-       exit(-1);
     }
 
     int sdl_init_mode = SDL_INIT_VIDEO;
@@ -688,9 +639,6 @@ int main(int argc, char** argv, char** env) {
        nextClkCnt = 29;
     }
 
-    if (outputVcd)
-       vcd_header(top,outFile);
-
     if (shadowVic) {
        ipc = ipc_init(IPC_RECEIVER);
        ipc_open(ipc);
@@ -858,25 +806,6 @@ int main(int argc, char** argv, char** env) {
            capture = (ticks >= startTicks) && (ticks <= endTicks);
 
         if (capture) {
-          bool anyChanged = false;
-          for (int i = 0; i < NUM_SIGNALS; i++) {
-             if (HASCHANGED(i)) {
-                anyChanged = true;
-                break;
-             }
-          }
-
-          if (anyChanged) {
-             if (outputVcd)
-                fprintf (outFile, "#%" VL_PRI64 "d\n", ticks/TICKS_TO_TIMESCALE);
-             for (int i = 0; i < NUM_SIGNALS; i++) {
-                if (HASCHANGED(i)) {
-                   if (outputVcd)
-                      fprintf (outFile, "%x%s\n", SGETVAL(i), signal_ids[i]);
-                }
-             }
-          }
-
           // On dot clock...
           if (HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
              // AEC should always be low in first phase
@@ -988,10 +917,6 @@ int main(int argc, char** argv, char** env) {
 
         // Advance simulation time. Each tick represents 1 picosecond.
         ticks = nextTick(top);
-    }
-
-    if (outputVcd) {
-        fclose(outFile);
     }
 
     if (shadowVic) {
