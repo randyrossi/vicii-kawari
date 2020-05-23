@@ -84,6 +84,7 @@ int ipc_open(struct vicii_ipc* ipc) {
 
   ipc->state = (struct vicii_state*)shmat(ipc->bufShmId, NULL, 0);
   memset(ipc->state, 0, IPC_BUFSIZE);
+  ipc->state->enabled = 1;
 
   if (ipc->state == NULL) {
     fprintf(stderr, "%s: can't allocate dsp buffer\n", MODULE_NAME);

@@ -34,6 +34,7 @@ union semun {
 // Must not exceed IPC_BUFSIZE
 struct vicii_state {
   unsigned int flags;
+  unsigned int enabled;
 
   unsigned char ce;
   unsigned char rw;

@@ -640,7 +640,7 @@ int main(int argc, char** argv, char** env) {
                // will be xpos + 7 = one tick before we hit xpos + 8) and
                // rasterline and when dot4x just ticked low (we always tick into high
                // when beginning to step so we must leave dot4x low.
-               while (top->V_XPOS != (state->xpos + 7) ||
+               while (top->V_XPOS != (state->xpos - 1) ||
                          top->V_RASTER_LINE != state->raster_line ||
                             top->clk_dot4x) {
                   top->eval();
@@ -714,6 +714,8 @@ int main(int argc, char** argv, char** env) {
 
                LOG(LOG_INFO, "synced FPGA to cycle=%u, raster_line=%u, xpos=%03x, bmm=%d, mcm=%d, ecm=%d",
                   state->cycle_num, state->raster_line, state->xpos, top->V_BMM, top->V_MCM, top->V_ECM);
+               LOG(LOG_INFO, "ec=%d, b0c=%d, b1c=%d, b2c=%d, b3c=%d",
+                  top->V_EC, top->V_B0C, top->V_B1C, top->V_B2C, top->V_B3C);
            }
 
            if (state->flags & VICII_OP_BUS_ACCESS) {

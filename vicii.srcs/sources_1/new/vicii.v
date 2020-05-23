@@ -366,7 +366,7 @@ endcase
   // This is simply raster_x divided by 8.
   assign cycle_num = raster_x[9:3];
   
-  always @(raster_line)
+  always @(raster_line, den)
   begin
      if (rst)
         raster_enable = 1'b0;
@@ -1079,7 +1079,7 @@ else begin
    // the CPU phase and it would not be able to see the register
    // change (likely) until the falling edge of phi.  Does it
    // change registers on some other edge perhaps?
-   else begin //if (phi_phase_start[15] && bit_cycle == 3'd7 ) begin // falling phi edge
+   else if (phi_phase_start[14] && bit_cycle == 3'd7 ) begin // falling phi edge
       irst_clr <= 1'b0;
       imbc_clr <= 1'b0;
       immc_clr <= 1'b0;
