@@ -539,6 +539,7 @@ endcase
               rc <= 3'b0;
         end
     VIC_LP:
+        // LP && spriteCnt==0 is cycle 57
         if (spriteCnt == 0) begin
             if (rc == 3'd7) begin
                vcBase <= vc;
@@ -761,8 +762,13 @@ endcase
      VIC_HRC, VIC_HGC: // badline c-access
          nextChar <= dbi;
      VIC_HRX, VIC_HGI: // not badline idle (char from cache)
-         nextChar <= charbuf[38];
-     default: ;
+         if (idle)
+            nextChar <= 12'b0;
+         else
+            nextChar <= charbuf[38];
+     default:
+         if (idle)
+            nextChar <= 12'b0;
      endcase
      
      case (vicCycle)
@@ -794,12 +800,16 @@ endcase
      case(vicCycle)
      VIC_LR: vicAddr = {6'b111111, refc};
      VIC_LG: begin
-        if (bmm)
-          vicAddr = {cb[2], vc, rc}; // bitmap data
-        else
-          vicAddr = {cb, nextChar[7:0], rc}; // character pixels
-        if (ecm)
-          vicAddr[10:9] = 2'b00;
+        if (idle)
+          vicAddr = 14'h3FFF;
+        else begin
+          if (bmm)
+            vicAddr = {cb[2], vc, rc}; // bitmap data
+          else
+            vicAddr = {cb, nextChar[7:0], rc}; // character pixels
+          if (ecm)
+            vicAddr[10:9] = 2'b00;
+        end
      end
      VIC_HRC, VIC_HGC: vicAddr = {vm, vc}; // video matrix
      default: vicAddr = 14'h3FFF;
