@@ -328,6 +328,7 @@ endcase
     res = 1'b0;
     
     baChars = 1'b1;
+    
   end
 
   // dot_rising[15] means dot going high next cycle
@@ -366,7 +367,7 @@ endcase
   // This is simply raster_x divided by 8.
   assign cycle_num = raster_x[9:3];
   
-  always @(raster_line, den)
+  always @(rst, dot_risingr[0], raster_line, den)
   begin
      if (rst)
         raster_enable = 1'b0;
@@ -435,7 +436,7 @@ endcase
   end
   
   // last line flag
-  always @(raster_line)
+  always @(rst, rasterYMax, raster_line)
   if (rst)
      lastLine = 1'b0;
   else begin
@@ -959,7 +960,7 @@ reg TBBorder = 1'b1;
 reg LRBorder = 1'b1;
 reg newTBBorder = 1'b1;
 
-always @(xpos, raster_line, rsel, raster_enable)
+always @(raster_line, rsel, raster_enable, TBBorder)
 begin
     newTBBorder = TBBorder;
     if (raster_line == 55 && rsel == 1'b0 && raster_enable == 1'b1)

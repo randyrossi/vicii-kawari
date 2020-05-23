@@ -1,0 +1,58 @@
+High Level Plan
+
+Verilog
+   Establish clocks (4xdot, 4xcolor)                        DONE
+   Use dividers to obtain internal dot/color clocks         DONE
+   Output Phi0                                              DONE
+   Video Test Harness
+      X/Y counters, output RGB, SYNC and COLOR for CX1645P  DONE
+      
+Simulation
+   Interpret RGB to generate visible frames
+   Script scenario, capture frame, compare results
+
+Hardware
+   Use CX1645P to turn RGB/Color/Sync into Luma/Chroma      DONE
+   Try raw luma/chroma through C64 9V composite module
+      (Demonstrates can feed directly into socket)
+
+   Wire to RESET
+   Wire to addr and data bus lines
+   Wire to CAS/RAS
+   Wire to AEC/BA
+    
+Thoughts
+
+   It appears that multiplexing address lines (A0/A8-A8/A13) is only
+   required for VIC raising address lines itself for reading memory.  When
+   the VIC is reading the address lines raised by the CPU, it looks like it
+   only ever cares about bits 0-7.
+
+Notes
+
+   Use the -z option to have the simulator wait for a IPC request from
+   our modified VICE-3.4 code to shadow it's vic.  See vicii-vice-3.4
+   repo.
+
+   ./obj_dir/Vtop -z
+
+raster_x
+
+   raster_x determines a lot of info:
+      It tells us the cycle num (bits 9-3) values 0-63|64|65
+      It tells us the phase of phi (bit 2) 0=low,1=high
+      It tells us the cycle bit (bits 2-0) values 0-7
+
+      xpos is incremented and wrapped or reset according to the
+      values in VICE's viciisc code.
+
+   VICE seems to think that the CPU can set a register and have
+   it take effect by the 2nd pixel within it's own phase which
+   I doubt is true.  For now, data register set will take effect
+   immediately when rw and cs go low in verilog code but that
+   should be extended to the falling edge of phi.
+
+
+If using a assignedvar comparson within an posedge always block , remember
+the value you see is going to be the value taken from the register
+BEFORE it itself has been changed by the clock

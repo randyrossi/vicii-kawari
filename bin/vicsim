@@ -1,0 +1,5 @@
+#!/bin/bash
+
+VICII_HOME=/shared/Vivado/vicii
+
+$VICII_HOME/simulator/obj_dir/Vvicii $*

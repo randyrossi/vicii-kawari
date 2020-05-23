@@ -3,3 +3,8 @@ vicii.hw/*
 vicii.ip_user_files/*
 vicii.runs/*
 vicii.sim/*
+vicii.srcs/*
+simulator/libvicii_ipc.so
+simulator/obj_dir/*
+simulator/vicii_ipc.o
+
