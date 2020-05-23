@@ -31,23 +31,16 @@ parameter CHIPUNUSED   = 2'd3;
 
 wire sys_clockb;
 
-BUFG sysbuf1 (
-.O(sys_clockb),
-.I(sys_clock)
-);
-
-// From clocking wizard.
-clockgen gclock(
-   .sys_clock(sys_clock),    // external 12 Mhz clock
+dot4x_clockgen gclock_dot4x(
+   .clk_in12mhz(sys_clock),    // external 12 Mhz clock
    .reset(rst),
    .clk_dot4x(clk_dot4x)     // generated 4x dot clock
 );
 
-// From clocking wizard.
-clock2gen g2clock(
-   .sys_clock(sys_clockb),    // external 12 Mhz clock
+color4x_clockgen glock_color4x (
+   .clk_in12mhz(sys_clock),    // external 12 Mhz clock
    .reset(rst),
-   .clk_col4x(clk_col4x)     // generated 4x col clock
+   .clk_color4x(clk_col4x)     // generated 4x col clock
 );
 
 wire[11:0] dbo;
