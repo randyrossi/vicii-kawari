@@ -81,7 +81,7 @@ reg [8:0] vBlankStart;
 reg [8:0] vBlankEnd;
 
 //clk_dot4x;     32.272768 Mhz NTSC, 31.527955 Mhz PAL
-//clk_col4x;     14.381818 Mhz NTSC, 17.734475 Mhz PAL
+//clk_col4x;     14.318181 Mhz NTSC, 17.734475 Mhz PAL
 //wire clk_dot;  // 8.18181 Mhz NTSC, 7.8819888 Mhz PAL
 // clk_colref     3.579545 Mhz NTSC, 4.43361875 Mhz PAL
 // clk_phi        1.02272 Mhz NTSC, .985248 Mhz PAL
