@@ -113,7 +113,7 @@ set_property -dict { PACKAGE_PIN N2    IOSTANDARD LVCMOS33 } [get_ports { ras }]
 set_property -dict { PACKAGE_PIN P1    IOSTANDARD LVCMOS33 } [get_ports { cas }];
 
 # DEN, Pin 41
-set_property -dict { PACKAGE_PIN U5    IOSTANDARD LVCMOS33 } [get_ports { den }];
+set_property -dict { PACKAGE_PIN U5    IOSTANDARD LVCMOS33 } [get_ports { den_n }];
 
 # DIR, Pin 38
 set_property -dict { PACKAGE_PIN U4    IOSTANDARD LVCMOS33 } [get_ports { dir }];

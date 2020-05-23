@@ -20,7 +20,7 @@ module top(
    output ba,          // ba
    output cas,         // column address strobe
    output ras,         // row address strobe
-   output den,         // data enable for bus transceiver
+   output den_n,         // data enable for bus transceiver
    output dir          // dir for bus transceiver
 );
 
@@ -75,7 +75,7 @@ vicii vic_inst(
    .ba(ba),
    .cas(cas),
    .ras(ras),
-   .den(den),
+   .den_n(den_n),
    .dir(dir)
 );
 
