@@ -40,6 +40,7 @@ struct vicii_state {
   unsigned char rw;
   unsigned char phi;
   unsigned char ba;
+  unsigned char aec;
 
   unsigned short addr_to_sim;
   unsigned short data_to_sim;

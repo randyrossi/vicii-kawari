@@ -1068,18 +1068,14 @@ else begin
       endcase
    end
    // WRITE to register
-   // This sets the register at any time rw and ce are low but
-   // it may be more correct to do it only on the falling edge
-   // of phi. VICE seems to think registers can get set by
-   // the 2nd rising dot within it's phi phase but I doubt that's
-   // the case on real hardware.  This is probably because VICE
-   // first emulates the CPU ticks which changes memory followed
-   // by all VIC 8 pixels so it 'sees' the change too early. But
-   // on real hardware, vic's pixels are output in parallel with
-   // the CPU phase and it would not be able to see the register
-   // change (likely) until the falling edge of phi.  Does it
-   // change registers on some other edge perhaps?
-   else if (phi_phase_start[14] && bit_cycle == 3'd7 ) begin // falling phi edge
+   // By waiting for the falling edge of phi, we don't match
+   // VICE's rendering pixel for pixel in the border color
+   // change test.  With this condition, our pixel color changes
+   // are delayed by 1/2 cycle which may actually be correct but
+   // VICE seems to think the color change happens on the 2nd
+   // dot of the phase it changed the color which doesn't seem
+   // possible.
+   else if (phi_phase_start[14] && bit_cycle == 3'd7) begin // falling phi edge
       irst_clr <= 1'b0;
       imbc_clr <= 1'b0;
       immc_clr <= 1'b0;

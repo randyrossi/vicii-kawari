@@ -640,7 +640,7 @@ int main(int argc, char** argv, char** env) {
                // will be xpos + 7 = one tick before we hit xpos + 8) and
                // rasterline and when dot4x just ticked low (we always tick into high
                // when beginning to step so we must leave dot4x low.
-               while (top->V_XPOS != (state->xpos - 1) ||
+               while (top->V_XPOS != (state->xpos + 7) ||
                          top->V_RASTER_LINE != state->raster_line ||
                             top->clk_dot4x) {
                   top->eval();
@@ -843,6 +843,7 @@ int main(int argc, char** argv, char** env) {
 
         if (shadowVic) {
            state->ba = top->ba;
+           state->aec = top->aec;
            state->phi = top->clk_phi;
 	   state->addr_from_sim = top->V_VICADDR; // cheat
            if (top->ce == 0 && top->rw == 1) {
@@ -866,7 +867,7 @@ int main(int argc, char** argv, char** env) {
 
            ticksUntilDone--;
 
-           if (ticksUntilDone == 0) {
+           if (ticksUntilDone == 0 || needQuit) {
               // Do not change state after this line
               if (ipc_receive_done(ipc))
                  break;
