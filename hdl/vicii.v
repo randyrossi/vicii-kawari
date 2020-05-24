@@ -38,27 +38,10 @@ module vicii(
    output dir,
    
    output mux,
-   reg [3:0] vicCycle,
+   output vic_cycle vicCycle,
    output clk_dot
 );
 
-// Cycle types
-parameter VIC_LP   = 0; // low phase, sprite pointer
-parameter VIC_LPI2 = 1; // low phase, sprite idle
-parameter VIC_LS2  = 2; // low phase, sprite dma byte 2 
-parameter VIC_LR   = 3; // low phase, dram refresh
-parameter VIC_LG   = 4; // low phase, g-access
-parameter VIC_HS1  = 5; // high phase, sprite dma byte 1
-parameter VIC_HPI1 = 6; // high phase, sprite idle
-parameter VIC_HPI3 = 7; // high phase, sprite idle
-parameter VIC_HS3  = 8; // high phase, sprite dma byte 3
-parameter VIC_HRI  = 9; // high phase, refresh idle
-parameter VIC_HRC  = 10; // high phase, c-access after r
-parameter VIC_HGC  = 11; // high phase, c-access after g
-parameter VIC_HGI  = 12; // high phase, idle after g
-parameter VIC_HI   = 13; // high phase, idle
-parameter VIC_LI   = 14; // low phase, idle
-parameter VIC_HRX  = 15; // high phase, cached-c-access after r
 
 parameter MIBCNT = 16;
 
@@ -147,7 +130,7 @@ endcase
 
   // What cycle we are on:
   //reg [3:0] vicCycle;
-  reg[3:0] vicPreCycle;
+  vic_cycle vicPreCycle;
   
   // DRAM refresh counter
   reg [7:0] refc;
@@ -1132,4 +1115,4 @@ else begin
  end
 end
   
-endmodule
+endmodule : vicii
