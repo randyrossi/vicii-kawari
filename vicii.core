@@ -41,11 +41,11 @@ targets:
   # Lint using verilator
   lint:
     default_tool: verilator
-    filesets: [files_retrov]
+    filesets: [files_vicii]
     tools:
       verilator:
         mode: lint-only
-    toplevel: top
+    toplevel: vicii
 
   verilator_sim:
     default_tool: verilator
@@ -53,4 +53,4 @@ targets:
     tools:
       verilator:
         verilator_options: [--trace --Wno-fatal -cc -O3]
-    toplevel: top
+    toplevel: vicii

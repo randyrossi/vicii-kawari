@@ -1,3 +1,5 @@
+`timescale 1ns / 1ps
+
 module EqualizationPulse(rasterX, EQ);
 input [9:0] rasterX;
 output reg EQ;

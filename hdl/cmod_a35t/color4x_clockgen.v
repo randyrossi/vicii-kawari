@@ -1,3 +1,5 @@
+`timescale 1ns / 1ps
+
 module color4x_clockgen
 
     (  output    wire clk_color4x,

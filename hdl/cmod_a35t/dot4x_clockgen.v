@@ -1,3 +1,5 @@
+`timescale 1ns / 1ps
+
 module dot4x_clockgen
 
     (  output    wire clk_dot4x,
