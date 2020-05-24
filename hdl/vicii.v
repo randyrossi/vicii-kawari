@@ -347,16 +347,18 @@ endcase
   // This is simply raster_x divided by 8.
   assign cycle_num = raster_x[9:3];
   
+  // raster_enable goes high on line 48
+  // if den is high at any point on line 48
+  // raster_enable falls on line 248
+  // den only takes effect on line 48
   always @(posedge clk_dot4x)
   begin
      if (rst)
         raster_enable <= 1'b0;
-     else if (phi_phase_start[15] &&
-        clk_phi==1'b1 &&
-           raster_x == rasterXMax) begin // next tick, new line
-       if (raster_line == 47 && den == 1'b1)
+     else if (dot_risingr[0]) begin
+       if (raster_line == 48 && den == 1'b1)
           raster_enable <= 1'b1;
-       if (raster_line == 247)
+       if (raster_line == 248)
           raster_enable <= 1'b0;
      end 
   end
