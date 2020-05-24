@@ -639,7 +639,10 @@ int main(int argc, char** argv, char** env) {
                // Step forward until we get to the target xpos (which
                // will be xpos + 7 = one tick before we hit xpos + 8) and
                // rasterline and when dot4x just ticked low (we always tick into high
-               // when beginning to step so we must leave dot4x low.
+               // when beginning to step so we must leave dot4x low. We
+	       // don't have to worry about going over the last xpos or
+	       // the repeats on the R8 because the VICE sync won't attempt
+	       // a sync past xpos 0x180.
                while (top->V_XPOS != (state->xpos + 7) ||
                          top->V_RASTER_LINE != state->raster_line ||
                             top->clk_dot4x) {
