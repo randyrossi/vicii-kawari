@@ -1,21 +1,15 @@
-`define TRUE	1'b1
-`define FALSE	1'b0
+`include "common.vh"
 
-module sync(chip, rst, clk, rasterX, rasterY, hSyncStart, hSyncEnd, cSync);
+module sync(
+	input chip_type chip,
+	input wire rst,
+	input wire clk,
+	input wire [9:0] rasterX,
+	input wire [8:0] rasterY,
+	input wire [9:0] hSyncStart,
+	input wire [9:0] hSyncEnd,
+	output reg cSync);
 
-parameter CHIP6567R8   = 2'd0;
-parameter CHIP6567R56A = 2'd1;
-parameter CHIP6569     = 2'd2;
-parameter CHIPUNUSED   = 2'd3;
-
-input [1:0] chip;
-input rst;
-input clk;
-input [9:0] rasterX;
-input [8:0] rasterY;
-input [9:0] hSyncStart;
-input [9:0] hSyncEnd;
-output reg cSync;
 reg hSync;
 
 always @(posedge clk)
@@ -71,4 +65,4 @@ always @(posedge clk)
 			cSync <= ~hSync;
 	endcase
   endcase
-endmodule
+endmodule : sync

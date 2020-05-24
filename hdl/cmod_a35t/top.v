@@ -1,5 +1,7 @@
 `timescale 1ns/1ps
 
+`include "common.vh"
+
 // Top level module for the CMod A35t PDIP board.
 module top(
 // sys_clock comes from the on board 12Mhz clock circuit connected
@@ -24,11 +26,6 @@ module top(
     output den_n,         // data enable for bus transceiver
     output dir          // dir for bus transceiver
 );
-
-    parameter CHIP6567R8=2'd0;
-    parameter CHIP6567R56A=2'd1;
-    parameter CHIP6569=2'd2;
-    parameter CHIPUNUSED=2'd3;
 
     wire sys_clockb;
 

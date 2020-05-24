@@ -34,7 +34,7 @@ VERILATOR = $(VERILATOR_ROOT)/bin/verilator
 endif
 
 obj_dir/Vvicii: vicii_ipc.o libvicii_ipc.so
-	$(VERILATOR) --trace -cc  --exe ../hdl/vicii.v ../hdl/color.v ../hdl/clockdivs.v ../hdl/sync.v ../hdl/serration.v ../hdl/equalization.v sim_main.cpp test.cpp log.cpp tests/test*.cpp -CFLAGS -g -LDFLAGS '../vicii_ipc.o -lSDL2'
+	$(VERILATOR) --trace -cc  --exe -I../hdl ../hdl/vicii.v ../hdl/color.v ../hdl/clockdivs.v ../hdl/sync.v ../hdl/serration.v ../hdl/equalization.v sim_main.cpp test.cpp log.cpp tests/test*.cpp -CFLAGS -g -LDFLAGS '../vicii_ipc.o -lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vvicii.mk
 
 default: obj_dir/VVicii

@@ -1,5 +1,7 @@
 `timescale 1ns / 1ps
 
+`include "common.vh"
+
 // It's easier to initialize our state registers to
 // raster_x,raster_y = (0,0) and let the fist tick bring us to
 // raster_x=1 because that initial state is common to all chip types.
@@ -11,7 +13,7 @@
 // pixel.
 
 module vicii(
-   input [1:0] chip,
+   input chip_type chip,
    input rst,
    input clk_dot4x,
    input clk_col4x,
@@ -39,11 +41,6 @@ module vicii(
    reg [3:0] vicCycle,
    output clk_dot
 );
-
-parameter CHIP6567R8   = 2'd0;
-parameter CHIP6567R56A = 2'd1;
-parameter CHIP6569     = 2'd2;
-parameter CHIPUNUSED   = 2'd3;
 
 // Cycle types
 parameter VIC_LP   = 0; // low phase, sprite pointer
