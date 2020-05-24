@@ -99,3 +99,4 @@
 #define V_ECM          vicii__DOT__ecm
 #define V_MCM          vicii__DOT__mcm
 #define V_RES          vicii__DOT__res
+#define V_RASTER_ENABLE vicii__DOT__raster_enable
