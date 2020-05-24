@@ -1,4 +1,4 @@
-all: irq.prg scroll.prg linecrunch.prg removevert.prg
+all: irq.prg xscroll.prg linecrunch.prg removevert.prg
 
 %.prg: %.asm
 	acme --cpu 6510 $<
