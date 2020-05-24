@@ -73,10 +73,10 @@ view: obj_dir/Vvicii
 	obj_dir/Vvicii -w
 
 test:
-	./bin/victest
+	victest
 
 make_golden:
-	./bin/victest 1
+	victest 1
 
 ######################################################################
 
