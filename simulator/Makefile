@@ -33,9 +33,11 @@ export VERILATOR_ROOT
 VERILATOR = $(VERILATOR_ROOT)/bin/verilator
 endif
 
-default: vicii_ipc.o libvicii_ipc.so
-	$(VERILATOR) --trace -cc --exe ../hdl/vicii.v ../hdl/color.v ../hdl/clockdivs.v ../hdl/sync.v ../hdl/serration.v ../hdl/equalization.v sim_main.cpp test.cpp log.cpp tests/test*.cpp -CFLAGS -g -LDFLAGS '../vicii_ipc.o -lSDL2'
+obj_dir/Vvicii: vicii_ipc.o libvicii_ipc.so
+	$(VERILATOR) --trace -cc  --exe ../hdl/vicii.v ../hdl/color.v ../hdl/clockdivs.v ../hdl/sync.v ../hdl/serration.v ../hdl/equalization.v sim_main.cpp test.cpp log.cpp tests/test*.cpp -CFLAGS -g -LDFLAGS '../vicii_ipc.o -lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vvicii.mk
+
+default: obj_dir/VVicii
 
 vicii_ipc.o: vicii_ipc.c
 	$(CC) -o vicii_ipc.o -fPIC -c vicii_ipc.c
@@ -57,17 +59,17 @@ logic:
 	gtkwave session.vcd --script session.tcl
 
 # Bring up the logic analyzer after capturing a session from VICE
-logic_vice:
+logic_vice: obj_dir/Vvicii
 	obj_dir/Vvicii -z -t
 	gtkwave session.vcd --script seession.tcl
 
 # Show a window while capturing and then bring up the logic analyser
-logic_window_vice:
+logic_window_vice: obj_dir/Vvicii
 	obj_dir/Vvicii -w -z -t
 	gtkwave session.vcd --script seession.tcl
 
 # Render a frame in the window
-view:
+view: obj_dir/Vvicii
 	obj_dir/Vvicii -w
 
 test:
