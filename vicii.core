@@ -1,0 +1,57 @@
+CAPI=2:
+name: "::vicii:0.1"
+description: "VICII"
+filesets:
+  # Common VIC-II verilog fildes
+  files_vicii:
+    files:
+      - hdl/common.vh {is_include_file:true}
+      - hdl/equalization.v
+      - hdl/vicii.v
+      - hdl/serration.v
+      - hdl/clockdivs.v
+      - hdl/color.v
+      - hdl/sync.v
+    file_type: systemVerilogSource
+
+  # Files specific to the CMod A35t board
+  files_rtl_cmod_a35t:
+    files:
+      - hdl/cmod_a35t/top.v
+      - hdl/cmod_a35t/color4x_clockgen.v
+      - hdl/cmod_a35t/dot4x_clockgen.v
+    file_type: systemVerilogSource
+  files_constraints_cmod_a35t:
+    files:
+      - hdl/cmod_a35t/constr.xdc
+    file_type: xdc
+
+targets:
+  # Synthesize for CMod A35t board.
+  synth_cmod_a35t:
+    default_tool: vivado
+    filesets:
+      - files_vicii
+      - files_rtl_cmod_a35t
+      - files_constraints_cmod_a35t
+    toplevel: top
+    tools:
+      vivado:
+        part: "xc7a35tcpg236-1"  # CMod A35t
+
+  # Lint using verilator
+  lint:
+    default_tool: verilator
+    filesets: [files_vicii]
+    tools:
+      verilator:
+        mode: lint-only
+    toplevel: vicii
+
+  verilator_sim:
+    default_tool: verilator
+    filesets: [files_vicii]
+    tools:
+      verilator:
+        verilator_options: [--trace --Wno-fatal -cc -O3]
+    toplevel: vicii

@@ -1,4 +1,0 @@
-#!/bin/bash
-
-VICII_HOME=/shared/Vivado/vicii/vicii.srcs/sources_1/new
-$VICII_HOME/obj_dir/Vvicii $*
