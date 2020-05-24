@@ -14,7 +14,8 @@ module top(
     output [1:0] red,    // red out for CXA1545P
     output [1:0] green,  // green out for CXA1545P
     output [1:0] blue,   // blue out for CXA1545P
-    inout [11:0] ad,    // address lines
+    inout tri [5:0] adl, // address low
+    output [5:0] adh,    // address high
     inout tri [11:0] db,// data bus lines
     input ce,           // chip enable (LOW=enable, HIGH=disabled)
     input rw,           // read/write (LOW=write, HIGH=read)
@@ -58,7 +59,7 @@ module top(
         .blue(blue),
         .rst(rst),
         .cSync(cSync),
-        .adi(ad),
+        .adi(adl[5:0]),
         .ado(ado),
         .dbi(db),
         .dbo(dbo),
@@ -74,7 +75,7 @@ module top(
     );
 
     // Write to bus condition, else tri state.
-    assign db = (aec && ~rw && !ce) ? dbo:12'bz;
-    assign ad = aec ? 12'bz:ado;
-
+    assign db = (aec && ~rw && ~ce) ? dbo:12'bz; // CPU reading
+    assign adl = ~aec ? ado[5:0]:6'bz; // Stollen cycle
+    assign adh = ado[11:6];
 endmodule : top

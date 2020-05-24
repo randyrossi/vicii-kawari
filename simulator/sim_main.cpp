@@ -564,9 +564,9 @@ int main(int argc, char** argv, char** env) {
     }
     bt = 1;
     for (int i=IN_A0; i<= IN_A11; i++) {
-       signal_width[i] = 12;
+       signal_width[i] = 6;
        signal_bit[i] = bt;
-       signal_src16[i] = &top->adi;
+       signal_src8[i] = &top->adi;
        bt = bt * 2;
     }
     bt = 1;

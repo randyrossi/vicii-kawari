@@ -14,9 +14,13 @@ reg hSync;
 
 always @(posedge clk)
 begin
-	hSync <= `FALSE;
-	if (rasterX >= hSyncStart && rasterX <= hSyncEnd)  // TODO configure on chip
-		hSync <= `TRUE;
+    if (rst)
+       hSync <= `FALSE;
+    else begin
+       hSync <= `FALSE;
+       if (rasterX >= hSyncStart && rasterX <= hSyncEnd)
+           hSync <= `TRUE;
+    end
 end
 
 // Compute Equalization pulses
@@ -35,6 +39,9 @@ SerrationPulse usep1
 );
 
 always @(posedge clk)
+  if (rst)
+     cSync <= 1'b0;
+  else
   case(chip)
   CHIP6567R8,CHIP6567R56A:
 	case(rasterY)

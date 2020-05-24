@@ -24,7 +24,7 @@ module vicii(
    output[1:0] blue,
    output cSync,
    output [11:0] ado,
-   input [11:0] adi,
+   input [5:0] adi,
    output reg [11:0] dbo,
    input [11:0] dbi,
    input ce,
@@ -539,17 +539,16 @@ endcase
   end
 
 
-  always @(*)
+  always @(rst, dot_risingr[0], phir[0], cycle_num, badline)
   if (rst)
      baChars = 1'b1;
   else
   begin
-     if (dot_risingr[0] && clk_phi == 1'b0) begin
-        if (cycle_num > 7'd10 && cycle_num < 7'd54 && badline)
-           baChars = 1'b0;
-        else  
-           baChars = 1'b1;      
-     end
+     if (dot_risingr[0] && phir[0] == 1'b0 &&
+           cycle_num > 7'd10 && cycle_num < 7'd54 && badline)
+        baChars = 1'b0;
+     else  
+        baChars = 1'b1;      
   end
 
   assign ba = baChars;

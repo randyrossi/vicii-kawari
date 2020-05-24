@@ -41,29 +41,29 @@ set_property -dict { PACKAGE_PIN V5 IOSTANDARD LVCMOS33 } [get_ports { blue[1] }
 
 # Address lines
 # ad[0] inout, Pin 26
-set_property -dict { PACKAGE_PIN R3 IOSTANDARD LVCMOS33 } [get_ports { ad[0] }];
+set_property -dict { PACKAGE_PIN R3 IOSTANDARD LVCMOS33 } [get_ports { adl[0] }];
 # ad[1] inout, Pin 27
-set_property -dict { PACKAGE_PIN T3 IOSTANDARD LVCMOS33 } [get_ports { ad[1] }];
+set_property -dict { PACKAGE_PIN T3 IOSTANDARD LVCMOS33 } [get_ports { adl[1] }];
 # ad[2] inout, Pin 28
-set_property -dict { PACKAGE_PIN R2 IOSTANDARD LVCMOS33 } [get_ports { ad[2] }];
+set_property -dict { PACKAGE_PIN R2 IOSTANDARD LVCMOS33 } [get_ports { adl[2] }];
 # ad[3] inout, Pin 29
-set_property -dict { PACKAGE_PIN T1 IOSTANDARD LVCMOS33 } [get_ports { ad[3] }];
+set_property -dict { PACKAGE_PIN T1 IOSTANDARD LVCMOS33 } [get_ports { adl[3] }];
 # ad[4] inout, Pin 30
-set_property -dict { PACKAGE_PIN T2 IOSTANDARD LVCMOS33 } [get_ports { ad[4] }];
+set_property -dict { PACKAGE_PIN T2 IOSTANDARD LVCMOS33 } [get_ports { adl[4] }];
 # ad[5] inout, Pin 31
-set_property -dict { PACKAGE_PIN U1 IOSTANDARD LVCMOS33 } [get_ports { ad[5] }];
+set_property -dict { PACKAGE_PIN U1 IOSTANDARD LVCMOS33 } [get_ports { adl[5] }];
 # ad[6] inout, Pin 32
-set_property -dict { PACKAGE_PIN W2 IOSTANDARD LVCMOS33 } [get_ports { ad[6] }];
+set_property -dict { PACKAGE_PIN W2 IOSTANDARD LVCMOS33 } [get_ports { adh[0] }];
 # ad[7] inout, Pin 33
-set_property -dict { PACKAGE_PIN V2 IOSTANDARD LVCMOS33 } [get_ports { ad[7] }];
+set_property -dict { PACKAGE_PIN V2 IOSTANDARD LVCMOS33 } [get_ports { adh[1] }];
 # ad[8] inout, Pin 18
-set_property -dict { PACKAGE_PIN N3 IOSTANDARD LVCMOS33 } [get_ports { ad[8] }];
+set_property -dict { PACKAGE_PIN N3 IOSTANDARD LVCMOS33 } [get_ports { adh[2] }];
 # ad[9] inout, Pin 17
-set_property -dict { PACKAGE_PIN M1 IOSTANDARD LVCMOS33 } [get_ports { ad[9] }];
+set_property -dict { PACKAGE_PIN M1 IOSTANDARD LVCMOS33 } [get_ports { adh[3] }];
 # ad[10] inout, Pin 46
-set_property -dict { PACKAGE_PIN W7 IOSTANDARD LVCMOS33 } [get_ports { ad[10] }];
+set_property -dict { PACKAGE_PIN W7 IOSTANDARD LVCMOS33 } [get_ports { adh[4] }];
 # ad[11] inout, Pin 19
-set_property -dict { PACKAGE_PIN P3 IOSTANDARD LVCMOS33 } [get_ports { ad[11] }];
+set_property -dict { PACKAGE_PIN P3 IOSTANDARD LVCMOS33 } [get_ports { adh[5] }];
 
 # Data bus lines
 # db[0] inout, Pin 8
