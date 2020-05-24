@@ -195,7 +195,7 @@
             "-fPIC", 
             "vicii_ipc.c"
         ], 
-        "directory": "/home/ryan/vicii/simulator", 
+        "directory": "/shared/Vivado/vicii/simulator", 
         "file": "vicii_ipc.c"
     }, 
     {

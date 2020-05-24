@@ -30,16 +30,21 @@ module top(
 
     wire sys_clockb;
 
+    BUFG sysbuf1 (
+      .O(sys_clockb),
+      .I(sys_clock)
+    );
+
     // Generate a 32.727272mhz dot clock.
     dot4x_clockgen dot4x_clockgen(
-        .clk_in12mhz(sys_clock),    // external 12 Mhz clock
+        .clk_in12mhz(sys_clockb),    // external 12 Mhz clock
         .reset(rst),
         .clk_dot4x(clk_dot4x)     // generated 4x dot clock
     );
 
     // Generate a 14.318mhz color clock.
     color4x_clockgen color4x_clockgen(
-        .clk_in12mhz(sys_clock),    // external 12 Mhz clock
+        .clk_in12mhz(sys_clockb),    // external 12 Mhz clock
         .reset(rst),
         .clk_color4x(clk_col4x)     // generated 4x col clock
     );
