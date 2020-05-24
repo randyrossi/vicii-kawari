@@ -391,10 +391,7 @@ endcase
   always @(posedge clk_dot4x)
   begin
      if (rst)
-     begin
-       irst_clr <= 1'b0;
        irst <= 1'b0;
-     end
      else begin
      // TODO: What point in the phi low cycle does irq rise? This might
      // be too early.  Find out.
@@ -452,7 +449,6 @@ endcase
     raster_x <= 10'b0;
     raster_line <= 9'b0;
     next_raster_line <= 9'b1;
-    idle <= 1'b1;
     case(chip)
     CHIP6567R56A, CHIP6567R8:
       xpos <= 10'h19c;
@@ -527,6 +523,7 @@ endcase
     vcBase <= 10'b0;
     vc <= 10'b0;
     rc <= 3'b0;
+    idle <= 1'b1;
   end
   else if (clk_phi == 1'b0 && phi_phase_start[15]) begin
     if (cycle_num > 14 && cycle_num < 55 && idle == 1'b0)
@@ -620,7 +617,6 @@ endcase
   // LI -> HI
   always @(posedge clk_dot4x)
      if (rst) begin
-        vicCycle <= VIC_LP;
         vicPreCycle <= VIC_LP;
         spriteCnt <= 3'd3;
         refreshCnt <= 3'd0;
@@ -702,7 +698,9 @@ endcase
   // cycle the state machine will be in on the last tick of a phase if
   // we need to
   always @(posedge clk_dot4x)
-     if (phi_phase_start[15])
+     if (rst)
+        vicCycle <= VIC_LP;
+     else if (phi_phase_start[15])
         vicCycle <= vicPreCycle;
     
   // RAS/CAS/MUX profiles
@@ -1046,6 +1044,7 @@ if (rst) begin
   ecm <= 1'b0;
   res <= 1'b0;
   mcm <= 1'b0;
+  irst_clr <= 1'b0;
 end
 else begin
  if (!ce) begin
