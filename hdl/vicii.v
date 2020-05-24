@@ -160,9 +160,9 @@ endcase
   wire [2:0] bit_cycle;
   
   // ec : border (edge) color
-  reg [3:0] ec;
+  vic_color ec;
   // b#c : background color registers
-  reg [3:0] b0c,b1c,b2c,b3c;
+  vic_color b0c,b1c,b2c,b3c;
   reg [3:0] mm0,mm1;
   
   // lower 8 bits of ado are muxed
@@ -815,7 +815,7 @@ reg pixelBgFlag;
 reg clkShift;
 reg ismc;
 
-reg [3:0] pixelColor;
+vic_color pixelColor;
 
 always @* begin
         loadPixels = xscroll == xpos[2:0];
@@ -856,28 +856,28 @@ if (dot_risingr[0]) // rising dot
 always @(posedge clk_dot4x)
 begin
   if (dot_risingr[0]) begin  // rising dot
-    pixelColor <= 4'h0; // black
+    pixelColor <= BLACK;
     case({ecm,bmm,mcm})
     3'b000:
-        pixelColor <= shiftingPixels[7] ? shiftingChar[11:8] : b0c;
+        pixelColor <= shiftingPixels[7] ? vic_color'(shiftingChar[11:8]) : b0c;
     3'b001:
         if (shiftingChar[11])
           case(shiftingPixels[7:6])
           2'b00:  pixelColor <= b0c;
           2'b01:  pixelColor <= b1c;
           2'b10:  pixelColor <= b2c;
-          2'b11:  pixelColor <= {1'b0, shiftingChar[10:8]};
+          2'b11:  pixelColor <= vic_color'({1'b0, shiftingChar[10:8]});
           endcase
         else
-          pixelColor <= shiftingPixels[7] ? shiftingChar[11:8] : b0c;
+          pixelColor <= shiftingPixels[7] ? vic_color'(shiftingChar[11:8]) : b0c;
     3'b010,3'b110: 
-        pixelColor <= shiftingPixels[7] ? shiftingChar[7:4] : shiftingChar[3:0];
+        pixelColor <= shiftingPixels[7] ? vic_color'(shiftingChar[7:4]) : vic_color'(shiftingChar[3:0]);
     3'b011,3'b111:
         case(shiftingPixels[7:6])
         2'b00:  pixelColor <= b0c;
-        2'b01:  pixelColor <= shiftingChar[7:4];
-        2'b10:  pixelColor <= shiftingChar[3:0];
-        2'b11:  pixelColor <= shiftingChar[11:8];
+        2'b01:  pixelColor <= vic_color'(shiftingChar[7:4]);
+        2'b10:  pixelColor <= vic_color'(shiftingChar[3:0]);
+        2'b11:  pixelColor <= vic_color'(shiftingChar[11:8]);
         endcase
     3'b100:
         case({shiftingPixels[7], shiftingChar[7:6]})
@@ -885,7 +885,7 @@ begin
         3'b001:  pixelColor <= b1c;
         3'b010:  pixelColor <= b2c;
         3'b011:  pixelColor <= b3c;
-        default:  pixelColor <= shiftingChar[11:8];
+        default:  pixelColor <= vic_color'(shiftingChar[11:8]);
         endcase
     3'b101:
         if (shiftingChar[11])
@@ -893,7 +893,7 @@ begin
           2'b00:  pixelColor <= b0c;
           2'b01:  pixelColor <= b1c;
           2'b10:  pixelColor <= b2c;
-          2'b11:  pixelColor <= shiftingChar[11:8];
+          2'b11:  pixelColor <= vic_color'(shiftingChar[11:8]);
           endcase
         else
           case({shiftingPixels[7], shiftingChar[7:6]})
@@ -901,20 +901,20 @@ begin
           3'b001:  pixelColor <= b1c;
           3'b010:  pixelColor <= b2c;
           3'b011:  pixelColor <= b3c;
-          default:  pixelColor <= shiftingChar[11:8];
+          default:  pixelColor <= vic_color'(shiftingChar[11:8]);
           endcase
     endcase
   end
 end
 
-reg [3:0] color_code;
+vic_color color_code;
 
 always @(posedge clk_dot4x)
 begin
   // Force the output color to black for "illegal" modes
   case({ecm,bmm,mcm})
   3'b101,3'b110,3'b111:
-    color_code <= 4'h0;
+    color_code <= BLACK;
   default: color_code <= pixelColor;
   endcase
   // See if the mib overrides the output
@@ -974,7 +974,7 @@ end
  end
 
 
-  reg [3:0] color8;
+  vic_color color8;
   always @(posedge clk_dot4x)
   begin
     if (LRBorder | TBBorder)
@@ -1013,8 +1013,8 @@ end
 // Register Read/Write
 always @(posedge clk_dot4x)
 if (rst) begin
-  ec <= 4'd0;
-  b0c <= 4'd0;
+  ec <= BLACK;
+  b0c <= BLACK;
   xscroll <= 3'd0;
   yscroll <= 3'd3;
   csel <= 1'b0;
@@ -1103,11 +1103,11 @@ else begin
            emmc <= dbi[2];
            elp <= dbi[3];
            end
-         6'h20:  ec <= dbi[3:0];
-         6'h21:  b0c <= dbi[3:0];
-         6'h22:  b1c <= dbi[3:0];
-         6'h23:  b2c <= dbi[3:0];
-         6'h24:  b3c <= dbi[3:0];
+         6'h20:  ec <= vic_color'(dbi[3:0]);
+         6'h21:  b0c <= vic_color'(dbi[3:0]);
+         6'h22:  b1c <= vic_color'(dbi[3:0]);
+         6'h23:  b2c <= vic_color'(dbi[3:0]);
+         6'h24:  b3c <= vic_color'(dbi[3:0]);
          default: ;
          endcase
       end
