@@ -1012,110 +1012,111 @@ end
      .hSyncEnd(hSyncEnd),
      .cSync(cSync)
   );
-  
+
+
 // Register Read/Write
 always @(posedge clk_dot4x)
-if (rst) begin
-  ec <= BLACK;
-  b0c <= BLACK;
-  xscroll <= 3'd0;
-  yscroll <= 3'd3;
-  csel <= 1'b0;
-  rsel <= 1'b0;
-  den <= 1'b1;
-  bmm <= 1'b0;
-  ecm <= 1'b0;
-  res <= 1'b0;
-  mcm <= 1'b0;
-  irst_clr <= 1'b0;
-end
-else begin
- if (!ce) begin
-   // READ from register
-   if (clk_phi && rw) begin
-      dbo <= 12'hFF;
-      case(adi[5:0])
-      6'h11:  begin
-         dbo[2:0] <= yscroll;
-         dbo[3] <= rsel;
-         dbo[4] <= den;
-         dbo[5] <= bmm;
-         dbo[6] <= ecm;
-         dbo[7] <= raster_line[8];
-      end
-      6'h12:  dbo[7:0] <= raster_line[7:0];
-      6'h16:  dbo[7:0] <= {2'b11,res,mcm,csel,xscroll};
-      6'h18:  begin
-         dbo[0] <= 1'b1;
-         dbo[3:1] <= cb[2:0];
-         dbo[7:4] <= vm[3:0];
-      end
-      6'h19:  dbo[7:0] <= {!irq,3'b111,ilp,immc,imbc,irst};
-      6'h1A:  dbo[7:0] <= {4'b1111,elp,emmc,embc,erst};
-      6'h20:  dbo[3:0] <= ec;
-      6'h21:  dbo[3:0] <= b0c;
-      6'h22:  dbo[3:0] <= b1c;
-      6'h23:  dbo[3:0] <= b2c;
-      6'h24:  dbo[3:0] <= b3c;
-      default: ;
-      endcase
-   end
-   // WRITE to register
-   // By waiting for the falling edge of phi, we don't match
-   // VICE's rendering pixel for pixel in the border color
-   // change test.  With this condition, our pixel color changes
-   // are delayed by 1/2 cycle which may actually be correct but
-   // VICE seems to think the color change happens on the 2nd
-   // dot of the phase it changed the color which doesn't seem
-   // possible.
-   else if (phi_phase_start[14] && bit_cycle == 3'd7) begin // falling phi edge
-      irst_clr <= 1'b0;
-      imbc_clr <= 1'b0;
-      immc_clr <= 1'b0;
-      ilp_clr <= 1'b0;
-      if (!rw) begin
-         case(adi[5:0])
-         6'h11:  begin
-           yscroll <= dbi[2:0];
-           rsel <= dbi[3];
-           den <= dbi[4];
-           bmm <= dbi[5];
-           ecm <= dbi[6];
-           rasterCmp[8] <= dbi[7];
-           end
-         6'h12:  rasterCmp[7:0] <= dbi[7:0];
-         6'h16:  begin
-           xscroll <= dbi[2:0];
-           csel <= dbi[3];
-           mcm <= dbi[4];
-           res <= dbi[5];
-           end
-         6'h18:  begin
-           cb[2:0] <= dbi[3:1];
-           vm[3:0] <= dbi[7:4];
-         end
-         6'h19:  begin
-           irst_clr <= dbi[0];
-           imbc_clr <= dbi[1];
-           immc_clr <= dbi[2];
-           ilp_clr <= dbi[3];
-           end
-         6'h1A:  begin
-           erst <= dbi[0];
-           embc <= dbi[1];
-           emmc <= dbi[2];
-           elp <= dbi[3];
-           end
-         6'h20:  ec <= vic_color'(dbi[3:0]);
-         6'h21:  b0c <= vic_color'(dbi[3:0]);
-         6'h22:  b1c <= vic_color'(dbi[3:0]);
-         6'h23:  b2c <= vic_color'(dbi[3:0]);
-         6'h24:  b3c <= vic_color'(dbi[3:0]);
-         default: ;
-         endcase
-      end
-   end
- end
-end
+    if (rst) begin
+        ec <= BLACK;
+        b0c <= BLACK;
+        xscroll <= 3'd0;
+        yscroll <= 3'd3;
+        csel <= 1'b0;
+        rsel <= 1'b0;
+        den <= 1'b1;
+        bmm <= 1'b0;
+        ecm <= 1'b0;
+        res <= 1'b0;
+        mcm <= 1'b0;
+        irst_clr <= 1'b0;
+    end
+    else begin
+        if (!ce) begin
+            // READ from register
+            if (clk_phi && rw) begin
+                dbo <= 12'hFF;
+                case (adi[5:0])
+                    REG_SCREEN_CONTROL_1: begin
+                        dbo[2:0] <= yscroll;
+                        dbo[3] <= rsel;
+                        dbo[4] <= den;
+                        dbo[5] <= bmm;
+                        dbo[6] <= ecm;
+                        dbo[7] <= raster_line[8];
+                    end
+                    REG_RASTER_LINE: dbo[7:0] <= raster_line[7:0];
+                    REG_SCREEN_CONTROL_2: dbo[7:0] <= {2'b11, res, mcm, csel, xscroll};
+                    REG_MEMORY_SETUP: begin
+                        dbo[0] <= 1'b1;
+                        dbo[3:1] <= cb[2:0];
+                        dbo[7:4] <= vm[3:0];
+                    end
+                    REG_INTERRUPT_STATUS: dbo[7:0] <= {!irq, 3'b111, ilp, immc, imbc, irst};
+                    REG_INTERRUPT_CONTROL: dbo[7:0] <= {4'b1111, elp, emmc, embc, erst};
+                    REG_BORDER_COLOR: dbo[3:0] <= ec;
+                    REG_BACKGROUND_COLOR: dbo[3:0] <= b0c;
+                    REG_EXTRA_BACKGROUND_COLOR_1: dbo[3:0] <= b1c;
+                    REG_EXTRA_BACKGROUND_COLOR_2: dbo[3:0] <= b2c;
+                    REG_EXTRA_BACKGROUND_COLOR_3: dbo[3:0] <= b3c;
+                    default:;
+                endcase
+            end
+            // WRITE to register
+            // By waiting for the falling edge of phi, we don't match
+            // VICE's rendering pixel for pixel in the border color
+            // change test.  With this condition, our pixel color changes
+            // are delayed by 1/2 cycle which may actually be correct but
+            // VICE seems to think the color change happens on the 2nd
+            // dot of the phase it changed the color which doesn't seem
+            // possible.
+            else if (phi_phase_start[14] && bit_cycle == 3'd7) begin // falling phi edge
+                irst_clr <= 1'b0;
+                imbc_clr <= 1'b0;
+                immc_clr <= 1'b0;
+                ilp_clr <= 1'b0;
+                if (!rw) begin
+                    case (adi[5:0])
+                        REG_SCREEN_CONTROL_1: begin
+                            yscroll <= dbi[2:0];
+                            rsel <= dbi[3];
+                            den <= dbi[4];
+                            bmm <= dbi[5];
+                            ecm <= dbi[6];
+                            rasterCmp[8] <= dbi[7];
+                        end
+                        REG_RASTER_LINE: rasterCmp[7:0] <= dbi[7:0];
+                        REG_SCREEN_CONTROL_2: begin
+                            xscroll <= dbi[2:0];
+                            csel <= dbi[3];
+                            mcm <= dbi[4];
+                            res <= dbi[5];
+                        end
+                        REG_MEMORY_SETUP: begin
+                            cb[2:0] <= dbi[3:1];
+                            vm[3:0] <= dbi[7:4];
+                        end
+                        REG_INTERRUPT_STATUS: begin
+                            irst_clr <= dbi[0];
+                            imbc_clr <= dbi[1];
+                            immc_clr <= dbi[2];
+                            ilp_clr <= dbi[3];
+                        end
+                        REG_INTERRUPT_CONTROL: begin
+                            erst <= dbi[0];
+                            embc <= dbi[1];
+                            emmc <= dbi[2];
+                            elp <= dbi[3];
+                        end
+                        REG_BORDER_COLOR: ec <= vic_color'(dbi[3:0]);
+                        REG_BACKGROUND_COLOR: b0c <= vic_color'(dbi[3:0]);
+                        REG_EXTRA_BACKGROUND_COLOR_1: b1c <= vic_color'(dbi[3:0]);
+                        REG_EXTRA_BACKGROUND_COLOR_2: b2c <= vic_color'(dbi[3:0]);
+                        REG_EXTRA_BACKGROUND_COLOR_3: b3c <= vic_color'(dbi[3:0]);
+                        default:;
+                    endcase
+                end
+            end
+        end
+    end
   
 endmodule : vicii
