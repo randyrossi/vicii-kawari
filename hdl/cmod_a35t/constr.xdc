@@ -19,8 +19,8 @@ set_property -dict { PACKAGE_PIN W5 IOSTANDARD LVCMOS33 } [get_ports { cSync }];
 # clk_phi out, Pin45
 set_property -dict { PACKAGE_PIN U7 IOSTANDARD LVCMOS33 } [get_ports { clk_phi }];
 
-# rst in, Pin34
-set_property -dict { PACKAGE_PIN W3 IOSTANDARD LVCMOS33 } [get_ports { rst }];
+# rst out, Pin34
+set_property -dict { PACKAGE_PIN W3 IOSTANDARD LVCMOS33 } [get_ports { cpu_reset }];
 
 # sys_clock in, L17 = Internal clock pin 
 set_property -dict { PACKAGE_PIN L17 IOSTANDARD LVCMOS33 } [get_ports { sys_clock }]; 

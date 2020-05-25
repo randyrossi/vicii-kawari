@@ -3,7 +3,8 @@
 module dot4x_clockgen
     (output wire clk_dot4x,
         input wire reset,
-        input wire clk_in12mhz
+        input wire clk_in12mhz,
+        output locked
     );
     // Input buffering
     wire clk_in1_clk_wiz_0;
@@ -17,7 +18,6 @@ module dot4x_clockgen
     wire [15:0] do_unused;
     wire drdy_unused;
     wire psdone_unused;
-    wire locked_int;
     wire clkfbout_clk_wiz_0;
     wire clkfbout_buf_clk_wiz_0;
     wire clkfboutb_unused;
@@ -66,7 +66,7 @@ module dot4x_clockgen
         .PSINCDEC(1'b0),
         .PSDONE(psdone_unused),
         // Other control and status signals
-        .LOCKED(locked_int),
+        .LOCKED(locked),
         .CLKINSTOPPED(clkinstopped_unused),
         .CLKFBSTOPPED(clkfbstopped_unused),
         .PWRDWN(1'b0),

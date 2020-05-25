@@ -7,7 +7,7 @@ module top(
 // sys_clock comes from the on board 12Mhz clock circuit connected
 // to L3 on the CMod-A7
     input sys_clock,    // external 12Mhz clock
-    input rst,          // reset
+    output cpu_reset,   // reset for 6510 CPU
     output clk_colref,  // output color ref clock 3.579545 Mhz NTSC for CXA1545P
     output clk_phi,     // output phi clock 1.022727 Mhz NTSC
     output cSync,       // composite sync signal for CXA1545P
@@ -29,23 +29,35 @@ module top(
 );
 
     wire sys_clockb;
+    wire locked;
+    wire rst = !locked;
+    assign cpu_reset = rst;
 
+    reg [21:0] rstcntr = 0;
+    wire internal_rst = !rstcntr[21];
+    
     BUFG sysbuf1 (
       .O(sys_clockb),
       .I(sys_clock)
     );
 
+    // Keep internel reset high for approx 150ms
+    always @(posedge sys_clock)
+    if (internal_rst)
+       rstcntr <= rstcntr + 4'd1;
+
     // Generate a 32.727272mhz dot clock.
     dot4x_clockgen dot4x_clockgen(
         .clk_in12mhz(sys_clockb),    // external 12 Mhz clock
-        .reset(rst),
-        .clk_dot4x(clk_dot4x)     // generated 4x dot clock
+        .reset(internal_rst),
+        .clk_dot4x(clk_dot4x),      // generated 4x dot clock
+        .locked(locked)
     );
 
     // Generate a 14.318mhz color clock.
     color4x_clockgen color4x_clockgen(
         .clk_in12mhz(sys_clockb),    // external 12 Mhz clock
-        .reset(rst),
+        .reset(internal_rst),
         .clk_color4x(clk_col4x)     // generated 4x col clock
     );
 
