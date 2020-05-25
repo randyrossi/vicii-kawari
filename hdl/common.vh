@@ -82,4 +82,18 @@ typedef enum bit[5:0]  {
     REG_SPRITE_COLOR_7 = 6'h2E
 } vicii_register;
 
+// Official video modes, source https://www.c64-wiki.com/wiki/Graphics_Modes
+typedef enum bit[2:0] {
+    MODE_STANDARD_CHAR = 3'b000,
+    MODE_MULTICOLOR_CHAR = 3'b001,
+    MODE_STANDARD_BITMAP = 3'b010,
+    MODE_MULTICOLOR_BITMAP = 3'b011,
+    MODE_EXTENDED_BG_COLOR = 3'b100,
+
+    // "Illegal" invalid modes.
+    MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR = 3'b101,
+    MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP = 3'b110,
+    MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP = 3'b111
+} vicii_video_mode;
+
 `endif // common_vh_

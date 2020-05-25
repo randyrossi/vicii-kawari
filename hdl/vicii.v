@@ -855,72 +855,74 @@ end
 always @(posedge clk_dot4x)
 if (dot_risingr[0]) // rising dot
         pixelBgFlag <= shiftingPixels[7];
-        
+
 always @(posedge clk_dot4x)
-begin
-  if (dot_risingr[0]) begin  // rising dot
-    pixelColor <= BLACK;
-    case({ecm,bmm,mcm})
-    3'b000:
-        pixelColor <= shiftingPixels[7] ? vic_color'(shiftingChar[11:8]) : b0c;
-    3'b001:
-        if (shiftingChar[11])
-          case(shiftingPixels[7:6])
-          2'b00:  pixelColor <= b0c;
-          2'b01:  pixelColor <= b1c;
-          2'b10:  pixelColor <= b2c;
-          2'b11:  pixelColor <= vic_color'({1'b0, shiftingChar[10:8]});
-          endcase
-        else
-          pixelColor <= shiftingPixels[7] ? vic_color'(shiftingChar[11:8]) : b0c;
-    3'b010,3'b110: 
-        pixelColor <= shiftingPixels[7] ? vic_color'(shiftingChar[7:4]) : vic_color'(shiftingChar[3:0]);
-    3'b011,3'b111:
-        case(shiftingPixels[7:6])
-        2'b00:  pixelColor <= b0c;
-        2'b01:  pixelColor <= vic_color'(shiftingChar[7:4]);
-        2'b10:  pixelColor <= vic_color'(shiftingChar[3:0]);
-        2'b11:  pixelColor <= vic_color'(shiftingChar[11:8]);
-        endcase
-    3'b100:
-        case({shiftingPixels[7], shiftingChar[7:6]})
-        3'b000:  pixelColor <= b0c;
-        3'b001:  pixelColor <= b1c;
-        3'b010:  pixelColor <= b2c;
-        3'b011:  pixelColor <= b3c;
-        default:  pixelColor <= vic_color'(shiftingChar[11:8]);
-        endcase
-    3'b101:
-        if (shiftingChar[11])
-          case(shiftingPixels[7:6])
-          2'b00:  pixelColor <= b0c;
-          2'b01:  pixelColor <= b1c;
-          2'b10:  pixelColor <= b2c;
-          2'b11:  pixelColor <= vic_color'(shiftingChar[11:8]);
-          endcase
-        else
-          case({shiftingPixels[7], shiftingChar[7:6]})
-          3'b000:  pixelColor <= b0c;
-          3'b001:  pixelColor <= b1c;
-          3'b010:  pixelColor <= b2c;
-          3'b011:  pixelColor <= b3c;
-          default:  pixelColor <= vic_color'(shiftingChar[11:8]);
-          endcase
-    endcase
-  end
-end
+    begin
+        if (dot_risingr[0]) begin  // rising dot
+            pixelColor <= BLACK;
+            case ({ecm, bmm, mcm})
+                MODE_STANDARD_CHAR:
+                    pixelColor <= shiftingPixels[7] ? vic_color'(shiftingChar[11:8]):b0c;
+                MODE_MULTICOLOR_CHAR:
+                    if (shiftingChar[11])
+                        case (shiftingPixels[7:6])
+                            2'b00: pixelColor <= b0c;
+                            2'b01: pixelColor <= b1c;
+                            2'b10: pixelColor <= b2c;
+                            2'b11: pixelColor <= vic_color'({1'b0, shiftingChar[10:8]});
+                        endcase
+                    else
+                        pixelColor <= shiftingPixels[7] ? vic_color'(shiftingChar[11:8]):b0c;
+                MODE_STANDARD_BITMAP, MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP:
+                    pixelColor <= shiftingPixels[7] ? vic_color'(shiftingChar[7:4]):vic_color'(shiftingChar[3:0]);
+                MODE_MULTICOLOR_BITMAP, MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
+                    case (shiftingPixels[7:6])
+                        2'b00: pixelColor <= b0c;
+                        2'b01: pixelColor <= vic_color'(shiftingChar[7:4]);
+                        2'b10: pixelColor <= vic_color'(shiftingChar[3:0]);
+                        2'b11: pixelColor <= vic_color'(shiftingChar[11:8]);
+                    endcase
+                MODE_EXTENDED_BG_COLOR:
+                    case ({shiftingPixels[7], shiftingChar[7:6]})
+                        3'b000: pixelColor <= b0c;
+                        3'b001: pixelColor <= b1c;
+                        3'b010: pixelColor <= b2c;
+                        3'b011: pixelColor <= b3c;
+                        default: pixelColor <= vic_color'(shiftingChar[11:8]);
+                    endcase
+                MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR:
+                    if (shiftingChar[11])
+                        case (shiftingPixels[7:6])
+                            2'b00: pixelColor <= b0c;
+                            2'b01: pixelColor <= b1c;
+                            2'b10: pixelColor <= b2c;
+                            2'b11: pixelColor <= vic_color'(shiftingChar[11:8]);
+                        endcase
+                    else
+                        case ({shiftingPixels[7], shiftingChar[7:6]})
+                            3'b000: pixelColor <= b0c;
+                            3'b001: pixelColor <= b1c;
+                            3'b010: pixelColor <= b2c;
+                            3'b011: pixelColor <= b3c;
+                            default: pixelColor <= vic_color'(shiftingChar[11:8]);
+                        endcase
+            endcase
+        end
+    end
 
 vic_color color_code;
 
 always @(posedge clk_dot4x)
-begin
-  // Force the output color to black for "illegal" modes
-  case({ecm,bmm,mcm})
-  3'b101,3'b110,3'b111:
-    color_code <= BLACK;
-  default: color_code <= pixelColor;
-  endcase
-  // See if the mib overrides the output
+    begin
+        // Force the output color to black for "illegal" modes
+        case ({ecm, bmm, mcm})
+            MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR,
+                MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP,
+                MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
+                color_code <= BLACK;
+            default: color_code <= pixelColor;
+        endcase
+        // See if the mib overrides the output
 //  for (n = 0; n < MIBCNT; n = n + 1) begin
 //    if (!mdp[n] || !pixelBgFlag) begin
 //      if (mmc[n]) begin  // multi-color mode ?
