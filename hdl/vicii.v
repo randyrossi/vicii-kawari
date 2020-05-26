@@ -308,7 +308,6 @@ endcase
     res = 1'b0;
     
     baChars = 1'b1;
-    
   end
 
   // dot_rising[15] means dot going high next cycle
@@ -543,16 +542,17 @@ endcase
   end
 
 
-  always @(rst, dot_risingr[0], phir[0], cycle_num, badline)
+  always @(clk_dot4x)
   if (rst)
      baChars = 1'b1;
   else
   begin
-     if (dot_risingr[0] && phir[0] == 1'b0 &&
-           cycle_num > 7'd10 && cycle_num < 7'd54 && badline)
-        baChars = 1'b0;
-     else  
-        baChars = 1'b1;      
+     if (dot_risingr[0] && phir[0] == 1'b0) begin
+        if(cycle_num > 7'd10 && cycle_num < 7'd54 && badline)
+           baChars = 1'b0;
+        else
+           baChars = 1'b1;
+     end
   end
 
   assign ba = baChars;
@@ -739,7 +739,7 @@ endcase
 
   // c-access reads
   always @(posedge clk_dot4x)
-  if (clk_phi == 1'b1 && phi_phase_start[14]) begin // phi going low
+  if (clk_phi == 1'b1 && phi_phase_start[15]) begin // phi going low
      case (vicCycle)
      VIC_HRC, VIC_HGC: // badline c-access
          nextChar <= dbi;
@@ -767,10 +767,14 @@ endcase
   // g-access reads
   always @(posedge clk_dot4x)
   begin
-  if (clk_phi == 1'b0 && phi_phase_start[14]) // phi going high
+  if (clk_phi == 1'b0 && phi_phase_start[15]) // phi going high
+    readPixels <= 8'd0;
     if (vicCycle == VIC_LG) begin // g-access
       readPixels <= dbi[7:0];
-      readChar <= nextChar;
+      if (idle == 1'b0)
+         readChar <= nextChar;
+      else
+         readChar <= 12'd0;
     end
     waitingPixels <= readPixels;
     waitingChar <= readChar;
@@ -1064,14 +1068,17 @@ always @(posedge clk_dot4x)
                 endcase
             end
             // WRITE to register
-            // By waiting for the falling edge of phi, we don't match
-            // VICE's rendering pixel for pixel in the border color
-            // change test.  With this condition, our pixel color changes
-            // are delayed by 1/2 cycle which may actually be correct but
-            // VICE seems to think the color change happens on the 2nd
-            // dot of the phase it changed the color which doesn't seem
-            // possible.
-            else if (phi_phase_start[14] && bit_cycle == 3'd7) begin // falling phi edge
+            //
+            // 0   1   2   3   4   5   6   7   |
+            //           111111          111111|
+            // 01234567890123450123456789012345|
+            //
+            // VICE seems to think the color change happens much earlier
+            // than the falling edge of phi which is when I think the vic
+            // would have picked up the change.  So to keep things pixel
+            // perfect with VICE, this would have to be
+            // phi_phase_start[11] && bit_cycle==6
+            else if (phi_phase_start[15] && bit_cycle == 3'd7) begin // falling phi edge
                 irst_clr <= 1'b0;
                 imbc_clr <= 1'b0;
                 immc_clr <= 1'b0;
@@ -1120,5 +1127,4 @@ always @(posedge clk_dot4x)
             end
         end
     end
-  
 endmodule : vicii
