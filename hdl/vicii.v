@@ -39,9 +39,13 @@ module vicii(
    
    output mux,
    output vic_cycle vicCycle,
-   output clk_dot
+   output clk_dot,
+   output vic_write_db,
+   output vic_write_ab
 );
 
+// Data ready at phi_phase_start[`DEN]
+`define DEN 11
 
 parameter MIBCNT = 16;
 
@@ -119,7 +123,6 @@ endcase
   // current raster x and line position
   reg [9:0] raster_x;
   reg [8:0] raster_line;
-  reg [8:0] next_raster_line;
   reg raster_enable;
   
   // xpos is the x coordinate relative to raster irq
@@ -253,7 +256,6 @@ endcase
     CHIP6569,CHIPUNUSED: xpos = 10'h194;
     endcase
     raster_line        = 9'd0;
-    next_raster_line   = 9'd1;
     refc               = 8'hff;
     vicAddr            = 14'b0;
     vicCycle           = VIC_LP;
@@ -263,9 +265,9 @@ endcase
     dotr               = 32'b00110011001100110011001100110011;
     dot_risingr        = 16'b0100010001000100;
     
-    rasr = 16'b1111100000000000;
-    muxr = 16'b1111100000000000; // drops early to due delayed use for ado
-    casr = 16'b1111111000000000;
+    rasr = 16'b1110000000000000;
+    muxr = 16'b1110000000000000; // drops early to due delayed use for ado
+    casr = 16'b1111100000000000;
 
     rasterIrqDone = 1'b1;    
     rasterCmp = 9'b0;
@@ -365,7 +367,8 @@ endcase
   always @(raster_line, yscroll, raster_enable)
   begin
      badline = 1'b0;
-     if (raster_line[2:0] == yscroll && raster_enable == 1'b1)
+     if (raster_line >= 'h30 && raster_line <= 'hf7 &&
+         raster_line[2:0] == yscroll && raster_enable == 1'b1)
         badline = 1'b1;
   end
   
@@ -431,7 +434,6 @@ endcase
   begin
     raster_x <= 10'b0;
     raster_line <= 9'b0;
-    next_raster_line <= 9'b1;
     case(chip)
     CHIP6567R56A, CHIP6567R8:
       xpos <= 10'h19c;
@@ -490,12 +492,10 @@ endcase
     if (raster_line < rasterYMax) begin
        // Move to next raster line
        raster_line <= raster_line + 9'd1;
-       next_raster_line <= next_raster_line + 9'd1;
     end
     else begin
        // Time to go back to y coord 0, reset refresh counter
        raster_line <= 9'd0;
-       next_raster_line <= 9'd1;
     end
   end
 
@@ -542,17 +542,16 @@ endcase
   end
 
 
-  always @(clk_dot4x)
+  always @(posedge clk_dot4x)
   if (rst)
-     baChars = 1'b1;
+     baChars <= 1'b1;
   else
   begin
-     if (dot_risingr[0] && phir[0] == 1'b0) begin
-        if(cycle_num > 7'd10 && cycle_num < 7'd54 && badline)
-           baChars = 1'b0;
-        else
-           baChars = 1'b1;
-     end
+     if (dot_risingr[0] && phir[0] == 1'b0)
+       if (cycle_num > 7'd10 && cycle_num < 7'd54 && badline)
+          baChars <= 1'b0;
+       else
+          baChars <= 1'b1;
   end
 
   assign ba = baChars;
@@ -573,10 +572,7 @@ endcase
       ba3 <= ba2 | ba;
     end
   end
-  
-  // If ba not down, match phi
-  // If delayed ba3 is down, down otherwise match phi
-  assign aec = ba ? clk_phi : ba3 & clk_phi;
+ 
 
   // vicCycle state machine
   //
@@ -693,8 +689,8 @@ endcase
   // to its delayed use to set ado 
   always @(posedge clk_dot4x)
   if (rst) begin
-     rasr <= 16'b1111000000000000;
-     casr <= 16'b1111110000000000;
+     rasr <= 16'b1100000000000000;
+     casr <= 16'b1111000000000000;
   end
   else if (phi_phase_start[15]) begin // about to transition
     if (clk_phi) // phi going low
@@ -704,13 +700,13 @@ endcase
              casr <= 16'b1111111111111111;
            end
     default: begin
-             rasr <= 16'b1111111000000000;
-             casr <= 16'b1111111110000000;
+             rasr <= 16'b1111100000000000;
+             casr <= 16'b1111111000000000;
            end
     endcase
     else begin // phi going high
-       rasr <= 16'b1111111000000000;
-       casr <= 16'b1111111110000000;
+       rasr <= 16'b1111100000000000;
+       casr <= 16'b1111111000000000;
     end
   end else begin
     rasr <= {rasr[14:0],1'b0};
@@ -723,23 +719,66 @@ endcase
   // ado.
   always @(posedge clk_dot4x)
   if (rst)
-     muxr <= 16'b1111000000000000;
+     muxr <= 16'b1100000000000000;
   else if (phi_phase_start[15]) begin // about to transition
     if (clk_phi) // phi going low
     case (vicPreCycle)
     VIC_LPI2, VIC_LI: muxr <= 16'b1111111111111111;
     VIC_LR:           muxr <= 16'b0000000000000000;
-    default:          muxr <= 16'b1111111000000000;
+    default:          muxr <= 16'b1111100000000000;
     endcase
     else        // phi going high
-                      muxr <= 16'b1111111000000000;
+                      muxr <= 16'b1111100000000000;
   end else
     muxr <= {muxr[14:0],1'b0};
   assign mux = muxr[15]; 
 
+  // AEC LOW tells CPU to tri-state its bus lines 
+  // AEC will remain HIGH during Phi phase 2 for 3 cycles
+  // after which it will remain LOW with ba.     
+  assign aec = ba ? clk_phi : ba3 & clk_phi;
+
+  // aec -> LS245 DIR Pin (addr)
+  // aec   : low = VIC sets address lines (Bx to Ax)
+  //       : high = VIC reads address lines(Ax to Bx)
+  // When CPU owns the bus (aec high), VIC reads address lines (high)
+  // When VIC owns the bus (aec low), VIC sets address lines (low)
+  // OE pin is grounded (always enabled)
+  
+  // den_n -> LS245 OE Pin (data)
+  // den_n : low = all channels active
+  //         high = all channels disabled
+  // When CPU owns the bus (aec high)
+  //    Enable data lines if VIC is selected (ce low) (ce)
+  //    Disable data lines if VIC is not selected (ce high) (ce)
+  // When VIC owns the bus (aec low)
+  //    Enable data lines (0)
+  assign den_n = aec ? ce : 1'b0;
+  
+  // dir -> LS245 DIR Pin (data)
+  // dir : low = VIC writes to data lines (Bx to Ax)
+  //       high = VIC reads from data lines (Ax to Bx)
+  // When CPU owns the bus (aec high)
+  //   VIC writes to data bus when rw high (rw)
+  //   VIC reads from data bus when rw low (rw)
+  // When VIC owns the bus (aec low)
+  //   VIC reads from data (1)
+  assign dir = aec ? (!ce ? ~rw : 1'b1) : 1'b1;
+
+  // aec ce rw den dir
+  // 0   x  x  0   1    ; vic or stollen cycle, enable db and read
+  // 1   0  1  0   0    ; cpu read from vic, enable db and write
+  // 1   0  0  0   1    ; cpu write to vic, enable db and read 
+  // 1   1  x  1   1    ; cpu neither read nor write from/to vic, disable db, read
+  
+  assign vic_write_db = aec && rw && ~ce;
+  assign vic_write_ab = ~aec;
+
   // c-access reads
   always @(posedge clk_dot4x)
-  if (clk_phi == 1'b1 && phi_phase_start[15]) begin // phi going low
+  if (rst)
+     nextChar <= 12'b0;
+  else if (!vic_write_db && phi_phase_start[`DEN]) begin
      case (vicCycle)
      VIC_HRC, VIC_HGC: // badline c-access
          nextChar <= dbi;
@@ -767,7 +806,9 @@ endcase
   // g-access reads
   always @(posedge clk_dot4x)
   begin
-  if (clk_phi == 1'b0 && phi_phase_start[15]) // phi going high
+  if (rst)
+    readPixels <= 8'd0;
+  else if (!vic_write_db && phi_phase_start[`DEN]) begin
     readPixels <= 8'd0;
     if (vicCycle == VIC_LG) begin // g-access
       readPixels <= dbi[7:0];
@@ -776,8 +817,15 @@ endcase
       else
          readChar <= 12'd0;
     end
-    waitingPixels <= readPixels;
-    waitingChar <= readChar;
+  end
+  end
+
+  always @(posedge clk_dot4x)
+  begin
+    if (clk_phi == 1'b0 && phi_phase_start[15]) begin
+      waitingPixels <= readPixels;
+      waitingChar <= readChar;
+    end
   end
 
   // Address generation
@@ -810,10 +858,6 @@ endcase
      ado8 <= mux ? {2'b11, vicAddr[13:8]} : vicAddr[7:0];
   assign ado = {vicAddr[11:8], ado8};
   
-  assign den_n = aec ? ce : 1'b0;
-  assign dir = aec ? rw : 1'b0;
-
-
 //------------------------------------------------------------------------------
 // Graphics mode pixel calc.
 //------------------------------------------------------------------------------
@@ -950,7 +994,7 @@ reg newTBBorder = 1'b1;
 always @(raster_line, rsel, raster_enable, TBBorder)
 begin
     newTBBorder = TBBorder;
-    if (raster_line == 55 && rsel == 1'b0 && raster_enable == 1'b1)
+    if (raster_line == 55 && raster_enable == 1'b1)
         newTBBorder = 1'b0;
                                
     if (raster_line == 51 && rsel == 1'b1 && raster_enable == 1'b1)
@@ -1037,10 +1081,10 @@ always @(posedge clk_dot4x)
         irst_clr <= 1'b0;
     end
     else begin
-        if (!ce) begin
+        if (!vic_write_ab && !ce) begin
             // READ from register
-            if (clk_phi && rw) begin
-                dbo <= 12'hFF;
+            if (rw) begin
+                dbo <= 12'hFF;               
                 case (adi[5:0])
                     REG_SCREEN_CONTROL_1: begin
                         dbo[2:0] <= yscroll;
@@ -1069,6 +1113,7 @@ always @(posedge clk_dot4x)
             end
             // WRITE to register
             //
+            // LOLOLOLOLOLOLOLOHIHIHIHIHIHIHIHI
             // 0   1   2   3   4   5   6   7   |
             //           111111          111111|
             // 01234567890123450123456789012345|
@@ -1077,8 +1122,8 @@ always @(posedge clk_dot4x)
             // than the falling edge of phi which is when I think the vic
             // would have picked up the change.  So to keep things pixel
             // perfect with VICE, this would have to be
-            // phi_phase_start[11] && bit_cycle==6
-            else if (phi_phase_start[15] && bit_cycle == 3'd7) begin // falling phi edge
+            // phi_phase_start[11]
+            else if (phi_phase_start[7]) begin
                 irst_clr <= 1'b0;
                 imbc_clr <= 1'b0;
                 immc_clr <= 1'b0;

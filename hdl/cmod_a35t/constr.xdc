@@ -19,7 +19,7 @@ set_property -dict { PACKAGE_PIN W5 IOSTANDARD LVCMOS33 } [get_ports { cSync }];
 # clk_phi out, Pin45
 set_property -dict { PACKAGE_PIN U7 IOSTANDARD LVCMOS33 } [get_ports { clk_phi }];
 
-# rst out, Pin34
+# rst out, Pin34 TODO MOVE TO PMOD HEADER PIN
 set_property -dict { PACKAGE_PIN W3 IOSTANDARD LVCMOS33 } [get_ports { cpu_reset }];
 
 # sys_clock in, L17 = Internal clock pin 

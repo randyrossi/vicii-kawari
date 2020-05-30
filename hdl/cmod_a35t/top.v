@@ -15,7 +15,7 @@ module top(
     output [1:0] green,  // green out for CXA1545P
     output [1:0] blue,   // blue out for CXA1545P
     inout tri [5:0] adl, // address low
-    output [5:0] adh,    // address high
+    output tri [5:0] adh, // address high
     inout tri [11:0] db,// data bus lines
     input ce,           // chip enable (LOW=enable, HIGH=disabled)
     input rw,           // read/write (LOW=write, HIGH=read)
@@ -24,13 +24,13 @@ module top(
     output ba,          // ba
     output cas,         // column address strobe
     output ras,         // row address strobe
-    output den_n,         // data enable for bus transceiver
+    output den_n,       // data enable for bus transceiver
     output dir          // dir for bus transceiver
 );
 
     wire sys_clockb;
     wire locked;
-    wire rst = !locked;
+    wire rst;
     assign cpu_reset = rst;
 
     reg [21:0] rstcntr = 0;
@@ -54,6 +54,8 @@ module top(
         .locked(locked)
     );
 
+    assign rst = !locked;
+    
     // Generate a 14.318mhz color clock.
     color4x_clockgen color4x_clockgen(
         .clk_in12mhz(sys_clockb),    // external 12 Mhz clock
@@ -63,7 +65,10 @@ module top(
 
     wire [11:0] dbo;
     wire [11:0] ado;
-
+    
+    wire vic_write_ab;
+    wire vic_write_db;
+    
     // Instantiate the vicii with our clocks and pins.
     vicii vic_inst(
         .chip(CHIP6567R56A), // for now, not wired to jumpers
@@ -88,11 +93,14 @@ module top(
         .cas(cas),
         .ras(ras),
         .den_n(den_n),
-        .dir(dir)
+        .dir(dir),
+        .vic_write_db(vic_write_db),
+        .vic_write_ab(vic_write_ab)
     );
 
     // Write to bus condition, else tri state.
-    assign db = (aec && ~rw && ~ce) ? dbo:12'bz; // CPU reading
-    assign adl = ~aec ? ado[5:0]:6'bz; // Stollen cycle
-    assign adh = ado[11:6];
+    assign db = vic_write_db ? dbo : 12'bz; // CPU reading
+    assign adl = vic_write_ab ? ado[5:0] : 6'bz; // vic or stollen cycle
+    assign adh = vic_write_ab ? ado[11:6] : 6'bz;
+
 endmodule : top
