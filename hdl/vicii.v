@@ -44,8 +44,12 @@ module vicii(
    output vic_write_ab
 );
 
-// Data ready at phi_phase_start[`DEN]
-`define DEN 11
+// Register write phi_phase_start data available
+`define REG_DAV 7
+// Char read phi_phase_start data available
+`define CHAR_DAV 13
+// Pixel read phi_phase_start data available
+`define PIXEL_DAV 13
 
 parameter MIBCNT = 16;
 
@@ -318,9 +322,8 @@ endcase
         dot_risingr <= 16'b1000100010001000;
   else
         dot_risingr <= {dot_risingr[14:0], dot_risingr[15]};
-  assign dot_rising = dot_risingr[15];
 
-  // drives the output dot clock
+  // drives the dot clock
   always @(posedge clk_dot4x)
   if (rst)
         dotr <= 32'b01100110011001100110011001100110;
@@ -441,7 +444,7 @@ endcase
       xpos <= 10'h194;
     endcase
   end
-  else if (dot_rising)
+  else if (dot_risingr[15])
   if (raster_x < rasterXMax)
   begin
     // Can advance to next pixel
@@ -724,7 +727,7 @@ endcase
     if (clk_phi) // phi going low
     case (vicPreCycle)
     VIC_LPI2, VIC_LI: muxr <= 16'b1111111111111111;
-    VIC_LR:           muxr <= 16'b0000000000000000;
+    VIC_LR:           muxr <= 16'b1111111111111111;
     default:          muxr <= 16'b1111100000000000;
     endcase
     else        // phi going high
@@ -771,14 +774,19 @@ endcase
   // 1   0  0  0   1    ; cpu write to vic, enable db and read 
   // 1   1  x  1   1    ; cpu neither read nor write from/to vic, disable db, read
   
-  assign vic_write_db = aec && rw && ~ce;
+  // Apparently, even though AEC is high, we can't enable the data bus or we
+  // have contention issues with something else (what?). There are timing constraints
+  // that must go with our write condition. TODO: Find when this is supposed to be.
+  assign vic_write_db = aec && rw && ~ce && bit_cycle == 5;
+  
+  // AEC low means we own the address bus so we can write to it. 
   assign vic_write_ab = ~aec;
 
   // c-access reads
   always @(posedge clk_dot4x)
   if (rst)
      nextChar <= 12'b0;
-  else if (!vic_write_db && phi_phase_start[`DEN]) begin
+  else if (!vic_write_db && phi_phase_start[`CHAR_DAV]) begin
      case (vicCycle)
      VIC_HRC, VIC_HGC: // badline c-access
          nextChar <= dbi;
@@ -808,7 +816,7 @@ endcase
   begin
   if (rst)
     readPixels <= 8'd0;
-  else if (!vic_write_db && phi_phase_start[`DEN]) begin
+  else if (!vic_write_db && phi_phase_start[`PIXEL_DAV]) begin
     readPixels <= 8'd0;
     if (vicCycle == VIC_LG) begin // g-access
       readPixels <= dbi[7:0];
@@ -851,11 +859,12 @@ endcase
   end
   
   // Address out
+  // ROW first, COL second
   always @(posedge clk_dot4x)
   if (rst)
      ado8 <= 8'hFF;
   else
-     ado8 <= mux ? {2'b11, vicAddr[13:8]} : vicAddr[7:0];
+     ado8 <= mux ? vicAddr[7:0] : {2'b11, vicAddr[13:8]};
   assign ado = {vicAddr[11:8], ado8};
   
 //------------------------------------------------------------------------------
@@ -1123,7 +1132,7 @@ always @(posedge clk_dot4x)
             // would have picked up the change.  So to keep things pixel
             // perfect with VICE, this would have to be
             // phi_phase_start[11]
-            else if (phi_phase_start[7]) begin
+            else if (phi_phase_start[`REG_DAV]) begin
                 irst_clr <= 1'b0;
                 imbc_clr <= 1'b0;
                 immc_clr <= 1'b0;
