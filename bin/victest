@@ -21,7 +21,6 @@ do
       else
 	 # Do both with and without reset at start
          vicsim -r $n -c $c -l3
-         vicsim -j -r $n -c $c -l3
       fi
    done
 done

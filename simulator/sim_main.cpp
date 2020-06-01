@@ -306,7 +306,6 @@ int main(int argc, char** argv, char** env) {
     bool showWindow = false;
     bool shadowVic = false;
     bool renderEachPixel = false;
-    bool startWithReset = false;
     bool tracing = false;
     int prevY = -1;
     int prevX = -1;
@@ -326,13 +325,10 @@ int main(int argc, char** argv, char** env) {
     int testDriver = -1;
     int setGolden = 0;
 
-    while ((c = getopt (argc, argv, "c:hs:d:wi:zb:l:r:gjt")) != -1)
+    while ((c = getopt (argc, argv, "c:hs:d:wi:zb:l:r:gt")) != -1)
     switch (c) {
       case 't':
         tracing = true;
-        break;
-      case 'j':
-        startWithReset = true;
         break;
       case 'g':
         setGolden = 1;
@@ -425,12 +421,6 @@ int main(int argc, char** argv, char** env) {
 #endif
 
     top->eval();
-
-    if (testDriver >= 0 && do_test_start(testDriver, top, setGolden) == TEST_FAIL) {
-       STATE(top);
-       LOG(LOG_ERROR, "test %d failed\n", testDriver);
-       exit(-1);
-    }
 
     switch (top->chip) {
        case CHIP6567R8:
@@ -585,26 +575,28 @@ int main(int argc, char** argv, char** env) {
     }
 
     HEADER(top);
-    // Hold the design under reset, simulating the time
-    // it takes to load the bitstream at startup.
 
-    if (startWithReset) {
-       printf ("(RESET)\n");
-       top->rst = 1;
-       for (int i=0;i<32;i++) {
-          top->eval();
-          nextClkCnt = 0;
+    // Hold the design under reset, simulating the time
+    // it takes to wait for phase lock from the clock.
+    printf ("(RESET)\n");
+    top->rst = 1;
+    for (int i=0;i<32;i++) {
+       top->eval();
+       nextClkCnt = 0;
 #if VM_TRACE
-	  if (tfp) tfp->dump(ticks / TICKS_TO_TIMESCALE);
+       if (tfp) tfp->dump(ticks / TICKS_TO_TIMESCALE);
 #endif
-          STATE(top);
-          STORE_PREV();
-          ticks = nextTick(top);
-       }
-       nextClkCnt = 31;
-       top->rst = 0;
-    } else {
-       nextClkCnt = 29;
+       STATE(top);
+       STORE_PREV();
+       ticks = nextTick(top);
+    }
+    nextClkCnt = 31;
+    top->rst = 0;
+
+    if (testDriver >= 0 && do_test_start(testDriver, top, setGolden) == TEST_FAIL) {
+       STATE(top);
+       LOG(LOG_ERROR, "test %d failed\n", testDriver);
+       exit(-1);
     }
 
     if (shadowVic) {

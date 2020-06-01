@@ -30,12 +30,12 @@ int test7_run(Vvicii* top, int golden) {
          switch (top->vicCycle) {
 	      case VIC_LPI2:
 	      case VIC_LI:
-		      EXPECTSTR("cas",toBin(16, top->V_CASR),"1111111111111111");
 		      EXPECTSTR("ras",toBin(16, top->V_RASR),"1111111111111111");
+		      EXPECTSTR("cas",toBin(16, top->V_CASR),"1111111111111111");
 		      break;
 	      default:
-		      EXPECTSTR("cas",toBin(16, top->V_CASR),"1111111110000000");
-		      EXPECTSTR("ras",toBin(16, top->V_RASR),"1111111000000000");
+		      EXPECTSTR("ras",toBin(16, top->V_RASR),"1111100000000000");
+		      EXPECTSTR("cas",toBin(16, top->V_CASR),"1111111000000000");
 		      break;
          }
        num_checks++;
