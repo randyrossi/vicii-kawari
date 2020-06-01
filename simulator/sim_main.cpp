@@ -397,17 +397,7 @@ int main(int argc, char** argv, char** env) {
 
     // Add new input/output here.
     Vvicii* top = new Vvicii;
-    top->rw = 1;
-    top->ce = 1;
-    top->clk_phi = 0;
-    top->rst = 0;
-    top->adi = 0;
-    top->dbi = 0;
     top->chip = chip;
-    top->V_B0C = 6;
-    top->V_EC = 14;
-    top->V_VM = 1; // 0001
-    top->V_CB = 2; //  010
 
 #if VM_TRACE
     VerilatedVcdC* tfp = NULL;
@@ -592,6 +582,14 @@ int main(int argc, char** argv, char** env) {
     }
     nextClkCnt = 31;
     top->rst = 0;
+    top->rw = 1;
+    top->ce = 1;
+    top->adi = 0;
+    top->dbi = 0;
+    top->V_B0C = 6;
+    top->V_EC = 14;
+    top->V_VM = 1; // 0001
+    top->V_CB = 2; //  010
 
     if (testDriver >= 0 && do_test_start(testDriver, top, setGolden) == TEST_FAIL) {
        STATE(top);
