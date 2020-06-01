@@ -781,8 +781,9 @@ int main(int argc, char** argv, char** env) {
         if (capture) {
           // On dot clock...
           if (HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
-             // AEC should always be low in first phase
-             if (top->V_BIT_CYCLE < 4) {
+             // AEC should always be low in first phase. But AEC is
+	     // slightly delayed so don't check this when bit cycle is 0
+             if (top->V_BIT_CYCLE > 0 && top->V_BIT_CYCLE < 4) {
                CHECK(top, top->aec == 0, __LINE__);
              }
 

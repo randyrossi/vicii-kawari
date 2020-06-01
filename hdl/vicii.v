@@ -30,7 +30,7 @@ module vicii(
    input ce,
    input rw,
    output irq,
-   output aec,
+   output reg aec,
    output ba,
    output ras,
    output cas,
@@ -128,6 +128,10 @@ endcase
   reg [9:0] raster_x;
   reg [8:0] raster_line;
   reg raster_enable;
+  
+  // A counter that increments with each dot4x clock tick
+  // Used for precise timing within a phase for some circumstances
+  reg [4:0] cycle_fine_ctr;
   
   // xpos is the x coordinate relative to raster irq
   // It is not simply raster_x with an offset, it does not
@@ -405,8 +409,7 @@ endcase
   // your ISR will get called immediately on the next line. Then, only afer you clear
   // the interrupt will you actually get the ISR on the desired line.
   assign irq = (ilp & elp) | (immc & emmc) | (imbc & embc) | (irst & erst);
- 
- 
+
   // DRAM refresh counter
   always @(posedge clk_dot4x)
   if (rst)
@@ -430,6 +433,12 @@ endcase
      if (raster_line == rasterYMax)
        lastLine = 1'b1;
   end
+  
+  always @(posedge clk_dot4x)
+  if (rst)
+      cycle_fine_ctr <= 5'd3;
+  else
+      cycle_fine_ctr <= cycle_fine_ctr + 5'b1;
     
   // Update x,y position
   always @(posedge clk_dot4x)
@@ -543,7 +552,6 @@ endcase
     if (badline)
        idle <= 1'b0;
   end
-
 
   always @(posedge clk_dot4x)
   if (rst)
@@ -738,8 +746,14 @@ endcase
 
   // AEC LOW tells CPU to tri-state its bus lines 
   // AEC will remain HIGH during Phi phase 2 for 3 cycles
-  // after which it will remain LOW with ba.     
-  assign aec = ba ? clk_phi : ba3 & clk_phi;
+  // after which it will remain LOW with ba.
+  always @(posedge clk_dot4x)
+  if (rst) begin
+    aec <= 1'b0;
+  end else begin
+    aec <= ba ? clk_phi : ba3 & clk_phi;
+  end  
+
 
   // aec -> LS245 DIR Pin (addr)
   // aec   : low = VIC sets address lines (Bx to Ax)
@@ -775,9 +789,15 @@ endcase
   // 1   1  x  1   1    ; cpu neither read nor write from/to vic, disable db, read
   
   // Apparently, even though AEC is high, we can't enable the data bus or we
-  // have contention issues with something else (what?). There are timing constraints
-  // that must go with our write condition. TODO: Find when this is supposed to be.
-  assign vic_write_db = aec && rw && ~ce && bit_cycle == 5;
+  // have contention issues with something else (what?). There are timing
+  // constraints that must go with our write condition.
+  assign vic_write_db = aec && rw && ~ce && cycle_fine_ctr <= 23;
+
+  // NTSC : 977.8ns - 1 tick is 30.55ns
+  // PAL : 1014.9ns - 1 tick is 31.71ns
+  // 0123 4567 8911 1111 1111 2222 2222 2233
+  //             01 2345 6789 0123 4567 8901           
+  
   
   // AEC low means we own the address bus so we can write to it. 
   assign vic_write_ab = ~aec;
@@ -791,10 +811,7 @@ endcase
      VIC_HRC, VIC_HGC: // badline c-access
          nextChar <= dbi;
      VIC_HRX, VIC_HGI: // not badline idle (char from cache)
-         if (idle)
-            nextChar <= 12'b0;
-         else
-            nextChar <= charbuf[38];
+         nextChar <= idle ? 12'b0 : charbuf[38];
      default:
          if (idle)
             nextChar <= 12'b0;
@@ -820,10 +837,7 @@ endcase
     readPixels <= 8'd0;
     if (vicCycle == VIC_LG) begin // g-access
       readPixels <= dbi[7:0];
-      if (idle == 1'b0)
-         readChar <= nextChar;
-      else
-         readChar <= 12'd0;
+      readChar <= idle ? 12'd0 : nextChar;
     end
   end
   end
@@ -1016,7 +1030,7 @@ begin
        newTBBorder = 1'b1;
 end
 
- always @(posedge clk_dot4x)
+always @(posedge clk_dot4x)
  begin
     if (dot_risingr[0]) begin
        if (xpos == 32 && csel == 1'b0) begin
@@ -1035,15 +1049,14 @@ end
     end
  end
 
-
-  vic_color color8;
-  always @(posedge clk_dot4x)
-  begin
+vic_color color8;
+always @(posedge clk_dot4x)
+begin
     if (LRBorder | TBBorder)
       color8 <= ec;
     else
       color8 <= color_code;
-  end
+end
 
   // Translate out_pixel (indexed) to RGB values
   color viccolor(
@@ -1088,6 +1101,7 @@ always @(posedge clk_dot4x)
         res <= 1'b0;
         mcm <= 1'b0;
         irst_clr <= 1'b0;
+        rasterCmp <= 9'b0;
     end
     else begin
         if (!vic_write_ab && !ce) begin
@@ -1110,7 +1124,8 @@ always @(posedge clk_dot4x)
                         dbo[3:1] <= cb[2:0];
                         dbo[7:4] <= vm[3:0];
                     end
-                    REG_INTERRUPT_STATUS: dbo[7:0] <= {!irq, 3'b111, ilp, immc, imbc, irst};
+                    // NOTE: Our irq is inverted already
+                    REG_INTERRUPT_STATUS: dbo[7:0] <= {irq, 3'b111, ilp, immc, imbc, irst};
                     REG_INTERRUPT_CONTROL: dbo[7:0] <= {4'b1111, elp, emmc, embc, erst};
                     REG_BORDER_COLOR: dbo[3:0] <= ec;
                     REG_BACKGROUND_COLOR: dbo[3:0] <= b0c;
