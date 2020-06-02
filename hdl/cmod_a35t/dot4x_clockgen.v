@@ -25,6 +25,14 @@ module dot4x_clockgen
     wire clkinstopped_unused;
     wire reset_high;
 
+    // TODO: Make clock configurable for PAL / NTSC switching
+    // based on CHIP.
+    //
+    // TODO: 6567R56A timing produces a 15.980khz horizontal frequency
+    // which some monitors won't like.  MULT 59.625 and DIV 22.250
+    // will produce a 15.701khz frequency which is closer but still
+    // has a 'shimmering' effect.
+
     MMCME2_ADV
     #(.BANDWIDTH("HIGH"),
     .CLKOUT4_CASCADE("FALSE"),
