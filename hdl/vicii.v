@@ -74,6 +74,12 @@ reg [8:0] vBlankEnd;
 // clk_colref     3.579545 Mhz NTSC, 4.43361875 Mhz PAL
 // clk_phi        1.02272 Mhz NTSC, .985248 Mhz PAL
 
+// TODO: For the R56A, add an option to use an alternate
+// clock of 32.160296 (8.040074 dot clock) to get a frequency
+// closer to 15.734Khz horizontal frequency.  Some monitors
+// are less forgiving when the R56A produces a hfreq outside
+// the range they are expecting.
+
 // Set Limits
 always @(chip)
 case(chip)
@@ -370,12 +376,14 @@ endcase
   else
       cycle_fine_ctr <= cycle_fine_ctr + 5'b1;
     
+  reg start_of_frame;
   // Update x,y position
   always @(posedge clk_dot4x)
   if (rst)
   begin
     raster_x <= 10'b0;
     raster_line <= 9'b0;
+    start_of_frame <= 1'b0;
     case(chip)
     CHIP6567R56A, CHIP6567R8:
       xpos <= 10'h19c;
@@ -388,6 +396,12 @@ endcase
   begin
     // Can advance to next pixel
     raster_x <= raster_x + 10'd1;
+
+    // Incrementing raster line after a frame is delayed until end of cycle 0
+    if (start_of_frame && cycle_num == 0 && clk_phi && phi_phase_start[15]) begin
+       raster_line <= 9'd0;
+       start_of_frame <= 1'b0;
+    end
     
     // Handle xpos move but deal with special cases
     case(chip)
@@ -431,16 +445,13 @@ endcase
       xpos <= 10'h194;
     endcase
 
-    if (raster_line < rasterYMax) begin
-       // Move to next raster line
+    // Reset of raster line after a frame is delayed until end of cycle 0 (see above)
+    if (raster_line == rasterYMax)
+       start_of_frame <= 1'b1;
+    else
        raster_line <= raster_line + 9'd1;
-    end
-    else begin
-       // Time to go back to y coord 0, reset refresh counter
-       raster_line <= 9'd0;
-    end
   end
-
+  
   // Update rc/vc/vcbase
   always @(posedge clk_dot4x)
   if (rst)
@@ -450,31 +461,24 @@ endcase
     rc <= 3'b0;
     idle <= 1'b1;
   end
-  else if (clk_phi == 1'b0 && phi_phase_start[15]) begin
+  else if (clk_phi == 1'b1 && phi_phase_start[0]) begin
     if (cycle_num > 14 && cycle_num < 55 && idle == 1'b0)
         vc <= vc + 1'b1;
   
-    case (vicCycle)
-    VIC_LR:
-        if (refreshCnt == 4) begin
-           vc <= vcBase;
-           if (badline)
-              rc <= 3'b0;
-        end
-    VIC_LP:
-        // LP && spriteCnt==0 is cycle 57
-        if (spriteCnt == 0) begin
-            if (rc == 3'd7) begin
-               vcBase <= vc;
-               idle <= 1;
-            end else begin
-               rc <= rc + 1'b1;
-            end
-            if (badline)
-               rc <= rc + 1'b1;
-        end
-    default: ;
-    endcase
+    if (cycle_num == 13) begin
+       vc <= vcBase;
+       if (badline)
+          rc <= 3'b0;
+    end
+    
+    if (cycle_num == 57) begin
+       if (rc == 3'd7) begin
+          vcBase <= vc;
+          idle <= 1;
+       end
+       else if (!idle | badline)
+          rc <= rc + 1'b1;
+    end
     
     if (lastLine)
        vcBase <= 10'b0;
@@ -961,7 +965,7 @@ begin
 end
 
 always @(posedge clk_dot4x)
- begin
+begin
     if (dot_risingr[0]) begin
        if (xpos == 32 && csel == 1'b0) begin
           LRBorder <= newTBBorder;
@@ -977,7 +981,8 @@ always @(posedge clk_dot4x)
        if (xpos == 345 && csel == 1'b1)
           LRBorder <= 1'b1;
     end
- end
+end
+
 
 vic_color color8;
 always @(posedge clk_dot4x)
@@ -1057,11 +1062,11 @@ always @(posedge clk_dot4x)
                     // NOTE: Our irq is inverted already
                     REG_INTERRUPT_STATUS: dbo[7:0] <= {irq, 3'b111, ilp, immc, imbc, irst};
                     REG_INTERRUPT_CONTROL: dbo[7:0] <= {4'b1111, elp, emmc, embc, erst};
-                    REG_BORDER_COLOR: dbo[3:0] <= ec;
-                    REG_BACKGROUND_COLOR: dbo[3:0] <= b0c;
-                    REG_EXTRA_BACKGROUND_COLOR_1: dbo[3:0] <= b1c;
-                    REG_EXTRA_BACKGROUND_COLOR_2: dbo[3:0] <= b2c;
-                    REG_EXTRA_BACKGROUND_COLOR_3: dbo[3:0] <= b3c;
+                    REG_BORDER_COLOR: dbo[7:0] <= {4'b1111, ec};
+                    REG_BACKGROUND_COLOR: dbo[7:0] <= {4'b1111, b0c};
+                    REG_EXTRA_BACKGROUND_COLOR_1: dbo[7:0] <= {4'b1111, b1c};
+                    REG_EXTRA_BACKGROUND_COLOR_2: dbo[7:0] <= {4'b1111, b2c};
+                    REG_EXTRA_BACKGROUND_COLOR_3: dbo[7:0] <= {4'b1111, b3c};
                     default:;
                 endcase
             end

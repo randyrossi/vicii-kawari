@@ -71,7 +71,7 @@ module top(
     
     // Instantiate the vicii with our clocks and pins.
     vicii vic_inst(
-        .chip(CHIP6567R56A), // for now, not wired to jumpers
+        .chip(CHIP6567R8), // for now, not wired to jumpers
         .clk_dot4x(clk_dot4x),
         .clk_col4x(clk_col4x),
         .clk_colref(clk_colref),

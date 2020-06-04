@@ -32,6 +32,7 @@ static vluint64_t nextClk;
 static int nextClkCnt;
 static int screenWidth;
 static int screenHeight;
+static int lastXPos;
 
 // Some utility macros
 // Use RISING/FALLING in combination with HASCHANGED
@@ -288,6 +289,103 @@ static void drawPixel(SDL_Renderer* ren, int x,int y) {
    SDL_RenderDrawPoint(ren, x*2+1,y*2+1);
 }
 
+static void regs_vice_to_fpga(Vvicii* top, struct vicii_state* state) {
+       // Sync registers
+       unsigned char val = state->vice_reg[0x11];
+       top->V_YSCROLL = val & 7;
+       top->V_RSEL = val & 8 ? 1 : 0;
+       top->V_DEN = val & 16 ? 1 : 0;
+       top->V_BMM = val & 32 ? 1 : 0;
+       top->V_ECM = val & 64 ? 1 : 0;
+       int rasterCmp8 = (val & 128) << 1;
+
+       val = state->vice_reg[0x12];
+       top->V_RASTERCMP = val | rasterCmp8;
+
+       val = state->vice_reg[0x16];
+       top->V_XSCROLL = val & 7;
+       top->V_CSEL = val & 8 ? 1 : 0;
+       top->V_MCM = val & 16 ? 1 : 0;
+       top->V_RES = val & 32 ? 1 : 0;
+
+       val = state->vice_reg[0x18];
+       top->V_CB = (val & 14) >> 1;
+       top->V_VM = (val & 240) >> 4;
+
+       val = state->vice_reg[0x19];
+       top->V_IRST_CLR =  val & 1;
+       top->V_IMBC_CLR = val & 2 ? 1 : 0;
+       top->V_IMMC_CLR = val & 4 ? 1 : 0;
+       top->V_ILP_CLR =  val & 8 ? 1 : 0;
+
+       val = state->vice_reg[0x1A];
+       top->V_ERST =  val & 1;
+       top->V_EMBC = val & 2 ? 1 : 0;
+       top->V_EMMC = val & 4 ? 1 : 0;
+       top->V_ELP = val & 8 ? 1 : 0;
+
+       val = state->vice_reg[0x20];
+       top->V_EC = val & 15 | 0x11110000;
+       val = state->vice_reg[0x21];
+       top->V_B0C = val & 15 | 0x11110000;
+       val = state->vice_reg[0x22];
+       top->V_B1C = val & 15 | 0x11110000;
+       val = state->vice_reg[0x23];
+       top->V_B2C = val & 15 | 0b11110000;
+       val = state->vice_reg[0x24];
+       top->V_B3C = val & 15 | 0b11110000;
+}
+
+static void regs_fpga_to_vice(Vvicii* top, struct vicii_state* state) {
+       state->fpga_reg[0x11] =
+          (top->V_YSCROLL & 0x7) |
+          (top->V_RSEL ? 8 : 0) |
+          (top->V_DEN  ? 16 : 0) |
+          (top->V_BMM  ? 32 : 0) |
+          (top->V_ECM  ? 64 : 0) |
+          ((top->V_RASTER_LINE & 256) ? 128 : 0);
+
+       state->fpga_reg[0x12] =
+          top->V_RASTER_LINE & 0xff;
+
+       state->fpga_reg[0x16] =
+          (top->V_XSCROLL & 0x7) |
+          (top->V_CSEL ? 8 : 0) |
+          (top->V_MCM ? 16 : 0) |
+          (top->V_RES ? 32 : 0) |
+          0b11000000;
+
+       state->fpga_reg[0x18] = 1 |
+          ((top->V_CB & 0x7) << 1) |
+          ((top->V_VM & 0xf) << 4);
+
+       state->fpga_reg[0x19] =
+          (top->V_IRST_CLR ? 1 : 0) |
+          (top->V_IMBC_CLR ? 2 : 0) |
+          (top->V_IMMC_CLR ? 4 : 0) |
+          (top->V_ILP_CLR ? 8 : 0) |
+          0b01110000;
+
+       state->fpga_reg[0x1A] =
+          (top->V_ERST  ? 1 : 0) |
+          (top->V_EMBC  ? 2 : 0) |
+          (top->V_EMMC  ? 4 : 0) |
+          (top->V_ELP   ? 8 : 0) |
+          0b11110000;
+
+       state->fpga_reg[0x20] =
+          (top->V_EC & 15) | 0b11110000;
+       state->fpga_reg[0x21] =
+          (top->V_B0C & 15) | 0b11110000;
+       state->fpga_reg[0x22] =
+          (top->V_B1C & 15) | 0b11110000;
+       state->fpga_reg[0x23] =
+          (top->V_B2C & 15) | 0b11110000;
+       state->fpga_reg[0x24] =
+          (top->V_B3C & 15) | 0b11110000;
+}
+
+
 int main(int argc, char** argv, char** env) {
     SDL_Event event;
     SDL_Renderer* ren = nullptr;
@@ -397,7 +495,6 @@ int main(int argc, char** argv, char** env) {
 
     // Add new input/output here.
     Vvicii* top = new Vvicii;
-    top->chip = chip;
 
 #if VM_TRACE
     VerilatedVcdC* tfp = NULL;
@@ -410,6 +507,7 @@ int main(int argc, char** argv, char** env) {
     }
 #endif
 
+    top->chip = chip;
     top->eval();
 
     switch (top->chip) {
@@ -457,10 +555,12 @@ int main(int argc, char** argv, char** env) {
           case CHIP6567R56A:
              screenWidth = NTSC_6567R56A_MAX_DOT_X+1;
              screenHeight = NTSC_6567R56A_MAX_DOT_Y+1;
+             lastXPos = NTSC_6567R56A_LAST_XPOS;
              break;
           case CHIP6567R8:
              screenWidth = NTSC_6567R8_MAX_DOT_X+1;
              screenHeight = NTSC_6567R8_MAX_DOT_Y+1;
+             lastXPos = NTSC_6567R8_LAST_XPOS;
              break;
           default:
              LOG(LOG_ERROR, "wrong chip?");
@@ -472,6 +572,7 @@ int main(int argc, char** argv, char** env) {
           case CHIP6569:
              screenWidth = PAL_6569_MAX_DOT_X+1;
              screenHeight = PAL_6569_MAX_DOT_Y+1;
+             lastXPos = PAL_6569_LAST_XPOS;
              break;
           default:
              LOG(LOG_ERROR, "wrong chip?");
@@ -620,20 +721,23 @@ int main(int argc, char** argv, char** env) {
            capture = (state->flags & VICII_OP_CAPTURE_START);
            if (!captureByFrame) {
               captureByFrame = (state->flags & VICII_OP_CAPTURE_ONE_FRAME);
-              captureByFrameStopXpos = 0x1f7;
-              captureByFrameStopYpos = 311;
+              captureByFrameStopXpos = lastXPos;
+              captureByFrameStopYpos = screenHeight-1;
            }
 
            if (state->flags & VICII_OP_SYNC_STATE) {
                state->flags &= ~VICII_OP_SYNC_STATE;
-               // Step forward until we get to the target xpos (which
-               // will be xpos + 7 = one tick before we hit xpos + 8) and
+               // Step forward until we get to the target xpos and
                // rasterline and when dot4x just ticked low (we always tick into high
                // when beginning to step so we must leave dot4x low. We
 	       // don't have to worry about going over the last xpos or
 	       // the repeats on the R8 because the VICE sync won't attempt
 	       // a sync past xpos 0x180.
-               while (top->V_XPOS != (state->xpos + 7) ||
+	       int target_xpos = state->xpos - 1;
+	       if (target_xpos < 0) {
+		       target_xpos = lastXPos;
+	       }
+               while (top->V_XPOS != target_xpos ||
                          top->V_RASTER_LINE != state->raster_line ||
                             top->clk_dot4x) {
                   top->eval();
@@ -646,7 +750,7 @@ int main(int argc, char** argv, char** env) {
                }
 
                // Now 6 more ticks so the next ipc_send will start on the
-               // actual target we desire (xpos + 8)
+               // actual target we desire ; xpos
                for (int i=0; i< 6; i++) {
                   top->eval();
 #if VM_TRACE
@@ -657,50 +761,7 @@ int main(int argc, char** argv, char** env) {
                   ticks = nextTick(top);
                }
 
-	       // Sync registers
-	       unsigned char val = state->reg[0x11];
-	       top->V_YSCROLL = val & 7;
-	       top->V_RSEL = val & 8 ? 1 : 0;
-	       top->V_DEN = val & 16 ? 1 : 0;
-	       top->V_BMM = val & 32 ? 1 : 0;
-	       top->V_ECM = val & 64 ? 1 : 0;
-	       int rasterCmp8 = (val & 128) << 1;
-
-	       val = state->reg[0x12];
-	       top->V_RASTERCMP = val | rasterCmp8;
-
-	       val = state->reg[0x16];
-               top->V_XSCROLL = val & 7;
-               top->V_CSEL = val & 8 ? 1 : 0;
-               top->V_MCM = val & 16 ? 1 : 0;
-               top->V_RES = val & 32 ? 1 : 0;
-
-	       val = state->reg[0x18];
-	       top->V_CB = (val & 14) >> 1;
-	       top->V_VM = (val & 240) >> 4;
-
-	       val = state->reg[0x19];
-	       top->V_IRST_CLR =  val & 1;
-               top->V_IMBC_CLR = val & 2 ? 1 : 0;
-               top->V_IMMC_CLR = val & 4 ? 1 : 0;
-               top->V_ILP_CLR =  val & 8 ? 1 : 0;
-
-	       val = state->reg[0x1A];
-	       top->V_ERST =  val & 1;
-               top->V_EMBC = val & 2 ? 1 : 0;
-               top->V_EMMC = val & 4 ? 1 : 0;
-               top->V_ELP = val & 8 ? 1 : 0;
-
-	       val = state->reg[0x20];
-	       top->V_EC = val & 15;
-	       val = state->reg[0x21];
-               top->V_B0C = val & 15;
-	       val = state->reg[0x22];
-               top->V_B1C = val & 15;
-	       val = state->reg[0x23];
-               top->V_B2C = val & 15;
-	       val = state->reg[0x24];
-               top->V_B3C = val & 15;
+	       regs_vice_to_fpga(top, state);
 
                // We sync state always when phi is high (2nd phase)
                CHECK(top, ~top->clk_phi, __LINE__);
@@ -819,6 +880,11 @@ int main(int argc, char** argv, char** env) {
 
              // Show updated pixels per raster line
              if (prevY != top->V_RASTER_LINE) {
+		for (int xx=0; xx < 504; xx++) {
+                   SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
+                   drawPixel(ren, xx, top->V_RASTER_LINE+1);
+		}
+
                 SDL_RenderPresent(ren);
                 SDL_PollEvent(&event);
                 switch (event.type) {
@@ -845,6 +911,7 @@ int main(int argc, char** argv, char** env) {
               // Chip selected and read, set data in state
               state->data_from_sim = top->dbo;
            }
+           regs_fpga_to_vice(top, state);
 
            bool needQuit = false;
            if (state->flags & VICII_OP_CAPTURE_END) {
