@@ -455,34 +455,43 @@ endcase
     rc <= 3'b0;
     idle <= 1'b1;
   end
-  else if (clk_phi == 1'b1 && phi_phase_start[0]) begin
-    if (cycle_num > 14 && cycle_num < 55 && idle == 1'b0)
+  else begin 
+    if (clk_phi == 1'b1 && phi_phase_start[0]) begin
+      if (cycle_num > 14 && cycle_num < 55 && idle == 1'b0)
         vc <= vc + 1'b1;
   
-    if (cycle_num == 13) begin
-       vc <= vcBase;
-       if (badline)
+      if (cycle_num == 13) begin
+        vc <= vcBase;
+        if (badline)
           rc <= 3'b0;
-    end
+      end
     
-    if (cycle_num == 57) begin
-       if (rc == 3'd7) begin
+      if (cycle_num == 57) begin
+        if (rc == 3'd7) begin
           vcBase <= vc;
           idle <= 1;
-       end
-       else if (!idle | badline)
+        end
+        else if (!idle | badline)
           rc <= rc + 1'b1;
-    end
-    
-    if (cycle_num == 1 && start_of_frame) begin
-       vcBase <= 10'b0;
-       vc <= 10'b0;
-    end
-    
-    if (badline)
-       idle <= 1'b0;
-  end
+      end
 
+      if (cycle_num == 1 && start_of_frame) begin
+         vcBase <= 10'b0;
+         vc <= 10'b0;
+      end   
+   end
+   
+   // This needs to be checked next 4x tick within the phase because
+   // badline does not trigger until after raster line has incremented
+   // which is after start of line which happens on tick 0 and due to
+   // delayed assignment raster line yscroll comparison won't happen until
+   // tick 1.
+   if (clk_phi == 1'b1 && phi_phase_start[1])
+      if (badline)
+        idle <= 1'b0;
+
+  end
+  
   always @(posedge clk_dot4x)
   if (rst)
      baChars <= 1'b1;
