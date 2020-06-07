@@ -33,6 +33,7 @@ static int nextClkCnt;
 static int screenWidth;
 static int screenHeight;
 static int lastXPos;
+static int numCycles;
 
 // Some utility macros
 // Use RISING/FALLING in combination with HASCHANGED
@@ -334,6 +335,11 @@ static void regs_vice_to_fpga(Vvicii* top, struct vicii_state* state) {
        top->V_B2C = val & 15 | 0b11110000;
        val = state->vice_reg[0x24];
        top->V_B3C = val & 15 | 0b11110000;
+
+       // Other internal state
+       top->V_VC = state->vc;
+       top->V_RC = state->rc;
+       top->V_VCBASE = state->vc_base;
 }
 
 static void regs_fpga_to_vice(Vvicii* top, struct vicii_state* state) {
@@ -383,6 +389,10 @@ static void regs_fpga_to_vice(Vvicii* top, struct vicii_state* state) {
           (top->V_B2C & 15) | 0b11110000;
        state->fpga_reg[0x24] =
           (top->V_B3C & 15) | 0b11110000;
+
+       state->vc = top->V_VC;
+       state->vc_base = top->V_VCBASE;
+       state->rc = top->V_RC;
 }
 
 
@@ -403,10 +413,11 @@ int main(int argc, char** argv, char** env) {
     int  captureByFrameStopYpos = 0;
     bool showWindow = false;
     bool shadowVic = false;
-    bool renderEachPixel = false;
+    bool cycleByCycle = false;
+    int cycleByCycleCount = 0;
+    int last_phase = 0;
     bool tracing = false;
     int prevY = -1;
-    int prevX = -1;
     struct vicii_ipc* ipc;
 
     // Default to 16.7us starting at 0
@@ -423,7 +434,7 @@ int main(int argc, char** argv, char** env) {
     int testDriver = -1;
     int setGolden = 0;
 
-    while ((c = getopt (argc, argv, "c:hs:d:wi:zb:l:r:gt")) != -1)
+    while ((c = getopt (argc, argv, "c:hs:d:wi:zbl:r:gt")) != -1)
     switch (c) {
       case 't':
         tracing = true;
@@ -444,8 +455,7 @@ int main(int argc, char** argv, char** env) {
         chip = atoi(optarg);
         break;
       case 'b':
-        // Render after every pixel instead of after every line
-        renderEachPixel = true;
+        cycleByCycle = true;
         break;
       case 'z':
         // IPC tells us when to start/stop capture
@@ -467,7 +477,7 @@ int main(int argc, char** argv, char** env) {
         printf ("  -d [uS]   : run for uS\n");
         printf ("  -w        : show SDL2 window\n");
         printf ("  -z        : single step eval for shadow vic via ipc\n");
-        printf ("  -b        : render each pixel instead of each line\n");
+        printf ("  -b        : render each cycle, waiting for key press after each one\n");
         printf ("  -c <chip> : 0=CHIP6567R8, 1=CHIP6567R56A 2=CHIP65669\n");
         printf ("  -r <test> : run test driver #\n");
         printf ("  -g <test> : make golden master for test #\n");
@@ -556,11 +566,13 @@ int main(int argc, char** argv, char** env) {
              screenWidth = NTSC_6567R56A_MAX_DOT_X+1;
              screenHeight = NTSC_6567R56A_MAX_DOT_Y+1;
              lastXPos = NTSC_6567R56A_LAST_XPOS;
+	     numCycles = NTSC_6567R56A_NUM_CYCLES;
              break;
           case CHIP6567R8:
              screenWidth = NTSC_6567R8_MAX_DOT_X+1;
              screenHeight = NTSC_6567R8_MAX_DOT_Y+1;
              lastXPos = NTSC_6567R8_LAST_XPOS;
+	     numCycles = NTSC_6567R8_NUM_CYCLES;
              break;
           default:
              LOG(LOG_ERROR, "wrong chip?");
@@ -573,6 +585,7 @@ int main(int argc, char** argv, char** env) {
              screenWidth = PAL_6569_MAX_DOT_X+1;
              screenHeight = PAL_6569_MAX_DOT_Y+1;
              lastXPos = PAL_6569_LAST_XPOS;
+	     numCycles = PAL_6569_NUM_CYCLES;
              break;
           default:
              LOG(LOG_ERROR, "wrong chip?");
@@ -732,7 +745,7 @@ int main(int argc, char** argv, char** env) {
                // when beginning to step so we must leave dot4x low. We
 	       // don't have to worry about going over the last xpos or
 	       // the repeats on the R8 because the VICE sync won't attempt
-	       // a sync past xpos 0x180.
+	       // a sync past xpos 0x17c.
 	       int target_xpos = state->xpos - 1;
 	       if (target_xpos < 0) {
 		       target_xpos = lastXPos;
@@ -749,9 +762,10 @@ int main(int argc, char** argv, char** env) {
                   ticks = nextTick(top);
                }
 
-               // Now 6 more ticks so the next ipc_send will start on the
+	       // TODO: Make sure this actually ticks into the first entry for target
+               // Now 1 more tick so the next ipc_send will start on the
                // actual target we desire ; xpos
-               for (int i=0; i< 6; i++) {
+               for (int i=0; i< 1; i++) {
                   top->eval();
 #if VM_TRACE
 	          if (tfp) tfp->dump(ticks / TICKS_TO_TIMESCALE);
@@ -763,17 +777,11 @@ int main(int argc, char** argv, char** env) {
 
 	       regs_vice_to_fpga(top, state);
 
-               // We sync state always when phi is high (2nd phase)
+               // Our next tick will bring us high so we should be low right now.
                CHECK(top, ~top->clk_phi, __LINE__);
 
                LOG(LOG_INFO, "synced FPGA to cycle=%u, raster_line=%u, xpos=%03x, bmm=%d, mcm=%d, ecm=%d",
                   state->cycle_num, state->raster_line, state->xpos, top->V_BMM, top->V_MCM, top->V_ECM);
-               LOG(LOG_INFO, "ec=%d, b0c=%d, b1c=%d, b2c=%d, b3c=%d",
-                  top->V_EC, top->V_B0C, top->V_B1C, top->V_B2C, top->V_B3C);
-           }
-
-           if (state->flags & VICII_OP_BUS_ACCESS) {
-              CHECK(top, top->clk_phi, __LINE__);
            }
 
         }
@@ -795,11 +803,15 @@ int main(int argc, char** argv, char** env) {
            top->rw = state->rw;
         }
 
-        prevX = top->V_RASTER_X;
-        prevY = top->V_RASTER_LINE;
-
         // Evaluate model
         top->eval();
+
+        if (shadowVic) {
+           if (state->flags & VICII_OP_BUS_ACCESS) {
+              CHECK(top, top->clk_phi, __LINE__);
+           }
+	}
+
 #if VM_TRACE
 	if (tfp) tfp->dump(ticks / TICKS_TO_TIMESCALE);
 #endif
@@ -855,8 +867,8 @@ int main(int argc, char** argv, char** env) {
                   CHECK (top, top->V_XPOS == 0x184, __LINE__); // repeat case
 
              // Refresh counter is supposed to reset at raster 0
-             if (top->V_RASTER_X == 0 && top->V_RASTER_LINE == 0)
-                CHECK (top, top->V_REFC == 0xff, __LINE__);
+             //if (top->V_RASTER_X == 0 && top->V_RASTER_LINE == 0) TODO Put back
+             //   CHECK (top, top->V_REFC == 0xff, __LINE__);
 
              if(top->V_BIT_CYCLE == 0 || top->V_BIT_CYCLE == 4) {
                 // CAS & RAS should be high at the start of each phase
@@ -880,6 +892,8 @@ int main(int argc, char** argv, char** env) {
 
              // Show updated pixels per raster line
              if (prevY != top->V_RASTER_LINE) {
+                prevY = top->V_RASTER_LINE;
+
 		for (int xx=0; xx < 504; xx++) {
                    SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
                    drawPixel(ren, xx, top->V_RASTER_LINE+1);
@@ -895,9 +909,6 @@ int main(int argc, char** argv, char** env) {
                       break;
                 }
              }
-             if (renderEachPixel) {
-                SDL_RenderPresent(ren);
-             }
           }
         }
 
@@ -907,6 +918,12 @@ int main(int argc, char** argv, char** env) {
            state->aec = top->aec;
            state->phi = top->clk_phi;
 	   state->addr_from_sim = top->V_VICADDR; // cheat
+	   state->cycle_num = top->V_CYCLE_NUM;
+	   state->xpos = top->V_XPOS;
+	   state->raster_line = top->V_RASTER_LINE;
+           state->cycleByCycleStepping = cycleByCycle;
+	   state->idle = top->V_IDLE;
+	   state->raster_enable = top->V_RASTER_ENABLE;
            if (top->ce == 0 && top->rw == 1) {
               // Chip selected and read, set data in state
               state->data_from_sim = top->dbo;
@@ -939,6 +956,45 @@ int main(int argc, char** argv, char** env) {
            if (needQuit) {
               // Safe to quit now. We sent our response.
               break;
+           }
+
+           if (cycleByCycle && top->clk_phi != last_phase) {
+		printf ("FINISHED PHASE %d (now cycle=%d, line=%d, xpos=%d) VC=%d VCBASE=%d RC=%d\n",
+				last_phase+1, top->V_CYCLE_NUM, top->V_RASTER_LINE, top->V_XPOS, top->V_VC, top->V_VCBASE, top->V_RC);
+		last_phase = top->clk_phi;
+
+		if (showWindow && cycleByCycleCount == 0)
+                   SDL_RenderPresent(ren);
+
+		if (cycleByCycleCount == 0) {
+                  bool quit = false;
+                  while (!quit) {
+                     while (SDL_PollEvent(&event)) {
+			SDL_KeyboardEvent* ke = (SDL_KeyboardEvent*)&event;
+                        switch (event.type) {
+                           case SDL_QUIT:
+                                 quit=true; break;
+                           case SDL_KEYUP:
+		  	    switch (ke->keysym.sym) {
+                                 case SDLK_RIGHT:
+                                    quit=true; break;
+                                 case SDLK_SPACE:
+		        	    cycleByCycleCount = numCycles * 2;
+                                    quit=true; break;
+                                 case SDLK_RETURN:
+		        	    cycleByCycleCount = numCycles * 20;
+                                    quit=true; break;
+			       default:
+				  break;
+		            }
+                           default:
+                              break;
+                           }
+                      }
+                    }
+                } else {
+		   cycleByCycleCount--;
+		}
            }
         }
 

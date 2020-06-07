@@ -103,4 +103,5 @@
 #define V_MCM          vicii__DOT__mcm
 #define V_RES          vicii__DOT__res
 #define V_RASTER_ENABLE vicii__DOT__raster_enable
-#define V_CYCLE_FINE_CTR          vicii__DOT__cycle_fine_ctr
+#define V_CYCLE_FINE_CTR     vicii__DOT__cycle_fine_ctr
+#define V_IDLE               vicii__DOT__idle

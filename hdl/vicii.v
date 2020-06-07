@@ -310,8 +310,7 @@ endcase
   always @(raster_line, yscroll, raster_enable)
   begin
      badline = 1'b0;
-     if (raster_line >= 'h30 && raster_line <= 'hf7 &&
-         raster_line[2:0] == yscroll && raster_enable == 1'b1)
+     if (raster_line[2:0] == yscroll && raster_enable == 1'b1)
         badline = 1'b1;
   end
   
@@ -359,17 +358,7 @@ endcase
      else if (raster_x == rasterXMax && raster_line == rasterYMax)
          refc <= 8'hff;
   end
-  
-  // last line flag
-  always @(rst, rasterYMax, raster_line)
-  if (rst)
-     lastLine = 1'b0;
-  else begin
-     lastLine = 1'b0;
-     if (raster_line == rasterYMax)
-       lastLine = 1'b1;
-  end
-  
+    
   always @(posedge clk_dot4x)
   if (rst)
       cycle_fine_ctr <= 5'd3;
@@ -377,6 +366,7 @@ endcase
       cycle_fine_ctr <= cycle_fine_ctr + 5'b1;
     
   reg start_of_frame;
+  reg start_of_line;
   // Update x,y position
   always @(posedge clk_dot4x)
   if (rst)
@@ -391,16 +381,20 @@ endcase
       xpos <= 10'h194;
     endcase
   end
-  else if (dot_risingr[15])
+  else if (dot_risingr[0])
   if (raster_x < rasterXMax)
   begin
     // Can advance to next pixel
     raster_x <= raster_x + 10'd1;
 
-    // Incrementing raster line after a frame is delayed until end of cycle 0
-    if (start_of_frame && cycle_num == 0 && clk_phi && phi_phase_start[15]) begin
-       raster_line <= 9'd0;
-       start_of_frame <= 1'b0;
+    if (clk_phi && phi_phase_start[0]) begin
+      if (start_of_frame && cycle_num == 1) begin
+         raster_line <= 9'd0;
+         start_of_frame <= 1'b0;
+      end else if (start_of_line && cycle_num == 0) begin
+         raster_line <= raster_line + 9'd1;
+         start_of_line <= 1'b0;
+      end
     end
     
     // Handle xpos move but deal with special cases
@@ -449,7 +443,7 @@ endcase
     if (raster_line == rasterYMax)
        start_of_frame <= 1'b1;
     else
-       raster_line <= raster_line + 9'd1;
+       start_of_line <= 1'b1;
   end
   
   // Update rc/vc/vcbase
@@ -480,9 +474,11 @@ endcase
           rc <= rc + 1'b1;
     end
     
-    if (lastLine)
+    if (cycle_num == 1 && start_of_frame) begin
        vcBase <= 10'b0;
-
+       vc <= 10'b0;
+    end
+    
     if (badline)
        idle <= 1'b0;
   end

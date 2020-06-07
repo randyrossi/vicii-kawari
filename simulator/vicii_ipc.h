@@ -42,6 +42,8 @@ struct vicii_state {
   unsigned char ba;
   unsigned char badline;
   unsigned char aec;
+  unsigned char idle;
+  unsigned char raster_enable;
 
   unsigned short addr_to_sim;
   unsigned short data_to_sim;
@@ -58,6 +60,12 @@ struct vicii_state {
 
   // registers for verification in vice after cycle step
   unsigned char fpga_reg[64];
+
+  unsigned int vc_base;
+  unsigned int vc;
+  unsigned int rc;
+
+  int cycleByCycleStepping;
 };
 
 #define END1_PRODUCER_SIG_END2_CONSUME_OK 0
