@@ -105,3 +105,4 @@
 #define V_RASTER_ENABLE vicii__DOT__raster_enable
 #define V_CYCLE_FINE_CTR     vicii__DOT__cycle_fine_ctr
 #define V_IDLE               vicii__DOT__idle
+#define V_REG11_DELAYED      vicii__DOT__reg11_delayed

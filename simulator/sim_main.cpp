@@ -924,6 +924,7 @@ int main(int argc, char** argv, char** env) {
            state->cycleByCycleStepping = cycleByCycle;
 	   state->idle = top->V_IDLE;
 	   state->raster_enable = top->V_RASTER_ENABLE;
+	   state->reg11_delayed = top->V_REG11_DELAYED;
            if (top->ce == 0 && top->rw == 1) {
               // Chip selected and read, set data in state
               state->data_from_sim = top->dbo;

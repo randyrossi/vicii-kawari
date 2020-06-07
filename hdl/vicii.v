@@ -135,6 +135,9 @@ endcase
   reg [8:0] raster_line;
   reg raster_enable;
   
+  // TODO describe
+  reg [7:0] reg11_delayed;
+  
   // A counter that increments with each dot4x clock tick
   // Used for precise timing within a phase for some circumstances
   reg [4:0] cycle_fine_ctr;
@@ -307,11 +310,28 @@ endcase
      end 
   end
 
-  always @(raster_line, yscroll, raster_enable)
+  // use delayed reg11 for yscroll
+  always @(raster_line, reg11_delayed, raster_enable)
   begin
      badline = 1'b0;
-     if (raster_line[2:0] == yscroll && raster_enable == 1'b1 && raster_line >= 48 && raster_line < 248)
+     if (raster_line[2:0] == reg11_delayed[2:0] && raster_enable == 1'b1 && raster_line >= 48 && raster_line < 248)
         badline = 1'b1;
+  end
+
+  // at the start of every high phase, store current reg11 for delayed fetch
+  // and badline calcs
+  always @(posedge clk_dot4x)
+  begin
+     if (rst)
+        reg11_delayed <= 8'b0;
+     else if (clk_phi && phi_phase_start[0]) begin // must be before badline idle reset below
+        reg11_delayed[2:0] <= yscroll;
+        reg11_delayed[3] <= rsel;
+        reg11_delayed[4] <= den;
+        reg11_delayed[5] <= bmm;
+        reg11_delayed[6] <= ecm;
+        reg11_delayed[7] <= raster_line[8];
+     end
   end
   
   // Raise raster irq once per raster line
@@ -783,13 +803,13 @@ endcase
 
   always @(posedge clk_dot4x)
   begin
-    if (clk_phi == 1'b0 && phi_phase_start[15]) begin
+    if (clk_phi == 1'b0 && phi_phase_start[15]) begin // must be > PIXEL_DAV
       waitingPixels <= readPixels;
       waitingChar <= readChar;
     end
   end
 
-  // Address generation
+  // Address generation - use delayed reg11 values here
   always @*
   begin
      case(vicCycle)
@@ -798,11 +818,11 @@ endcase
         if (idle)
           vicAddr = 14'h3FFF;
         else begin
-          if (bmm)
+          if (reg11_delayed[5]) // bmm
             vicAddr = {cb[2], vc, rc}; // bitmap data
           else
             vicAddr = {cb, nextChar[7:0], rc}; // character pixels
-          if (ecm)
+          if (reg11_delayed[6]) // ecm
             vicAddr[10:9] = 2'b00;
         end
      end
@@ -1082,11 +1102,6 @@ always @(posedge clk_dot4x)
             //           111111          111111|
             // 01234567890123450123456789012345|
             //
-            // VICE seems to think the color change happens much earlier
-            // than the falling edge of phi which is when I think the vic
-            // would have picked up the change.  So to keep things pixel
-            // perfect with VICE, this would have to be
-            // phi_phase_start[11]
             else if (phi_phase_start[`REG_DAV]) begin
                 irst_clr <= 1'b0;
                 imbc_clr <= 1'b0;
