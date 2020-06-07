@@ -419,6 +419,7 @@ int main(int argc, char** argv, char** env) {
     bool tracing = false;
     int prevY = -1;
     struct vicii_ipc* ipc;
+    bool keyPressToQuit = true;
 
     // Default to 16.7us starting at 0
     startTicks = US_TO_TICKS(0);
@@ -933,6 +934,7 @@ int main(int argc, char** argv, char** env) {
 
            bool needQuit = false;
            if (state->flags & VICII_OP_CAPTURE_END) {
+              keyPressToQuit = false;
               needQuit = true;
            }
 
@@ -1016,7 +1018,7 @@ int main(int argc, char** argv, char** env) {
 
     if (showWindow) {
        bool quit = false;
-       while (!quit) {
+       while (!quit && keyPressToQuit) {
           while (SDL_PollEvent(&event)) {
              switch (event.type) {
                 case SDL_QUIT:
