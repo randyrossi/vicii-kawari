@@ -310,7 +310,7 @@ endcase
   always @(raster_line, yscroll, raster_enable)
   begin
      badline = 1'b0;
-     if (raster_line[2:0] == yscroll && raster_enable == 1'b1)
+     if (raster_line[2:0] == yscroll && raster_enable == 1'b1 && raster_line >= 48 && raster_line < 248)
         badline = 1'b1;
   end
   
