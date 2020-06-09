@@ -121,6 +121,7 @@ endcase
   
   // used to detect rising edge of dot clock inside a dot4x always block
   reg [15:0] dot_risingr;
+  reg [15:0] dot_fallingr;
   wire dot_rising;
   
   // Divides the color4x clock by 4 to get color reference clock
@@ -261,11 +262,14 @@ endcase
 
   // dot_rising[15] means dot going high next cycle
   always @(posedge clk_dot4x)
-  if (rst)
+  if (rst) begin
         dot_risingr <= 16'b1000100010001000;
-  else
+        dot_fallingr <= 16'b0010001000100010;
+  end else begin
         dot_risingr <= {dot_risingr[14:0], dot_risingr[15]};
-
+        dot_fallingr <= {dot_fallingr[14:0], dot_fallingr[15]};
+  end
+  
   // drives the dot clock
   always @(posedge clk_dot4x)
   if (rst)
@@ -864,14 +868,14 @@ if (dot_risingr[0]) begin // rising dot
 end
 
 always @(posedge clk_dot4x)
-if (dot_risingr[0]) begin // rising dot
+if (dot_fallingr[0]) begin
         if (loadPixels)
                 shiftingChar <= waitingChar;
 end
 
 // Pixel shifter
 always @(posedge clk_dot4x)
-if (dot_risingr[0]) begin // rising dot
+if (dot_fallingr[0]) begin
         if (loadPixels)
                 shiftingPixels <= waitingPixels;
         else if (clkShift) begin
@@ -883,12 +887,8 @@ if (dot_risingr[0]) begin // rising dot
 end
 
 always @(posedge clk_dot4x)
-if (dot_risingr[0]) // rising dot
-        pixelBgFlag <= shiftingPixels[7];
-
-always @(posedge clk_dot4x)
     begin
-        if (dot_risingr[0]) begin  // rising dot
+        if (dot_fallingr[0]) begin
             pixelColor <= BLACK;
             case ({ecm, bmm, mcm})
                 MODE_STANDARD_CHAR:
