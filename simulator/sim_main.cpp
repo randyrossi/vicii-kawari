@@ -337,9 +337,10 @@ static void regs_vice_to_fpga(Vvicii* top, struct vicii_state* state) {
        top->V_B3C = val & 15 | 0b11110000;
 
        // Other internal state
-       top->V_VC = state->vc;
-       top->V_RC = state->rc;
-       top->V_VCBASE = state->vc_base;
+       // Don't do VC,RC,VCBASE unless debugging why they are wrong
+       //top->V_VC = state->vc;
+       //top->V_RC = state->rc;
+       //top->V_VCBASE = state->vc_base;
 }
 
 static void regs_fpga_to_vice(Vvicii* top, struct vicii_state* state) {
@@ -721,6 +722,7 @@ int main(int argc, char** argv, char** env) {
     // IMPORTANT: Any and all state reads/writes MUST occur between ipc_receive
     // and ipc_receive_done inside this loop.
     int ticksUntilDone = 0;
+    int ticksUntilPhase = 0;
     bool showState = true;
     while (!Verilated::gotFinish()) {
 
@@ -731,7 +733,6 @@ int main(int argc, char** argv, char** env) {
            if (ipc_receive(ipc))
               break;
 
-           ticksUntilDone = 4;
            capture = (state->flags & VICII_OP_CAPTURE_START);
            if (!captureByFrame) {
               captureByFrame = (state->flags & VICII_OP_CAPTURE_ONE_FRAME);
@@ -747,33 +748,35 @@ int main(int argc, char** argv, char** env) {
 	       // don't have to worry about going over the last xpos or
 	       // the repeats on the R8 because the VICE sync won't attempt
 	       // a sync past xpos 0x17c.
-	       int target_xpos = state->xpos - 1;
+	       int target_xpos = state->xpos;
 	       if (target_xpos < 0) {
 		       target_xpos = lastXPos;
 	       }
-               while (top->V_XPOS != target_xpos ||
-                         top->V_RASTER_LINE != state->raster_line ||
-                            top->clk_dot4x) {
+               while (true) {
                   top->eval();
+
+		  if (top->V_CYCLE_NUM == state->cycle_num &&
+				  top->V_RASTER_LINE == state->raster_line &&
+				  top->clk_phi) break;
+
 #if VM_TRACE
 	          if (tfp) tfp->dump(ticks / TICKS_TO_TIMESCALE);
 #endif
+                  ticks = nextTick(top);
                   STATE(top);
                   STORE_PREV();
-                  ticks = nextTick(top);
                }
 
-	       // TODO: Make sure this actually ticks into the first entry for target
-               // Now 1 more tick so the next ipc_send will start on the
-               // actual target we desire ; xpos
-               for (int i=0; i< 1; i++) {
+               // Now 3 more ticks + 1 more from leaving this block
+               // and we will land one 'step' into our target cycle.
+               for (int i=0; i< 3; i++) {
                   top->eval();
 #if VM_TRACE
 	          if (tfp) tfp->dump(ticks / TICKS_TO_TIMESCALE);
 #endif
+                  ticks = nextTick(top);
                   STATE(top);
                   STORE_PREV();
-                  ticks = nextTick(top);
                }
 
 	       regs_vice_to_fpga(top, state);
@@ -783,10 +786,16 @@ int main(int argc, char** argv, char** env) {
 
                LOG(LOG_INFO, "synced FPGA to cycle=%u, raster_line=%u, xpos=%03x, bmm=%d, mcm=%d, ecm=%d",
                   state->cycle_num, state->raster_line, state->xpos, top->V_BMM, top->V_MCM, top->V_ECM);
-           }
 
+	      // Respond to IPC immediately after 1 more tick. This will land us 4 ticks into the
+	      // high phase which is where VICE ipc hook expects us to be.
+              ticksUntilDone = 1;
+              ticksUntilPhase = 1;
+	      last_phase = 0;
+           } else {
+              ticksUntilDone = 4;
+	   }
         }
-
 
         if (shadowVic) {
            // Simulate cs and rw going back high. This is the same
@@ -948,6 +957,7 @@ int main(int argc, char** argv, char** env) {
            }
 
            ticksUntilDone--;
+           ticksUntilPhase--;
 
            if (ticksUntilDone == 0 || needQuit) {
               // Do not change state after this line
@@ -955,16 +965,21 @@ int main(int argc, char** argv, char** env) {
                  break;
            }
 
-
            if (needQuit) {
               // Safe to quit now. We sent our response.
               break;
            }
 
-           if (cycleByCycle && top->clk_phi != last_phase) {
-		printf ("FINISHED PHASE %d (now cycle=%d, line=%d, xpos=%d) VC=%d VCBASE=%d RC=%d\n",
-				last_phase+1, top->V_CYCLE_NUM, top->V_RASTER_LINE, top->V_XPOS, top->V_VC, top->V_VCBASE, top->V_RC);
-		last_phase = top->clk_phi;
+	   if (cycleByCycle && top->clk_phi != last_phase) {
+               printf ("FINISHED PHASE %d (now cycle=%d, line=%d, xpos=%03x) VC=%d VCBASE=%d RC=%d\n",
+                     last_phase+1, top->V_CYCLE_NUM, top->V_RASTER_LINE, top->V_XPOS, top->V_VC, top->V_VCBASE, top->V_RC);
+	       last_phase = top->clk_phi;
+	   }
+
+           if (cycleByCycle && ticksUntilPhase == 0) {
+                ticksUntilPhase = 4*8; // 8 sets of 4 dot4x ticks
+		// Pause after first tick of next phase
+		printf ("(PAUSE NEXT PHASE 1st tick)\n");
 
 		if (showWindow && cycleByCycleCount == 0)
                    SDL_RenderPresent(ren);

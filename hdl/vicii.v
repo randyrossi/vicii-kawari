@@ -860,7 +860,7 @@ always @* begin
 end
 
 always @(posedge clk_dot4x)
-if (dot_risingr[0]) begin // rising dot
+if (dot_fallingr[0]) begin // rising dot
         if (loadPixels)
                 clkShift <= ~(mcm & (bmm | ecm | waitingChar[11]));
         else
