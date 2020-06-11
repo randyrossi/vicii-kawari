@@ -51,7 +51,7 @@ module vicii(
 // Pixel read phi_phase_start data available
 `define PIXEL_DAV 13
 // How many dot ticks we need to delay out pixels before they get into the shifter
-`define PIXEL_DELAY 9
+`define PIXEL_DELAY 8
 
 parameter MIBCNT = 16;
 
@@ -395,9 +395,12 @@ endcase
     
   reg start_of_frame;
   reg start_of_line;
-  reg [9:0] xxpos;
   
-  assign xxpos = xpos - 8;
+  // xpos_d is xpos shifted by the pixel delay minus 1. It is used
+  // to delay both pixels and border locations to align with expected
+  // times pixels should come out of the sequencer.
+  reg [9:0] xpos_d;
+  assign xpos_d = xpos - (`PIXEL_DELAY - 1);
   
   // Update x,y position
   always @(posedge clk_dot4x)
@@ -825,30 +828,17 @@ endcase
 
   // Now delay these pixels until waitingPixels[PIXEL_DELAY]
   // is available for loading into shifting pixels by loadPixels
-  // flag starting with xpos xx0 and fully available until xpos xx7.
-  // This makes loading pixels on xx0 make the first pixel show
-  // up on xx1.  
+  // flag starting with xpos ##0 and fully available until xpos ##7.
+  // This makes loading pixels on ##0 make the first pixel show
+  // up on ##1. Note, these delays are relative to xpos_d which is
+  // xpos with a negative offset. 
   always @(posedge clk_dot4x)
   begin
     if (dot_risingr[0]) begin
-       waitingPixels[1] <= waitingPixels[0];
-       waitingPixels[2] <= waitingPixels[1];
-       waitingPixels[3] <= waitingPixels[2];
-       waitingPixels[4] <= waitingPixels[3];
-       waitingPixels[5] <= waitingPixels[4];
-       waitingPixels[6] <= waitingPixels[5];
-       waitingPixels[7] <= waitingPixels[6];
-       waitingPixels[8] <= waitingPixels[7];
-       waitingPixels[9] <= waitingPixels[8];
-       waitingChar[1] <= waitingChar[0];
-       waitingChar[2] <= waitingChar[1];
-       waitingChar[3] <= waitingChar[2];
-       waitingChar[4] <= waitingChar[3];
-       waitingChar[5] <= waitingChar[4];
-       waitingChar[6] <= waitingChar[5];
-       waitingChar[7] <= waitingChar[6];
-       waitingChar[8] <= waitingChar[7];
-       waitingChar[9] <= waitingChar[8];
+       for (n = `PIXEL_DELAY; n > 0; n = n - 1) begin
+          waitingPixels[n] <= waitingPixels[n-1];
+          waitingChar[n] <= waitingChar[n-1];
+       end
     end
   end
   
@@ -896,8 +886,10 @@ vic_color pixelColor;
 always @(*)
         ismc = mcm & (bmm | ecm | shiftingChar[11]);
 
+// Use xpos_d here so we can properly delay our pixels
+// using waitingChar[]/waitingPixels[] regs.
 always @(*)
-        loadPixels = xpos[2:0] == xscroll;
+        loadPixels = xpos_d[2:0] == xscroll;
 
 always @(posedge clk_dot4x)
 if (dot_risingr[0]) begin // rising dot
@@ -1032,18 +1024,18 @@ end
 always @(posedge clk_dot4x)
 begin
     if (dot_risingr[0]) begin
-       if (xxpos == 32 && csel == 1'b0) begin
+       if (xpos_d == 32 && csel == 1'b0) begin
           LRBorder <= newTBBorder;
           TBBorder <= newTBBorder;
        end
-       if (xxpos == 25 && csel == 1'b1) begin
+       if (xpos_d == 25 && csel == 1'b1) begin
           LRBorder <= newTBBorder;
           TBBorder <= newTBBorder;
        end
-       if (xxpos == 336 && csel == 1'b0)
+       if (xpos_d == 336 && csel == 1'b0)
           LRBorder <= 1'b1;
                               
-       if (xxpos == 345 && csel == 1'b1)
+       if (xpos_d == 345 && csel == 1'b1)
           LRBorder <= 1'b1;
     end
 end
