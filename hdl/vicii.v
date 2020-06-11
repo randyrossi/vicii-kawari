@@ -50,6 +50,8 @@ module vicii(
 `define CHAR_DAV 13
 // Pixel read phi_phase_start data available
 `define PIXEL_DAV 13
+// How many dot ticks we need to delay out pixels before they get into the shifter
+`define PIXEL_DELAY 9
 
 parameter MIBCNT = 16;
 
@@ -121,7 +123,6 @@ endcase
   
   // used to detect rising edge of dot clock inside a dot4x always block
   reg [15:0] dot_risingr;
-  reg [15:0] dot_fallingr;
   wire dot_rising;
   
   // Divides the color4x clock by 4 to get color reference clock
@@ -253,22 +254,25 @@ endcase
   integer n;
   reg [11:0] nextChar;
   reg [11:0] charbuf [38:0];
+
+  reg [11:0] readChar;
+  reg [7:0] readPixels;
   
-  reg [11:0] shiftingChar,waitingChar,readChar;
-  reg [7:0] shiftingPixels,waitingPixels,readPixels;
+  reg [11:0] waitingChar[`PIXEL_DELAY + 1];
+  reg [7:0] waitingPixels[`PIXEL_DELAY + 1];
+
+  reg [11:0] shiftingChar;
+  reg [7:0] shiftingPixels;
 
   reg baChars;
   reg badline;
 
   // dot_rising[15] means dot going high next cycle
   always @(posedge clk_dot4x)
-  if (rst) begin
+  if (rst)
         dot_risingr <= 16'b1000100010001000;
-        dot_fallingr <= 16'b0010001000100010;
-  end else begin
+  else
         dot_risingr <= {dot_risingr[14:0], dot_risingr[15]};
-        dot_fallingr <= {dot_fallingr[14:0], dot_fallingr[15]};
-  end
   
   // drives the dot clock
   always @(posedge clk_dot4x)
@@ -391,6 +395,10 @@ endcase
     
   reg start_of_frame;
   reg start_of_line;
+  reg [9:0] xxpos;
+  
+  assign xxpos = xpos - 8;
+  
   // Update x,y position
   always @(posedge clk_dot4x)
   if (rst)
@@ -805,14 +813,45 @@ endcase
   end
   end
 
+  // Transfer read pixels and char into waiting*[0] so they
+  // are available at the first dot of PHI2
   always @(posedge clk_dot4x)
   begin
     if (clk_phi == 1'b0 && phi_phase_start[15]) begin // must be > PIXEL_DAV
-      waitingPixels <= readPixels;
-      waitingChar <= readChar;
+      waitingPixels[0] <= readPixels;
+      waitingChar[0] <= readChar;
     end
   end
 
+  // Now delay these pixels until waitingPixels[PIXEL_DELAY]
+  // is available for loading into shifting pixels by loadPixels
+  // flag starting with xpos xx0 and fully available until xpos xx7.
+  // This makes loading pixels on xx0 make the first pixel show
+  // up on xx1.  
+  always @(posedge clk_dot4x)
+  begin
+    if (dot_risingr[0]) begin
+       waitingPixels[1] <= waitingPixels[0];
+       waitingPixels[2] <= waitingPixels[1];
+       waitingPixels[3] <= waitingPixels[2];
+       waitingPixels[4] <= waitingPixels[3];
+       waitingPixels[5] <= waitingPixels[4];
+       waitingPixels[6] <= waitingPixels[5];
+       waitingPixels[7] <= waitingPixels[6];
+       waitingPixels[8] <= waitingPixels[7];
+       waitingPixels[9] <= waitingPixels[8];
+       waitingChar[1] <= waitingChar[0];
+       waitingChar[2] <= waitingChar[1];
+       waitingChar[3] <= waitingChar[2];
+       waitingChar[4] <= waitingChar[3];
+       waitingChar[5] <= waitingChar[4];
+       waitingChar[6] <= waitingChar[5];
+       waitingChar[7] <= waitingChar[6];
+       waitingChar[8] <= waitingChar[7];
+       waitingChar[9] <= waitingChar[8];
+    end
+  end
+  
   // Address generation - use delayed reg11 values here
   always @*
   begin
@@ -854,30 +893,31 @@ reg ismc;
 
 vic_color pixelColor;
 
-always @* begin
-        loadPixels = xscroll == xpos[2:0];
+always @(*)
         ismc = mcm & (bmm | ecm | shiftingChar[11]);
-end
+
+always @(*)
+        loadPixels = xpos[2:0] == xscroll;
 
 always @(posedge clk_dot4x)
-if (dot_fallingr[0]) begin // rising dot
+if (dot_risingr[0]) begin // rising dot
         if (loadPixels)
-                clkShift <= ~(mcm & (bmm | ecm | waitingChar[11]));
+                clkShift <= ~(mcm & (bmm | ecm | waitingChar[`PIXEL_DELAY][11]));
         else
                 clkShift <= ismc ? ~clkShift : clkShift;
 end
 
 always @(posedge clk_dot4x)
-if (dot_fallingr[0]) begin
+if (dot_risingr[0]) begin
         if (loadPixels)
-                shiftingChar <= waitingChar;
+                shiftingChar <= waitingChar[`PIXEL_DELAY];
 end
 
 // Pixel shifter
 always @(posedge clk_dot4x)
-if (dot_fallingr[0]) begin
+if (dot_risingr[0]) begin
         if (loadPixels)
-                shiftingPixels <= waitingPixels;
+                shiftingPixels <= waitingPixels[`PIXEL_DELAY];
         else if (clkShift) begin
                 if (ismc)
                         shiftingPixels <= {shiftingPixels[5:0], 2'b0};
@@ -888,7 +928,7 @@ end
 
 always @(posedge clk_dot4x)
     begin
-        if (dot_fallingr[0]) begin
+        if (dot_risingr[0]) begin
             pixelColor <= BLACK;
             case ({ecm, bmm, mcm})
                 MODE_STANDARD_CHAR:
@@ -992,18 +1032,18 @@ end
 always @(posedge clk_dot4x)
 begin
     if (dot_risingr[0]) begin
-       if (xpos == 32 && csel == 1'b0) begin
+       if (xxpos == 32 && csel == 1'b0) begin
           LRBorder <= newTBBorder;
           TBBorder <= newTBBorder;
        end
-       if (xpos == 25 && csel == 1'b1) begin
+       if (xxpos == 25 && csel == 1'b1) begin
           LRBorder <= newTBBorder;
           TBBorder <= newTBBorder;
        end
-       if (xpos == 336 && csel == 1'b0)
+       if (xxpos == 336 && csel == 1'b0)
           LRBorder <= 1'b1;
                               
-       if (xpos == 345 && csel == 1'b1)
+       if (xxpos == 345 && csel == 1'b1)
           LRBorder <= 1'b1;
     end
 end
