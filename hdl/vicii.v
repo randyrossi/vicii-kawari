@@ -183,10 +183,7 @@ endcase
   vic_color ec;
   // b#c : background color registers
   vic_color b0c,b1c,b2c,b3c;
-  
-  // TODO
-  reg [3:0] mm0,mm1;
-  
+    
   // lower 8 bits of ado are muxed
   reg [7:0] ado8;
   
@@ -266,8 +263,11 @@ endcase
   reg baChars;
   reg badline;
 
-  reg [8:0] mx [0:`NUM_SPRITES - 1];
-  reg [7:0] my [0:`NUM_SPRITES - 1];
+  reg [8:0] mx[0:`NUM_SPRITES - 1];
+  reg [7:0] my[0:`NUM_SPRITES - 1];
+  reg [7:0] sprite_priority;
+  vic_color sprite_col[0:`NUM_SPRITES - 1];
+  vic_color sprite_mc0, sprite_mc1;
 
   // dot_risingr[15] means dot going high next cycle
   always @(posedge clk_dot4x)
@@ -1156,6 +1156,8 @@ always @(posedge clk_dot4x)
                         dbo[7:0] <= {irq, 3'b111, ilp, immc, imbc, irst};
                     /* 0x1a */ REG_INTERRUPT_CONTROL:
                         dbo[7:0] <= {4'b1111, elp, emmc, embc, erst};
+                    /* 0x1b */ REG_SPRITE_PRIORITY:
+                        dbo[7:0] <= sprite_priority;
                     /* 0x20 */ REG_BORDER_COLOR:
                         dbo[7:0] <= {4'b1111, ec};
                     /* 0x21 */ REG_BACKGROUND_COLOR_0:
@@ -1166,6 +1168,27 @@ always @(posedge clk_dot4x)
                         dbo[7:0] <= {4'b1111, b2c};
                     /* 0x24 */ REG_BACKGROUND_COLOR_3:
                         dbo[7:0] <= {4'b1111, b3c};
+                    /* 0x25 */ REG_SPRITE_MULTI_COLOR_0:
+                        dbo[7:0] <= {4'b1111, sprite_mc0};
+                    /* 0x26 */ REG_SPRITE_MULTI_COLOR_1:
+                        dbo[7:0] <= {4'b1111, sprite_mc1};
+                    /* 0x27 */ REG_SPRITE_COLOR_0:
+                        dbo[7:0] <= {5'b11111, sprite_col[0]};
+                    /* 0x28 */ REG_SPRITE_COLOR_1:
+                        dbo[7:0] <= {5'b11111, sprite_col[1]};
+                    /* 0x29 */ REG_SPRITE_COLOR_2:
+                        dbo[7:0] <= {5'b11111, sprite_col[2]};
+                    /* 0x2a */ REG_SPRITE_COLOR_3:
+                        dbo[7:0] <= {5'b11111, sprite_col[3]};
+                    /* 0x2b */ REG_SPRITE_COLOR_4:
+                        dbo[7:0] <= {5'b11111, sprite_col[4]};
+                    /* 0x2c */ REG_SPRITE_COLOR_5:
+                        dbo[7:0] <= {5'b11111, sprite_col[5]};
+                    /* 0x2d */ REG_SPRITE_COLOR_6:
+                        dbo[7:0] <= {5'b11111, sprite_col[6]};
+                    /* 0x2e */ REG_SPRITE_COLOR_7:
+                        dbo[7:0] <= {5'b11111, sprite_col[7]};
+
                     default:;
                 endcase
             end
@@ -1256,6 +1279,8 @@ always @(posedge clk_dot4x)
                             emmc <= dbi[2];
                             elp <= dbi[3];
                         end
+                        /* 0x1b */ REG_SPRITE_PRIORITY:
+                            sprite_priority <= dbi[7:0];
                         /* 0x20 */ REG_BORDER_COLOR:
                             ec <= vic_color'(dbi[3:0]);
                         /* 0x21 */ REG_BACKGROUND_COLOR_0:
@@ -1266,6 +1291,26 @@ always @(posedge clk_dot4x)
                             b2c <= vic_color'(dbi[3:0]);
                         /* 0x24 */ REG_BACKGROUND_COLOR_3:
                             b3c <= vic_color'(dbi[3:0]);
+                        /* 0x25 */ REG_SPRITE_MULTI_COLOR_0:
+                            sprite_mc0 <= vic_color'(dbi[3:0]);
+                        /* 0x26 */ REG_SPRITE_MULTI_COLOR_1:
+                            sprite_mc1 <= vic_color'(dbi[3:0]);
+                        /* 0x27 */ REG_SPRITE_COLOR_0:
+                            sprite_col[0] <= vic_color'(dbi[3:0]);
+                        /* 0x28 */ REG_SPRITE_COLOR_1:
+                            sprite_col[1] <= vic_color'(dbi[3:0]);
+                        /* 0x29 */ REG_SPRITE_COLOR_2:
+                            sprite_col[2] <= vic_color'(dbi[3:0]);
+                        /* 0x2a */ REG_SPRITE_COLOR_3:
+                            sprite_col[3] <= vic_color'(dbi[3:0]);
+                        /* 0x2b */ REG_SPRITE_COLOR_4:
+                            sprite_col[4] <= vic_color'(dbi[3:0]);
+                        /* 0x2c */ REG_SPRITE_COLOR_5:
+                            sprite_col[5] <= vic_color'(dbi[3:0]);
+                        /* 0x2d */ REG_SPRITE_COLOR_6:
+                            sprite_col[6] <= vic_color'(dbi[3:0]);
+                        /* 0x2e */ REG_SPRITE_COLOR_7:
+                            sprite_col[7] <= vic_color'(dbi[3:0]);
                         default:;
                     endcase
                 end
