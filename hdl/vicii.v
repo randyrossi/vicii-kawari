@@ -34,14 +34,13 @@ module vicii(
    output ba,
    output ras,
    output cas,
-   output den_n,
-   output dir,
+   output ls245_oe,
+   output ls245_dir,
+   output vic_write_db,
+   output vic_write_ab,
    
    output mux,
-   output vic_cycle vicCycle,
-   output clk_dot,
-   output vic_write_db,
-   output vic_write_ab
+   output clk_dot
 );
 
 // Register write phi_phase_start data available
@@ -52,8 +51,6 @@ module vicii(
 `define PIXEL_DAV 13
 // How many dot ticks we need to delay out pixels before they get into the shifter
 `define PIXEL_DELAY 8
-
-parameter MIBCNT = 16;
 
 // BA must go low 3 cycles before HS1, HS3, HRC & HGC
 
@@ -123,7 +120,6 @@ endcase
   
   // used to detect rising edge of dot clock inside a dot4x always block
   reg [15:0] dot_risingr;
-  wire dot_rising;
   
   // Divides the color4x clock by 4 to get color reference clock
   clk_div4 clk_colorgen (
@@ -135,9 +131,9 @@ endcase
   // current raster x and line position
   reg [9:0] raster_x;
   reg [8:0] raster_line;
-  reg raster_enable;
+  reg allow_bad_lines;
   
-  // TODO describe
+  // According to VICE, reg11 is delayed by 1 cycle. TODO: confirm this
   reg [7:0] reg11_delayed;
   
   // A counter that increments with each dot4x clock tick
@@ -151,7 +147,7 @@ endcase
   reg [9:0] xpos;
 
   // What cycle we are on:
-  //reg [3:0] vicCycle;
+  reg [3:0] vicCycle;
   vic_cycle vicPreCycle;
   
   // DRAM refresh counter
@@ -185,6 +181,8 @@ endcase
   vic_color ec;
   // b#c : background color registers
   vic_color b0c,b1c,b2c,b3c;
+  
+  // TODO
   reg [3:0] mm0,mm1;
   
   // lower 8 bits of ado are muxed
@@ -234,7 +232,6 @@ endcase
   reg [8:0] rasterCmp;
   reg rasterIrqDone;
   
-  reg lastLine;
   reg [9:0] vcBase; // video counter base
   reg [9:0] vc; // video counter
   reg [2:0] rc; // row counter
@@ -267,7 +264,7 @@ endcase
   reg baChars;
   reg badline;
 
-  // dot_rising[15] means dot going high next cycle
+  // dot_risingr[15] means dot going high next cycle
   always @(posedge clk_dot4x)
   if (rst)
         dot_risingr <= 16'b1000100010001000;
@@ -302,27 +299,27 @@ endcase
   // This is simply raster_x divided by 8.
   assign cycle_num = raster_x[9:3];
   
-  // raster_enable goes high on line 48
+  // allow_bad_lines goes high on line 48
   // if den is high at any point on line 48
-  // raster_enable falls on line 248
+  // allow_bad_lines falls on line 248
   // den only takes effect on line 48
   always @(posedge clk_dot4x)
   begin
      if (rst)
-        raster_enable <= 1'b0;
+        allow_bad_lines <= 1'b0;
      else if (dot_risingr[0]) begin
        if (raster_line == 48 && den == 1'b1)
-          raster_enable <= 1'b1;
+          allow_bad_lines <= 1'b1;
        if (raster_line == 248)
-          raster_enable <= 1'b0;
+          allow_bad_lines <= 1'b0;
      end 
   end
 
   // use delayed reg11 for yscroll
-  always @(raster_line, reg11_delayed, raster_enable)
+  always @(raster_line, reg11_delayed, allow_bad_lines)
   begin
      badline = 1'b0;
-     if (raster_line[2:0] == reg11_delayed[2:0] && raster_enable == 1'b1 && raster_line >= 48 && raster_line < 248)
+     if (raster_line[2:0] == reg11_delayed[2:0] && allow_bad_lines == 1'b1 && raster_line >= 48 && raster_line < 248)
         badline = 1'b1;
   end
 
@@ -485,9 +482,9 @@ endcase
   always @(posedge clk_dot4x)
   if (rst)
   begin
-    vcBase <= 10'b0;
-    vc <= 10'b0;
-    rc <= 3'b0;
+    vcBase <= 10'd0;
+    vc <= 10'd0;
+    rc <= 3'd7;
     idle <= 1'b1;
   end
   else begin 
@@ -498,7 +495,7 @@ endcase
       if (cycle_num == 13) begin
         vc <= vcBase;
         if (badline)
-          rc <= 3'b0;
+          rc <= 3'd0;
       end
     
       if (cycle_num == 57) begin
@@ -511,8 +508,8 @@ endcase
       end
 
       if (cycle_num == 1 && start_of_frame) begin
-         vcBase <= 10'b0;
-         vc <= 10'b0;
+         vcBase <= 10'd0;
+         vc <= 10'd0;
       end   
    end
    
@@ -563,8 +560,8 @@ endcase
   //
   // LP --dmaEn?-> HS1 -> LS2 -> HS3  --<7?--> LP
   //                                  --else-> LR
-  //    --else---> HPI1 -> LPI2-> HPI2 --<7>--> LP 
-  //                                  --else-> LR
+  //    --else---> HPI1 -> LPI2-> HPI3 --<7>--> LP 
+  //                                   --else-> LR
   //
   // LR --5th&bad?--> HRC -> LG
   // LR --5th&!bad?-> HRX -> LG
@@ -736,25 +733,25 @@ endcase
   // When VIC owns the bus (aec low), VIC sets address lines (low)
   // OE pin is grounded (always enabled)
   
-  // den_n -> LS245 OE Pin (data)
-  // den_n : low = all channels active
-  //         high = all channels disabled
+  // ls245_oe -> LS245 OE Pin (data)
+  // ls245_oe : low = all channels active
+  //            high = all channels disabled
   // When CPU owns the bus (aec high)
   //    Enable data lines if VIC is selected (ce low) (ce)
   //    Disable data lines if VIC is not selected (ce high) (ce)
   // When VIC owns the bus (aec low)
   //    Enable data lines (0)
-  assign den_n = aec ? ce : 1'b0;
+  assign ls245_oe = aec ? ce : 1'b0;
   
-  // dir -> LS245 DIR Pin (data)
-  // dir : low = VIC writes to data lines (Bx to Ax)
-  //       high = VIC reads from data lines (Ax to Bx)
+  // ls245_dir -> LS245 DIR Pin (data)
+  // ls245_dir : low = VIC writes to data lines (Bx to Ax)
+  //             high = VIC reads from data lines (Ax to Bx)
   // When CPU owns the bus (aec high)
   //   VIC writes to data bus when rw high (rw)
   //   VIC reads from data bus when rw low (rw)
   // When VIC owns the bus (aec low)
   //   VIC reads from data (1)
-  assign dir = aec ? (!ce ? ~rw : 1'b1) : 1'b1;
+  assign ls245_dir = aec ? (!ce ? ~rw : 1'b1) : 1'b1;
 
   // aec ce rw den dir
   // 0   x  x  0   1    ; vic or stollen cycle, enable db and read
@@ -872,10 +869,8 @@ endcase
   else
      ado8 <= mux ? vicAddr[7:0] : {2'b11, vicAddr[13:8]};
   assign ado = {vicAddr[11:8], ado8};
-  
-//------------------------------------------------------------------------------
-// Graphics mode pixel calc.
-//------------------------------------------------------------------------------
+
+// Pixel sequencer stuff  
 reg loadPixels;
 reg pixelBgFlag;
 reg clkShift;
@@ -918,6 +913,7 @@ if (dot_risingr[0]) begin
         end
 end
 
+// handle display modes
 always @(posedge clk_dot4x)
     begin
         if (dot_risingr[0]) begin
@@ -976,11 +972,11 @@ vic_color color_code;
 
 always @(posedge clk_dot4x)
     begin
-        // Force the output color to black for "illegal" modes
+        // illegal modes should have black pixels
         case ({ecm, bmm, mcm})
             MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR,
-                MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP,
-                MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
+            MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP,
+            MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
                 color_code <= BLACK;
             default: color_code <= pixelColor;
         endcase
@@ -1005,13 +1001,13 @@ reg TBBorder = 1'b1;
 reg LRBorder = 1'b1;
 reg newTBBorder = 1'b1;
 
-always @(raster_line, rsel, raster_enable, TBBorder)
+always @(raster_line, rsel, allow_bad_lines, TBBorder)
 begin
     newTBBorder = TBBorder;
-    if (raster_line == 55 && raster_enable == 1'b1)
+    if (raster_line == 55 && allow_bad_lines == 1'b1)
         newTBBorder = 1'b0;
                                
-    if (raster_line == 51 && rsel == 1'b1 && raster_enable == 1'b1)
+    if (raster_line == 51 && rsel == 1'b1 && allow_bad_lines == 1'b1)
         newTBBorder = 1'b0;
                              
     if (raster_line == 247 && rsel == 1'b0)
@@ -1040,7 +1036,7 @@ begin
     end
 end
 
-
+// mask with border
 vic_color color8;
 always @(posedge clk_dot4x)
 begin
@@ -1050,8 +1046,8 @@ begin
       color8 <= color_code;
 end
 
-  // Translate out_pixel (indexed) to RGB values
-  color viccolor(
+// Translate out_pixel (indexed) to RGB values
+color viccolor(
      .chip(chip),
      .x_pos(xpos),
      .y_pos(raster_line),
@@ -1063,10 +1059,10 @@ end
      .red(red),
      .green(green),
      .blue(blue)
-  );
+);
 
-  // Generate cSync signal
-  sync vicsync(
+// Generate cSync signal
+sync vicsync(
      .chip(chip),
      .rst(rst),
      .clk(clk_dot4x),
@@ -1075,8 +1071,7 @@ end
      .hSyncStart(hSyncStart),
      .hSyncEnd(hSyncEnd),
      .cSync(cSync)
-  );
-
+);
 
 // Register Read/Write
 always @(posedge clk_dot4x)

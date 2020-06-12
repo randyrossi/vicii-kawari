@@ -102,7 +102,8 @@
 #define V_ECM          vicii__DOT__ecm
 #define V_MCM          vicii__DOT__mcm
 #define V_RES          vicii__DOT__res
-#define V_RASTER_ENABLE vicii__DOT__raster_enable
+#define V_ALLOW_BAD_LINES    vicii__DOT__allow_bad_lines
 #define V_CYCLE_FINE_CTR     vicii__DOT__cycle_fine_ctr
 #define V_IDLE               vicii__DOT__idle
 #define V_REG11_DELAYED      vicii__DOT__reg11_delayed
+#define V_VIC_CYCLE          vicii__DOT__vicCycle

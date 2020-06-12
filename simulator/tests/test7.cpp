@@ -27,7 +27,7 @@ int test7_run(Vvicii* top, int golden) {
       phic = 0;
    }
    if (phic == 0) {
-         switch (top->vicCycle) {
+         switch (top->V_VIC_CYCLE) {
 	      case VIC_LPI2:
 	      case VIC_LI:
 		      EXPECTSTR("ras",toBin(16, top->V_RASR),"1111111111111111");

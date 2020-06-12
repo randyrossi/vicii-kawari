@@ -24,8 +24,8 @@ module top(
     output ba,          // ba
     output cas,         // column address strobe
     output ras,         // row address strobe
-    output den_n,       // data enable for bus transceiver
-    output dir          // dir for bus transceiver
+    output ls245_oe,    // OE line for bus transceiver
+    output ls245_dir    // DIR for bus transceiver
 );
 
     wire sys_clockb;
@@ -92,8 +92,8 @@ module top(
         .ba(ba),
         .cas(cas),
         .ras(ras),
-        .den_n(den_n),
-        .dir(dir),
+        .ls245_oe(ls245_oe),
+        .ls245_dir(ls245_dir),
         .vic_write_db(vic_write_db),
         .vic_write_ab(vic_write_ab)
     );

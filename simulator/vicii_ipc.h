@@ -43,7 +43,7 @@ struct vicii_state {
   unsigned char badline;
   unsigned char aec;
   unsigned char idle;
-  unsigned char raster_enable;
+  unsigned char allow_bad_lines;
   unsigned char reg11_delayed;
 
   unsigned short addr_to_sim;

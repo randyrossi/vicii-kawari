@@ -23,10 +23,10 @@ int test1_run(Vvicii* top, int golden) {
       int cycle = -1;
       int xpos = -1;
       if (golden) {
-         fprintf (fp, "%3x %d\n", top->V_XPOS, top->vicCycle);
+         fprintf (fp, "%3x %d\n", top->V_XPOS, top->V_VIC_CYCLE);
       } else {
          fscanf (fp, "%3x %d\n", &xpos, &cycle);
-	 EXPECT("vicCycle", top->vicCycle, cycle);
+	 EXPECT("vicCycle", top->V_VIC_CYCLE, cycle);
 	 EXPECT("xpos", top->V_XPOS, xpos);
       }
       return TEST_CONTINUE_CAPTURING;

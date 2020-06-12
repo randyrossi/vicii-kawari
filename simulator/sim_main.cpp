@@ -217,7 +217,7 @@ static void STATE(Vvicii *top) {
    top->irq,
    top->ba,
    top->aec,
-   cycleToChar(top->vicCycle),
+   cycleToChar(top->V_VIC_CYCLE),
    top->ras,
    top->mux,
    top->cas,
@@ -341,6 +341,9 @@ static void regs_vice_to_fpga(Vvicii* top, struct vicii_state* state) {
        //top->V_VC = state->vc;
        //top->V_RC = state->rc;
        //top->V_VCBASE = state->vc_base;
+       
+       top->V_ALLOW_BAD_LINES = state->allow_bad_lines;
+       top->V_REG11_DELAYED = state->reg11_delayed;
 }
 
 static void regs_fpga_to_vice(Vvicii* top, struct vicii_state* state) {
@@ -933,7 +936,7 @@ int main(int argc, char** argv, char** env) {
 	   state->raster_line = top->V_RASTER_LINE;
            state->cycleByCycleStepping = cycleByCycle;
 	   state->idle = top->V_IDLE;
-	   state->raster_enable = top->V_RASTER_ENABLE;
+	   state->allow_bad_lines = top->V_ALLOW_BAD_LINES;
 	   state->reg11_delayed = top->V_REG11_DELAYED;
            if (top->ce == 0 && top->rw == 1) {
               // Chip selected and read, set data in state
