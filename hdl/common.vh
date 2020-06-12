@@ -1,7 +1,12 @@
 `ifndef common_vh_
 `define common_vh_
 
-typedef enum [1:0] { CHIP6567R8, CHIP6567R56A, CHIP6569, CHIPUNUSED} chip_type;
+typedef enum bit[1:0] {
+    CHIP6567R8,
+    CHIP6567R56A,
+    CHIP6569,
+    CHIPUNUSED
+} chip_type;
 
 // Cycle types
 typedef enum bit[3:0] {
@@ -66,10 +71,10 @@ typedef enum bit[5:0]  {
     REG_SPRITE_COLLISION = 6'h1e,
     REG_SPRITE_BACKGROUND_CONTROL = 6'h1f,
     REG_BORDER_COLOR = 6'h20,
-    REG_BACKGROUND_COLOR = 6'h21,
-    REG_EXTRA_BACKGROUND_COLOR_1 = 6'h22,
-    REG_EXTRA_BACKGROUND_COLOR_2 = 6'h23,
-    REG_EXTRA_BACKGROUND_COLOR_3 = 6'h24,
+    REG_BACKGROUND_COLOR_0 = 6'h21,
+    REG_BACKGROUND_COLOR_1 = 6'h22,
+    REG_BACKGROUND_COLOR_2 = 6'h23,
+    REG_BACKGROUND_COLOR_3 = 6'h24,
     REG_SPRITE_EXTRA_COLOR_1 = 6'h25,
     REG_SPRITE_EXTRA_COLOR_2 = 6'h26,
     REG_SPRITE_COLOR_0 = 6'h27,
