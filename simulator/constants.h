@@ -67,7 +67,6 @@
 #define V_B2C          vicii__DOT__b2c
 #define V_B3C          vicii__DOT__b3c
 #define V_EC           vicii__DOT__ec
-#define V_DMAEN        vicii__DOT__spriteDmaEn
 #define V_DOTRISINGR   vicii__DOT__dot_risingr
 #define V_PHIR         vicii__DOT__phir
 #define V_DOTR         vicii__DOT__dotr
@@ -107,3 +106,4 @@
 #define V_IDLE               vicii__DOT__idle
 #define V_REG11_DELAYED      vicii__DOT__reg11_delayed
 #define V_VIC_CYCLE          vicii__DOT__vicCycle
+#define V_SPRITE_DMA          vicii__DOT__sprite_dma

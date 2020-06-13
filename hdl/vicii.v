@@ -45,10 +45,8 @@ module vicii(
 
 // Register write phi_phase_start data available
 `define REG_DAV 7
-// Char read phi_phase_start data available
-`define CHAR_DAV 13
-// Pixel read phi_phase_start data available
-`define PIXEL_DAV 13
+// Char/pixel/sprite read phi_phase_start data available
+`define DATA_DAV 13
 // How many dot ticks we need to delay out pixels before they get into the shifter
 `define PIXEL_DELAY 8
 
@@ -154,9 +152,6 @@ endcase
   
   // DRAM refresh counter
   reg [7:0] refc;
-
-  // When enabled, sprite bytes are fetched in sprite cycles
-  reg spriteDmaEn;
   
   // Counters for sprite, refresh and idle 'stretches' for
   // the vicCycle state machine.
@@ -281,6 +276,9 @@ endcase
   // current byte offset within 63 bytes that make a sprite
   reg [5:0] sprite_off[0:`NUM_SPRITES - 1];
   
+  reg sprite_dma[0:`NUM_SPRITES - 1];
+  reg [23:0] sprite_pixels [0:`NUM_SPRITES-1];
+  
   // dot_risingr[15] means dot going high next cycle
   always @(posedge clk_dot4x)
   if (rst)
@@ -315,6 +313,11 @@ endcase
   assign bit_cycle = raster_x[2:0];
   // This is simply raster_x divided by 8.
   assign cycle_num = raster_x[9:3];
+  
+  // If sprite byte offset is < 63, sprite dma is active
+  always @*
+     for (n = 0; n < `NUM_SPRITES; n = n + 1)
+        sprite_dma[n] = sprite_off[n] != 6'd63;
   
   // allow_bad_lines goes high on line 48
   // if den is high at any point on line 48
@@ -603,7 +606,7 @@ endcase
        if (clk_phi == 1'b0) begin // about to go phi high
           case (vicCycle)
              VIC_LP: begin
-                if (spriteDmaEn)
+                if (sprite_dma[spriteCnt])
                    vicPreCycle <= VIC_HS1;
                 else
                    vicPreCycle <= VIC_HPI1;
@@ -732,6 +735,18 @@ endcase
     muxr <= {muxr[14:0],1'b0};
   assign mux = muxr[15]; 
 
+  // sprite logic
+  always @(posedge clk_dot4x)
+  if (rst) begin
+     for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
+        sprite_off[n] <= 6'd63;
+      end
+   end
+
+
+
+
+
   // AEC LOW tells CPU to tri-state its bus lines 
   // AEC will remain HIGH during Phi phase 2 for 3 cycles
   // after which it will remain LOW with ba.
@@ -794,7 +809,7 @@ endcase
   always @(posedge clk_dot4x)
   if (rst)
      nextChar <= 12'b0;
-  else if (!vic_write_db && phi_phase_start[`CHAR_DAV]) begin
+  else if (!vic_write_db && phi_phase_start[`DATA_DAV]) begin
      case (vicCycle)
      VIC_HRC, VIC_HGC: // badline c-access
          nextChar <= dbi;
@@ -821,13 +836,41 @@ endcase
   begin
   if (rst)
     readPixels <= 8'd0;
-  else if (!vic_write_db && phi_phase_start[`PIXEL_DAV]) begin
+  else if (!vic_write_db && phi_phase_start[`DATA_DAV]) begin
     readPixels <= 8'd0;
     if (vicCycle == VIC_LG) begin // g-access
       readPixels <= dbi[7:0];
       readChar <= idle ? 12'd0 : nextChar;
     end
   end
+  end
+
+  // p-access reads
+  always @(posedge clk_dot4x)
+  begin
+     if (!vic_write_db && phi_phase_start[`DATA_DAV]) begin
+       case (vicCycle)
+       VIC_LP: // p-access
+          if (sprite_dma[spriteCnt])
+             sprite_ptr[spriteCnt] <= dbi[7:0];
+          else
+             sprite_ptr[spriteCnt] <= 8'hff;
+       default: ;
+       endcase
+     end
+  end
+
+  // s-access reads
+  always @(posedge clk_dot4x)
+  begin
+     if (!vic_write_db && phi_phase_start[`DATA_DAV]) begin
+       case (vicCycle)
+       VIC_HS1, VIC_LS2, VIC_HS3: // s-access
+          if (sprite_dma[spriteCnt])
+             sprite_pixels[spriteCnt] <= {sprite_pixels[spriteCnt][15:0], dbi[7:0]};
+       default: ;
+       endcase
+     end
   end
 
   // Transfer read pixels and char into waiting*[0] so they
