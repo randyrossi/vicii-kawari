@@ -263,11 +263,14 @@ endcase
   reg baChars;
   reg badline;
 
-  reg [8:0] mx[0:`NUM_SPRITES - 1];
-  reg [7:0] my[0:`NUM_SPRITES - 1];
-  reg [7:0] sprite_priority;
+  reg [8:0] sprite_x[0:`NUM_SPRITES - 1];
+  reg [7:0] sprite_y[0:`NUM_SPRITES - 1];
+  reg [7:0] sprite_pri;
   vic_color sprite_col[0:`NUM_SPRITES - 1];
   vic_color sprite_mc0, sprite_mc1;
+  reg [7:0] sprite_en;
+  reg [7:0] sprite_xe;
+  reg [7:0] sprite_ye;
 
   // dot_risingr[15] means dot going high next cycle
   always @(posedge clk_dot4x)
@@ -1102,39 +1105,46 @@ always @(posedge clk_dot4x)
                 dbo <= 12'hFF;               
                 case (adi[5:0])
                     /* 0x00 */ REG_SPRITE_X_0:
-                        dbo[7:0] <= mx[0][7:0]; 
+                        dbo[7:0] <= sprite_x[0][7:0]; 
                     /* 0x02 */ REG_SPRITE_X_1:
-                        dbo[7:0] <= mx[1][7:0]; 
+                        dbo[7:0] <= sprite_x[1][7:0]; 
                     /* 0x04 */ REG_SPRITE_X_2:
-                        dbo[7:0] <= mx[2][7:0]; 
+                        dbo[7:0] <= sprite_x[2][7:0]; 
                     /* 0x06 */ REG_SPRITE_X_3:
-                        dbo[7:0] <= mx[3][7:0]; 
+                        dbo[7:0] <= sprite_x[3][7:0]; 
                     /* 0x08 */ REG_SPRITE_X_4:
-                        dbo[7:0] <= mx[4][7:0]; 
+                        dbo[7:0] <= sprite_x[4][7:0]; 
                     /* 0x0a */ REG_SPRITE_X_5:
-                        dbo[7:0] <= mx[5][7:0]; 
+                        dbo[7:0] <= sprite_x[5][7:0]; 
                     /* 0x0c */ REG_SPRITE_X_6:
-                        dbo[7:0] <= mx[6][7:0]; 
+                        dbo[7:0] <= sprite_x[6][7:0]; 
                     /* 0x0e */ REG_SPRITE_X_7:
-                        dbo[7:0] <= mx[7][7:0]; 
+                        dbo[7:0] <= sprite_x[7][7:0]; 
                     /* 0x01 */ REG_SPRITE_Y_0:
-                        dbo[7:0] <= my[0]; 
+                        dbo[7:0] <= sprite_y[0]; 
                     /* 0x03 */ REG_SPRITE_Y_1:
-                        dbo[7:0] <= my[1]; 
+                        dbo[7:0] <= sprite_y[1]; 
                     /* 0x05 */ REG_SPRITE_Y_2:
-                        dbo[7:0] <= my[2]; 
+                        dbo[7:0] <= sprite_y[2]; 
                     /* 0x07 */ REG_SPRITE_Y_3:
-                        dbo[7:0] <= my[3]; 
+                        dbo[7:0] <= sprite_y[3]; 
                     /* 0x09 */ REG_SPRITE_Y_4:
-                        dbo[7:0] <= my[4]; 
+                        dbo[7:0] <= sprite_y[4]; 
                     /* 0x0b */ REG_SPRITE_Y_5:
-                        dbo[7:0] <= my[5]; 
+                        dbo[7:0] <= sprite_y[5]; 
                     /* 0x0d */ REG_SPRITE_Y_6:
-                        dbo[7:0] <= my[6]; 
+                        dbo[7:0] <= sprite_y[6]; 
                     /* 0x0f */ REG_SPRITE_Y_7:
-                        dbo[7:0] <= my[7]; 
+                        dbo[7:0] <= sprite_y[7]; 
                     /* 0x10 */ REG_SPRITE_X_BIT_8:
-                        dbo[7:0] <= {mx[7][8], mx[6][8], mx[5][8], mx[4][8], mx[3][8], mx[2][8], mx[1][8], mx[0][8]};
+                        dbo[7:0] <= {sprite_x[7][8], 
+                                     sprite_x[6][8],
+                                     sprite_x[5][8],
+                                     sprite_x[4][8],
+                                     sprite_x[3][8],
+                                     sprite_x[2][8],
+                                     sprite_x[1][8],
+                                     sprite_x[0][8]};
                     /* 0x11 */ REG_SCREEN_CONTROL_1: begin
                         dbo[2:0] <= yscroll;
                         dbo[3] <= rsel;
@@ -1144,8 +1154,11 @@ always @(posedge clk_dot4x)
                         dbo[7] <= raster_line[8];
                     end
                     /* 0x12 */ REG_RASTER_LINE: dbo[7:0] <= raster_line[7:0];
+                    /* 0x15 */ REG_SPRITE_ENABLE: dbo[7:0] <= sprite_en;
                     /* 0x16 */ REG_SCREEN_CONTROL_2:
                         dbo[7:0] <= {2'b11, res, mcm, csel, xscroll};
+                    /* 0x17 */ REG_SPRITE_EXPAND_Y:
+                        dbo[7:0] <= sprite_ye;
                     /* 0x18 */ REG_MEMORY_SETUP: begin
                         dbo[0] <= 1'b1;
                         dbo[3:1] <= cb[2:0];
@@ -1157,7 +1170,9 @@ always @(posedge clk_dot4x)
                     /* 0x1a */ REG_INTERRUPT_CONTROL:
                         dbo[7:0] <= {4'b1111, elp, emmc, embc, erst};
                     /* 0x1b */ REG_SPRITE_PRIORITY:
-                        dbo[7:0] <= sprite_priority;
+                        dbo[7:0] <= sprite_pri;
+                    /* 0x1d */ REG_SPRITE_EXPAND_X:
+                        dbo[7:0] <= sprite_ye;
                     /* 0x20 */ REG_BORDER_COLOR:
                         dbo[7:0] <= {4'b1111, ec};
                     /* 0x21 */ REG_BACKGROUND_COLOR_0:
@@ -1207,46 +1222,46 @@ always @(posedge clk_dot4x)
                 if (!rw) begin
                     case (adi[5:0])
                         /* 0x00 */ REG_SPRITE_X_0:
-                            mx[0][7:0] <= dbi[7:0]; 
+                            sprite_x[0][7:0] <= dbi[7:0]; 
                         /* 0x02 */ REG_SPRITE_X_1:
-                            mx[1][7:0] <= dbi[7:0];
+                            sprite_x[1][7:0] <= dbi[7:0];
                         /* 0x04 */ REG_SPRITE_X_2:
-                            mx[2][7:0] <= dbi[7:0];
+                            sprite_x[2][7:0] <= dbi[7:0];
                         /* 0x06 */ REG_SPRITE_X_3:
-                            mx[3][7:0] <= dbi[7:0];
+                            sprite_x[3][7:0] <= dbi[7:0];
                         /* 0x08 */ REG_SPRITE_X_4:
-                            mx[4][7:0] <= dbi[7:0];
+                            sprite_x[4][7:0] <= dbi[7:0];
                         /* 0x0a */ REG_SPRITE_X_5:
-                            mx[5][7:0] <= dbi[7:0];
+                            sprite_x[5][7:0] <= dbi[7:0];
                         /* 0x0c */ REG_SPRITE_X_6:
-                            mx[6][7:0] <= dbi[7:0];
+                            sprite_x[6][7:0] <= dbi[7:0];
                         /* 0x0e */ REG_SPRITE_X_7:
-                            mx[7][7:0] <= dbi[7:0];
+                            sprite_x[7][7:0] <= dbi[7:0];
                         /* 0x01 */ REG_SPRITE_Y_0:
-                            my[0] <= dbi[7:0];
+                            sprite_y[0] <= dbi[7:0];
                         /* 0x03 */ REG_SPRITE_Y_1:
-                            my[1] <= dbi[7:0]; 
+                            sprite_y[1] <= dbi[7:0]; 
                         /* 0x05 */ REG_SPRITE_Y_2:
-                            my[2] <= dbi[7:0];
+                            sprite_y[2] <= dbi[7:0];
                         /* 0x07 */ REG_SPRITE_Y_3:
-                            my[3] <= dbi[7:0];
+                            sprite_y[3] <= dbi[7:0];
                         /* 0x09 */ REG_SPRITE_Y_4:
-                            my[4] <= dbi[7:0];
+                            sprite_y[4] <= dbi[7:0];
                         /* 0x0b */ REG_SPRITE_Y_5:
-                            my[5] <= dbi[7:0]; 
+                            sprite_y[5] <= dbi[7:0]; 
                         /* 0x0d */ REG_SPRITE_Y_6:
-                            my[6] <= dbi[7:0]; 
+                            sprite_y[6] <= dbi[7:0]; 
                         /* 0x0f */ REG_SPRITE_Y_7:
-                            my[7] <= dbi[7:0];
+                            sprite_y[7] <= dbi[7:0];
                         /* 0x10 */ REG_SPRITE_X_BIT_8: begin
-                            mx[7][8] <= dbi[7];
-                            mx[6][8] <= dbi[6];
-                            mx[5][8] <= dbi[5];
-                            mx[4][8] <= dbi[4];
-                            mx[3][8] <= dbi[3];
-                            mx[2][8] <= dbi[2];
-                            mx[1][8] <= dbi[1];
-                            mx[0][8] <= dbi[0];
+                            sprite_x[7][8] <= dbi[7];
+                            sprite_x[6][8] <= dbi[6];
+                            sprite_x[5][8] <= dbi[5];
+                            sprite_x[4][8] <= dbi[4];
+                            sprite_x[3][8] <= dbi[3];
+                            sprite_x[2][8] <= dbi[2];
+                            sprite_x[1][8] <= dbi[1];
+                            sprite_x[0][8] <= dbi[0];
                         end
                         /* 0x11 */ REG_SCREEN_CONTROL_1: begin
                             yscroll <= dbi[2:0];
@@ -1257,12 +1272,15 @@ always @(posedge clk_dot4x)
                             rasterCmp[8] <= dbi[7];
                         end
                         /* 0x12 */ REG_RASTER_LINE: rasterCmp[7:0] <= dbi[7:0];
+                        /* 0x15 */ REG_SPRITE_ENABLE: sprite_en <= dbi[7:0];
                         /* 0x16 */ REG_SCREEN_CONTROL_2: begin
                             xscroll <= dbi[2:0];
                             csel <= dbi[3];
                             mcm <= dbi[4];
                             res <= dbi[5];
                         end
+                        /* 0x17 */ REG_SPRITE_EXPAND_Y:
+                            sprite_ye <= dbi[7:0];
                         /* 0x18 */ REG_MEMORY_SETUP: begin
                             cb[2:0] <= dbi[3:1];
                             vm[3:0] <= dbi[7:4];
@@ -1280,7 +1298,9 @@ always @(posedge clk_dot4x)
                             elp <= dbi[3];
                         end
                         /* 0x1b */ REG_SPRITE_PRIORITY:
-                            sprite_priority <= dbi[7:0];
+                            sprite_pri <= dbi[7:0];
+                        /* 0x1d */ REG_SPRITE_EXPAND_X:
+                            sprite_xe <= dbi[7:0];
                         /* 0x20 */ REG_BORDER_COLOR:
                             ec <= vic_color'(dbi[3:0]);
                         /* 0x21 */ REG_BACKGROUND_COLOR_0:
