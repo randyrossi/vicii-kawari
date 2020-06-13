@@ -271,7 +271,10 @@ endcase
   reg [7:0] sprite_en;
   reg [7:0] sprite_xe;
   reg [7:0] sprite_ye;
-
+  reg [7:0] sprite_mmc;
+  reg [7:0] sprite_m2m;
+  reg [7:0] sprite_m2d;
+  
   // dot_risingr[15] means dot going high next cycle
   always @(posedge clk_dot4x)
   if (rst)
@@ -1171,8 +1174,14 @@ always @(posedge clk_dot4x)
                         dbo[7:0] <= {4'b1111, elp, emmc, embc, erst};
                     /* 0x1b */ REG_SPRITE_PRIORITY:
                         dbo[7:0] <= sprite_pri;
+                    /* 0x1c */ REG_SPRITE_MULTICOLOR_MODE:
+                        dbo[7:0] <= sprite_mmc;
                     /* 0x1d */ REG_SPRITE_EXPAND_X:
                         dbo[7:0] <= sprite_ye;
+                    /* 0x1e */ REG_SPRITE_2_SPRITE_COLLISION:
+                        dbo[7:0] <= sprite_m2m;
+                    /* 0x1f */ REG_SPRITE_2_DATA_COLLISION:
+                        dbo[7:0] <= sprite_m2d;
                     /* 0x20 */ REG_BORDER_COLOR:
                         dbo[7:0] <= {4'b1111, ec};
                     /* 0x21 */ REG_BACKGROUND_COLOR_0:
@@ -1299,8 +1308,14 @@ always @(posedge clk_dot4x)
                         end
                         /* 0x1b */ REG_SPRITE_PRIORITY:
                             sprite_pri <= dbi[7:0];
+                        /* 0x1c */ REG_SPRITE_MULTICOLOR_MODE:
+                            sprite_mmc <= dbi[7:0];
                         /* 0x1d */ REG_SPRITE_EXPAND_X:
                             sprite_xe <= dbi[7:0];
+                        /* 0x1e */ REG_SPRITE_2_SPRITE_COLLISION:
+                            sprite_m2m <= dbi[7:0];
+                        /* 0x1f */ REG_SPRITE_2_DATA_COLLISION:
+                            sprite_m2d <= dbi[7:0];
                         /* 0x20 */ REG_BORDER_COLOR:
                             ec <= vic_color'(dbi[3:0]);
                         /* 0x21 */ REG_BACKGROUND_COLOR_0:
