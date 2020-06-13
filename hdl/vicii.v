@@ -275,6 +275,12 @@ endcase
   reg [7:0] sprite_m2m;
   reg [7:0] sprite_m2d;
   
+  // data pointers for each sprite
+  reg [7:0] sprite_ptr[0:`NUM_SPRITES - 1];
+  
+  // current byte offset within 63 bytes that make a sprite
+  reg [5:0] sprite_off[0:`NUM_SPRITES - 1];
+  
   // dot_risingr[15] means dot going high next cycle
   always @(posedge clk_dot4x)
   if (rst)
@@ -854,10 +860,14 @@ endcase
   always @*
   begin
      case(vicCycle)
-     VIC_LR: vicAddr = {6'b111111, refc};
+     VIC_LR:
+        vicAddr = {6'b111111, refc};
      VIC_LG: begin
         if (idle)
-          vicAddr = 14'h3FFF;
+          if (reg11_delayed[6]) // ecm
+             vicAddr = 14'h39FF;
+          else
+             vicAddr = 14'h3FFF;
         else begin
           if (reg11_delayed[5]) // bmm
             vicAddr = {cb[2], vc, rc}; // bitmap data
@@ -867,8 +877,18 @@ endcase
             vicAddr[10:9] = 2'b00;
         end
      end
-     VIC_HRC, VIC_HGC: vicAddr = {vm, vc}; // video matrix
-     default: vicAddr = 14'h3FFF;
+     VIC_HRC, VIC_HGC:
+        vicAddr = {vm, vc}; // video matrix
+     VIC_LP:
+        vicAddr = {vm, 7'b1111111, spriteCnt}; // p-access
+     VIC_HS1, VIC_LS2, VIC_HS3:
+        vicAddr = {sprite_ptr[spriteCnt], sprite_off[spriteCnt]}; // s-access
+     default: begin
+          if (reg11_delayed[6]) // ecm
+             vicAddr = 14'h39FF;
+          else
+             vicAddr = 14'h3FFF;
+     end
      endcase
   end
   
@@ -1197,21 +1217,21 @@ always @(posedge clk_dot4x)
                     /* 0x26 */ REG_SPRITE_MULTI_COLOR_1:
                         dbo[7:0] <= {4'b1111, sprite_mc1};
                     /* 0x27 */ REG_SPRITE_COLOR_0:
-                        dbo[7:0] <= {5'b11111, sprite_col[0]};
+                        dbo[7:0] <= {4'b1111, sprite_col[0]};
                     /* 0x28 */ REG_SPRITE_COLOR_1:
-                        dbo[7:0] <= {5'b11111, sprite_col[1]};
+                        dbo[7:0] <= {4'b1111, sprite_col[1]};
                     /* 0x29 */ REG_SPRITE_COLOR_2:
-                        dbo[7:0] <= {5'b11111, sprite_col[2]};
+                        dbo[7:0] <= {4'b1111, sprite_col[2]};
                     /* 0x2a */ REG_SPRITE_COLOR_3:
-                        dbo[7:0] <= {5'b11111, sprite_col[3]};
+                        dbo[7:0] <= {4'b1111, sprite_col[3]};
                     /* 0x2b */ REG_SPRITE_COLOR_4:
-                        dbo[7:0] <= {5'b11111, sprite_col[4]};
+                        dbo[7:0] <= {4'b1111, sprite_col[4]};
                     /* 0x2c */ REG_SPRITE_COLOR_5:
-                        dbo[7:0] <= {5'b11111, sprite_col[5]};
+                        dbo[7:0] <= {4'b1111, sprite_col[5]};
                     /* 0x2d */ REG_SPRITE_COLOR_6:
-                        dbo[7:0] <= {5'b11111, sprite_col[6]};
+                        dbo[7:0] <= {4'b1111, sprite_col[6]};
                     /* 0x2e */ REG_SPRITE_COLOR_7:
-                        dbo[7:0] <= {5'b11111, sprite_col[7]};
+                        dbo[7:0] <= {4'b1111, sprite_col[7]};
 
                     default:;
                 endcase
