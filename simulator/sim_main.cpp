@@ -336,11 +336,9 @@ static void regs_vice_to_fpga(Vvicii* top, struct vicii_state* state) {
        val = state->vice_reg[0x24];
        top->V_B3C = val & 15 | 0b11110000;
 
-       // Other internal state
-       // Don't do VC,RC,VCBASE unless debugging why they are wrong
-       //top->V_VC = state->vc;
-       //top->V_RC = state->rc;
-       //top->V_VCBASE = state->vc_base;
+       top->V_VC = state->vc;
+       top->V_RC = state->rc;
+       top->V_VCBASE = state->vc_base;
        
        top->V_ALLOW_BAD_LINES = state->allow_bad_lines;
        top->V_REG11_DELAYED = state->reg11_delayed;
@@ -1086,9 +1084,9 @@ int main(int argc, char** argv, char** env) {
                                  case SDLK_RIGHT:
                                     quit=true; break;
                                  case SDLK_SPACE:
-		        	    cycleByCycleCount = numCycles * 2;
+		        	    cycleByCycleCount = (numCycles-1) * 2;
                                     quit=true; break;
-                                 case SDLK_RETURN:
+                                 case SDLK_n:
 		        	    cycleByCycleCount = numCycles * 20;
                                     quit=true; break;
 			       default:

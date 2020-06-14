@@ -622,7 +622,7 @@ endcase
   else
   begin
      // NOTE: Must be tick 1 here for cycle_num to be valid
-     if (dot_risingr[1] && phir[1] == 1'b0) begin
+     if ( dot_risingr[1] && phir[1] == 1'b1) begin
        if (cycle_num > 7'd10 && cycle_num < 7'd54 && badline)
           baChars <= 1'b0;
        else
