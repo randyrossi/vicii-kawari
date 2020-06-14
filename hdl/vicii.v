@@ -66,6 +66,13 @@ reg [9:0] hSyncEnd;
 reg [9:0] hVisibleStart;
 reg [8:0] vBlankStart;
 reg [8:0] vBlankEnd;
+reg [6:0] spriteDmaChk1;
+reg [6:0] spriteDmaChk2;
+// These xpos's cover the sprite dma period and 3 cycles
+// before the first dma access is required. They are used
+// in ba low calcs.
+reg [9:0] sprite_ba_start [`NUM_SPRITES];
+reg [9:0] sprite_ba_end [`NUM_SPRITES];
 
 //clk_dot4x;     32.272768 Mhz NTSC, 31.527955 Mhz PAL
 //clk_col4x;     14.318181 Mhz NTSC, 17.734475 Mhz PAL
@@ -91,6 +98,24 @@ CHIP6567R8:
       hVisibleStart = 10'd494;  // 10.7us after hSyncStart seems to work
       vBlankStart = 9'd11;
       vBlankEnd = 9'd19;
+      spriteDmaChk1 = 7'd55;
+      spriteDmaChk2 = 7'd56;
+      sprite_ba_start[0] = 10'h15c + 10'd16 * 0;
+      sprite_ba_end[0] = 10'h183 + 10'd16 * 0;
+      sprite_ba_start[1] = 10'h15c + 10'd16 * 1;
+      sprite_ba_end[1] = 10'h183 + 10'd16 * 1;
+      sprite_ba_start[2] = 10'h15c + 10'd16 * 2;
+      sprite_ba_end[2] = 10'h183 + 10'd16 * 2;
+      sprite_ba_start[3] = 10'h15c + 10'd16 * 3;
+      sprite_ba_end[3] = 10'h183 + 10'd16 * 3;
+      sprite_ba_start[4] = 10'h15c + 10'd16 * 4;
+      sprite_ba_end[4] = 10'h183 + 10'd16 * 4;
+      sprite_ba_start[5] = 10'h15c + 10'd16 * 5;
+      sprite_ba_end[5] = 10'h183 + 10'd16 * 5;
+      sprite_ba_start[6] = 10'h15c + 10'd16 * 6;
+      sprite_ba_end[6] = 10'h183 + 10'd16 * 6;
+      sprite_ba_start[7] = 10'h15c + 10'd16 * 7;
+      sprite_ba_end[7] = 10'h183 + 10'd16 * 7;
    end
 CHIP6567R56A:
    begin
@@ -101,6 +126,24 @@ CHIP6567R56A:
       hVisibleStart = 10'd494;  // 10.7us after hSyncStart seems to work
       vBlankStart = 9'd11;
       vBlankEnd = 9'd19;
+      spriteDmaChk1 = 7'd55;
+      spriteDmaChk2 = 7'd56;
+      sprite_ba_start[0] = 10'h154 + 10'd16 * 0;
+      sprite_ba_end[0] = 10'h17b + 10'd16 * 0;
+      sprite_ba_start[1] = 10'h154 + 10'd16 * 1;
+      sprite_ba_end[1] = 10'h17b + 10'd16 * 1;
+      sprite_ba_start[2] = 10'h154 + 10'd16 * 2;
+      sprite_ba_end[2] = 10'h17b + 10'd16 * 2;
+      sprite_ba_start[3] = 10'h154 + 10'd16 * 3;
+      sprite_ba_end[3] = 10'h17b + 10'd16 * 3;
+      sprite_ba_start[4] = 10'h154 + 10'd16 * 4;
+      sprite_ba_end[4] = 10'h17b + 10'd16 * 4;
+      sprite_ba_start[5] = 10'h154 + 10'd16 * 5;
+      sprite_ba_end[5] = 10'h17b + 10'd16 * 5;
+      sprite_ba_start[6] = 10'h154 + 10'd16 * 6;
+      sprite_ba_end[6] = 10'h17b + 10'd16 * 6;
+      sprite_ba_start[7] = 10'h154 + 10'd16 * 7;
+      sprite_ba_end[7] = 10'h17b + 10'd16 * 7;
    end
 CHIP6569,CHIPUNUSED:
    begin
@@ -111,6 +154,24 @@ CHIP6569,CHIPUNUSED:
       hVisibleStart = 10'd492;  // ~10.7 after hSyncStart
       vBlankStart = 9'd301;
       vBlankEnd = 9'd309;
+      spriteDmaChk1 = 7'd54;
+      spriteDmaChk2 = 7'd55;
+      sprite_ba_start[0] = 10'h14c + 10'd16 * 0;
+      sprite_ba_end[0] = 10'h173 + 10'd16 * 0;
+      sprite_ba_start[1] = 10'h14c + 10'd16 * 1;
+      sprite_ba_end[1] = 10'h173 + 10'd16 * 1;
+      sprite_ba_start[2] = 10'h14c + 10'd16 * 2;
+      sprite_ba_end[2] = 10'h173 + 10'd16 * 2;
+      sprite_ba_start[3] = 10'h14c + 10'd16 * 3;
+      sprite_ba_end[3] = 10'h173 + 10'd16 * 3;
+      sprite_ba_start[4] = 10'h14c + 10'd16 * 4;
+      sprite_ba_end[4] = 10'h173 + 10'd16 * 4;
+      sprite_ba_start[5] = 10'h14c + 10'd16 * 5;
+      sprite_ba_end[5] = 10'h173 + 10'd16 * 5;
+      sprite_ba_start[6] = 10'h14c + 10'd16 * 6;
+      sprite_ba_end[6] = 10'h173 + 10'd16 * 6;
+      sprite_ba_start[7] = 10'h14c + 10'd16 * 7;
+      sprite_ba_end[7] = 10'h173 + 10'd16 * 7;
    end
 endcase
 
@@ -131,6 +192,7 @@ endcase
   // current raster x and line position
   reg [9:0] raster_x;
   reg [8:0] raster_line;
+  //reg [8:0] next_raster_line;
   reg allow_bad_lines;
   
   // According to VICE, reg11 is delayed by 1 cycle. TODO: confirm this
@@ -168,10 +230,12 @@ endcase
   // 6567R56A : 0-63
   // 6567R8   : 0-64
   // 6569     : 0-62
+  // NOTE: cycle_num not valid until 2nd tick within low phase of phi
   wire [6:0] cycle_num;
 
   // bit_cycle : The pixel number within the line cycle.
   // 0-7
+  // NOTE: similar to above, bit_cycle not valid until 2nd tick within low phase of phi
   wire [2:0] bit_cycle;
   
   // ec : border (edge) color
@@ -256,6 +320,7 @@ endcase
   reg [7:0] shiftingPixels;
 
   reg baChars;
+  reg [7:0] baSprite;
   reg badline;
 
   reg [8:0] sprite_x[0:`NUM_SPRITES - 1];
@@ -425,6 +490,7 @@ endcase
   begin
     raster_x <= 10'b0;
     raster_line <= 9'b0;
+    //next_raster_line <= 9'b1;
     start_of_frame <= 1'b0;
     case(chip)
     CHIP6567R56A, CHIP6567R8:
@@ -442,9 +508,14 @@ endcase
     if (clk_phi && phi_phase_start[0]) begin
       if (start_of_frame && cycle_num == 1) begin
          raster_line <= 9'd0;
+         //next_raster_line <= 9'd1;
          start_of_frame <= 1'b0;
       end else if (start_of_line && cycle_num == 0) begin
          raster_line <= raster_line + 9'd1;
+//         if (next_raster_line < rasterYMax)
+//            next_raster_line <= next_raster_line + 9'd1;
+//         else
+//            next_raster_line <= 9'd0;
          start_of_line <= 1'b0;
       end
     end
@@ -508,6 +579,7 @@ endcase
     idle <= 1'b1;
   end
   else begin 
+    // okay to check cycle_num on first tick of high phase
     if (clk_phi == 1'b1 && phi_phase_start[0]) begin
       if (cycle_num > 14 && cycle_num < 55 && idle == 1'b0)
         vc <= vc + 1'b1;
@@ -549,14 +621,25 @@ endcase
      baChars <= 1'b1;
   else
   begin
-     if (dot_risingr[0] && phir[0] == 1'b0)
+     // NOTE: Must be tick 1 here for cycle_num to be valid
+     if (dot_risingr[1] && phir[1] == 1'b0) begin
        if (cycle_num > 7'd10 && cycle_num < 7'd54 && badline)
           baChars <= 1'b0;
        else
           baChars <= 1'b1;
+     end
   end
 
-  assign ba = baChars;
+  always @(posedge clk_dot4x) begin
+    for (n = 0; n <= `NUM_SPRITES; n = n + 1) begin
+       if (sprite_en[n] && sprite_dma[n])
+          baSprite[n] <= (xpos >= sprite_ba_start[n] && xpos <= sprite_ba_end[n]);
+       else
+          baSprite[n] <= 0;
+       end
+  end
+
+  assign ba = baChars & (baSprite == 0);
 
   // Cascade ba through three cycles, making sure
   // aec is lowered 3 cycles after ba went low
@@ -740,11 +823,31 @@ endcase
   if (rst) begin
      for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
         sprite_off[n] <= 6'd63;
-      end
-   end
-
-
-
+     end
+  end else begin
+     // low phase of phi after cycle_num becomes valid...
+     if (!clk_phi && phi_phase_start[1] && (cycle_num == spriteDmaChk1 || cycle_num == spriteDmaChk2)) begin
+        for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
+           if (!sprite_dma[n] && sprite_en[n] && raster_line[7:0] == sprite_y[n])
+              sprite_off[n] <= 6'd0; // will enable dma
+        end
+     end
+     
+     // TODO : Reset y expansion flip flop
+     
+     // TODO: Handle y expansion
+     
+     // Advance sprite byte offset while dma is happening
+     // Must be done on same tick as sprite cnt increment or we hit the wrong sprite
+     if (phi_phase_start[14]) begin
+        case (vicCycle)
+        VIC_HS1,VIC_LS2,VIC_HS3:
+          if (sprite_dma[spriteCnt])
+             sprite_off[spriteCnt] <= sprite_off[spriteCnt] + 1'b1;
+        default: ;
+        endcase
+     end
+  end
 
 
   // AEC LOW tells CPU to tri-state its bus lines 
@@ -819,7 +922,7 @@ endcase
          if (idle)
             nextChar <= 12'b0;
      endcase
-     
+
      case (vicCycle)
      VIC_HRC, VIC_HGC, VIC_HRX, VIC_HGI: begin
          for (n = 38; n > 0; n = n - 1) begin
@@ -847,6 +950,11 @@ endcase
 
   // p-access reads
   always @(posedge clk_dot4x)
+  if (rst) begin
+     for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
+        sprite_ptr[n] <= 8'd0;
+     end
+  end else
   begin
      if (!vic_write_db && phi_phase_start[`DATA_DAV]) begin
        case (vicCycle)
@@ -925,7 +1033,14 @@ endcase
      VIC_LP:
         vicAddr = {vm, 7'b1111111, spriteCnt}; // p-access
      VIC_HS1, VIC_LS2, VIC_HS3:
-        vicAddr = {sprite_ptr[spriteCnt], sprite_off[spriteCnt]}; // s-access
+        if (!vic_write_db)
+           vicAddr = {sprite_ptr[spriteCnt], sprite_off[spriteCnt]}; // s-access
+        else begin
+          if (reg11_delayed[6]) // ecm
+             vicAddr = 14'h39FF;
+          else
+             vicAddr = 14'h3FFF;
+        end
      default: begin
           if (reg11_delayed[6]) // ecm
              vicAddr = 14'h39FF;
@@ -1163,6 +1278,20 @@ always @(posedge clk_dot4x)
         mcm <= 1'b0;
         irst_clr <= 1'b0;
         rasterCmp <= 9'b0;
+        sprite_en <= 8'b0;
+        sprite_xe <= 8'b0;
+        sprite_ye <= 8'b0;
+        sprite_m2m <= 8'b0;
+        sprite_m2d <= 8'b0;
+        sprite_pri <= 8'b0;
+        sprite_mmc <= 8'b0;
+        sprite_mc0 <= BLACK;
+        sprite_mc1 <= BLACK;
+        for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
+           sprite_x[n] <= 9'b0;
+           sprite_y[n] <= 8'b0;
+           sprite_col[n] <= BLACK;
+        end
     end
     else begin
         if (!vic_write_ab && !ce) begin
@@ -1240,7 +1369,7 @@ always @(posedge clk_dot4x)
                     /* 0x1c */ REG_SPRITE_MULTICOLOR_MODE:
                         dbo[7:0] <= sprite_mmc;
                     /* 0x1d */ REG_SPRITE_EXPAND_X:
-                        dbo[7:0] <= sprite_ye;
+                        dbo[7:0] <= sprite_xe;
                     /* 0x1e */ REG_SPRITE_2_SPRITE_COLLISION:
                         dbo[7:0] <= sprite_m2m;
                     /* 0x1f */ REG_SPRITE_2_DATA_COLLISION:
