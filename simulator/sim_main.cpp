@@ -204,8 +204,8 @@ static void STATE(Vvicii *top) {
    " %01d"
    " %04x"
    " %01d"
-   
    ,
+
    top->rst ? 'R' : HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ',
    top->clk_dot4x ? 1 : 0,
    nextClkCnt,
@@ -339,7 +339,7 @@ static void regs_vice_to_fpga(Vvicii* top, struct vicii_state* state) {
        top->V_VC = state->vc;
        top->V_RC = state->rc;
        top->V_VCBASE = state->vc_base;
-       
+
        top->V_ALLOW_BAD_LINES = state->allow_bad_lines;
        top->V_REG11_DELAYED = state->reg11_delayed;
 
@@ -459,13 +459,13 @@ static void regs_fpga_to_vice(Vvicii* top, struct vicii_state* state) {
        state->vice_reg[0x0d] = top->V_SPRITE_Y[6];
        state->vice_reg[0x0e] = top->V_SPRITE_X[7] & 0xff;
        state->vice_reg[0x0f] = top->V_SPRITE_Y[7];
-       state->vice_reg[0x10] = (top->V_SPRITE_X[0] & 256 >> 8) | 
-                               (top->V_SPRITE_X[1] & 256 >> 7) | 
-                               (top->V_SPRITE_X[2] & 256 >> 6) | 
-                               (top->V_SPRITE_X[3] & 256 >> 5) | 
-                               (top->V_SPRITE_X[4] & 256 >> 4) | 
-                               (top->V_SPRITE_X[5] & 256 >> 3) | 
-                               (top->V_SPRITE_X[6] & 256 >> 2) | 
+       state->vice_reg[0x10] = (top->V_SPRITE_X[0] & 256 >> 8) |
+                               (top->V_SPRITE_X[1] & 256 >> 7) |
+                               (top->V_SPRITE_X[2] & 256 >> 6) |
+                               (top->V_SPRITE_X[3] & 256 >> 5) |
+                               (top->V_SPRITE_X[4] & 256 >> 4) |
+                               (top->V_SPRITE_X[5] & 256 >> 3) |
+                               (top->V_SPRITE_X[6] & 256 >> 2) |
                                (top->V_SPRITE_X[7] & 256 >> 1);
 
        state->vice_reg[0x15] = top->V_SPRITE_EN;
@@ -1076,19 +1076,30 @@ int main(int argc, char** argv, char** env) {
                   while (!quit) {
                      while (SDL_PollEvent(&event)) {
 			SDL_KeyboardEvent* ke = (SDL_KeyboardEvent*)&event;
+			int n;
+			struct vicii_state tmp_state;
                         switch (event.type) {
                            case SDL_QUIT:
                                  quit=true; break;
                            case SDL_KEYUP:
 		  	    switch (ke->keysym.sym) {
+				 // Next half cycle
                                  case SDLK_RIGHT:
                                     quit=true; break;
+				 // Next lines
                                  case SDLK_SPACE:
-		        	    cycleByCycleCount = (numCycles-1) * 2;
+		        	    cycleByCycleCount = numCycles * 2;
                                     quit=true; break;
+				 // Next 10 lines
                                  case SDLK_n:
 		        	    cycleByCycleCount = numCycles * 20;
                                     quit=true; break;
+				 // Show regs
+                                 case SDLK_r:
+				    regs_fpga_to_vice(top, &tmp_state);
+				    for (n=0;n<0x2f;n++) {
+                                       printf ("%02x=%02x\n", n, tmp_state.fpga_reg[n]);
+                                    }
 			       default:
 				  break;
 		            }

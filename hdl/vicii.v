@@ -192,7 +192,6 @@ endcase
   // current raster x and line position
   reg [9:0] raster_x;
   reg [8:0] raster_line;
-  //reg [8:0] next_raster_line;
   reg allow_bad_lines;
   
   // According to VICE, reg11 is delayed by 1 cycle. TODO: confirm this
@@ -208,9 +207,9 @@ endcase
   // chips and wraps at the high phase of cycle 12.
   reg [9:0] xpos;
 
-  // What cycle we are on:
+  // What cycle we are on.  Only valid on 3rd tick (or greater)
+  // within a phase.
   reg [3:0] vicCycle;
-  vic_cycle vicPreCycle;
   
   // DRAM refresh counter
   reg [7:0] refc;
@@ -490,7 +489,6 @@ endcase
   begin
     raster_x <= 10'b0;
     raster_line <= 9'b0;
-    //next_raster_line <= 9'b1;
     start_of_frame <= 1'b0;
     case(chip)
     CHIP6567R56A, CHIP6567R8:
@@ -508,14 +506,9 @@ endcase
     if (clk_phi && phi_phase_start[0]) begin
       if (start_of_frame && cycle_num == 1) begin
          raster_line <= 9'd0;
-         //next_raster_line <= 9'd1;
          start_of_frame <= 1'b0;
       end else if (start_of_line && cycle_num == 0) begin
          raster_line <= raster_line + 9'd1;
-//         if (next_raster_line < rasterYMax)
-//            next_raster_line <= next_raster_line + 9'd1;
-//         else
-//            next_raster_line <= 9'd0;
          start_of_line <= 1'b0;
       end
     end
@@ -579,7 +572,6 @@ endcase
     idle <= 1'b1;
   end
   else begin 
-    // okay to check cycle_num on first tick of high phase
     if (clk_phi == 1'b1 && phi_phase_start[0]) begin
       if (cycle_num > 14 && cycle_num < 55 && idle == 1'b0)
         vc <= vc + 1'b1;
@@ -594,11 +586,16 @@ endcase
         if (rc == 3'd7) begin
           vcBase <= vc;
           idle <= 1;
+          if (badline)
+             rc <= rc + 1'b1;
         end
         else if (!idle | badline)
           rc <= rc + 1'b1;
       end
-
+    end
+    
+    // This must be checked at the same time as above in x,y updatee section
+    if (clk_phi == 1'b1 && phi_phase_start[0]) begin
       if (cycle_num == 1 && start_of_frame) begin
          vcBase <= 10'd0;
          vc <= 10'd0;
@@ -631,7 +628,7 @@ endcase
   end
 
   always @(posedge clk_dot4x) begin
-    for (n = 0; n <= `NUM_SPRITES; n = n + 1) begin
+    for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
        if (sprite_en[n] && sprite_dma[n])
           baSprite[n] <= (xpos >= sprite_ba_start[n] && xpos <= sprite_ba_end[n]);
        else
@@ -681,92 +678,92 @@ endcase
   // LI -> HI
   always @(posedge clk_dot4x)
      if (rst) begin
-        vicPreCycle <= VIC_LP;
+        vicCycle <= VIC_LP;
         spriteCnt <= 3'd3;
         refreshCnt <= 3'd0;
         idleCnt <= 3'd0;
-     end else if (phi_phase_start[14]) begin
-       if (clk_phi == 1'b0) begin // about to go phi high
+     end else if (phi_phase_start[1]) begin // badline is valid on 1
+       if (clk_phi == 1'b1) begin
           case (vicCycle)
              VIC_LP: begin
                 if (sprite_dma[spriteCnt])
-                   vicPreCycle <= VIC_HS1;
+                   vicCycle <= VIC_HS1;
                 else
-                   vicPreCycle <= VIC_HPI1;
+                   vicCycle <= VIC_HPI1;
              end
              VIC_LPI2:
-                   vicPreCycle <= VIC_HPI3;
+                   vicCycle <= VIC_HPI3;
              VIC_LS2:
-                vicPreCycle <= VIC_HS3;
+                vicCycle <= VIC_HS3;
              VIC_LR: begin
                 if (refreshCnt == 4) begin
                   if (badline == 1'b1)
-                    vicPreCycle <= VIC_HRC;
+                    vicCycle <= VIC_HRC;
                   else
-                    vicPreCycle <= VIC_HRX;
+                    vicCycle <= VIC_HRX;
                 end else
-                    vicPreCycle <= VIC_HRI;
+                    vicCycle <= VIC_HRI;
              end
              VIC_LG: begin
                 if (cycle_num == 54) begin
-                      vicPreCycle <= VIC_HI;
+                      vicCycle <= VIC_HI;
                       idleCnt <= 0;
                 end else
                    if (badline == 1'b1)
-                      vicPreCycle <= VIC_HGC;
+                      vicCycle <= VIC_HGC;
                    else
-                      vicPreCycle <= VIC_HGI;
+                      vicCycle <= VIC_HGI;
                 end
-             VIC_LI: vicPreCycle <= VIC_HI;
+             VIC_LI: vicCycle <= VIC_HI;
              default: ;
           endcase
-       end else begin // about to go phi low
+       end else begin
           case (vicCycle)
-             VIC_HS1: vicPreCycle <= VIC_LS2;
-             VIC_HPI1: vicPreCycle <= VIC_LPI2;
+             VIC_HS1: vicCycle <= VIC_LS2;
+             VIC_HPI1: vicCycle <= VIC_LPI2;
              VIC_HS3, VIC_HPI3: begin
                  if (spriteCnt == 7) begin
-                    vicPreCycle <= VIC_LR;
+                    vicCycle <= VIC_LR;
                     spriteCnt <= 0;
                     refreshCnt <= 0;
                  end else begin
-                    vicPreCycle <= VIC_LP;
+                    vicCycle <= VIC_LP;
                     spriteCnt <= spriteCnt + 1'd1;
                  end
              end
              VIC_HRI: begin
-                 vicPreCycle <= VIC_LR;
+                 vicCycle <= VIC_LR;
                  refreshCnt <= refreshCnt + 1'd1;
              end
              VIC_HRC, VIC_HRX:
-                 vicPreCycle <= VIC_LG;            
-             VIC_HGC, VIC_HGI: vicPreCycle <= VIC_LG;
+                 vicCycle <= VIC_LG;            
+             VIC_HGC, VIC_HGI: vicCycle <= VIC_LG;
              VIC_HI: begin
                  if (chip == CHIP6567R56A && idleCnt == 3)
-                    vicPreCycle <= VIC_LP;
+                    vicCycle <= VIC_LP;
                  else if (chip == CHIP6567R8 && idleCnt == 4)
-                    vicPreCycle <= VIC_LP;
+                    vicCycle <= VIC_LP;
                  else if (chip == CHIP6569 && idleCnt == 2)
-                    vicPreCycle <= VIC_LP;
+                    vicCycle <= VIC_LP;
                  else begin
                     idleCnt <= idleCnt + 1'd1;
-                    vicPreCycle <= VIC_LI;
+                    vicCycle <= VIC_LI;
                  end
              end
              default: ;
           endcase
        end
      end
-     
-  // transfer vicPreCycle to vicCycle. vicPreCycle lets us determine what
-  // cycle the state machine will be in on the last tick of a phase if
-  // we need to
-  always @(posedge clk_dot4x)
-     if (rst)
-        vicCycle <= VIC_LP;
-     else if (phi_phase_start[15])
-        vicCycle <= vicPreCycle;
-    
+
+  // Notes on RAS/CAS/MUX: We don't know what the cycle type is
+  // until the 3rd tick into the phase ([2]). The lines should
+  // be high upon entering the phase for 3 ticks until the blocks
+  // below reset the registers to make them fall at the defined
+  // times. I could just as easily have changed the assigns
+  // to use [2] instead of [15] and lined all the 1's flush against
+  // the left but I like to look at the last bit when debugging to
+  // know if the line is high or low.
+  
   // RAS/CAS/MUX profiles
   // Data must be stable by falling RAS edge
   // Then stable by falling CAS edge
@@ -774,24 +771,28 @@ endcase
   // to its delayed use to set ado 
   always @(posedge clk_dot4x)
   if (rst) begin
-     rasr <= 16'b1100000000000000;
-     casr <= 16'b1111000000000000;
+     rasr <= 16'b1100000000000111;
+     casr <= 16'b1111000000000111;
   end
-  else if (phi_phase_start[15]) begin // about to transition
-    if (clk_phi) // phi going low
-    case (vicPreCycle)
+  else if (phi_phase_start[2]) begin
+    // Now that the cycle type is known, make ras/cas fall
+    // at expected times.  RAS should be high 5 ticks
+    // into the phase (counting from [0]) and fall on
+    // the 6th tick.  CAS is 7.
+    if (~clk_phi)
+    case (vicCycle)
     VIC_LPI2, VIC_LI: begin
              rasr <= 16'b1111111111111111;
              casr <= 16'b1111111111111111;
            end
     default: begin
-             rasr <= 16'b1111100000000000;
-             casr <= 16'b1111111000000000;
+             rasr <= 16'b1100000000000111;
+             casr <= 16'b1111000000000111;
            end
     endcase
-    else begin // phi going high
-       rasr <= 16'b1111100000000000;
-       casr <= 16'b1111111000000000;
+    else begin
+       rasr <= 16'b1100000000000111;
+       casr <= 16'b1111000000000111;
     end
   end else begin
     rasr <= {rasr[14:0],1'b0};
@@ -804,16 +805,20 @@ endcase
   // ado.
   always @(posedge clk_dot4x)
   if (rst)
-     muxr <= 16'b1100000000000000;
-  else if (phi_phase_start[15]) begin // about to transition
-    if (clk_phi) // phi going low
-    case (vicPreCycle)
-    VIC_LPI2, VIC_LI: muxr <= 16'b1111111111111111;
-    VIC_LR:           muxr <= 16'b1111111111111111;
-    default:          muxr <= 16'b1111100000000000;
+     muxr <= 16'b1100000000000111;
+  else if (phi_phase_start[2]) begin
+    // Now that the cycle type is known, make mux fall
+    // at expected times.  MUX should be high 5 ticks
+    // into the phase (counting from [0]) and fall on
+    // the 6th tick.
+    if (~clk_phi)
+    case (vicCycle)
+       VIC_LPI2, VIC_LI: muxr <= 16'b1111111111111111;
+       VIC_LR:           muxr <= 16'b1111111111111111;
+       default:          muxr <= 16'b1100000000000111;
     endcase
-    else        // phi going high
-                      muxr <= 16'b1111100000000000;
+    else
+                      muxr <= 16'b1100000000000111;
   end else
     muxr <= {muxr[14:0],1'b0};
   assign mux = muxr[15]; 
@@ -910,17 +915,18 @@ endcase
 
   // c-access reads
   always @(posedge clk_dot4x)
-  if (rst)
+  if (rst) begin
      nextChar <= 12'b0;
-  else if (!vic_write_db && phi_phase_start[`DATA_DAV]) begin
+     for (n = 0; n < 39; n = n + 1) begin
+        charbuf[n] <= 12'hff;
+     end
+  end else if (!vic_write_db && phi_phase_start[`DATA_DAV]) begin
      case (vicCycle)
      VIC_HRC, VIC_HGC: // badline c-access
          nextChar <= dbi;
      VIC_HRX, VIC_HGI: // not badline idle (char from cache)
          nextChar <= idle ? 12'b0 : charbuf[38];
-     default:
-         if (idle)
-            nextChar <= 12'b0;
+     default: ;
      endcase
 
      case (vicCycle)

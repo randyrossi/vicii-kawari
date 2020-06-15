@@ -1,4 +1,4 @@
-!to "scroll.prg",cbm
+!to "xscroll.prg",cbm
 
 ; Futz with xscroll to make wavy/jittery text
 
