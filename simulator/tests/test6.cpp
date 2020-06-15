@@ -18,7 +18,7 @@ int test6_run(Vvicii* top, int golden) {
    if (state == 0 && top->irq) {
       EXPECT("line", top->V_RASTER_LINE, 5);
       EXPECT("cycle_num", top->V_CYCLE_NUM, 0);
-      EXPECT("bit_cycle", top->V_BIT_CYCLE, 0);
+      EXPECT("cycle_bit", top->V_CYCLE_BIT, 0);
       state++;
    } else if (state == 1 && top->clk_phi) {
       EXPECT("irq", (top->irq&1), 1);

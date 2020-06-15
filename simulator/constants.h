@@ -57,9 +57,9 @@
 
 #define V_PPS          vicii__DOT__phi_phase_start
 #define V_XPOS         vicii__DOT__xpos
-#define V_CYCLE_NUM    vicii__DOT__cycle_num
+#define V_CYCLE_NUM    vicii__DOT__cycleNum
 #define V_CLK_DOT      clk_dot
-#define V_BIT_CYCLE    vicii__DOT__bit_cycle
+#define V_CYCLE_BIT    vicii__DOT__cycleBit
 #define V_RASTER_X     vicii__DOT__raster_x
 #define V_RASTER_LINE  vicii__DOT__raster_line
 #define V_NEXT_RASTER_LINE  vicii__DOT__next_raster_line
@@ -69,11 +69,11 @@
 #define V_B3C          vicii__DOT__b3c
 #define V_EC           vicii__DOT__ec
 #define V_DOTRISINGR   vicii__DOT__dot_risingr
-#define V_PHIR         vicii__DOT__phir
-#define V_DOTR         vicii__DOT__dotr
-#define V_RASR         vicii__DOT__rasr
-#define V_CASR         vicii__DOT__casr
-#define V_MUXR         vicii__DOT__muxr
+#define V_PHIR         vicii__DOT__phi_gen
+#define V_DOTR         vicii__DOT__dot_gen
+#define V_RASR         vicii__DOT__ras_gen
+#define V_CASR         vicii__DOT__cas_gen
+#define V_MUXR         vicii__DOT__mux_gen
 #define V_REFC         vicii__DOT__refc
 #define V_ERST         vicii__DOT__erst
 #define V_EMBC         vicii__DOT__embc
@@ -84,7 +84,7 @@
 #define V_IMBC_CLR     vicii__DOT__imbc_clr
 #define V_IMMC_CLR     vicii__DOT__immc_clr
 #define V_ILP_CLR     vicii__DOT__ilp_clr
-#define V_RASTERCMP    vicii__DOT__rasterCmp
+#define V_RASTERCMP    vicii__DOT__rasterIrqCompare
 #define V_VICADDR      vicii__DOT__vicAddr
 #define V_CB           vicii__DOT__cb
 #define V_VM           vicii__DOT__vm
@@ -106,7 +106,7 @@
 #define V_CYCLE_FINE_CTR     vicii__DOT__cycle_fine_ctr
 #define V_IDLE               vicii__DOT__idle
 #define V_REG11_DELAYED      vicii__DOT__reg11_delayed
-#define V_VIC_CYCLE          vicii__DOT__vicCycle
+#define V_CYCLE_TYPE         vicii__DOT__cycleType
 #define V_SPRITE_DMA         vicii__DOT__sprite_dma
 #define V_SPRITE_EN          vicii__DOT__sprite_en
 #define V_SPRITE_OFF         vicii__DOT__sprite_off

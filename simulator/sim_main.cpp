@@ -213,11 +213,11 @@ static void STATE(Vvicii *top) {
    top->V_CYCLE_NUM,
    top->V_CLK_DOT,
    top->clk_phi,
-   top->V_BIT_CYCLE,
+   top->V_CYCLE_BIT,
    top->irq,
    top->ba,
    top->aec,
-   cycleToChar(top->V_VIC_CYCLE),
+   cycleToChar(top->V_CYCLE_TYPE),
    top->ras,
    top->mux,
    top->cas,
@@ -943,31 +943,31 @@ int main(int argc, char** argv, char** env) {
           if (HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
              // AEC should always be low in first phase. But AEC is
 	     // slightly delayed so don't check this when bit cycle is 0
-             if (top->V_BIT_CYCLE > 0 && top->V_BIT_CYCLE < 4) {
+             if (top->V_CYCLE_BIT > 0 && top->V_CYCLE_BIT < 4) {
                CHECK(top, top->aec == 0, __LINE__);
              }
 
              // Make sure xpos is what we expect at key points
-             if (top->V_CYCLE_NUM == 12 && top->V_BIT_CYCLE == 4)
+             if (top->V_CYCLE_NUM == 12 && top->V_CYCLE_BIT == 4)
                CHECK (top, top->V_XPOS == 0, __LINE__); // rollover
 
-             if (top->V_CYCLE_NUM == 0 && top->V_BIT_CYCLE == 0)
+             if (top->V_CYCLE_NUM == 0 && top->V_CYCLE_BIT == 0)
                if (chip == CHIP6569)
                   CHECK (top, top->V_XPOS == 0x194, __LINE__); // reset
                else
                   CHECK (top, top->V_XPOS == 0x19c, __LINE__); // reset
 
              if (chip == CHIP6567R8)
-               if (top->V_CYCLE_NUM == 61 && (top->V_BIT_CYCLE == 0 || top->V_BIT_CYCLE == 4))
+               if (top->V_CYCLE_NUM == 61 && (top->V_CYCLE_BIT == 0 || top->V_CYCLE_BIT == 4))
                   CHECK (top, top->V_XPOS == 0x184, __LINE__); // repeat cases
-               else if (top->V_CYCLE_NUM == 62 && top->V_BIT_CYCLE == 0)
+               else if (top->V_CYCLE_NUM == 62 && top->V_CYCLE_BIT == 0)
                   CHECK (top, top->V_XPOS == 0x184, __LINE__); // repeat case
 
              // Refresh counter is supposed to reset at raster 0
              //if (top->V_RASTER_X == 0 && top->V_RASTER_LINE == 0) TODO Put back
              //   CHECK (top, top->V_REFC == 0xff, __LINE__);
 
-             if(top->V_BIT_CYCLE == 0 || top->V_BIT_CYCLE == 4) {
+             if(top->V_CYCLE_BIT == 0 || top->V_CYCLE_BIT == 4) {
                 // CAS & RAS should be high at the start of each phase
                 // Timing and vicycle will determine when they fall if ever
                 CHECK (top, top->cas != 0, __LINE__);

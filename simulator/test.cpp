@@ -57,7 +57,7 @@ FILE* do_start_file(const char* name, int golden) {
 
 // post tester to see if we ran though one whole frame
 int is_frame_end(Vvicii* top) {
-     if (top->V_BIT_CYCLE == 0 &&
+     if (top->V_CYCLE_BIT == 0 &&
             top->V_RASTER_X == 0 &&
                top->V_RASTER_LINE == 0 &&
                   top->V_PPS & 1)
@@ -80,7 +80,7 @@ int is_about_to_start_line(Vvicii* top, int line) {
      else if (top->chip == CHIP6567R8) max_x = NTSC_6567R8_MAX_DOT_X;
      else exit(-1);
 
-     if (top->V_BIT_CYCLE == 7 &&
+     if (top->V_CYCLE_BIT == 7 &&
             top->V_RASTER_X == max_x &&
                top->V_RASTER_LINE == line &&
                   top->V_PPS & 32768)
@@ -96,7 +96,7 @@ int is_about_to_start_cycle(Vvicii* top, int cycle) {
         else if (top->chip == CHIP6567R8) cycle = NTSC_6567R8_NUM_CYCLES-1;
         else exit(-1);
      }
-     if (top->V_BIT_CYCLE == 7 &&
+     if (top->V_CYCLE_BIT == 7 &&
             top->V_CYCLE_NUM == cycle &&
                top->V_PPS & 32768)
          return 1;

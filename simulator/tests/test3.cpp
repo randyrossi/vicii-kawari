@@ -15,7 +15,7 @@ int test3_run(Vvicii* top, int golden) {
    if (top->irq) {
       EXPECT("line", top->V_RASTER_LINE, 1);
       EXPECT("cycle_num", top->V_CYCLE_NUM, 0);
-      EXPECT("bit_cycle", top->V_BIT_CYCLE, 0);
+      EXPECT("cycle_bit", top->V_CYCLE_BIT, 0);
       return TEST_END;
    }
    return TEST_CONTINUE_CAPTURING;

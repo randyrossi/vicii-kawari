@@ -49,7 +49,7 @@ module vicii(
 `define DATA_DAV 13
 // How many dot ticks we need to delay out pixels before they get into the shifter
 `define PIXEL_DELAY 8
-
+// Will never change but used in loops
 `define NUM_SPRITES 8
 
 // BA must go low 3 cycles before HS1, HS3, HRC & HGC
@@ -176,11 +176,11 @@ CHIP6569,CHIPUNUSED:
 endcase
 
   // used to generate phi and dot clocks
-  reg [31:0] phir;
-  reg [31:0] dotr;
+  reg [31:0] phi_gen;
+  reg [31:0] dot_gen;
   
   // used to detect rising edge of dot clock inside a dot4x always block
-  reg [15:0] dot_risingr;
+  reg [15:0] dot_rising;
   
   // Divides the color4x clock by 4 to get color reference clock
   clk_div4 clk_colorgen (
@@ -209,13 +209,13 @@ endcase
 
   // What cycle we are on.  Only valid on 3rd tick (or greater)
   // within a phase.
-  reg [3:0] vicCycle;
+  reg [3:0] cycleType;
   
   // DRAM refresh counter
   reg [7:0] refc;
   
   // Counters for sprite, refresh and idle 'stretches' for
-  // the vicCycle state machine.
+  // the cycleType state machine.
   reg [2:0] spriteCnt;
   reg [2:0] refreshCnt;
   reg [2:0] idleCnt;
@@ -225,24 +225,24 @@ endcase
   reg [3:0] vm;
   reg [2:0] cb;
 
-  // cycle_num : Each cycle is 8 pixels.
+  // cycleNum : Each cycle is 8 pixels.
   // 6567R56A : 0-63
   // 6567R8   : 0-64
   // 6569     : 0-62
-  // NOTE: cycle_num not valid until 2nd tick within low phase of phi
-  wire [6:0] cycle_num;
+  // NOTE: cycleNum not valid until 2nd tick within low phase of phi
+  wire [6:0] cycleNum;
 
-  // bit_cycle : The pixel number within the line cycle.
+  // cycleBit : The pixel number within the cycle.
   // 0-7
-  // NOTE: similar to above, bit_cycle not valid until 2nd tick within low phase of phi
-  wire [2:0] bit_cycle;
+  // NOTE: similar to above, cycleBit not valid until 2nd tick within low phase of phi
+  wire [2:0] cycleBit;
   
   // ec : border (edge) color
   vic_color ec;
   // b#c : background color registers
   vic_color b0c,b1c,b2c,b3c;
     
-  // lower 8 bits of ado are muxed
+  // the lower 8 bits of ado are muxed
   reg [7:0] ado8;
   
   // lets us detect when a phi phase is
@@ -252,12 +252,12 @@ endcase
 
   // determines timing within a phase when RAS,CAS and MUX will
   // fall.  (MUX determines when address transition occurs which
-  // should be between RAS and CAS. MUXR falls one cycle early
+  // should be between RAS and CAS. MUX falls one cycle early
   // because mux is then used in a delayed assignment for ado
   // which makes the transition happen between RAS and CAS.)
-  reg [15:0] rasr;
-  reg [15:0] casr;
-  reg [15:0] muxr;
+  reg [15:0] ras_gen;
+  reg [15:0] cas_gen;
+  reg [15:0] mux_gen;
 
   // muxes the last 8 bits of our read address for CAS/RAS latches
   //wire mux;
@@ -286,8 +286,9 @@ endcase
   reg elp;
 
   // if enabled, what raster line do we trigger irq for irst?
-  reg [8:0] rasterCmp;
-  reg rasterIrqDone;
+  reg [8:0] rasterIrqCompare;
+  // keeps track of whether raster irq was raised on a line
+  reg rasterIrqRaised;
   
   reg [9:0] vcBase; // video counter base
   reg [9:0] vc; // video counter
@@ -306,21 +307,26 @@ endcase
   reg res; // no function
 
   integer n;
-  reg [11:0] nextChar;
-  reg [11:0] charbuf [38:0];
+  reg [11:0] charNext;
+  reg [11:0] charBuf [38:0];
 
-  reg [11:0] readChar;
-  reg [7:0] readPixels;
+  // pixels read off the data bus and char read from the bus (badline) or charBuf (not)
+  reg [11:0] charRead;
+  reg [7:0] pixelsRead;
   
-  reg [11:0] waitingChar[`PIXEL_DELAY + 1];
-  reg [7:0] waitingPixels[`PIXEL_DELAY + 1];
+  // char and pixels delayed before entering shifter
+  reg [11:0] charDelayed[`PIXEL_DELAY + 1];
+  reg [7:0] pixelsDelayed[`PIXEL_DELAY + 1];
 
-  reg [11:0] shiftingChar;
-  reg [7:0] shiftingPixels;
+  // pixels being shifted and the associated char (for color info)
+  reg [11:0] charShifting;
+  reg [7:0] pixelsShifting;
+
+  // badline condition
+  reg badline;
 
   reg baChars;
   reg [7:0] baSprite;
-  reg badline;
 
   reg [8:0] sprite_x[0:`NUM_SPRITES - 1];
   reg [7:0] sprite_y[0:`NUM_SPRITES - 1];
@@ -330,6 +336,7 @@ endcase
   reg [7:0] sprite_en;
   reg [7:0] sprite_xe;
   reg [7:0] sprite_ye;
+  reg       sprite_ye_ff;
   reg [7:0] sprite_mmc;
   reg [7:0] sprite_m2m;
   reg [7:0] sprite_m2d;
@@ -343,28 +350,29 @@ endcase
   reg sprite_dma[0:`NUM_SPRITES - 1];
   reg [23:0] sprite_pixels [0:`NUM_SPRITES-1];
   
-  // dot_risingr[15] means dot going high next cycle
+  
+  // dot_rising[15] means dot going high next cycle
   always @(posedge clk_dot4x)
   if (rst)
-        dot_risingr <= 16'b1000100010001000;
+        dot_rising <= 16'b1000100010001000;
   else
-        dot_risingr <= {dot_risingr[14:0], dot_risingr[15]};
+        dot_rising <= {dot_rising[14:0], dot_rising[15]};
   
   // drives the dot clock
   always @(posedge clk_dot4x)
   if (rst)
-        dotr <= 32'b01100110011001100110011001100110;
+        dot_gen <= 32'b01100110011001100110011001100110;
   else
-        dotr <= {dotr[30:0], dotr[31]};
-  assign clk_dot = dotr[31];
+        dot_gen <= {dot_gen[30:0], dot_gen[31]};
+  assign clk_dot = dot_gen[31];
 
-  // phir[31]=HIGH means phi is high next cycle
+  // phi_gen[31]=HIGH means phi is high next cycle
   always @(posedge clk_dot4x)
   if (rst)
-        phir <= 32'b00000000000011111111111111110000;
+        phi_gen <= 32'b00000000000011111111111111110000;
   else
-        phir <= {phir[30:0], phir[31]};
-  assign clk_phi = phir[0];
+        phi_gen <= {phi_gen[30:0], phi_gen[31]};
+  assign clk_phi = phi_gen[0];
 
   // phi_phase_start[15]=HIGH means phi is high next cycle
   always @(posedge clk_dot4x)
@@ -373,10 +381,10 @@ endcase
   end else
      phi_phase_start <= {phi_phase_start[14:0], phi_phase_start[15]};
 
-  // The bit_cycle (0-7) is taken from the raster_x
-  assign bit_cycle = raster_x[2:0];
+  // The cycleBit (0-7) is taken from the raster_x
+  assign cycleBit = raster_x[2:0];
   // This is simply raster_x divided by 8.
-  assign cycle_num = raster_x[9:3];
+  assign cycleNum = raster_x[9:3];
   
   // If sprite byte offset is < 63, sprite dma is active
   always @*
@@ -391,7 +399,7 @@ endcase
   begin
      if (rst)
         allow_bad_lines <= 1'b0;
-     else if (dot_risingr[0]) begin
+     else if (dot_rising[0]) begin
        if (raster_line == 48 && den == 1'b1)
           allow_bad_lines <= 1'b1;
        if (raster_line == 248)
@@ -433,13 +441,13 @@ endcase
      // TODO: What point in the phi low cycle does irq rise? This might
      // be too early.  Find out.
      if (clk_phi == 1'b1 && phi_phase_start[15] && // phi going low
-       (vicCycle == VIC_HPI3 || vicCycle == VIC_HS3) && spriteCnt == 2)
-       rasterIrqDone <= 1'b0;
+       (cycleType == VIC_HPI3 || cycleType == VIC_HS3) && spriteCnt == 2)
+       rasterIrqRaised <= 1'b0;
      if (irst_clr)
        irst <= 1'b0;
-     if (rasterIrqDone == 1'b0 && raster_line == rasterCmp) begin
-       if ((raster_line == 0 && cycle_num == 1) || (raster_line != 0 && cycle_num == 0)) begin
-          rasterIrqDone <= 1'b1;
+     if (rasterIrqRaised == 1'b0 && raster_line == rasterIrqCompare) begin
+       if ((raster_line == 0 && cycleNum == 1) || (raster_line != 0 && cycleNum == 0)) begin
+          rasterIrqRaised <= 1'b1;
           irst <= 1'b1;
        end
      end
@@ -449,7 +457,7 @@ endcase
   // NOTE: Things like raster irq conditions happen even if the enable bit is off.
   // That means as soon as erst is enabled, for example, if the condition was
   // met, it will trigger irq immediately.  This seems consistent with how the
-  // C64 works.  Even if you set rasterCmp to 11, when you first enable erst,
+  // C64 works.  Even if you set rasterIrqCompare to 11, when you first enable erst,
   // your ISR will get called immediately on the next line. Then, only afer you clear
   // the interrupt will you actually get the ISR on the desired line.
   assign irq = (ilp & elp) | (immc & emmc) | (imbc & embc) | (irst & erst);
@@ -459,10 +467,10 @@ endcase
   if (rst)
      refc <= 8'hff;
   else if (phi_phase_start[15]) begin // about to transition
-     // About to leave LR into HRC or HRI. Okay to use vicCycle here
+     // About to leave LR into HRC or HRI. Okay to use cycleType here
      // before the end of this phase because we know it's either heading
      // into HRC or HRI.
-     if (vicCycle == VIC_LR)
+     if (cycleType == VIC_LR)
          refc <= refc - 8'd1;
      else if (raster_x == rasterXMax && raster_line == rasterYMax)
          refc <= 8'hff;
@@ -497,17 +505,17 @@ endcase
       xpos <= 10'h194;
     endcase
   end
-  else if (dot_risingr[0])
+  else if (dot_rising[0])
   if (raster_x < rasterXMax)
   begin
     // Can advance to next pixel
     raster_x <= raster_x + 10'd1;
 
     if (clk_phi && phi_phase_start[0]) begin
-      if (start_of_frame && cycle_num == 1) begin
+      if (start_of_frame && cycleNum == 1) begin
          raster_line <= 9'd0;
          start_of_frame <= 1'b0;
-      end else if (start_of_line && cycle_num == 0) begin
+      end else if (start_of_line && cycleNum == 0) begin
          raster_line <= raster_line + 9'd1;
          start_of_line <= 1'b0;
       end
@@ -516,27 +524,27 @@ endcase
     // Handle xpos move but deal with special cases
     case(chip)
     CHIP6567R8:
-        if (cycle_num == 7'd0 && bit_cycle == 3'd0)
+        if (cycleNum == 7'd0 && cycleBit == 3'd0)
            xpos <= 10'h19d;
-        else if (cycle_num == 7'd60 && bit_cycle == 3'd7)
+        else if (cycleNum == 7'd60 && cycleBit == 3'd7)
            xpos <= 10'h184;
-        else if (cycle_num == 7'd61 && (bit_cycle == 3'd3 || bit_cycle == 3'd7))
+        else if (cycleNum == 7'd61 && (cycleBit == 3'd3 || cycleBit == 3'd7))
            xpos <= 10'h184;
-        else if (cycle_num == 7'd12 && bit_cycle == 3'd3)
+        else if (cycleNum == 7'd12 && cycleBit == 3'd3)
            xpos <= 10'h0;
         else
            xpos <= xpos + 10'd1;
     CHIP6567R56A:
-        if (cycle_num == 7'd0 && bit_cycle == 3'd0)
+        if (cycleNum == 7'd0 && cycleBit == 3'd0)
            xpos <= 10'h19d;
-        else if (cycle_num == 7'd12 && bit_cycle == 3'd3)
+        else if (cycleNum == 7'd12 && cycleBit == 3'd3)
            xpos <= 10'h0;
         else
            xpos <= xpos + 10'd1;
     CHIP6569, CHIPUNUSED:
-        if (cycle_num == 7'd0 && bit_cycle == 3'd0)
+        if (cycleNum == 7'd0 && cycleBit == 3'd0)
            xpos <= 10'h195;
-        else if (cycle_num == 7'd12 && bit_cycle == 3'd3)
+        else if (cycleNum == 7'd12 && cycleBit == 3'd3)
            xpos <= 10'h0;
         else
            xpos <= xpos + 10'd1;
@@ -573,16 +581,16 @@ endcase
   end
   else begin 
     if (clk_phi == 1'b1 && phi_phase_start[0]) begin
-      if (cycle_num > 14 && cycle_num < 55 && idle == 1'b0)
+      if (cycleNum > 14 && cycleNum < 55 && idle == 1'b0)
         vc <= vc + 1'b1;
   
-      if (cycle_num == 13) begin
+      if (cycleNum == 13) begin
         vc <= vcBase;
         if (badline)
           rc <= 3'd0;
       end
     
-      if (cycle_num == 57) begin
+      if (cycleNum == 57) begin
         if (rc == 3'd7) begin
           vcBase <= vc;
           idle <= 1;
@@ -594,9 +602,9 @@ endcase
       end
     end
     
-    // This must be checked at the same time as above in x,y updatee section
+    // start_of_frame must be checked at the same time as above in raster x,y update section
     if (clk_phi == 1'b1 && phi_phase_start[0]) begin
-      if (cycle_num == 1 && start_of_frame) begin
+      if (cycleNum == 1 && start_of_frame) begin
          vcBase <= 10'd0;
          vc <= 10'd0;
       end   
@@ -618,9 +626,9 @@ endcase
      baChars <= 1'b1;
   else
   begin
-     // NOTE: Must be tick 1 here for cycle_num to be valid
-     if ( dot_risingr[1] && phir[1] == 1'b1) begin
-       if (cycle_num > 7'd10 && cycle_num < 7'd54 && badline)
+     // NOTE: Must be tick 1 here for cycleNum to be valid
+     if (dot_rising[1] && phi_gen[1] == 1'b1) begin
+       if (cycleNum > 7'd10 && cycleNum < 7'd54 && badline)
           baChars <= 1'b0;
        else
           baChars <= 1'b1;
@@ -656,7 +664,7 @@ endcase
   end
  
 
-  // vicCycle state machine
+  // cycleType state machine
   //
   // LP --dmaEn?-> HS1 -> LS2 -> HS3  --<7?--> LP
   //                                  --else-> LR
@@ -678,76 +686,76 @@ endcase
   // LI -> HI
   always @(posedge clk_dot4x)
      if (rst) begin
-        vicCycle <= VIC_LP;
+        cycleType <= VIC_LP;
         spriteCnt <= 3'd3;
         refreshCnt <= 3'd0;
         idleCnt <= 3'd0;
      end else if (phi_phase_start[1]) begin // badline is valid on 1
        if (clk_phi == 1'b1) begin
-          case (vicCycle)
+          case (cycleType)
              VIC_LP: begin
                 if (sprite_dma[spriteCnt])
-                   vicCycle <= VIC_HS1;
+                   cycleType <= VIC_HS1;
                 else
-                   vicCycle <= VIC_HPI1;
+                   cycleType <= VIC_HPI1;
              end
              VIC_LPI2:
-                   vicCycle <= VIC_HPI3;
+                   cycleType <= VIC_HPI3;
              VIC_LS2:
-                vicCycle <= VIC_HS3;
+                cycleType <= VIC_HS3;
              VIC_LR: begin
                 if (refreshCnt == 4) begin
                   if (badline == 1'b1)
-                    vicCycle <= VIC_HRC;
+                    cycleType <= VIC_HRC;
                   else
-                    vicCycle <= VIC_HRX;
+                    cycleType <= VIC_HRX;
                 end else
-                    vicCycle <= VIC_HRI;
+                    cycleType <= VIC_HRI;
              end
              VIC_LG: begin
-                if (cycle_num == 54) begin
-                      vicCycle <= VIC_HI;
+                if (cycleNum == 54) begin
+                      cycleType <= VIC_HI;
                       idleCnt <= 0;
                 end else
                    if (badline == 1'b1)
-                      vicCycle <= VIC_HGC;
+                      cycleType <= VIC_HGC;
                    else
-                      vicCycle <= VIC_HGI;
+                      cycleType <= VIC_HGI;
                 end
-             VIC_LI: vicCycle <= VIC_HI;
+             VIC_LI: cycleType <= VIC_HI;
              default: ;
           endcase
        end else begin
-          case (vicCycle)
-             VIC_HS1: vicCycle <= VIC_LS2;
-             VIC_HPI1: vicCycle <= VIC_LPI2;
+          case (cycleType)
+             VIC_HS1: cycleType <= VIC_LS2;
+             VIC_HPI1: cycleType <= VIC_LPI2;
              VIC_HS3, VIC_HPI3: begin
                  if (spriteCnt == 7) begin
-                    vicCycle <= VIC_LR;
+                    cycleType <= VIC_LR;
                     spriteCnt <= 0;
                     refreshCnt <= 0;
                  end else begin
-                    vicCycle <= VIC_LP;
+                    cycleType <= VIC_LP;
                     spriteCnt <= spriteCnt + 1'd1;
                  end
              end
              VIC_HRI: begin
-                 vicCycle <= VIC_LR;
+                 cycleType <= VIC_LR;
                  refreshCnt <= refreshCnt + 1'd1;
              end
              VIC_HRC, VIC_HRX:
-                 vicCycle <= VIC_LG;            
-             VIC_HGC, VIC_HGI: vicCycle <= VIC_LG;
+                 cycleType <= VIC_LG;            
+             VIC_HGC, VIC_HGI: cycleType <= VIC_LG;
              VIC_HI: begin
                  if (chip == CHIP6567R56A && idleCnt == 3)
-                    vicCycle <= VIC_LP;
+                    cycleType <= VIC_LP;
                  else if (chip == CHIP6567R8 && idleCnt == 4)
-                    vicCycle <= VIC_LP;
+                    cycleType <= VIC_LP;
                  else if (chip == CHIP6569 && idleCnt == 2)
-                    vicCycle <= VIC_LP;
+                    cycleType <= VIC_LP;
                  else begin
                     idleCnt <= idleCnt + 1'd1;
-                    vicCycle <= VIC_LI;
+                    cycleType <= VIC_LI;
                  end
              end
              default: ;
@@ -767,12 +775,12 @@ endcase
   // RAS/CAS/MUX profiles
   // Data must be stable by falling RAS edge
   // Then stable by falling CAS edge
-  // MUX drops at the same time rasr drops due
+  // MUX drops at the same time ras_gen drops due
   // to its delayed use to set ado 
   always @(posedge clk_dot4x)
   if (rst) begin
-     rasr <= 16'b1100000000000111;
-     casr <= 16'b1111000000000111;
+     ras_gen <= 16'b1100000000000111;
+     cas_gen <= 16'b1111000000000111;
   end
   else if (phi_phase_start[2]) begin
     // Now that the cycle type is known, make ras/cas fall
@@ -780,48 +788,48 @@ endcase
     // into the phase (counting from [0]) and fall on
     // the 6th tick.  CAS is 7.
     if (~clk_phi)
-    case (vicCycle)
+    case (cycleType)
     VIC_LPI2, VIC_LI: begin
-             rasr <= 16'b1111111111111111;
-             casr <= 16'b1111111111111111;
+             ras_gen <= 16'b1111111111111111;
+             cas_gen <= 16'b1111111111111111;
            end
     default: begin
-             rasr <= 16'b1100000000000111;
-             casr <= 16'b1111000000000111;
+             ras_gen <= 16'b1100000000000111;
+             cas_gen <= 16'b1111000000000111;
            end
     endcase
     else begin
-       rasr <= 16'b1100000000000111;
-       casr <= 16'b1111000000000111;
+       ras_gen <= 16'b1100000000000111;
+       cas_gen <= 16'b1111000000000111;
     end
   end else begin
-    rasr <= {rasr[14:0],1'b0};
-    casr <= {casr[14:0],1'b0};
+    ras_gen <= {ras_gen[14:0],1'b0};
+    cas_gen <= {cas_gen[14:0],1'b0};
   end
-  assign ras = rasr[15];
-  assign cas = casr[15];
+  assign ras = ras_gen[15];
+  assign cas = cas_gen[15];
 
-  // muxr drops 1 cycle early due to delayed use for
+  // mux_gen drops 1 cycle early due to delayed use for
   // ado.
   always @(posedge clk_dot4x)
   if (rst)
-     muxr <= 16'b1100000000000111;
+     mux_gen <= 16'b1100000000000111;
   else if (phi_phase_start[2]) begin
     // Now that the cycle type is known, make mux fall
     // at expected times.  MUX should be high 5 ticks
     // into the phase (counting from [0]) and fall on
     // the 6th tick.
     if (~clk_phi)
-    case (vicCycle)
-       VIC_LPI2, VIC_LI: muxr <= 16'b1111111111111111;
-       VIC_LR:           muxr <= 16'b1111111111111111;
-       default:          muxr <= 16'b1100000000000111;
+    case (cycleType)
+       VIC_LPI2, VIC_LI: mux_gen <= 16'b1111111111111111;
+       VIC_LR:           mux_gen <= 16'b1111111111111111;
+       default:          mux_gen <= 16'b1100000000000111;
     endcase
     else
-                      muxr <= 16'b1100000000000111;
+                      mux_gen <= 16'b1100000000000111;
   end else
-    muxr <= {muxr[14:0],1'b0};
-  assign mux = muxr[15]; 
+    mux_gen <= {mux_gen[14:0],1'b0};
+  assign mux = mux_gen[15]; 
 
   // sprite logic
   always @(posedge clk_dot4x)
@@ -830,8 +838,8 @@ endcase
         sprite_off[n] <= 6'd63;
      end
   end else begin
-     // low phase of phi after cycle_num becomes valid...
-     if (!clk_phi && phi_phase_start[1] && (cycle_num == spriteDmaChk1 || cycle_num == spriteDmaChk2)) begin
+     // low phase of phi after cycleNum becomes valid...
+     if (!clk_phi && phi_phase_start[1] && (cycleNum == spriteDmaChk1 || cycleNum == spriteDmaChk2)) begin
         for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
            if (!sprite_dma[n] && sprite_en[n] && raster_line[7:0] == sprite_y[n])
               sprite_off[n] <= 6'd0; // will enable dma
@@ -840,12 +848,13 @@ endcase
      
      // TODO : Reset y expansion flip flop
      
-     // TODO: Handle y expansion
+     // TODO : Handle y expansion
      
      // Advance sprite byte offset while dma is happening
-     // Must be done on same tick as sprite cnt increment or we hit the wrong sprite
+     // Must be done on same tick as sprite cnt increment in the cycle type
+     // state machine or we hit the wrong sprite
      if (phi_phase_start[14]) begin
-        case (vicCycle)
+        case (cycleType)
         VIC_HS1,VIC_LS2,VIC_HS3:
           if (sprite_dma[spriteCnt])
              sprite_off[spriteCnt] <= sprite_off[spriteCnt] + 1'b1;
@@ -916,25 +925,25 @@ endcase
   // c-access reads
   always @(posedge clk_dot4x)
   if (rst) begin
-     nextChar <= 12'b0;
+     charNext <= 12'b0;
      for (n = 0; n < 39; n = n + 1) begin
-        charbuf[n] <= 12'hff;
+        charBuf[n] <= 12'hff;
      end
   end else if (!vic_write_db && phi_phase_start[`DATA_DAV]) begin
-     case (vicCycle)
+     case (cycleType)
      VIC_HRC, VIC_HGC: // badline c-access
-         nextChar <= dbi;
+         charNext <= dbi;
      VIC_HRX, VIC_HGI: // not badline idle (char from cache)
-         nextChar <= idle ? 12'b0 : charbuf[38];
+         charNext <= idle ? 12'b0 : charBuf[38];
      default: ;
      endcase
 
-     case (vicCycle)
+     case (cycleType)
      VIC_HRC, VIC_HGC, VIC_HRX, VIC_HGI: begin
          for (n = 38; n > 0; n = n - 1) begin
-           charbuf[n] = charbuf[n-1];
+           charBuf[n] = charBuf[n-1];
          end
-         charbuf[0] <= nextChar;
+         charBuf[0] <= charNext;
      end
      default: ;
      endcase
@@ -944,12 +953,12 @@ endcase
   always @(posedge clk_dot4x)
   begin
   if (rst)
-    readPixels <= 8'd0;
+    pixelsRead <= 8'd0;
   else if (!vic_write_db && phi_phase_start[`DATA_DAV]) begin
-    readPixels <= 8'd0;
-    if (vicCycle == VIC_LG) begin // g-access
-      readPixels <= dbi[7:0];
-      readChar <= idle ? 12'd0 : nextChar;
+    pixelsRead <= 8'd0;
+    if (cycleType == VIC_LG) begin // g-access
+      pixelsRead <= dbi[7:0];
+      charRead <= idle ? 12'd0 : charNext;
     end
   end
   end
@@ -963,7 +972,7 @@ endcase
   end else
   begin
      if (!vic_write_db && phi_phase_start[`DATA_DAV]) begin
-       case (vicCycle)
+       case (cycleType)
        VIC_LP: // p-access
           if (sprite_dma[spriteCnt])
              sprite_ptr[spriteCnt] <= dbi[7:0];
@@ -978,7 +987,7 @@ endcase
   always @(posedge clk_dot4x)
   begin
      if (!vic_write_db && phi_phase_start[`DATA_DAV]) begin
-       case (vicCycle)
+       case (cycleType)
        VIC_HS1, VIC_LS2, VIC_HS3: // s-access
           if (sprite_dma[spriteCnt])
              sprite_pixels[spriteCnt] <= {sprite_pixels[spriteCnt][15:0], dbi[7:0]};
@@ -992,12 +1001,12 @@ endcase
   always @(posedge clk_dot4x)
   begin
     if (clk_phi == 1'b0 && phi_phase_start[15]) begin // must be > PIXEL_DAV
-      waitingPixels[0] <= readPixels;
-      waitingChar[0] <= readChar;
+      pixelsDelayed[0] <= pixelsRead;
+      charDelayed[0] <= charRead;
     end
   end
 
-  // Now delay these pixels until waitingPixels[PIXEL_DELAY]
+  // Now delay these pixels until pixelsDelayed[PIXEL_DELAY]
   // is available for loading into shifting pixels by loadPixels
   // flag starting with xpos ##0 and fully available until xpos ##7.
   // This makes loading pixels on ##0 make the first pixel show
@@ -1005,10 +1014,10 @@ endcase
   // xpos with a negative offset. 
   always @(posedge clk_dot4x)
   begin
-    if (dot_risingr[0]) begin
+    if (dot_rising[0]) begin
        for (n = `PIXEL_DELAY; n > 0; n = n - 1) begin
-          waitingPixels[n] <= waitingPixels[n-1];
-          waitingChar[n] <= waitingChar[n-1];
+          pixelsDelayed[n] <= pixelsDelayed[n-1];
+          charDelayed[n] <= charDelayed[n-1];
        end
     end
   end
@@ -1016,7 +1025,7 @@ endcase
   // Address generation - use delayed reg11 values here
   always @*
   begin
-     case(vicCycle)
+     case(cycleType)
      VIC_LR:
         vicAddr = {6'b111111, refc};
      VIC_LG: begin
@@ -1029,7 +1038,7 @@ endcase
           if (reg11_delayed[5]) // bmm
             vicAddr = {cb[2], vc, rc}; // bitmap data
           else
-            vicAddr = {cb, nextChar[7:0], rc}; // character pixels
+            vicAddr = {cb, charNext[7:0], rc}; // character pixels
           if (reg11_delayed[6]) // ecm
             vicAddr[10:9] = 2'b00;
         end
@@ -1074,90 +1083,90 @@ reg ismc;
 vic_color pixelColor;
 
 always @(*)
-        ismc = mcm & (bmm | ecm | shiftingChar[11]);
+        ismc = mcm & (bmm | ecm | charShifting[11]);
 
 // Use xpos_d here so we can properly delay our pixels
-// using waitingChar[]/waitingPixels[] regs.
+// using charDelayed[]/pixelsDelayed[] regs.
 always @(*)
         loadPixels = xpos_d[2:0] == xscroll;
 
 always @(posedge clk_dot4x)
-if (dot_risingr[0]) begin // rising dot
+if (dot_rising[0]) begin // rising dot
         if (loadPixels)
-                clkShift <= ~(mcm & (bmm | ecm | waitingChar[`PIXEL_DELAY][11]));
+                clkShift <= ~(mcm & (bmm | ecm | charDelayed[`PIXEL_DELAY][11]));
         else
                 clkShift <= ismc ? ~clkShift : clkShift;
 end
 
 always @(posedge clk_dot4x)
-if (dot_risingr[0]) begin
+if (dot_rising[0]) begin
         if (loadPixels)
-                shiftingChar <= waitingChar[`PIXEL_DELAY];
+                charShifting <= charDelayed[`PIXEL_DELAY];
 end
 
 // Pixel shifter
 always @(posedge clk_dot4x)
-if (dot_risingr[0]) begin
+if (dot_rising[0]) begin
         if (loadPixels)
-                shiftingPixels <= waitingPixels[`PIXEL_DELAY];
+                pixelsShifting <= pixelsDelayed[`PIXEL_DELAY];
         else if (clkShift) begin
                 if (ismc)
-                        shiftingPixels <= {shiftingPixels[5:0], 2'b0};
+                        pixelsShifting <= {pixelsShifting[5:0], 2'b0};
                 else
-                        shiftingPixels <= {shiftingPixels[6:0], 1'b0};
+                        pixelsShifting <= {pixelsShifting[6:0], 1'b0};
         end
 end
 
 // handle display modes
 always @(posedge clk_dot4x)
     begin
-        if (dot_risingr[0]) begin
+        if (dot_rising[0]) begin
             pixelColor <= BLACK;
             case ({ecm, bmm, mcm})
                 MODE_STANDARD_CHAR:
-                    pixelColor <= shiftingPixels[7] ? vic_color'(shiftingChar[11:8]):b0c;
+                    pixelColor <= pixelsShifting[7] ? vic_color'(charShifting[11:8]):b0c;
                 MODE_MULTICOLOR_CHAR:
-                    if (shiftingChar[11])
-                        case (shiftingPixels[7:6])
+                    if (charShifting[11])
+                        case (pixelsShifting[7:6])
                             2'b00: pixelColor <= b0c;
                             2'b01: pixelColor <= b1c;
                             2'b10: pixelColor <= b2c;
-                            2'b11: pixelColor <= vic_color'({1'b0, shiftingChar[10:8]});
+                            2'b11: pixelColor <= vic_color'({1'b0, charShifting[10:8]});
                         endcase
                     else
-                        pixelColor <= shiftingPixels[7] ? vic_color'(shiftingChar[11:8]):b0c;
+                        pixelColor <= pixelsShifting[7] ? vic_color'(charShifting[11:8]):b0c;
                 MODE_STANDARD_BITMAP, MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP:
-                    pixelColor <= shiftingPixels[7] ? vic_color'(shiftingChar[7:4]):vic_color'(shiftingChar[3:0]);
+                    pixelColor <= pixelsShifting[7] ? vic_color'(charShifting[7:4]):vic_color'(charShifting[3:0]);
                 MODE_MULTICOLOR_BITMAP, MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
-                    case (shiftingPixels[7:6])
+                    case (pixelsShifting[7:6])
                         2'b00: pixelColor <= b0c;
-                        2'b01: pixelColor <= vic_color'(shiftingChar[7:4]);
-                        2'b10: pixelColor <= vic_color'(shiftingChar[3:0]);
-                        2'b11: pixelColor <= vic_color'(shiftingChar[11:8]);
+                        2'b01: pixelColor <= vic_color'(charShifting[7:4]);
+                        2'b10: pixelColor <= vic_color'(charShifting[3:0]);
+                        2'b11: pixelColor <= vic_color'(charShifting[11:8]);
                     endcase
                 MODE_EXTENDED_BG_COLOR:
-                    case ({shiftingPixels[7], shiftingChar[7:6]})
+                    case ({pixelsShifting[7], charShifting[7:6]})
                         3'b000: pixelColor <= b0c;
                         3'b001: pixelColor <= b1c;
                         3'b010: pixelColor <= b2c;
                         3'b011: pixelColor <= b3c;
-                        default: pixelColor <= vic_color'(shiftingChar[11:8]);
+                        default: pixelColor <= vic_color'(charShifting[11:8]);
                     endcase
                 MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR:
-                    if (shiftingChar[11])
-                        case (shiftingPixels[7:6])
+                    if (charShifting[11])
+                        case (pixelsShifting[7:6])
                             2'b00: pixelColor <= b0c;
                             2'b01: pixelColor <= b1c;
                             2'b10: pixelColor <= b2c;
-                            2'b11: pixelColor <= vic_color'(shiftingChar[11:8]);
+                            2'b11: pixelColor <= vic_color'(charShifting[11:8]);
                         endcase
                     else
-                        case ({shiftingPixels[7], shiftingChar[7:6]})
+                        case ({pixelsShifting[7], charShifting[7:6]})
                             3'b000: pixelColor <= b0c;
                             3'b001: pixelColor <= b1c;
                             3'b010: pixelColor <= b2c;
                             3'b011: pixelColor <= b3c;
-                            default: pixelColor <= vic_color'(shiftingChar[11:8]);
+                            default: pixelColor <= vic_color'(charShifting[11:8]);
                         endcase
             endcase
         end
@@ -1214,7 +1223,7 @@ end
 
 always @(posedge clk_dot4x)
 begin
-    if (dot_risingr[0]) begin
+    if (dot_rising[0]) begin
        if (xpos_d == 32 && csel == 1'b0) begin
           LRBorder <= newTBBorder;
           TBBorder <= newTBBorder;
@@ -1283,7 +1292,7 @@ always @(posedge clk_dot4x)
         res <= 1'b0;
         mcm <= 1'b0;
         irst_clr <= 1'b0;
-        rasterCmp <= 9'b0;
+        rasterIrqCompare <= 9'b0;
         sprite_en <= 8'b0;
         sprite_xe <= 8'b0;
         sprite_ye <= 8'b0;
@@ -1476,9 +1485,9 @@ always @(posedge clk_dot4x)
                             den <= dbi[4];
                             bmm <= dbi[5];
                             ecm <= dbi[6];
-                            rasterCmp[8] <= dbi[7];
+                            rasterIrqCompare[8] <= dbi[7];
                         end
-                        /* 0x12 */ REG_RASTER_LINE: rasterCmp[7:0] <= dbi[7:0];
+                        /* 0x12 */ REG_RASTER_LINE: rasterIrqCompare[7:0] <= dbi[7:0];
                         /* 0x15 */ REG_SPRITE_ENABLE: sprite_en <= dbi[7:0];
                         /* 0x16 */ REG_SCREEN_CONTROL_2: begin
                             xscroll <= dbi[2:0];
