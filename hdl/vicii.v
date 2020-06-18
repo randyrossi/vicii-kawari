@@ -68,6 +68,10 @@ reg [8:0] vBlankStart;
 reg [8:0] vBlankEnd;
 reg [6:0] spriteDmaChk1;
 reg [6:0] spriteDmaChk2;
+reg [6:0] spriteYExpChk;
+reg [6:0] spriteDisplayChk;
+reg [9:0] chars_ba_start;
+reg [9:0] chars_ba_end;
 // These xpos's cover the sprite dma period and 3 cycles
 // before the first dma access is required. They are used
 // in ba low calcs.
@@ -98,24 +102,28 @@ CHIP6567R8:
       hVisibleStart = 10'd494;  // 10.7us after hSyncStart seems to work
       vBlankStart = 9'd11;
       vBlankEnd = 9'd19;
-      spriteDmaChk1 = 7'd55;
-      spriteDmaChk2 = 7'd56;
-      sprite_ba_start[0] = 10'h15c + 10'd16 * 0;
-      sprite_ba_end[0] = 10'h183 + 10'd16 * 0;
-      sprite_ba_start[1] = 10'h15c + 10'd16 * 1;
-      sprite_ba_end[1] = 10'h183 + 10'd16 * 1;
-      sprite_ba_start[2] = 10'h15c + 10'd16 * 2;
-      sprite_ba_end[2] = 10'h183 + 10'd16 * 2;
-      sprite_ba_start[3] = 10'h15c + 10'd16 * 3;
-      sprite_ba_end[3] = 10'h183 + 10'd16 * 3;
-      sprite_ba_start[4] = 10'h15c + 10'd16 * 4;
-      sprite_ba_end[4] = 10'h183 + 10'd16 * 4;
-      sprite_ba_start[5] = 10'h15c + 10'd16 * 5;
-      sprite_ba_end[5] = 10'h183 + 10'd16 * 5;
-      sprite_ba_start[6] = 10'h15c + 10'd16 * 6;
-      sprite_ba_end[6] = 10'h183 + 10'd16 * 6;
-      sprite_ba_start[7] = 10'h15c + 10'd16 * 7;
-      sprite_ba_end[7] = 10'h183 + 10'd16 * 7;
+      spriteDmaChk1 = 7'd55; // low phase
+      spriteDmaChk2 = 7'd56; // low phase
+      spriteYExpChk = 7'd56; // high phase
+      spriteDisplayChk = 7'd58;
+      chars_ba_start = 'h1ec;
+      chars_ba_end = 'h14c;
+      sprite_ba_start[0] = 10'h154 + 10'd16 * 0;
+      sprite_ba_end[0] = 10'h17c + 10'd16 * 0;
+      sprite_ba_start[1] = 10'h154 + 10'd16 * 1;
+      sprite_ba_end[1] = 10'h17c + 10'd16 * 1;
+      sprite_ba_start[2] = 10'h154 + 10'd16 * 2;
+      sprite_ba_end[2] = 10'h17c + 10'd16 * 2;
+      sprite_ba_start[3] = 10'h154 + 10'd16 * 3;
+      sprite_ba_end[3] = 10'h17c + 10'd16 * 3;
+      sprite_ba_start[4] = 10'h154 + 10'd16 * 4;
+      sprite_ba_end[4] = 10'h17c + 10'd16 * 4;
+      sprite_ba_start[5] = 10'h154 + 10'd16 * 5;
+      sprite_ba_end[5] = 10'h17c + 10'd16 * 5;
+      sprite_ba_start[6] = 10'h154 + 10'd16 * 6;
+      sprite_ba_end[6] = 10'h17c + 10'd16 * 6;
+      sprite_ba_start[7] = 10'h154 + 10'd16 * 7;
+      sprite_ba_end[7] = 10'h17c + 10'd16 * 7;
    end
 CHIP6567R56A:
    begin
@@ -126,24 +134,28 @@ CHIP6567R56A:
       hVisibleStart = 10'd494;  // 10.7us after hSyncStart seems to work
       vBlankStart = 9'd11;
       vBlankEnd = 9'd19;
-      spriteDmaChk1 = 7'd55;
-      spriteDmaChk2 = 7'd56;
+      spriteDmaChk1 = 7'd55; // low phase
+      spriteDmaChk2 = 7'd56; // low phase
+      spriteYExpChk = 7'd56; // high phase
+      spriteDisplayChk = 7'd57;
+      chars_ba_start = 'h1f4;
+      chars_ba_end = 'h14c;
       sprite_ba_start[0] = 10'h154 + 10'd16 * 0;
-      sprite_ba_end[0] = 10'h17b + 10'd16 * 0;
+      sprite_ba_end[0] = 10'h17c + 10'd16 * 0;
       sprite_ba_start[1] = 10'h154 + 10'd16 * 1;
-      sprite_ba_end[1] = 10'h17b + 10'd16 * 1;
+      sprite_ba_end[1] = 10'h17c + 10'd16 * 1;
       sprite_ba_start[2] = 10'h154 + 10'd16 * 2;
-      sprite_ba_end[2] = 10'h17b + 10'd16 * 2;
+      sprite_ba_end[2] = 10'h17c + 10'd16 * 2;
       sprite_ba_start[3] = 10'h154 + 10'd16 * 3;
-      sprite_ba_end[3] = 10'h17b + 10'd16 * 3;
+      sprite_ba_end[3] = 10'h17c + 10'd16 * 3;
       sprite_ba_start[4] = 10'h154 + 10'd16 * 4;
-      sprite_ba_end[4] = 10'h17b + 10'd16 * 4;
+      sprite_ba_end[4] = 10'h17c + 10'd16 * 4;
       sprite_ba_start[5] = 10'h154 + 10'd16 * 5;
-      sprite_ba_end[5] = 10'h17b + 10'd16 * 5;
+      sprite_ba_end[5] = 10'h17c + 10'd16 * 5;
       sprite_ba_start[6] = 10'h154 + 10'd16 * 6;
-      sprite_ba_end[6] = 10'h17b + 10'd16 * 6;
+      sprite_ba_end[6] = 10'h17c + 10'd16 * 6;
       sprite_ba_start[7] = 10'h154 + 10'd16 * 7;
-      sprite_ba_end[7] = 10'h17b + 10'd16 * 7;
+      sprite_ba_end[7] = 10'h17c + 10'd16 * 7;
    end
 CHIP6569,CHIPUNUSED:
    begin
@@ -154,24 +166,28 @@ CHIP6569,CHIPUNUSED:
       hVisibleStart = 10'd492;  // ~10.7 after hSyncStart
       vBlankStart = 9'd301;
       vBlankEnd = 9'd309;
-      spriteDmaChk1 = 7'd54;
-      spriteDmaChk2 = 7'd55;
+      spriteDmaChk1 = 7'd54; // low phase
+      spriteDmaChk2 = 7'd55; // low phase
+      spriteYExpChk = 7'd55; // high phase
+      spriteDisplayChk = 7'd57;
+      chars_ba_start = 'h1ec;
+      chars_ba_end = 'h14c;
       sprite_ba_start[0] = 10'h14c + 10'd16 * 0;
-      sprite_ba_end[0] = 10'h173 + 10'd16 * 0;
+      sprite_ba_end[0] = 10'h174 + 10'd16 * 0;
       sprite_ba_start[1] = 10'h14c + 10'd16 * 1;
-      sprite_ba_end[1] = 10'h173 + 10'd16 * 1;
+      sprite_ba_end[1] = 10'h174 + 10'd16 * 1;
       sprite_ba_start[2] = 10'h14c + 10'd16 * 2;
-      sprite_ba_end[2] = 10'h173 + 10'd16 * 2;
+      sprite_ba_end[2] = 10'h174 + 10'd16 * 2;
       sprite_ba_start[3] = 10'h14c + 10'd16 * 3;
-      sprite_ba_end[3] = 10'h173 + 10'd16 * 3;
+      sprite_ba_end[3] = 10'h174 + 10'd16 * 3;
       sprite_ba_start[4] = 10'h14c + 10'd16 * 4;
-      sprite_ba_end[4] = 10'h173 + 10'd16 * 4;
+      sprite_ba_end[4] = 10'h174 + 10'd16 * 4;
       sprite_ba_start[5] = 10'h14c + 10'd16 * 5;
-      sprite_ba_end[5] = 10'h173 + 10'd16 * 5;
+      sprite_ba_end[5] = 10'h174 + 10'd16 * 5;
       sprite_ba_start[6] = 10'h14c + 10'd16 * 6;
-      sprite_ba_end[6] = 10'h173 + 10'd16 * 6;
+      sprite_ba_end[6] = 10'h174 + 10'd16 * 6;
       sprite_ba_start[7] = 10'h14c + 10'd16 * 7;
-      sprite_ba_end[7] = 10'h173 + 10'd16 * 7;
+      sprite_ba_end[7] = 10'h174 + 10'd16 * 7;
    end
 endcase
 
@@ -333,11 +349,15 @@ endcase
   reg [7:0] sprite_pri;
   vic_color sprite_col[0:`NUM_SPRITES - 1];
   vic_color sprite_mc0, sprite_mc1;
+  
   reg [7:0] sprite_en;
+  reg [7:0] sprite_shift;
   reg [7:0] sprite_xe;
   reg [7:0] sprite_ye;
-  reg       sprite_ye_ff;
+  reg       sprite_xe_ff[0:`NUM_SPRITES-1];
+  reg       sprite_ye_ff[0:`NUM_SPRITES-1];
   reg [7:0] sprite_mmc;
+  reg       sprite_mmc_ff[0:`NUM_SPRITES-1];
   reg [7:0] sprite_m2m;
   reg [7:0] sprite_m2d;
   
@@ -345,11 +365,13 @@ endcase
   reg [7:0] sprite_ptr[0:`NUM_SPRITES - 1];
   
   // current byte offset within 63 bytes that make a sprite
-  reg [5:0] sprite_off[0:`NUM_SPRITES - 1];
+  reg [5:0] sprite_mc[0:`NUM_SPRITES - 1];
+  reg [5:0] sprite_mcbase[0:`NUM_SPRITES - 1];
   
   reg sprite_dma[0:`NUM_SPRITES - 1];
   reg [23:0] sprite_pixels [0:`NUM_SPRITES-1];
-  
+  reg [1:0] sprite_cur_pixel [`NUM_SPRITES-1:0];
+
   
   // dot_rising[15] means dot going high next cycle
   always @(posedge clk_dot4x)
@@ -386,11 +408,7 @@ endcase
   // This is simply raster_x divided by 8.
   assign cycleNum = raster_x[9:3];
   
-  // If sprite byte offset is < 63, sprite dma is active
-  always @*
-     for (n = 0; n < `NUM_SPRITES; n = n + 1)
-        sprite_dma[n] = sprite_off[n] != 6'd63;
-  
+ 
   // allow_bad_lines goes high on line 48
   // if den is high at any point on line 48
   // allow_bad_lines falls on line 248
@@ -621,27 +639,23 @@ endcase
 
   end
   
-  always @(posedge clk_dot4x)
+  always @(*)
   if (rst)
-     baChars <= 1'b1;
-  else
-  begin
-     // NOTE: Must be tick 1 here for cycleNum to be valid
-     if (dot_rising[1] && phi_gen[1] == 1'b1) begin
-       if (cycleNum > 7'd10 && cycleNum < 7'd54 && badline)
-          baChars <= 1'b0;
-       else
-          baChars <= 1'b1;
-     end
+     baChars = 1'b1;
+  else begin
+     if ((xpos >= chars_ba_start || xpos < chars_ba_end) && badline)
+        baChars = 1'b0;
+     else
+        baChars = 1'b1;
   end
-
-  always @(posedge clk_dot4x) begin
-    for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-       if (sprite_en[n] && sprite_dma[n])
-          baSprite[n] <= (xpos >= sprite_ba_start[n] && xpos <= sprite_ba_end[n]);
-       else
-          baSprite[n] <= 0;
-       end
+  
+  always @(*) begin
+     for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
+        if (sprite_en[n] && sprite_dma[n] && xpos >= sprite_ba_start[n] && xpos < sprite_ba_end[n])
+           baSprite[n] = 1;
+        else
+           baSprite[n] = 0;
+     end
   end
 
   assign ba = baChars & (baSprite == 0);
@@ -749,7 +763,7 @@ endcase
              VIC_HI: begin
                  if (chip == CHIP6567R56A && idleCnt == 3)
                     cycleType <= VIC_LP;
-                 else if (chip == CHIP6567R8 && idleCnt == 4)
+                 else if (chip == CHIP6567R8 && idleCnt == 3)
                     cycleType <= VIC_LP;
                  else if (chip == CHIP6569 && idleCnt == 2)
                     cycleType <= VIC_LP;
@@ -829,39 +843,102 @@ endcase
                       mux_gen <= 16'b1100000000000111;
   end else
     mux_gen <= {mux_gen[14:0],1'b0};
-  assign mux = mux_gen[15]; 
+  assign mux = mux_gen[15];
 
   // sprite logic
+
   always @(posedge clk_dot4x)
   if (rst) begin
      for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-        sprite_off[n] <= 6'd63;
+        sprite_mc[n] <= 6'd63;
+        sprite_mcbase[n] <= 6'd63;
+        sprite_ye_ff[n] <= 1;
      end
   end else begin
-     // low phase of phi after cycleNum becomes valid...
-     if (!clk_phi && phi_phase_start[1] && (cycleNum == spriteDmaChk1 || cycleNum == spriteDmaChk2)) begin
+     // update mcbase
+     if (clk_phi && phi_phase_start[1] && cycleNum == 15) begin
+       for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
+          if (sprite_ye_ff[n])
+              sprite_mcbase[n] <= sprite_mc[n];
+       end
+     end
+     else if (clk_phi && phi_phase_start[2] && cycleNum == 15) begin
+       for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
+          if (sprite_mcbase[n] == 63)
+              sprite_dma[n] <= 0;
+       end
+     end
+     // low phi - check dma 
+     else if (!clk_phi && phi_phase_start[1] && (cycleNum == spriteDmaChk1 || cycleNum == spriteDmaChk2)) begin
         for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-           if (!sprite_dma[n] && sprite_en[n] && raster_line[7:0] == sprite_y[n])
-              sprite_off[n] <= 6'd0; // will enable dma
+           if (!sprite_dma[n] && sprite_en[n] && raster_line[7:0] == sprite_y[n]) begin
+              sprite_mc[n] <= 6'd0;
+              sprite_dma[n] <= 1;
+              sprite_mcbase[n] <= 0;
+              sprite_ye_ff[n] <= 1;
+           end
         end
      end
-     
-     // TODO : Reset y expansion flip flop
-     
-     // TODO : Handle y expansion
-     
+     // check sprite expansion
+     else if (clk_phi && phi_phase_start[1] && cycleNum == spriteYExpChk) begin
+        for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
+           if (sprite_dma[n] && sprite_ye[n])
+             sprite_ye_ff[n] <= !sprite_ye_ff[n];
+        end
+     end
+     // sprite display check
+     else if (clk_phi && phi_phase_start[1] && cycleNum == spriteDisplayChk) begin
+       for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
+          sprite_mc[n] <= sprite_mcbase[n];
+       end
+     end
      // Advance sprite byte offset while dma is happening
-     // Must be done on same tick as sprite cnt increment in the cycle type
-     // state machine or we hit the wrong sprite
-     if (phi_phase_start[14]) begin
+     if (phi_phase_start[15]) begin
         case (cycleType)
         VIC_HS1,VIC_LS2,VIC_HS3:
           if (sprite_dma[spriteCnt])
-             sprite_off[spriteCnt] <= sprite_off[spriteCnt] + 1'b1;
+             sprite_mc[spriteCnt] <= sprite_mc[spriteCnt] + 1'b1;
         default: ;
         endcase
      end
   end
+
+always @(posedge clk_dot4x)
+begin
+   // delays 
+  if (dot_rising[3]) begin
+    for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
+       if (sprite_x[n] == xpos_d[8:0]) begin
+          sprite_shift[n] = 1'b1;
+       end
+    end
+    
+    for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
+      if (sprite_shift[n]) begin
+        sprite_xe_ff[n] <= !sprite_xe_ff[n] & sprite_xe[n];
+        if (!sprite_xe_ff[n]) begin
+          sprite_mmc_ff[n] <= !sprite_mmc_ff[n] & sprite_mmc[n];
+          if (!sprite_mmc_ff[n])
+             sprite_cur_pixel[n] <= sprite_pixels[n][23:22];
+          sprite_pixels[n] <= {sprite_pixels[n][22:0],1'b0};
+        end
+      end
+      else begin
+        sprite_xe_ff[n] <= 1'b0;
+        sprite_mmc_ff[n] <= 1'b0;
+        sprite_cur_pixel[n] <= 2'b00;
+      end
+    end
+    
+    if (!clk_phi && phi_phase_start[3]) begin
+      case (cycleType)
+      VIC_LP:
+          sprite_shift[spriteCnt] = 1'b0;
+      default: ;
+      endcase
+    end
+  end
+end
 
 
   // AEC LOW tells CPU to tri-state its bus lines 
@@ -1049,7 +1126,7 @@ endcase
         vicAddr = {vm, 7'b1111111, spriteCnt}; // p-access
      VIC_HS1, VIC_LS2, VIC_HS3:
         if (!vic_write_db)
-           vicAddr = {sprite_ptr[spriteCnt], sprite_off[spriteCnt]}; // s-access
+           vicAddr = {sprite_ptr[spriteCnt], sprite_mc[spriteCnt]}; // s-access
         else begin
           if (reg11_delayed[6]) // ecm
              vicAddr = 14'h39FF;
@@ -1076,7 +1153,7 @@ endcase
 
 // Pixel sequencer stuff  
 reg loadPixels;
-reg pixelBgFlag;
+reg isBackgroundPixel;
 reg clkShift;
 reg ismc;
 
@@ -1121,6 +1198,7 @@ end
 always @(posedge clk_dot4x)
     begin
         if (dot_rising[0]) begin
+            isBackgroundPixel <= !pixelsShifting[7];
             pixelColor <= BLACK;
             case ({ecm, bmm, mcm})
                 MODE_STANDARD_CHAR:
@@ -1184,21 +1262,21 @@ always @(posedge clk_dot4x)
                 color_code <= BLACK;
             default: color_code <= pixelColor;
         endcase
-        // See if the mib overrides the output
-//  for (n = 0; n < MIBCNT; n = n + 1) begin
-//    if (!mdp[n] || !pixelBgFlag) begin
-//      if (mmc[n]) begin  // multi-color mode ?
-//        case(MCurrentPixel[n])
-//        2'b00:  ;
-//        2'b01:  color_code <= mm0;
-//        2'b10:  color_code <= mc[n];
-//        2'b11:  color_code <= mm1;
-//        endcase
-//      end
-//      else if (MCurrentPixel[n][1])
-//        color_code <= mc[n];
-//    end
-//  end
+        // sprites overwrite pixels
+        for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
+          if (!sprite_pri[n] || isBackgroundPixel) begin
+            if (sprite_mmc[n]) begin  // multi-color mode ?
+               case(sprite_cur_pixel[n])
+               2'b00:  ;
+               2'b01:  color_code <= sprite_mc0;
+               2'b10:  color_code <= sprite_col[n];  
+               2'b11:  color_code <= sprite_mc1;
+               endcase
+            end
+            else if (sprite_cur_pixel[n][1])
+              color_code <= sprite_col[n];
+         end
+       end
 end
 
 reg TBBorder = 1'b1;

@@ -66,6 +66,11 @@ struct vicii_state {
   unsigned int vc;
   unsigned int rc;
 
+  unsigned char mc[8];
+  unsigned char mcbase[8];
+  unsigned char ye_ff[8];
+  unsigned char xe_ff[8];
+
   int cycleByCycleStepping;
 };
 

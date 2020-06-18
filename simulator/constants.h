@@ -121,3 +121,8 @@
 #define V_SPRITE_MMC          vicii__DOT__sprite_mmc
 #define V_SPRITE_MC0          vicii__DOT__sprite_mc0
 #define V_SPRITE_MC1          vicii__DOT__sprite_mc1
+#define V_SPRITE_COL          vicii__DOT__sprite_col
+#define V_SPRITE_YE_FF        vicii__DOT__sprite_ye_ff
+#define V_SPRITE_XE_FF        vicii__DOT__sprite_ye_ff
+#define V_SPRITE_MC        vicii__DOT__sprite_mc
+#define V_SPRITE_MCBASE        vicii__DOT__sprite_mcbase
