@@ -90,6 +90,11 @@ reg [9:0] sprite_ba_end [`NUM_SPRITES];
 // are less forgiving when the R56A produces a hfreq outside
 // the range they are expecting.
 
+// TODO: ba rise is configured to be on the falling edge of
+// phi.  Not sure if this is correct.  Might be on the rising
+// edge of the next high.  Need to check the scope.  If so, add
+// 4 to every ba_end below.
+
 // Set Limits
 always @(chip)
 case(chip)
@@ -862,6 +867,7 @@ endcase
               sprite_mcbase[n] <= sprite_mc[n];
        end
      end
+     // turn on dma
      else if (clk_phi && phi_phase_start[2] && cycleNum == 15) begin
        for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
           if (sprite_mcbase[n] == 63)
@@ -905,8 +911,8 @@ endcase
 
 always @(posedge clk_dot4x)
 begin
-   // delays 
-  if (dot_rising[3]) begin
+  // [#] needs match shift reset below
+  if (dot_rising[2]) begin
     for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
        if (sprite_x[n] == xpos_d[8:0]) begin
           sprite_shift[n] = 1'b1;
@@ -930,13 +936,24 @@ begin
       end
     end
     
-    if (!clk_phi && phi_phase_start[3]) begin
+    // must be [2] or greater for spriteCnt to be valid
+    if (!clk_phi && phi_phase_start[2]) begin
       case (cycleType)
       VIC_LP:
           sprite_shift[spriteCnt] = 1'b0;
       default: ;
       endcase
     end
+  end
+  
+  // s-access
+  if (!vic_write_db && phi_phase_start[`DATA_DAV]) begin
+     case (cycleType)
+     VIC_HS1, VIC_LS2, VIC_HS3:
+        if (sprite_dma[spriteCnt])
+           sprite_pixels[spriteCnt] <= {sprite_pixels[spriteCnt][15:0], dbi[7:0]};
+     default: ;
+     endcase
   end
 end
 
@@ -1060,18 +1077,7 @@ end
      end
   end
 
-  // s-access reads
-  always @(posedge clk_dot4x)
-  begin
-     if (!vic_write_db && phi_phase_start[`DATA_DAV]) begin
-       case (cycleType)
-       VIC_HS1, VIC_LS2, VIC_HS3: // s-access
-          if (sprite_dma[spriteCnt])
-             sprite_pixels[spriteCnt] <= {sprite_pixels[spriteCnt][15:0], dbi[7:0]};
-       default: ;
-       endcase
-     end
-  end
+  // s-access reads are found n sprite pixel sequencer
 
   // Transfer read pixels and char into waiting*[0] so they
   // are available at the first dot of PHI2
