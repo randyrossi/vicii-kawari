@@ -111,23 +111,23 @@ CHIP6567R8:
       spriteDmaChk2 = 7'd56; // low phase
       spriteYExpChk = 7'd56; // high phase
       spriteDisplayChk = 7'd58;
-      chars_ba_start = 'h1ec;
+      chars_ba_start = 'h1f4;
       chars_ba_end = 'h14c;
-      sprite_ba_start[0] = 10'h154 + 10'd16 * 0;
+      sprite_ba_start[0] = 10'h14c + 10'd16 * 0;
       sprite_ba_end[0] = 10'h17c + 10'd16 * 0;
-      sprite_ba_start[1] = 10'h154 + 10'd16 * 1;
+      sprite_ba_start[1] = 10'h14c + 10'd16 * 1;
       sprite_ba_end[1] = 10'h17c + 10'd16 * 1;
-      sprite_ba_start[2] = 10'h154 + 10'd16 * 2;
+      sprite_ba_start[2] = 10'h14c + 10'd16 * 2;
       sprite_ba_end[2] = 10'h17c + 10'd16 * 2;
-      sprite_ba_start[3] = 10'h154 + 10'd16 * 3;
+      sprite_ba_start[3] = 10'h14c + 10'd16 * 3;
       sprite_ba_end[3] = 10'h17c + 10'd16 * 3;
-      sprite_ba_start[4] = 10'h154 + 10'd16 * 4;
+      sprite_ba_start[4] = 10'h14c + 10'd16 * 4;
       sprite_ba_end[4] = 10'h17c + 10'd16 * 4;
-      sprite_ba_start[5] = 10'h154 + 10'd16 * 5;
+      sprite_ba_start[5] = 10'h14c + 10'd16 * 5;
       sprite_ba_end[5] = 10'h17c + 10'd16 * 5;
-      sprite_ba_start[6] = 10'h154 + 10'd16 * 6;
+      sprite_ba_start[6] = 10'h14c + 10'd16 * 6;
       sprite_ba_end[6] = 10'h17c + 10'd16 * 6;
-      sprite_ba_start[7] = 10'h154 + 10'd16 * 7;
+      sprite_ba_start[7] = 10'h14c + 10'd16 * 7;
       sprite_ba_end[7] = 10'h17c + 10'd16 * 7;
    end
 CHIP6567R56A:
@@ -705,10 +705,15 @@ endcase
   // LI -> HI
   always @(posedge clk_dot4x)
      if (rst) begin
-        cycleType <= VIC_LP;
+        if (chip == CHIP6567R8) begin
+           cycleType <= VIC_LS2;
+           idleCnt <= 3'd4;
+        end else begin
+           cycleType <= VIC_LP;
+           idleCnt <= 3'd3;
+        end
         spriteCnt <= 3'd3;
         refreshCnt <= 3'd0;
-        idleCnt <= 3'd0;
      end else if (phi_phase_start[1]) begin // badline is valid on 1
        if (clk_phi == 1'b1) begin
           case (cycleType)
@@ -750,7 +755,10 @@ endcase
              VIC_HPI1: cycleType <= VIC_LPI2;
              VIC_HS3, VIC_HPI3: begin
                  if (spriteCnt == 7) begin
-                    cycleType <= VIC_LR;
+                    if (chip == CHIP6567R8)
+                       cycleType <= VIC_LI;
+                    else
+                       cycleType <= VIC_LR;
                     spriteCnt <= 0;
                     refreshCnt <= 0;
                  end else begin
@@ -768,8 +776,11 @@ endcase
              VIC_HI: begin
                  if (chip == CHIP6567R56A && idleCnt == 3)
                     cycleType <= VIC_LP;
-                 else if (chip == CHIP6567R8 && idleCnt == 3)
+                 else if (chip == CHIP6567R8 && idleCnt == 3) begin
+                    idleCnt <= idleCnt + 1'd1;
                     cycleType <= VIC_LP;
+                 end else if (chip == CHIP6567R8 && idleCnt == 4)
+                    cycleType <= VIC_LR;
                  else if (chip == CHIP6569 && idleCnt == 2)
                     cycleType <= VIC_LP;
                  else begin
@@ -1393,6 +1404,12 @@ always @(posedge clk_dot4x)
         end
     end
     else begin
+        if (phi_phase_start[15] && clk_phi) begin
+           irst_clr <= 1'b0;
+           imbc_clr <= 1'b0;
+           immc_clr <= 1'b0;
+           ilp_clr <= 1'b0;
+        end
         if (!vic_write_ab && !ce) begin
             // READ from register
             if (rw) begin
@@ -1515,10 +1532,6 @@ always @(posedge clk_dot4x)
             // 01234567890123450123456789012345|
             //
             else if (phi_phase_start[`REG_DAV]) begin
-                irst_clr <= 1'b0;
-                imbc_clr <= 1'b0;
-                immc_clr <= 1'b0;
-                ilp_clr <= 1'b0;
                 if (!rw) begin
                     case (adi[5:0])
                         /* 0x00 */ REG_SPRITE_X_0:
