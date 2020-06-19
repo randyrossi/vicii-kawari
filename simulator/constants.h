@@ -23,8 +23,8 @@
 #define PAL_HALF_4X_COLOR_PS 28194   // half the period of 17.734475Mhz
 
 // Must match fpga design being simulated
-#define NTSC_6567R56A_NUM_CYCLES 63
-#define NTSC_6567R56A_MAX_DOT_X 511   // 63 cycles per line
+#define NTSC_6567R56A_NUM_CYCLES 64
+#define NTSC_6567R56A_MAX_DOT_X 511   // 64 cycles per line
 #define NTSC_6567R56A_MAX_DOT_Y 261
 #define NTSC_6567R56A_LAST_XPOS 0x1ff
 

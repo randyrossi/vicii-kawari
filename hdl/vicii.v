@@ -45,8 +45,10 @@ module vicii(
 
 // Register write phi_phase_start data available
 `define REG_DAV 7
-// Char/pixel/sprite read phi_phase_start data available
+// Char/pixel read phi_phase_start data available
 `define DATA_DAV 13
+// Sprite read phi_phase_start data available
+`define SPRITE_DAV 13
 // How many dot ticks we need to delay out pixels before they get into the shifter
 `define PIXEL_DELAY 8
 // Will never change but used in loops
@@ -75,8 +77,8 @@ reg [9:0] chars_ba_end;
 // These xpos's cover the sprite dma period and 3 cycles
 // before the first dma access is required. They are used
 // in ba low calcs.
-reg [9:0] sprite_ba_start [`NUM_SPRITES];
-reg [9:0] sprite_ba_end [`NUM_SPRITES];
+reg [6:0] sprite_ba_start [`NUM_SPRITES];
+reg [6:0] sprite_ba_end [`NUM_SPRITES];
 
 //clk_dot4x;     32.272768 Mhz NTSC, 31.527955 Mhz PAL
 //clk_col4x;     14.318181 Mhz NTSC, 17.734475 Mhz PAL
@@ -100,99 +102,99 @@ always @(chip)
 case(chip)
 CHIP6567R8:
    begin
-      rasterXMax = 10'd519;     // 520 pixels 
-      rasterYMax = 9'd262;      // 263 lines
-      hSyncStart = 10'd406;
-      hSyncEnd = 10'd443;       // 4.6us
-      hVisibleStart = 10'd494;  // 10.7us after hSyncStart seems to work
-      vBlankStart = 9'd11;
-      vBlankEnd = 9'd19;
-      spriteDmaChk1 = 7'd55; // low phase
-      spriteDmaChk2 = 7'd56; // low phase
-      spriteYExpChk = 7'd56; // high phase
-      spriteDisplayChk = 7'd58;
-      chars_ba_start = 'h1f4;
-      chars_ba_end = 'h14c;
-      sprite_ba_start[0] = 10'h14c + 10'd16 * 0;
-      sprite_ba_end[0] = 10'h17c + 10'd16 * 0;
-      sprite_ba_start[1] = 10'h14c + 10'd16 * 1;
-      sprite_ba_end[1] = 10'h17c + 10'd16 * 1;
-      sprite_ba_start[2] = 10'h14c + 10'd16 * 2;
-      sprite_ba_end[2] = 10'h17c + 10'd16 * 2;
-      sprite_ba_start[3] = 10'h14c + 10'd16 * 3;
-      sprite_ba_end[3] = 10'h17c + 10'd16 * 3;
-      sprite_ba_start[4] = 10'h14c + 10'd16 * 4;
-      sprite_ba_end[4] = 10'h17c + 10'd16 * 4;
-      sprite_ba_start[5] = 10'h14c + 10'd16 * 5;
-      sprite_ba_end[5] = 10'h17c + 10'd16 * 5;
-      sprite_ba_start[6] = 10'h14c + 10'd16 * 6;
-      sprite_ba_end[6] = 10'h17c + 10'd16 * 6;
-      sprite_ba_start[7] = 10'h14c + 10'd16 * 7;
-      sprite_ba_end[7] = 10'h17c + 10'd16 * 7;
+        rasterXMax = 10'd519;     // 520 pixels 
+        rasterYMax = 9'd262;      // 263 lines
+        hSyncStart = 10'd406;
+        hSyncEnd = 10'd443;       // 4.6us
+        hVisibleStart = 10'd494;  // 10.7us after hSyncStart seems to work
+        vBlankStart = 9'd11;
+        vBlankEnd = 9'd19;
+        spriteDmaChk1 = 7'd55; // low phase
+        spriteDmaChk2 = 7'd56; // low phase
+        spriteYExpChk = 7'd56; // high phase
+        spriteDisplayChk = 7'd58;
+        chars_ba_start = 'h1f4;
+        chars_ba_end = 'h14c;
+        sprite_ba_start[0] = 7'h37;
+        sprite_ba_end[0] = 7'h3c;
+        sprite_ba_start[1] = 7'h39;
+        sprite_ba_end[1] = 7'h3e;
+        sprite_ba_start[2] = 7'h3b;
+        sprite_ba_end[2] = 7'h40;
+        sprite_ba_start[3] = 7'h3d;
+        sprite_ba_end[3] = 7'h01;
+        sprite_ba_start[4] = 7'h3f;
+        sprite_ba_end[4] = 7'h03;
+        sprite_ba_start[5] = 7'h00;
+        sprite_ba_end[5] = 7'h05;
+        sprite_ba_start[6] = 7'h02;
+        sprite_ba_end[6] = 7'h07;
+        sprite_ba_start[7] = 7'h04;
+        sprite_ba_end[7] = 7'h09;
    end
 CHIP6567R56A:
    begin
-      rasterXMax = 10'd511;     // 512 pixels
-      rasterYMax = 9'd261;      // 262 lines
-      hSyncStart = 10'd406;
-      hSyncEnd = 10'd443;       // 4.6us
-      hVisibleStart = 10'd494;  // 10.7us after hSyncStart seems to work
-      vBlankStart = 9'd11;
-      vBlankEnd = 9'd19;
-      spriteDmaChk1 = 7'd55; // low phase
-      spriteDmaChk2 = 7'd56; // low phase
-      spriteYExpChk = 7'd56; // high phase
-      spriteDisplayChk = 7'd57;
-      chars_ba_start = 'h1f4;
-      chars_ba_end = 'h14c;
-      sprite_ba_start[0] = 10'h154 + 10'd16 * 0;
-      sprite_ba_end[0] = 10'h17c + 10'd16 * 0;
-      sprite_ba_start[1] = 10'h154 + 10'd16 * 1;
-      sprite_ba_end[1] = 10'h17c + 10'd16 * 1;
-      sprite_ba_start[2] = 10'h154 + 10'd16 * 2;
-      sprite_ba_end[2] = 10'h17c + 10'd16 * 2;
-      sprite_ba_start[3] = 10'h154 + 10'd16 * 3;
-      sprite_ba_end[3] = 10'h17c + 10'd16 * 3;
-      sprite_ba_start[4] = 10'h154 + 10'd16 * 4;
-      sprite_ba_end[4] = 10'h17c + 10'd16 * 4;
-      sprite_ba_start[5] = 10'h154 + 10'd16 * 5;
-      sprite_ba_end[5] = 10'h17c + 10'd16 * 5;
-      sprite_ba_start[6] = 10'h154 + 10'd16 * 6;
-      sprite_ba_end[6] = 10'h17c + 10'd16 * 6;
-      sprite_ba_start[7] = 10'h154 + 10'd16 * 7;
-      sprite_ba_end[7] = 10'h17c + 10'd16 * 7;
+        rasterXMax = 10'd511;     // 512 pixels
+        rasterYMax = 9'd261;      // 262 lines
+        hSyncStart = 10'd406;
+        hSyncEnd = 10'd443;       // 4.6us
+        hVisibleStart = 10'd494;  // 10.7us after hSyncStart seems to work
+        vBlankStart = 9'd11;
+        vBlankEnd = 9'd19;
+        spriteDmaChk1 = 7'd55; // low phase
+        spriteDmaChk2 = 7'd56; // low phase
+        spriteYExpChk = 7'd56; // high phase
+        spriteDisplayChk = 7'd57;
+        chars_ba_start = 'h1f4;
+        chars_ba_end = 'h14c;
+        sprite_ba_start[0] = 7'h37;
+        sprite_ba_end[0] = 7'h3c;
+        sprite_ba_start[1] = 7'h39;
+        sprite_ba_end[1] = 7'h3e;
+        sprite_ba_start[2] = 7'h3b;
+        sprite_ba_end[2] = 7'h00;
+        sprite_ba_start[3] = 7'h3d;
+        sprite_ba_end[3] = 7'h02;
+        sprite_ba_start[4] = 7'h3f;
+        sprite_ba_end[4] = 7'h04;
+        sprite_ba_start[5] = 7'h01;
+        sprite_ba_end[5] = 7'h06;
+        sprite_ba_start[6] = 7'h03;
+        sprite_ba_end[6] = 7'h08;
+        sprite_ba_start[7] = 7'h05;
+        sprite_ba_end[7] = 7'h0a;
    end
 CHIP6569,CHIPUNUSED:
    begin
-      rasterXMax = 10'd503;     // 504 pixels
-      rasterYMax = 9'd311;      // 312
-      hSyncStart = 10'd408;
-      hSyncEnd = 10'd444;       // ~4.6us
-      hVisibleStart = 10'd492;  // ~10.7 after hSyncStart
-      vBlankStart = 9'd301;
-      vBlankEnd = 9'd309;
-      spriteDmaChk1 = 7'd54; // low phase
-      spriteDmaChk2 = 7'd55; // low phase
-      spriteYExpChk = 7'd55; // high phase
-      spriteDisplayChk = 7'd57;
-      chars_ba_start = 'h1ec;
-      chars_ba_end = 'h14c;
-      sprite_ba_start[0] = 10'h14c + 10'd16 * 0;
-      sprite_ba_end[0] = 10'h174 + 10'd16 * 0;
-      sprite_ba_start[1] = 10'h14c + 10'd16 * 1;
-      sprite_ba_end[1] = 10'h174 + 10'd16 * 1;
-      sprite_ba_start[2] = 10'h14c + 10'd16 * 2;
-      sprite_ba_end[2] = 10'h174 + 10'd16 * 2;
-      sprite_ba_start[3] = 10'h14c + 10'd16 * 3;
-      sprite_ba_end[3] = 10'h174 + 10'd16 * 3;
-      sprite_ba_start[4] = 10'h14c + 10'd16 * 4;
-      sprite_ba_end[4] = 10'h174 + 10'd16 * 4;
-      sprite_ba_start[5] = 10'h14c + 10'd16 * 5;
-      sprite_ba_end[5] = 10'h174 + 10'd16 * 5;
-      sprite_ba_start[6] = 10'h14c + 10'd16 * 6;
-      sprite_ba_end[6] = 10'h174 + 10'd16 * 6;
-      sprite_ba_start[7] = 10'h14c + 10'd16 * 7;
-      sprite_ba_end[7] = 10'h174 + 10'd16 * 7;
+        rasterXMax = 10'd503;     // 504 pixels
+        rasterYMax = 9'd311;      // 312
+        hSyncStart = 10'd408;
+        hSyncEnd = 10'd444;       // ~4.6us
+        hVisibleStart = 10'd492;  // ~10.7 after hSyncStart
+        vBlankStart = 9'd301;
+        vBlankEnd = 9'd309;
+        spriteDmaChk1 = 7'd54; // low phase
+        spriteDmaChk2 = 7'd55; // low phase
+        spriteYExpChk = 7'd55; // high phase
+        spriteDisplayChk = 7'd57;
+        chars_ba_start = 'h1ec;
+        chars_ba_end = 'h14c;
+        sprite_ba_start[0] = 7'h36;
+        sprite_ba_end[0] = 7'h3b;
+        sprite_ba_start[1] = 7'h38;
+        sprite_ba_end[1] = 7'h3d;
+        sprite_ba_start[2] = 7'h3a;
+        sprite_ba_end[2] = 7'h00;
+        sprite_ba_start[3] = 7'h3c;
+        sprite_ba_end[3] = 7'h02;
+        sprite_ba_start[4] = 7'h3e;
+        sprite_ba_end[4] = 7'h04;
+        sprite_ba_start[5] = 7'h01;
+        sprite_ba_end[5] = 7'h06;
+        sprite_ba_start[6] = 7'h03;
+        sprite_ba_end[6] = 7'h08;
+        sprite_ba_start[7] = 7'h05;
+        sprite_ba_end[7] = 7'h0a;
    end
 endcase
 
@@ -489,13 +491,14 @@ endcase
   always @(posedge clk_dot4x)
   if (rst)
      refc <= 8'hff;
-  else if (phi_phase_start[15]) begin // about to transition
-     // About to leave LR into HRC or HRI. Okay to use cycleType here
-     // before the end of this phase because we know it's either heading
-     // into HRC or HRI.
+  else if (phi_phase_start[1]) begin // about to transition
+     // Decrement at the start of the phase when cycleType is still valid for
+     // the previous half cycle.
      if (cycleType == VIC_LR)
          refc <= refc - 8'd1;
-     else if (raster_x == rasterXMax && raster_line == rasterYMax)
+  end else if (clk_phi == 1'b1 && phi_phase_start[0]) begin
+      // Conditions must match start of frame check in x,y section
+      if (cycleNum == 1 && start_of_frame)
          refc <= 8'hff;
   end
     
@@ -656,9 +659,12 @@ endcase
   
   always @(*) begin
      for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-        if (sprite_en[n] && sprite_dma[n] && xpos >= sprite_ba_start[n] && xpos < sprite_ba_end[n])
-           baSprite[n] = 1;
-        else
+        if (sprite_en[n] && sprite_dma[n]) begin
+           if (cycleNum == sprite_ba_start[n])
+              baSprite[n] = 1;
+           else if (clk_phi && cycleNum == sprite_ba_end[n])
+              baSprite[n] = 0;
+        end else
            baSprite[n] = 0;
      end
   end
@@ -909,8 +915,11 @@ endcase
           sprite_mc[n] <= sprite_mcbase[n];
        end
      end
-     // Advance sprite byte offset while dma is happening
-     if (phi_phase_start[15]) begin
+
+     // Advance sprite byte offset while dma is happening (at end of cycle)
+     // Increment on [1] just before cycleType changes for the next half
+     // cycle (safe for spriteCnt too).  
+     if (phi_phase_start[1]) begin
         case (cycleType)
         VIC_HS1,VIC_LS2,VIC_HS3:
           if (sprite_dma[spriteCnt])
@@ -958,7 +967,7 @@ begin
   end
   
   // s-access
-  if (!vic_write_db && phi_phase_start[`DATA_DAV]) begin
+  if (!vic_write_db && phi_phase_start[`SPRITE_DAV]) begin
      case (cycleType)
      VIC_HS1, VIC_LS2, VIC_HS3:
         if (sprite_dma[spriteCnt])
@@ -1138,7 +1147,7 @@ end
         end
      end
      VIC_HRC, VIC_HGC:
-        vicAddr = {vm, vc}; // video matrix
+        vicAddr = {vm, vc}; // video matrix c-access
      VIC_LP:
         vicAddr = {vm, 7'b1111111, spriteCnt}; // p-access
      VIC_HS1, VIC_LS2, VIC_HS3:
