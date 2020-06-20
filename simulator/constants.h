@@ -126,3 +126,4 @@
 #define V_SPRITE_XE_FF        vicii__DOT__sprite_ye_ff
 #define V_SPRITE_MC        vicii__DOT__sprite_mc
 #define V_SPRITE_MCBASE        vicii__DOT__sprite_mcbase
+#define V_SPRITE_RASTER_X        vicii__DOT__sprite_raster_x

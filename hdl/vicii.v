@@ -77,8 +77,14 @@ reg [9:0] chars_ba_end;
 // These xpos's cover the sprite dma period and 3 cycles
 // before the first dma access is required. They are used
 // in ba low calcs.
-reg [6:0] sprite_ba_start [`NUM_SPRITES];
-reg [6:0] sprite_ba_end [`NUM_SPRITES];
+reg [9:0] sprite_ba_start [`NUM_SPRITES];
+reg [9:0] sprite_ba_end [`NUM_SPRITES];
+
+// raster_x but offset such that the BA fall for the
+// first sprite is position 0. This is so we can use a
+// simple interval comparison for ba high/low and avoid
+// wrap around conditions.
+reg [9:0] sprite_raster_x;
 
 //clk_dot4x;     32.272768 Mhz NTSC, 31.527955 Mhz PAL
 //clk_col4x;     14.318181 Mhz NTSC, 17.734475 Mhz PAL
@@ -102,7 +108,7 @@ always @(chip)
 case(chip)
 CHIP6567R8:
    begin
-        rasterXMax = 10'd519;     // 520 pixels 
+        rasterXMax = 10'd519;     // 520 pixels
         rasterYMax = 9'd262;      // 263 lines
         hSyncStart = 10'd406;
         hSyncEnd = 10'd443;       // 4.6us
@@ -115,22 +121,6 @@ CHIP6567R8:
         spriteDisplayChk = 7'd58;
         chars_ba_start = 'h1f4;
         chars_ba_end = 'h14c;
-        sprite_ba_start[0] = 7'h37;
-        sprite_ba_end[0] = 7'h3c;
-        sprite_ba_start[1] = 7'h39;
-        sprite_ba_end[1] = 7'h3e;
-        sprite_ba_start[2] = 7'h3b;
-        sprite_ba_end[2] = 7'h40;
-        sprite_ba_start[3] = 7'h3d;
-        sprite_ba_end[3] = 7'h01;
-        sprite_ba_start[4] = 7'h3f;
-        sprite_ba_end[4] = 7'h03;
-        sprite_ba_start[5] = 7'h00;
-        sprite_ba_end[5] = 7'h05;
-        sprite_ba_start[6] = 7'h02;
-        sprite_ba_end[6] = 7'h07;
-        sprite_ba_start[7] = 7'h04;
-        sprite_ba_end[7] = 7'h09;
    end
 CHIP6567R56A:
    begin
@@ -147,22 +137,6 @@ CHIP6567R56A:
         spriteDisplayChk = 7'd57;
         chars_ba_start = 'h1f4;
         chars_ba_end = 'h14c;
-        sprite_ba_start[0] = 7'h37;
-        sprite_ba_end[0] = 7'h3c;
-        sprite_ba_start[1] = 7'h39;
-        sprite_ba_end[1] = 7'h3e;
-        sprite_ba_start[2] = 7'h3b;
-        sprite_ba_end[2] = 7'h00;
-        sprite_ba_start[3] = 7'h3d;
-        sprite_ba_end[3] = 7'h02;
-        sprite_ba_start[4] = 7'h3f;
-        sprite_ba_end[4] = 7'h04;
-        sprite_ba_start[5] = 7'h01;
-        sprite_ba_end[5] = 7'h06;
-        sprite_ba_start[6] = 7'h03;
-        sprite_ba_end[6] = 7'h08;
-        sprite_ba_start[7] = 7'h05;
-        sprite_ba_end[7] = 7'h0a;
    end
 CHIP6569,CHIPUNUSED:
    begin
@@ -179,23 +153,8 @@ CHIP6569,CHIPUNUSED:
         spriteDisplayChk = 7'd57;
         chars_ba_start = 'h1ec;
         chars_ba_end = 'h14c;
-        sprite_ba_start[0] = 7'h36;
-        sprite_ba_end[0] = 7'h3b;
-        sprite_ba_start[1] = 7'h38;
-        sprite_ba_end[1] = 7'h3d;
-        sprite_ba_start[2] = 7'h3a;
-        sprite_ba_end[2] = 7'h00;
-        sprite_ba_start[3] = 7'h3c;
-        sprite_ba_end[3] = 7'h02;
-        sprite_ba_start[4] = 7'h3e;
-        sprite_ba_end[4] = 7'h04;
-        sprite_ba_start[5] = 7'h01;
-        sprite_ba_end[5] = 7'h06;
-        sprite_ba_start[6] = 7'h03;
-        sprite_ba_end[6] = 7'h08;
-        sprite_ba_start[7] = 7'h05;
-        sprite_ba_end[7] = 7'h0a;
    end
+  
 endcase
 
   // used to generate phi and dot clocks
@@ -378,7 +337,27 @@ endcase
   reg sprite_dma[0:`NUM_SPRITES - 1];
   reg [23:0] sprite_pixels [0:`NUM_SPRITES-1];
   reg [1:0] sprite_cur_pixel [`NUM_SPRITES-1:0];
-
+ 
+  // Setup sprite ba start/end ranges.  There compared against
+  // sprite_raster_x which is makes sprite #0 drop point = 0
+  // TODO: Should these end values be +4 to rise back up with
+  // AEC/PHI? Find out on the scope.
+  assign sprite_ba_start[0] = 10'd0 + 10'd16 * 0;
+  assign sprite_ba_end[0] = 10'd40 + 10'd16 * 0;
+  assign sprite_ba_start[1] = 10'd0 + 10'd16 * 1;
+  assign sprite_ba_end[1] = 10'd40 + 10'd16 * 1;
+  assign sprite_ba_start[2] = 10'd0 + 10'd16 * 2;
+  assign sprite_ba_end[2] = 10'd40 + 10'd16 * 2;
+  assign sprite_ba_start[3] = 10'd0 + 10'd16 * 3;
+  assign sprite_ba_end[3] = 10'd40 + 10'd16 * 3;
+  assign sprite_ba_start[4] = 10'd0 + 10'd16 * 4;
+  assign sprite_ba_end[4] = 10'd40 + 10'd16 * 4;
+  assign sprite_ba_start[5] = 10'd0 + 10'd16 * 5;
+  assign sprite_ba_end[5] = 10'd40 + 10'd16 * 5;
+  assign sprite_ba_start[6] = 10'd0 + 10'd16 * 6;
+  assign sprite_ba_end[6] = 10'd40 + 10'd16 * 6;
+  assign sprite_ba_start[7] = 10'd0 + 10'd16 * 7;
+  assign sprite_ba_end[7] = 10'd40 + 10'd16 * 7;
   
   // dot_rising[15] means dot going high next cycle
   always @(posedge clk_dot4x)
@@ -487,6 +466,9 @@ endcase
   // the interrupt will you actually get the ISR on the desired line.
   assign irq = (ilp & elp) | (immc & emmc) | (imbc & embc) | (irst & erst);
 
+  reg start_of_frame;
+  reg start_of_line;
+
   // DRAM refresh counter
   always @(posedge clk_dot4x)
   if (rst)
@@ -507,10 +489,7 @@ endcase
       cycle_fine_ctr <= 5'd3;
   else
       cycle_fine_ctr <= cycle_fine_ctr + 5'b1;
-    
-  reg start_of_frame;
-  reg start_of_line;
-  
+ 
   // xpos_d is xpos shifted by the pixel delay minus 1. It is used
   // to delay both pixels and border locations to align with expected
   // times pixels should come out of the sequencer.
@@ -525,13 +504,19 @@ endcase
     raster_line <= 9'b0;
     start_of_frame <= 1'b0;
     case(chip)
-    CHIP6567R56A, CHIP6567R8:
+    CHIP6567R56A: begin
       xpos <= 10'h19c;
-    CHIP6569, CHIPUNUSED:
+      sprite_raster_x <= 72; // 512 - 55*8
+    end CHIP6567R8: begin 
+      xpos <= 10'h19c;
+      sprite_raster_x <= 80; // 520 - 55*8
+    end CHIP6569, CHIPUNUSED: begin
       xpos <= 10'h194;
+      sprite_raster_x <= 72; // 504 - 54*8
+    end
     endcase
   end
-  else if (dot_rising[0])
+  else if (dot_rising[0]) begin
   if (raster_x < rasterXMax)
   begin
     // Can advance to next pixel
@@ -580,7 +565,7 @@ endcase
   begin
     // Time to go back to x coord 0
     raster_x <= 10'd0;
-
+    
     // xpos also goes back to start value
     case(chip)
     CHIP6567R56A, CHIP6567R8:
@@ -594,6 +579,14 @@ endcase
        start_of_frame <= 1'b1;
     else
        start_of_line <= 1'b1;
+  end
+  
+  if (dot_rising[0]) begin
+     if (sprite_raster_x < rasterXMax)
+         sprite_raster_x <= sprite_raster_x + 10'd1;
+     else
+         sprite_raster_x <= 10'd0;
+  end
   end
   
   // Update rc/vc/vcbase
@@ -659,13 +652,10 @@ endcase
   
   always @(*) begin
      for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-        if (sprite_en[n] && sprite_dma[n]) begin
-           if (cycleNum == sprite_ba_start[n])
+        if (sprite_en[n] && sprite_dma[n] && sprite_raster_x >= sprite_ba_start[n] && sprite_raster_x < sprite_ba_end[n])
               baSprite[n] = 1;
-           else if (clk_phi && cycleNum == sprite_ba_end[n])
+        else
               baSprite[n] = 0;
-        end else
-           baSprite[n] = 0;
      end
   end
 
