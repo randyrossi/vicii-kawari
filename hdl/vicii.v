@@ -466,9 +466,6 @@ endcase
   // the interrupt will you actually get the ISR on the desired line.
   assign irq = (ilp & elp) | (immc & emmc) | (imbc & embc) | (irst & erst);
 
-  reg start_of_frame;
-  reg start_of_line;
-
   // DRAM refresh counter
   always @(posedge clk_dot4x)
   if (rst)
@@ -478,9 +475,7 @@ endcase
      // the previous half cycle.
      if (cycleType == VIC_LR)
          refc <= refc - 8'd1;
-  end else if (clk_phi == 1'b1 && phi_phase_start[0]) begin
-      // Conditions must match start of frame check in x,y section
-      if (cycleNum == 1 && start_of_frame)
+  end else if (clk_phi == 1'b1 && phi_phase_start[0] && cycleNum == 1 && raster_line == 9'd0) begin
          refc <= 8'hff;
   end
     
@@ -502,7 +497,6 @@ endcase
   begin
     raster_x <= 10'b0;
     raster_line <= 9'b0;
-    start_of_frame <= 1'b0;
     case(chip)
     CHIP6567R56A: begin
       xpos <= 10'h19c;
@@ -521,17 +515,7 @@ endcase
   begin
     // Can advance to next pixel
     raster_x <= raster_x + 10'd1;
-
-    if (clk_phi && phi_phase_start[0]) begin
-      if (start_of_frame && cycleNum == 1) begin
-         raster_line <= 9'd0;
-         start_of_frame <= 1'b0;
-      end else if (start_of_line && cycleNum == 0) begin
-         raster_line <= raster_line + 9'd1;
-         start_of_line <= 1'b0;
-      end
-    end
-    
+  
     // Handle xpos move but deal with special cases
     case(chip)
     CHIP6567R8:
@@ -574,11 +558,10 @@ endcase
       xpos <= 10'h194;
     endcase
 
-    // Reset of raster line after a frame is delayed until end of cycle 0 (see above)
-    if (raster_line == rasterYMax)
-       start_of_frame <= 1'b1;
+    if (raster_line < rasterYMax)
+        raster_line <= raster_line + 9'd1;
     else
-       start_of_line <= 1'b1;
+        raster_line <= 9'd0;
   end
   
   if (dot_rising[0]) begin
@@ -600,6 +583,11 @@ endcase
   end
   else begin 
     if (clk_phi == 1'b1 && phi_phase_start[0]) begin
+      if (cycleNum == 1 && raster_line == 9'd0) begin
+         vcBase <= 10'd0;
+         vc <= 10'd0;
+      end
+    
       if (cycleNum > 14 && cycleNum < 55 && idle == 1'b0)
         vc <= vc + 1'b1;
   
@@ -619,15 +607,7 @@ endcase
         else if (!idle | badline)
           rc <= rc + 1'b1;
       end
-    end
-    
-    // start_of_frame must be checked at the same time as above in raster x,y update section
-    if (clk_phi == 1'b1 && phi_phase_start[0]) begin
-      if (cycleNum == 1 && start_of_frame) begin
-         vcBase <= 10'd0;
-         vc <= 10'd0;
-      end   
-   end
+    end    
    
    // This needs to be checked next 4x tick within the phase because
    // badline does not trigger until after raster line has incremented

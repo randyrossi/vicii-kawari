@@ -14,5 +14,6 @@ lappend pickedsigs "TOP.vicii.pixelColor"
 lappend pickedsigs "TOP.vicii.aec"
 lappend pickedsigs "TOP.ba"
 lappend pickedsigs "TOP.vicii.cycleType"
+lappend pickedsigs "TOP.vicii.vicAddr"
 
 set num_added [ gtkwave::addSignalsFromList $pickedsigs ]

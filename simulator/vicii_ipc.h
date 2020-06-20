@@ -40,6 +40,7 @@ struct vicii_state {
   unsigned char rw;
   unsigned char phi;
   unsigned char ba;
+  unsigned char irq;
   unsigned char badline;
   unsigned char aec;
   unsigned char idle;

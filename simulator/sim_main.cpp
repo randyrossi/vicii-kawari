@@ -1033,6 +1033,7 @@ int main(int argc, char** argv, char** env) {
         }
 
         if (shadowVic) {
+           state->irq = top->irq;
            state->ba = top->ba;
            state->badline = top->V_BADLINE;
            state->aec = top->aec;
