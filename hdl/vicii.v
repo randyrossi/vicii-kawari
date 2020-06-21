@@ -404,7 +404,7 @@ endcase
      else if (dot_rising[0]) begin
        if (raster_line == 48 && den == 1'b1)
           allow_bad_lines <= 1'b1;
-       if (raster_line == 248)
+       if (raster_line == 248) // TODO : VICE SAYS THIS IS 247. Rasterline weirdness?
           allow_bad_lines <= 1'b0;
      end 
   end

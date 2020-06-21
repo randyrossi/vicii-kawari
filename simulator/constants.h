@@ -131,3 +131,5 @@
 #define V_SPRITE_MCBASE       vicii__DOT__sprite_mcbase
 #define V_SPRITE_RASTER_X     vicii__DOT__sprite_raster_x
 #define V_RASTER_IRQ_RAISED   vicii__DOT__rasterIrqRaised
+#define V_TBBORDER            vicii__DOT__TBBorder
+#define V_LRBORDER            vicii__DOT__LRBorder

@@ -392,6 +392,9 @@ static void regs_vice_to_fpga(Vvicii* top, struct vicii_state* state) {
        top->V_IMBC = state->imbc;
        top->V_IMMC = state->immc;
        top->V_ILP = state->ilp;
+
+       top->V_TBBORDER = state->vborder;
+       top->V_LRBORDER = state->main_border;
 }
 
 static void regs_fpga_to_vice(Vvicii* top, struct vicii_state* state) {
