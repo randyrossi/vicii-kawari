@@ -866,11 +866,10 @@ endcase
               sprite_dma[n] <= 0;
        end
      end
-     // low phi - check dma 
-     else if (!clk_phi && phi_phase_start[1] && (cycleNum == spriteDmaChk1 || cycleNum == spriteDmaChk2)) begin
+     // check dma (VICE does this on HIGH, not sure if correct)
+     else if (clk_phi && phi_phase_start[1] && (cycleNum == spriteDmaChk1 || cycleNum == spriteDmaChk2)) begin
         for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
            if (!sprite_dma[n] && sprite_en[n] && raster_line[7:0] == sprite_y[n]) begin
-              sprite_mc[n] <= 6'd0;
               sprite_dma[n] <= 1;
               sprite_mcbase[n] <= 0;
               sprite_ye_ff[n] <= 1;
@@ -878,7 +877,7 @@ endcase
         end
      end
      // check sprite expansion
-     else if (clk_phi && phi_phase_start[1] && cycleNum == spriteYExpChk) begin
+     if (clk_phi && phi_phase_start[1] && cycleNum == spriteYExpChk) begin
         for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
            if (sprite_dma[n] && sprite_ye[n])
              sprite_ye_ff[n] <= !sprite_ye_ff[n];
@@ -894,7 +893,11 @@ endcase
      // Advance sprite byte offset while dma is happening (at end of cycle)
      // Increment on [1] just before cycleType changes for the next half
      // cycle (safe for spriteCnt too).  
-     if (phi_phase_start[1]) begin
+     // TODO: If we set this to [1], it work's just fine but our VICE sync fails
+     // on every MC value as being one off. Set this to [13] but [1] looks much
+     // better in the logic analyser since the address transitions happen at
+     // the expected times.
+     if (phi_phase_start[13]) begin
         case (cycleType)
         VIC_HS1,VIC_LS2,VIC_HS3:
           if (sprite_dma[spriteCnt])
@@ -1578,8 +1581,20 @@ always @(posedge clk_dot4x)
                             mcm <= dbi[4];
                             res <= dbi[5];
                         end
-                        /* 0x17 */ REG_SPRITE_EXPAND_Y:
+                        /* 0x17 */ REG_SPRITE_EXPAND_Y: begin
+                            // sprite crunch
+                            for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
+                              if (!dbi[n] && !sprite_ye_ff[n]) begin
+                                 if (cycleNum == 15) begin
+                                    sprite_mc[n] = (6'h2a & (sprite_mcbase[n] & sprite_mc[n])) |
+                                                   (6'h15 & (sprite_mcbase[n] | sprite_mc[n])) ;
+                                 end
+                                 sprite_ye_ff[n] = 1'b1;
+                              end
+                            end
+                    
                             sprite_ye <= dbi[7:0];
+                        end
                         /* 0x18 */ REG_MEMORY_SETUP: begin
                             cb[2:0] <= dbi[3:1];
                             vm[3:0] <= dbi[7:4];

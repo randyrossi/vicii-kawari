@@ -379,12 +379,11 @@ static void regs_vice_to_fpga(Vvicii* top, struct vicii_state* state) {
        top->V_SPRITE_COL[6] = state->vice_reg[0x2d];
        top->V_SPRITE_COL[7] = state->vice_reg[0x2e];
 
-
        for (int n=0;n<8;n++) {
-          //top->V_SPRITE_MC[n] = state->mc[n];
-          //top->V_SPRITE_MCBASE[n] = state->mcbase[n];
-          //top->V_SPRITE_YE_FF[n] = state->ye_ff[n];
-	  top->V_SPRITE_DMA[n] = state->mcbase[n] != 63; // Mostly correct
+          top->V_SPRITE_MC[n] = state->mc[n];
+          top->V_SPRITE_MCBASE[n] = state->mcbase[n];
+          top->V_SPRITE_YE_FF[n] = state->ye_ff[n];
+	  top->V_SPRITE_DMA[n] = state->sprite_dma[n];
        }
 
        top->V_RASTER_IRQ_RAISED = state->raster_irq_triggered;
@@ -452,23 +451,6 @@ static void regs_fpga_to_vice(Vvicii* top, struct vicii_state* state) {
        state->allow_bad_lines = top->V_ALLOW_BAD_LINES;
        state->reg11_delayed = top->V_REG11_DELAYED;
 
-       state->fpga_reg[0x00] = top->V_SPRITE_X[0] | ((state->vice_reg[0x10] & 1) << 8);
-       state->fpga_reg[0x01] = top->V_SPRITE_Y[0];
-       state->fpga_reg[0x02] = top->V_SPRITE_X[1] | ((state->vice_reg[0x10] & 2) << 7);
-       state->fpga_reg[0x03] = top->V_SPRITE_Y[1];
-       state->fpga_reg[0x04] = top->V_SPRITE_X[2] | ((state->vice_reg[0x10] & 4) << 6);
-       state->fpga_reg[0x05] = top->V_SPRITE_Y[2];
-       state->fpga_reg[0x06] = top->V_SPRITE_X[3] | ((state->vice_reg[0x10] & 8) << 5);
-       state->fpga_reg[0x07] = top->V_SPRITE_Y[3];
-       state->fpga_reg[0x08] = top->V_SPRITE_X[4] | ((state->vice_reg[0x10] & 16) << 4);
-       state->fpga_reg[0x09] = top->V_SPRITE_Y[4];
-       state->fpga_reg[0x0a] = top->V_SPRITE_X[5] | ((state->vice_reg[0x10] & 32) << 3);
-       state->fpga_reg[0x0b] = top->V_SPRITE_Y[5];
-       state->fpga_reg[0x0c] = top->V_SPRITE_X[6] | ((state->vice_reg[0x10] & 64) << 2);
-       state->fpga_reg[0x0d] = top->V_SPRITE_Y[6];
-       state->fpga_reg[0x0e] = top->V_SPRITE_X[7] | ((state->vice_reg[0x10] & 128) << 1);
-       state->fpga_reg[0x0f] = top->V_SPRITE_Y[7];
-
        state->fpga_reg[0x00] = top->V_SPRITE_X[0] & 0xff;
        state->fpga_reg[0x01] = top->V_SPRITE_Y[0];
        state->fpga_reg[0x02] = top->V_SPRITE_X[1] & 0xff;
@@ -485,14 +467,14 @@ static void regs_fpga_to_vice(Vvicii* top, struct vicii_state* state) {
        state->fpga_reg[0x0d] = top->V_SPRITE_Y[6];
        state->fpga_reg[0x0e] = top->V_SPRITE_X[7] & 0xff;
        state->fpga_reg[0x0f] = top->V_SPRITE_Y[7];
-       state->fpga_reg[0x10] = (top->V_SPRITE_X[0] & 256 >> 8) |
-                               (top->V_SPRITE_X[1] & 256 >> 7) |
-                               (top->V_SPRITE_X[2] & 256 >> 6) |
-                               (top->V_SPRITE_X[3] & 256 >> 5) |
-                               (top->V_SPRITE_X[4] & 256 >> 4) |
-                               (top->V_SPRITE_X[5] & 256 >> 3) |
-                               (top->V_SPRITE_X[6] & 256 >> 2) |
-                               (top->V_SPRITE_X[7] & 256 >> 1);
+       state->fpga_reg[0x10] = ((top->V_SPRITE_X[0] & 256) >> 8) |
+                               ((top->V_SPRITE_X[1] & 256) >> 7) |
+                               ((top->V_SPRITE_X[2] & 256) >> 6) |
+                               ((top->V_SPRITE_X[3] & 256) >> 5) |
+                               ((top->V_SPRITE_X[4] & 256) >> 4) |
+                               ((top->V_SPRITE_X[5] & 256) >> 3) |
+                               ((top->V_SPRITE_X[6] & 256) >> 2) |
+                               ((top->V_SPRITE_X[7] & 256) >> 1);
 
        state->fpga_reg[0x15] = top->V_SPRITE_EN;
        state->fpga_reg[0x1d] = top->V_SPRITE_XE;
@@ -501,14 +483,24 @@ static void regs_fpga_to_vice(Vvicii* top, struct vicii_state* state) {
        state->fpga_reg[0x1f] = top->V_SPRITE_M2D;
        state->fpga_reg[0x1d] = top->V_SPRITE_PRI;
        state->fpga_reg[0x1c] = top->V_SPRITE_MMC;
-       state->fpga_reg[0x25] = top->V_SPRITE_MC0;
-       state->fpga_reg[0x26] = top->V_SPRITE_MC1;
+       state->fpga_reg[0x25] = top->V_SPRITE_MC0 | 0xf0;
+       state->fpga_reg[0x26] = top->V_SPRITE_MC1 | 0xf0;
 
        for (int n=0;n<8;n++) {
           state->mc[n] = top->V_SPRITE_MC[n];
           state->mcbase[n] = top->V_SPRITE_MCBASE[n];
           state->ye_ff[n] = top->V_SPRITE_YE_FF[n];
+          state->sprite_dma[n] = top->V_SPRITE_DMA[n];
        }
+
+       state->fpga_reg[0x27] = top->V_SPRITE_COL[0] | 0xf0;
+       state->fpga_reg[0x28] = top->V_SPRITE_COL[1] | 0xf0;
+       state->fpga_reg[0x29] = top->V_SPRITE_COL[2] | 0xf0;
+       state->fpga_reg[0x2a] = top->V_SPRITE_COL[3] | 0xf0;
+       state->fpga_reg[0x2b] = top->V_SPRITE_COL[4] | 0xf0;
+       state->fpga_reg[0x2c] = top->V_SPRITE_COL[5] | 0xf0;
+       state->fpga_reg[0x2d] = top->V_SPRITE_COL[6] | 0xf0;
+       state->fpga_reg[0x2e] = top->V_SPRITE_COL[7] | 0xf0;
 }
 
 
@@ -821,10 +813,6 @@ int main(int argc, char** argv, char** env) {
     top->V_EC = 14;
     top->V_VM = 1; // 0001
     top->V_CB = 2; //  010
-
-    //top->V_SPRITE_EN = 0b00000001;
-    //top->V_SPRITE_Y[0] = 51;
-    //top->V_SPRITE_X[0] = 100;
 
     if (testDriver >= 0 && do_test_start(testDriver, top, setGolden) == TEST_FAIL) {
        STATE(top);
