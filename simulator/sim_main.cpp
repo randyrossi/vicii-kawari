@@ -219,7 +219,7 @@ static void STATE(Vvicii *top) {
    top->aec,
    cycleToChar(top->V_CYCLE_TYPE),
    top->ras,
-   top->mux,
+   top->V_MUXR & 32768 ? 1 : 0,
    top->cas,
    top->V_RASTER_X,
    top->V_RASTER_LINE,
@@ -386,6 +386,12 @@ static void regs_vice_to_fpga(Vvicii* top, struct vicii_state* state) {
           //top->V_SPRITE_YE_FF[n] = state->ye_ff[n];
 	  top->V_SPRITE_DMA[n] = state->mcbase[n] != 63; // Mostly correct
        }
+
+       top->V_RASTER_IRQ_RAISED = state->raster_irq_triggered;
+       top->V_IRST = state->irst;
+       top->V_IMBC = state->imbc;
+       top->V_IMMC = state->immc;
+       top->V_ILP = state->ilp;
 }
 
 static void regs_fpga_to_vice(Vvicii* top, struct vicii_state* state) {
@@ -1034,6 +1040,10 @@ int main(int argc, char** argv, char** env) {
 
         if (shadowVic) {
            state->irq = top->irq;
+           state->irst = top->V_IRST;
+           state->immc = top->V_IMMC;
+           state->imbc = top->V_IMBC;
+           state->ilp = top->V_ILP;
            state->ba = top->ba;
            state->badline = top->V_BADLINE;
            state->aec = top->aec;

@@ -38,8 +38,6 @@ module vicii(
    output ls245_dir,
    output vic_write_db,
    output vic_write_ab,
-   
-   output mux,
    output clk_dot
 );
 
@@ -242,7 +240,7 @@ endcase
   reg [15:0] mux_gen;
 
   // muxes the last 8 bits of our read address for CAS/RAS latches
-  //wire mux;
+  wire mux;
 
   // tracks whether the condition for triggering these
   // types of interrupts happened, but may not be
@@ -338,7 +336,7 @@ endcase
   reg [23:0] sprite_pixels [0:`NUM_SPRITES-1];
   reg [1:0] sprite_cur_pixel [`NUM_SPRITES-1:0];
  
-  // Setup sprite ba start/end ranges.  There compared against
+  // Setup sprite ba start/end ranges.  These are compared against
   // sprite_raster_x which is makes sprite #0 drop point = 0
   // TODO: Should these end values be +4 to rise back up with
   // AEC/PHI? Find out on the scope.
@@ -583,6 +581,7 @@ endcase
   end
   else begin 
     if (clk_phi == 1'b1 && phi_phase_start[0]) begin
+      // Reset at start of frame
       if (cycleNum == 1 && raster_line == 9'd0) begin
          vcBase <= 10'd0;
          vc <= 10'd0;
@@ -598,6 +597,7 @@ endcase
       end
     
       if (cycleNum == 57) begin
+        // The extra check for badline within rc==7 is neccessary.
         if (rc == 3'd7) begin
           vcBase <= vc;
           idle <= 1;
@@ -614,12 +614,13 @@ endcase
    // which is after start of line which happens on tick 0 and due to
    // delayed assignment raster line yscroll comparison won't happen until
    // tick 1.
-   if (clk_phi == 1'b1 && phi_phase_start[1])
-      if (badline)
-        idle <= 1'b0;
+   if (clk_phi == 1'b1 && phi_phase_start[1] && badline)
+      idle <= 1'b0;
 
   end
   
+  // Handle when ba should go low due to c-access. We can use xpos
+  // here since there are no repeats within this range.
   always @(*)
   if (rst)
      baChars = 1'b1;
@@ -630,6 +631,9 @@ endcase
         baChars = 1'b1;
   end
   
+  // Handle when ba should go low due to s-access. These ranges are
+  // compared against sprite_raster_x which is just raster_x with an
+  // offset that brings sprite 0 to the start.
   always @(*) begin
      for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
         if (sprite_en[n] && sprite_dma[n] && sprite_raster_x >= sprite_ba_start[n] && sprite_raster_x < sprite_ba_end[n])
@@ -639,6 +643,7 @@ endcase
      end
   end
 
+  // Drop BA if either chars or sprites need it. 
   assign ba = baChars & (baSprite == 0);
 
   // Cascade ba through three cycles, making sure
@@ -816,7 +821,7 @@ endcase
   assign cas = cas_gen[15];
 
   // mux_gen drops 1 cycle early due to delayed use for
-  // ado.
+  // ado.  The ado transition happens between ras and cas.
   always @(posedge clk_dot4x)
   if (rst)
      mux_gen <= 16'b1100000000000111;
@@ -832,7 +837,7 @@ endcase
        default:          mux_gen <= 16'b1100000000000111;
     endcase
     else
-                      mux_gen <= 16'b1100000000000111;
+                         mux_gen <= 16'b1100000000000111;
   end else
     mux_gen <= {mux_gen[14:0],1'b0};
   assign mux = mux_gen[15];
@@ -901,14 +906,16 @@ endcase
 
 always @(posedge clk_dot4x)
 begin
-  // [#] needs match shift reset below
+  // [#] here needs to match shift reset below
   if (dot_rising[2]) begin
+    // when xpos matches sprite_x, turn on shift
     for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
        if (sprite_x[n] == xpos_d[8:0]) begin
           sprite_shift[n] = 1'b1;
        end
     end
     
+    // shift pixels into sprite_cur_pixel
     for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
       if (sprite_shift[n]) begin
         sprite_xe_ff[n] <= !sprite_xe_ff[n] & sprite_xe[n];
@@ -926,7 +933,7 @@ begin
       end
     end
     
-    // must be [2] or greater for spriteCnt to be valid
+    // must be [2] or greater for spriteCnt to be valid here
     if (!clk_phi && phi_phase_start[2]) begin
       case (cycleType)
       VIC_LP:
@@ -1069,7 +1076,7 @@ end
 
   // s-access reads are found n sprite pixel sequencer
 
-  // Transfer read pixels and char into waiting*[0] so they
+  // Transfer read character pixels and char values into waiting*[0] so they
   // are available at the first dot of PHI2
   always @(posedge clk_dot4x)
   begin

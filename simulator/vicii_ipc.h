@@ -46,6 +46,12 @@ struct vicii_state {
   unsigned char idle;
   unsigned char allow_bad_lines;
   unsigned char reg11_delayed;
+  unsigned int raster_irq_triggered;
+
+  unsigned int irst;
+  unsigned int imbc;
+  unsigned int immc;
+  unsigned int ilp;
 
   unsigned short addr_to_sim;
   unsigned short data_to_sim;
