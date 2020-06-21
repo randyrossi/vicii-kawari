@@ -404,7 +404,7 @@ endcase
      else if (dot_rising[0]) begin
        if (raster_line == 48 && den == 1'b1)
           allow_bad_lines <= 1'b1;
-       if (raster_line == 248) // TODO : VICE SAYS THIS IS 247. Rasterline weirdness?
+       if (raster_line == 248)
           allow_bad_lines <= 1'b0;
      end 
   end
@@ -1163,7 +1163,6 @@ reg isBackgroundPixel;
 reg clkShift;
 reg ismc;
 
-vic_color pixelColor;
 
 always @(*)
         ismc = mcm & (bmm | ecm | charShifting[11]);
@@ -1201,63 +1200,65 @@ if (dot_rising[0]) begin
 end
 
 // handle display modes
+vic_color pixelColor1; // stage 1
 always @(posedge clk_dot4x)
     begin
         if (dot_rising[0]) begin
             isBackgroundPixel <= !pixelsShifting[7];
-            pixelColor <= BLACK;
+            pixelColor1 <= BLACK;
             case ({ecm, bmm, mcm})
                 MODE_STANDARD_CHAR:
-                    pixelColor <= pixelsShifting[7] ? vic_color'(charShifting[11:8]):b0c;
+                    pixelColor1 <= pixelsShifting[7] ? vic_color'(charShifting[11:8]):b0c;
                 MODE_MULTICOLOR_CHAR:
                     if (charShifting[11])
                         case (pixelsShifting[7:6])
-                            2'b00: pixelColor <= b0c;
-                            2'b01: pixelColor <= b1c;
-                            2'b10: pixelColor <= b2c;
-                            2'b11: pixelColor <= vic_color'({1'b0, charShifting[10:8]});
+                            2'b00: pixelColor1 <= b0c;
+                            2'b01: pixelColor1 <= b1c;
+                            2'b10: pixelColor1 <= b2c;
+                            2'b11: pixelColor1 <= vic_color'({1'b0, charShifting[10:8]});
                         endcase
                     else
-                        pixelColor <= pixelsShifting[7] ? vic_color'(charShifting[11:8]):b0c;
+                        pixelColor1 <= pixelsShifting[7] ? vic_color'(charShifting[11:8]):b0c;
                 MODE_STANDARD_BITMAP, MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP:
-                    pixelColor <= pixelsShifting[7] ? vic_color'(charShifting[7:4]):vic_color'(charShifting[3:0]);
+                    pixelColor1 <= pixelsShifting[7] ? vic_color'(charShifting[7:4]):vic_color'(charShifting[3:0]);
                 MODE_MULTICOLOR_BITMAP, MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
                     case (pixelsShifting[7:6])
-                        2'b00: pixelColor <= b0c;
-                        2'b01: pixelColor <= vic_color'(charShifting[7:4]);
-                        2'b10: pixelColor <= vic_color'(charShifting[3:0]);
-                        2'b11: pixelColor <= vic_color'(charShifting[11:8]);
+                        2'b00: pixelColor1 <= b0c;
+                        2'b01: pixelColor1 <= vic_color'(charShifting[7:4]);
+                        2'b10: pixelColor1 <= vic_color'(charShifting[3:0]);
+                        2'b11: pixelColor1 <= vic_color'(charShifting[11:8]);
                     endcase
                 MODE_EXTENDED_BG_COLOR:
                     case ({pixelsShifting[7], charShifting[7:6]})
-                        3'b000: pixelColor <= b0c;
-                        3'b001: pixelColor <= b1c;
-                        3'b010: pixelColor <= b2c;
-                        3'b011: pixelColor <= b3c;
-                        default: pixelColor <= vic_color'(charShifting[11:8]);
+                        3'b000: pixelColor1 <= b0c;
+                        3'b001: pixelColor1 <= b1c;
+                        3'b010: pixelColor1 <= b2c;
+                        3'b011: pixelColor1 <= b3c;
+                        default: pixelColor1 <= vic_color'(charShifting[11:8]);
                     endcase
                 MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR:
                     if (charShifting[11])
                         case (pixelsShifting[7:6])
-                            2'b00: pixelColor <= b0c;
-                            2'b01: pixelColor <= b1c;
-                            2'b10: pixelColor <= b2c;
-                            2'b11: pixelColor <= vic_color'(charShifting[11:8]);
+                            2'b00: pixelColor1 <= b0c;
+                            2'b01: pixelColor1 <= b1c;
+                            2'b10: pixelColor1 <= b2c;
+                            2'b11: pixelColor1 <= vic_color'(charShifting[11:8]);
                         endcase
                     else
                         case ({pixelsShifting[7], charShifting[7:6]})
-                            3'b000: pixelColor <= b0c;
-                            3'b001: pixelColor <= b1c;
-                            3'b010: pixelColor <= b2c;
-                            3'b011: pixelColor <= b3c;
-                            default: pixelColor <= vic_color'(charShifting[11:8]);
+                            3'b000: pixelColor1 <= b0c;
+                            3'b001: pixelColor1 <= b1c;
+                            3'b010: pixelColor1 <= b2c;
+                            3'b011: pixelColor1 <= b3c;
+                            default: pixelColor1 <= vic_color'(charShifting[11:8]);
                         endcase
             endcase
         end
     end
 
-vic_color color_code;
-
+vic_color pixelColor2; // stage 2
+reg [1:0] spriteColor; // may overwrite stage 2 pixel color
+reg [2:0] spriteColorNum; // if color overwritten, what sprite number?
 always @(posedge clk_dot4x)
     begin
         // illegal modes should have black pixels
@@ -1265,25 +1266,33 @@ always @(posedge clk_dot4x)
             MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR,
             MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP,
             MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
-                color_code <= BLACK;
-            default: color_code <= pixelColor;
+                pixelColor2 = BLACK;
+            default: pixelColor2 = pixelColor1;
         endcase
         // sprites overwrite pixels
-        for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
+        spriteColor = 2'b00;
+        spriteColorNum = 3'b00; 
+        for (n = `NUM_SPRITES-1; n >= 0; n = n - 1) begin
           if (!sprite_pri[n] || isBackgroundPixel) begin
             if (sprite_mmc[n]) begin  // multi-color mode ?
-               case(sprite_cur_pixel[n])
-               2'b00:  ;
-               2'b01:  color_code <= sprite_mc0;
-               2'b10:  color_code <= sprite_col[n];  
-               2'b11:  color_code <= sprite_mc1;
-               endcase
+               if (sprite_cur_pixel[n] != 2'b00) begin
+                 spriteColor = sprite_cur_pixel[n];
+                 spriteColorNum = n[2:0];
+               end
+            end else if (sprite_cur_pixel[n][1]) begin
+               spriteColor = 2'b10;
+               spriteColorNum = n[2:0];
             end
-            else if (sprite_cur_pixel[n][1])
-              color_code <= sprite_col[n];
          end
        end
-end
+               
+       case(spriteColor)
+          2'b00:  ;
+          2'b01:  pixelColor2 = sprite_mc0;
+          2'b10:  pixelColor2 = sprite_col[spriteColorNum];  
+          2'b11:  pixelColor2 = sprite_mc1;
+       endcase
+   end
 
 reg TBBorder = 1'b1;
 reg LRBorder = 1'b1;
@@ -1325,21 +1334,21 @@ begin
 end
 
 // mask with border
-vic_color color8;
+vic_color pixelColor3; // stage 3
 always @(posedge clk_dot4x)
 begin
     if (LRBorder | TBBorder)
-      color8 <= ec;
+      pixelColor3 <= ec;
     else
-      color8 <= color_code;
+      pixelColor3 <= pixelColor2;
 end
 
-// Translate out_pixel (indexed) to RGB values
+// Translate pixelColor3 (indexed) to RGB values
 color viccolor(
      .chip(chip),
      .x_pos(xpos),
      .y_pos(raster_line),
-     .out_pixel(color8),
+     .out_pixel(pixelColor3),
      .hSyncStart(hSyncStart),
      .hVisibleStart(hVisibleStart),
      .vBlankStart(vBlankStart),
