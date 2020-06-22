@@ -844,6 +844,8 @@ endcase
 
   // sprite logic
 
+reg handle_sprite_crunch;
+
   always @(posedge clk_dot4x)
   if (rst) begin
      for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
@@ -860,14 +862,28 @@ endcase
        end
      end
      // turn on dma
-     else if (clk_phi && phi_phase_start[2] && cycleNum == 15) begin
+     if (clk_phi && phi_phase_start[2] && cycleNum == 15) begin
        for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
           if (sprite_mcbase[n] == 63)
               sprite_dma[n] <= 0;
        end
      end
+     if (handle_sprite_crunch) begin // happens phi_phase_start[REG_DAV+1]
+        // sprite crunch
+        for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
+          if (!sprite_ye[n] && !sprite_ye_ff[n]) begin
+             if (cycleNum == 15) begin
+                sprite_mc[n] <= (6'h2a & (sprite_mcbase[n] & sprite_mc[n])) |
+                               (6'h15 & (sprite_mcbase[n] | sprite_mc[n])) ;
+                sprite_mcbase[n] <= (6'h2a & (sprite_mcbase[n] & sprite_mc[n])) |
+                               (6'h15 & (sprite_mcbase[n] | sprite_mc[n]));
+             end
+             sprite_ye_ff[n] <= 1'b1;
+          end
+        end
+     end
      // check dma (VICE does this on HIGH, not sure if correct)
-     else if (clk_phi && phi_phase_start[1] && (cycleNum == spriteDmaChk1 || cycleNum == spriteDmaChk2)) begin
+     if (clk_phi && phi_phase_start[1] && (cycleNum == spriteDmaChk1 || cycleNum == spriteDmaChk2)) begin
         for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
            if (!sprite_dma[n] && sprite_en[n] && raster_line[7:0] == sprite_y[n]) begin
               sprite_dma[n] <= 1;
@@ -884,7 +900,7 @@ endcase
         end
      end
      // sprite display check
-     else if (clk_phi && phi_phase_start[1] && cycleNum == spriteDisplayChk) begin
+     if (clk_phi && phi_phase_start[1] && cycleNum == spriteDisplayChk) begin
        for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
           sprite_mc[n] <= sprite_mcbase[n];
        end
@@ -1408,6 +1424,9 @@ always @(posedge clk_dot4x)
            immc_clr <= 1'b0;
            ilp_clr <= 1'b0;
         end
+        if (phi_phase_start[15]) begin
+           handle_sprite_crunch <= 1'b0;
+        end
         if (!vic_write_ab && !ce) begin
             // READ from register
             if (rw) begin
@@ -1591,17 +1610,8 @@ always @(posedge clk_dot4x)
                             res <= dbi[5];
                         end
                         /* 0x17 */ REG_SPRITE_EXPAND_Y: begin
-                            // sprite crunch
-                            for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-                              if (!dbi[n] && !sprite_ye_ff[n]) begin
-                                 if (cycleNum == 15) begin
-                                    sprite_mc[n] = (6'h2a & (sprite_mcbase[n] & sprite_mc[n])) |
-                                                   (6'h15 & (sprite_mcbase[n] | sprite_mc[n])) ;
-                                 end
-                                 sprite_ye_ff[n] = 1'b1;
-                              end
-                            end
-                    
+                            // must be handled before end of phase (before reset)
+                            handle_sprite_crunch <= 1'b1;
                             sprite_ye <= dbi[7:0];
                         end
                         /* 0x18 */ REG_MEMORY_SETUP: begin
