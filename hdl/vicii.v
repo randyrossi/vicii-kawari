@@ -940,7 +940,9 @@ begin
         sprite_xe_ff[n] <= !sprite_xe_ff[n] & sprite_xe[n];
         if (!sprite_xe_ff[n]) begin
           sprite_mmc_ff[n] <= !sprite_mmc_ff[n] & sprite_mmc[n];
-          if (!sprite_mmc_ff[n])
+          if (!sprite_en[n])
+             sprite_cur_pixel[n] <= 2'b00;
+          else if (!sprite_mmc_ff[n])
              sprite_cur_pixel[n] <= sprite_pixels[n][23:22];
           sprite_pixels[n] <= {sprite_pixels[n][22:0],1'b0};
         end
