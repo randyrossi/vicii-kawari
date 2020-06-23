@@ -47,8 +47,10 @@ module vicii(
 `define DATA_DAV 13
 // Sprite read phi_phase_start data available
 `define SPRITE_DAV 13
-// How many dot ticks we need to delay out pixels before they get into the shifter
-`define PIXEL_DELAY 8
+// How many dot ticks we need to delay our bitmap pixels before they get into the shifter
+`define DATA_PIXEL_DELAY 8
+// How many dot ticks we need to delay our sprite pixels before the get into the shifter
+`define SPRITE_PIXEL_DELAY 2
 // Will never change but used in loops
 `define NUM_SPRITES 8
 
@@ -299,12 +301,15 @@ endcase
   reg [7:0] pixels_read;
   
   // char and pixels delayed before entering shifter
-  reg [11:0] char_delayed[`PIXEL_DELAY + 1];
-  reg [7:0] pixels_delayed[`PIXEL_DELAY + 1];
+  reg [11:0] char_delayed[`DATA_PIXEL_DELAY + 1];
+  reg [7:0] pixels_delayed[`DATA_PIXEL_DELAY + 1];
 
   // pixels being shifted and the associated char (for color info)
   reg [11:0] char_shifting;
   reg [7:0] pixels_shifting;
+
+  reg [1:0] sprite_pixels_delayed1[`NUM_SPRITES];
+  reg [1:0] sprite_pixels_delayed2[`NUM_SPRITES];
 
   // badline condition
   reg badline;
@@ -490,7 +495,7 @@ endcase
   // to delay both pixels and border locations to align with expected
   // times pixels should come out of the sequencer.
   reg [9:0] xpos_d;
-  assign xpos_d = xpos - (`PIXEL_DELAY - 1);
+  assign xpos_d = xpos - (`DATA_PIXEL_DELAY - 1);
   
 // border on/off logic 
   
@@ -1021,13 +1026,23 @@ begin
   end
 end
 
+  // Delay sprite pixels by two dot ticks
+  always @(posedge clk_dot4x)
+  begin
+    if (dot_rising[0]) begin
+       for (n = `NUM_SPRITES; n > 0; n = n - 1) begin
+          sprite_pixels_delayed1[n][1:0] <= sprite_cur_pixel[n][1:0];
+          sprite_pixels_delayed2[n][1:0] <= sprite_pixels_delayed1[n][1:0];
+       end
+    end
+  end
 
 // Sprite to sprite collision logic (m2m)
 
 reg [`NUM_SPRITES-1:0] collision;
 always @*
   for (n = 0; n < `NUM_SPRITES; n = n + 1)
-    collision[n] = sprite_cur_pixel[n][1];
+    collision[n] = sprite_pixels_delayed2[n][1];
 
 reg m2m_irq_triggered;
 reg m2m_clr;
@@ -1091,7 +1106,7 @@ else begin
   // do this on last tick of a dot [3] when both cur pixel and is_background_pixel are valid
   if (dot_rising[3]) begin
     for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-      if (sprite_cur_pixel[n][1] & !is_background_pixel & !(left_right_border | top_bot_border)) begin
+      if (sprite_pixels_delayed2[n][1] & !is_background_pixel & !(left_right_border | top_bot_border)) begin
         sprite_m2d[n] <= `TRUE;
         if (!m2d_irq_triggered) begin
           m2d_irq_triggered <= `TRUE;
@@ -1234,7 +1249,7 @@ end
     end
   end
 
-  // Now delay these pixels until pixels_delayed[PIXEL_DELAY]
+  // Now delay these pixels until pixels_delayed[DATA_PIXEL_DELAY]
   // is available for loading into shifting pixels by loadPixels
   // flag starting with xpos ##0 and fully available until xpos ##7.
   // This makes loading pixels on ##0 make the first pixel show
@@ -1243,7 +1258,7 @@ end
   always @(posedge clk_dot4x)
   begin
     if (dot_rising[0]) begin
-       for (n = `PIXEL_DELAY; n > 0; n = n - 1) begin
+       for (n = `DATA_PIXEL_DELAY; n > 0; n = n - 1) begin
           pixels_delayed[n] <= pixels_delayed[n-1];
           char_delayed[n] <= char_delayed[n-1];
        end
@@ -1319,7 +1334,7 @@ always @(*)
 always @(posedge clk_dot4x)
 if (dot_rising[0]) begin // rising dot
         if (loadPixels)
-                clkShift <= ~(mcm & (bmm | ecm | char_delayed[`PIXEL_DELAY][11]));
+                clkShift <= ~(mcm & (bmm | ecm | char_delayed[`DATA_PIXEL_DELAY][11]));
         else
                 clkShift <= ismc ? ~clkShift : clkShift;
 end
@@ -1327,14 +1342,14 @@ end
 always @(posedge clk_dot4x)
 if (dot_rising[0]) begin
         if (loadPixels)
-                char_shifting <= char_delayed[`PIXEL_DELAY];
+                char_shifting <= char_delayed[`DATA_PIXEL_DELAY];
 end
 
 // Pixel shifter
 always @(posedge clk_dot4x)
 if (dot_rising[0]) begin
         if (loadPixels)
-                pixels_shifting <= pixels_delayed[`PIXEL_DELAY];
+                pixels_shifting <= pixels_delayed[`DATA_PIXEL_DELAY];
         else if (clkShift) begin
                 if (ismc)
                         pixels_shifting <= {pixels_shifting[5:0], 2'b0};
@@ -1415,15 +1430,15 @@ begin
     for (n = `NUM_SPRITES-1; n >= 0; n = n - 1) begin
       if (!sprite_pri[n] || is_background_pixel) begin
         if (sprite_mmc[n]) begin  // multi-color mode ?
-           if (sprite_cur_pixel[n] != 2'b00) begin
-             case(sprite_cur_pixel[n])
+           if (sprite_pixels_delayed2[n] != 2'b00) begin
+             case(sprite_pixels_delayed2[n])
                2'b00:  ;
                2'b01:  pixel_color2 = sprite_mc0;
                2'b10:  pixel_color2 = sprite_col[n[2:0]];  
                2'b11:  pixel_color2 = sprite_mc1;
              endcase
            end
-        end else if (sprite_cur_pixel[n][1]) begin
+        end else if (sprite_pixels_delayed2[n][1]) begin
            pixel_color2 = sprite_col[n[2:0]];  
         end
       end
