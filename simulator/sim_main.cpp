@@ -751,7 +751,7 @@ int main(int argc, char** argv, char** env) {
     signal_src8[OUT_B1] = &top->blue;
     signal_bit[OUT_B1] = 2;
     signal_src8[OUT_DOT] = &top->V_CLK_DOT;
-    signal_src8[OUT_CSYNC] = &top->cSync;
+    signal_src8[OUT_CSYNC] = &top->V_CSYNC;
     signal_src8[IN_CE] = &top->ce;
     signal_src8[IN_RW] = &top->rw;
     signal_src8[OUT_BA] = &top->ba;

@@ -57,9 +57,9 @@
 
 #define V_PPS          vicii__DOT__phi_phase_start
 #define V_XPOS         vicii__DOT__xpos
-#define V_CYCLE_NUM    vicii__DOT__cycleNum
+#define V_CYCLE_NUM    vicii__DOT__cycle_num
 #define V_CLK_DOT      clk_dot
-#define V_CYCLE_BIT    vicii__DOT__cycleBit
+#define V_CYCLE_BIT    vicii__DOT__cycle_bit
 #define V_RASTER_X     vicii__DOT__raster_x
 #define V_RASTER_LINE  vicii__DOT__raster_line
 #define V_NEXT_RASTER_LINE  vicii__DOT__next_raster_line
@@ -87,14 +87,14 @@
 #define V_IMBC_CLR     vicii__DOT__imbc_clr
 #define V_IMMC_CLR     vicii__DOT__immc_clr
 #define V_ILP_CLR      vicii__DOT__ilp_clr
-#define V_RASTERCMP    vicii__DOT__rasterIrqCompare
-#define V_VICADDR      vicii__DOT__vicAddr
+#define V_RASTERCMP    vicii__DOT__raster_irq_compare
+#define V_VICADDR      vicii__DOT__vic_addr
 #define V_CB           vicii__DOT__cb
 #define V_VM           vicii__DOT__vm
-#define V_NEXTCHAR     vicii__DOT__nextChar
+#define V_NEXTCHAR     vicii__DOT__next_char
 #define V_BADLINE      vicii__DOT__badline
 #define V_VC           vicii__DOT__vc
-#define V_VCBASE       vicii__DOT__vcBase
+#define V_VCBASE       vicii__DOT__vc_base
 #define V_RC           vicii__DOT__rc
 #define V_YSCROLL      vicii__DOT__yscroll
 #define V_XSCROLL      vicii__DOT__xscroll
@@ -109,7 +109,7 @@
 #define V_CYCLE_FINE_CTR     vicii__DOT__cycle_fine_ctr
 #define V_IDLE               vicii__DOT__idle
 #define V_REG11_DELAYED      vicii__DOT__reg11_delayed
-#define V_CYCLE_TYPE         vicii__DOT__cycleType
+#define V_CYCLE_TYPE         vicii__DOT__cycle_type
 #define V_SPRITE_DMA         vicii__DOT__sprite_dma
 #define V_SPRITE_EN          vicii__DOT__sprite_en
 #define V_SPRITE_OFF         vicii__DOT__sprite_off
@@ -130,7 +130,8 @@
 #define V_SPRITE_MC           vicii__DOT__sprite_mc
 #define V_SPRITE_MCBASE       vicii__DOT__sprite_mcbase
 #define V_SPRITE_RASTER_X     vicii__DOT__sprite_raster_x
-#define V_RASTER_IRQ_RAISED   vicii__DOT__rasterIrqRaised
-#define V_TBBORDER            vicii__DOT__TBBorder
-#define V_LRBORDER            vicii__DOT__LRBorder
+#define V_RASTER_IRQ_RAISED   vicii__DOT__raster_irq_triggered
+#define V_TBBORDER            vicii__DOT__top_bot_border
+#define V_LRBORDER            vicii__DOT__left_right_border
 #define V_COLLISION           vicii__DOT__collision
+#define V_CSYNC               csync
