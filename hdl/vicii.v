@@ -923,7 +923,7 @@ reg handle_sprite_crunch;
         // sprite crunch
         for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
           if (!sprite_ye[n] && !sprite_ye_ff[n]) begin
-             if (cycle_num == 15) begin
+             if (cycle_num == 14) begin
                 sprite_mc[n] <= (6'h2a & (sprite_mcbase[n] & sprite_mc[n])) |
                                (6'h15 & (sprite_mcbase[n] | sprite_mc[n])) ;
                 sprite_mcbase[n] <= (6'h2a & (sprite_mcbase[n] & sprite_mc[n])) |
