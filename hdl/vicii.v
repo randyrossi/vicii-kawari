@@ -84,9 +84,9 @@ reg [9:0] sprite_ba_end [`NUM_SPRITES];
 // wrap around conditions.
 reg [9:0] sprite_raster_x;
 
-//clk_dot4x;     32.272768 Mhz NTSC, 31.527955 Mhz PAL
-//clk_col4x;     14.318181 Mhz NTSC, 17.734475 Mhz PAL
-//wire clk_dot;  // 8.18181 Mhz NTSC, 7.8819888 Mhz PAL
+// clk_dot4x;     32.272768 Mhz NTSC, 31.527955 Mhz PAL
+// clk_col4x;     14.318181 Mhz NTSC, 17.734475 Mhz PAL
+// clk_dot;       8.18181 Mhz NTSC, 7.8819888 Mhz PAL
 // clk_colref     3.579545 Mhz NTSC, 4.43361875 Mhz PAL
 // clk_phi        1.02272 Mhz NTSC, .985248 Mhz PAL
 
@@ -268,7 +268,7 @@ endcase
   // if enabled, what raster line do we trigger irq for irst?
   reg [8:0] rasterIrqCompare;
   // keeps track of whether raster irq was raised on a line
-  reg rasterIrqRaised;
+  reg raster_irq_triggered;
   
   reg [9:0] vcBase; // video counter base
   reg [9:0] vc; // video counter
@@ -286,11 +286,15 @@ endcase
   reg mcm; // multi color mode
   reg res; // no function
 
+  // mostly used for iterating over sprites
   integer n;
+  
+  // char read off the bus, eventually transfered to charRead
   reg [11:0] charNext;
+  // our character line buffer
   reg [11:0] charBuf [38:0];
 
-  // pixels read off the data bus and char read from the bus (badline) or charBuf (not)
+  // pixels read off the data bus and char read from the bus (charNext on badline) or charBuf (not badline)
   reg [11:0] charRead;
   reg [7:0] pixelsRead;
   
@@ -305,6 +309,7 @@ endcase
   // badline condition
   reg badline;
 
+  // determines when ba should drop due to chars and sprites
   reg baChars;
   reg [7:0] baSprite;
 
@@ -322,8 +327,6 @@ endcase
   reg       sprite_ye_ff[0:`NUM_SPRITES-1];
   reg [7:0] sprite_mmc;
   reg       sprite_mmc_ff[0:`NUM_SPRITES-1];
-  reg [7:0] sprite_m2m;
-  reg [7:0] sprite_m2d;
   
   // data pointers for each sprite
   reg [7:0] sprite_ptr[0:`NUM_SPRITES - 1];
@@ -444,12 +447,12 @@ endcase
      // be too early.  Find out.
      if (clk_phi == 1'b1 && phi_phase_start[15] && // phi going low
        (cycleType == VIC_HPI3 || cycleType == VIC_HS3) && spriteCnt == 2)
-       rasterIrqRaised <= 1'b0;
+       raster_irq_triggered <= 1'b0;
      if (irst_clr)
        irst <= 1'b0;
-     if (rasterIrqRaised == 1'b0 && raster_line == rasterIrqCompare) begin
+     if (raster_irq_triggered == 1'b0 && raster_line == rasterIrqCompare) begin
        if ((raster_line == 0 && cycleNum == 1) || (raster_line != 0 && cycleNum == 0)) begin
-          rasterIrqRaised <= 1'b1;
+          raster_irq_triggered <= 1'b1;
           irst <= 1'b1;
        end
      end
@@ -488,6 +491,49 @@ endcase
   // times pixels should come out of the sequencer.
   reg [9:0] xpos_d;
   assign xpos_d = xpos - (`PIXEL_DELAY - 1);
+  
+// border on/off logic 
+  
+reg TBBorder = 1'b1;
+reg LRBorder = 1'b1;
+reg newTBBorder = 1'b1;
+
+always @(raster_line, rsel, allow_bad_lines, TBBorder)
+begin
+    newTBBorder = TBBorder;
+    if (raster_line == 55 && allow_bad_lines == 1'b1)
+        newTBBorder = 1'b0;
+
+    if (raster_line == 51 && rsel == 1'b1 && allow_bad_lines == 1'b1)
+        newTBBorder = 1'b0;
+
+    if (raster_line == 247 && rsel == 1'b0)
+       newTBBorder = 1'b1;
+
+    if (raster_line == 251 && rsel == 1'b1)
+       newTBBorder = 1'b1;
+end
+
+always @(posedge clk_dot4x)
+begin
+    if (dot_rising[0]) begin
+       if (xpos_d == 32 && csel == 1'b0) begin
+          LRBorder <= newTBBorder;
+          TBBorder <= newTBBorder;
+       end
+       if (xpos_d == 25 && csel == 1'b1) begin
+          LRBorder <= newTBBorder;
+          TBBorder <= newTBBorder;
+       end
+
+       if (xpos_d == 336 && csel == 1'b0)
+          LRBorder <= 1'b1;
+
+       if (xpos_d == 345 && csel == 1'b1)
+          LRBorder <= 1'b1;
+    end
+end
+
   
   // Update x,y position
   always @(posedge clk_dot4x)
@@ -976,6 +1022,87 @@ begin
 end
 
 
+// Sprite to sprite collision logic (m2m)
+
+reg [`NUM_SPRITES-1:0] collision;
+always @*
+  for (n = 0; n < `NUM_SPRITES; n = n + 1)
+    collision[n] = sprite_cur_pixel[n][1];
+
+reg m2m_irq_triggered;
+reg m2m_clr;
+reg [7:0] sprite_m2m;
+always @(posedge clk_dot4x)
+if (rst) begin
+  sprite_m2m <= 8'b0;
+  m2m_irq_triggered <= `FALSE;
+end else begin
+  if (immc_clr)
+    immc <= `FALSE;
+  // must do this before m2m_clr itself is reset on [1]
+  if (phi_phase_start[0] && !clk_phi && m2m_clr) begin
+      sprite_m2m[7:0] <= 8'd0;
+      m2m_irq_triggered <= `FALSE;
+  end
+  if (dot_rising[3]) begin
+  case(collision)
+    8'b00000000,
+    8'b00000001,
+    8'b00000010,
+    8'b00000100,
+    8'b00001000,
+    8'b00010000,
+    8'b00100000,
+    8'b01000000,
+    8'b10000000:
+      ;
+    default:
+      begin
+        sprite_m2m <= sprite_m2m | collision;
+        if (!m2m_irq_triggered) begin
+          immc <= `TRUE;
+          m2m_irq_triggered <= `TRUE;
+        end
+      end
+  endcase
+  end
+end
+
+// Sprite to data collision logic (m2d)
+
+reg [7:0] sprite_m2d;
+reg m2d_irq_triggered;
+reg m2d_clr;
+reg isBackgroundPixel;
+
+always @(posedge clk_dot4x)
+if (rst) begin
+  sprite_m2d <= 8'b0;
+  m2d_irq_triggered <= `FALSE;
+end
+else begin
+  if (imbc_clr)
+    imbc <= `FALSE;
+  // must do this before m2m_clr itself is reset on [1]
+  if (phi_phase_start[0] && !clk_phi && m2d_clr) begin
+      sprite_m2d[7:0] <= 8'd0;
+      m2d_irq_triggered <= `FALSE;
+  end
+  // do this on last tick of a dot [3] when both cur pixel and isBackgroundPixel are valid
+  if (dot_rising[3]) begin
+    for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
+      if (sprite_cur_pixel[n][1] & !isBackgroundPixel & !(LRBorder | TBBorder)) begin
+        sprite_m2d[n] <= `TRUE;
+        if (!m2d_irq_triggered) begin
+          m2d_irq_triggered <= `TRUE;
+          imbc <= `TRUE;
+        end
+      end
+    end
+  end
+end
+
+
   // AEC LOW tells CPU to tri-state its bus lines 
   // AEC will remain HIGH during Phi phase 2 for 3 cycles
   // after which it will remain LOW with ba.
@@ -1177,7 +1304,6 @@ end
 
 // Pixel sequencer stuff  
 reg loadPixels;
-reg isBackgroundPixel;
 reg clkShift;
 reg ismc;
 
@@ -1275,81 +1401,35 @@ always @(posedge clk_dot4x)
     end
 
 vic_color pixelColor2; // stage 2
-reg [1:0] spriteColor; // may overwrite stage 2 pixel color
-reg [2:0] spriteColorNum; // if color overwritten, what sprite number?
-always @(posedge clk_dot4x)
-    begin
-        // illegal modes should have black pixels
-        case ({ecm, bmm, mcm})
-            MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR,
-            MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP,
-            MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
-                pixelColor2 = BLACK;
-            default: pixelColor2 = pixelColor1;
-        endcase
-        // sprites overwrite pixels
-        spriteColor = 2'b00;
-        spriteColorNum = 3'b00; 
-        for (n = `NUM_SPRITES-1; n >= 0; n = n - 1) begin
-          if (!sprite_pri[n] || isBackgroundPixel) begin
-            if (sprite_mmc[n]) begin  // multi-color mode ?
-               if (sprite_cur_pixel[n] != 2'b00) begin
-                 spriteColor = sprite_cur_pixel[n];
-                 spriteColorNum = n[2:0];
-               end
-            end else if (sprite_cur_pixel[n][1]) begin
-               spriteColor = 2'b10;
-               spriteColorNum = n[2:0];
-            end
-         end
-       end
-               
-       case(spriteColor)
-          2'b00:  ;
-          2'b01:  pixelColor2 = sprite_mc0;
-          2'b10:  pixelColor2 = sprite_col[spriteColorNum];  
-          2'b11:  pixelColor2 = sprite_mc1;
-       endcase
-   end
-
-reg TBBorder = 1'b1;
-reg LRBorder = 1'b1;
-reg newTBBorder = 1'b1;
-
-always @(raster_line, rsel, allow_bad_lines, TBBorder)
-begin
-    newTBBorder = TBBorder;
-    if (raster_line == 55 && allow_bad_lines == 1'b1)
-        newTBBorder = 1'b0;
-                               
-    if (raster_line == 51 && rsel == 1'b1 && allow_bad_lines == 1'b1)
-        newTBBorder = 1'b0;
-                             
-    if (raster_line == 247 && rsel == 1'b0)
-       newTBBorder = 1'b1;
-                             
-    if (raster_line == 251 && rsel == 1'b1)
-       newTBBorder = 1'b1;
-end
-
 always @(posedge clk_dot4x)
 begin
-    if (dot_rising[0]) begin
-       if (xpos_d == 32 && csel == 1'b0) begin
-          LRBorder <= newTBBorder;
-          TBBorder <= newTBBorder;
-       end
-       if (xpos_d == 25 && csel == 1'b1) begin
-          LRBorder <= newTBBorder;
-          TBBorder <= newTBBorder;
-       end
-       if (xpos_d == 336 && csel == 1'b0)
-          LRBorder <= 1'b1;
-                              
-       if (xpos_d == 345 && csel == 1'b1)
-          LRBorder <= 1'b1;
+    // illegal modes should have black pixels
+    case ({ecm, bmm, mcm})
+        MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR,
+        MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP,
+        MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
+            pixelColor2 = BLACK;
+        default: pixelColor2 = pixelColor1;
+    endcase
+    // sprites overwrite pixels
+    for (n = `NUM_SPRITES-1; n >= 0; n = n - 1) begin
+      if (!sprite_pri[n] || isBackgroundPixel) begin
+        if (sprite_mmc[n]) begin  // multi-color mode ?
+           if (sprite_cur_pixel[n] != 2'b00) begin
+             case(sprite_cur_pixel[n])
+               2'b00:  ;
+               2'b01:  pixelColor2 = sprite_mc0;
+               2'b10:  pixelColor2 = sprite_col[n[2:0]];  
+               2'b11:  pixelColor2 = sprite_mc1;
+             endcase
+           end
+        end else if (sprite_cur_pixel[n][1]) begin
+           pixelColor2 = sprite_col[n[2:0]];  
+        end
+      end
     end
 end
+
 
 // mask with border
 vic_color pixelColor3; // stage 3
@@ -1407,8 +1487,6 @@ always @(posedge clk_dot4x)
         sprite_en <= 8'b0;
         sprite_xe <= 8'b0;
         sprite_ye <= 8'b0;
-        sprite_m2m <= 8'b0;
-        sprite_m2d <= 8'b0;
         sprite_pri <= 8'b0;
         sprite_mmc <= 8'b0;
         sprite_mc0 <= BLACK;
@@ -1418,16 +1496,27 @@ always @(posedge clk_dot4x)
            sprite_y[n] <= 8'b0;
            sprite_col[n] <= BLACK;
         end
+        m2m_clr <= 1'b0;
+        m2d_clr <= 1'b0;
     end
     else begin
+        // always clear these at the end of the high phase
         if (phi_phase_start[15] && clk_phi) begin
            irst_clr <= 1'b0;
            imbc_clr <= 1'b0;
            immc_clr <= 1'b0;
            ilp_clr <= 1'b0;
         end
+        // sprite crunch simulation must be done before [15] of
+        // the current phase
         if (phi_phase_start[15]) begin
            handle_sprite_crunch <= 1'b0;
+        end
+        // m2m/m2d clear after register reads must be 
+        // done on [1] of the next low phase
+        if (phi_phase_start[1] && !clk_phi) begin
+           m2m_clr <= 1'b0;
+           m2d_clr <= 1'b0;
         end
         if (!vic_write_ab && !ce) begin
             // READ from register
@@ -1505,10 +1594,16 @@ always @(posedge clk_dot4x)
                         dbo[7:0] <= sprite_mmc;
                     /* 0x1d */ REG_SPRITE_EXPAND_X:
                         dbo[7:0] <= sprite_xe;
-                    /* 0x1e */ REG_SPRITE_2_SPRITE_COLLISION:
+                    /* 0x1e */ REG_SPRITE_2_SPRITE_COLLISION: begin
                         dbo[7:0] <= sprite_m2m;
-                    /* 0x1f */ REG_SPRITE_2_DATA_COLLISION:
+                        // reading this register clears the value
+                        m2m_clr <= 1;
+                    end
+                    /* 0x1f */ REG_SPRITE_2_DATA_COLLISION: begin
                         dbo[7:0] <= sprite_m2d;
+                        // reading this register clears the value
+                        m2d_clr <= 1;
+                    end
                     /* 0x20 */ REG_BORDER_COLOR:
                         dbo[7:0] <= {4'b1111, ec};
                     /* 0x21 */ REG_BACKGROUND_COLOR_0:
@@ -1638,10 +1733,6 @@ always @(posedge clk_dot4x)
                             sprite_mmc <= dbi[7:0];
                         /* 0x1d */ REG_SPRITE_EXPAND_X:
                             sprite_xe <= dbi[7:0];
-                        /* 0x1e */ REG_SPRITE_2_SPRITE_COLLISION:
-                            sprite_m2m <= dbi[7:0];
-                        /* 0x1f */ REG_SPRITE_2_DATA_COLLISION:
-                            sprite_m2d <= dbi[7:0];
                         /* 0x20 */ REG_BORDER_COLOR:
                             ec <= vic_color'(dbi[3:0]);
                         /* 0x21 */ REG_BACKGROUND_COLOR_0:

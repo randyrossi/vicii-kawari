@@ -133,3 +133,4 @@
 #define V_RASTER_IRQ_RAISED   vicii__DOT__rasterIrqRaised
 #define V_TBBORDER            vicii__DOT__TBBorder
 #define V_LRBORDER            vicii__DOT__LRBorder
+#define V_COLLISION           vicii__DOT__collision

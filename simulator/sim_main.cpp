@@ -314,13 +314,13 @@ static void regs_vice_to_fpga(Vvicii* top, struct vicii_state* state) {
        top->V_VM = (val & 240) >> 4;
 
        val = state->vice_reg[0x19];
-       top->V_IRST_CLR =  val & 1;
+       top->V_IRST_CLR = val & 1;
        top->V_IMBC_CLR = val & 2 ? 1 : 0;
        top->V_IMMC_CLR = val & 4 ? 1 : 0;
        top->V_ILP_CLR =  val & 8 ? 1 : 0;
 
        val = state->vice_reg[0x1A];
-       top->V_ERST =  val & 1;
+       top->V_ERST = val & 1;
        top->V_EMBC = val & 2 ? 1 : 0;
        top->V_EMMC = val & 4 ? 1 : 0;
        top->V_ELP = val & 8 ? 1 : 0;
@@ -365,8 +365,10 @@ static void regs_vice_to_fpga(Vvicii* top, struct vicii_state* state) {
        top->V_SPRITE_PRI = state->vice_reg[0x1b];
        top->V_SPRITE_MMC = state->vice_reg[0x1c];
        top->V_SPRITE_XE = state->vice_reg[0x1d];
+
        top->V_SPRITE_M2M = state->vice_reg[0x1e];
        top->V_SPRITE_M2D = state->vice_reg[0x1f];
+
        top->V_SPRITE_MC0 = state->vice_reg[0x25];
        top->V_SPRITE_MC1 = state->vice_reg[0x26];
 
