@@ -926,8 +926,6 @@ reg handle_sprite_crunch;
              if (cycle_num == 14) begin
                 sprite_mc[n] <= (6'h2a & (sprite_mcbase[n] & sprite_mc[n])) |
                                (6'h15 & (sprite_mcbase[n] | sprite_mc[n])) ;
-                sprite_mcbase[n] <= (6'h2a & (sprite_mcbase[n] & sprite_mc[n])) |
-                               (6'h15 & (sprite_mcbase[n] | sprite_mc[n]));
              end
              sprite_ye_ff[n] <= 1'b1;
           end
@@ -1088,7 +1086,8 @@ end
 reg [7:0] sprite_m2d;
 reg m2d_irq_triggered;
 reg m2d_clr;
-reg is_background_pixel;
+reg is_background_pixel1;
+reg is_background_pixel2;
 
 always @(posedge clk_dot4x)
 if (rst) begin
@@ -1103,10 +1102,11 @@ else begin
       sprite_m2d[7:0] <= 8'd0;
       m2d_irq_triggered <= `FALSE;
   end
-  // do this on last tick of a dot [3] when both cur pixel and is_background_pixel are valid
-  if (dot_rising[3]) begin
+    // The comparisons for sprite pixels and is background pixel must be on the
+    // same delayed 'schedule'. 
+  if (dot_rising[1]) begin
     for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-      if (sprite_pixels_delayed2[n][1] & !is_background_pixel & !(left_right_border | top_bot_border)) begin
+      if (sprite_pixels_delayed1[n][1] & !is_background_pixel1 & !(left_right_border | top_bot_border)) begin
         sprite_m2d[n] <= `TRUE;
         if (!m2d_irq_triggered) begin
           m2d_irq_triggered <= `TRUE;
@@ -1250,7 +1250,7 @@ end
   end
 
   // Now delay these pixels until pixels_delayed[DATA_PIXEL_DELAY]
-  // is available for loading into shifting pixels by loadPixels
+  // is available for loading into shifting pixels by load_pixels
   // flag starting with xpos ##0 and fully available until xpos ##7.
   // This makes loading pixels on ##0 make the first pixel show
   // up on ##1. Note, these delays are relative to xpos_d which is
@@ -1318,10 +1318,9 @@ end
   assign ado = {vic_addr[11:8], ado8};
 
 // Pixel sequencer stuff  
-reg loadPixels;
-reg clkShift;
+reg load_pixels;
+reg shift_pixels;
 reg ismc;
-
 
 always @(*)
         ismc = mcm & (bmm | ecm | char_shifting[11]);
@@ -1329,33 +1328,40 @@ always @(*)
 // Use xpos_d here so we can properly delay our pixels
 // using char_delayed[]/pixels_delayed[] regs.
 always @(*)
-        loadPixels = xpos_d[2:0] == xscroll;
+        load_pixels = xpos_d[2:0] == xscroll;
 
 always @(posedge clk_dot4x)
 if (dot_rising[0]) begin // rising dot
-        if (loadPixels)
-                clkShift <= ~(mcm & (bmm | ecm | char_delayed[`DATA_PIXEL_DELAY][11]));
+        if (load_pixels)
+                shift_pixels <= ~(mcm & (bmm | ecm | char_delayed[`DATA_PIXEL_DELAY][11]));
         else
-                clkShift <= ismc ? ~clkShift : clkShift;
+                shift_pixels <= ismc ? ~shift_pixels : shift_pixels;
 end
 
 always @(posedge clk_dot4x)
 if (dot_rising[0]) begin
-        if (loadPixels)
+        if (load_pixels)
                 char_shifting <= char_delayed[`DATA_PIXEL_DELAY];
 end
 
 // Pixel shifter
-always @(posedge clk_dot4x)
-if (dot_rising[0]) begin
-        if (loadPixels)
+always @(posedge clk_dot4x) begin
+   // set is_background_pixel1 here so it is valid on dot tick rise [0]
+   // for the currently shifting pixel entering the final output pipeline
+   if (dot_rising[0]) begin
+        if (load_pixels) begin
                 pixels_shifting <= pixels_delayed[`DATA_PIXEL_DELAY];
-        else if (clkShift) begin
-                if (ismc)
+                is_background_pixel1 <= !pixels_delayed[`DATA_PIXEL_DELAY][7];
+        end else if (shift_pixels) begin
+                if (ismc) begin
                         pixels_shifting <= {pixels_shifting[5:0], 2'b0};
-                else
+                        is_background_pixel1 <= !pixels_shifting[5];
+                end else begin
                         pixels_shifting <= {pixels_shifting[6:0], 1'b0};
+                        is_background_pixel1 <= !pixels_shifting[6];
+                end
         end
+   end
 end
 
 // handle display modes
@@ -1363,7 +1369,8 @@ vic_color pixel_color1; // stage 1
 always @(posedge clk_dot4x)
     begin
         if (dot_rising[0]) begin
-            is_background_pixel <= !pixels_shifting[7];
+            // this will bring 2nd in line with delayed sprite pixels 2
+            is_background_pixel2 <= is_background_pixel1;
             pixel_color1 <= BLACK;
             case ({ecm, bmm, mcm})
                 MODE_STANDARD_CHAR:
@@ -1427,8 +1434,10 @@ begin
         default: pixel_color2 = pixel_color1;
     endcase
     // sprites overwrite pixels
+    // The comparisons of background pixel and sprite pixels must be
+    // on the same delay 'schedule' here.
     for (n = `NUM_SPRITES-1; n >= 0; n = n - 1) begin
-      if (!sprite_pri[n] || is_background_pixel) begin
+      if (!sprite_pri[n] || is_background_pixel2) begin
         if (sprite_mmc[n]) begin  // multi-color mode ?
            if (sprite_pixels_delayed2[n] != 2'b00) begin
              case(sprite_pixels_delayed2[n])
