@@ -14,7 +14,7 @@ set_property CFGBVS VCCO [current_design]
 set_property -dict { PACKAGE_PIN V3 IOSTANDARD LVCMOS33 } [get_ports { clk_colref }];
 
 # cSync out, Pin36
-set_property -dict { PACKAGE_PIN W5 IOSTANDARD LVCMOS33 } [get_ports { cSync }];
+set_property -dict { PACKAGE_PIN W5 IOSTANDARD LVCMOS33 } [get_ports { ccync }];
 
 # clk_phi out, Pin45
 set_property -dict { PACKAGE_PIN U7 IOSTANDARD LVCMOS33 } [get_ports { clk_phi }];
