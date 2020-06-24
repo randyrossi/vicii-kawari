@@ -628,10 +628,15 @@ end
     vc_base <= 10'd0;
     vc <= 10'd0;
     rc <= 3'd7;
-    idle <= 1'b1;
+    idle = 1'b1;
   end
   else begin 
-    if (clk_phi == 1'b1 && phi_phase_start[0]) begin
+    // This needs to be checked next 4x tick within the phase because
+    // badline does not trigger until after raster line has incremented
+    // which is after start of line which happens on tick 0 and due to
+    // delayed assignment raster line yscroll comparison won't happen until
+    // tick 1.
+    if (clk_phi == 1'b1 && phi_phase_start[1]) begin
       // Reset at start of frame
       if (cycle_num == 1 && raster_line == 9'd0) begin
          vc_base <= 10'd0;
@@ -648,26 +653,19 @@ end
       end
     
       if (cycle_num == 57) begin
-        // The extra check for badline within rc==7 is neccessary.
         if (rc == 3'd7) begin
           vc_base <= vc;
-          idle <= 1;
-          if (badline)
-             rc <= rc + 1'b1;
+          idle = 1;
         end
-        else if (!idle | badline)
+        if (!idle | badline) begin
           rc <= rc + 1'b1;
+          idle = 1'b0;
+        end
       end
-    end    
-   
-   // This needs to be checked next 4x tick within the phase because
-   // badline does not trigger until after raster line has incremented
-   // which is after start of line which happens on tick 0 and due to
-   // delayed assignment raster line yscroll comparison won't happen until
-   // tick 1.
-   if (clk_phi == 1'b1 && phi_phase_start[1] && badline)
-      idle <= 1'b0;
 
+      if (badline)
+         idle = 1'b0;
+    end    
   end
   
   // Handle when ba should go low due to c-access. We can use xpos
@@ -1188,7 +1186,7 @@ end
      VIC_HRC, VIC_HGC: // badline c-access
          char_next <= dbi;
      VIC_HRX, VIC_HGI: // not badline idle (char from cache)
-         char_next <= idle ? 12'b0 : char_buf[38];
+         char_next <= char_buf[38];
      default: ;
      endcase
 
@@ -1273,16 +1271,16 @@ end
         vic_addr = {6'b111111, refc};
      VIC_LG: begin
         if (idle)
-          if (reg11_delayed[6]) // ecm
+          if (ecm) // ecm
              vic_addr = 14'h39FF;
           else
              vic_addr = 14'h3FFF;
         else begin
-          if (reg11_delayed[5]) // bmm
+          if (bmm) // bmm
             vic_addr = {cb[2], vc, rc}; // bitmap data
           else
             vic_addr = {cb, char_next[7:0], rc}; // character pixels
-          if (reg11_delayed[6]) // ecm
+          if (ecm) // ecm
             vic_addr[10:9] = 2'b00;
         end
      end
@@ -1294,16 +1292,13 @@ end
         if (!vic_write_db)
            vic_addr = {sprite_ptr[sprite_cnt], sprite_mc[sprite_cnt]}; // s-access
         else begin
-          if (reg11_delayed[6]) // ecm
+          if (ecm) // ecm
              vic_addr = 14'h39FF;
           else
              vic_addr = 14'h3FFF;
         end
      default: begin
-          if (reg11_delayed[6]) // ecm
-             vic_addr = 14'h39FF;
-          else
-             vic_addr = 14'h3FFF;
+        vic_addr = 14'h3FFF;
      end
      endcase
   end

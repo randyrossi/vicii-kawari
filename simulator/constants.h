@@ -135,3 +135,5 @@
 #define V_LRBORDER            vicii__DOT__left_right_border
 #define V_COLLISION           vicii__DOT__collision
 #define V_CSYNC               csync
+#define V_CHAR_NEXT           vicii__DOT__char_next
+#define V_CHAR_BUF            vicii__DOT__char_buf

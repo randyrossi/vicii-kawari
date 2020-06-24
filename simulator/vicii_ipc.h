@@ -42,6 +42,8 @@ struct vicii_state {
   unsigned char ba;
   unsigned char irq;
   unsigned char badline;
+  unsigned char char_buf[40]; // what's in the character buffer (char data)
+  unsigned char color_buf[40]; // what's in the character buffer (upper 4 bits color data)
   unsigned char aec;
   unsigned char idle;
   unsigned char allow_bad_lines;

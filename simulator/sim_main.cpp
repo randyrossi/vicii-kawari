@@ -396,6 +396,13 @@ static void regs_vice_to_fpga(Vvicii* top, struct vicii_state* state) {
 
        top->V_TBBORDER = state->vborder;
        top->V_LRBORDER = state->main_border;
+
+       // This won't work mid-cycle but eventually things get back on track
+       // after the next badline.
+       for (int i=0;i<39;i++) {
+          top->V_CHAR_BUF[i] = state->char_buf[i] | (state->color_buf[i] << 8);
+       }
+       top->V_CHAR_NEXT = state->char_buf[39] | (state->color_buf[39] << 8);
 }
 
 static void regs_fpga_to_vice(Vvicii* top, struct vicii_state* state) {
