@@ -1026,7 +1026,7 @@ end
   always @(posedge clk_dot4x)
   begin
     if (dot_rising[0]) begin
-       for (n = `NUM_SPRITES; n > 0; n = n - 1) begin
+       for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
           sprite_pixels_delayed1[n][1:0] <= sprite_cur_pixel[n][1:0];
           sprite_pixels_delayed2[n][1:0] <= sprite_pixels_delayed1[n][1:0];
        end
