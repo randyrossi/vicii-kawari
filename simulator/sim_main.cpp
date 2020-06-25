@@ -291,6 +291,8 @@ static void drawPixel(SDL_Renderer* ren, int x,int y) {
 }
 
 static void regs_vice_to_fpga(Vvicii* top, struct vicii_state* state) {
+       top->V_IDLE = state->idle;
+
        // Sync registers
        unsigned char val = state->vice_reg[0x11];
        top->V_YSCROLL = val & 7;
@@ -397,10 +399,10 @@ static void regs_vice_to_fpga(Vvicii* top, struct vicii_state* state) {
        top->V_TBBORDER = state->vborder;
        top->V_LRBORDER = state->main_border;
 
-       // This won't work mid-cycle but eventually things get back on track
-       // after the next badline.
-       for (int i=0;i<39;i++) {
-          top->V_CHAR_BUF[i] = state->char_buf[i] | (state->color_buf[i] << 8);
+       // We need to populate our char buf from VICE's
+       top->V_CHAR_BUF[38] = state->char_buf[0] | (state->color_buf[0] << 8);
+       for (int i=37,j=1;i>=0;i--,j++) {
+          top->V_CHAR_BUF[i] = state->char_buf[j] | (state->color_buf[j] << 8);
        }
        top->V_CHAR_NEXT = state->char_buf[39] | (state->color_buf[39] << 8);
 }
@@ -822,6 +824,7 @@ int main(int argc, char** argv, char** env) {
     top->V_EC = 14;
     top->V_VM = 1; // 0001
     top->V_CB = 2; //  010
+    top->V_YSCROLL = 3; //  011
 
     if (testDriver >= 0 && do_test_start(testDriver, top, setGolden) == TEST_FAIL) {
        STATE(top);
@@ -858,16 +861,12 @@ int main(int argc, char** argv, char** env) {
 
            if (state->flags & VICII_OP_SYNC_STATE) {
                state->flags &= ~VICII_OP_SYNC_STATE;
-               // Step forward until we get to the target xpos and
+               // Step forward until we get to the target cycle/line/phase.
                // rasterline and when dot4x just ticked low (we always tick into high
                // when beginning to step so we must leave dot4x low. We
 	       // don't have to worry about going over the last xpos or
 	       // the repeats on the R8 because the VICE sync won't attempt
 	       // a sync past xpos 0x17c.
-	       int target_xpos = state->xpos;
-	       if (target_xpos < 0) {
-		       target_xpos = lastXPos;
-	       }
                while (true) {
                   top->eval();
 

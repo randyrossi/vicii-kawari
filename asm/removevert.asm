@@ -1,8 +1,5 @@
 !to "removevert.prg",cbm
 
-; Hello World with raster interrupt colour band
-; cobbled together from many examples and sources
-
   *=$8000
 
 sei
@@ -15,6 +12,10 @@ bit $d011
 bmi *-3
 lda #$1b
 sta $d011
+
+; Put dec 16 into $3fff
+lda #16
+sta $3fff
 
 ; For each frame, set screen-mode to 24 lines at y-position $f9 - $fa..
 loop:

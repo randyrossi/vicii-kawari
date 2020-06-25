@@ -642,16 +642,16 @@ end
          vc_base <= 10'd0;
          vc <= 10'd0;
       end
-    
+
       if (cycle_num > 14 && cycle_num < 55 && idle == 1'b0)
         vc <= vc + 1'b1;
-  
+
       if (cycle_num == 13) begin
         vc <= vc_base;
         if (badline)
           rc <= 3'd0;
       end
-    
+
       if (cycle_num == 57) begin
         if (rc == 3'd7) begin
           vc_base <= vc;
@@ -1034,11 +1034,17 @@ end
   end
 
 // Sprite to sprite collision logic (m2m)
-
+// NOTE: VICE seems to want m2m collisions to rise by the end of the low
+// phase of phi. With the way this currently is, it's possible for us
+// to set the m2m register with a sprite collision on the high phase
+// and the CPU could see this one whole cycle earlier than a program running
+// on VICE.  This will generate warnings in the VICE sim sync but they 
+// are _probably_ harmless. TODO: Consider delaying the collision detection
+// to the low phase.
 reg [`NUM_SPRITES-1:0] collision;
 always @*
   for (n = 0; n < `NUM_SPRITES; n = n + 1)
-    collision[n] = sprite_pixels_delayed2[n][1];
+    collision[n] = sprite_cur_pixel[n][1];
 
 reg m2m_irq_triggered;
 reg m2m_clr;
@@ -1055,7 +1061,7 @@ end else begin
       sprite_m2m[7:0] <= 8'd0;
       m2m_irq_triggered <= `FALSE;
   end
-  if (dot_rising[3]) begin
+  if (dot_rising[0]) begin
   case(collision)
     8'b00000000,
     8'b00000001,
@@ -1080,7 +1086,13 @@ end else begin
 end
 
 // Sprite to data collision logic (m2d)
-
+// NOTE: VICE seems to want m2d collisions to rise by the end of the low
+// phase of phi. With the way this currently is, it's possible for us
+// to set the m2d register with a sprite collision on the high phase
+// and the CPU could see this one whole cycle earlier than a program running
+// on VICE.  This will generate warnings in the VICE sim sync but they 
+// are _probably_ harmless. TODO: Consider delaying the collision detection
+// to the low phase.
 reg [7:0] sprite_m2d;
 reg m2d_irq_triggered;
 reg m2d_clr;
