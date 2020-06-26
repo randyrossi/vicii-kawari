@@ -1445,7 +1445,7 @@ begin
     // The comparisons of background pixel and sprite pixels must be
     // on the same delay 'schedule' here.
     for (n = `NUM_SPRITES-1; n >= 0; n = n - 1) begin
-      if (!sprite_pri[n] || is_background_pixel2) begin
+      if (sprite_en[n] && (!sprite_pri[n] || is_background_pixel2)) begin
         if (sprite_mmc[n]) begin  // multi-color mode ?
            if (sprite_pixels_delayed2[n] != 2'b00) begin
              case(sprite_pixels_delayed2[n])
