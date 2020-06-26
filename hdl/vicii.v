@@ -448,14 +448,12 @@ endcase
      if (rst)
        irst <= 1'b0;
      else begin
-     // TODO: What point in the phi low cycle does irq rise? This might
-     // be too early.  Find out.
      if (clk_phi == 1'b1 && phi_phase_start[15] && // phi going low
        (cycle_type == VIC_HPI3 || cycle_type == VIC_HS3) && sprite_cnt == 2)
        raster_irq_triggered <= 1'b0;
      if (irst_clr)
        irst <= 1'b0;
-     if (raster_irq_triggered == 1'b0 && raster_line == raster_irq_compare) begin
+     if (clk_phi == 1'b1 && raster_irq_triggered == 1'b0 && raster_line == raster_irq_compare) begin
        if ((raster_line == 0 && cycle_num == 1) || (raster_line != 0 && cycle_num == 0)) begin
           raster_irq_triggered <= 1'b1;
           irst <= 1'b1;
@@ -987,9 +985,7 @@ begin
         sprite_xe_ff[n] <= !sprite_xe_ff[n] & sprite_xe[n];
         if (!sprite_xe_ff[n]) begin
           sprite_mmc_ff[n] <= !sprite_mmc_ff[n] & sprite_mmc[n];
-          if (!sprite_en[n])
-             sprite_cur_pixel[n] <= 2'b00;
-          else if (!sprite_mmc_ff[n])
+          if (!sprite_mmc_ff[n])
              sprite_cur_pixel[n] <= sprite_pixels[n][23:22];
           sprite_pixels[n] <= {sprite_pixels[n][22:0],1'b0};
         end
@@ -1056,10 +1052,12 @@ if (rst) begin
 end else begin
   if (immc_clr)
     immc <= `FALSE;
-  // must do this before m2m_clr itself is reset on [1]
-  if (phi_phase_start[0] && !clk_phi && m2m_clr) begin
-      sprite_m2m[7:0] <= 8'd0;
-      m2m_irq_triggered <= `FALSE;
+  if (phi_phase_start[0] && !clk_phi) begin
+      // must do this before m2m_clr itself is reset on [1]
+      if (m2m_clr) begin
+         sprite_m2m[7:0] <= 8'd0;
+         m2m_irq_triggered <= `FALSE;
+      end
   end
   if (dot_rising[0]) begin
   case(collision)
@@ -1077,8 +1075,8 @@ end else begin
       begin
         sprite_m2m <= sprite_m2m | collision;
         if (!m2m_irq_triggered) begin
-          immc <= `TRUE;
           m2m_irq_triggered <= `TRUE;
+          immc <= `TRUE;
         end
       end
   endcase
@@ -1096,6 +1094,7 @@ end
 reg [7:0] sprite_m2d;
 reg m2d_irq_triggered;
 reg m2d_clr;
+
 reg is_background_pixel1;
 reg is_background_pixel2;
 
@@ -1108,9 +1107,11 @@ else begin
   if (imbc_clr)
     imbc <= `FALSE;
   // must do this before m2m_clr itself is reset on [1]
-  if (phi_phase_start[0] && !clk_phi && m2d_clr) begin
-      sprite_m2d[7:0] <= 8'd0;
-      m2d_irq_triggered <= `FALSE;
+  if (phi_phase_start[0] && !clk_phi) begin
+      if (m2d_clr) begin
+         sprite_m2d <= 8'd0;
+         m2d_irq_triggered <= `FALSE;
+      end
   end
     // The comparisons for sprite pixels and is background pixel must be on the
     // same delayed 'schedule'. 

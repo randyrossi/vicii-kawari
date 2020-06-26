@@ -316,10 +316,10 @@ static void regs_vice_to_fpga(Vvicii* top, struct vicii_state* state) {
        top->V_VM = (val & 240) >> 4;
 
        val = state->vice_reg[0x19];
-       top->V_IRST_CLR = val & 1;
-       top->V_IMBC_CLR = val & 2 ? 1 : 0;
-       top->V_IMMC_CLR = val & 4 ? 1 : 0;
-       top->V_ILP_CLR =  val & 8 ? 1 : 0;
+       //top->V_IRST_CLR = val & 1;
+       //top->V_IMBC_CLR = val & 2 ? 1 : 0;
+       //top->V_IMMC_CLR = val & 4 ? 1 : 0;
+       //top->V_ILP_CLR =  val & 8 ? 1 : 0;
 
        val = state->vice_reg[0x1A];
        top->V_ERST = val & 1;
@@ -390,7 +390,7 @@ static void regs_vice_to_fpga(Vvicii* top, struct vicii_state* state) {
 	  top->V_SPRITE_DMA[n] = state->sprite_dma[n];
        }
 
-       top->V_RASTER_IRQ_RAISED = state->raster_irq_triggered;
+       top->V_RASTER_IRQ_TRIGGERED = state->raster_irq_triggered;
        top->V_IRST = state->irst;
        top->V_IMBC = state->imbc;
        top->V_IMMC = state->immc;
@@ -431,10 +431,10 @@ static void regs_fpga_to_vice(Vvicii* top, struct vicii_state* state) {
           ((top->V_VM & 0xf) << 4);
 
        state->fpga_reg[0x19] =
-          (top->V_IRST_CLR ? 1 : 0) |
-          (top->V_IMBC_CLR ? 2 : 0) |
-          (top->V_IMMC_CLR ? 4 : 0) |
-          (top->V_ILP_CLR ? 8 : 0) |
+          (top->V_IRST ? 1 : 0) |
+          (top->V_IMBC ? 2 : 0) |
+          (top->V_IMMC ? 4 : 0) |
+          (top->V_ILP ? 8 : 0) |
           0b01110000;
 
        state->fpga_reg[0x1A] =

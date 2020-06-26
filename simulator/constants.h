@@ -130,7 +130,7 @@
 #define V_SPRITE_MC           vicii__DOT__sprite_mc
 #define V_SPRITE_MCBASE       vicii__DOT__sprite_mcbase
 #define V_SPRITE_RASTER_X     vicii__DOT__sprite_raster_x
-#define V_RASTER_IRQ_RAISED   vicii__DOT__raster_irq_triggered
+#define V_RASTER_IRQ_TRIGGERED   vicii__DOT__raster_irq_triggered
 #define V_TBBORDER            vicii__DOT__top_bot_border
 #define V_LRBORDER            vicii__DOT__left_right_border
 #define V_COLLISION           vicii__DOT__collision
