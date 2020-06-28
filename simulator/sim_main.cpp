@@ -369,7 +369,9 @@ static void regs_vice_to_fpga(Vvicii* top, struct vicii_state* state) {
        top->V_SPRITE_XE = state->vice_reg[0x1d];
 
        top->V_SPRITE_M2M = state->vice_reg[0x1e];
+       top->V_SPRITE_M2M_PENDING = state->vice_reg[0x1e];
        top->V_SPRITE_M2D = state->vice_reg[0x1f];
+       top->V_SPRITE_M2D_PENDING = state->vice_reg[0x1f];
 
        top->V_SPRITE_MC0 = state->vice_reg[0x25];
        top->V_SPRITE_MC1 = state->vice_reg[0x26];
@@ -393,7 +395,11 @@ static void regs_vice_to_fpga(Vvicii* top, struct vicii_state* state) {
        top->V_RASTER_IRQ_TRIGGERED = state->raster_irq_triggered;
        top->V_IRST = state->irst;
        top->V_IMBC = state->imbc;
+       if (state->vice_reg[0x1f] != 0) top->V_M2D_TRIGGERED = 1;
+       top->V_IMBC_PENDING = state->imbc;
        top->V_IMMC = state->immc;
+       top->V_IMMC_PENDING = state->immc;
+       if (state->vice_reg[0x1e] != 0) top->V_M2M_TRIGGERED = 1;
        top->V_ILP = state->ilp;
 
        top->V_TBBORDER = state->vborder;

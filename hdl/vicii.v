@@ -250,7 +250,9 @@ endcase
   reg irst;
   reg ilp;
   reg immc;
+  reg immc_pending;
   reg imbc;
+  reg imbc_pending;
 
   // interrupt latches for $d019, these are set HIGH when
   // an interrupt of that type occurs. They are not automatically
@@ -309,7 +311,6 @@ endcase
   reg [7:0] pixels_shifting;
 
   reg [1:0] sprite_pixels_delayed1[`NUM_SPRITES];
-  reg [1:0] sprite_pixels_delayed2[`NUM_SPRITES];
 
   // badline condition
   reg badline;
@@ -970,8 +971,7 @@ reg handle_sprite_crunch;
 
 always @(posedge clk_dot4x)
 begin
-  // [#] here needs to match shift reset below
-  if (dot_rising[2]) begin
+  if (dot_rising[0]) begin
     // when xpos matches sprite_x, turn on shift
     for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
        if (sprite_x[n] == xpos_d[8:0]) begin
@@ -996,15 +996,15 @@ begin
         sprite_cur_pixel[n] <= 2'b00;
       end
     end
-    
-    // must be [2] or greater for sprite_cnt to be valid here
-    if (!clk_phi && phi_phase_start[2]) begin
-      case (cycle_type)
-      VIC_LP:
-          sprite_shift[sprite_cnt] = 1'b0;
-      default: ;
-      endcase
-    end
+  end
+
+  // must be [2] or greater for sprite_cnt to be valid here
+  if (!clk_phi && phi_phase_start[2]) begin
+    case (cycle_type)
+    VIC_LP:
+        sprite_shift[sprite_cnt] = 1'b0;
+    default: ;
+    endcase
   end
   
   // s-access
@@ -1018,48 +1018,54 @@ begin
   end
 end
 
-  // Delay sprite pixels by two dot ticks
+  // Delay sprite pixels
   always @(posedge clk_dot4x)
   begin
     if (dot_rising[0]) begin
        for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
           sprite_pixels_delayed1[n][1:0] <= sprite_cur_pixel[n][1:0];
-          sprite_pixels_delayed2[n][1:0] <= sprite_pixels_delayed1[n][1:0];
        end
     end
   end
 
 // Sprite to sprite collision logic (m2m)
 // NOTE: VICE seems to want m2m collisions to rise by the end of the low
-// phase of phi. With the way this currently is, it's possible for us
-// to set the m2m register with a sprite collision on the high phase
-// and the CPU could see this one whole cycle earlier than a program running
-// on VICE.  This will generate warnings in the VICE sim sync but they 
-// are _probably_ harmless. TODO: Consider delaying the collision detection
-// to the low phase.
+// phase of phi. So we defer collisions discovered during the high phase
+// until next next low phase.
 reg [`NUM_SPRITES-1:0] collision;
 always @*
   for (n = 0; n < `NUM_SPRITES; n = n + 1)
     collision[n] = sprite_cur_pixel[n][1];
 
-reg m2m_irq_triggered;
+reg m2m_triggered;
 reg m2m_clr;
 reg [7:0] sprite_m2m;
+reg [7:0] sprite_m2m_pending;
 always @(posedge clk_dot4x)
 if (rst) begin
   sprite_m2m <= 8'b0;
-  m2m_irq_triggered <= `FALSE;
+  sprite_m2m_pending <= 8'b0;
+  m2m_triggered <= `FALSE;
+  immc <= 1'b0;
+  immc_pending <= 1'b0;
 end else begin
-  if (immc_clr)
+  if (immc_clr) begin
     immc <= `FALSE;
+    immc_pending <= 1'b0;
+  end
   if (phi_phase_start[0] && !clk_phi) begin
       // must do this before m2m_clr itself is reset on [1]
       if (m2m_clr) begin
          sprite_m2m[7:0] <= 8'd0;
-         m2m_irq_triggered <= `FALSE;
+         sprite_m2m_pending[7:0] <= 8'd0;
+         m2m_triggered <= `FALSE;
       end
   end
-  if (dot_rising[0]) begin
+  // This is the deferral mentioned above
+  if (!clk_phi) begin
+        sprite_m2m <= sprite_m2m_pending;
+        immc <= immc_pending;
+  end
   case(collision)
     8'b00000000,
     8'b00000001,
@@ -1073,26 +1079,22 @@ end else begin
       ;
     default:
       begin
-        sprite_m2m <= sprite_m2m | collision;
-        if (!m2m_irq_triggered) begin
-          m2m_irq_triggered <= `TRUE;
-          immc <= `TRUE;
+        sprite_m2m_pending <= sprite_m2m_pending | collision;
+        if (!m2m_triggered) begin
+          m2m_triggered <= `TRUE;
+          immc_pending <= `TRUE;
         end
       end
   endcase
-  end
 end
 
 // Sprite to data collision logic (m2d)
 // NOTE: VICE seems to want m2d collisions to rise by the end of the low
-// phase of phi. With the way this currently is, it's possible for us
-// to set the m2d register with a sprite collision on the high phase
-// and the CPU could see this one whole cycle earlier than a program running
-// on VICE.  This will generate warnings in the VICE sim sync but they 
-// are _probably_ harmless. TODO: Consider delaying the collision detection
-// to the low phase.
+// phase of phi. So we defer collisions discovered during the high phase
+// until next next low phase.
 reg [7:0] sprite_m2d;
-reg m2d_irq_triggered;
+reg [7:0] sprite_m2d_pending;
+reg m2d_triggered;
 reg m2d_clr;
 
 reg is_background_pixel1;
@@ -1101,28 +1103,35 @@ reg is_background_pixel2;
 always @(posedge clk_dot4x)
 if (rst) begin
   sprite_m2d <= 8'b0;
-  m2d_irq_triggered <= `FALSE;
+  sprite_m2d_pending <= 8'b0;
+  m2d_triggered <= `FALSE;
+  imbc <= 1'b0;
+  imbc_pending <= 1'b0;
 end
 else begin
-  if (imbc_clr)
-    imbc <= `FALSE;
+  if (imbc_clr) begin
+    imbc <= 1'b0;
+    imbc_pending <= 1'b0;
+  end
   // must do this before m2m_clr itself is reset on [1]
   if (phi_phase_start[0] && !clk_phi) begin
       if (m2d_clr) begin
          sprite_m2d <= 8'd0;
-         m2d_irq_triggered <= `FALSE;
+         sprite_m2d_pending <= 8'd0;
+         m2d_triggered <= `FALSE;
       end
   end
-    // The comparisons for sprite pixels and is background pixel must be on the
-    // same delayed 'schedule'. 
-  if (dot_rising[1]) begin
-    for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-      if (sprite_pixels_delayed1[n][1] & !is_background_pixel1 & !(left_right_border | top_bot_border)) begin
-        sprite_m2d[n] <= `TRUE;
-        if (!m2d_irq_triggered) begin
-          m2d_irq_triggered <= `TRUE;
-          imbc <= `TRUE;
-        end
+  // This is the deferral mentioned above
+  if (!clk_phi) begin
+        sprite_m2d <= sprite_m2d_pending;
+        imbc <= imbc_pending;
+  end 
+  for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
+    if (sprite_cur_pixel[n][1] & !is_background_pixel1 & !(left_right_border | top_bot_border)) begin
+      sprite_m2d_pending[n] <= `TRUE;
+      if (!m2d_triggered) begin
+        m2d_triggered <= `TRUE;
+        imbc_pending <= `TRUE;
       end
     end
   end
@@ -1447,15 +1456,15 @@ begin
     for (n = `NUM_SPRITES-1; n >= 0; n = n - 1) begin
       if (sprite_en[n] && (!sprite_pri[n] || is_background_pixel2)) begin
         if (sprite_mmc[n]) begin  // multi-color mode ?
-           if (sprite_pixels_delayed2[n] != 2'b00) begin
-             case(sprite_pixels_delayed2[n])
+           if (sprite_pixels_delayed1[n] != 2'b00) begin
+             case(sprite_pixels_delayed1[n])
                2'b00:  ;
                2'b01:  pixel_color2 = sprite_mc0;
                2'b10:  pixel_color2 = sprite_col[n[2:0]];  
                2'b11:  pixel_color2 = sprite_mc1;
              endcase
            end
-        end else if (sprite_pixels_delayed2[n][1]) begin
+        end else if (sprite_pixels_delayed1[n][1]) begin
            pixel_color2 = sprite_col[n[2:0]];  
         end
       end
