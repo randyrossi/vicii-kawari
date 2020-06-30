@@ -44,9 +44,9 @@ module vicii(
 // Register write phi_phase_start data available
 `define REG_DAV 7
 // Char/pixel read phi_phase_start data available
-`define DATA_DAV 13
+`define DATA_DAV 14
 // Sprite read phi_phase_start data available
-`define SPRITE_DAV 13
+`define SPRITE_DAV 14
 // How many dot ticks we need to delay our bitmap pixels before they get into the shifter
 `define DATA_PIXEL_DELAY 8
 // How many dot ticks we need to delay our sprite pixels before the get into the shifter
@@ -1146,8 +1146,7 @@ end
     aec <= 1'b0;
   end else begin
     aec <= ba ? clk_phi : ba3 & clk_phi;
-  end  
-
+  end
 
   // aec -> LS245 DIR Pin (addr)
   // aec   : low = VIC sets address lines (Bx to Ax)

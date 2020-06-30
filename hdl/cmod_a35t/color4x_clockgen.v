@@ -25,16 +25,20 @@ module color4x_clockgen
     wire clkinstopped_unused;
     wire reset_high;
 
+    // NOTE: The PAL values below give 17.734513 vs needed 17.734475?. The
+    // on-board 12Mhz clock is not capable of getting close enough to avoid
+    // shimmering display. So we can get A picture but not a GOOD picture
+    // unless we bring in an external clock.
     MMCME2_ADV
     #(.BANDWIDTH("HIGH"),
     .CLKOUT4_CASCADE("FALSE"),
     .COMPENSATION("ZHOLD"),
     .STARTUP_WAIT("FALSE"),
     .DIVCLK_DIVIDE(1),
-    .CLKFBOUT_MULT_F(52.500),
+    .CLKFBOUT_MULT_F(52.500), // PAL 62.625
     .CLKFBOUT_PHASE(0.000),
     .CLKFBOUT_USE_FINE_PS("FALSE"),
-    .CLKOUT0_DIVIDE_F(44.00),
+    .CLKOUT0_DIVIDE_F(44.000), // PAL 42.375
     .CLKOUT0_PHASE(0.000),
     .CLKOUT0_DUTY_CYCLE(0.500),
     .CLKOUT0_USE_FINE_PS("FALSE"),
@@ -72,7 +76,6 @@ module color4x_clockgen
         .PWRDWN(1'b0),
         .RST(reset_high));
     assign reset_high = reset;
-
 
     BUFG clkf_buf
          (.O(clkfbout_buf_clk_wiz_0),
