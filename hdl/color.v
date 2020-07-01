@@ -3,7 +3,6 @@
 
 // Given an indexed color in out_pixel, set red, green and blue values. 
 module color(
-    input chip_type chip,
     input wire [9:0] x_pos,
     input wire [8:0] y_pos,
     input vic_color out_pixel,
@@ -30,7 +29,7 @@ module color(
                 ORANGE: {red, green, blue} = {2'h03, 2'h02, 2'h01};
                 BROWN: {red, green, blue} = {2'h01, 2'h01, 2'h00};
                 PINK: {red, green, blue} = {2'h03, 2'h01, 2'h01};
-                DARK_GREY: {red, green, blue} = {2'h00, 2'h00, 2'h00};
+                DARK_GREY: {red, green, blue} = {2'h01, 2'h00, 2'h01}; // !!! Need more bits
                 GREY: {red, green, blue} = {2'h01, 2'h01, 2'h01};
                 LIGHT_GREEN: {red, green, blue} = {2'h02, 2'h03, 2'h01};
                 LIGHT_BLUE: {red, green, blue} = {2'h00, 2'h02, 2'h03};

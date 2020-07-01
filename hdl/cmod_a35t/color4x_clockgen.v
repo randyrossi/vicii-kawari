@@ -1,5 +1,7 @@
 `timescale 1ns/1ps
 
+`include "common.vh"
+
 module color4x_clockgen
     (output wire clk_color4x,
         input wire reset,
@@ -35,10 +37,10 @@ module color4x_clockgen
     .COMPENSATION("ZHOLD"),
     .STARTUP_WAIT("FALSE"),
     .DIVCLK_DIVIDE(1),
-    .CLKFBOUT_MULT_F(52.500), // PAL 62.625
+    .CLKFBOUT_MULT_F(`PAL ? 62.625 : 52.500),
     .CLKFBOUT_PHASE(0.000),
     .CLKFBOUT_USE_FINE_PS("FALSE"),
-    .CLKOUT0_DIVIDE_F(44.000), // PAL 42.375
+    .CLKOUT0_DIVIDE_F(`PAL ? 42.375 : 44.000),
     .CLKOUT0_PHASE(0.000),
     .CLKOUT0_DUTY_CYCLE(0.500),
     .CLKOUT0_USE_FINE_PS("FALSE"),

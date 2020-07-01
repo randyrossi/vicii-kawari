@@ -1,5 +1,7 @@
 `timescale 1ns/1ps
 
+`include "common.vh"
+
 module dot4x_clockgen
     (output wire clk_dot4x,
         input wire reset,
@@ -39,10 +41,10 @@ module dot4x_clockgen
     .COMPENSATION("ZHOLD"),
     .STARTUP_WAIT("FALSE"),
     .DIVCLK_DIVIDE(1),
-    .CLKFBOUT_MULT_F(63.750), // 52.875 PAL
+    .CLKFBOUT_MULT_F(`PAL ? 52.875 : 63.750),
     .CLKFBOUT_PHASE(0.000),
     .CLKFBOUT_USE_FINE_PS("FALSE"),
-    .CLKOUT0_DIVIDE_F(23.375), // 20.125 PAL
+    .CLKOUT0_DIVIDE_F(`PAL ? 20.125 : 23.375),
     .CLKOUT0_PHASE(0.000),
     .CLKOUT0_DUTY_CYCLE(0.500),
     .CLKOUT0_USE_FINE_PS("FALSE"),

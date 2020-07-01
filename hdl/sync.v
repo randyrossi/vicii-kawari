@@ -8,6 +8,7 @@ module sync(
 	input wire [8:0] raster_y,
 	input wire [9:0] hsync_start,
 	input wire [9:0] hsync_end,
+	input wire [8:0] vblank_start,
 	output reg csync);
 
 reg hSync;
@@ -42,34 +43,17 @@ always @(posedge clk)
   if (rst)
      csync <= 1'b0;
   else
-  case(chip)
-  CHIP6567R8,CHIP6567R56A:
 	case(raster_y)
-	9'd11:	csync <= ~EQ;
-	9'd12:	csync <= ~EQ;
-	9'd13:	csync <= ~EQ;
-	9'd14:	csync <= ~SE;
-	9'd15:	csync <= ~SE;
-	9'd16:	csync <= ~SE;
-	9'd17:	csync <= ~EQ;
-	9'd18:	csync <= ~EQ;
-	9'd19:	csync <= ~EQ;
+	vblank_start:	csync <= ~EQ;
+	vblank_start+1:	csync <= ~EQ;
+	vblank_start+2:	csync <= ~EQ;
+	vblank_start+3:	csync <= ~SE;
+	vblank_start+4:	csync <= ~SE;
+	vblank_start+5:	csync <= ~SE;
+	vblank_start+6:	csync <= ~EQ;
+	vblank_start+7:	csync <= ~EQ;
+	vblank_start+8:	csync <= ~EQ;
 	default:
 			csync <= ~hSync;
 	endcase
-  CHIP6569,CHIPUNUSED:
-	case(raster_y)
-	9'd301:	csync <= ~EQ;
-	9'd302:	csync <= ~EQ;
-	9'd303:	csync <= ~EQ;
-	9'd304:	csync <= ~SE;
-	9'd305:	csync <= ~SE;
-	9'd306:	csync <= ~SE;
-	9'd307:	csync <= ~EQ;
-	9'd308:	csync <= ~EQ;
-	9'd309:	csync <= ~EQ;
-	default:
-			csync <= ~hSync;
-	endcase
-  endcase
 endmodule : sync

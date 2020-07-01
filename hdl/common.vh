@@ -31,6 +31,8 @@ typedef enum bit[3:0] {
 `define TRUE	1'b1
 `define FALSE	1'b0
 
+`define PAL	    1'b1
+
 typedef enum bit[3:0] {
     BLACK, WHITE, RED, CYAN, PURPLE, GREEN, BLUE, YELLOW, ORANGE,
     BROWN, PINK, DARK_GREY, GREY, LIGHT_GREEN, LIGHT_BLUE, LIGHT_GREY
