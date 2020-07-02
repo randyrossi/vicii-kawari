@@ -42,9 +42,9 @@ module vicii(
 // Register write phi_phase_start data available
 `define REG_DAV 7
 // Char/pixel read phi_phase_start data available
-`define DATA_DAV 14
+`define DATA_DAV 13
 // Sprite read phi_phase_start data available
-`define SPRITE_DAV 14
+`define SPRITE_DAV 13
 // How many dot ticks we need to delay our bitmap pixels before they get into the shifter
 `define DATA_PIXEL_DELAY 8
 // How many dot ticks we need to delay our sprite pixels before the get into the shifter
@@ -415,7 +415,7 @@ endcase
   always @(raster_line, reg11_delayed, allow_bad_lines)
   begin
      badline = `FALSE;
-     if (raster_line[2:0] == reg11_delayed[2:0] && allow_bad_lines == `TRUE)
+     if (raster_line[2:0] == reg11_delayed[2:0] && allow_bad_lines == `TRUE && raster_line >= 48 && raster_line < 248)
         badline = `TRUE;
   end
 
