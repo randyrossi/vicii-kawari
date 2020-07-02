@@ -403,7 +403,7 @@ endcase
   begin
      if (rst)
         allow_bad_lines <= `FALSE;
-     else if (dot_rising[0]) begin
+     else if (phi_phase_start[0]) begin
        if (raster_line == 48 && den == `TRUE)
           allow_bad_lines <= `TRUE;
        if (raster_line == 248)
@@ -415,7 +415,7 @@ endcase
   always @(raster_line, reg11_delayed, allow_bad_lines)
   begin
      badline = `FALSE;
-     if (raster_line[2:0] == reg11_delayed[2:0] && allow_bad_lines == `TRUE && raster_line >= 48 && raster_line < 248)
+     if (raster_line[2:0] == reg11_delayed[2:0] && allow_bad_lines == `TRUE)
         badline = `TRUE;
   end
 
@@ -681,7 +681,7 @@ end
   // offset that brings sprite 0 to the start.
   always @(*) begin
      for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-        if (sprite_en[n] && sprite_dma[n] && sprite_raster_x >= sprite_ba_start[n] && sprite_raster_x < sprite_ba_end[n])
+        if (sprite_dma[n] && sprite_raster_x >= sprite_ba_start[n] && sprite_raster_x < sprite_ba_end[n])
               ba_sprite[n] = 1;
         else
               ba_sprite[n] = 0;
@@ -899,23 +899,19 @@ reg handle_sprite_crunch;
   always @(posedge clk_dot4x)
   if (rst) begin
      for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-        sprite_mc[n] <= 6'd63;
-        sprite_mcbase[n] <= 6'd63;
-        sprite_ye_ff[n] <= 1;
+        sprite_mc[n] = 6'd63;
+        sprite_mcbase[n] = 6'd63;
+        sprite_ye_ff[n] = 1;
      end
   end else begin
      // update mcbase
      if (clk_phi && phi_phase_start[1] && cycle_num == 15) begin
        for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-          if (sprite_ye_ff[n])
-              sprite_mcbase[n] <= sprite_mc[n];
-       end
-     end
-     // turn on dma
-     if (clk_phi && phi_phase_start[2] && cycle_num == 15) begin
-       for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-          if (sprite_mcbase[n] == 63)
-              sprite_dma[n] <= 0;
+          if (sprite_ye_ff[n]) begin
+              sprite_mcbase[n] = sprite_mc[n];
+              if (sprite_mcbase[n] == 63)
+                  sprite_dma[n] = 0;
+          end
        end
      end
      if (handle_sprite_crunch) begin // happens phi_phase_start[REG_DAV+1]
@@ -923,10 +919,10 @@ reg handle_sprite_crunch;
         for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
           if (!sprite_ye[n] && !sprite_ye_ff[n]) begin
              if (cycle_num == 14) begin
-                sprite_mc[n] <= (6'h2a & (sprite_mcbase[n] & sprite_mc[n])) |
+                sprite_mc[n] = (6'h2a & (sprite_mcbase[n] & sprite_mc[n])) |
                                (6'h15 & (sprite_mcbase[n] | sprite_mc[n])) ;
              end
-             sprite_ye_ff[n] <= `TRUE;
+             sprite_ye_ff[n] = `TRUE;
           end
         end
      end
@@ -934,9 +930,9 @@ reg handle_sprite_crunch;
      if (clk_phi && phi_phase_start[1] && (cycle_num == sprite_dmachk1 || cycle_num == sprite_dmachk2)) begin
         for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
            if (!sprite_dma[n] && sprite_en[n] && raster_line[7:0] == sprite_y[n]) begin
-              sprite_dma[n] <= 1;
-              sprite_mcbase[n] <= 0;
-              sprite_ye_ff[n] <= 1;
+              sprite_dma[n] = 1;
+              sprite_mcbase[n] = 0;
+              sprite_ye_ff[n] = 1;
            end
         end
      end
@@ -944,13 +940,13 @@ reg handle_sprite_crunch;
      if (clk_phi && phi_phase_start[1] && cycle_num == sprite_yexp_chk) begin
         for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
            if (sprite_dma[n] && sprite_ye[n])
-             sprite_ye_ff[n] <= !sprite_ye_ff[n];
+             sprite_ye_ff[n] = !sprite_ye_ff[n];
         end
      end
      // sprite display check
      if (clk_phi && phi_phase_start[1] && cycle_num == sprite_disp_chk) begin
        for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-          sprite_mc[n] <= sprite_mcbase[n];
+          sprite_mc[n] = sprite_mcbase[n];
        end
      end
 
@@ -965,7 +961,7 @@ reg handle_sprite_crunch;
         case (cycle_type)
         VIC_HS1,VIC_LS2,VIC_HS3:
           if (sprite_dma[sprite_cnt])
-             sprite_mc[sprite_cnt] <= sprite_mc[sprite_cnt] + 1'b1;
+             sprite_mc[sprite_cnt] = sprite_mc[sprite_cnt] + 1'b1;
         default: ;
         endcase
      end
@@ -1455,7 +1451,7 @@ begin
     // The comparisons of background pixel and sprite pixels must be
     // on the same delay 'schedule' here.
     for (n = `NUM_SPRITES-1; n >= 0; n = n - 1) begin
-      if (sprite_en[n] && (!sprite_pri[n] || is_background_pixel2)) begin
+      if (!sprite_pri[n] || is_background_pixel2) begin
         if (sprite_mmc[n]) begin  // multi-color mode ?
            if (sprite_pixels_delayed1[n] != 2'b00) begin
              case(sprite_pixels_delayed1[n])
