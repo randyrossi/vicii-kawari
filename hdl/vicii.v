@@ -495,13 +495,13 @@ reg top_bot_border = `TRUE;
 reg left_right_border = `TRUE;
 reg new_top_bot_border = `TRUE;
 
-always @(raster_line, rsel, allow_bad_lines, top_bot_border)
+always @(raster_line, rsel, den, top_bot_border)
 begin
     new_top_bot_border = top_bot_border;
-    if (raster_line == 55 && allow_bad_lines == `TRUE)
+    if (raster_line == 55 && den == `TRUE)
         new_top_bot_border = `FALSE;
 
-    if (raster_line == 51 && rsel == `TRUE && allow_bad_lines == `TRUE)
+    if (raster_line == 51 && rsel == `TRUE && den == `TRUE)
         new_top_bot_border = `FALSE;
 
     if (raster_line == 247 && rsel == `FALSE)
