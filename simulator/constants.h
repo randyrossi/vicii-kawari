@@ -143,3 +143,5 @@
 #define V_CHAR_BUF            vicii__DOT__char_buf
 #define V_M2D_TRIGGERED       vicii__DOT__m2d_triggered
 #define V_M2M_TRIGGERED       vicii__DOT__m2m_triggered
+#define V_LPX                 vicii__DOT__lpx
+#define V_LPY                 vicii__DOT__lpy

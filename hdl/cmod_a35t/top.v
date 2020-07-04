@@ -20,6 +20,7 @@ module top(
     input ce,            // chip enable (LOW=enable, HIGH=disabled)
     input rw,            // read/write (LOW=write, HIGH=read)
     output irq,          // irq
+    input lp,            // light pen
     output aec,          // aec
     output ba,           // ba
     output cas,          // column address strobe
@@ -97,6 +98,7 @@ module top(
         .rw(rw),
         .aec(aec),
         .irq(irq),
+        .lp(lp),
         .ba(ba),
         .cas(cas),
         .ras(ras),

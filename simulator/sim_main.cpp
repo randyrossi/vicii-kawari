@@ -305,6 +305,10 @@ static void regs_vice_to_fpga(Vvicii* top, struct vicii_state* state) {
        val = state->vice_reg[0x12];
        top->V_RASTERCMP = val | rasterCmp8;
 
+       top->V_LPX = state->vice_reg[0x13];
+       top->V_LPY = state->vice_reg[0x14];
+       printf ("ON SYNC %d %d\n",top->V_LPX, top->V_LPY);
+
        val = state->vice_reg[0x16];
        top->V_XSCROLL = val & 7;
        top->V_CSEL = val & 8 ? 1 : 0;
@@ -424,6 +428,9 @@ static void regs_fpga_to_vice(Vvicii* top, struct vicii_state* state) {
 
        state->fpga_reg[0x12] =
           top->V_RASTER_LINE & 0xff;
+
+       state->fpga_reg[0x13] = top->V_LPX;
+       state->fpga_reg[0x14] = top->V_LPY;
 
        state->fpga_reg[0x16] =
           (top->V_XSCROLL & 0x7) |
@@ -810,6 +817,7 @@ int main(int argc, char** argv, char** env) {
     // it takes to wait for phase lock from the clock.
     printf ("(RESET)\n");
     top->rst = 1;
+    top->lp = 1;
     for (int i=0;i<32;i++) {
        top->eval();
        nextClkCnt = 0;
@@ -826,6 +834,7 @@ int main(int argc, char** argv, char** env) {
     top->ce = 1;
     top->adi = 0;
     top->dbi = 0;
+    top->V_DEN = 1;
     top->V_B0C = 6;
     top->V_EC = 14;
     top->V_VM = 1; // 0001

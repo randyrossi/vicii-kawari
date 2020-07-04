@@ -28,6 +28,7 @@ module vicii(
    input ce,
    input rw,
    output irq,
+   input lp,
    output reg aec,
    output ba,
    output ras,
@@ -529,6 +530,31 @@ begin
        if (xpos_d == 345 && csel == `TRUE)
           left_right_border <= `TRUE;
     end
+end
+
+
+reg light_pen_triggered;
+reg [7:0] lpx;
+reg [7:0] lpy;
+always @(posedge clk_dot4x)
+begin
+  if (rst) begin
+     lpx <= 'h00;
+     lpy <= 'h00;
+     ilp <= `FALSE;
+     light_pen_triggered <= `FALSE;
+  end else begin
+    if (ilp_clr)
+      ilp <= `FALSE;
+    if (raster_line == raster_y_max)
+      light_pen_triggered <= `FALSE;
+    else if (!light_pen_triggered && lp == `FALSE) begin
+      light_pen_triggered <= `TRUE;
+      ilp <= `TRUE;
+      lpx <= xpos_d[8:1];
+      lpy <= raster_line[7:0];
+    end
+  end
 end
 
   
@@ -1611,6 +1637,8 @@ always @(posedge clk_dot4x)
                         dbo[7] <= raster_line[8];
                     end
                     /* 0x12 */ REG_RASTER_LINE: dbo[7:0] <= raster_line[7:0];
+                    /* 0x13 */ REG_LIGHT_PEN_X: dbo[7:0] <= lpx;
+                    /* 0x14 */ REG_LIGHT_PEN_Y: dbo[7:0] <= lpy;
                     /* 0x15 */ REG_SPRITE_ENABLE: dbo[7:0] <= sprite_en;
                     /* 0x16 */ REG_SCREEN_CONTROL_2:
                         dbo[7:0] <= {2'b11, res, mcm, csel, xscroll};
