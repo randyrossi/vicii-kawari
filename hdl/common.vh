@@ -3,8 +3,8 @@
 
 typedef enum bit[1:0] {
     CHIP6567R8,
-    CHIP6567R56A,
     CHIP6569,
+    CHIP6567R56A,
     CHIPUNUSED
 } chip_type;
 
@@ -30,8 +30,6 @@ typedef enum bit[3:0] {
 
 `define TRUE	1'b1
 `define FALSE	1'b0
-
-`define PAL	    1'b1
 
 typedef enum bit[3:0] {
     BLACK, WHITE, RED, CYAN, PURPLE, GREEN, BLUE, YELLOW, ORANGE,

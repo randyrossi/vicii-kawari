@@ -85,7 +85,7 @@ reg [9:0] sprite_ba_end [`NUM_SPRITES];
 // wrap around conditions.
 reg [9:0] sprite_raster_x;
 
-// clk_dot4x;     32.272768 Mhz NTSC, 31.527955 Mhz PAL
+// clk_dot4x;     32.727264 Mhz NTSC, 31.527955 Mhz PAL
 // clk_col4x;     14.318181 Mhz NTSC, 17.734475 Mhz PAL
 // clk_dot;       8.18181 Mhz NTSC, 7.8819888 Mhz PAL
 // clk_colref     3.579545 Mhz NTSC, 4.43361875 Mhz PAL
@@ -131,7 +131,7 @@ CHIP6567R56A:
         chars_ba_start = 'h1f4;
         chars_ba_end = 'h14c;
    end
-CHIP6569:
+CHIP6569, CHIPUNUSED:
    begin
         raster_x_max = 10'd503;     // 504 pixels
         raster_y_max = 9'd311;      // 312
@@ -147,8 +147,6 @@ CHIP6569:
         chars_ba_start = 'h1ec;
         chars_ba_end = 'h14c;
    end
-CHIPUNUSED:
-   ;
 endcase
 
   // used to generate phi and dot clocks
@@ -1521,7 +1519,6 @@ color viccolor(
 
 // Generate csync signal
 sync vicsync(
-     .chip(chip),
      .rst(rst),
      .clk(clk_dot4x),
      .raster_x(xpos),

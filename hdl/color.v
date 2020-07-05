@@ -1,5 +1,6 @@
 `timescale 1ns/1ps
 
+`include "common.vh"
 
 // Given an indexed color in out_pixel, set red, green and blue values. 
 module color(

@@ -1,29 +1,36 @@
-  # External clock 12Mhz
-create_clock -add -name sys_clk_pin -period 83.33 -waveform {0 41.66} [get_ports {sys_clock}];
-
-#set_output_delay -clock [get_clocks x_clk] -min -add_delay 0.000 [get_ports clk_colref]
-#set_output_delay -clock [get_clocks x_clk] -max -add_delay 0.000 [get_ports clk_colref]
-
 # Voltage config
 set_property CONFIG_VOLTAGE 3.3 [current_design]
 set_property CFGBVS VCCO [current_design]
+
+# -------------------------------------------
+# !!! These must match selection in top.v !!!
+# -------------------------------------------
+
+# USE_SYSCLOCK_NTSC or USE_SYSCLOCK_PAL - Internal L3 12Mhz Pin
+#create_clock -add -name sys_clk_pin -period 83.33 -waveform {0 41.66} [get_ports {sys_clock}];
+#set_property -dict { PACKAGE_PIN L17 IOSTANDARD LVCMOS33 } [get_ports { sys_clock }]; 
+
+# USE_PALCLOCK_PAL - Pin36 External 17.3Mhz
+create_clock -add -name pal_clk_pin -period 56.38 -waveform {0 28.19} [get_ports {sys_clock}];
+set_property -dict { PACKAGE_PIN W5 IOSTANDARD LVCMOS33 } [get_ports { sys_clock }];
+
+# USE_NTSCCLOCK_NTSC - Pin36 External 14.3Mhz
+#create_clock -add -name pal_clk_pin -period 69.84 -waveform {0 34.92} [get_ports {sys_clock}];
+#set_property -dict { PACKAGE_PIN W5 IOSTANDARD LVCMOS33 } [get_ports { sys_clock }];
 
 # Board Pins
 
 # colorref out, Pin35
 set_property -dict { PACKAGE_PIN V3 IOSTANDARD LVCMOS33 } [get_ports { clk_colref }];
 
-# cSync out, Pin36
-set_property -dict { PACKAGE_PIN W5 IOSTANDARD LVCMOS33 } [get_ports { csync }];
+# cSync out, PMOD Pin1
+set_property -dict { PACKAGE_PIN G17 IOSTANDARD LVCMOS33 } [get_ports { csync }];
 
 # clk_phi out, Pin45
 set_property -dict { PACKAGE_PIN U7 IOSTANDARD LVCMOS33 } [get_ports { clk_phi }];
 
 # rst out, Pin34 TODO MOVE TO PMOD HEADER PIN
 set_property -dict { PACKAGE_PIN W3 IOSTANDARD LVCMOS33 } [get_ports { cpu_reset }];
-
-# sys_clock in, L17 = Internal clock pin 
-set_property -dict { PACKAGE_PIN L17 IOSTANDARD LVCMOS33 } [get_ports { sys_clock }]; 
 
 # RGB out
 # red[0] out, Pin48

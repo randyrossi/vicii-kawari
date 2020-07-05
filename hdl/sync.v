@@ -1,7 +1,6 @@
 `include "common.vh"
 
 module sync(
-	input chip_type chip,
 	input wire rst,
 	input wire clk,
 	input wire [9:0] raster_x,

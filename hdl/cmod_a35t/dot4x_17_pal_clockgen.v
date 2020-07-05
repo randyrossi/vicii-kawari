@@ -1,11 +1,16 @@
 `timescale 1ns/1ps
 
-`include "common.vh"
+// Generate clk_dot4x from a 17.734475Mhz Mhz input clock
+//       dot = 17.734475 / 18 * 8
+// clk_dot4x = 17.734475 / 18 * 32
+//
+// DIV = 27 , MULT = 48 : 27/48 = 18 / 32
 
-module dot4x_clockgen
+module dot4x_17_pal_clockgen
     (output wire clk_dot4x,
+     output wire clk_col4x,
         input wire reset,
-        input wire clk_in12mhz,
+        input wire clk_in17mhz,
         output locked
     );
     // Input buffering
@@ -13,9 +18,10 @@ module dot4x_clockgen
     wire clk_in2_clk_wiz_0;
     IBUF clkin1_ibufg
          (.O(clk_in1_clk_wiz_0),
-             .I(clk_in12mhz));
+             .I(clk_in17mhz));
 
     wire clk_dot4x_clk_wiz_0;
+    wire clk_col4x_clk_wiz_0;
 
     wire [15:0] do_unused;
     wire drdy_unused;
@@ -27,35 +33,33 @@ module dot4x_clockgen
     wire clkinstopped_unused;
     wire reset_high;
 
-    // TODO: Make clock configurable for PAL / NTSC switching
-    // based on CHIP.
-    //
-    // TODO: 6567R56A timing produces a 15.980khz horizontal frequency
-    // which some monitors won't like.  MULT 59.625 and DIV 22.250
-    // will produce a 15.701khz frequency which is closer but still
-    // has a 'shimmering' effect.
-
     MMCME2_ADV
     #(.BANDWIDTH("HIGH"),
     .CLKOUT4_CASCADE("FALSE"),
     .COMPENSATION("ZHOLD"),
     .STARTUP_WAIT("FALSE"),
     .DIVCLK_DIVIDE(1),
-    .CLKFBOUT_MULT_F(`PAL ? 52.875 : 63.750),
+    .CLKFBOUT_MULT_F(48.000),
     .CLKFBOUT_PHASE(0.000),
     .CLKFBOUT_USE_FINE_PS("FALSE"),
-    .CLKOUT0_DIVIDE_F(`PAL ? 20.125 : 23.375),
+    .CLKOUT0_DIVIDE_F(48.000),
     .CLKOUT0_PHASE(0.000),
     .CLKOUT0_DUTY_CYCLE(0.500),
     .CLKOUT0_USE_FINE_PS("FALSE"),
-    .CLKIN1_PERIOD(83.333))
+    .CLKOUT1_DIVIDE(27.000),
+    .CLKOUT1_PHASE(0.000),
+    .CLKOUT1_DUTY_CYCLE(0.500),
+    .CLKOUT1_USE_FINE_PS("FALSE"),
+    .CLKIN1_PERIOD(56.387))
     mmcm_adv_inst
     // Output clocks
     (
         .CLKFBOUT(clkfbout_clk_wiz_0),
         .CLKFBOUTB(clkfboutb_unused),
-        .CLKOUT0(clk_dot4x_clk_wiz_0),
+        .CLKOUT0(clk_col4x_clk_wiz_0),
         .CLKOUT0B(clkout0b_unused),
+        .CLKOUT1(clk_dot4x_clk_wiz_0),
+        .CLKOUT1B(clkout1b_unused),
         // Input clock control
         .CLKFBIN(clkfbout_buf_clk_wiz_0),
         .CLKIN1(clk_in1_clk_wiz_0),
@@ -88,7 +92,11 @@ module dot4x_clockgen
          (.O(clkfbout_buf_clk_wiz_0),
              .I(clkfbout_clk_wiz_0));
 
-    BUFG clkout_buf
+    BUFG clkout1_buf
+         (.O(clk_col4x),
+             .I(clk_col4x_clk_wiz_0));
+
+    BUFG clkout2_buf
          (.O(clk_dot4x),
              .I(clk_dot4x_clk_wiz_0));
 
