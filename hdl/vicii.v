@@ -48,8 +48,6 @@ module vicii(
 `define SPRITE_DAV 13
 // How many dot ticks we need to delay our bitmap pixels before they get into the shifter
 `define DATA_PIXEL_DELAY 8
-// How many dot ticks we need to delay our sprite pixels before the get into the shifter
-`define SPRITE_PIXEL_DELAY 2
 // Will never change but used in loops
 `define NUM_SPRITES 8
 
@@ -103,11 +101,11 @@ CHIP6567R8:
    begin
         raster_x_max = 10'd519;    // 520 pixels
         raster_y_max = 9'd262;     // 263 lines
-        hsync_start = 10'd406;
-        hsync_end = 10'd443;       // 4.6us
-        hvisible_start = 10'd494;  // 10.7us after hsync_start seems to work
-        vblank_start = 9'd11;
-        vblank_end = 9'd19;
+        hsync_start = 10'd409;
+        hsync_end = 10'd446;       // 4.6us
+        hvisible_start = 10'd497;  // 10.7us after hsync_start seems to work
+        vblank_start = 9'd14;
+        vblank_end = 9'd22;
         sprite_dmachk1 = 7'd55;    // low phase
         sprite_dmachk2 = 7'd56;    // low phase
         sprite_yexp_chk = 7'd56;   // high phase
@@ -119,11 +117,11 @@ CHIP6567R56A:
    begin
         raster_x_max = 10'd511;    // 512 pixels
         raster_y_max = 9'd261;     // 262 lines
-        hsync_start = 10'd406;
-        hsync_end = 10'd443;       // 4.6us
-        hvisible_start = 10'd494;  // 10.7us after hsync_start seems to work
-        vblank_start = 9'd11;
-        vblank_end = 9'd19;
+        hsync_start = 10'd409;
+        hsync_end = 10'd446;       // 4.6us
+        hvisible_start = 10'd497;  // 10.7us after hsync_start seems to work
+        vblank_start = 9'd14;
+        vblank_end = 9'd22;
         sprite_dmachk1 = 7'd55;    // low phase
         sprite_dmachk2 = 7'd56;    // low phase
         sprite_yexp_chk = 7'd56;   // high phase
@@ -1505,7 +1503,7 @@ end
 
 // Translate pixel_color3 (indexed) to RGB values
 color viccolor(
-     .x_pos(xpos),
+     .x_pos(xpos_d),
      .y_pos(raster_line),
      .out_pixel(pixel_color3),
      .hsync_start(hsync_start),
@@ -1521,7 +1519,7 @@ color viccolor(
 sync vicsync(
      .rst(rst),
      .clk(clk_dot4x),
-     .raster_x(xpos),
+     .raster_x(xpos_d),
      .raster_y(raster_line),
      .hsync_start(hsync_start),
      .hsync_end(hsync_end),

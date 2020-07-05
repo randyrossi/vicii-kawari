@@ -8,8 +8,8 @@
 #define VCD_TIMESCALE "$timescale 1ns $end"
 
 #define CHIP6567R8   0
-#define CHIP6567R56A 1
-#define CHIP6569     2
+#define CHIP6569     1
+#define CHIP6567R56A 2
 #define CHIPUNUSED   3
 
 // Dot 8.1818181
