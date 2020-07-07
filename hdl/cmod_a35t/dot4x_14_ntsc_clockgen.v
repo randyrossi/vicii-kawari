@@ -16,9 +16,9 @@ module dot4x_14_ntsc_clockgen
     // Input buffering
     wire clk_in1_clk_wiz_0;
     wire clk_in2_clk_wiz_0;
-    IBUF clkin1_ibufg
-         (.O(clk_in1_clk_wiz_0),
-             .I(clk_in14mhz));
+//    IBUF clkin1_ibufg
+//         (.O(clk_in1_clk_wiz_0),
+//             .I(clk_in14mhz));
 
     wire clk_dot4x_clk_wiz_0;
     wire clk_col4x_clk_wiz_0;
@@ -58,7 +58,7 @@ module dot4x_14_ntsc_clockgen
         .CLKFBOUTB(clkfboutb_unused),
         .CLKOUT0(clk_col4x_clk_wiz_0),
         .CLKOUT0B(clkout0b_unused),
-        .CLKOUT1(clk_dot4x_clk_wiz_0),
+        .CLKOUT1(clk_in14mhz), // was clk_dot4x_clk_wiz_0
         .CLKOUT1B(clkout1b_unused),
         // Input clock control
         .CLKFBIN(clkfbout_buf_clk_wiz_0),

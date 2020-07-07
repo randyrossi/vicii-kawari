@@ -16,9 +16,9 @@ module dot4x_17_pal_clockgen
     // Input buffering
     wire clk_in1_clk_wiz_0;
     wire clk_in2_clk_wiz_0;
-    IBUF clkin1_ibufg
-         (.O(clk_in1_clk_wiz_0),
-             .I(clk_in17mhz));
+//    IBUF clkin1_ibufg
+//         (.O(clk_in1_clk_wiz_0),
+//             .I(clk_in17mhz));
 
     wire clk_dot4x_clk_wiz_0;
     wire clk_col4x_clk_wiz_0;
@@ -62,7 +62,7 @@ module dot4x_17_pal_clockgen
         .CLKOUT1B(clkout1b_unused),
         // Input clock control
         .CLKFBIN(clkfbout_buf_clk_wiz_0),
-        .CLKIN1(clk_in1_clk_wiz_0),
+        .CLKIN1(clk_in17mhz), // was clk_in1_clk_wiz_0
         .CLKIN2(1'b0),
         // Tied to always select the primary input clock
         .CLKINSEL(1'b1),
