@@ -83,7 +83,7 @@ reg [9:0] sprite_ba_end [`NUM_SPRITES];
 // wrap around conditions.
 reg [9:0] sprite_raster_x;
 
-// clk_dot4x;     32.727264 Mhz NTSC, 31.527955 Mhz PAL
+// clk_dot4x;     32.727272 Mhz NTSC, 31.527955 Mhz PAL
 // clk_col4x;     14.318181 Mhz NTSC, 17.734475 Mhz PAL
 // clk_dot;       8.18181 Mhz NTSC, 7.8819888 Mhz PAL
 // clk_colref     3.579545 Mhz NTSC, 4.43361875 Mhz PAL
@@ -997,7 +997,7 @@ begin
         for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
             sprite_shift[n] = `FALSE;
             sprite_xe_ff[n] <= `FALSE;
-            sprite_pixels[n] <= 23'b0;
+            sprite_pixels[n] <= 24'b0;
             sprite_mmc_ff[n] <= `FALSE;
             sprite_cur_pixel[n] <= 2'b0;
         end
@@ -1294,7 +1294,7 @@ always @(posedge clk_dot4x)
         end
     end
 
-// s-access reads are found n sprite pixel sequencer
+// s-access reads are found in sprite pixel sequencer
 
 // Transfer read character pixels and char values into waiting*[0] so they
 // are available at the first dot of PHI2
@@ -1415,7 +1415,7 @@ always @(posedge clk_dot4x)
 // Pixel shifter
 always @(posedge clk_dot4x) begin
     if (rst) begin
-        pixels_shifting <= `FALSE;
+        pixels_shifting <= 8'b0;
         is_background_pixel1 <= `FALSE;
     end
     // set is_background_pixel1 here so it is valid on dot tick rise [0]
