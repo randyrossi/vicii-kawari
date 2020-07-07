@@ -1,48 +1,48 @@
 `timescale 1ns/1ps
 
 module color4x_12_pal_clockgen
-    (output wire clk_color4x,
+       (output wire clk_color4x,
         input wire reset,
         input wire clk_in12mhz
-    );
-    // Input buffering
-    wire clk_in1_clk_wiz_0;
-    wire clk_in2_clk_wiz_0;
+       );
+// Input buffering
+wire clk_in1_clk_wiz_0;
+wire clk_in2_clk_wiz_0;
 //    IBUF clkin1_ibufg
 //         (.O(clk_in1_clk_wiz_0),
 //             .I(clk_in12mhz));
 
-    wire clk_color4x_clk_wiz_0;
+wire clk_color4x_clk_wiz_0;
 
-    wire [15:0] do_unused;
-    wire drdy_unused;
-    wire psdone_unused;
-    wire locked_int;
-    wire clkfbout_clk_wiz_0;
-    wire clkfbout_buf_clk_wiz_0;
-    wire clkfboutb_unused;
-    wire clkfbstopped_unused;
-    wire clkinstopped_unused;
-    wire reset_high;
+wire [15:0] do_unused;
+wire drdy_unused;
+wire psdone_unused;
+wire locked_int;
+wire clkfbout_clk_wiz_0;
+wire clkfbout_buf_clk_wiz_0;
+wire clkfboutb_unused;
+wire clkfbstopped_unused;
+wire clkinstopped_unused;
+wire reset_high;
 
-    // NOTE: The PAL values below give 17.734513 vs needed 17.734475?. The
-    // on-board 12Mhz clock is not capable of getting close enough to avoid
-    // shimmering display. So we can get A picture but not a GOOD picture
-    // unless we bring in an external clock.
-    MMCME2_ADV
+// NOTE: The PAL values below give 17.734513 vs needed 17.734475?. The
+// on-board 12Mhz clock is not capable of getting close enough to avoid
+// shimmering display. So we can get A picture but not a GOOD picture
+// unless we bring in an external clock.
+MMCME2_ADV
     #(.BANDWIDTH("HIGH"),
-    .CLKOUT4_CASCADE("FALSE"),
-    .COMPENSATION("ZHOLD"),
-    .STARTUP_WAIT("FALSE"),
-    .DIVCLK_DIVIDE(1),
-    .CLKFBOUT_MULT_F(62.625),
-    .CLKFBOUT_PHASE(0.000),
-    .CLKFBOUT_USE_FINE_PS("FALSE"),
-    .CLKOUT0_DIVIDE_F(42.375),
-    .CLKOUT0_PHASE(0.000),
-    .CLKOUT0_DUTY_CYCLE(0.500),
-    .CLKOUT0_USE_FINE_PS("FALSE"),
-    .CLKIN1_PERIOD(83.333))
+      .CLKOUT4_CASCADE("FALSE"),
+      .COMPENSATION("ZHOLD"),
+      .STARTUP_WAIT("FALSE"),
+      .DIVCLK_DIVIDE(1),
+      .CLKFBOUT_MULT_F(62.625),
+      .CLKFBOUT_PHASE(0.000),
+      .CLKFBOUT_USE_FINE_PS("FALSE"),
+      .CLKOUT0_DIVIDE_F(42.375),
+      .CLKOUT0_PHASE(0.000),
+      .CLKOUT0_DUTY_CYCLE(0.500),
+      .CLKOUT0_USE_FINE_PS("FALSE"),
+      .CLKIN1_PERIOD(83.333))
     mmcm_adv_inst
     // Output clocks
     (
@@ -75,14 +75,14 @@ module color4x_12_pal_clockgen
         .CLKFBSTOPPED(clkfbstopped_unused),
         .PWRDWN(1'b0),
         .RST(reset_high));
-    assign reset_high = reset;
+assign reset_high = reset;
 
-    BUFG clkf_buf
-         (.O(clkfbout_buf_clk_wiz_0),
-             .I(clkfbout_clk_wiz_0));
+BUFG clkf_buf
+     (.O(clkfbout_buf_clk_wiz_0),
+      .I(clkfbout_clk_wiz_0));
 
-    BUFG clkout_buf
-         (.O(clk_color4x),
-             .I(clk_color4x_clk_wiz_0));
+BUFG clkout_buf
+     (.O(clk_color4x),
+      .I(clk_color4x_clk_wiz_0));
 
 endmodule
