@@ -1551,7 +1551,7 @@ end
 
 // Translate pixel_color3 (indexed) to RGB values
 color viccolor(
-          .x_pos(xpos_d),
+          .x_pos(xpos),
           .y_pos(raster_line),
           .out_pixel(pixel_color3),
           .hsync_start(hsync_start),
@@ -1567,7 +1567,7 @@ color viccolor(
 sync vicsync(
          .rst(rst),
          .clk(clk_dot4x),
-         .raster_x(xpos_d),
+         .raster_x(xpos),
          .raster_y(raster_line),
          .hsync_start(hsync_start),
          .hsync_end(hsync_end),
