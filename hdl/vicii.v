@@ -182,8 +182,6 @@ reg [2:0] sprite_cnt;
 reg [2:0] refresh_cnt;
 reg [2:0] idle_cnt;
 
-// VIC read address
-reg [13:0] vic_addr;
 reg [3:0] vm;
 reg [2:0] cb;
 
@@ -203,9 +201,6 @@ wire [2:0] cycle_bit;
 vic_color ec;
 // b#c : background color registers
 vic_color b0c,b1c,b2c,b3c;
-
-// the lower 8 bits of ado are muxed
-reg [7:0] ado8;
 
 // lets us detect when a phi phase is
 // starting within a 4x dot always block
@@ -421,20 +416,20 @@ begin
         raster_irq_triggered <= `FALSE;
     end else begin
         if (clk_phi && phi_phase_start[1]) begin
-           // Here, we use the delayed raster line to match the expected
-           // behavior of triggering the interrupt on cycle 1 for raster line
-           // 0 and cycle 0 for any other line.
-           if (raster_line_d == raster_irq_compare) begin
+            // Here, we use the delayed raster line to match the expected
+            // behavior of triggering the interrupt on cycle 1 for raster line
+            // 0 and cycle 0 for any other line.
+            if (raster_line_d == raster_irq_compare) begin
                 if (!raster_irq_triggered) begin
-                   raster_irq_triggered <= `TRUE;
-                   irst <= `TRUE;
+                    raster_irq_triggered <= `TRUE;
+                    irst <= `TRUE;
                 end
-           end else begin
+            end else begin
                 raster_irq_triggered <= `FALSE;
-           end
+            end
         end
         if (irst_clr)
-                irst <= `FALSE;
+            irst <= `FALSE;
     end
 end
 
@@ -476,17 +471,17 @@ reg top_bot_border;
 reg left_right_border;
 
 border vic_border(
-  .rst(rst),
-  .clk_dot4x(clk_dot4x),
-  .dot_rising_0(dot_rising[0]),
-  .xpos(xpos_d),
-  .raster_line(raster_line),
-  .rsel(rsel),
-  .csel(csel),
-  .den(den),
-  .top_bot_border(top_bot_border),
-  .left_right_border(left_right_border)
-);
+           .rst(rst),
+           .clk_dot4x(clk_dot4x),
+           .dot_rising_0(dot_rising[0]),
+           .xpos(xpos_d),
+           .raster_line(raster_line),
+           .rsel(rsel),
+           .csel(csel),
+           .den(den),
+           .top_bot_border(top_bot_border),
+           .left_right_border(left_right_border)
+       );
 
 reg light_pen_triggered;
 reg [7:0] lpx;
@@ -542,76 +537,76 @@ always @(posedge clk_dot4x)
         endcase
     end
     else begin
-      if (clk_phi && phi_phase_start[0]) begin
-         if (start_of_line) begin
-            raster_line_d <= raster_line_d + 9'd1;
-            start_of_line = 0;
-         end else if (start_of_frame && cycle_num == 1) begin
-            raster_line_d <= 9'd0;
-            start_of_frame = 0;
-         end
-      end
-      if (dot_rising[0]) begin
-        if (raster_x < raster_x_max)
-        begin
-            // Can advance to next pixel
-            raster_x <= raster_x + 10'd1;
-
-            // Handle xpos move but deal with special cases
-            case(chip)
-                CHIP6567R8:
-                    if (cycle_num == 7'd0 && cycle_bit == 3'd0)
-                        xpos <= 10'h19d;
-                    else if (cycle_num == 7'd60 && cycle_bit == 3'd7)
-                        xpos <= 10'h184;
-                    else if (cycle_num == 7'd61 && (cycle_bit == 3'd3 || cycle_bit == 3'd7))
-                        xpos <= 10'h184;
-                    else if (cycle_num == 7'd12 && cycle_bit == 3'd3)
-                        xpos <= 10'h0;
-                    else
-                        xpos <= xpos + 10'd1;
-                CHIP6567R56A:
-                    if (cycle_num == 7'd0 && cycle_bit == 3'd0)
-                        xpos <= 10'h19d;
-                    else if (cycle_num == 7'd12 && cycle_bit == 3'd3)
-                        xpos <= 10'h0;
-                    else
-                        xpos <= xpos + 10'd1;
-                CHIP6569, CHIPUNUSED:
-                    if (cycle_num == 7'd0 && cycle_bit == 3'd0)
-                        xpos <= 10'h195;
-                    else if (cycle_num == 7'd12 && cycle_bit == 3'd3)
-                        xpos <= 10'h0;
-                    else
-                        xpos <= xpos + 10'd1;
-            endcase
-        end else
-        begin
-            // Time to go back to x coord 0
-            raster_x <= 10'd0;
-
-            // xpos also goes back to start value
-            case(chip)
-                CHIP6567R56A, CHIP6567R8:
-                    xpos <= 10'h19c;
-                CHIP6569, CHIPUNUSED:
-                    xpos <= 10'h194;
-            endcase
-
-            if (raster_line < raster_y_max) begin
-                raster_line <= raster_line + 9'd1;
-                start_of_line = 1;
-            end else begin
-                raster_line <= 9'd0;
-                start_of_frame = 1;
+        if (clk_phi && phi_phase_start[0]) begin
+            if (start_of_line) begin
+                raster_line_d <= raster_line_d + 9'd1;
+                start_of_line = 0;
+            end else if (start_of_frame && cycle_num == 1) begin
+                raster_line_d <= 9'd0;
+                start_of_frame = 0;
             end
         end
+        if (dot_rising[0]) begin
+            if (raster_x < raster_x_max)
+            begin
+                // Can advance to next pixel
+                raster_x <= raster_x + 10'd1;
 
-        if (sprite_raster_x < raster_x_max)
-            sprite_raster_x <= sprite_raster_x + 10'd1;
-        else
-            sprite_raster_x <= 10'd0;
-      end
+                // Handle xpos move but deal with special cases
+                case(chip)
+                    CHIP6567R8:
+                        if (cycle_num == 7'd0 && cycle_bit == 3'd0)
+                            xpos <= 10'h19d;
+                        else if (cycle_num == 7'd60 && cycle_bit == 3'd7)
+                            xpos <= 10'h184;
+                        else if (cycle_num == 7'd61 && (cycle_bit == 3'd3 || cycle_bit == 3'd7))
+                            xpos <= 10'h184;
+                        else if (cycle_num == 7'd12 && cycle_bit == 3'd3)
+                            xpos <= 10'h0;
+                        else
+                            xpos <= xpos + 10'd1;
+                    CHIP6567R56A:
+                        if (cycle_num == 7'd0 && cycle_bit == 3'd0)
+                            xpos <= 10'h19d;
+                        else if (cycle_num == 7'd12 && cycle_bit == 3'd3)
+                            xpos <= 10'h0;
+                        else
+                            xpos <= xpos + 10'd1;
+                    CHIP6569, CHIPUNUSED:
+                        if (cycle_num == 7'd0 && cycle_bit == 3'd0)
+                            xpos <= 10'h195;
+                        else if (cycle_num == 7'd12 && cycle_bit == 3'd3)
+                            xpos <= 10'h0;
+                        else
+                            xpos <= xpos + 10'd1;
+                endcase
+            end else
+            begin
+                // Time to go back to x coord 0
+                raster_x <= 10'd0;
+
+                // xpos also goes back to start value
+                case(chip)
+                    CHIP6567R56A, CHIP6567R8:
+                        xpos <= 10'h19c;
+                    CHIP6569, CHIPUNUSED:
+                        xpos <= 10'h194;
+                endcase
+
+                if (raster_line < raster_y_max) begin
+                    raster_line <= raster_line + 9'd1;
+                    start_of_line = 1;
+                end else begin
+                    raster_line <= 9'd0;
+                    start_of_frame = 1;
+                end
+            end
+
+            if (sprite_raster_x < raster_x_max)
+                sprite_raster_x <= sprite_raster_x + 10'd1;
+            else
+                sprite_raster_x <= 10'd0;
+        end
     end
 
 // Update rc/vc/vc_base
@@ -1258,53 +1253,25 @@ always @(posedge clk_dot4x)
 
 
 // Address generation - use delayed reg11 values here
-always @*
-begin
-    case(cycle_type)
-        VIC_LR:
-            vic_addr = {6'b111111, refc};
-        VIC_LG: begin
-            if (idle)
-                if (ecm) // ecm
-                    vic_addr = 14'h39FF;
-                else
-                    vic_addr = 14'h3FFF;
-            else begin
-                if (bmm) // bmm
-                    vic_addr = {cb[2], vc, rc}; // bitmap data
-                else
-                    vic_addr = {cb, char_next[7:0], rc}; // character pixels
-                if (ecm) // ecm
-                    vic_addr[10:9] = 2'b00;
-            end
-        end
-        VIC_HRC, VIC_HGC:
-            vic_addr = {vm, vc}; // video matrix c-access
-        VIC_LP:
-            vic_addr = {vm, 7'b1111111, sprite_cnt}; // p-access
-        VIC_HS1, VIC_LS2, VIC_HS3:
-            if (!vic_write_db)
-                vic_addr = {sprite_ptr[sprite_cnt], sprite_mc[sprite_cnt]}; // s-access
-            else begin
-                if (ecm) // ecm
-                    vic_addr = 14'h39FF;
-                else
-                    vic_addr = 14'h3FFF;
-            end
-        default: begin
-            vic_addr = 14'h3FFF;
-        end
-    endcase
-end
-
-// Address out
-// ROW first, COL second
-always @(posedge clk_dot4x)
-    if (rst)
-        ado8 <= 8'hFF;
-    else
-        ado8 <= mux ? vic_addr[7:0] : {2'b11, vic_addr[13:8]};
-assign ado = {vic_addr[11:8], ado8};
+addressgen vic_addressgen(
+               .rst(rst),
+               .clk_dot4x(clk_dot4x),
+               .cycle_type(cycle_type),
+               .cb(cb),
+               .vc(vc),
+               .vm(vm),
+               .rc(rc),
+               .mux(mux),
+               .bmm(bmm),
+               .ecm(ecm),
+               .idle(idle),
+               .refc(refc),
+               .char_ptr(char_next[7:0]),
+               .vic_write_db(vic_write_db),
+               .sprite_cnt(sprite_cnt),
+               .sprite_ptr(sprite_ptr),
+               .sprite_mc(sprite_mc),
+               .ado(ado));
 
 // Pixel sequencer
 vic_color pixel_color3;

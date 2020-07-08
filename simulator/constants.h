@@ -91,7 +91,7 @@
 #define V_IMMC_CLR     vicii__DOT__immc_clr
 #define V_ILP_CLR      vicii__DOT__ilp_clr
 #define V_RASTERCMP    vicii__DOT__raster_irq_compare
-#define V_VICADDR      vicii__DOT__vic_addr
+#define V_VICADDR      vicii__DOT__vic_addressgen__DOT__vic_addr
 #define V_CB           vicii__DOT__cb
 #define V_VM           vicii__DOT__vm
 #define V_NEXTCHAR     vicii__DOT__next_char

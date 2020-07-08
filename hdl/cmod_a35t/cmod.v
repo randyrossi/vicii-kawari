@@ -6,9 +6,9 @@
 // selected configuration here.
 
 // Chose one:
-//`define USE_SYSCLOCK_PAL      // use on-board clock
+`define USE_SYSCLOCK_PAL      // use on-board clock
 //`define USE_SYSCLOCK_NTSC     // use on-board clock
-`define USE_PALCLOCK_PAL      // use external clock
+//`define USE_PALCLOCK_PAL      // use external clock
 //`define USE_NTSCCLOCK_NTSC    // use external clock
 
 
