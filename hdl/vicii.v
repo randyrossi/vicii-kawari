@@ -466,51 +466,22 @@ always @(posedge clk_dot4x)
 reg [9:0] xpos_d;
 assign xpos_d = xpos - (`DATA_PIXEL_DELAY - 1);
 
-// border on/off logic
+// border
+reg top_bot_border;
+reg left_right_border;
 
-reg top_bot_border = `TRUE;
-reg left_right_border = `TRUE;
-reg new_top_bot_border = `TRUE;
-
-always @(raster_line, rsel, den, top_bot_border)
-begin
-    new_top_bot_border = top_bot_border;
-    if (raster_line == 55 && den == `TRUE)
-        new_top_bot_border = `FALSE;
-
-    if (raster_line == 51 && rsel == `TRUE && den == `TRUE)
-        new_top_bot_border = `FALSE;
-
-    if (raster_line == 247 && rsel == `FALSE)
-        new_top_bot_border = `TRUE;
-
-    if (raster_line == 251 && rsel == `TRUE)
-        new_top_bot_border = `TRUE;
-end
-
-always @(posedge clk_dot4x)
-begin
-    if (rst) begin
-        left_right_border <= `FALSE;
-        top_bot_border <= `FALSE;
-    end else if (dot_rising[0]) begin
-        if (xpos_d == 32 && csel == `FALSE) begin
-            left_right_border <= new_top_bot_border;
-            top_bot_border <= new_top_bot_border;
-        end
-        if (xpos_d == 25 && csel == `TRUE) begin
-            left_right_border <= new_top_bot_border;
-            top_bot_border <= new_top_bot_border;
-        end
-
-        if (xpos_d == 336 && csel == `FALSE)
-            left_right_border <= `TRUE;
-
-        if (xpos_d == 345 && csel == `TRUE)
-            left_right_border <= `TRUE;
-    end
-end
-
+border vic_border(
+  .rst(rst),
+  .clk_dot4x(clk_dot4x),
+  .dot_rising_0(dot_rising[0]),
+  .xpos(xpos_d),
+  .raster_line(raster_line),
+  .rsel(rsel),
+  .csel(csel),
+  .den(den),
+  .top_bot_border(top_bot_border),
+  .left_right_border(left_right_border)
+);
 
 reg light_pen_triggered;
 reg [7:0] lpx;
