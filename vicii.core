@@ -12,14 +12,20 @@ filesets:
       - hdl/clockdivs.v
       - hdl/color.v
       - hdl/sync.v
+      - hdl/registers.v
     file_type: systemVerilogSource
 
   # Files specific to the CMod A35t board
   files_rtl_cmod_a35t:
     files:
-      - hdl/cmod_a35t/top.v
-      - hdl/cmod_a35t/color4x_clockgen.v
-      - hdl/cmod_a35t/dot4x_clockgen.v
+      - hdl/top.v
+      - hdl/cmod_a35t/cmod.v
+      - hdl/cmod_a35t/color4x_12_ntsc_clockgen.v
+      - hdl/cmod_a35t/color4x_12_pal_clockgen.v
+      - hdl/cmod_a35t/dot4x_12_ntsc_clockgen.v
+      - hdl/cmod_a35t/dot4x_12_pal_clockgen.v
+      - hdl/cmod_a35t/dot4x_14_ntsc_clockgen.v
+      - hdl/cmod_a35t/dot4x_17_pal_clockgen.v
     file_type: systemVerilogSource
   files_constraints_cmod_a35t:
     files:
