@@ -153,6 +153,7 @@ clk_div4 clk_colorgen (
 // current raster x and line position
 reg [9:0] raster_x;
 reg [8:0] raster_line;
+reg [8:0] raster_line_d;
 reg allow_bad_lines;
 
 // According to VICE, reg11 is delayed by 1 cycle. TODO: confirm this
@@ -419,17 +420,21 @@ begin
         irst <= `FALSE;
         raster_irq_triggered <= `FALSE;
     end else begin
-        if (clk_phi == `TRUE && phi_phase_start[15] && // phi going low
-                (cycle_type == VIC_HPI3 || cycle_type == VIC_HS3) && sprite_cnt == 2)
-            raster_irq_triggered <= `FALSE;
-        if (irst_clr)
-            irst <= `FALSE;
-        if (clk_phi == `TRUE && raster_irq_triggered == `FALSE && raster_line == raster_irq_compare) begin
-            if ((raster_line == 0 && cycle_num == 1) || (raster_line != 0 && cycle_num == 0)) begin
-                raster_irq_triggered <= `TRUE;
-                irst <= `TRUE;
-            end
+        if (clk_phi && phi_phase_start[1]) begin
+           // Here, we use the delayed raster line to match the expected
+           // behavior of triggering the interrupt on cycle 1 for raster line
+           // 0 and cycle 0 for any other line.
+           if (raster_line_d == raster_irq_compare) begin
+                if (!raster_irq_triggered) begin
+                   raster_irq_triggered <= `TRUE;
+                   irst <= `TRUE;
+                end
+           end else begin
+                raster_irq_triggered <= `FALSE;
+           end
         end
+        if (irst_clr)
+                irst <= `FALSE;
     end
 end
 
@@ -513,11 +518,16 @@ end
 // sprite #0 where ba should go low (if the sprite is enabled)
 // has sprite_raster_x==0.  This lets us do a simple interval
 // comparison without having to worry about wrap around conditions.
+reg start_of_line;
+reg start_of_frame;
 always @(posedge clk_dot4x)
     if (rst)
     begin
         raster_x <= 10'b0;
         raster_line <= 9'b0;
+        raster_line_d <= 9'b0;
+        start_of_line = 0;
+        start_of_frame = 0;
         case(chip)
             CHIP6567R56A: begin
                 xpos <= 10'h19c;
@@ -531,7 +541,17 @@ always @(posedge clk_dot4x)
             end
         endcase
     end
-    else if (dot_rising[0]) begin
+    else begin
+      if (clk_phi && phi_phase_start[0]) begin
+         if (start_of_line) begin
+            raster_line_d <= raster_line_d + 9'd1;
+            start_of_line = 0;
+         end else if (start_of_frame && cycle_num == 1) begin
+            raster_line_d <= 9'd0;
+            start_of_frame = 0;
+         end
+      end
+      if (dot_rising[0]) begin
         if (raster_x < raster_x_max)
         begin
             // Can advance to next pixel
@@ -578,16 +598,20 @@ always @(posedge clk_dot4x)
                     xpos <= 10'h194;
             endcase
 
-            if (raster_line < raster_y_max)
+            if (raster_line < raster_y_max) begin
                 raster_line <= raster_line + 9'd1;
-            else
+                start_of_line = 1;
+            end else begin
                 raster_line <= 9'd0;
+                start_of_frame = 1;
+            end
         end
 
         if (sprite_raster_x < raster_x_max)
             sprite_raster_x <= sprite_raster_x + 10'd1;
         else
             sprite_raster_x <= 10'd0;
+      end
     end
 
 // Update rc/vc/vc_base
@@ -1354,7 +1378,7 @@ registers vicregisters(
               .vic_write_ab(vic_write_ab),
               .adi(adi),
               .dbi(dbi[7:0]),
-              .raster_line(raster_line),
+              .raster_line(raster_line_d), // advertise the delayed version
               .irq(irq),
               .ilp(ilp),
               .immc(immc),
