@@ -10,6 +10,13 @@
 // pixel. (This really only matters for the simulator since things
 // would eventually come into line the next cycle anyway).
 
+// Notes on RST : The reset signal has to reach every flip flop we
+// end up resetting.  Trt to keep this list to essential resets only.
+// i.e, those that are necessary for a sane start state. Also, it looks
+// like we need to reset anything that is loaded into dbi, otherwise
+// the toolchain complains about placing dbl into IOB that is connected
+// to flip flops with multiple set/reset signals. 
+
 module vicii(
            input chip_type chip,
            input rst,
@@ -23,7 +30,7 @@ module vicii(
            output csync,
            output [11:0] ado,
            input [5:0] adi,
-           output reg [11:0] dbo,
+           output reg [7:0] dbo,
            input [11:0] dbi,
            input ce,
            input rw,
@@ -395,9 +402,10 @@ end
 // and badline calcs
 always @(posedge clk_dot4x)
 begin
-    if (rst)
-        reg11_delayed <= 8'b0;
-    else if (clk_phi && phi_phase_start[0]) begin // must be before badline idle reset below
+//    if (rst)
+//        reg11_delayed <= 8'b0;
+//    else
+    if (clk_phi && phi_phase_start[0]) begin // must be before badline idle reset below
         reg11_delayed[2:0] <= yscroll;
         reg11_delayed[3] <= rsel;
         reg11_delayed[4] <= den;
@@ -489,8 +497,8 @@ reg [7:0] lpy;
 always @(posedge clk_dot4x)
 begin
     if (rst) begin
-        lpx <= 'h00;
-        lpy <= 'h00;
+        //lpx <= 'h00;
+        //lpy <= 'h00;
         ilp <= `FALSE;
         light_pen_triggered <= `FALSE;
     end else begin
@@ -660,7 +668,7 @@ always @(posedge clk_dot4x)
 // here since there are no repeats within this range.
 always @(*)
     if (rst)
-        ba_chars = `TRUE;
+        ba_chars = `FALSE;
     else begin
         if ((xpos >= chars_ba_start || xpos < chars_ba_end) && badline)
             ba_chars = `FALSE;
@@ -966,9 +974,9 @@ begin
         for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
             sprite_shift[n] = `FALSE;
             sprite_xe_ff[n] <= `FALSE;
-            sprite_pixels[n] <= 24'b0;
+            //sprite_pixels[n] <= 24'b0;
             sprite_mmc_ff[n] <= `FALSE;
-            sprite_cur_pixel[n] <= 2'b0;
+            //sprite_cur_pixel[n] <= 2'b0;
         end
     end
     else begin
@@ -1136,7 +1144,8 @@ always @(posedge clk_dot4x)
 always @(posedge clk_dot4x)
     if (rst) begin
         aec <= `FALSE;
-    end else begin
+    end else
+    begin
         aec <= ba ? clk_phi : ba3 & clk_phi;
     end
 
@@ -1191,10 +1200,11 @@ assign vic_write_ab = ~aec;
 always @(posedge clk_dot4x)
     if (rst) begin
         char_next <= 12'b0;
-        for (n = 0; n < 39; n = n + 1) begin
-            char_buf[n] <= 12'hff;
-        end
-    end else if (!vic_write_db && phi_phase_start[`DATA_DAV]) begin
+        //for (n = 0; n < 39; n = n + 1) begin
+        //    char_buf[n] <= 12'hff;
+        //end
+    end else
+    if (!vic_write_db && phi_phase_start[`DATA_DAV]) begin
         case (cycle_type)
             VIC_HRC, VIC_HGC: // badline c-access
                 char_next <= dbi;
@@ -1219,8 +1229,9 @@ always @(posedge clk_dot4x)
 begin
     if (rst) begin
         pixels_read <= 8'd0;
-        char_read <= 12'd0;
-    end else if (!vic_write_db && phi_phase_start[`DATA_DAV]) begin
+    //    char_read <= 12'd0;
+    end else
+    if (!vic_write_db && phi_phase_start[`DATA_DAV]) begin
         pixels_read <= 8'd0;
         if (cycle_type == VIC_LG) begin // g-access
             pixels_read <= dbi[7:0];
@@ -1254,7 +1265,7 @@ always @(posedge clk_dot4x)
 
 // Address generation - use delayed reg11 values here
 addressgen vic_addressgen(
-               .rst(rst),
+               //.rst(rst),
                .clk_dot4x(clk_dot4x),
                .cycle_type(cycle_type),
                .cb(cb),

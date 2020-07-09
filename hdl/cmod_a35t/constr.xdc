@@ -7,12 +7,12 @@ set_property CFGBVS VCCO [current_design]
 # -------------------------------------------
 
 # USE_SYSCLOCK_NTSC or USE_SYSCLOCK_PAL - Internal L3 12Mhz Pin
-create_clock -add -name sys_clk_pin -period 83.33 -waveform {0 41.66} [get_ports {sys_clock}];
-set_property -dict { PACKAGE_PIN L17 IOSTANDARD LVCMOS33 } [get_ports { sys_clock }]; 
+#create_clock -add -name sys_clk_pin -period 83.33 -waveform {0 41.66} [get_ports {sys_clock}];
+#set_property -dict { PACKAGE_PIN L17 IOSTANDARD LVCMOS33 } [get_ports { sys_clock }]; 
 
 # USE_PALCLOCK_PAL - Pin36 External 17.3Mhz
-#create_clock -add -name pal_clk_pin -period 56.38 -waveform {0 28.19} [get_ports {sys_clock}];
-#set_property -dict { PACKAGE_PIN W5 IOSTANDARD LVCMOS33 } [get_ports { sys_clock }];
+create_clock -add -name pal_clk_pin -period 56.38 -waveform {0 28.19} [get_ports {sys_clock}];
+set_property -dict { PACKAGE_PIN W5 IOSTANDARD LVCMOS33 } [get_ports { sys_clock }];
 
 # USE_NTSCCLOCK_NTSC - Pin36 External 14.3Mhz
 #create_clock -add -name pal_clk_pin -period 69.84 -waveform {0 34.92} [get_ports {sys_clock}];
@@ -74,29 +74,29 @@ set_property -dict { PACKAGE_PIN P3 IOSTANDARD LVCMOS33 } [get_ports { adh[5] }]
 
 # Data bus lines
 # db[0] inout, Pin 8
-set_property -dict { PACKAGE_PIN B15 IOSTANDARD LVCMOS33 } [get_ports { db[0]  }];
+set_property -dict { PACKAGE_PIN B15 IOSTANDARD LVCMOS33 } [get_ports { dbl[0]  }];
 # db[1] inout, Pin 7
-set_property -dict { PACKAGE_PIN A15 IOSTANDARD LVCMOS33 } [get_ports { db[1]  }];
+set_property -dict { PACKAGE_PIN A15 IOSTANDARD LVCMOS33 } [get_ports { dbl[1]  }];
 # db[2] inout, Pin 6
-set_property -dict { PACKAGE_PIN H1  IOSTANDARD LVCMOS33 } [get_ports { db[2]  }];
+set_property -dict { PACKAGE_PIN H1  IOSTANDARD LVCMOS33 } [get_ports { dbl[2]  }];
 # db[3] inout, Pin 5
-set_property -dict { PACKAGE_PIN C15 IOSTANDARD LVCMOS33 } [get_ports { db[3]  }];
+set_property -dict { PACKAGE_PIN C15 IOSTANDARD LVCMOS33 } [get_ports { dbl[3]  }];
 # db[4] inout, Pin 4
-set_property -dict { PACKAGE_PIN K3  IOSTANDARD LVCMOS33 } [get_ports { db[4]  }];
+set_property -dict { PACKAGE_PIN K3  IOSTANDARD LVCMOS33 } [get_ports { dbl[4]  }];
 # db[5] inout, Pin 3
-set_property -dict { PACKAGE_PIN A16 IOSTANDARD LVCMOS33 } [get_ports { db[5]  }];
+set_property -dict { PACKAGE_PIN A16 IOSTANDARD LVCMOS33 } [get_ports { dbl[5]  }];
 # db[6] inout, Pin 2
-set_property -dict { PACKAGE_PIN L3  IOSTANDARD LVCMOS33 } [get_ports { db[6]  }];
+set_property -dict { PACKAGE_PIN L3  IOSTANDARD LVCMOS33 } [get_ports { dbl[6]  }];
 # db[7] inout, Pin 1
-set_property -dict { PACKAGE_PIN M3  IOSTANDARD LVCMOS33 } [get_ports { db[7]  }];
-# db[8] inout, Pin 9
-set_property -dict { PACKAGE_PIN A14 IOSTANDARD LVCMOS33 } [get_ports { db[8]  }];
-# db[9] inout, Pin 10
-set_property -dict { PACKAGE_PIN J3  IOSTANDARD LVCMOS33 } [get_ports { db[9] }];
-# db[10] inout, Pin 11
-set_property -dict { PACKAGE_PIN J1  IOSTANDARD LVCMOS33 } [get_ports { db[10] }];
-# db[11] inout, Pin 12
-set_property -dict { PACKAGE_PIN K2  IOSTANDARD LVCMOS33 } [get_ports { db[11] }];
+set_property -dict { PACKAGE_PIN M3  IOSTANDARD LVCMOS33 } [get_ports { dbl[7]  }];
+# db[8] in, Pin 9
+set_property -dict { PACKAGE_PIN A14 IOSTANDARD LVCMOS33 } [get_ports { dbh[0]  }];
+# db[9] in, Pin 10
+set_property -dict { PACKAGE_PIN J3  IOSTANDARD LVCMOS33 } [get_ports { dbh[1] }];
+# db[10] in, Pin 11
+set_property -dict { PACKAGE_PIN J1  IOSTANDARD LVCMOS33 } [get_ports { dbh[2] }];
+# db[11] in, Pin 12
+set_property -dict { PACKAGE_PIN K2  IOSTANDARD LVCMOS33 } [get_ports { dbh[3] }];
 
 # cs input, Pin 13
 set_property -dict { PACKAGE_PIN L1    IOSTANDARD LVCMOS33 } [get_ports { ce }];

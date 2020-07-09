@@ -6,9 +6,9 @@
 // selected configuration here.
 
 // Chose one:
-`define USE_SYSCLOCK_PAL      // use on-board clock
+//`define USE_SYSCLOCK_PAL      // use on-board clock
 //`define USE_SYSCLOCK_NTSC     // use on-board clock
-//`define USE_PALCLOCK_PAL      // use external clock
+`define USE_PALCLOCK_PAL      // use external clock
 //`define USE_NTSCCLOCK_NTSC    // use external clock
 
 
@@ -27,6 +27,8 @@ module cmod(
 
 wire sys_clockb;
 
+// 21 = 150ms
+// 25 = ~4s for testing
 reg [21:0] rstcntr = 0;
 wire internal_rst = !rstcntr[21];
 
@@ -102,6 +104,8 @@ dot4x_14_ntsc_clockgen dot4x_14_ntsc_clockgen(
                        );
 `endif
 
-assign rst = !locked;
+// Synchronize reset to clock using locked output
+RisingEdge_DFlipFlop_SyncReset ff1(1'b0, clk_dot4x, !locked, ff1_q);
+RisingEdge_DFlipFlop_SyncReset ff2(ff1_q, clk_dot4x, !locked, rst);
 
 endmodule : cmod

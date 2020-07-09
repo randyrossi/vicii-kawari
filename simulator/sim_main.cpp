@@ -60,7 +60,6 @@ enum {
    IN_A0, IN_A1, IN_A2, IN_A3, IN_A4, IN_A5, IN_A6, IN_A7,
    IN_A8, IN_A9, IN_A10, IN_A11,
    OUT_D0, OUT_D1, OUT_D2, OUT_D3, OUT_D4, OUT_D5, OUT_D6, OUT_D7,
-   OUT_D8, OUT_D9, OUT_D10, OUT_D11,
    IN_D0, IN_D1, IN_D2, IN_D3, IN_D4, IN_D5, IN_D6, IN_D7,
    IN_D8, IN_D9, IN_D10, IN_D11,
    IN_CE,
@@ -71,14 +70,14 @@ enum {
    OUT_RAS, OUT_CAS
 };
 
-#define NUM_SIGNALS 66
+#define NUM_SIGNALS 62
 
 // Add new input/output here
 const char *signal_labels[] = {
    "phi", "col", "rst", "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "csync",
    "ao0", "ao1", "ao2", "ao3", "ao4", "ao5", "ao6", "ao7", "ao8", "ao9", "ao10", "ao11",
    "ai0", "ai1", "ai2", "ai3", "ai4", "ai5", "ai6", "ai7", "ai8", "ai9", "ai10", "ai11",
-   "do0", "do1", "do2", "do3", "do4", "do5", "do6", "do7", "do8", "do9", "do10", "do11",
+   "do0", "do1", "do2", "do3", "do4", "do5", "do6", "do7",
    "di0", "di1", "di2", "di3", "di4", "di5", "di6", "di7", "di8", "di9", "di10", "di11",
    "ce", "rw", "ba", "aec", "irq",
    "ras", "cas"
@@ -87,7 +86,7 @@ const char *signal_ids[] = {
    "p", "c", "r" ,  "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "s",
    "ao0", "ao1", "ao2", "ao3", "ao4", "ao5", "ao6", "ao7", "ao8", "ao9", "ao10", "ao11",
    "ai0", "ai1", "ai2", "ai3", "ai4", "ai5", "ai6", "ai7", "ai8", "ai9", "ai10", "ai11",
-   "do0", "do1", "do2", "do3", "do4", "do5", "do6", "do7", "do8", "do9", "do10", "do11",
+   "do0", "do1", "do2", "do3", "do4", "do5", "do6", "do7",
    "di0", "di1", "di2", "di3", "di4", "di5", "di6", "di7", "di8", "di9", "di10", "di11",
    "ce", "rw", "ba", "aec", "irq",
    "ras", "cas"
@@ -780,10 +779,10 @@ int main(int argc, char** argv, char** env) {
        bt = bt * 2;
     }
     bt = 1;
-    for (int i=OUT_D0; i<= OUT_D11; i++) {
-       signal_width[i] = 12;
+    for (int i=OUT_D0; i<= OUT_D7; i++) {
+       signal_width[i] = 8;
        signal_bit[i] = bt;
-       signal_src16[i] = &top->dbo;
+       signal_src8[i] = &top->dbo;
        bt = bt * 2;
     }
     bt = 1;

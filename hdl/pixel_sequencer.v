@@ -52,11 +52,11 @@ reg [7:0] pixels_shifting;
 // are available at the first dot of PHI2
 always @(posedge clk_dot4x)
 begin
-    if (rst) begin
-        pixels_delayed[0] <= 8'd0;
-        char_delayed[0] <= 12'd0;
-    end
-    else if (clk_phi == `FALSE && phi_phase_start_15) begin // must be > PIXEL_DAV
+    //if (rst) begin
+    //    pixels_delayed[0] <= 8'd0;
+    //    char_delayed[0] <= 12'd0;
+    //end else
+    if (clk_phi == `FALSE && phi_phase_start_15) begin // must be > PIXEL_DAV
         pixels_delayed[0] <= pixels_read;
         char_delayed[0] <= char_read;
     end
@@ -70,13 +70,13 @@ end
 // xpos with a negative offset.
 always @(posedge clk_dot4x)
 begin
-    if (rst) begin
-        for (n = `DATA_PIXEL_DELAY; n > 0; n = n - 1) begin
-            pixels_delayed[n] <= 8'd0;
-            char_delayed[n] <= 12'd0;
-        end
-    end
-    else if (dot_rising_0) begin
+    //if (rst) begin
+    //    for (n = `DATA_PIXEL_DELAY; n > 0; n = n - 1) begin
+    //        pixels_delayed[n] <= 8'd0;
+    //        char_delayed[n] <= 12'd0;
+    //    end
+    //end else
+    if (dot_rising_0) begin
         for (n = `DATA_PIXEL_DELAY; n > 0; n = n - 1) begin
             pixels_delayed[n] <= pixels_delayed[n-1];
             char_delayed[n] <= char_delayed[n-1];
@@ -87,11 +87,12 @@ end
 // Delay sprite pixels
 always @(posedge clk_dot4x)
 begin
-    if (rst) begin
-        for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-            sprite_pixels_delayed1[n][1:0] <= 2'b0;
-        end
-    end else if (dot_rising_0) begin
+    //if (rst) begin
+    //    for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
+    //        sprite_pixels_delayed1[n][1:0] <= 2'b0;
+    //    end
+    //end else
+    if (dot_rising_0) begin
         for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
             sprite_pixels_delayed1[n][1:0] <= sprite_cur_pixel[n][1:0];
         end
@@ -108,9 +109,10 @@ always @(*)
     load_pixels = xpos_d_mod_8 == xscroll;
 
 always @(posedge clk_dot4x)
-    if (rst) begin
-        shift_pixels <= `FALSE;
-    end else if (dot_rising_0) begin // rising dot
+    //if (rst) begin
+    //    shift_pixels <= `FALSE;
+    //end else
+    if (dot_rising_0) begin // rising dot
         if (load_pixels)
             shift_pixels <= ~(mcm & (bmm | ecm | char_delayed[`DATA_PIXEL_DELAY][11]));
         else
@@ -118,9 +120,10 @@ always @(posedge clk_dot4x)
     end
 
 always @(posedge clk_dot4x)
-    if (rst) begin
-        char_shifting <= 12'b0;
-    end else if (dot_rising_0) begin
+    //if (rst) begin
+    //    char_shifting <= 12'b0;
+    //end else
+    if (dot_rising_0) begin
         if (load_pixels)
             char_shifting <= char_delayed[`DATA_PIXEL_DELAY];
     end
@@ -129,7 +132,7 @@ always @(posedge clk_dot4x)
 always @(posedge clk_dot4x) begin
     if (rst) begin
         pixels_shifting <= 8'b0;
-        is_background_pixel1 <= `FALSE;
+        //is_background_pixel1 <= `FALSE;
     end
     // set is_background_pixel1 here so it is valid on dot tick rise [0]
     // for the currently shifting pixel entering the final output pipeline
@@ -153,11 +156,11 @@ end
 vic_color pixel_color1; // stage 1
 always @(posedge clk_dot4x)
 begin
-    if (rst) begin
-        is_background_pixel2 <= `FALSE;
-        pixel_color1 <= BLACK;
-    end
-    else if (dot_rising_0) begin
+    //if (rst) begin
+    //    is_background_pixel2 <= `FALSE;
+    //    pixel_color1 <= BLACK;
+    //end else
+    if (dot_rising_0) begin
         // this will bring 2nd in line with delayed sprite pixels 2
         is_background_pixel2 <= is_background_pixel1;
         pixel_color1 <= BLACK;
@@ -214,9 +217,10 @@ end
 vic_color pixel_color2; // stage 2
 always @(posedge clk_dot4x)
 begin
-    if (rst) begin
-        pixel_color2 = BLACK;
-    end else begin
+    //if (rst) begin
+    //    pixel_color2 = BLACK;
+    //end else
+    begin
         // illegal modes should have black pixels
         case ({ecm, bmm, mcm})
             MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR,
@@ -250,9 +254,10 @@ end
 // mask with border - pixel_color3 = stage 3
 always @(posedge clk_dot4x)
 begin
-    if (rst) begin
-        pixel_color3 <= BLACK;
-    end else begin
+    //if (rst) begin
+    //    pixel_color3 <= BLACK;
+    //end else
+    begin
         if (left_right_border | top_bot_border)
             pixel_color3 <= ec;
         else

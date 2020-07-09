@@ -57,7 +57,7 @@ module registers(
            output reg m2m_clr,
            output reg m2d_clr,
            output reg handle_sprite_crunch,
-           output reg [11:0] dbo,
+           output reg [7:0] dbo,
            output reg [2:0] cb,
            output reg [3:0] vm,
            output reg elp,
@@ -71,45 +71,45 @@ integer n;
 // Register Read/Write
 always @(posedge clk_dot4x)
     if (rst) begin
-        ec <= BLACK;
-        b0c <= BLACK;
-        b1c <= BLACK;
-        b2c <= BLACK;
-        b3c <= BLACK;
-        xscroll <= 3'd0;
-        yscroll <= 3'd3;
-        csel <= `FALSE;
-        rsel <= `FALSE;
-        den <= `TRUE;
-        bmm <= `FALSE;
-        ecm <= `FALSE;
-        res <= `FALSE;
-        mcm <= `FALSE;
-        irst_clr <= `FALSE;
-        imbc_clr <= `FALSE;
-        immc_clr <= `FALSE;
-        ilp_clr <= `FALSE;
-        raster_irq_compare <= 9'b0;
-        sprite_en <= 8'b0;
-        sprite_xe <= 8'b0;
-        sprite_ye <= 8'b0;
-        sprite_pri <= 8'b0;
-        sprite_mmc <= 8'b0;
-        sprite_mc0 <= BLACK;
-        sprite_mc1 <= BLACK;
-        for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-            sprite_x[n] <= 9'b0;
-            sprite_y[n] <= 8'b0;
-            sprite_col[n] <= BLACK;
-        end
-        m2m_clr <= `FALSE;
-        m2d_clr <= `FALSE;
+        //ec <= BLACK;
+        //b0c <= BLACK;
+        //b1c <= BLACK;
+        //b2c <= BLACK;
+        //b3c <= BLACK;
+        //xscroll <= 3'd0;
+        //yscroll <= 3'd3;
+        //csel <= `FALSE;
+        //rsel <= `FALSE;
+        //den <= `TRUE;
+        //bmm <= `FALSE;
+        //ecm <= `FALSE;
+        //res <= `FALSE;
+        //mcm <= `FALSE;
+        //irst_clr <= `FALSE;
+        //imbc_clr <= `FALSE;
+        //immc_clr <= `FALSE;
+        //ilp_clr <= `FALSE;
+        //raster_irq_compare <= 9'b0;
+        //sprite_en <= 8'b0;
+        //sprite_xe <= 8'b0;
+        //sprite_ye <= 8'b0;
+        //sprite_pri <= 8'b0;
+        //sprite_mmc <= 8'b0;
+        //sprite_mc0 <= BLACK;
+        //sprite_mc1 <= BLACK;
+        //for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
+        //    sprite_x[n] <= 9'b0;
+        //    sprite_y[n] <= 8'b0;
+        //    sprite_col[n] <= BLACK;
+        // end
+        //m2m_clr <= `FALSE;
+        //m2d_clr <= `FALSE;
         erst <= `FALSE;
         embc <= `FALSE;
         emmc <= `FALSE;
         elp <= `FALSE;
-        dbo <= 12'd0;
-        handle_sprite_crunch <= `FALSE;
+        //dbo[7:0] <= 8'd0;
+        //handle_sprite_crunch <= `FALSE;
     end
     else begin
         // always clear these at the end of the high phase
@@ -133,7 +133,7 @@ always @(posedge clk_dot4x)
         if (!vic_write_ab && !ce) begin
             // READ from register
             if (rw) begin
-                dbo <= 12'hFF;
+                dbo[7:0] <= 8'hFF;
                 case (adi[5:0])
                     /* 0x00 */ REG_SPRITE_X_0:
                         dbo[7:0] <= sprite_x[0][7:0];

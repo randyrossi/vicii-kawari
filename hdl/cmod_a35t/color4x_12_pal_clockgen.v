@@ -50,6 +50,15 @@ MMCME2_ADV
         .CLKFBOUTB(clkfboutb_unused),
         .CLKOUT0(clk_color4x_clk_wiz_0),
         .CLKOUT0B(clkout0b_unused),
+        .CLKOUT1(clkout1_unused),
+        .CLKOUT1B(clkout1b_unused),
+        .CLKOUT2(clkout2_unused),
+        .CLKOUT2B(clkout2b_unused),
+        .CLKOUT3(clkout3_unused),
+        .CLKOUT3B(clkout3b_unused),
+        .CLKOUT4(clkout4_unused),
+        .CLKOUT5(clkout5_unused),
+        .CLKOUT6(clkout6_unused),
         // Input clock control
         .CLKFBIN(clkfbout_buf_clk_wiz_0),
         .CLKIN1(clk_in12mhz), // was clk_in1_clk_wiz_0

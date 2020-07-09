@@ -14,7 +14,8 @@ module top(
            output [1:0] blue,   // blue out for CXA1545P
            inout tri [5:0] adl, // address (lower 6 bits)
            output tri [5:0] adh,// address (high 6 bits)
-           inout tri [11:0] db, // data bus lines
+           inout tri [7:0] dbl, // data bus lines
+           input [3:0] dbh,      // data bus lines
            input ce,            // chip enable (LOW=enable, HIGH=disabled)
            input rw,            // read/write (LOW=write, HIGH=read)
            output irq,          // irq
@@ -30,7 +31,7 @@ module top(
 wire rst;
 wire [1:0] chip;
 wire clk_dot4x;
-wire clk_cold4x;
+wire clk_col4x;
 
 // Vendor specific clock generators and chip selection
 cmod cmod(
@@ -42,7 +43,7 @@ cmod cmod(
 
 assign cpu_reset = rst;
 
-wire [11:0] dbo;
+wire [7:0] dbo;
 wire [11:0] ado;
 
 // When these are true, the VIC is writing to the data
@@ -69,7 +70,7 @@ vicii vic_inst(
           .csync(csync),
           .adi(adl[5:0]),
           .ado(ado),
-          .dbi(db),
+          .dbi({dbh,dbl}),
           .dbo(dbo),
           .ce(ce),
           .rw(rw),
@@ -86,7 +87,7 @@ vicii vic_inst(
       );
 
 // Write to bus condition, else tri state.
-assign db = vic_write_db ? dbo : 12'bz; // CPU reading
+assign dbl[7:0] = vic_write_db ? dbo : 8'bz; // CPU reading
 assign adl = vic_write_ab ? ado[5:0] : 6'bz; // vic or stollen cycle
 assign adh = vic_write_ab ? ado[11:6] : 6'bz;
 
