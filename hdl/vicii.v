@@ -163,8 +163,8 @@ reg [8:0] raster_line;
 reg [8:0] raster_line_d;
 reg allow_bad_lines;
 
-// According to VICE, reg11 is delayed by 1 cycle. TODO: confirm this
 reg [7:0] reg11_delayed;
+reg [4:0] reg16_delayed;
 
 // A counter that increments with each dot4x clock tick
 // Used for precise timing within a phase for some circumstances
@@ -402,9 +402,10 @@ end
 // and badline calcs
 always @(posedge clk_dot4x)
 begin
-//    if (rst)
-//        reg11_delayed <= 8'b0;
-//    else
+    if (rst) begin
+        reg11_delayed <= 8'b0;
+        reg16_delayed <= 5'b0;
+    end else
     if (clk_phi && phi_phase_start[0]) begin // must be before badline idle reset below
         reg11_delayed[2:0] <= yscroll;
         reg11_delayed[3] <= rsel;
@@ -412,6 +413,9 @@ begin
         reg11_delayed[5] <= bmm;
         reg11_delayed[6] <= ecm;
         reg11_delayed[7] <= raster_line[8];
+        reg16_delayed[2:0] <= xscroll;
+        reg16_delayed[3] <= csel;
+        reg16_delayed[4] <= mcm;
     end
 end
 
@@ -1293,11 +1297,11 @@ pixel_sequencer vic_pixel_sequencer(
                     .clk_phi(clk_phi),
                     .dot_rising_0(dot_rising[0]),
                     .phi_phase_start_15(phi_phase_start[15]),
-                    .mcm(mcm),
-                    .bmm(bmm),
-                    .ecm(ecm),
-                    .xpos_d_mod_8(xpos_d[2:0]),
-                    .xscroll(xscroll),
+                    .mcm(reg16_delayed[4]), // delayed
+                    .bmm(reg11_delayed[5]), // delayed
+                    .ecm(reg11_delayed[6]), // delayed
+                    .xpos_mod_8(xpos_d[2:0]), // delayed
+                    .xscroll(reg16_delayed[2:0]), // delayed
                     .pixels_read(pixels_read),
                     .char_read(char_read),
                     .b0c(b0c),
@@ -1319,7 +1323,7 @@ pixel_sequencer vic_pixel_sequencer(
 
 // Translate pixel_color3 (indexed) to RGB values
 color viccolor(
-          .x_pos(xpos),
+          .x_pos(xpos_d),
           .y_pos(raster_line),
           .out_pixel(pixel_color3),
           .hsync_start(hsync_start),
@@ -1335,7 +1339,7 @@ color viccolor(
 sync vicsync(
          .rst(rst),
          .clk(clk_dot4x),
-         .raster_x(xpos),
+         .raster_x(xpos_d),
          .raster_y(raster_line),
          .hsync_start(hsync_start),
          .hsync_end(hsync_end),

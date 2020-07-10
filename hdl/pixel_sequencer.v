@@ -11,7 +11,7 @@ module pixel_sequencer(
            input mcm,
            input bmm,
            input ecm,
-           input [2:0] xpos_d_mod_8,
+           input [2:0] xpos_mod_8,
            input [2:0] xscroll,
            input [7:0] pixels_read,
            input [11:0] char_read,
@@ -42,6 +42,7 @@ integer n;
 // char and pixels delayed before entering shifter
 reg [11:0] char_delayed[`DATA_PIXEL_DELAY + 1];
 reg [7:0] pixels_delayed[`DATA_PIXEL_DELAY + 1];
+reg [2:0] xscroll_delayed[`DATA_PIXEL_DELAY +1];
 reg [1:0] sprite_pixels_delayed1[`NUM_SPRITES];
 
 // pixels being shifted and the associated char (for color info)
@@ -56,9 +57,10 @@ begin
     //    pixels_delayed[0] <= 8'd0;
     //    char_delayed[0] <= 12'd0;
     //end else
-    if (clk_phi == `FALSE && phi_phase_start_15) begin // must be > PIXEL_DAV
+    if (clk_phi == `FALSE && phi_phase_start_15) begin
         pixels_delayed[0] <= pixels_read;
         char_delayed[0] <= char_read;
+        xscroll_delayed[0] <= xscroll;
     end
 end
 
@@ -80,6 +82,7 @@ begin
         for (n = `DATA_PIXEL_DELAY; n > 0; n = n - 1) begin
             pixels_delayed[n] <= pixels_delayed[n-1];
             char_delayed[n] <= char_delayed[n-1];
+            xscroll_delayed[n] <= xscroll_delayed[n-1];
         end
     end
 end
@@ -106,7 +109,7 @@ always @(*)
 // Use xpos_d here so we can properly delay our pixels
 // using char_delayed[]/pixels_delayed[] regs.
 always @(*)
-    load_pixels = xpos_d_mod_8 == xscroll;
+    load_pixels = xpos_mod_8 == xscroll_delayed[`DATA_PIXEL_DELAY];
 
 always @(posedge clk_dot4x)
     //if (rst) begin
