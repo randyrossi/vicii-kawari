@@ -43,6 +43,13 @@ cmod cmod(
 
 assign cpu_reset = rst;
 
+// Divides the color4x clock by 4 to get color reference clock
+clk_div4 clk_colorgen (
+             .clk_in(clk_col4x),     // from 4x color clock
+             .reset(rst),
+             .clk_out(clk_colref)    // create color ref clock
+         );
+
 wire [7:0] dbo;
 wire [11:0] ado;
 
@@ -60,8 +67,6 @@ wire vic_write_db;
 vicii vic_inst(
           .chip(chip),
           .clk_dot4x(clk_dot4x),
-          .clk_col4x(clk_col4x),
-          .clk_colref(clk_colref),
           .clk_phi(clk_phi),
           .red(red),
           .green(green),

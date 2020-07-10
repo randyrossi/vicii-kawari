@@ -48,7 +48,6 @@ static int numCycles;
 // Add new input/output here
 enum {
    OUT_PHI = 0,
-   OUT_COLREF,
    IN_RST,
    OUT_R0, OUT_R1,
    OUT_G0, OUT_G1,
@@ -70,11 +69,11 @@ enum {
    OUT_RAS, OUT_CAS
 };
 
-#define NUM_SIGNALS 62
+#define NUM_SIGNALS 61
 
 // Add new input/output here
 const char *signal_labels[] = {
-   "phi", "col", "rst", "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "csync",
+   "phi", "rst", "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "csync",
    "ao0", "ao1", "ao2", "ao3", "ao4", "ao5", "ao6", "ao7", "ao8", "ao9", "ao10", "ao11",
    "ai0", "ai1", "ai2", "ai3", "ai4", "ai5", "ai6", "ai7", "ai8", "ai9", "ai10", "ai11",
    "do0", "do1", "do2", "do3", "do4", "do5", "do6", "do7",
@@ -83,7 +82,7 @@ const char *signal_labels[] = {
    "ras", "cas"
 };
 const char *signal_ids[] = {
-   "p", "c", "r" ,  "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "s",
+   "p", "r" ,  "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "s",
    "ao0", "ao1", "ao2", "ao3", "ao4", "ao5", "ao6", "ao7", "ao8", "ao9", "ao10", "ao11",
    "ai0", "ai1", "ai2", "ai3", "ai4", "ai5", "ai6", "ai7", "ai8", "ai9", "ai10", "ai11",
    "do0", "do1", "do2", "do3", "do4", "do5", "do6", "do7",
@@ -743,7 +742,6 @@ int main(int argc, char** argv, char** env) {
 
     // Add new input/output here.
     signal_src8[OUT_PHI] = &top->clk_phi;
-    signal_src8[OUT_COLREF] = &top->clk_colref;
     signal_src8[IN_RST] = &top->rst;
     signal_src8[OUT_R0] = &top->red;
     signal_src8[OUT_R1] = &top->red;

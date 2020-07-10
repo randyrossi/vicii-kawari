@@ -21,9 +21,7 @@ module vicii(
            input chip_type chip,
            input rst,
            input clk_dot4x,
-           input clk_col4x,
            output clk_phi,
-           output clk_colref,
            output[1:0] red,
            output[1:0] green,
            output[1:0] blue,
@@ -149,13 +147,6 @@ reg [31:0] dot_gen;
 
 // used to detect rising edge of dot clock inside a dot4x always block
 reg [15:0] dot_rising;
-
-// Divides the color4x clock by 4 to get color reference clock
-clk_div4 clk_colorgen (
-             .clk_in(clk_col4x),     // from 4x color clock
-             .reset(rst),
-             .clk_out(clk_colref)    // create color ref clock
-         );
 
 // current raster x and line position
 reg [9:0] raster_x;
