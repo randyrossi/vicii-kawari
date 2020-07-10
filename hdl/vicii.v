@@ -11,11 +11,11 @@
 // would eventually come into line the next cycle anyway).
 
 // Notes on RST : The reset signal has to reach every flip flop we
-// end up resetting.  Trt to keep this list to essential resets only.
-// i.e, those that are necessary for a sane start state. Also, it looks
-// like we need to reset anything that is loaded into dbi, otherwise
-// the toolchain complains about placing dbl into IOB that is connected
-// to flip flops with multiple set/reset signals. 
+// end up resetting.  Try to keep this list to essential resets only.
+// i.e, those that are necessary for a sane start state. If the toolchain
+// complains about placing dbl into IOB that is connected to flip flops
+// with multiple set/reset signals, it'slikely a reset signal (or signals)
+// causing it.
 
 module vicii(
            input chip_type chip,
@@ -268,8 +268,6 @@ integer n;
 
 // char read off the bus, eventually transfered to charRead
 reg [11:0] char_next;
-// our character line buffer
-reg [11:0] char_buf [38:0];
 
 // pixels read off the data bus and char read from the bus (char_next on badline) or char_buf (not badline)
 reg [11:0] char_read;
@@ -919,7 +917,6 @@ sprites vic_sprites(
          .is_background_pixel1(is_background_pixel1),
          .top_bot_border(top_bot_border),
          .left_right_border(left_right_border),
-         //.dbi(dbi[7:0]),
          .imbc_clr(imbc_clr),
          .immc_clr(immc_clr),
          .sprite_dmachk1(sprite_dmachk1),
@@ -996,85 +993,23 @@ assign vic_write_db = aec && rw && ~ce && cycle_fine_ctr <= 23;
 // AEC low means we own the address bus so we can write to it.
 assign vic_write_ab = ~aec;
 
-// c-access reads
-always @(posedge clk_dot4x)
-    if (rst) begin
-        char_next <= 12'b0;
-        //for (n = 0; n < 39; n = n + 1) begin
-        //    char_buf[n] <= 12'hff;
-        //end
-    end else
-    if (!vic_write_db && phi_phase_start[`DATA_DAV]) begin
-        case (cycle_type)
-            VIC_HRC, VIC_HGC: // badline c-access
-                char_next <= dbi;
-            VIC_HRX, VIC_HGI: // not badline idle (char from cache)
-                char_next <= char_buf[38];
-            default: ;
-        endcase
-
-        case (cycle_type)
-            VIC_HRC, VIC_HGC, VIC_HRX, VIC_HGI: begin
-                for (n = 38; n > 0; n = n - 1) begin
-                    char_buf[n] = char_buf[n-1];
-                end
-                char_buf[0] <= char_next;
-            end
-            default: ;
-        endcase
-    end
-
-// g-access reads
-always @(posedge clk_dot4x)
-begin
-    if (rst) begin
-        pixels_read <= 8'd0;
-    //    char_read <= 12'd0;
-    end else
-    if (!vic_write_db && phi_phase_start[`DATA_DAV]) begin
-        pixels_read <= 8'd0;
-        if (cycle_type == VIC_LG) begin // g-access
-            pixels_read <= dbi[7:0];
-            char_read <= idle ? 12'd0 : char_next;
-        end
-    end
-end
-
-// p-access reads
-always @(posedge clk_dot4x)
-    if (rst) begin
-        for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-            sprite_ptr[n] <= 8'd0;
-        end
-    end else
-    begin
-        if (!vic_write_db && phi_phase_start[`DATA_DAV]) begin
-            case (cycle_type)
-                VIC_LP: // p-access
-                    if (sprite_dma[sprite_cnt])
-                        sprite_ptr[sprite_cnt] <= dbi[7:0];
-                    else
-                        sprite_ptr[sprite_cnt] <= 8'hff;
-                default: ;
-            endcase
-        end
-    end
-
-// s-access reads
-always @(posedge clk_dot4x)
-//    if (rst) begin
-//        for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-//            sprite_pixels[sprite_cnt] <= 23'd0;
-//        end
-//    end else
-    if (!vic_write_db && phi_phase_start[`SPRITE_DAV]) begin
-        case (cycle_type)
-            VIC_HS1, VIC_LS2, VIC_HS3:
-                if (sprite_dma[sprite_cnt])
-                    sprite_pixels[sprite_cnt] <= {sprite_pixels[sprite_cnt][15:0], dbi[7:0]};
-            default: ;
-        endcase
-    end
+// Handle cycles that perform data bus accesses
+bus_access vic_bus_access(
+         .rst(rst),
+         .clk_dot4x(clk_dot4x),
+         .vic_write_db(vic_write_db),
+         .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
+         .cycle_type(cycle_type),
+         .dbi(dbi),
+         .idle(idle),
+         .sprite_cnt(sprite_cnt),
+         .sprite_dma(sprite_dma),
+         .sprite_ptr(sprite_ptr),
+         .pixels_read(pixels_read),
+         .char_read(char_read),
+         .char_next(char_next),
+         .sprite_pixels(sprite_pixels)
+);
 
 // Address generation - use delayed reg11 values here
 addressgen vic_addressgen(

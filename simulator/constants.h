@@ -141,7 +141,7 @@
 #define V_COLLISION           vicii__DOT__collision
 #define V_CSYNC               csync
 #define V_CHAR_NEXT           vicii__DOT__char_next
-#define V_CHAR_BUF            vicii__DOT__char_buf
+#define V_CHAR_BUF            vicii__DOT__vic_bus_access__DOT__char_buf
 #define V_M2D_TRIGGERED       vicii__DOT__vic_sprites__DOT__m2d_triggered
 #define V_M2M_TRIGGERED       vicii__DOT__vic_sprites__DOT__m2m_triggered
 #define V_LPX                 vicii__DOT__lpx
