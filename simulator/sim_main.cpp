@@ -243,8 +243,8 @@ static void STATE(Vvicii *top) {
 
    top->V_BADLINE,
 
-   top->V_VC,
-   top->V_VCBASE,
+   top->V_SPRITE_MC[0],
+   top->V_SPRITE_MCBASE[0],
    top->V_RC,
    top->V_VICADDR,
    top->V_BMM
