@@ -20,11 +20,11 @@ If you need a VIC to replace a broken one, you should just buy one off eBay. Thi
 |--|--|--|
 | Ghostbusters | Disk | None | Raid On Bungelin Bay | Disk | None
 | Ghosts 'n Goblins | Disk | None | Impossible Mission | Disk | None
-| Ms. Pacman | Cart | None
-| Jupiter Lander | Cart | None
-| Choplifter | Cart | None
-| Super Zaxxon | Cart | None
-| Jumpman Jr. | Cart | None
+| Ms. Pacman | Cart | None | | |
+| Jupiter Lander | Cart | None | | |
+| Choplifter | Cart | None | | |
+| Super Zaxxon | Cart | None | | |
+| Jumpman Jr. | Cart | None | | |
 
 ## Demos Tested
 | Demo | Issues
