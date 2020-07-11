@@ -54,6 +54,7 @@ module vicii(
 // Limits for different chips
 reg [9:0] raster_x_max;
 reg [8:0] raster_y_max;
+reg [9:0] max_xpos;
 reg [9:0] hsync_start;
 reg [9:0] hsync_end;
 reg [9:0] hvisible_start;
@@ -95,6 +96,7 @@ case(chip)
     begin
         raster_x_max = 10'd519;    // 520 pixels
         raster_y_max = 9'd262;     // 263 lines
+        max_xpos = 10'h1ff;
         hsync_start = 10'd409;
         hsync_end = 10'd446;       // 4.6us
         hvisible_start = 10'd497;  // 10.7us after hsync_start seems to work
@@ -111,6 +113,7 @@ case(chip)
     begin
         raster_x_max = 10'd511;    // 512 pixels
         raster_y_max = 9'd261;     // 262 lines
+        max_xpos = 10'h1ff;
         hsync_start = 10'd409;
         hsync_end = 10'd446;       // 4.6us
         hvisible_start = 10'd497;  // 10.7us after hsync_start seems to work
@@ -127,6 +130,7 @@ case(chip)
     begin
         raster_x_max = 10'd503;     // 504 pixels
         raster_y_max = 9'd311;      // 312
+        max_xpos = 10'h1f7;
         hsync_start = 10'd408;
         hsync_end = 10'd444;        // ~4.6us
         hvisible_start = 10'd492;   // ~10.7 after hsync_start
@@ -455,7 +459,8 @@ always @(posedge clk_dot4x)
 // to delay both pixels and border locations to align with expected
 // times pixels should come out of the sequencer.
 reg [9:0] xpos_d;
-assign xpos_d = xpos - (`DATA_PIXEL_DELAY - 1);
+assign xpos_d = xpos >= (`DATA_PIXEL_DELAY - 1) ? xpos - (`DATA_PIXEL_DELAY - 1) : max_xpos - (`DATA_PIXEL_DELAY - 2) + xpos;
+
 
 // border
 reg top_bot_border;

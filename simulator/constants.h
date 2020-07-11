@@ -57,6 +57,7 @@
 
 #define V_PPS          vicii__DOT__phi_phase_start
 #define V_XPOS         vicii__DOT__xpos
+#define V_XPOS_D         vicii__DOT__xpos_d
 #define V_CYCLE_NUM    vicii__DOT__cycle_num
 #define V_CLK_DOT      clk_dot
 #define V_CYCLE_BIT    vicii__DOT__vic_raster__DOT__cycle_bit
