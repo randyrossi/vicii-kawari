@@ -190,11 +190,6 @@ reg [2:0] cb;
 // NOTE: cycleNum not valid until 2nd tick within low phase of phi
 wire [6:0] cycle_num;
 
-// cycle_bit : The pixel number within the cycle.
-// 0-7
-// NOTE: similar to above, cycle_bit not valid until 2nd tick within low phase of phi
-wire [2:0] cycle_bit;
-
 // ec : border (edge) color
 vic_color ec;
 // b#c : background color registers
@@ -354,8 +349,6 @@ always @(posedge clk_dot4x)
     end else
         phi_phase_start <= {phi_phase_start[14:0], phi_phase_start[15]};
 
-// The cycle_bit (0-7) is taken from the raster_x
-assign cycle_bit = raster_x[2:0];
 // This is simply raster_x divided by 8.
 assign cycle_num = raster_x[9:3];
 
@@ -481,178 +474,52 @@ border vic_border(
            .left_right_border(left_right_border)
        );
 
-reg light_pen_triggered;
 reg [7:0] lpx;
 reg [7:0] lpy;
-always @(posedge clk_dot4x)
-begin
-    if (rst) begin
-        //lpx <= 'h00;
-        //lpy <= 'h00;
-        ilp <= `FALSE;
-        light_pen_triggered <= `FALSE;
-    end else begin
-        if (ilp_clr)
-            ilp <= `FALSE;
-        if (raster_line == raster_y_max)
-            light_pen_triggered <= `FALSE;
-        else if (!light_pen_triggered && lp == `FALSE) begin
-            light_pen_triggered <= `TRUE;
-            ilp <= `TRUE;
-            lpx <= xpos_d[8:1];
-            lpy <= raster_line[7:0];
-        end
-    end
-end
 
+lightpen vic_lightpen(
+           .clk_dot4x(clk_dot4x),
+           .rst(rst),
+           .ilp_clr(ilp_clr),
+           .raster_line(raster_line),
+           .raster_y_max(raster_y_max),
+           .lp(lp),
+           .xpos_div_2(xpos_d[8:1]),
+           .lpx(lpx),
+           .lpy(lpy),
+           .ilp(ilp)
+);
 
-// Update x,y position
-// sprite_raster_x is positioned such that the first cycle for
-// sprite #0 where ba should go low (if the sprite is enabled)
-// has sprite_raster_x==0.  This lets us do a simple interval
-// comparison without having to worry about wrap around conditions.
-reg start_of_line;
-reg start_of_frame;
-always @(posedge clk_dot4x)
-    if (rst)
-    begin
-        raster_x <= 10'b0;
-        raster_line <= 9'b0;
-        raster_line_d <= 9'b0;
-        start_of_line = 0;
-        start_of_frame = 0;
-        case(chip)
-            CHIP6567R56A: begin
-                xpos <= 10'h19c;
-                sprite_raster_x <= 72; // 512 - 55*8
-            end CHIP6567R8: begin
-                xpos <= 10'h19c;
-                sprite_raster_x <= 80; // 520 - 55*8
-            end CHIP6569, CHIPUNUSED: begin
-                xpos <= 10'h194;
-                sprite_raster_x <= 72; // 504 - 54*8
-            end
-        endcase
-    end
-    else begin
-        if (clk_phi && phi_phase_start[0]) begin
-            if (start_of_line) begin
-                raster_line_d <= raster_line_d + 9'd1;
-                start_of_line = 0;
-            end else if (start_of_frame && cycle_num == 1) begin
-                raster_line_d <= 9'd0;
-                start_of_frame = 0;
-            end
-        end
-        if (dot_rising[0]) begin
-            if (raster_x < raster_x_max)
-            begin
-                // Can advance to next pixel
-                raster_x <= raster_x + 10'd1;
+raster vic_raster(
+   .clk_phi(clk_phi),
+   .clk_dot4x(clk_dot4x),
+   .rst(rst),
+   .phi_phase_start_0(phi_phase_start[0]),
+   .dot_rising_0(dot_rising[0]),
+   .chip(chip),
+   .cycle_num(cycle_num),
+   .raster_x_max(raster_x_max),
+   .raster_y_max(raster_y_max),
+   .xpos(xpos),
+   .raster_x(raster_x),
+   .sprite_raster_x(sprite_raster_x),
+   .raster_line(raster_line),
+   .raster_line_d(raster_line_d)
+);
 
-                // Handle xpos move but deal with special cases
-                case(chip)
-                    CHIP6567R8:
-                        if (cycle_num == 7'd0 && cycle_bit == 3'd0)
-                            xpos <= 10'h19d;
-                        else if (cycle_num == 7'd60 && cycle_bit == 3'd7)
-                            xpos <= 10'h184;
-                        else if (cycle_num == 7'd61 && (cycle_bit == 3'd3 || cycle_bit == 3'd7))
-                            xpos <= 10'h184;
-                        else if (cycle_num == 7'd12 && cycle_bit == 3'd3)
-                            xpos <= 10'h0;
-                        else
-                            xpos <= xpos + 10'd1;
-                    CHIP6567R56A:
-                        if (cycle_num == 7'd0 && cycle_bit == 3'd0)
-                            xpos <= 10'h19d;
-                        else if (cycle_num == 7'd12 && cycle_bit == 3'd3)
-                            xpos <= 10'h0;
-                        else
-                            xpos <= xpos + 10'd1;
-                    CHIP6569, CHIPUNUSED:
-                        if (cycle_num == 7'd0 && cycle_bit == 3'd0)
-                            xpos <= 10'h195;
-                        else if (cycle_num == 7'd12 && cycle_bit == 3'd3)
-                            xpos <= 10'h0;
-                        else
-                            xpos <= xpos + 10'd1;
-                endcase
-            end else
-            begin
-                // Time to go back to x coord 0
-                raster_x <= 10'd0;
-
-                // xpos also goes back to start value
-                case(chip)
-                    CHIP6567R56A, CHIP6567R8:
-                        xpos <= 10'h19c;
-                    CHIP6569, CHIPUNUSED:
-                        xpos <= 10'h194;
-                endcase
-
-                if (raster_line < raster_y_max) begin
-                    raster_line <= raster_line + 9'd1;
-                    start_of_line = 1;
-                end else begin
-                    raster_line <= 9'd0;
-                    start_of_frame = 1;
-                end
-            end
-
-            if (sprite_raster_x < raster_x_max)
-                sprite_raster_x <= sprite_raster_x + 10'd1;
-            else
-                sprite_raster_x <= 10'd0;
-        end
-    end
-
-// Update rc/vc/vc_base
-always @(posedge clk_dot4x)
-    if (rst)
-    begin
-        vc_base <= 10'd0;
-        vc <= 10'd0;
-        rc <= 3'd7;
-        idle = `TRUE;
-    end
-    else begin
-        // This needs to be checked next 4x tick within the phase because
-        // badline does not trigger until after raster line has incremented
-        // which is after start of line which happens on tick 0 and due to
-        // delayed assignment raster line yscroll comparison won't happen until
-        // tick 1.
-        if (clk_phi && phi_phase_start[1]) begin
-            // Reset at start of frame
-            if (cycle_num == 1 && raster_line == 9'd0) begin
-                vc_base <= 10'd0;
-                vc <= 10'd0;
-            end
-
-            if (cycle_num > 14 && cycle_num < 55 && idle == `FALSE)
-                vc <= vc + 1'b1;
-
-            if (cycle_num == 13) begin
-                vc <= vc_base;
-                if (badline)
-                    rc <= 3'd0;
-            end
-
-            if (cycle_num == 57) begin
-                if (rc == 3'd7) begin
-                    vc_base <= vc;
-                    idle = 1;
-                end
-                if (!idle | badline) begin
-                    rc <= rc + 1'b1;
-                    idle = `FALSE;
-                end
-            end
-
-            if (badline)
-                idle = `FALSE;
-        end
-    end
+matrix vic_matrix(
+   .rst(rst),
+   .clk_phi(clk_phi),
+   .clk_dot4x(clk_dot4x),
+   .phi_phase_start_1(phi_phase_start[1]),
+   .cycle_num(cycle_num),
+   .raster_line(raster_line),
+   .badline(badline),
+   .idle(idle),
+   .vc_base(vc_base),
+   .vc(vc),
+   .rc(rc)
+);
 
 // Handle when ba should go low due to c-access. We can use xpos
 // here since there are no repeats within this range.
@@ -698,122 +565,20 @@ always @(posedge clk_dot4x)
         end
     end
 
-
-// cycle_type state machine
-//
-// LP --dmaEn?-> HS1 -> LS2 -> HS3  --<7?--> LP
-//                                  --else-> LR
-//    --else---> HPI1 -> LPI2-> HPI3 --<7>--> LP
-//                                   --else-> LR
-//
-// LR --5th&bad?--> HRC -> LG
-// LR --5th&!bad?-> HRX -> LG
-// LR --else--> HRI --> LR
-//
-// LG --55?--> HI
-//    --bad?--> HGC
-//    --else-> HGI
-//
-// HGC -> LG
-// HGI -> LG
-// HI --2|3|4?--> LP
-//      --else--> LI
-// LI -> HI
-always @(posedge clk_dot4x)
-    if (rst) begin
-        if (chip == CHIP6567R8) begin
-            cycle_type <= VIC_LS2;
-            idle_cnt <= 3'd4;
-        end else begin
-            cycle_type <= VIC_LP;
-            idle_cnt <= 3'd3;
-        end
-        sprite_cnt <= 3'd3;
-        refresh_cnt <= 3'd0;
-    end else if (phi_phase_start[1]) begin // badline is valid on 1
-        if (clk_phi == `TRUE) begin
-            case (cycle_type)
-                VIC_LP: begin
-                    if (sprite_dma[sprite_cnt])
-                        cycle_type <= VIC_HS1;
-                    else
-                        cycle_type <= VIC_HPI1;
-                end
-                VIC_LPI2:
-                    cycle_type <= VIC_HPI3;
-                VIC_LS2:
-                    cycle_type <= VIC_HS3;
-                VIC_LR: begin
-                    if (refresh_cnt == 4) begin
-                        if (badline == `TRUE)
-                            cycle_type <= VIC_HRC;
-                        else
-                            cycle_type <= VIC_HRX;
-                    end else
-                        cycle_type <= VIC_HRI;
-                end
-                VIC_LG: begin
-                    if (cycle_num == 54) begin
-                        cycle_type <= VIC_HI;
-                        idle_cnt <= 0;
-                    end else
-                        if (badline == `TRUE)
-                            cycle_type <= VIC_HGC;
-                        else
-                            cycle_type <= VIC_HGI;
-                end
-                VIC_LI: cycle_type <= VIC_HI;
-                default: ;
-            endcase
-        end else begin
-            case (cycle_type)
-                VIC_HS1: cycle_type <= VIC_LS2;
-                VIC_HPI1: cycle_type <= VIC_LPI2;
-                VIC_HS3, VIC_HPI3: begin
-                    if (sprite_cnt == 7) begin
-                        // The R8's extra idle cycle comes after
-                        // Sprite 7.
-                        if (chip == CHIP6567R8)
-                            cycle_type <= VIC_LI;
-                        else
-                            cycle_type <= VIC_LR;
-                        sprite_cnt <= 0;
-                        refresh_cnt <= 0;
-                    end else begin
-                        cycle_type <= VIC_LP;
-                        sprite_cnt <= sprite_cnt + 1'd1;
-                    end
-                end
-                VIC_HRI: begin
-                    cycle_type <= VIC_LR;
-                    refresh_cnt <= refresh_cnt + 1'd1;
-                end
-                VIC_HRC, VIC_HRX:
-                    cycle_type <= VIC_LG;
-                VIC_HGC, VIC_HGI: cycle_type <= VIC_LG;
-                VIC_HI: begin
-                    if (chip == CHIP6567R56A && idle_cnt == 3)
-                        cycle_type <= VIC_LP;
-                    // The R8's extra idle cycle is deferred until
-                    // after sprite 7. See above.
-                    else if (chip == CHIP6567R8 && idle_cnt == 3) begin
-                        idle_cnt <= idle_cnt + 1'd1;
-                        cycle_type <= VIC_LP;
-                        // This is the extra idle cycle after Sprite 7. Now
-                        // go to refresh.
-                    end else if (chip == CHIP6567R8 && idle_cnt == 4)
-                        cycle_type <= VIC_LR;
-                    else if (chip == CHIP6569 && idle_cnt == 2)
-                        cycle_type <= VIC_LP;
-                    else begin
-                        idle_cnt <= idle_cnt + 1'd1;
-                        cycle_type <= VIC_LI;
-                    end
-                end
-                default: ;
-            endcase
-        end
-    end
+cycles vic_cycles(
+   .rst(rst),
+   .clk_dot4x(clk_dot4x),
+   .clk_phi(clk_phi),
+   .chip(chip),
+   .phi_phase_start_1(phi_phase_start[1]),
+   .sprite_dma(sprite_dma),
+   .badline(badline),
+   .cycle_num(cycle_num),
+   .cycle_type(cycle_type),
+   .sprite_cnt(sprite_cnt),
+   .refresh_cnt(refresh_cnt),
+   .idle_cnt(idle_cnt)
+);
 
 // Notes on RAS/CAS/MUX: We don't know what the cycle type is
 // until the 3rd tick into the phase ([2]). The lines should
@@ -1066,7 +831,7 @@ pixel_sequencer vic_pixel_sequencer(
                 );
 
 // Translate pixel_color3 (indexed) to RGB values
-color viccolor(
+color vic_colors(
           .x_pos(xpos_d),
           .y_pos(raster_line),
           .out_pixel(pixel_color3),
@@ -1080,7 +845,7 @@ color viccolor(
       );
 
 // Generate csync signal
-sync vicsync(
+sync vic_sync(
          .rst(rst),
          .clk(clk_dot4x),
          .raster_x(xpos_d),
@@ -1092,10 +857,10 @@ sync vicsync(
      );
 
 // Handle set/get registers
-registers vicregisters(
+registers vic_registers(
+              .rst(rst),
               .clk_dot4x(clk_dot4x),
               .clk_phi(clk_phi),
-              .rst(rst),
               .phi_phase_start_15(phi_phase_start[15]),
               .phi_phase_start_1(phi_phase_start[1]),
               .phi_phase_start_dav(phi_phase_start[`REG_DAV]),

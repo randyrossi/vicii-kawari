@@ -3,9 +3,9 @@
 `include "common.vh"
 
 module registers(
+           input rst,
            input clk_dot4x,
            input clk_phi,
-           input rst,
            input phi_phase_start_15,
            input phi_phase_start_1,
            input phi_phase_start_dav,
@@ -85,10 +85,10 @@ always @(posedge clk_dot4x)
         //ecm <= `FALSE;
         //res <= `FALSE;
         //mcm <= `FALSE;
-        //irst_clr <= `FALSE;
-        //imbc_clr <= `FALSE;
-        //immc_clr <= `FALSE;
-        //ilp_clr <= `FALSE;
+        irst_clr <= `FALSE;
+        imbc_clr <= `FALSE;
+        immc_clr <= `FALSE;
+        ilp_clr <= `FALSE;
         //raster_irq_compare <= 9'b0;
         //sprite_en <= 8'b0;
         //sprite_xe <= 8'b0;
@@ -110,8 +110,8 @@ always @(posedge clk_dot4x)
         elp <= `FALSE;
         //dbo[7:0] <= 8'd0;
         //handle_sprite_crunch <= `FALSE;
-    end
-    else begin
+    end else
+    begin
         // always clear these at the end of the high phase
         if (phi_phase_start_15 && clk_phi) begin
             irst_clr <= `FALSE;

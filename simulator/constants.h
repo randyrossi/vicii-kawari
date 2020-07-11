@@ -59,7 +59,7 @@
 #define V_XPOS         vicii__DOT__xpos
 #define V_CYCLE_NUM    vicii__DOT__cycle_num
 #define V_CLK_DOT      clk_dot
-#define V_CYCLE_BIT    vicii__DOT__cycle_bit
+#define V_CYCLE_BIT    vicii__DOT__vic_raster__DOT__cycle_bit
 #define V_RASTER_X     vicii__DOT__raster_x
 #define V_RASTER_LINE  vicii__DOT__raster_line
 #define V_RASTER_LINE_D vicii__DOT__raster_line_d
@@ -117,8 +117,8 @@
 #define V_SPRITE_EN          vicii__DOT__sprite_en
 #define V_SPRITE_OFF         vicii__DOT__sprite_off
 #define V_SPRITE_PTR         vicii__DOT__sprite_ptr
-#define V_SPRITE_X           vicii__DOT____Vcellout__vicregisters__sprite_x
-#define V_SPRITE_Y           vicii__DOT____Vcellout__vicregisters__sprite_y
+#define V_SPRITE_X           vicii__DOT____Vcellout__vic_registers__sprite_x
+#define V_SPRITE_Y           vicii__DOT____Vcellout__vic_registers__sprite_y
 #define V_SPRITE_XE          vicii__DOT__sprite_xe
 #define V_SPRITE_YE          vicii__DOT__sprite_ye
 #define V_SPRITE_M2M          vicii__DOT__sprite_m2m
@@ -129,7 +129,7 @@
 #define V_SPRITE_MMC          vicii__DOT__sprite_mmc
 #define V_SPRITE_MC0          vicii__DOT__sprite_mc0
 #define V_SPRITE_MC1          vicii__DOT__sprite_mc1
-#define V_SPRITE_COL          vicii__DOT____Vcellout__vicregisters__sprite_col
+#define V_SPRITE_COL          vicii__DOT____Vcellout__vic_registers__sprite_col
 #define V_SPRITE_YE_FF        vicii__DOT__vic_sprites__DOT__sprite_ye_ff
 #define V_SPRITE_XE_FF        vicii__DOT__vic_sprites__DOT__sprite_xe_ff
 #define V_SPRITE_MC           vicii__DOT____Vcellout__vic_sprites__sprite_mc
