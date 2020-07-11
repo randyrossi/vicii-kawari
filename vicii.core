@@ -13,6 +13,16 @@ filesets:
       - hdl/color.v
       - hdl/sync.v
       - hdl/registers.v
+      - hdl/addressgen.v
+      - hdl/bus_access.v
+      - hdl/border.v
+      - hdl/cycles.v
+      - hdl/lightpen.v
+      - hdl/matrix.v
+      - hdl/pixel_sequencer.v
+      - hdl/raster.v
+      - hdl/redff.v
+      - hdl/sprites.v
     file_type: systemVerilogSource
 
   # Files specific to the CMod A35t board
