@@ -16,10 +16,10 @@ We're going to say 99% at the moment. We can't test every program but it support
 If you need a VIC to replace a broken one, you should just buy one off eBay. This project is for fun/interest.  It may turn into something you can build or buy, but it's too early to tell right now.
 
 ## Games Tested
-| Game | Media | Issues
+| Game | Media | Issues | Game | Media | Issues
 |--|--|--|
-| Ghostbusters | Disk | None
-| Ghosts 'n Goblins | Disk | None
+| Ghostbusters | Disk | None | Raid On Bungelin Bay | Disk | None
+| Ghosts 'n Goblins | Disk | None | Impossible Mission | Disk | None
 | Ms. Pacman | Cart | None
 | Jupiter Lander | Cart | None
 | Choplifter | Cart | None
