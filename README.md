@@ -17,7 +17,7 @@ If you need a VIC to replace a broken one, you should just buy one off eBay. Thi
 
 ## Games Tested
 | Game | Media | Issues | Game | Media | Issues
-|--|--|--|
+|--|--|--|--|--|--|
 | Ghostbusters | Disk | None | Raid On Bungelin Bay | Disk | None
 | Ghosts 'n Goblins | Disk | None | Impossible Mission | Disk | None
 | Ms. Pacman | Cart | None | | |
