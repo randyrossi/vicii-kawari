@@ -60,29 +60,24 @@ module vga_sync(
     end
 endmodule : vga_sync
 
-// Cover the max possible here. Not all may be used depending on chip.
-reg [511:0] line_buf_0[2];
-reg [511:0] line_buf_1[2];
-reg [511:0] line_buf_2[2];
-reg [511:0] line_buf_3[2];
-
 // Double buffer, while active_buf is being filled, we draw from filled_buf
 // for output.
 reg active_buf;
-reg filled_buf;
 
 //  Fill active buf while producing pixels from previous line from filled_buf
 module vga_scaler(
     input rst,
     input dot_rising_0,
     input clk_dot4x,
-    input [9:0] h_count,
+    input [8:0] h_count_div2,
     input [3:0] pixel_color3,
     input [9:0] raster_x,
     output reg [3:0] pixel_color4
 );
 
-assign filled_buf = ~active_buf;
+// Cover the max possible here. Not all may be used depending on chip.
+(* ram_style = "block" *) reg [3:0] line_buf_0[511:0];
+(* ram_style = "block" *) reg [3:0] line_buf_1[511:0];
 
 always @(posedge clk_dot4x)
 begin
@@ -91,10 +86,10 @@ begin
       if (raster_x == 0)
          active_buf = ~active_buf;
 
-      line_buf_0[active_buf][raster_x[8:0]] = pixel_color3[0];
-      line_buf_1[active_buf][raster_x[8:0]] = pixel_color3[1];
-      line_buf_2[active_buf][raster_x[8:0]] = pixel_color3[2];
-      line_buf_3[active_buf][raster_x[8:0]] = pixel_color3[3];
+      if (active_buf)
+        line_buf_0[raster_x[8:0]] = pixel_color3;
+      else
+        line_buf_1[raster_x[8:0]] = pixel_color3;
    end
    end
 end
@@ -102,12 +97,9 @@ end
 always @(posedge clk_dot4x)
 begin
    if (!rst) begin
-   if (h_count/2 >= (HS_STA + 96) && h_count/2 <= (HS_STA + 504 - 104 + 96)) begin
-        pixel_color4 = {
-           line_buf_3[filled_buf][h_count/2 - HS_STA - 96 + 104],
-           line_buf_2[filled_buf][h_count/2 - HS_STA - 96 + 104],
-           line_buf_1[filled_buf][h_count/2 - HS_STA - 96 + 104],
-           line_buf_0[filled_buf][h_count/2 - HS_STA - 96 + 104]};
+   if (h_count_div2 >= (HS_STA + 96) && h_count_div2 <= (HS_STA + 504 - 104 + 96)) begin
+        pixel_color4 = !active_buf ? line_buf_0[h_count_div2 - HS_STA - 96 + 104] :
+                                     line_buf_1[h_count_div2 - HS_STA - 96 + 104];
    end else
         pixel_color4 = 4'b0;
    end

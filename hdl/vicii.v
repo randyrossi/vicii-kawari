@@ -948,7 +948,7 @@ vga_scaler vic_vga_scaler(
     .rst(rst),
     .clk_dot4x(clk_dot4x),
     .dot_rising_0(dot_rising[0]),
-    .h_count(h_count),
+    .h_count_div2(h_count[9:1]),
     .pixel_color3(pixel_color3),
     .raster_x(raster_x),
     .pixel_color4(pixel_color4)
