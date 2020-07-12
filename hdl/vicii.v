@@ -21,10 +21,11 @@ module vicii(
            input chip_type chip,
            input rst,
            input clk_dot4x,
+           input is_composite,
            output clk_phi,
-           output[1:0] red,
-           output[1:0] green,
-           output[1:0] blue,
+           output[2:0] red,
+           output[2:0] green,
+           output[2:0] blue,
            output csync,
            output hsync,
            output vsync,
@@ -899,9 +900,6 @@ pixel_sequencer vic_pixel_sequencer(
                     .is_background_pixel1(is_background_pixel1),
                     .pixel_color3(pixel_color3)
                 );
-
-// Video output
-reg is_composite = 1'b0; // make a dip?
 
 // Figure out when composite should actively draw pixels.
 reg composite_active;

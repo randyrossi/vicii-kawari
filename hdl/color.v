@@ -6,31 +6,31 @@
 module color(
            input vic_color out_pixel,
            input active,
-           output reg [1:0] red,
-           output reg [1:0] green,
-           output reg [1:0] blue);
+           output reg [2:0] red,
+           output reg [2:0] green,
+           output reg [2:0] blue);
 
 always @*
     if (active)
     case (out_pixel)
-        BLACK: {red, green, blue} = {2'h00, 2'h00, 2'h00};
-        WHITE: {red, green, blue} = {2'h03, 2'h03, 2'h03};
-        RED: {red, green, blue} = {2'h02, 2'h00, 2'h00};
-        CYAN: {red, green, blue} = {2'h02, 2'h03, 2'h03};
-        PURPLE: {red, green, blue} = {2'h03, 2'h01, 2'h03};
-        GREEN: {red, green, blue} = {2'h00, 2'h03, 2'h01};
-        BLUE: {red, green, blue} = {2'h00, 2'h00, 2'h02};
-        YELLOW: {red, green, blue} = {2'h03, 2'h03, 2'h01};
-        ORANGE: {red, green, blue} = {2'h03, 2'h02, 2'h01};
-        BROWN: {red, green, blue} = {2'h01, 2'h01, 2'h00};
-        PINK: {red, green, blue} = {2'h03, 2'h01, 2'h01};
-        DARK_GREY: {red, green, blue} = {2'h01, 2'h00, 2'h01}; // !!! Need more bits
-        GREY: {red, green, blue} = {2'h01, 2'h01, 2'h01};
-        LIGHT_GREEN: {red, green, blue} = {2'h02, 2'h03, 2'h01};
-        LIGHT_BLUE: {red, green, blue} = {2'h00, 2'h02, 2'h03};
-        LIGHT_GREY: {red, green, blue} = {2'h02, 2'h02, 2'h02};
+        BLACK:{red, green, blue} = {3'h00, 3'h00, 3'h00 };
+        WHITE:{red, green, blue} = {3'h07, 3'h07, 3'h07 };
+        RED:{red, green, blue} = {3'h03, 3'h01, 3'h01 };
+        CYAN:{red, green, blue} = {3'h03, 3'h05, 3'h05 };
+        PURPLE:{red, green, blue} = {3'h03, 3'h01, 3'h04 };
+        GREEN:{red, green, blue} = {3'h02, 3'h04, 3'h02 };
+        BLUE:{red, green, blue} = {3'h01, 3'h01, 3'h03 };
+        YELLOW:{red, green, blue} = {3'h05, 3'h06, 3'h03 };
+        ORANGE:{red, green, blue} = {3'h03, 3'h02, 3'h01 };
+        BROWN:{red, green, blue} = {3'h02, 3'h01, 3'h00 };
+        PINK:{red, green, blue} = {3'h04, 3'h03, 3'h02 };
+        DARK_GREY:{red, green, blue} = {3'h02, 3'h02, 3'h02 };
+        GREY:{red, green, blue} = {3'h03, 3'h03, 3'h03 };
+        LIGHT_GREEN:{red, green, blue} = {3'h04, 3'h06, 3'h04 };
+        LIGHT_BLUE:{red, green, blue} = {3'h03, 3'h02, 3'h05 };
+        LIGHT_GREY:{red, green, blue} = {3'h04, 3'h04, 3'h04 };
     endcase
     else
-        {red, green, blue} = {2'h00, 2'h00, 2'h00};
+        {red, green, blue} = {3'h00, 3'h00, 3'h00};
 
 endmodule: color

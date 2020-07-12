@@ -26,11 +26,14 @@ set_property -dict { PACKAGE_PIN V3 IOSTANDARD LVCMOS33 } [get_ports { clk_colre
 # hSync out, PMOD Pin1
 set_property -dict { PACKAGE_PIN G17 IOSTANDARD LVCMOS33 } [get_ports { hsync }];
 
+# cSync out, PMOD Pin2
+set_property -dict { PACKAGE_PIN G19 IOSTANDARD LVCMOS33 } [get_ports { csync }];
+
 # vSync out, PMOD Pin7
 set_property -dict { PACKAGE_PIN H17 IOSTANDARD LVCMOS33 } [get_ports { vsync }];
 
-# cSync out, PMOD Pin2
-set_property -dict { PACKAGE_PIN G19 IOSTANDARD LVCMOS33 } [get_ports { csync }];
+# is_composite, PMOD Pin 8 - Ground for VGA, Pull Up for Composite
+set_property -dict { PACKAGE_PIN H19 IOSTANDARD LVCMOS33 } [get_ports { is_composite }];
 
 # clk_phi out, Pin45
 set_property -dict { PACKAGE_PIN U7 IOSTANDARD LVCMOS33 } [get_ports { clk_phi }];
@@ -39,18 +42,27 @@ set_property -dict { PACKAGE_PIN U7 IOSTANDARD LVCMOS33 } [get_ports { clk_phi }
 set_property -dict { PACKAGE_PIN W3 IOSTANDARD LVCMOS33 } [get_ports { cpu_reset }];
 
 # RGB out
-# red[0] out, Pin48
-set_property -dict { PACKAGE_PIN V8 IOSTANDARD LVCMOS33 } [get_ports { red[0] }];
-# red[1] out, Pin47
-set_property -dict { PACKAGE_PIN U8 IOSTANDARD LVCMOS33 } [get_ports { red[1] }];
-# green[0] out, Pin44
-set_property -dict { PACKAGE_PIN U3 IOSTANDARD LVCMOS33 } [get_ports { green[0] }];
-# green[1] out, Pin43
-set_property -dict { PACKAGE_PIN W6 IOSTANDARD LVCMOS33 } [get_ports { green[1] }];
-# blue[0] out, Pin40
-set_property -dict { PACKAGE_PIN W4 IOSTANDARD LVCMOS33 } [get_ports { blue[0] }];
-# blue[1] out, Pin39
-set_property -dict { PACKAGE_PIN V5 IOSTANDARD LVCMOS33 } [get_ports { blue[1] }];
+
+# red[0] out, PMOD 3
+set_property -dict { PACKAGE_PIN N18 IOSTANDARD LVCMOS33 } [get_ports { red[0] }];
+# red[1] out, Pin48
+set_property -dict { PACKAGE_PIN V8 IOSTANDARD LVCMOS33 } [get_ports { red[1] }];
+# red[2] out, Pin47
+set_property -dict { PACKAGE_PIN U8 IOSTANDARD LVCMOS33 } [get_ports { red[2] }];
+
+# green[0] out, PMOD 4
+set_property -dict { PACKAGE_PIN L18 IOSTANDARD LVCMOS33 } [get_ports { green[0] }];
+# green[1] out, Pin44
+set_property -dict { PACKAGE_PIN U3 IOSTANDARD LVCMOS33 } [get_ports { green[1] }];
+# green[2] out, Pin43
+set_property -dict { PACKAGE_PIN W6 IOSTANDARD LVCMOS33 } [get_ports { green[2] }];
+
+# blue[0] out, PMOD 10
+set_property -dict { PACKAGE_PIN K18 IOSTANDARD LVCMOS33 } [get_ports { blue[0] }];
+# blue[1] out, Pin40
+set_property -dict { PACKAGE_PIN W4 IOSTANDARD LVCMOS33 } [get_ports { blue[1] }];
+# blue[2] out, Pin39
+set_property -dict { PACKAGE_PIN V5 IOSTANDARD LVCMOS33 } [get_ports { blue[2] }];
 
 # Address lines
 # ad[0] inout, Pin 26
