@@ -5,13 +5,16 @@
 // Top level module for the CMod A35t PDIP board.
 module top(
            input sys_clock,
+           input is_composite,  // 1=composite, 0=vga
            output cpu_reset,    // reset for 6510 CPU
            output clk_colref,   // output color ref clock for CXA1545P
            output clk_phi,      // output phi clock for CPU
            output csync,        // composite sync signal for CXA1545P
-           output [1:0] red,    // red out for CXA1545P
-           output [1:0] green,  // green out for CXA1545P
-           output [1:0] blue,   // blue out for CXA1545P
+           output hsync,        // hsync signal for VGA
+           output vsync,        // vsync signal for VGA
+           output [2:0] red,    // red out for CXA1545P
+           output [2:0] green,  // green out for CXA1545P
+           output [2:0] blue,   // blue out for CXA1545P
            inout tri [5:0] adl, // address (lower 6 bits)
            output tri [5:0] adh,// address (high 6 bits)
            inout tri [7:0] dbl, // data bus lines
@@ -68,6 +71,7 @@ wire vic_write_db;
 // Instantiate the vicii with our clocks and pins.
 vicii vic_inst(
           .chip(chip),
+          .is_composite(is_composite),
           .clk_dot4x(clk_dot4x),
           .clk_phi(clk_phi),
           .red(red),
@@ -75,6 +79,8 @@ vicii vic_inst(
           .blue(blue),
           .rst(rst),
           .csync(csync),
+          .hsync(hsync),
+          .vsync(vsync),
           .adi(adl[5:0]),
           .ado(ado),
           .dbi({dbh,dbl}),
