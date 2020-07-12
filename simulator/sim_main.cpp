@@ -53,7 +53,7 @@ enum {
    OUT_G0, OUT_G1,
    OUT_B0, OUT_B1,
    OUT_DOT,
-   OUT_CSYNC,
+   //OUT_CSYNC,
    OUT_A0, OUT_A1, OUT_A2, OUT_A3, OUT_A4, OUT_A5, OUT_A6, OUT_A7,
    OUT_A8, OUT_A9, OUT_A10, OUT_A11,
    IN_A0, IN_A1, IN_A2, IN_A3, IN_A4, IN_A5, IN_A6, IN_A7,
@@ -69,11 +69,11 @@ enum {
    OUT_RAS, OUT_CAS
 };
 
-#define NUM_SIGNALS 61
+#define NUM_SIGNALS 60
 
 // Add new input/output here
 const char *signal_labels[] = {
-   "phi", "rst", "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "csync",
+   "phi", "rst", "r0", "r1", "g0", "g1", "b0", "b1" , "dot", //"csync",
    "ao0", "ao1", "ao2", "ao3", "ao4", "ao5", "ao6", "ao7", "ao8", "ao9", "ao10", "ao11",
    "ai0", "ai1", "ai2", "ai3", "ai4", "ai5", "ai6", "ai7", "ai8", "ai9", "ai10", "ai11",
    "do0", "do1", "do2", "do3", "do4", "do5", "do6", "do7",
@@ -82,7 +82,7 @@ const char *signal_labels[] = {
    "ras", "cas"
 };
 const char *signal_ids[] = {
-   "p", "r" ,  "r0", "r1", "g0", "g1", "b0", "b1" , "dot", "s",
+   "p", "r" ,  "r0", "r1", "g0", "g1", "b0", "b1" , "dot", //"s",
    "ao0", "ao1", "ao2", "ao3", "ao4", "ao5", "ao6", "ao7", "ao8", "ao9", "ao10", "ao11",
    "ai0", "ai1", "ai2", "ai3", "ai4", "ai5", "ai6", "ai7", "ai8", "ai9", "ai10", "ai11",
    "do0", "do1", "do2", "do3", "do4", "do5", "do6", "do7",
@@ -753,7 +753,7 @@ int main(int argc, char** argv, char** env) {
     signal_src8[OUT_B1] = &top->blue;
     signal_bit[OUT_B1] = 2;
     signal_src8[OUT_DOT] = &top->V_CLK_DOT;
-    signal_src8[OUT_CSYNC] = &top->V_CSYNC;
+    //signal_src8[OUT_CSYNC] = &top->V_CSYNC;
     signal_src8[IN_CE] = &top->ce;
     signal_src8[IN_RW] = &top->rw;
     signal_src8[OUT_BA] = &top->ba;

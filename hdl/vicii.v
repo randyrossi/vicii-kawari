@@ -26,6 +26,8 @@ module vicii(
            output[1:0] green,
            output[1:0] blue,
            output csync,
+           output hsync,
+           output vsync,
            output [11:0] ado,
            input [5:0] adi,
            output reg [7:0] dbo,
@@ -802,65 +804,6 @@ addressgen vic_addressgen(
                .sprite_mc(sprite_mc),
                .ado(ado));
 
-// Pixel sequencer
-vic_color pixel_color3;
-
-pixel_sequencer vic_pixel_sequencer(
-                    .rst(rst),
-                    .clk_dot4x(clk_dot4x),
-                    .clk_phi(clk_phi),
-                    .dot_rising_0(dot_rising[0]),
-                    .phi_phase_start_15(phi_phase_start[15]),
-                    .mcm(reg16_delayed[4]), // delayed
-                    .bmm(reg11_delayed[5]), // delayed
-                    .ecm(reg11_delayed[6]), // delayed
-                    .xpos_mod_8(xpos_d[2:0]), // delayed
-                    .xscroll(reg16_delayed[2:0]), // delayed
-                    .pixels_read(pixels_read),
-                    .char_read(char_read),
-                    .b0c(b0c),
-                    .b1c(b1c),
-                    .b2c(b2c),
-                    .b3c(b3c),
-                    .ec(ec),
-                    .left_right_border(left_right_border),
-                    .top_bot_border(top_bot_border),
-                    .sprite_cur_pixel(sprite_cur_pixel),
-                    .sprite_pri(sprite_pri),
-                    .sprite_mmc(sprite_mmc),
-                    .sprite_col(sprite_col),
-                    .sprite_mc0(sprite_mc0),
-                    .sprite_mc1(sprite_mc1),
-                    .is_background_pixel1(is_background_pixel1),
-                    .pixel_color3(pixel_color3)
-                );
-
-// Translate pixel_color3 (indexed) to RGB values
-color vic_colors(
-          .x_pos(xpos_d),
-          .y_pos(raster_line),
-          .out_pixel(pixel_color3),
-          .hsync_start(hsync_start),
-          .hvisible_start(hvisible_start),
-          .vblank_start(vblank_start),
-          .vblank_end(vblank_end),
-          .red(red),
-          .green(green),
-          .blue(blue)
-      );
-
-// Generate csync signal
-sync vic_sync(
-         .rst(rst),
-         .clk(clk_dot4x),
-         .raster_x(xpos_d),
-         .raster_y(raster_line),
-         .hsync_start(hsync_start),
-         .hsync_end(hsync_end),
-         .vblank_start(vblank_start),
-         .csync(csync)
-     );
-
 // Handle set/get registers
 registers vic_registers(
               .rst(rst),
@@ -925,4 +868,106 @@ registers vic_registers(
               .erst(erst)
           );
 
+// Pixel sequencer - outputs stage 3 pixel_color3
+vic_color pixel_color3;
+pixel_sequencer vic_pixel_sequencer(
+                    .rst(rst),
+                    .clk_dot4x(clk_dot4x),
+                    .clk_phi(clk_phi),
+                    .dot_rising_0(dot_rising[0]),
+                    .phi_phase_start_15(phi_phase_start[15]),
+                    .mcm(reg16_delayed[4]), // delayed
+                    .bmm(reg11_delayed[5]), // delayed
+                    .ecm(reg11_delayed[6]), // delayed
+                    .xpos_mod_8(xpos_d[2:0]), // delayed
+                    .xscroll(reg16_delayed[2:0]), // delayed
+                    .pixels_read(pixels_read),
+                    .char_read(char_read),
+                    .b0c(b0c),
+                    .b1c(b1c),
+                    .b2c(b2c),
+                    .b3c(b3c),
+                    .ec(ec),
+                    .left_right_border(left_right_border),
+                    .top_bot_border(top_bot_border),
+                    .sprite_cur_pixel(sprite_cur_pixel),
+                    .sprite_pri(sprite_pri),
+                    .sprite_mmc(sprite_mmc),
+                    .sprite_col(sprite_col),
+                    .sprite_mc0(sprite_mc0),
+                    .sprite_mc1(sprite_mc1),
+                    .is_background_pixel1(is_background_pixel1),
+                    .pixel_color3(pixel_color3)
+                );
+
+// Video output
+reg is_composite = 1'b0; // make a dip?
+
+// Figure out when composite should actively draw pixels.
+reg composite_active;
+always @(*)
+begin
+       if ((xpos < hsync_start || xpos > hvisible_start) &&
+           (raster_line < vblank_start || raster_line > vblank_end))
+           composite_active <= 1'b1;
+       else
+           composite_active <= 1'b0;
+end
+
+// Generate csync signal for composite
+sync vic_sync(
+         .rst(rst),
+         .clk(clk_dot4x),
+         .raster_x(xpos_d),
+         .raster_y(raster_line),
+         .hsync_start(hsync_start),
+         .hsync_end(hsync_end),
+         .vblank_start(vblank_start),
+         .csync(csync)
+     );
+
+// Generate sync signals and scaler for VGA
+reg vga_active;
+reg [9:0] h_count;
+reg [9:0] v_count;
+
+vga_sync vic_vga_sync(
+    .clk_dot4x(clk_dot4x),
+    .rst(rst),
+    .o_hs(hsync),
+    .o_vs(vsync),
+    .o_active(vga_active),
+    .o_h_count(h_count),
+    .o_v_count(v_count)
+);
+
+// For VGA, pixel_color3 is scaled by a line buffer into pixel_color4
+reg [3:0] pixel_color4;
+
+vga_scaler vic_vga_scaler(
+    .rst(rst),
+    .clk_dot4x(clk_dot4x),
+    .dot_rising_0(dot_rising[0]),
+    .h_count(h_count),
+    .pixel_color3(pixel_color3),
+    .raster_x(raster_x),
+    .pixel_color4(pixel_color4)
+);
+
+// FINAL OUTPUT RGB values from last pixel color
+// The source pixel depends on video type (composite/vga)
+// The active signal depends on video type as well. 
+
+// NOTE: It would be possible to output both VGA and Comnposite
+// simultaneously if we had dedicated rgb lines for each video
+// standard.
+
+// Translate pixel_color3 (indexed) to RGB values
+color vic_colors(
+          .out_pixel(is_composite ? pixel_color3 : pixel_color4),
+          .active(is_composite ? composite_active : vga_active),
+          .red(red),
+          .green(green),
+          .blue(blue)
+      );
 endmodule : vicii

@@ -23,8 +23,14 @@ set_property -dict { PACKAGE_PIN W5 IOSTANDARD LVCMOS33 } [get_ports { sys_clock
 # colorref out, Pin35
 set_property -dict { PACKAGE_PIN V3 IOSTANDARD LVCMOS33 } [get_ports { clk_colref }];
 
-# cSync out, PMOD Pin1
-set_property -dict { PACKAGE_PIN G17 IOSTANDARD LVCMOS33 } [get_ports { csync }];
+# hSync out, PMOD Pin1
+set_property -dict { PACKAGE_PIN G17 IOSTANDARD LVCMOS33 } [get_ports { hsync }];
+
+# vSync out, PMOD Pin7
+set_property -dict { PACKAGE_PIN H17 IOSTANDARD LVCMOS33 } [get_ports { vsync }];
+
+# cSync out, PMOD Pin2
+set_property -dict { PACKAGE_PIN G19 IOSTANDARD LVCMOS33 } [get_ports { csync }];
 
 # clk_phi out, Pin45
 set_property -dict { PACKAGE_PIN U7 IOSTANDARD LVCMOS33 } [get_ports { clk_phi }];

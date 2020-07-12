@@ -4,20 +4,14 @@
 
 // Given an indexed color in out_pixel, set red, green and blue values.
 module color(
-           input wire [9:0] x_pos,
-           input wire [8:0] y_pos,
            input vic_color out_pixel,
-           input wire [9:0] hsync_start,
-           input wire [9:0] hvisible_start,
-           input wire [8:0] vblank_start,
-           input wire [8:0] vblank_end,
+           input active,
            output reg [1:0] red,
            output reg [1:0] green,
            output reg [1:0] blue);
 
 always @*
-    if ((x_pos < hsync_start || x_pos > hvisible_start) &&
-            (y_pos < vblank_start || y_pos > vblank_end))
+    if (active)
     case (out_pixel)
         BLACK: {red, green, blue} = {2'h00, 2'h00, 2'h00};
         WHITE: {red, green, blue} = {2'h03, 2'h03, 2'h03};

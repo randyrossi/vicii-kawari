@@ -9,6 +9,8 @@ module top(
            output clk_colref,   // output color ref clock for CXA1545P
            output clk_phi,      // output phi clock for CPU
            output csync,        // composite sync signal for CXA1545P
+           output hsync,        // hsync signal for VGA
+           output vsync,        // vsync signal for VGA
            output [1:0] red,    // red out for CXA1545P
            output [1:0] green,  // green out for CXA1545P
            output [1:0] blue,   // blue out for CXA1545P
@@ -75,6 +77,8 @@ vicii vic_inst(
           .blue(blue),
           .rst(rst),
           .csync(csync),
+          .hsync(hsync),
+          .vsync(vsync),
           .adi(adl[5:0]),
           .ado(ado),
           .dbi({dbh,dbl}),
