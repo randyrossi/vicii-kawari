@@ -12,6 +12,10 @@ localparam VA_END = 569;             // vertical active pixel end
 localparam LINE   = 1007;            // complete line (pixels)
 localparam SCREEN = 623;             // complete screen (lines)
 
+localparam VERTICAL_OFFSET = 63;
+localparam HORIZONTAL_CROP_LEFT = 96;
+localparam HORIZONTAL_CROP_RIGHT = 104;
+
 // Produce horizontal and vertical sync pulses for VGA output
 module vga_sync(
     // TODO: Add chip here so we know ntsc vs pal
@@ -42,7 +46,7 @@ module vga_sync(
         if (rst)
         begin
             h_count <= 0;
-            v_count <= 0;
+            v_count <= SCREEN - VERTICAL_OFFSET; // TODO Make this a runtime param
         end
         else
         begin
@@ -97,9 +101,10 @@ end
 always @(posedge clk_dot4x)
 begin
    if (!rst) begin
-   if (h_count_div2 >= (HS_STA + 96) && h_count_div2 <= (HS_STA + 504 - 104 + 96)) begin
-        pixel_color4 = !active_buf ? line_buf_0[h_count_div2 - HS_STA - 96 + 104] :
-                                     line_buf_1[h_count_div2 - HS_STA - 96 + 104];
+   if (h_count_div2 >= (HS_STA + HORIZONTAL_CROP_LEFT) &&
+       h_count_div2 <= (HS_STA + 504 - HORIZONTAL_CROP_RIGHT + HORIZONTAL_CROP_LEFT)) begin
+        pixel_color4 = !active_buf ? line_buf_0[h_count_div2 - HS_STA - HORIZONTAL_CROP_LEFT + HORIZONTAL_CROP_RIGHT] :
+                                     line_buf_1[h_count_div2 - HS_STA - HORIZONTAL_CROP_LEFT + HORIZONTAL_CROP_RIGHT];
    end else
         pixel_color4 = 4'b0;
    end

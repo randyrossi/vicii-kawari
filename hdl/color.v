@@ -27,7 +27,7 @@ always @*
         DARK_GREY:{red, green, blue} = {3'h02, 3'h02, 3'h02 };
         GREY:{red, green, blue} = {3'h03, 3'h03, 3'h03 };
         LIGHT_GREEN:{red, green, blue} = {3'h04, 3'h06, 3'h04 };
-        LIGHT_BLUE:{red, green, blue} = {3'h03, 3'h02, 3'h05 };
+        LIGHT_BLUE:{red, green, blue} = {3'h02, 3'h02, 3'h05 };
         LIGHT_GREY:{red, green, blue} = {3'h04, 3'h04, 3'h04 };
     endcase
     else
