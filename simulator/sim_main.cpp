@@ -797,6 +797,7 @@ int main(int argc, char** argv, char** env) {
     // it takes to wait for phase lock from the clock.
     printf ("(RESET)\n");
     top->rst = 1;
+    top->is_composite = 1;
     top->lp = 1;
     for (int i=0;i<32;i++) {
        top->eval();
@@ -1001,9 +1002,9 @@ int main(int argc, char** argv, char** env) {
           // If rendering, draw current color on dot clock
           if (showWindow && HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
              SDL_SetRenderDrawColor(ren,
-                top->red << 6,
-                top->green << 6,
-                top->blue << 6,
+                top->red << 5,
+                top->green << 5,
+                top->blue << 5,
                 255);
              drawPixel(ren,
                 top->V_RASTER_X,
