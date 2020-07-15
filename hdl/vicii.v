@@ -907,9 +907,9 @@ always @(*)
 begin
        if ((xpos < hsync_start || xpos > hvisible_start) &&
            (raster_line < vblank_start || raster_line > vblank_end))
-           composite_active = 1'b1;
+           composite_active <= 1'b1;
        else
-           composite_active = 1'b0;
+           composite_active <= 1'b0;
 end
 
 // Generate csync signal for composite
@@ -932,6 +932,7 @@ reg [9:0] v_count;
 vga_sync vic_vga_sync(
     .clk_dot4x(clk_dot4x),
     .rst(rst),
+    .is_pal(chip == CHIP6569 ? 1'b1 : 1'b0),
     .o_hs(hsync),
     .o_vs(vsync),
     .o_active(vga_active),
@@ -944,9 +945,10 @@ reg [3:0] pixel_color4;
 
 vga_scaler vic_vga_scaler(
     .rst(rst),
+    .is_pal(chip == CHIP6569 ? 1'b1 : 1'b0),
     .clk_dot4x(clk_dot4x),
     .dot_rising_0(dot_rising[0]),
-    .h_count_div2(h_count[9:1]),
+    .h_count(h_count),
     .pixel_color3(pixel_color3),
     .raster_x(raster_x),
     .pixel_color4(pixel_color4)

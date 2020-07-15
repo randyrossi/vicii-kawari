@@ -2,7 +2,7 @@
 
 // Double the native resolution of the C64 in both dimensions.
 
-// TODO : Theser are for PAL only @50hz. Get values for NTSC @ 60hz
+// PAL - TODO Make regs
 localparam HS_STA = 21;              // horizontal sync start
 localparam HS_END = 21 + 116;        // horizontal sync end
 localparam HA_STA = 21 + 116 + 65;   // horizontal active pixel start
@@ -11,16 +11,27 @@ localparam VS_END = 569 + 11 + 3;    // vertical sync end
 localparam VA_END = 569;             // vertical active pixel end
 localparam LINE   = 1007;            // complete line (pixels)
 localparam SCREEN = 623;             // complete screen (lines)
-
 localparam VERTICAL_OFFSET = 63;
-localparam HORIZONTAL_CROP_LEFT = 96;
-localparam HORIZONTAL_CROP_RIGHT = 104;
+localparam HORIZONTAL_OFFSET = 29;
+
+// NTSC - TODO Make regs
+//localparam HS_STA = 16;              // horizontal sync start
+//localparam HS_END = 16 + 48;        // horizontal sync end
+//localparam HA_STA = 16 + 48 + 65;   // horizontal active pixel start
+//localparam VS_STA = 502 + 10;        // vertical sync start
+//localparam VS_END = 502 + 10 + 3;    // vertical sync end
+//localparam VA_END = 502;             // vertical active pixel end
+//localparam LINE   = 519;            // complete line (pixels)
+//localparam SCREEN = 525;             // complete screen (lines)
+//localparam VERTICAL_OFFSET = 40;
+//localparam HORIZONTAL_OFFSET = 32;
 
 // Produce horizontal and vertical sync pulses for VGA output
 module vga_sync(
     // TODO: Add chip here so we know ntsc vs pal
     input wire clk_dot4x,
     input wire rst,
+    input is_pal,
     output reg o_hs,             // horizontal sync
     output reg o_vs,             // vertical sync
     output reg o_active,         // high during active pixel drawing
@@ -30,7 +41,8 @@ module vga_sync(
 
     reg [9:0] h_count;  // line position
     reg [9:0] v_count;  // screen position
-
+    reg ff = 1'b1;
+    
     // generate sync signals active low
     assign o_hs = ~((h_count >= HS_STA) & (h_count < HS_END));
     assign o_vs = ~((v_count >= VS_STA) & (v_count < VS_END));
@@ -50,6 +62,12 @@ module vga_sync(
         end
         else
         begin
+            // NTSC : horiz is 1x native res
+            // PAL : horiz is 2x native res
+            if (!is_pal)
+               ff = ~ff;
+
+            if (ff) begin
             if (h_count < LINE) begin
                h_count <= h_count + 1;
             end else begin
@@ -59,6 +77,7 @@ module vga_sync(
                end else begin
                   v_count <= 0;
                end
+            end
             end
         end
     end
@@ -70,18 +89,19 @@ reg active_buf;
 
 //  Fill active buf while producing pixels from previous line from filled_buf
 module vga_scaler(
+    input is_pal,
     input rst,
     input dot_rising_0,
     input clk_dot4x,
-    input [8:0] h_count_div2,
+    input [9:0] h_count,
     input [3:0] pixel_color3,
     input [9:0] raster_x,
     output reg [3:0] pixel_color4
 );
 
 // Cover the max possible here. Not all may be used depending on chip.
-(* ram_style = "block" *) reg [3:0] line_buf_0[511:0];
-(* ram_style = "block" *) reg [3:0] line_buf_1[511:0];
+(* ram_style = "block" *) reg [3:0] line_buf_0[519:0];
+(* ram_style = "block" *) reg [3:0] line_buf_1[519:0];
 
 always @(posedge clk_dot4x)
 begin
@@ -90,6 +110,7 @@ begin
       if (raster_x == 0)
          active_buf = ~active_buf;
 
+      // Store pixels into line buf
       if (active_buf)
         line_buf_0[raster_x[8:0]] = pixel_color3;
       else
@@ -98,13 +119,22 @@ begin
    end
 end
 
+wire [8:0] h_count_div_2;
+assign h_count_div_2 = h_count[9:1];
+
 always @(posedge clk_dot4x)
 begin
    if (!rst) begin
-   if (h_count_div2 >= (HS_STA + HORIZONTAL_CROP_LEFT) &&
-       h_count_div2 <= (HS_STA + 504 - HORIZONTAL_CROP_RIGHT + HORIZONTAL_CROP_LEFT)) begin
-        pixel_color4 = !active_buf ? line_buf_0[h_count_div2 - HS_STA - HORIZONTAL_CROP_LEFT + HORIZONTAL_CROP_RIGHT] :
-                                     line_buf_1[h_count_div2 - HS_STA - HORIZONTAL_CROP_LEFT + HORIZONTAL_CROP_RIGHT];
+   if (h_count >= HORIZONTAL_OFFSET) begin
+      if (!is_pal) begin
+        // NTSC : horiz is 1x native res
+        pixel_color4 = !active_buf ? line_buf_0[h_count - HORIZONTAL_OFFSET] :
+                                     line_buf_1[h_count - HORIZONTAL_OFFSET];
+      end else begin
+        // PALC : horiz is 2x native res
+        pixel_color4 = !active_buf ? line_buf_0[h_count_div_2 - HORIZONTAL_OFFSET] :
+                                     line_buf_1[h_count_div_2 - HORIZONTAL_OFFSET];
+      end
    end else
         pixel_color4 = 4'b0;
    end
