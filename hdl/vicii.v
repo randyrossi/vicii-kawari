@@ -907,9 +907,9 @@ always @(*)
 begin
        if ((xpos < hsync_start || xpos > hvisible_start) &&
            (raster_line < vblank_start || raster_line > vblank_end))
-           composite_active <= 1'b1;
+           composite_active = 1'b1;
        else
-           composite_active <= 1'b0;
+           composite_active = 1'b0;
 end
 
 // Generate csync signal for composite

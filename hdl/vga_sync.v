@@ -108,9 +108,9 @@ begin
 
          // Store pixels into line buf
          if (active_buf)
-           line_buf_0[raster_x[8:0]] = pixel_color3;
+           line_buf_0[raster_x[9:0]] = pixel_color3;
          else
-           line_buf_1[raster_x[8:0]] = pixel_color3;
+           line_buf_1[raster_x[9:0]] = pixel_color3;
       end
    end
 end
