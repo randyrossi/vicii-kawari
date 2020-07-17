@@ -51,7 +51,7 @@ always @(posedge clk_dot4x)
                 for (n = 38; n > 0; n = n - 1) begin
                     char_buf[n] = char_buf[n-1];
                 end
-                char_buf[0] <= char_next;
+                char_buf[0] = char_next;
             end
             default: ;
         endcase
