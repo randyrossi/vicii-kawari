@@ -137,8 +137,8 @@ set_property -dict { PACKAGE_PIN N2    IOSTANDARD LVCMOS33 } [get_ports { ras }]
 # CAS, Pin 23
 set_property -dict { PACKAGE_PIN P1    IOSTANDARD LVCMOS33 } [get_ports { cas }];
 
-# OE, Pin 41
-set_property -dict { PACKAGE_PIN U5    IOSTANDARD LVCMOS33 } [get_ports { ls245_oe }];
+# Pin 41
+#set_property -dict { PACKAGE_PIN U5    IOSTANDARD LVCMOS33 } [get_ports { unused }];
 
 # LP, Pin 42
 set_property -dict { PACKAGE_PIN U2    IOSTANDARD LVCMOS33 } [get_ports { lp }];

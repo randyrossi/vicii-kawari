@@ -17,6 +17,7 @@ module bus_access(
         input [11:0] dbi,
         input idle,
         input [2:0] sprite_cnt,
+        input aec,
         input sprite_dma[0:`NUM_SPRITES - 1],
         output reg [7:0] sprite_ptr[0:`NUM_SPRITES - 1],
         output reg [7:0] pixels_read,
@@ -37,10 +38,18 @@ always @(posedge clk_dot4x)
             char_buf[n] <= 12'hff;
         end
     end else
-    if (!vic_write_db && phi_phase_start_dav) begin
+    if (phi_phase_start_dav) begin
         case (cycle_type)
             VIC_HRC, VIC_HGC: // badline c-access
-                char_next <= dbi;
+                if (!aec && !vic_write_db)
+                    char_next <= dbi;
+                else begin
+                    // We can get here if a badline condition brings ba low
+                    // and the 3 high aec cycles have not yet passed. When this
+                    // happens, we deliver 0xff for data but color is still
+                    // read from the data bus.
+                    char_next <= { dbi[11:8], 8'b11111111 };
+                end
             VIC_HRX, VIC_HGI: // not badline idle (char from cache)
                 char_next <= char_buf[38];
             default: ;

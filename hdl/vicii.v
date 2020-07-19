@@ -41,7 +41,6 @@ module vicii(
            output ba,
            output ras,
            output cas,
-           output ls245_oe,
            output ls245_dir,
            output vic_write_db,
            output vic_write_ab,
@@ -719,22 +718,16 @@ always @(posedge clk_dot4x)
         aec <= ba ? clk_phi : ba3 & clk_phi;
     end
 
+// For reference, on LS245's:
+// OE pin low = all channels active
+// OE pin high = all channels disabled
+
 // aec -> LS245 DIR Pin (addr)
 // aec   : low = VIC sets address lines (Bx to Ax)
 //       : high = VIC reads address lines(Ax to Bx)
 // When CPU owns the bus (aec high), VIC reads address lines (high)
 // When VIC owns the bus (aec low), VIC sets address lines (low)
 // OE pin is grounded (always enabled)
-
-// ls245_oe -> LS245 OE Pin (data)
-// ls245_oe : low = all channels active
-//            high = all channels disabled
-// When CPU owns the bus (aec high)
-//    Enable data lines if VIC is selected (ce low) (ce)
-//    Disable data lines if VIC is not selected (ce high) (ce)
-// When VIC owns the bus (aec low)
-//    Enable data lines (0)
-assign ls245_oe = aec ? ce : `FALSE;
 
 // ls245_dir -> LS245 DIR Pin (data)
 // ls245_dir : low = VIC writes to data lines (Bx to Ax)
@@ -744,6 +737,7 @@ assign ls245_oe = aec ? ce : `FALSE;
 //   VIC reads from data bus when rw low (rw)
 // When VIC owns the bus (aec low)
 //   VIC reads from data (1)
+// OE pin is grounded (always enabled)
 assign ls245_dir = aec ? (!ce ? ~rw : `TRUE) : `TRUE;
 
 // aec ce rw den dir
@@ -781,6 +775,7 @@ bus_access vic_bus_access(
          .pixels_read(pixels_read),
          .char_read(char_read),
          .char_next(char_next),
+         .aec(aec),
          .sprite_pixels(sprite_pixels)
 );
 

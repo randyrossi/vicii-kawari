@@ -29,11 +29,15 @@ If you need a VIC to replace a broken one, you should just buy one off eBay. Thi
 ## Demos Tested
 | Demo | Issues
 |--|--|
-| Comaland | Bumble bee flower pic left side glitches
-| StarWars | Cloud city fly left side glitches
+| Comaland | None
+| StarWars | NOne
 | Lunatico | None
+| Edge Of Disgrace | i) terminator scroll rhs glitch, ii) colored boxes sequence vertical bar
+| Krestage | None
+| Krestage 2 | TBD
+| Krestage 3 | TBD
+| Uncensored | i) floating hexagons garbled, ii) colored square toss small glitch near right
 
 ## TODO
 
-* timings/outputs for VGA
 * timings/outputs for external HDMI encoder
