@@ -30,13 +30,15 @@ If you need a VIC to replace a broken one, you should just buy one off eBay. Thi
 | Demo | Issues
 |--|--|
 | Comaland | None
-| StarWars | NOne
+| StarWars | None
 | Lunatico | None
-| Edge Of Disgrace | i) terminator scroll rhs glitch, ii) colored boxes sequence vertical bar
+| Edge Of Disgrace | i) terminator scroll rhs glitch (same as VICE), ii) colored boxes sequence vertical bar
 | Krestage | None
-| Krestage 2 | TBD
+| Krestage 2 | None
 | Krestage 3 | TBD
-| Uncensored | i) floating hexagons garbled, ii) colored square toss small glitch near right
+| Uncensored | i) colored square toss small glitch near right, ii) skihill not correct, iii) crash after skiihill?
+| We Are New | TBD
+| Reflection | TBD
 
 ## TODO
 
