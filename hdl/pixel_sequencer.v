@@ -250,6 +250,14 @@ begin
                     pixel_color2 = sprite_col[n[2:0]];
                 end
             end
+            // If a sprite with a lower priority caused a foreground pixel to be overwritten
+            // due to its sprite_pri being 0, we must 'reset' the foreground pixel if a higher
+            // priority sprite has sprite_pri 1 (Uncensored ski hill).  In other words, a higher
+            // priority sprite's desire to leave foreground pixels alone overrides a lower
+            // sprite's desire to overwrite it.
+            if (sprite_pri[n] && !is_background_pixel2 && sprite_pixels_delayed1[n][1]) begin
+                pixel_color2 = pixel_color1;
+            end
         end
     end
 end

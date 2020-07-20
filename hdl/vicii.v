@@ -779,7 +779,7 @@ bus_access vic_bus_access(
          .sprite_pixels(sprite_pixels)
 );
 
-// Address generation - use delayed reg11 values here
+// Address generation
 addressgen vic_addressgen(
                //.rst(rst),
                .clk_dot4x(clk_dot4x),
@@ -789,8 +789,9 @@ addressgen vic_addressgen(
                .vm(vm),
                .rc(rc),
                .mux(mux),
-               .bmm(bmm),
-               .ecm(ecm),
+               // Some magic from VICE: g_fetch_addr((uint8_t)(vicii.regs[0x11] | (vicii.reg11_delay & 0x20)));
+               .bmm(bmm | reg11_delayed[5]),
+               .ecm(ecm), // NOT delayed!
                .idle(idle),
                .refc(refc),
                .char_ptr(char_next[7:0]),
