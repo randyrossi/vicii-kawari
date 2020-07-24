@@ -593,7 +593,7 @@ int main(int argc, char** argv, char** env) {
         printf ("  -w        : show SDL2 window\n");
         printf ("  -z        : single step eval for shadow vic via ipc\n");
         printf ("  -b        : render each cycle, waiting for key press after each one\n");
-        printf ("  -c <chip> : 0=CHIP6567R8, 1=CHIP6567R56A 2=CHIP65669\n");
+        printf ("  -c <chip> : 0=CHIP6567R8, 1=CHIP6569 2=CHIP6567R56A\n");
         printf ("  -r <test> : run test driver #\n");
         printf ("  -g <test> : make golden master for test #\n");
         printf ("  -h        : start under reset\n");

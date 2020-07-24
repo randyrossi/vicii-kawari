@@ -64,16 +64,6 @@ install: libvicii_ipc.so
 logic:
 	gtkwave session.vcd --script session.tcl
 
-# Bring up the logic analyzer after capturing a session from VICE
-logic_vice: obj_dir/Vvicii
-	obj_dir/Vvicii -z -t
-	gtkwave session.vcd --script seession.tcl
-
-# Show a window while capturing and then bring up the logic analyser
-logic_window_vice: obj_dir/Vvicii
-	obj_dir/Vvicii -w -z -t
-	gtkwave session.vcd --script seession.tcl
-
 # Render a frame in the window
 view: obj_dir/Vvicii
 	obj_dir/Vvicii -w
