@@ -58,7 +58,7 @@ MMCME2_ADV
         .CLKFBOUTB(clkfboutb_unused),
         .CLKOUT0(clk_col4x_clk_wiz_0),
         .CLKOUT0B(clkout0b_unused),
-        .CLKOUT1(clk_in14mhz), // was clk_dot4x_clk_wiz_0
+        .CLKOUT1(clk_dot4x_clk_wiz_0),
         .CLKOUT1B(clkout1b_unused),
         .CLKOUT2(clkout2_unused),
         .CLKOUT2B(clkout2b_unused),
@@ -69,7 +69,7 @@ MMCME2_ADV
         .CLKOUT6(clkout6_unused),
         // Input clock control
         .CLKFBIN(clkfbout_buf_clk_wiz_0),
-        .CLKIN1(clk_in1_clk_wiz_0),
+        .CLKIN1(clk_in14mhz), // was clk_dot4x_clk_wiz_0
         .CLKIN2(1'b0),
         // Tied to always select the primary input clock
         .CLKINSEL(1'b1),
@@ -93,7 +93,6 @@ MMCME2_ADV
         .PWRDWN(1'b0),
         .RST(reset_high));
 assign reset_high = reset;
-
 
 BUFG clkf_buf
      (.O(clkfbout_buf_clk_wiz_0),
