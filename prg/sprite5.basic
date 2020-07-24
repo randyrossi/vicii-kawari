@@ -1,12 +1,15 @@
-10 poke 53269,3
+5 print chr$(147);
 20 poke 2040,192
 30 poke 2041,192
 40 for t=0to63:poke192*64+t,255:next
-50 poke53249,50:poke53251,50+20
-60 poke 54271,1
-70 for x = 0 to 7
-80 poke 53248,25+x:poke 53250,25+23+x
-90 a=peek(53278):a=peek(53278):print a;
-100 poke 53248,25+x:poke 53250,25+50+x
-110 a=peek(53278):a=peek(53278):print a;
-120 next
+41 poke 53248,25+0:poke53249,50:
+42 poke 53251,25+50+0:poke53251,50+20
+42 poke 53269,3
+43 a=peek(53278):a=peek(53278):poke53273,4
+44 poke 54271,1
+46 for x = 0 to 8
+50 poke 53248,25+x:poke 53250,25+23+x
+70 a=peek(53278):a=peek(53278)
+80 poke 53248,25+x:poke 53250,25+50+x
+82 a=peek(53278):a=peek(53278):poke 53273,4
+83 next

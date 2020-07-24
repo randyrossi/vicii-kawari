@@ -40,6 +40,8 @@ reg is_background_pixel2;
 integer n;
 
 // char and pixels delayed before entering shifter
+// TODO: Now that the precise delay is known, there's no need for this
+// many regs for char/pixels delay. Change to use one reg.
 reg [11:0] char_delayed[`DATA_PIXEL_DELAY + 1];
 reg [7:0] pixels_delayed[`DATA_PIXEL_DELAY + 1];
 reg [2:0] xscroll_delayed;

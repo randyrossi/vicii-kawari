@@ -5,10 +5,10 @@
 50 poke 53248,100:poke53249,57
 60 a=peek(53279)
 70 print chr$(147);:poke 1025,32+128:print:print:print:print:print:print
-80 poke 54271,1
-90 for x= 0 to 7
+80 poke 53273,2:poke 54271,1
+90 for x= 0 to 8
 100 poke 53248,39-x
-110 a=peek(53279):a=peek(53279):print a;
+110 a=peek(53279):a=peek(53279):poke 53273,2
 100 poke 53248,100
-110 a=peek(53279):a=peek(53279):print a;
+110 a=peek(53279):a=peek(53279):poke 53273,2
 120 next

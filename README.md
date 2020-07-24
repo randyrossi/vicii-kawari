@@ -28,14 +28,14 @@ If you need a VIC to replace a broken one, you should just buy one off eBay. Thi
 | Demo | Issues
 |--|--|
 | Comaland | None
-| Edge Of Disgrace | i) terminator scroll rhs glitch (same as VICE), ii) zoom/scroll grid misplaced/miscolored vertical bars
+| Edge Of Disgrace | i) terminator scroll rhs glitch (same as VICE)
 | Krestage | None
 | Krestage 2 | None
 | Krestage 3 | TBD
 | Lunatico | None
 | Reflection | TBD
 | StarWars | None
-| Uncensored | colored boxes misplaced/miscoored vertical bar
+| Uncensored | None
 | We Are New | TBD
 
 ## Games Tested
