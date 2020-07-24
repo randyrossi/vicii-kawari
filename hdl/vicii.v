@@ -254,8 +254,9 @@ reg idle;
 reg den; // display enable
 reg bmm; // bitmap mode
 reg ecm; // extended color mode
-reg [2:0] xscroll;
-reg [2:0] yscroll;
+
+wire [2:0] xscroll;
+wire [2:0] yscroll;
 
 reg rsel; // border row select
 reg csel; // border column select
@@ -375,35 +376,6 @@ begin
     end
 end
 
-// use delayed reg11 for yscroll
-always @(raster_line, reg11_delayed, allow_bad_lines)
-begin
-    badline = `FALSE;
-    if (raster_line[2:0] == reg11_delayed[2:0] && allow_bad_lines == `TRUE && raster_line >= 48 && raster_line < 248)
-        badline = `TRUE;
-end
-
-// at the start of every high phase, store current reg11 for delayed fetch
-// and badline calcs
-always @(posedge clk_dot4x)
-begin
-    if (rst) begin
-        reg11_delayed <= 8'b0;
-        reg16_delayed <= 5'b0;
-    end else
-    if (clk_phi && phi_phase_start[0]) begin // must be before badline idle reset below
-        reg11_delayed[2:0] <= yscroll;
-        reg11_delayed[3] <= rsel;
-        reg11_delayed[4] <= den;
-        reg11_delayed[5] <= bmm;
-        reg11_delayed[6] <= ecm;
-        reg11_delayed[7] <= raster_line[8];
-        reg16_delayed[2:0] <= xscroll;
-        reg16_delayed[3] <= csel;
-        reg16_delayed[4] <= mcm;
-    end
-end
-
 // Raise raster irq once per raster line
 // On raster line 0, it happens on cycle 1, otherwise, cycle 0
 always @(posedge clk_dot4x)
@@ -463,7 +435,6 @@ always @(posedge clk_dot4x)
 reg [9:0] xpos_d;
 assign xpos_d = xpos >= (`DATA_PIXEL_DELAY - 1) ? xpos - (`DATA_PIXEL_DELAY - 1) : max_xpos - (`DATA_PIXEL_DELAY - 2) + xpos;
 
-
 // border
 reg top_bot_border;
 reg left_right_border;
@@ -471,15 +442,32 @@ reg left_right_border;
 border vic_border(
            .rst(rst),
            .clk_dot4x(clk_dot4x),
-           .dot_rising_0(dot_rising[0]),
+           .clk_phi(clk_phi),
+           .cycle_num(cycle_num),
            .xpos(xpos_d),
            .raster_line(raster_line),
            .rsel(rsel),
            .csel(csel),
            .den(den),
-           .top_bot_border(top_bot_border),
-           .left_right_border(left_right_border)
+           .vborder(top_bot_border),
+           .main_border(left_right_border)
        );
+
+// We delay the border mask by 2 dots. For simulator comparison to VICE,
+// however, we use the non-delayed values.
+reg top_bot_border1;
+reg top_bot_border2;
+reg left_right_border1;
+reg left_right_border2;
+always @(posedge clk_dot4x)
+begin
+   if (dot_rising[0]) begin
+      top_bot_border1 <= top_bot_border;
+      top_bot_border2 <= top_bot_border1;
+      left_right_border1 <= left_right_border;
+      left_right_border2 <= left_right_border1;
+   end
+end
 
 reg [7:0] lpx;
 reg [7:0] lpy;
@@ -687,8 +675,8 @@ sprites vic_sprites(
          .sprite_pixels(sprite_pixels),
          .vic_write_db(vic_write_db),
          .is_background_pixel1(is_background_pixel1),
-         .top_bot_border(top_bot_border),
-         .left_right_border(left_right_border),
+         .top_bot_border(top_bot_border2), // delayed
+         .left_right_border(left_right_border2), // delayed
          .imbc_clr(imbc_clr),
          .immc_clr(immc_clr),
          .sprite_dmachk1(sprite_dmachk1),
@@ -865,6 +853,35 @@ registers vic_registers(
               .erst(erst)
           );
 
+// at the start of every high phase, store current reg11 for delayed fetch
+// and badline calcs
+always @(posedge clk_dot4x)
+begin
+    if (rst) begin
+        reg11_delayed <= 8'b0;
+        reg16_delayed <= 5'b0;
+    end else
+    if (clk_phi && phi_phase_start[0]) begin // must be before badline idle reset below
+        reg11_delayed[2:0] <= yscroll;
+        reg11_delayed[3] <= rsel;
+        reg11_delayed[4] <= den;
+        reg11_delayed[5] <= bmm;
+        reg11_delayed[6] <= ecm;
+        reg11_delayed[7] <= raster_line[8];
+        reg16_delayed[2:0] <= xscroll;
+        reg16_delayed[3] <= csel;
+        reg16_delayed[4] <= mcm;
+    end
+end
+
+// use delayed reg11 for yscroll
+always @(raster_line, reg11_delayed, allow_bad_lines)
+begin
+    badline = `FALSE;
+    if (raster_line[2:0] == reg11_delayed[2:0] && allow_bad_lines == `TRUE && raster_line >= 48 && raster_line < 248)
+        badline = `TRUE;
+end
+
 // Pixel sequencer - outputs stage 3 pixel_color3
 vic_color pixel_color3;
 pixel_sequencer vic_pixel_sequencer(
@@ -877,7 +894,7 @@ pixel_sequencer vic_pixel_sequencer(
                     .bmm(reg11_delayed[5]), // delayed
                     .ecm(reg11_delayed[6]), // delayed
                     .xpos_mod_8(xpos_d[2:0]), // delayed
-                    .xscroll(reg16_delayed[2:0]), // delayed
+                    .xscroll(xscroll),
                     .pixels_read(pixels_read),
                     .char_read(char_read),
                     .b0c(b0c),
@@ -885,8 +902,8 @@ pixel_sequencer vic_pixel_sequencer(
                     .b2c(b2c),
                     .b3c(b3c),
                     .ec(ec),
-                    .left_right_border(left_right_border),
-                    .top_bot_border(top_bot_border),
+                    .left_right_border(left_right_border2), // delayed
+                    .top_bot_border(top_bot_border2), // delayed
                     .sprite_cur_pixel(sprite_cur_pixel),
                     .sprite_pri(sprite_pri),
                     .sprite_mmc(sprite_mmc),

@@ -397,6 +397,7 @@ static void regs_vice_to_fpga(Vvicii* top, struct vicii_state* state) {
 
        top->V_TBBORDER = state->vborder;
        top->V_LRBORDER = state->main_border;
+       top->V_SET_VBORDER = state->set_vborder;
 
        // We need to populate our char buf from VICE's
        top->V_CHAR_BUF[38] = state->char_buf[0] | (state->color_buf[0] << 8);
@@ -816,6 +817,11 @@ int main(int argc, char** argv, char** env) {
     top->adi = 0;
     top->dbi = 0;
     top->V_DEN = 1;
+    top->V_CSEL = 1;
+    top->V_RSEL = 1;
+    top->V_TBBORDER = 1;
+    top->V_LRBORDER = 1;
+    top->V_SET_VBORDER = 1;
     top->V_B0C = 6;
     top->V_EC = 14;
     top->V_VM = 1; // 0001
@@ -1051,6 +1057,8 @@ int main(int argc, char** argv, char** env) {
 	   state->idle = top->V_IDLE;
 	   state->allow_bad_lines = top->V_ALLOW_BAD_LINES;
 	   state->reg11_delayed = top->V_REG11_DELAYED;
+	   state->vborder = top->V_TBBORDER;
+	   state->main_border = top->V_LRBORDER;
            if (top->ce == 0 && top->rw == 1) {
               // Chip selected and read, set data in state
               state->data_from_sim = top->dbo;

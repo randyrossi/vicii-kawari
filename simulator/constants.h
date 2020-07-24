@@ -139,6 +139,7 @@
 #define V_RASTER_IRQ_TRIGGERED   vicii__DOT__raster_irq_triggered
 #define V_TBBORDER            vicii__DOT__top_bot_border
 #define V_LRBORDER            vicii__DOT__left_right_border
+#define V_SET_VBORDER         vicii__DOT__vic_border__DOT__set_vborder
 #define V_COLLISION           vicii__DOT__collision
 //#define V_CSYNC               csync
 #define V_CHAR_NEXT           vicii__DOT__char_next

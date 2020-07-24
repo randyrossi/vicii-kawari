@@ -19,7 +19,7 @@ No.  A test harness has been constructed using breadboard-able components and ju
 I'm going to say 99%. I can't test every program but it supports the graphics tricks programmers used in their demos/games.  So far the results have been excellent but more testing is needed.  Also, it is possible some glitch in the real hardware could be discovered in the future that would require an update to the logic in the core.
 
 ## What kind of video options will there be?
-Right now, there are two video options:  a Sony CXA1645P composite encoder IC or GERT VGA666 adapter board.  Later revisions may produce luma/chroma directly from the FPGA using DACs.  Even later revisions may support HDMI output.  
+Right now, there are two video options:  a Sony CXA1645P composite encoder IC or GERT VGA666 adapter board.  Later revisions may produce luma/chroma directly from the FPGA using DACs.  Even later revisions may support HDMI output.
 
 ## Why not just buy a real one?
 If you need a VIC to replace a broken one, you should just buy one off eBay. This project is for fun/interest and would certainly cost more than just buying the real thing.  It may turn into something you can build or buy, but it's too early to tell right now.

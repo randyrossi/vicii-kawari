@@ -83,6 +83,7 @@ struct vicii_state {
 
   unsigned char vborder;
   unsigned char main_border;
+  unsigned char set_vborder;
 
   int cycleByCycleStepping;
 };

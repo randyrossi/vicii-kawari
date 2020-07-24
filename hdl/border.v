@@ -6,54 +6,55 @@
 module border(
        input rst,
        input clk_dot4x,
-	   input dot_rising_0,
+	   input clk_phi,
+	   input [6:0] cycle_num,
 	   input [9:0] xpos,
 	   input [8:0] raster_line,
 	   input rsel,
 	   input csel,
 	   input den,
-       output reg top_bot_border,
-	   output reg left_right_border
+       output reg vborder,
+	   output reg main_border
 );
 
-reg new_top_bot_border = `FALSE;
-
-always @(raster_line, rsel, den, top_bot_border)
-begin
-    new_top_bot_border = top_bot_border;
-    if (raster_line == 55 && den == `TRUE)
-        new_top_bot_border = `FALSE;
-
-    if (raster_line == 51 && rsel == `TRUE && den == `TRUE)
-        new_top_bot_border = `FALSE;
-
-    if (raster_line == 247 && rsel == `FALSE)
-        new_top_bot_border = `TRUE;
-
-    if (raster_line == 251 && rsel == `TRUE)
-        new_top_bot_border = `TRUE;
-end
+reg set_vborder;
 
 always @(posedge clk_dot4x)
 begin
     if (rst) begin
-        left_right_border <= `FALSE;
-        top_bot_border <= `FALSE;
-    end else if (dot_rising_0) begin
-        if (xpos == 32 && csel == `FALSE) begin
-            left_right_border <= new_top_bot_border;
-            top_bot_border <= new_top_bot_border;
+        set_vborder = `FALSE;
+        main_border = `FALSE;
+        vborder = `FALSE;
+    end else begin
+        if (!clk_phi) begin
+           // check hborder
+           if ((xpos == 31 && csel == `FALSE) || (xpos == 24 && csel == `TRUE)) begin
+              // check vborder bottom
+              if ((raster_line == 247 && rsel == `FALSE) || (raster_line == 251 && rsel == `TRUE))
+                 set_vborder = 1;
+              vborder = set_vborder;
+              if (vborder == 0) begin
+                 main_border = 0;
+              end
+           end
+           else if ((xpos == 335 && csel == `FALSE) || (xpos == 344 && csel == `TRUE)) begin
+              main_border = 1;
+           end
         end
-        if (xpos == 25 && csel == `TRUE) begin
-            left_right_border <= new_top_bot_border;
-            top_bot_border <= new_top_bot_border;
+        else begin
+          // check vborder top
+          if (((raster_line == 55 && rsel == `FALSE) || (raster_line == 51 && rsel == `TRUE)) && den) begin
+             vborder = 0;
+             set_vborder = 0;
+          end
+          
+          // check vborder bottom
+          if ((raster_line == 247 && rsel == `FALSE) || (raster_line == 251 && rsel == `TRUE))
+             set_vborder = 1;
+        
+          if (cycle_num == 0)
+             vborder = set_vborder;
         end
-
-        if (xpos == 336 && csel == `FALSE)
-            left_right_border <= `TRUE;
-
-        if (xpos == 345 && csel == `TRUE)
-            left_right_border <= `TRUE;
     end
 end
 
