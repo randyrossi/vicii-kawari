@@ -22,6 +22,7 @@ module vicii(
            input rst,
            input clk_dot4x,
            input is_composite,
+           input is_pal,
            output clk_phi,
            output[2:0] red,
            output[2:0] green,
@@ -945,7 +946,7 @@ reg [9:0] v_count;
 vga_sync vic_vga_sync(
     .clk_dot4x(clk_dot4x),
     .rst(rst),
-    .is_pal(chip == CHIP6569 ? 1'b1 : 1'b0),
+    .is_pal(is_pal),
     .o_hs(hsync),
     .o_vs(vsync),
     .o_active(vga_active),
@@ -958,7 +959,7 @@ reg [3:0] pixel_color4;
 
 vga_scaler vic_vga_scaler(
     .rst(rst),
-    .is_pal(chip == CHIP6569 ? 1'b1 : 1'b0),
+    .is_pal(is_pal),
     .clk_dot4x(clk_dot4x),
     .dot_rising_0(dot_rising[0]),
     .h_count(h_count),

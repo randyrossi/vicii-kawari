@@ -1,30 +1,16 @@
 `include "common.vh"
 
-
-// PAL - TODO Make regs
-localparam HS_STA = 16;              // horizontal sync start
-localparam HS_END = 16 + 48;        // horizontal sync end
-localparam HA_STA = 16 + 48 + 65;   // horizontal active pixel start
-localparam VS_STA = 569 + 11;        // vertical sync start
-localparam VS_END = 569 + 11 + 3;    // vertical sync end
-localparam VA_END = 569;             // vertical active pixel end
-localparam LINE   = 503;            // complete line (pixels)
-localparam SCREEN = 623;             // complete screen (lines)
-localparam VERTICAL_OFFSET = 63;
-localparam HORIZONTAL_OFFSET = 29;
-
-// NTSC - TODO Make regs
-//localparam HS_STA = 16;              // horizontal sync start
-//localparam HS_END = 16 + 48;        // horizontal sync end
-//localparam HA_STA = 16 + 48 + 65;   // horizontal active pixel start
-//localparam VS_STA = 502 + 10;        // vertical sync start
-//localparam VS_END = 502 + 10 + 3;    // vertical sync end
-//localparam VA_END = 502;             // vertical active pixel end
-//localparam LINE   = 519;            // complete line (pixels)
-//localparam SCREEN = 525;             // complete screen (lines)
-//localparam VERTICAL_OFFSET = 40;
-//localparam HORIZONTAL_OFFSET = 32;
-
+reg [9:0] screen_width;
+reg [9:0] screen_height;
+reg [9:0] hs_sta;
+reg [9:0] hs_end;
+reg [9:0] ha_sta;
+reg [9:0] vs_sta;
+reg [9:0] vs_end;
+reg [9:0] va_end;
+reg [9:0] hoffset;
+// TODO : add voffset that sets vcount to height - offset when rasterx/line first hits 0
+                              
 // Produce horizontal and vertical sync pulses for VGA output
 module vga_sync(
     // TODO: Add chip here so we know ntsc vs pal
@@ -43,11 +29,11 @@ module vga_sync(
     reg ff = 1'b1;
     
     // generate sync signals active low
-    assign o_hs = ~((h_count >= HS_STA) & (h_count < HS_END));
-    assign o_vs = ~((v_count >= VS_STA) & (v_count < VS_END));
+    assign o_hs = ~((h_count >= hs_sta) & (h_count < hs_end));
+    assign o_vs = ~((v_count >= vs_sta) & (v_count < vs_end));
 
     // active: high during active pixel drawing
-    assign o_active = ~((h_count < HA_STA) | (v_count > VA_END - 1)); 
+    assign o_active = ~((h_count < ha_sta) | (v_count > va_end - 1)); 
 
     assign o_h_count = h_count;
     assign o_v_count = v_count;
@@ -57,18 +43,38 @@ module vga_sync(
         if (rst)
         begin
             h_count <= 0;
-            v_count <= SCREEN - VERTICAL_OFFSET; // TODO Make this a runtime param
+            if (is_pal) begin
+               screen_width = 503;
+               screen_height = 623;
+               hs_sta = 16;
+               hs_end = 48;
+               ha_sta = 65;
+               vs_sta = 569 + 11;
+               vs_end = 569 + 11 + 3;
+               va_end = 569;
+               v_count <= 623 - 63; // TODO make adjustable
+            end else begin
+               screen_width = 519;
+               screen_height = 525;
+               hs_sta = 16;
+               hs_end = 48;
+               ha_sta = 65;
+               vs_sta = 502 + 10;
+               vs_end = 502 + 10 + 3;
+               va_end = 502;
+               v_count <= 525 - 40; // TODO make adjustable
+            end
         end else begin
             ff = ~ff;
             // Increment x/y every other clock for a 2x dot clock in which
             // only our Y dimension is doubled.  Each line from the line
             // buffer is drawn twice.
             if (ff) begin
-                if (h_count < LINE) begin
+                if (h_count < screen_width) begin
                    h_count <= h_count + 1;
                 end else begin
                    h_count <= 0;
-                   if (v_count < SCREEN) begin
+                   if (v_count < screen_height) begin
                       v_count <= v_count + 1;
                    end else begin
                       v_count <= 0;
@@ -117,10 +123,16 @@ end
 
 always @(posedge clk_dot4x)
 begin
-   if (!rst) begin
-       if (h_count >= HORIZONTAL_OFFSET) begin
-           pixel_color4 = !active_buf ? line_buf_0[h_count - HORIZONTAL_OFFSET] :
-                                        line_buf_1[h_count - HORIZONTAL_OFFSET];
+   if (rst) begin
+           if (is_pal) begin
+               hoffset = 29;
+            end else begin
+               hoffset = 32;
+            end
+   end else begin
+       if (h_count >= hoffset) begin
+           pixel_color4 = !active_buf ? line_buf_0[h_count - hoffset] :
+                                        line_buf_1[h_count - hoffset];
        end else
            pixel_color4 = 4'b0;
        end

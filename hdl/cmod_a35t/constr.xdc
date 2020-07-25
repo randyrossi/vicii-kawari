@@ -6,15 +6,15 @@ set_property CFGBVS VCCO [current_design]
 # !!! These must match selection in top.v !!!
 # -------------------------------------------
 
-# USE_SYSCLOCK_NTSC or USE_SYSCLOCK_PAL - Internal L3 12Mhz Pin
+# USE_INTCLOCK_NTSC or USE_INTCLOCK_PAL - Internal L3 12Mhz Pin
 #create_clock -add -name sys_clk_pin -period 83.33 -waveform {0 41.66} [get_ports {sys_clock}];
 #set_property -dict { PACKAGE_PIN L17 IOSTANDARD LVCMOS33 } [get_ports { sys_clock }]; 
 
-# USE_PALCLOCK_PAL - Pin36 External 17.3Mhz
+# USE_EXTCLOCK_PAL - Pin36 External 17.3Mhz
 create_clock -add -name pal_clk_pin -period 56.38 -waveform {0 28.19} [get_ports {sys_clock}];
 set_property -dict { PACKAGE_PIN W5 IOSTANDARD LVCMOS33 } [get_ports { sys_clock }];
 
-# USE_NTSCCLOCK_NTSC - Pin36 External 14.3Mhz
+# USE_EXTCLOCK_NTSC - Pin36 External 14.3Mhz
 #create_clock -add -name pal_clk_pin -period 69.84 -waveform {0 34.92} [get_ports {sys_clock}];
 #set_property -dict { PACKAGE_PIN W5 IOSTANDARD LVCMOS33 } [get_ports { sys_clock }];
 
@@ -138,7 +138,7 @@ set_property -dict { PACKAGE_PIN N2    IOSTANDARD LVCMOS33 } [get_ports { ras }]
 set_property -dict { PACKAGE_PIN P1    IOSTANDARD LVCMOS33 } [get_ports { cas }];
 
 # Pin 41
-#set_property -dict { PACKAGE_PIN U5    IOSTANDARD LVCMOS33 } [get_ports { unused }];
+set_property -dict { PACKAGE_PIN U5    IOSTANDARD LVCMOS33 } [get_ports { is_pal }];
 
 # LP, Pin 42
 set_property -dict { PACKAGE_PIN U2    IOSTANDARD LVCMOS33 } [get_ports { lp }];

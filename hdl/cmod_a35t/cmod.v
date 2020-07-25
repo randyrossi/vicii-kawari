@@ -6,10 +6,10 @@
 // selected configuration here.
 
 // Chose one:
-//`define USE_SYSCLOCK_PAL      // use on-board clock
-//`define USE_SYSCLOCK_NTSC     // use on-board clock
-`define USE_PALCLOCK_PAL      // use external clock
-//`define USE_NTSCCLOCK_NTSC    // use external clock
+//`define USE_INTCLOCK_PAL      // use on-board clock
+//`define USE_INTCLOCK_NTSC     // use on-board clock
+`define USE_EXTCLOCK_PAL      // use external clock
+//`define USE_EXTCLOCK_NTSC    // use external clock
 
 
 // For the CMod A35t PDIP board.
@@ -19,6 +19,7 @@
 //     3) generates the reset signal and holds for approx 150ms at startup
 module cmod(
            input sys_clock,
+           input is_pal,
            output clk_dot4x,
            output clk_col4x,
            output rst,
@@ -42,9 +43,15 @@ always @(posedge sys_clockb)
     if (internal_rst)
         rstcntr <= rstcntr + 4'd1;
 
-`ifdef USE_SYSCLOCK_PAL
+// Construct a chip id.  There's no way to get a 6567R56A. We only
+// use one pin to switch between 6569 nad 6567R8.
+assign chip = {1'b0, is_pal};
 
-assign chip = CHIP6569;
+// TODO: Use clock mux to select the clock based on is_pal input
+// At the moment, the type still has to be hard coded in the
+// bitstream even though we have is_pal input.
+
+`ifdef USE_INTCLOCK_PAL
 
 // Generate the 4x dot clock. See vicii.v for values.
 dot4x_12_pal_clockgen dot4x_12_pal_clockgen(
@@ -61,9 +68,7 @@ color4x_12_pal_clockgen color4x_12_pal_clockgen(
                         );
 `endif
 
-`ifdef USE_SYSCLOCK_NTSC
-
-assign chip = CHIP6567R8;
+`ifdef USE_INTCLOCK_NTSC
 
 // Generate the 4x dot clock. See vicii.v for values.
 dot4x_12_ntsc_clockgen dot4x_12_ntsc_clockgen(
@@ -81,8 +86,8 @@ color4x_12_ntsc_clockgen color4x_12_ntsc_clockgen(
 `endif
 
 // Use an external clock for pal.
-`ifdef USE_PALCLOCK_PAL
-assign chip = CHIP6569;
+`ifdef USE_EXTCLOCK_PAL
+
 dot4x_17_pal_clockgen dot4x_17_pal_clockgen(
                           .clk_in17mhz(sys_clockb),
                           .reset(internal_rst),
@@ -93,8 +98,8 @@ dot4x_17_pal_clockgen dot4x_17_pal_clockgen(
 `endif
 
 // Use an external clock for ntsc.
-`ifdef USE_NTSCCLOCK_NTSC
-assign chip = CHIP6567R8;
+`ifdef USE_EXTCLOCK_NTSC
+
 dot4x_14_ntsc_clockgen dot4x_14_ntsc_clockgen(
                            .clk_in14mhz(sys_clockb),
                            .reset(internal_rst),
