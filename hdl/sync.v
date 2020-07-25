@@ -1,16 +1,58 @@
 `include "common.vh"
 
-module sync(
+module comp_sync(
            input wire rst,
            input wire clk,
+           input [1:0] chip,
            input wire [9:0] raster_x,
            input wire [8:0] raster_y,
-           input wire [9:0] hsync_start,
-           input wire [9:0] hsync_end,
-           input wire [8:0] vblank_start,
-           output reg csync);
+           output reg csync,
+           output reg composite_active);
+
+reg [9:0] hsync_start;
+reg [9:0] hsync_end;
+reg [9:0] hvisible_start;
+reg [8:0] vblank_start;
+reg [8:0] vblank_end;
 
 reg hSync;
+
+always @(*)
+begin
+       if ((raster_x < hsync_start || raster_x > hvisible_start) &&
+           (raster_y < vblank_start || raster_y > vblank_end))
+           composite_active = 1'b1;
+       else
+           composite_active = 1'b0;
+end
+
+always @(chip)
+case(chip)
+    CHIP6567R8:
+    begin
+        hsync_start = 10'd409;
+        hsync_end = 10'd446;       // ~4.6us
+        hvisible_start = 10'd497;  // ~10.7us after hsync_start seems to work
+        vblank_start = 9'd14;
+        vblank_end = 9'd22;
+    end
+    CHIP6567R56A:
+    begin
+        hsync_start = 10'd409;
+        hsync_end = 10'd446;       // ~4.6us
+        hvisible_start = 10'd497;  // ~10.7us after hsync_start seems to work
+        vblank_start = 9'd14;
+        vblank_end = 9'd22;
+    end
+    CHIP6569, CHIPUNUSED:
+    begin
+        hsync_start = 10'd408;
+        hsync_end = 10'd444;        // ~4.6us
+        hvisible_start = 10'd492;   // ~10.7 after hsync_start
+        vblank_start = 9'd301;
+        vblank_end = 9'd309;
+    end
+endcase
 
 always @(posedge clk)
 begin
@@ -28,6 +70,7 @@ wire EQ, SE;
 EqualizationPulse ueqp1
                   (
                       .raster_x(raster_x),
+                      .chip(chip),
                       .EQ(EQ)
                   );
 
@@ -35,6 +78,7 @@ EqualizationPulse ueqp1
 SerrationPulse usep1
                (
                    .raster_x(raster_x),
+                   .chip(chip),
                    .SE(SE)
                );
 
@@ -55,4 +99,4 @@ always @(posedge clk)
         default:
             csync <= ~hSync;
     endcase
-endmodule : sync
+endmodule : comp_sync

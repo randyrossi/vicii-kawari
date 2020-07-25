@@ -22,7 +22,6 @@ module vicii(
            input rst,
            input clk_dot4x,
            input is_composite,
-           input is_pal,
            output clk_phi,
            output[2:0] red,
            output[2:0] green,
@@ -58,11 +57,6 @@ module vicii(
 reg [9:0] raster_x_max;
 reg [8:0] raster_y_max;
 reg [9:0] max_xpos;
-reg [9:0] hsync_start;
-reg [9:0] hsync_end;
-reg [9:0] hvisible_start;
-reg [8:0] vblank_start;
-reg [8:0] vblank_end;
 reg [6:0] sprite_dmachk1;
 reg [6:0] sprite_dmachk2;
 reg [6:0] sprite_yexp_chk;
@@ -100,11 +94,6 @@ case(chip)
         raster_x_max = 10'd519;    // 520 pixels
         raster_y_max = 9'd262;     // 263 lines
         max_xpos = 10'h1ff;
-        hsync_start = 10'd409;
-        hsync_end = 10'd446;       // 4.6us
-        hvisible_start = 10'd497;  // 10.7us after hsync_start seems to work
-        vblank_start = 9'd14;
-        vblank_end = 9'd22;
         sprite_dmachk1 = 7'd55;    // low phase
         sprite_dmachk2 = 7'd56;    // low phase
         sprite_yexp_chk = 7'd56;   // high phase
@@ -117,11 +106,6 @@ case(chip)
         raster_x_max = 10'd511;    // 512 pixels
         raster_y_max = 9'd261;     // 262 lines
         max_xpos = 10'h1ff;
-        hsync_start = 10'd409;
-        hsync_end = 10'd446;       // 4.6us
-        hvisible_start = 10'd497;  // 10.7us after hsync_start seems to work
-        vblank_start = 9'd14;
-        vblank_end = 9'd22;
         sprite_dmachk1 = 7'd55;    // low phase
         sprite_dmachk2 = 7'd56;    // low phase
         sprite_yexp_chk = 7'd56;   // high phase
@@ -134,11 +118,6 @@ case(chip)
         raster_x_max = 10'd503;     // 504 pixels
         raster_y_max = 9'd311;      // 312
         max_xpos = 10'h1f7;
-        hsync_start = 10'd408;
-        hsync_end = 10'd444;        // ~4.6us
-        hvisible_start = 10'd492;   // ~10.7 after hsync_start
-        vblank_start = 9'd301;
-        vblank_end = 9'd309;
         sprite_dmachk1 = 7'd54;     // low phase
         sprite_dmachk2 = 7'd55;     // low phase
         sprite_yexp_chk = 7'd55;    // high phase
@@ -917,25 +896,16 @@ pixel_sequencer vic_pixel_sequencer(
 
 // Figure out when composite should actively draw pixels.
 reg composite_active;
-always @(*)
-begin
-       if ((xpos < hsync_start || xpos > hvisible_start) &&
-           (raster_line < vblank_start || raster_line > vblank_end))
-           composite_active = 1'b1;
-       else
-           composite_active = 1'b0;
-end
 
 // Generate csync signal for composite
-sync vic_sync(
+comp_sync vic_comp_sync(
          .rst(rst),
          .clk(clk_dot4x),
+         .chip(chip),
          .raster_x(xpos_d),
          .raster_y(raster_line),
-         .hsync_start(hsync_start),
-         .hsync_end(hsync_end),
-         .vblank_start(vblank_start),
-         .csync(csync)
+         .csync(csync),
+         .composite_active(composite_active)
      );
 
 // Generate sync signals and scaler for VGA
@@ -946,7 +916,7 @@ reg [9:0] v_count;
 vga_sync vic_vga_sync(
     .clk_dot4x(clk_dot4x),
     .rst(rst),
-    .is_pal(is_pal),
+    .chip(chip),
     .o_hs(hsync),
     .o_vs(vsync),
     .o_active(vga_active),
@@ -959,7 +929,7 @@ reg [3:0] pixel_color4;
 
 vga_scaler vic_vga_scaler(
     .rst(rst),
-    .is_pal(is_pal),
+    .chip(chip),
     .clk_dot4x(clk_dot4x),
     .dot_rising_0(dot_rising[0]),
     .h_count(h_count),

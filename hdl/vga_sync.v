@@ -16,7 +16,7 @@ module vga_sync(
     // TODO: Add chip here so we know ntsc vs pal
     input wire clk_dot4x,
     input wire rst,
-    input is_pal,
+    input[1:0] chip,
     output reg o_hs,             // horizontal sync
     output reg o_vs,             // vertical sync
     output reg o_active,         // high during active pixel drawing
@@ -43,7 +43,8 @@ module vga_sync(
         if (rst)
         begin
             h_count <= 0;
-            if (is_pal) begin
+            case (chip)
+            CHIP6569, CHIPUNUSED: begin
                screen_width = 503;
                screen_height = 623;
                hs_sta = 16;
@@ -53,7 +54,8 @@ module vga_sync(
                vs_end = 569 + 11 + 3;
                va_end = 569;
                v_count <= 623 - 63; // TODO make adjustable
-            end else begin
+            end 
+            CHIP6567R8: begin
                screen_width = 519;
                screen_height = 525;
                hs_sta = 16;
@@ -64,6 +66,18 @@ module vga_sync(
                va_end = 502;
                v_count <= 525 - 40; // TODO make adjustable
             end
+            CHIP6567R56A: begin
+               screen_width = 511;
+               screen_height = 523;
+               hs_sta = 16;
+               hs_end = 48;
+               ha_sta = 65;
+               vs_sta = 502 + 10;
+               vs_end = 502 + 10 + 3;
+               va_end = 502;
+               v_count <= 523 - 40; // TODO make adjustable
+            end
+            endcase
         end else begin
             ff = ~ff;
             // Increment x/y every other clock for a 2x dot clock in which
@@ -91,7 +105,7 @@ reg active_buf;
 
 //  Fill active buf while producing pixels from previous line from filled_buf
 module vga_scaler(
-    input is_pal,
+    input[1:0] chip,
     input rst,
     input dot_rising_0,
     input clk_dot4x,
@@ -124,11 +138,11 @@ end
 always @(posedge clk_dot4x)
 begin
    if (rst) begin
-           if (is_pal) begin
-               hoffset = 29;
-            end else begin
-               hoffset = 32;
-            end
+        case (chip)
+            CHIP6569, CHIPUNUSED: hoffset = 29;
+            CHIP6567R8: hoffset = 32;
+            CHIP6567R56A: hoffset = 32;
+        endcase
    end else begin
        if (h_count >= hoffset) begin
            pixel_color4 = !active_buf ? line_buf_0[h_count - hoffset] :

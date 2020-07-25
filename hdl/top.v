@@ -73,7 +73,6 @@ wire vic_write_db;
 vicii vic_inst(
           .chip(chip),
           .is_composite(is_composite),
-          .is_pal(is_pal),
           .clk_dot4x(clk_dot4x),
           .clk_phi(clk_phi),
           .red(red),
