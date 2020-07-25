@@ -1,20 +1,24 @@
 `include "common.vh"
 
+// A module that produces a composite sync signal for the
+// Sony CXA1645P composite encoder IC.  Also outputs
+// last stage pixel color for display.
 module comp_sync(
            input wire rst,
            input wire clk,
            input [1:0] chip,
+	   input vic_color pixel_color3,
            input wire [9:0] raster_x,
            input wire [8:0] raster_y,
            output reg csync,
-           output reg composite_active);
+           output vic_color pixel_color4);
 
 reg [9:0] hsync_start;
 reg [9:0] hsync_end;
 reg [9:0] hvisible_start;
 reg [8:0] vblank_start;
 reg [8:0] vblank_end;
-
+reg composite_active;
 reg hSync;
 
 always @(*)
@@ -24,6 +28,8 @@ begin
            composite_active = 1'b1;
        else
            composite_active = 1'b0;
+
+       pixel_color4 = composite_active ? pixel_color3 : BLACK;
 end
 
 always @(chip)

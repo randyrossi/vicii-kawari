@@ -44,7 +44,7 @@ module vicii(
            output ls245_dir,
            output vic_write_db,
            output vic_write_ab,
-           output clk_dot
+           output clk_dot // not actually used, for debugging purposes only
        );
 
 // BA must go low 3 cycles before HS1, HS3, HRC & HGC
@@ -894,62 +894,44 @@ pixel_sequencer vic_pixel_sequencer(
                     .pixel_color3(pixel_color3)
                 );
 
-// Figure out when composite should actively draw pixels.
-reg composite_active;
-
-// Generate csync signal for composite
+// Generate csync and stage 4 pixel color for composite
+vic_color pixel_color4_composite;
 comp_sync vic_comp_sync(
          .rst(rst),
          .clk(clk_dot4x),
          .chip(chip),
          .raster_x(xpos_d),
          .raster_y(raster_line),
+         .pixel_color3(pixel_color3),
          .csync(csync),
-         .composite_active(composite_active)
+         .pixel_color4(pixel_color4_composite)
      );
 
-// Generate sync signals and scaler for VGA
-reg vga_active;
-reg [9:0] h_count;
-reg [9:0] v_count;
-
+// Generate hsync/vsync and stage 4 pixel color for VGA
+vic_color pixel_color4_vga;
 vga_sync vic_vga_sync(
-    .clk_dot4x(clk_dot4x),
     .rst(rst),
-    .chip(chip),
-    .o_hs(hsync),
-    .o_vs(vsync),
-    .o_active(vga_active),
-    .o_h_count(h_count),
-    .o_v_count(v_count)
-);
-
-// For VGA, pixel_color3 is scaled by a line buffer into pixel_color4
-reg [3:0] pixel_color4;
-
-vga_scaler vic_vga_scaler(
-    .rst(rst),
-    .chip(chip),
     .clk_dot4x(clk_dot4x),
-    .dot_rising_0(dot_rising[0]),
-    .h_count(h_count),
-    .pixel_color3(pixel_color3),
     .raster_x(raster_x),
-    .pixel_color4(pixel_color4)
+    //.raster_y(raster_line),
+    .dot_rising_0(dot_rising[0]),
+    .chip(chip),
+    .pixel_color3(pixel_color3),
+    .hsync(hsync),
+    .vsync(vsync),
+    .pixel_color4(pixel_color4_vga)
 );
 
 // FINAL OUTPUT RGB values from last pixel color
 // The source pixel depends on video type (composite/vga)
-// The active signal depends on video type as well. 
 
-// NOTE: It would be possible to output both VGA and Comnposite
+// NOTE: It would be possible to output both VGA and Composite
 // simultaneously if we had dedicated rgb lines for each video
 // standard.
 
 // Translate pixel_color3 (indexed) to RGB values
 color vic_colors(
-          .out_pixel(is_composite ? pixel_color3 : pixel_color4),
-          .active(is_composite ? composite_active : vga_active),
+          .out_pixel(is_composite ? pixel_color4_composite : pixel_color4_vga),
           .red(red),
           .green(green),
           .blue(blue)

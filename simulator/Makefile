@@ -34,7 +34,7 @@ VERILATOR = $(VERILATOR_ROOT)/bin/verilator
 endif
 
 VERILOG_SOURCES = ../hdl/vicii.v ../hdl/common.vh \
-		  ../hdl/addressgen.v  ../hdl/equalization.v  ../hdl/pixel_sequencer.v  ../hdl/registers.v  ../hdl/sync.v  \
+		  ../hdl/addressgen.v  ../hdl/equalization.v  ../hdl/pixel_sequencer.v  ../hdl/registers.v  ../hdl/comp_sync.v  \
                   ../hdl/border.v      ../hdl/color.v      ../hdl/lightpen.v      ../hdl/raster.v           ../hdl/serration.v  ../hdl/bus_access.v \
 		  ../hdl/cycles.v     ../hdl/matrix.v      ../hdl/sprites.v          ../hdl/vga_sync.v 
 

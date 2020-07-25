@@ -5,13 +5,11 @@
 // Given an indexed color in out_pixel, set red, green and blue values.
 module color(
            input vic_color out_pixel,
-           input active,
            output reg [2:0] red,
            output reg [2:0] green,
            output reg [2:0] blue);
 
 always @*
-    if (active)
     case (out_pixel)
         BLACK:{red, green, blue} = {3'h00, 3'h00, 3'h00 };
         WHITE:{red, green, blue} = {3'h07, 3'h07, 3'h07 };
@@ -30,7 +28,5 @@ always @*
         LIGHT_BLUE:{red, green, blue} = {3'h02, 3'h02, 3'h05 };
         LIGHT_GREY:{red, green, blue} = {3'h04, 3'h04, 3'h04 };
     endcase
-    else
-        {red, green, blue} = {3'h00, 3'h00, 3'h00};
 
 endmodule: color

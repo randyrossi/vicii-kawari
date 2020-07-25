@@ -35,6 +35,9 @@ set_property -dict { PACKAGE_PIN H17 IOSTANDARD LVCMOS33 } [get_ports { vsync }]
 # is_composite, PMOD Pin 8 - Ground for VGA, Pull Up for Composite
 set_property -dict { PACKAGE_PIN H19 IOSTANDARD LVCMOS33 } [get_ports { is_composite }];
 
+# is_pal - Pin 41
+set_property -dict { PACKAGE_PIN U5    IOSTANDARD LVCMOS33 } [get_ports { is_pal }];
+
 # clk_phi out, Pin45
 set_property -dict { PACKAGE_PIN U7 IOSTANDARD LVCMOS33 } [get_ports { clk_phi }];
 
@@ -136,9 +139,6 @@ set_property -dict { PACKAGE_PIN N2    IOSTANDARD LVCMOS33 } [get_ports { ras }]
 
 # CAS, Pin 23
 set_property -dict { PACKAGE_PIN P1    IOSTANDARD LVCMOS33 } [get_ports { cas }];
-
-# Pin 41
-set_property -dict { PACKAGE_PIN U5    IOSTANDARD LVCMOS33 } [get_ports { is_pal }];
 
 # LP, Pin 42
 set_property -dict { PACKAGE_PIN U2    IOSTANDARD LVCMOS33 } [get_ports { lp }];

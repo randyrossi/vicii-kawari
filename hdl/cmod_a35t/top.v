@@ -37,7 +37,7 @@ wire clk_dot4x;
 wire clk_col4x;
 
 // Vendor specific clock generators and chip selection
-cmod cmod(
+clockgen cmod_clockgen(
          .sys_clock(sys_clock),
          .is_pal(is_pal),
          .clk_dot4x(clk_dot4x),

@@ -17,7 +17,7 @@
 //     1) generates the 4x dot and 4x color clocks
 //     2) selects the chip
 //     3) generates the reset signal and holds for approx 150ms at startup
-module cmod(
+module clockgen(
            input sys_clock,
            input is_pal,
            output clk_dot4x,
@@ -113,4 +113,4 @@ dot4x_14_ntsc_clockgen dot4x_14_ntsc_clockgen(
 RisingEdge_DFlipFlop_SyncReset ff1(1'b0, clk_dot4x, !locked, ff1_q);
 RisingEdge_DFlipFlop_SyncReset ff2(ff1_q, clk_dot4x, !locked, rst);
 
-endmodule : cmod
+endmodule : clockgen

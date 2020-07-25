@@ -31,7 +31,7 @@ If you need a VIC to replace a broken one, you should just buy one off eBay. Thi
 | Edge Of Disgrace | i) terminator scroll rhs glitch (same as VICE)
 | Krestage | None
 | Krestage 2 | None
-| Krestage 3 | TBD
+| Krestage 3 | None
 | Lunatico | None
 | Reflection | TBD
 | StarWars | None

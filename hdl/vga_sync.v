@@ -1,5 +1,8 @@
 `include "common.vh"
 
+// A module to prouce horizontal and vertical sync pulses for VGA output.
+// Timings are not standard and may not work on all monitors.
+
 reg [9:0] screen_width;
 reg [9:0] screen_height;
 reg [9:0] hs_sta;
@@ -9,34 +12,36 @@ reg [9:0] vs_sta;
 reg [9:0] vs_end;
 reg [9:0] va_end;
 reg [9:0] hoffset;
+
 // TODO : add voffset that sets vcount to height - offset when rasterx/line first hits 0
                               
-// Produce horizontal and vertical sync pulses for VGA output
 module vga_sync(
-    // TODO: Add chip here so we know ntsc vs pal
     input wire clk_dot4x,
     input wire rst,
-    input[1:0] chip,
-    output reg o_hs,             // horizontal sync
-    output reg o_vs,             // vertical sync
-    output reg o_active,         // high during active pixel drawing
-    output reg [9:0] o_v_count,
-    output reg [9:0] o_h_count
+    input [1:0] chip,
+    input dot_rising_0,
+    input [9:0] raster_x,
+    //input [8:0] raster_y,
+    input vic_color pixel_color3,
+    output reg hsync,             // horizontal sync
+    output reg vsync,             // vertical sync
+    output vic_color pixel_color4
  );
 
+    reg vga_active;
+    vic_color vga_color;
     reg [9:0] h_count;  // line position
     reg [9:0] v_count;  // screen position
     reg ff = 1'b1;
     
     // generate sync signals active low
-    assign o_hs = ~((h_count >= hs_sta) & (h_count < hs_end));
-    assign o_vs = ~((v_count >= vs_sta) & (v_count < vs_end));
+    assign hsync = ~((h_count >= hs_sta) & (h_count < hs_end));
+    assign vsync = ~((v_count >= vs_sta) & (v_count < vs_end));
 
     // active: high during active pixel drawing
-    assign o_active = ~((h_count < ha_sta) | (v_count > va_end - 1)); 
+    assign vga_active = ~((h_count < ha_sta) | (v_count > va_end - 1)); 
 
-    assign o_h_count = h_count;
-    assign o_v_count = v_count;
+    assign pixel_color4 = vga_active ? vga_color : BLACK;
 
     always @ (posedge clk_dot4x)
     begin
@@ -97,23 +102,12 @@ module vga_sync(
             end
         end
     end
-endmodule : vga_sync
 
 // Double buffer, while active_buf is being filled, we draw from filled_buf
 // for output.
 reg active_buf;
 
 //  Fill active buf while producing pixels from previous line from filled_buf
-module vga_scaler(
-    input[1:0] chip,
-    input rst,
-    input dot_rising_0,
-    input clk_dot4x,
-    input [9:0] h_count,
-    input [3:0] pixel_color3,
-    input [9:0] raster_x,
-    output reg [3:0] pixel_color4
-);
 
 // Cover the max possible here. Not all may be used depending on chip.
 (* ram_style = "block" *) reg [3:0] line_buf_0[519:0];
@@ -145,11 +139,11 @@ begin
         endcase
    end else begin
        if (h_count >= hoffset) begin
-           pixel_color4 = !active_buf ? line_buf_0[h_count - hoffset] :
-                                        line_buf_1[h_count - hoffset];
+           vga_color = !active_buf ? vic_color'(line_buf_0[h_count - hoffset]) :
+                                     vic_color'(line_buf_1[h_count - hoffset]);
        end else
-           pixel_color4 = 4'b0;
-       end
+           vga_color = BLACK;
    end
+end
 
-endmodule : vga_scaler
+endmodule : vga_sync
