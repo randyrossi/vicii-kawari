@@ -2,9 +2,9 @@
 set_property CONFIG_VOLTAGE 3.3 [current_design]
 set_property CFGBVS VCCO [current_design]
 
-# -------------------------------------------
-# !!! These must match selection in top.v !!!
-# -------------------------------------------
+# ---------------------------------------------------------
+# !!! These must match selection in cmod_a5t/clockgen.v !!!
+# ---------------------------------------------------------
 
 # USE_INTCLOCK_NTSC or USE_INTCLOCK_PAL - Internal L3 12Mhz Pin
 #create_clock -add -name sys_clk_pin -period 83.33 -waveform {0 41.66} [get_ports {sys_clock}];
@@ -22,6 +22,9 @@ set_property -dict { PACKAGE_PIN W5 IOSTANDARD LVCMOS33 } [get_ports { sys_clock
 
 # colorref out, Pin35
 set_property -dict { PACKAGE_PIN V3 IOSTANDARD LVCMOS33 } [get_ports { clk_colref }];
+
+# clk_dot4x out, PMOD Pin 9
+set_property -dict { PACKAGE_PIN J19   IOSTANDARD LVCMOS33 } [get_ports { clk_dot4x }];
 
 # hSync out, PMOD Pin1
 set_property -dict { PACKAGE_PIN G17 IOSTANDARD LVCMOS33 } [get_ports { hsync }];

@@ -3,23 +3,45 @@
 `include "common.vh"
 
 // Top level module for the CMod A35t PDIP board.
+//
+// Two clock configurations are supported:
+//     1) using the on-board 12Mhz clock
+//     2) using external 14.318181 and/or 17.734475 Mhz clocks
+//
+// System clock:
+//     This config uses the on-board 12Mhz clock and uses two MMCMs
+//     to generate both the 4x dot and 4x color clocks.
+// 
+// External Clocks:
+//     This config takes in a 4x color clock signal and uses an MMCM
+//     to generate the 4x dot clock.
+//
+// In either case, the 4x color clock is divided by 4 to produce a
+// color ref clock for an external composite encoder.  The 4x dot clock
+// is divided by 32 to generate the CPU phi clock.
+//
+// NOTE: The system clock configuration does not produce a suitable
+// color clock for PAL video.  This is due to there being no mult/div
+// possible from a 12Mhz clock to get an accurate color clock.
+//
 module top(
            input sys_clock,
-           input is_composite,  // 1=composite, 0=vga
+           input is_composite,  // 1=composite, 0=vga/hdmi
            input is_pal,        // 1=pal, 0=ntsc
            output cpu_reset,    // reset for 6510 CPU
            output clk_colref,   // output color ref clock for CXA1545P
            output clk_phi,      // output phi clock for CPU
+           output clk_dot4x,    // pixel clock for external HDMI encoder
            output csync,        // composite sync signal for CXA1545P
-           output hsync,        // hsync signal for VGA
-           output vsync,        // vsync signal for VGA
+           output hsync,        // hsync signal for VGA/HDMI
+           output vsync,        // vsync signal for VGA/HDMI
            output [2:0] red,    // red out for CXA1545P
            output [2:0] green,  // green out for CXA1545P
            output [2:0] blue,   // blue out for CXA1545P
            inout tri [5:0] adl, // address (lower 6 bits)
            output tri [5:0] adh,// address (high 6 bits)
-           inout tri [7:0] dbl, // data bus lines
-           input [3:0] dbh,      // data bus lines
+           inout tri [7:0] dbl, // data bus lines (ram/rom)
+           input [3:0] dbh,     // data bus lines (color)
            input ce,            // chip enable (LOW=enable, HIGH=disabled)
            input rw,            // read/write (LOW=write, HIGH=read)
            output irq,          // irq
@@ -33,7 +55,6 @@ module top(
 
 wire rst;
 wire [1:0] chip;
-wire clk_dot4x;
 wire clk_col4x;
 
 // Vendor specific clock generators and chip selection
