@@ -59,6 +59,7 @@ wire rst;
 wire [1:0] chip;
 wire clk_col4x;
 
+`ifndef IS_SIMULATOR
 // Vendor specific clock generators and chip selection
 clockgen cmod_clockgen(
          .sys_clock(sys_clock),
@@ -67,6 +68,7 @@ clockgen cmod_clockgen(
          .clk_col4x(clk_col4x),
          .rst(rst),
          .chip(chip));
+`endif
 
 // This is a reset line for the CPU which would have to be
 // connected with a jumper.  It holds the CPU in reset
@@ -129,20 +131,16 @@ assign adh = vic_write_ab ? ado[11:6] : 6'bz;
 vic_color pixel_color4_composite;
 comp_sync vic_comp_sync(
          .rst(rst),
-         .clk(clk_dot4x),
+         .clk_dot4x(clk_dot4x),
+         .clk_col4x(clk_col4x),
          .chip(chip),
          .raster_x(xpos_d),
          .raster_y(raster_line),
          .pixel_color3(pixel_color3),
          .csync(csync),
+         .clk_colref(clk_colref),
          .pixel_color4(pixel_color4_composite)
      );
-     
-// Divides the color4x clock by 4 to get color reference clock
-clk_div4 clk_colorgen (
-          .clk_in(clk_col4x),     // from 4x color clock
-          .reset(rst),
-          .clk_out(clk_colref));  // create color ref clock
 
 // ----------------------------------------------------
 // VGA/HDMI output - hsync/vsync

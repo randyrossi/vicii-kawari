@@ -33,13 +33,13 @@ export VERILATOR_ROOT
 VERILATOR = $(VERILATOR_ROOT)/bin/verilator
 endif
 
-VERILOG_SOURCES = ../hdl/simulator/top.v ../hdl/vicii.v ../hdl/common.vh \
+VERILOG_SOURCES = ../hdl/cmod_a35t/top.v ../hdl/vicii.v ../hdl/common.vh \
 		  ../hdl/addressgen.v  ../hdl/equalization.v  ../hdl/pixel_sequencer.v  ../hdl/registers.v  ../hdl/comp_sync.v  \
                   ../hdl/border.v      ../hdl/color.v      ../hdl/lightpen.v      ../hdl/raster.v           ../hdl/serration.v  ../hdl/bus_access.v \
-		  ../hdl/cycles.v     ../hdl/matrix.v      ../hdl/sprites.v          ../hdl/vga_sync.v 
+		  ../hdl/cycles.v     ../hdl/matrix.v      ../hdl/sprites.v          ../hdl/vga_sync.v      ../hdl/clockdivs.v
 
 obj_dir/Vtop: vicii_ipc.o libvicii_ipc.so $(VERILOG_SOURCES) sim_main.cpp vicii_ipc.c vicii_ipc.h tests/test*.cpp
-	$(VERILATOR) --trace -cc  --exe -I../hdl $(VERILOG_SOURCES) sim_main.cpp test.cpp log.cpp tests/test*.cpp \
+	$(VERILATOR) -DIS_SIMULATOR --trace -cc  --exe -I../hdl $(VERILOG_SOURCES) sim_main.cpp test.cpp log.cpp tests/test*.cpp \
 	               -CFLAGS -g -LDFLAGS '../vicii_ipc.o -lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
 

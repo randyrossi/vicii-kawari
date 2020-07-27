@@ -2,16 +2,19 @@
 
 // A module that produces a composite sync signal for the
 // Sony CXA1645P composite encoder IC.  Also outputs
-// last stage pixel color for display.
+// last stage pixel color for display and a color reference
+// clock for the CXA1645P.
 module comp_sync(
            input wire rst,
-           input wire clk,
+           input wire clk_dot4x,
+           input wire clk_col4x,
            input [1:0] chip,
-	   input vic_color pixel_color3,
+           input vic_color pixel_color3,
            input wire [9:0] raster_x,
            input wire [8:0] raster_y,
            output reg csync,
-           output vic_color pixel_color4);
+           output vic_color pixel_color4,
+           output clk_colref);
 
 reg [9:0] hsync_start;
 reg [9:0] hsync_end;
@@ -20,6 +23,12 @@ reg [8:0] vblank_start;
 reg [8:0] vblank_end;
 reg composite_active;
 reg hSync;
+
+// Divides the color4x clock by 4 to get color reference clock
+clk_div4 clk_colorgen (
+          .clk_in(clk_col4x),     // from 4x color clock
+          .reset(rst),
+          .clk_out(clk_colref));  // create color ref clock
 
 always @(*)
 begin
@@ -60,7 +69,7 @@ case(chip)
     end
 endcase
 
-always @(posedge clk)
+always @(posedge clk_dot4x)
 begin
     if (rst)
         hSync <= `FALSE;
@@ -88,7 +97,7 @@ SerrationPulse usep1
                    .SE(SE)
                );
 
-always @(posedge clk)
+always @(posedge clk_dot4x)
     if (rst)
         csync <= 1'b0;
     else
