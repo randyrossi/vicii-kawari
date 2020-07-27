@@ -2,30 +2,9 @@
 
 `include "common.vh"
 
-// Top level module for the CMod A35t PDIP board.
-//
-// Two clock configurations are supported:
-//     1) using the on-board 12Mhz clock
-//     2) using external 14.318181 and/or 17.734475 Mhz clocks
-//
-// System clock:
-//     This config uses the on-board 12Mhz clock and uses two MMCMs
-//     to generate both the 4x dot and 4x color clocks.
-// 
-// External Clocks:
-//     This config takes in a 4x color clock signal and uses an MMCM
-//     to generate the 4x dot clock.
-//
-// In either case, the 4x color clock is divided by 4 to produce a
-// color ref clock for an external composite encoder.  The 4x dot clock
-// is divided by 32 to generate the CPU phi clock.
-//
-// NOTE: The system clock configuration does not produce a suitable
-// color clock for PAL composite video.  This is due to there being
-// no mult/div possible from a 12Mhz clock to get an accurate color
-// clock.  Colors will 'shimmer'.  For a stable PAL composite signal,
-// an external clock must be used.
-
+// Top level module for the simulator.  This is almost identical
+// to the Cmod top except the clock generators for clk_dot4x and
+// clk_col4x have been removed.
 module top(
            input sys_clock,
            input is_composite,  // 1=composite, 0=vga/hdmi
@@ -58,15 +37,6 @@ module top(
 wire rst;
 wire [1:0] chip;
 wire clk_col4x;
-
-// Vendor specific clock generators and chip selection
-clockgen cmod_clockgen(
-         .sys_clock(sys_clock),
-         .is_pal(is_pal),
-         .clk_dot4x(clk_dot4x),
-         .clk_col4x(clk_col4x),
-         .rst(rst),
-         .chip(chip));
 
 // This is a reset line for the CPU which would have to be
 // connected with a jumper.  It holds the CPU in reset
@@ -138,12 +108,6 @@ comp_sync vic_comp_sync(
          .pixel_color4(pixel_color4_composite)
      );
      
-// Divides the color4x clock by 4 to get color reference clock
-clk_div4 clk_colorgen (
-          .clk_in(clk_col4x),     // from 4x color clock
-          .reset(rst),
-          .clk_out(clk_colref));  // create color ref clock
-
 // ----------------------------------------------------
 // VGA/HDMI output - hsync/vsync
 // ----------------------------------------------------

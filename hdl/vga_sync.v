@@ -19,7 +19,6 @@ module vga_sync(
     input wire clk_dot4x,
     input wire rst,
     input [1:0] chip,
-    input dot_rising_0,
     input [9:0] raster_x,
     //input [8:0] raster_y,
     input vic_color pixel_color3,
@@ -113,10 +112,17 @@ reg active_buf;
 (* ram_style = "block" *) reg [3:0] line_buf_0[519:0];
 (* ram_style = "block" *) reg [3:0] line_buf_1[519:0];
 
+reg [3:0] dot_rising;
+always @(posedge clk_dot4x)
+    if (rst)
+        dot_rising <= 4'b1000;
+    else
+        dot_rising <= {dot_rising[2:0], dot_rising[3]};
+
 always @(posedge clk_dot4x)
 begin
    if (!rst) begin
-      if (dot_rising_0) begin
+      if (dot_rising[0]) begin
          if (raster_x == 0)
             active_buf = ~active_buf;
 

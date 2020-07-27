@@ -5,7 +5,7 @@
 
 static int state = 0;
 
-static void init(Vvicii* top) {
+static void init(Vtop* top) {
    top->V_ERST = 1;
    top->V_RASTERCMP = 2;
 }
@@ -13,7 +13,7 @@ static void init(Vvicii* top) {
 TEST_START(test5, "raster_irq_set_again_next_line");
 
 // set raster irq, get it, clear it, set it again on next line
-int test5_run(Vvicii* top, int golden) {
+int test5_run(Vtop* top, int golden) {
    if (state == 0 && top->irq) {
       EXPECT("line", top->V_RASTER_LINE, 2);
       EXPECT("cycle_num", top->V_CYCLE_NUM, 0);

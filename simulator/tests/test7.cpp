@@ -8,13 +8,13 @@ static int phi;
 static int phic;
 static int num_checks;
 
-static void init(Vvicii* top) {
+static void init(Vtop* top) {
 }
 
 TEST_START(test7, "cas_ras_mux");
 
 // makes sure cas/ras start at expected values
-int test7_run(Vvicii* top, int golden) {
+int test7_run(Vtop* top, int golden) {
    int cmp;
    if (first_entry) {
        phi = top->clk_phi;

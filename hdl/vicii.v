@@ -21,14 +21,11 @@ module vicii(
            input chip_type chip,
            input rst,
            input clk_dot4x,
-           input is_composite,
            output clk_phi,
-           output[2:0] red,
-           output[2:0] green,
-           output[2:0] blue,
-           output csync,
-           output hsync,
-           output vsync,
+           output reg [9:0] xpos_d,
+           output reg [9:0] raster_x,
+           output reg [8:0] raster_line,
+           output vic_color pixel_color3, 
            output [11:0] ado,
            input [5:0] adi,
            output reg [7:0] dbo,
@@ -43,8 +40,7 @@ module vicii(
            output cas,
            output ls245_dir,
            output vic_write_db,
-           output vic_write_ab,
-           output clk_dot // not actually used, for debugging purposes only
+           output vic_write_ab
        );
 
 // BA must go low 3 cycles before HS1, HS3, HRC & HGC
@@ -132,11 +128,9 @@ reg [31:0] phi_gen;
 reg [31:0] dot_gen;
 
 // used to detect rising edge of dot clock inside a dot4x always block
-reg [15:0] dot_rising;
+reg [3:0] dot_rising;
 
-// current raster x and line position
-reg [9:0] raster_x;
-reg [8:0] raster_line;
+// delayed raster line for irq comparison
 reg [8:0] raster_line_d;
 reg allow_bad_lines;
 
@@ -306,20 +300,12 @@ assign sprite_ba_end[6] = 10'd40 + 10'd16 * 6;
 assign sprite_ba_start[7] = 10'd0 + 10'd16 * 7;
 assign sprite_ba_end[7] = 10'd40 + 10'd16 * 7;
 
-// dot_rising[15] means dot going high next cycle
+// dot_rising[3] means dot going high next cycle
 always @(posedge clk_dot4x)
     if (rst)
-        dot_rising <= 16'b1000100010001000;
+        dot_rising <= 4'b1000;
     else
-        dot_rising <= {dot_rising[14:0], dot_rising[15]};
-
-// drives the dot clock
-always @(posedge clk_dot4x)
-    if (rst)
-        dot_gen <= 32'b01100110011001100110011001100110;
-    else
-        dot_gen <= {dot_gen[30:0], dot_gen[31]};
-assign clk_dot = dot_gen[31];
+        dot_rising <= {dot_rising[2:0], dot_rising[3]};
 
 // phi_gen[31]=HIGH means phi is high next cycle
 always @(posedge clk_dot4x)
@@ -412,7 +398,6 @@ always @(posedge clk_dot4x)
 // xpos_d is xpos shifted by the pixel delay minus 1. It is used
 // to delay both pixels and border locations to align with expected
 // times pixels should come out of the sequencer.
-reg [9:0] xpos_d;
 assign xpos_d = xpos >= (`DATA_PIXEL_DELAY - 1) ? xpos - (`DATA_PIXEL_DELAY - 1) : max_xpos - (`DATA_PIXEL_DELAY - 2) + xpos;
 
 // border
@@ -863,7 +848,6 @@ begin
 end
 
 // Pixel sequencer - outputs stage 3 pixel_color3
-vic_color pixel_color3;
 pixel_sequencer vic_pixel_sequencer(
                     .rst(rst),
                     .clk_dot4x(clk_dot4x),
@@ -894,46 +878,4 @@ pixel_sequencer vic_pixel_sequencer(
                     .pixel_color3(pixel_color3)
                 );
 
-// Generate csync and stage 4 pixel color for composite
-vic_color pixel_color4_composite;
-comp_sync vic_comp_sync(
-         .rst(rst),
-         .clk(clk_dot4x),
-         .chip(chip),
-         .raster_x(xpos_d),
-         .raster_y(raster_line),
-         .pixel_color3(pixel_color3),
-         .csync(csync),
-         .pixel_color4(pixel_color4_composite)
-     );
-
-// Generate hsync/vsync and stage 4 pixel color for VGA
-vic_color pixel_color4_vga;
-vga_sync vic_vga_sync(
-    .rst(rst),
-    .clk_dot4x(clk_dot4x),
-    .raster_x(raster_x),
-    //.raster_y(raster_line),
-    .dot_rising_0(dot_rising[0]),
-    .chip(chip),
-    .pixel_color3(pixel_color3),
-    .hsync(hsync),
-    .vsync(vsync),
-    .pixel_color4(pixel_color4_vga)
-);
-
-// FINAL OUTPUT RGB values from last pixel color
-// The source pixel depends on video type (composite/vga)
-
-// NOTE: It would be possible to output both VGA and Composite
-// simultaneously if we had dedicated rgb lines for each video
-// standard.
-
-// Translate pixel_color3 (indexed) to RGB values
-color vic_colors(
-          .out_pixel(is_composite ? pixel_color4_composite : pixel_color4_vga),
-          .red(red),
-          .green(green),
-          .blue(blue)
-      );
 endmodule : vicii

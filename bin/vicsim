@@ -2,4 +2,4 @@
 
 VICII_HOME=/shared/Vivado/vicii
 
-$VICII_HOME/simulator/obj_dir/Vvicii $*
+$VICII_HOME/simulator/obj_dir/Vtop $*

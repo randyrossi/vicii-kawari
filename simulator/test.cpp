@@ -3,7 +3,7 @@
 #include "log.h"
 #include "test.h"
 
-typedef int (*test_func)(Vvicii*, int);
+typedef int (*test_func)(Vtop*, int);
 
 TEST_BLOCK(test1);
 TEST_BLOCK(test2);
@@ -38,11 +38,11 @@ test_func test_run[] = {
    test8_run,
 };
 
-int do_test_start(int driver, Vvicii* top, int golden) {
+int do_test_start(int driver, Vtop* top, int golden) {
    return test_start[driver-1](top, golden);
 }
 
-int do_test(int driver, Vvicii* top, int golden) {
+int do_test(int driver, Vtop* top, int golden) {
    return test_run[driver-1](top, golden);
 }
 
@@ -56,7 +56,7 @@ FILE* do_start_file(const char* name, int golden) {
 }
 
 // post tester to see if we ran though one whole frame
-int is_frame_end(Vvicii* top) {
+int is_frame_end(Vtop* top) {
      if (top->V_CYCLE_BIT == 0 &&
             top->V_RASTER_X == 0 &&
                top->V_RASTER_LINE == 0 &&
@@ -65,19 +65,19 @@ int is_frame_end(Vvicii* top) {
    return 0;
 }
 
-int is_about_to_start_line(Vvicii* top, int line) {
+int is_about_to_start_line(Vtop* top, int line) {
      line = line - 1;
      if (line < 0) {
-        if (top->chip == CHIP6569) line = PAL_6569_MAX_DOT_Y;
-        else if (top->chip == CHIP6567R56A) line = NTSC_6567R56A_MAX_DOT_Y;
-        else if (top->chip == CHIP6567R8) line = NTSC_6567R8_MAX_DOT_Y;
+        if (top->V_CHIP == CHIP6569) line = PAL_6569_MAX_DOT_Y;
+        else if (top->V_CHIP == CHIP6567R56A) line = NTSC_6567R56A_MAX_DOT_Y;
+        else if (top->V_CHIP == CHIP6567R8) line = NTSC_6567R8_MAX_DOT_Y;
         else exit(-1);
      }
 
      int max_x;
-     if (top->chip == CHIP6569) max_x = PAL_6569_MAX_DOT_X;
-     else if (top->chip == CHIP6567R56A) max_x = NTSC_6567R56A_MAX_DOT_X;
-     else if (top->chip == CHIP6567R8) max_x = NTSC_6567R8_MAX_DOT_X;
+     if (top->V_CHIP == CHIP6569) max_x = PAL_6569_MAX_DOT_X;
+     else if (top->V_CHIP == CHIP6567R56A) max_x = NTSC_6567R56A_MAX_DOT_X;
+     else if (top->V_CHIP == CHIP6567R8) max_x = NTSC_6567R8_MAX_DOT_X;
      else exit(-1);
 
      if (top->V_CYCLE_BIT == 7 &&
@@ -88,12 +88,12 @@ int is_about_to_start_line(Vvicii* top, int line) {
    return 0;
 }
 
-int is_about_to_start_cycle(Vvicii* top, int cycle) {
+int is_about_to_start_cycle(Vtop* top, int cycle) {
      cycle = cycle - 1;
      if (cycle < 0) {
-        if (top->chip == CHIP6569) cycle = PAL_6569_NUM_CYCLES-1;
-        else if (top->chip == CHIP6567R56A) cycle = NTSC_6567R56A_NUM_CYCLES-1;
-        else if (top->chip == CHIP6567R8) cycle = NTSC_6567R8_NUM_CYCLES-1;
+        if (top->V_CHIP == CHIP6569) cycle = PAL_6569_NUM_CYCLES-1;
+        else if (top->V_CHIP == CHIP6567R56A) cycle = NTSC_6567R56A_NUM_CYCLES-1;
+        else if (top->V_CHIP == CHIP6567R8) cycle = NTSC_6567R8_NUM_CYCLES-1;
         else exit(-1);
      }
      if (top->V_CYCLE_BIT == 7 &&

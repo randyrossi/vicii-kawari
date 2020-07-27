@@ -6,7 +6,7 @@
 static int state = 0;
 static bool saw_6 = false;
 
-static void init(Vvicii* top) {
+static void init(Vtop* top) {
    top->V_ERST = 1;
    top->V_RASTERCMP = 5;
 }
@@ -14,7 +14,7 @@ static void init(Vvicii* top) {
 TEST_START(test6, "raster_irq_once_per_line");
 
 // should only get 1 irq per line
-int test6_run(Vvicii* top, int golden) {
+int test6_run(Vtop* top, int golden) {
    if (state == 0 && top->irq) {
       EXPECT("line", top->V_RASTER_LINE, 5);
       EXPECT("cycle_num", top->V_CYCLE_NUM, 0);

@@ -8,7 +8,7 @@ static int high_line = -1;
 static int low_cycle = -1;
 static int low_line = -1;
 
-static void init(Vvicii* top) {
+static void init(Vtop* top) {
 	top->V_DEN = 1;
 	top->V_ALLOW_BAD_LINES = 0;
 }
@@ -17,7 +17,7 @@ TEST_START(test8, "raster_enable_30_F8");
 
 // makes sure raster_enable rises on 0x30 and falls 0xf8
 // when den is 1
-int test8_run(Vvicii* top, int golden) {
+int test8_run(Vtop* top, int golden) {
    if (top->V_ALLOW_BAD_LINES & 1) {
 	   if (high_cycle < 0) {
 		   high_cycle = top->V_CYCLE_NUM;

@@ -10,7 +10,7 @@
 #include <verilated.h>
 #include <regex.h>
 
-#include "Vvicii.h"
+#include "Vtop.h"
 #include "constants.h"
 
 #if VM_TRACE
@@ -131,14 +131,14 @@ static int SGETVAL(int signum) {
   }
 }
 
-static void HEADER(Vvicii *top) {
+static void HEADER(Vtop *top) {
    LOG(LOG_VERBOSE,
    "  "
    "D4X "
    "CNT "
    "POS "
    "CYC "
-   "DOT "
+   "DOTR "
    "PHI "
    "BIT "
    "IRQ "
@@ -161,7 +161,7 @@ static void HEADER(Vvicii *top) {
   );
 }
 
-static void STATE(Vvicii *top) {
+static void STATE(Vtop *top) {
    if ((top->clk_dot4x & 1) == 0) return;
 
    if(HASCHANGED(OUT_DOT) && RISING(OUT_DOT))
@@ -173,7 +173,7 @@ static void STATE(Vvicii *top) {
    "%02d  "   /*CNT*/
    "%03x "   /*POS*/
    " %02d "  /*CYC*/
-   " %01d  "   /*DOT*/
+   " %01d  "   /*DOTR*/
    " %01d  "   /*PHI*/
    " %01d  "   /*BIT*/
    " %01d  "   /*IRQ*/
@@ -204,12 +204,12 @@ static void STATE(Vvicii *top) {
    " %01d"
    ,
 
-   top->rst ? 'R' : HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ',
+   top->V_RST ? 'R' : HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ',
    top->clk_dot4x ? 1 : 0,
    nextClkCnt,
    top->V_XPOS,
    top->V_CYCLE_NUM,
-   top->V_CLK_DOT,
+   top->V_CLK_DOT & 8 ? 1 : 0,
    top->clk_phi,
    top->V_CYCLE_BIT,
    top->irq,
@@ -221,10 +221,10 @@ static void STATE(Vvicii *top) {
    top->cas,
    top->V_RASTER_X,
    top->V_RASTER_LINE,
-   top->adi,
-   top->ado,
-   top->dbi,
-   top->dbo,
+   top->adl,
+   top->V_ADO,
+   top->V_DBI,
+   top->V_DBO,
    top->rw,
    top->ce,
    top->V_REFC,
@@ -261,7 +261,7 @@ static void STORE_PREV() {
 }
 
 
-static void CHECK(Vvicii *top, int cond, int line) {
+static void CHECK(Vtop *top, int cond, int line) {
   if (!cond) {
      printf ("FAIL line %d:", line);
      STATE(top);
@@ -272,7 +272,7 @@ static void CHECK(Vvicii *top, int cond, int line) {
 // We can drive our simulated clock gen every pico second but that would
 // be a waste since nothing happens between clock edges. This function
 // will determine how many ticks(picoseconds) to advance our clock.
-static vluint64_t nextTick(Vvicii* top) {
+static vluint64_t nextTick(Vtop* top) {
    vluint64_t diff1 = nextClk - ticks;
 
    nextClk += half4XDotPS;
@@ -288,7 +288,7 @@ static void drawPixel(SDL_Renderer* ren, int x,int y) {
    SDL_RenderDrawPoint(ren, x*2+1,y*2+1);
 }
 
-static void regs_vice_to_fpga(Vvicii* top, struct vicii_state* state) {
+static void regs_vice_to_fpga(Vtop* top, struct vicii_state* state) {
        top->V_IDLE = state->idle;
 
        // Sync registers
@@ -407,7 +407,7 @@ static void regs_vice_to_fpga(Vvicii* top, struct vicii_state* state) {
        top->V_CHAR_NEXT = state->char_buf[39] | (state->color_buf[39] << 8);
 }
 
-static void regs_fpga_to_vice(Vvicii* top, struct vicii_state* state) {
+static void regs_fpga_to_vice(Vtop* top, struct vicii_state* state) {
        state->fpga_reg[0x11] =
           (top->V_YSCROLL & 0x7) |
           (top->V_RSEL ? 8 : 0) |
@@ -619,7 +619,7 @@ int main(int argc, char** argv, char** env) {
     }
 
     // Add new input/output here.
-    Vvicii* top = new Vvicii;
+    Vtop* top = new Vtop;
 
 #if VM_TRACE
     VerilatedVcdC* tfp = NULL;
@@ -632,10 +632,10 @@ int main(int argc, char** argv, char** env) {
     }
 #endif
 
-    top->chip = chip;
+    top->V_CHIP = chip;
     top->eval();
 
-    switch (top->chip) {
+    switch (top->V_CHIP) {
        case CHIP6567R8:
           isNtsc = true;
           printf ("CHIP: 6567R8\n");
@@ -659,7 +659,7 @@ int main(int argc, char** argv, char** env) {
     printf ("Log Level: %d\n", logLevel);
 
     if (userDurationUs == -1) {
-       switch (top->chip) {
+       switch (top->V_CHIP) {
           case CHIP6567R8:
           case CHIP6567R56A:
              durationTicks = US_TO_TICKS(16700L);
@@ -676,7 +676,7 @@ int main(int argc, char** argv, char** env) {
 
     if (isNtsc) {
        half4XDotPS = NTSC_HALF_4X_DOT_PS;
-       switch (top->chip) {
+       switch (top->V_CHIP) {
           case CHIP6567R56A:
              screenWidth = NTSC_6567R56A_MAX_DOT_X+1;
              screenHeight = NTSC_6567R56A_MAX_DOT_Y+1;
@@ -695,7 +695,7 @@ int main(int argc, char** argv, char** env) {
        }
     } else {
        half4XDotPS = PAL_HALF_4X_DOT_PS;
-       switch (top->chip) {
+       switch (top->V_CHIP) {
           case CHIP6569:
              screenWidth = PAL_6569_MAX_DOT_X+1;
              screenHeight = PAL_6569_MAX_DOT_Y+1;
@@ -743,7 +743,7 @@ int main(int argc, char** argv, char** env) {
 
     // Add new input/output here.
     signal_src8[OUT_PHI] = &top->clk_phi;
-    signal_src8[IN_RST] = &top->rst;
+    signal_src8[IN_RST] = &top->V_RST;
     signal_src8[OUT_R0] = &top->red;
     signal_src8[OUT_R1] = &top->red;
     signal_bit[OUT_R1] = 2;
@@ -767,28 +767,28 @@ int main(int argc, char** argv, char** env) {
     for (int i=OUT_A0; i<= OUT_A11; i++) {
        signal_width[i] = 12;
        signal_bit[i] = bt;
-       signal_src16[i] = &top->ado;
+       signal_src16[i] = &top->V_ADO;
        bt = bt * 2;
     }
     bt = 1;
     for (int i=IN_A0; i<= IN_A11; i++) {
        signal_width[i] = 6;
        signal_bit[i] = bt;
-       signal_src8[i] = &top->adi;
+       signal_src8[i] = &top->adl;
        bt = bt * 2;
     }
     bt = 1;
     for (int i=OUT_D0; i<= OUT_D7; i++) {
        signal_width[i] = 8;
        signal_bit[i] = bt;
-       signal_src8[i] = &top->dbo;
+       signal_src8[i] = &top->V_DBO;
        bt = bt * 2;
     }
     bt = 1;
     for (int i=IN_D0; i<= IN_D11; i++) {
        signal_width[i] = 12;
        signal_bit[i] = bt;
-       signal_src16[i] = &top->dbi;
+       signal_src16[i] = &top->V_DBI;
        bt = bt * 2;
     }
 
@@ -797,7 +797,7 @@ int main(int argc, char** argv, char** env) {
     // Hold the design under reset, simulating the time
     // it takes to wait for phase lock from the clock.
     printf ("(RESET)\n");
-    top->rst = 1;
+    top->V_RST = 1;
     top->is_composite = 1;
     top->lp = 1;
     for (int i=0;i<32;i++) {
@@ -811,11 +811,11 @@ int main(int argc, char** argv, char** env) {
        ticks = nextTick(top);
     }
     nextClkCnt = 31;
-    top->rst = 0;
+    top->V_RST = 0;
     top->rw = 1;
     top->ce = 1;
-    top->adi = 0;
-    top->dbi = 0;
+    top->adl = 0;
+    top->V_DBI = 0;
     top->V_DEN = 1;
     top->V_CSEL = 1;
     top->V_RSEL = 1;
@@ -924,8 +924,8 @@ int main(int argc, char** argv, char** env) {
            }
 
            // VICE -> SIM state sync
-           top->adi = state->addr_to_sim;
-           top->dbi = state->data_to_sim;
+           top->adl = state->addr_to_sim;
+           top->V_DBI = state->data_to_sim;
            top->ce = state->ce;
            top->rw = state->rw;
         }
@@ -1061,7 +1061,7 @@ int main(int argc, char** argv, char** env) {
 	   state->main_border = top->V_LRBORDER;
            if (top->ce == 0 && top->rw == 1) {
               // Chip selected and read, set data in state
-              state->data_from_sim = top->dbo;
+              state->data_from_sim = top->V_DBO;
            }
            regs_fpga_to_vice(top, state);
 
