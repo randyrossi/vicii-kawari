@@ -24,10 +24,10 @@ module vga_sync(
     input vic_color pixel_color3,
     output reg hsync,             // horizontal sync
     output reg vsync,             // vertical sync
+    output reg active,
     output vic_color pixel_color4
  );
 
-    reg vga_active;
     vic_color vga_color;
     reg [9:0] h_count;  // line position
     reg [9:0] v_count;  // screen position
@@ -38,9 +38,9 @@ module vga_sync(
     assign vsync = ~((v_count >= vs_sta) & (v_count < vs_end));
 
     // active: high during active pixel drawing
-    assign vga_active = ~((h_count < ha_sta) | (v_count > va_end - 1)); 
+    assign active = ~((h_count < ha_sta) | (v_count > va_end - 1)); 
 
-    assign pixel_color4 = vga_active ? vga_color : BLACK;
+    assign pixel_color4 = active ? vga_color : BLACK;
 
     always @ (posedge clk_dot4x)
     begin

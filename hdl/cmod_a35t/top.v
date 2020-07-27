@@ -29,7 +29,6 @@
 module top(
            input sys_clock,
            input is_composite,  // 1=composite, 0=vga/hdmi
-           input is_pal,        // 1=pal, 0=ntsc
            output cpu_reset,    // reset for 6510 CPU
            output clk_colref,   // output color ref clock for CXA1545P
            output clk_phi,      // output phi clock for CPU
@@ -37,6 +36,7 @@ module top(
            output csync,        // composite sync signal for CXA1545P
            output hsync,        // hsync signal for VGA/HDMI
            output vsync,        // vsync signal for VGA/HDMI
+           output active,
            output [2:0] red,    // red out for CXA1545P
            output [2:0] green,  // green out for CXA1545P
            output [2:0] blue,   // blue out for CXA1545P
@@ -63,7 +63,6 @@ wire clk_col4x;
 // Vendor specific clock generators and chip selection
 clockgen cmod_clockgen(
          .sys_clock(sys_clock),
-         .is_pal(is_pal),
          .clk_dot4x(clk_dot4x),
          .clk_col4x(clk_col4x),
          .rst(rst),
@@ -155,6 +154,7 @@ vga_sync vic_vga_sync(
     .pixel_color3(pixel_color3),
     .hsync(hsync),
     .vsync(vsync),
+    .active(active),
     .pixel_color4(pixel_color4_vga)
 );
 
@@ -174,3 +174,4 @@ color vic_colors(
 );
 
 endmodule : top
+

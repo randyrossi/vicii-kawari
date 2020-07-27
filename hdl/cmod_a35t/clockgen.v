@@ -19,7 +19,6 @@
 //     3) generates the reset signal and holds for approx 150ms at startup
 module clockgen(
            input sys_clock,
-           input is_pal,
            output clk_dot4x,
            output clk_col4x,
            output rst,
@@ -43,15 +42,14 @@ always @(posedge sys_clockb)
     if (internal_rst)
         rstcntr <= rstcntr + 4'd1;
 
-// Construct a chip id.  There's no way to get a 6567R56A. We only
-// use one pin to switch between 6569 nad 6567R8.
-assign chip = {1'b0, is_pal};
-
-// TODO: Use clock mux to select the clock based on is_pal input
-// At the moment, the type still has to be hard coded in the
-// bitstream even though we have is_pal input.
+// TODO: Use dynamic clock config module to select the clock
+// mult/divide params based on an 'is_pal' input. Also set
+// chip based on that.  At the moment, the type still has to
+// be hard coded in the bitstream..
 
 `ifdef USE_INTCLOCK_PAL
+
+assign chip = CHIP6569;
 
 // Generate the 4x dot clock. See vicii.v for values.
 dot4x_12_pal_clockgen dot4x_12_pal_clockgen(
@@ -69,6 +67,8 @@ color4x_12_pal_clockgen color4x_12_pal_clockgen(
 `endif
 
 `ifdef USE_INTCLOCK_NTSC
+
+assign chip = CHIP6567R8;
 
 // Generate the 4x dot clock. See vicii.v for values.
 dot4x_12_ntsc_clockgen dot4x_12_ntsc_clockgen(
@@ -88,6 +88,8 @@ color4x_12_ntsc_clockgen color4x_12_ntsc_clockgen(
 // Use an external clock for pal.
 `ifdef USE_EXTCLOCK_PAL
 
+assign chip = CHIP6569;
+
 dot4x_17_pal_clockgen dot4x_17_pal_clockgen(
                           .clk_in17mhz(sys_clockb),
                           .reset(internal_rst),
@@ -99,6 +101,8 @@ dot4x_17_pal_clockgen dot4x_17_pal_clockgen(
 
 // Use an external clock for ntsc.
 `ifdef USE_EXTCLOCK_NTSC
+
+assign chip = CHIP6567R8;
 
 dot4x_14_ntsc_clockgen dot4x_14_ntsc_clockgen(
                            .clk_in14mhz(sys_clockb),

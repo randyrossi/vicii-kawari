@@ -1,11 +1,11 @@
 # VIC-IIe 6567/6569 Replica Project
 
 ## What is this?
-This is a VIC-IIe 6567/6569 replacement project.  VIC-IIe video chips are found in Commodore 64 home computers. This project contains:
+This is an experimental VIC-IIe 6567/6569 replacement project.  VIC-IIe video chips are found in Commodore 64 home computers. This project contains:
 
 1) an open source VIC-IIe 6567/6569 FPGA core written in Verilog
 2) schematics for interfacing the FPGA core with a real C64 address and data bus through the VIC-II motherboard socket
-3) schematics for video output (composite or VGA) from the FPGA core
+3) schematics for video output options (composite, VGA or HDMI) from the FPGA core
 
 Together, these components can replace all the functions of a real VIC chip including DRAM refresh, PHI2 clock source for the CPU and, of course, video output.
 
@@ -19,7 +19,13 @@ No.  A test harness has been constructed using breadboard-able components and ju
 I'm going to say 99%. I can't test every program but it supports the graphics tricks programmers used in their demos/games.  So far the results have been excellent but more testing is needed.  Also, it is possible some glitch in the real hardware could be discovered in the future that would require an update to the logic in the core.
 
 ## What kind of video options will there be?
-Right now, there are two video options:  a Sony CXA1645P composite encoder IC or GERT VGA666 adapter board.  Later revisions may produce luma/chroma directly from the FPGA using DACs.  Even later revisions may support HDMI output.
+Right now, there are three video options:
+
+    1) a Sony CXA1645P composite encoder IC (separate luma/chroma also available)
+    2) a GERT VGA666 adapter board 
+    3) an ICEBreaker Pmod Digital Video Interface adapter for HDMI
+
+The VGA and HDMI modes are not standard so they may not work on older monitors/TVs.
 
 ## Why not just buy a real one?
 If you need a VIC to replace a broken one, you should just buy one off eBay. This project is for fun/interest and would certainly cost more than just buying the real thing.  It may turn into something you can build or buy, but it's too early to tell right now.
