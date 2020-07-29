@@ -51,9 +51,9 @@ module vga_sync(
             CHIP6569, CHIPUNUSED: begin
                screen_width = 503;
                screen_height = 623;
-               hs_sta = 16;
-               hs_end = 48;
-               ha_sta = 65;
+               hs_sta = 10;
+               hs_end = 10 + 60;
+               ha_sta = 10 + 60 + 30;
                vs_sta = 569 + 11;
                vs_end = 569 + 11 + 3;
                va_end = 569;
@@ -62,9 +62,9 @@ module vga_sync(
             CHIP6567R8: begin
                screen_width = 519;
                screen_height = 525;
-               hs_sta = 16;
-               hs_end = 48;
-               ha_sta = 65;
+               hs_sta = 10;
+               hs_end = 10 + 62;
+               ha_sta = 10 + 62 + 31;
                vs_sta = 502 + 10;
                vs_end = 502 + 10 + 3;
                va_end = 502;
@@ -73,9 +73,9 @@ module vga_sync(
             CHIP6567R56A: begin
                screen_width = 511;
                screen_height = 523;
-               hs_sta = 16;
-               hs_end = 48;
-               ha_sta = 65;
+               hs_sta = 10;
+               hs_end = 10 + 61;
+               ha_sta = 10 + 61 + 31;
                vs_sta = 502 + 10;
                vs_end = 502 + 10 + 3;
                va_end = 502;
