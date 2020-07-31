@@ -133,8 +133,8 @@ always @(posedge clk_dot4x)
         //extra_reg_state <= 3'b0;
         //extra_reg_loc <= 8'b0;
         //extra_reg_disable <= 1'b0;
-        extra_reg_hi <= 8'b0;
-        extra_reg_lo <= 8'b0;
+        extra_reg_hi <= 8'hff;
+        extra_reg_lo <= 8'hff;
         case (chip)
             CHIP6569, CHIPUNUSED: begin
                hs_sta <= 10;
@@ -153,8 +153,8 @@ always @(posedge clk_dot4x)
                vs_sta <= 502 + 10;
                vs_end <= 502 + 10 + 3;
                va_end <= 502;
-               hoffset <= 32;
-               voffset <= 40;
+               hoffset <= 20;
+               voffset <= 52;
             end
             CHIP6567R56A: begin
                hs_sta <= 10;
@@ -163,8 +163,8 @@ always @(posedge clk_dot4x)
                vs_sta <= 502 + 10;
                vs_end <= 502 + 10 + 3;
                va_end <= 502;
-               hoffset <= 32;
-               voffset <= 40;
+               hoffset <= 20;
+               voffset <= 52;
             end
          endcase
 `endif
@@ -312,9 +312,11 @@ always @(posedge clk_dot4x)
                     // i.e. POKE 54270,86:POKE 54270,73:POKE 54270,67:POKE 54270,REG
                     //      LO_VAL=PEEK(54270):HI_VAL=PEEK(54271)
                     'h3d:
-                       dbo[7:0] <= extra_reg_hi;
+                       if (!extra_reg_disable)
+                          dbo[7:0] <= extra_reg_hi;
                     'h3e:
-                       dbo[7:0] <= extra_reg_lo;
+                       if (!extra_reg_disable)
+                          dbo[7:0] <= extra_reg_lo;
 `endif
                     default:;
                 endcase
