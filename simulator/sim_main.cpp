@@ -925,7 +925,8 @@ int main(int argc, char** argv, char** env) {
 
            // VICE -> SIM state sync
            top->adl = state->addr_to_sim;
-           top->V_DBI = state->data_to_sim;
+           top->dbl = state->data_to_sim & 0xff;
+           top->dbh = (state->data_to_sim >> 8) & 0xf;
            top->ce = state->ce;
            top->rw = state->rw;
         }

@@ -40,10 +40,19 @@ module top(
            output [2:0] red,    // red out for CXA1545P
            output [2:0] green,  // green out for CXA1545P
            output [2:0] blue,   // blue out for CXA1545P
+`ifndef IS_SIMULATOR    
            inout tri [5:0] adl, // address (lower 6 bits)
            output tri [5:0] adh,// address (high 6 bits)
            inout tri [7:0] dbl, // data bus lines (ram/rom)
            input [3:0] dbh,     // data bus lines (color)
+`else
+           input [5:0] adl,
+           output [5:0] adh,
+           input [7:0] dbl,
+           input [3:0] dbh,
+           output [7:0] dbo_sim,
+           output [11:0] ado_sim,
+`endif
            input ce,            // chip enable (LOW=enable, HIGH=disabled)
            input rw,            // read/write (LOW=write, HIGH=read)
            output irq,          // irq
@@ -92,6 +101,15 @@ reg [9:0] xpos_d;
 reg [8:0] raster_line;
 vic_color pixel_color3;
 
+reg [9:0] hs_sta;
+reg [9:0] hs_end;
+reg [9:0] ha_sta;
+reg [9:0] vs_sta;
+reg [9:0] vs_end;
+reg [9:0] va_end;
+reg [9:0] hoffset;
+reg [9:0] voffset;
+
 // Instantiate the vicii with our clocks and pins.
 vicii vic_inst(
           .rst(rst),
@@ -109,6 +127,16 @@ vicii vic_inst(
           .ce(ce),
           .rw(rw),
           .aec(aec),
+`ifdef EXTRA_REGS
+          .hs_sta(hs_sta),
+          .hs_end(hs_end),
+          .ha_sta(ha_sta),
+          .vs_sta(vs_sta),
+          .vs_end(vs_end),
+          .va_end(va_end),
+          .hoffset(hoffset),
+          .voffset(voffset),
+`endif
           .irq(irq),
           .lp(lp),
           .ba(ba),
@@ -119,10 +147,15 @@ vicii vic_inst(
           .vic_write_ab(vic_write_ab)
       );
 
+`ifndef IS_SIMULATOR
 // Write to bus condition, else tri state.
 assign dbl[7:0] = vic_write_db ? dbo : 8'bz; // CPU reading
 assign adl = vic_write_ab ? ado[5:0] : 6'bz; // vic or stollen cycle
 assign adh = vic_write_ab ? ado[11:6] : 6'bz;
+`else
+assign ado_sim = ado;
+assign dbo_sim = dbo;
+`endif
 
 // ----------------------------------------------------
 // Composite output - csync and color_ref
@@ -149,12 +182,20 @@ vga_sync vic_vga_sync(
     .rst(rst),
     .clk_dot4x(clk_dot4x),
     .raster_x(raster_x),
-    //.raster_y(raster_line),
+    .raster_y(raster_line),
     .chip(chip),
     .pixel_color3(pixel_color3),
     .hsync(hsync),
     .vsync(vsync),
     .active(active),
+    .hs_sta(hs_sta), // Using vga_sync requires EXTRA_REGS to be set
+    .hs_end(hs_end),
+    .ha_sta(ha_sta),
+    .vs_sta(vs_sta),
+    .vs_end(vs_end),
+    .va_end(va_end),
+    .hoffset(hoffset),
+    .voffset(voffset),
     .pixel_color4(pixel_color4_vga)
 );
 
@@ -174,4 +215,3 @@ color vic_colors(
 );
 
 endmodule : top
-

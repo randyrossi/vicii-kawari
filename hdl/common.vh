@@ -1,6 +1,9 @@
 `ifndef common_vh_
 `define common_vh_
 
+// If using the vga_sync module, must define this
+`define EXTRA_REGS 1
+
 // Register write phi_phase_start data available
 `define REG_DAV 7
 // Char/pixel read phi_phase_start data available

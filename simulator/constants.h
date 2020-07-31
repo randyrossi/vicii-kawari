@@ -58,7 +58,7 @@
 #define V_RST top__DOT__rst
 #define V_DBO top__DOT__dbo
 #define V_DBI top__DOT____Vcellinp__vic_inst__dbi
-#define V_ADO top__DOT__ado
+#define V_ADO ado_sim
 #define V_PPS top__DOT__vic_inst__DOT__phi_phase_start
 #define V_XPOS top__DOT__vic_inst__DOT__xpos
 #define V_XPOS_D top__DOT__xpos_d

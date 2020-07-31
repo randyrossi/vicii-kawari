@@ -5,13 +5,6 @@
 
 reg [9:0] screen_width;
 reg [9:0] screen_height;
-reg [9:0] hs_sta;
-reg [9:0] hs_end;
-reg [9:0] ha_sta;
-reg [9:0] vs_sta;
-reg [9:0] vs_end;
-reg [9:0] va_end;
-reg [9:0] hoffset;
 
 // TODO : add voffset that sets vcount to height - offset when rasterx/line first hits 0
                               
@@ -20,11 +13,19 @@ module vga_sync(
     input wire rst,
     input [1:0] chip,
     input [9:0] raster_x,
-    //input [8:0] raster_y,
+    input [8:0] raster_y,
     input vic_color pixel_color3,
     output reg hsync,             // horizontal sync
     output reg vsync,             // vertical sync
     output reg active,
+    input [9:0] hs_sta,
+    input [9:0] hs_end,
+    input [9:0] ha_sta,
+    input [9:0] vs_sta,
+    input [9:0] vs_end,
+    input [9:0] va_end,
+    input [9:0] hoffset,
+    input [9:0] voffset,
     output vic_color pixel_color4
  );
 
@@ -51,35 +52,17 @@ module vga_sync(
             CHIP6569, CHIPUNUSED: begin
                screen_width = 503;
                screen_height = 623;
-               hs_sta = 10;
-               hs_end = 10 + 60;
-               ha_sta = 10 + 60 + 30;
-               vs_sta = 569 + 11;
-               vs_end = 569 + 11 + 3;
-               va_end = 569;
-               v_count <= 623 - 63; // TODO make adjustable
+               v_count <= 623 - voffset;
             end 
             CHIP6567R8: begin
                screen_width = 519;
                screen_height = 525;
-               hs_sta = 10;
-               hs_end = 10 + 62;
-               ha_sta = 10 + 62 + 31;
-               vs_sta = 502 + 10;
-               vs_end = 502 + 10 + 3;
-               va_end = 502;
-               v_count <= 525 - 40; // TODO make adjustable
+               v_count <= 525 - voffset;
             end
             CHIP6567R56A: begin
                screen_width = 511;
                screen_height = 523;
-               hs_sta = 10;
-               hs_end = 10 + 61;
-               ha_sta = 10 + 61 + 31;
-               vs_sta = 502 + 10;
-               vs_end = 502 + 10 + 3;
-               va_end = 502;
-               v_count <= 523 - 40; // TODO make adjustable
+               v_count <= 523 - voffset;
             end
             endcase
         end else begin
@@ -98,6 +81,13 @@ module vga_sync(
                       v_count <= 0;
                    end
                 end
+            end
+            if (raster_x == 0 && raster_y == 0) begin
+                case (chip)
+                CHIP6569, CHIPUNUSED: v_count <= 623 - voffset;
+                CHIP6567R8: v_count <= 525 - voffset;
+                CHIP6567R56A: v_count <= 523 - voffset;
+                endcase
             end
         end
     end
@@ -137,13 +127,7 @@ end
 
 always @(posedge clk_dot4x)
 begin
-   if (rst) begin
-        case (chip)
-            CHIP6569, CHIPUNUSED: hoffset = 29;
-            CHIP6567R8: hoffset = 32;
-            CHIP6567R56A: hoffset = 32;
-        endcase
-   end else begin
+   if (!rst) begin
        if (h_count >= hoffset) begin
            vga_color = !active_buf ? vic_color'(line_buf_0[h_count - hoffset]) :
                                      vic_color'(line_buf_1[h_count - hoffset]);
