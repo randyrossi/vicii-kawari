@@ -127,16 +127,6 @@ vicii vic_inst(
           .ce(ce),
           .rw(rw),
           .aec(aec),
-`ifdef EXTRA_REGS
-          .hs_sta(hs_sta),
-          .hs_end(hs_end),
-          .ha_sta(ha_sta),
-          .vs_sta(vs_sta),
-          .vs_end(vs_end),
-          .va_end(va_end),
-          .hoffset(hoffset),
-          .voffset(voffset),
-`endif
           .irq(irq),
           .lp(lp),
           .ba(ba),
@@ -188,14 +178,6 @@ vga_sync vic_vga_sync(
     .hsync(hsync),
     .vsync(vsync),
     .active(active),
-    .hs_sta(hs_sta), // Using vga_sync requires EXTRA_REGS to be set
-    .hs_end(hs_end),
-    .ha_sta(ha_sta),
-    .vs_sta(vs_sta),
-    .vs_end(vs_end),
-    .va_end(va_end),
-    .hoffset(hoffset),
-    .voffset(voffset),
     .pixel_color4(pixel_color4_vga)
 );
 

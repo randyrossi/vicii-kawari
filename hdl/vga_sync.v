@@ -5,8 +5,14 @@
 
 reg [9:0] screen_width;
 reg [9:0] screen_height;
-
-// TODO : add voffset that sets vcount to height - offset when rasterx/line first hits 0
+reg [9:0] hs_sta;
+reg [9:0] hs_end;
+reg [9:0] ha_sta;
+reg [9:0] vs_sta;
+reg [9:0] vs_end;
+reg [9:0] va_end;
+reg [9:0] hoffset;
+reg [9:0] voffset;
                               
 module vga_sync(
     input wire clk_dot4x,
@@ -18,14 +24,6 @@ module vga_sync(
     output reg hsync,             // horizontal sync
     output reg vsync,             // vertical sync
     output reg active,
-    input [9:0] hs_sta,
-    input [9:0] hs_end,
-    input [9:0] ha_sta,
-    input [9:0] vs_sta,
-    input [9:0] vs_end,
-    input [9:0] va_end,
-    input [9:0] hoffset,
-    input [9:0] voffset,
     output vic_color pixel_color4
  );
 
@@ -65,6 +63,38 @@ module vga_sync(
                v_count <= 523 - voffset;
             end
             endcase
+                    case (chip)
+            CHIP6569, CHIPUNUSED: begin
+               hs_sta <= 10;
+               hs_end <= 10 + 60;
+               ha_sta <= 10 + 60 + 30;
+               vs_sta <= 569 + 11;
+               vs_end <= 569 + 11 + 3;
+               va_end <= 569;
+               hoffset <= 10;
+               voffset <= 20;
+            end 
+            CHIP6567R8: begin
+               hs_sta <= 10;
+               hs_end <= 10 + 62;
+               ha_sta <= 10 + 62 + 31;
+               vs_sta <= 502 + 10;
+               vs_end <= 502 + 10 + 3;
+               va_end <= 502;
+               hoffset <= 20;
+               voffset <= 52;
+            end
+            CHIP6567R56A: begin
+               hs_sta <= 10;
+               hs_end <= 10 + 61;
+               ha_sta <= 10 + 61 + 31;
+               vs_sta <= 502 + 10;
+               vs_end <= 502 + 10 + 3;
+               va_end <= 502;
+               hoffset <= 20;
+               voffset <= 52;
+            end
+         endcase
         end else begin
             ff = ~ff;
             // Increment x/y every other clock for a 2x dot clock in which

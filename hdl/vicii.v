@@ -26,16 +26,6 @@ module vicii(
            output reg [9:0] raster_x,
            output reg [8:0] raster_line,
            output vic_color pixel_color3,
-`ifdef EXTRA_REGS
-           output [9:0] hs_sta,
-           output [9:0] hs_end,
-           output [9:0] ha_sta,
-           output [9:0] vs_sta,
-           output [9:0] vs_end,
-           output [9:0] va_end,
-           output [9:0] hoffset,
-           output [9:0] voffset,
-`endif
            output [11:0] ado,
            input [5:0] adi,
            output reg [7:0] dbo,
@@ -712,7 +702,7 @@ assign ls245_dir = aec ? (!ce ? ~rw : `TRUE) : `TRUE;
 // Apparently, even though AEC is high, we can't enable the data bus or we
 // have contention issues with something else (what?). There are timing
 // constraints that must go with our write condition.
-assign vic_write_db = aec && rw && ~ce && cycle_fine_ctr > 0 && cycle_fine_ctr <= 23;
+assign vic_write_db = aec && rw && ~ce && cycle_fine_ctr <= 23;
 
 // NTSC : 977.8ns - 1 tick is 30.55ns
 // PAL : 1014.9ns - 1 tick is 31.71ns
@@ -769,7 +759,6 @@ registers vic_registers(
               .rst(rst),
               .clk_dot4x(clk_dot4x),
               .clk_phi(clk_phi),
-              .chip(chip),
               .phi_phase_start_15(phi_phase_start[15]),
               .phi_phase_start_1(phi_phase_start[1]),
               .phi_phase_start_dav(phi_phase_start[`REG_DAV]),
@@ -779,16 +768,6 @@ registers vic_registers(
               .adi(adi),
               .dbi(dbi[7:0]),
               .raster_line(raster_line_d), // advertise the delayed version
-`ifdef EXTRA_REGS
-              .hs_sta(hs_sta),
-              .hs_end(hs_end),
-              .ha_sta(ha_sta),
-              .vs_sta(vs_sta),
-              .vs_end(vs_end),
-              .va_end(va_end),
-              .hoffset(hoffset),
-              .voffset(voffset),
-`endif
               .irq(irq),
               .ilp(ilp),
               .immc(immc),

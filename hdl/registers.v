@@ -6,7 +6,6 @@ module registers(
            input rst,
            input clk_dot4x,
            input clk_phi,
-           input [1:0] chip,
            input phi_phase_start_15,
            input phi_phase_start_1,
            input phi_phase_start_dav,
@@ -16,16 +15,6 @@ module registers(
            input [5:0] adi,
            input [7:0] dbi,
            input [8:0] raster_line,
-`ifdef EXTRA_REGS
-           output reg [9:0] hs_sta,
-           output reg [9:0] hs_end,
-           output reg [9:0] ha_sta,
-           output reg [9:0] vs_sta,
-           output reg [9:0] vs_end,
-           output reg [9:0] va_end,
-           output reg [9:0] hoffset,
-           output reg [9:0] voffset,
-`endif
            input irq,
            input ilp,
            input immc,
@@ -78,13 +67,6 @@ module registers(
        );
 
 integer n;
-`ifdef EXTRA_REGS
-reg [2:0] extra_reg_state;
-reg [7:0] extra_reg_loc;
-reg [7:0] extra_reg_hi;
-reg [7:0] extra_reg_lo;
-reg extra_reg_disable;
-`endif
 
 // Register Read/Write
 always @(posedge clk_dot4x)
@@ -128,46 +110,6 @@ always @(posedge clk_dot4x)
         elp <= `FALSE;
         //dbo[7:0] <= 8'd0;
         //handle_sprite_crunch <= `FALSE;
-        
-`ifdef EXTRA_REGS
-        //extra_reg_state <= 3'b0;
-        //extra_reg_loc <= 8'b0;
-        //extra_reg_disable <= 1'b0;
-        extra_reg_hi <= 8'hff;
-        extra_reg_lo <= 8'hff;
-        case (chip)
-            CHIP6569, CHIPUNUSED: begin
-               hs_sta <= 10;
-               hs_end <= 10 + 60;
-               ha_sta <= 10 + 60 + 30;
-               vs_sta <= 569 + 11;
-               vs_end <= 569 + 11 + 3;
-               va_end <= 569;
-               hoffset <= 10;
-               voffset <= 20;
-            end 
-            CHIP6567R8: begin
-               hs_sta <= 10;
-               hs_end <= 10 + 62;
-               ha_sta <= 10 + 62 + 31;
-               vs_sta <= 502 + 10;
-               vs_end <= 502 + 10 + 3;
-               va_end <= 502;
-               hoffset <= 20;
-               voffset <= 52;
-            end
-            CHIP6567R56A: begin
-               hs_sta <= 10;
-               hs_end <= 10 + 61;
-               ha_sta <= 10 + 61 + 31;
-               vs_sta <= 502 + 10;
-               vs_end <= 502 + 10 + 3;
-               va_end <= 502;
-               hoffset <= 20;
-               voffset <= 52;
-            end
-         endcase
-`endif
     end else
     begin
         // always clear these at the end of the high phase
@@ -306,18 +248,6 @@ always @(posedge clk_dot4x)
                         dbo[7:0] <= {4'b1111, sprite_col[6]};
                     /* 0x2e */ REG_SPRITE_COLOR_7:
                         dbo[7:0] <= {4'b1111, sprite_col[7]};
-`ifdef EXTRA_REGS
-                    // To read a register, poke the ascii chars "VIC" into 54270
-                    // followed by the extra reg location followed a peek.
-                    // i.e. POKE 54270,86:POKE 54270,73:POKE 54270,67:POKE 54270,REG
-                    //      LO_VAL=PEEK(54270):HI_VAL=PEEK(54271)
-                    'h3d:
-                       if (!extra_reg_disable)
-                          dbo[7:0] <= extra_reg_hi;
-                    'h3e:
-                       if (!extra_reg_disable)
-                          dbo[7:0] <= extra_reg_lo;
-`endif
                     default:;
                 endcase
             end
@@ -446,69 +376,6 @@ always @(posedge clk_dot4x)
                             sprite_col[6] <= vic_color'(dbi[3:0]);
                         /* 0x2e */ REG_SPRITE_COLOR_7:
                             sprite_col[7] <= vic_color'(dbi[3:0]);
-
-`ifdef EXTRA_REGS
-                        // To change a register:
-                        //      POKE 54269,HI:POKE 54270,LO
-                        //      POKE 54271,86:POKE 54271,73:POKE 54271,67
-                        //      POKE 54271,REG:POKE54271,1
-                        // To read a register:
-                        //      POKE 54271,86:POKE 54271,73:POKE 54271,67
-                        //      POKE 54271,REG:POKE54271,0
-                        //      HI=PEEK(44269):LO=PEEK(54270)
-                        6'h3d:
-                           extra_reg_hi <= dbi[7:0];
-                        6'h3e:
-                           extra_reg_lo <= dbi[7:0];
-                        6'h3f: begin
-                            if (!extra_reg_disable) begin
-                               if (dbi[7:0] == 8'h56 && extra_reg_state == 3'd0) begin
-                                  extra_reg_state <= extra_reg_state + 1;
-                               end
-                               else if (dbi[7:0] == 8'h49 && extra_reg_state == 3'd1) begin
-                                  extra_reg_state <= extra_reg_state + 1;
-                               end
-                               else if (dbi[7:0] == 8'h43 && extra_reg_state == 3'd2) begin
-                                  extra_reg_state <= extra_reg_state + 1;
-                               end
-                               else if (extra_reg_state == 3'd3) begin
-                                  extra_reg_loc <= dbi;
-                                  extra_reg_state <= extra_reg_state + 1;
-                               end
-                               else if (extra_reg_state == 3'd4) begin
-                                  if (dbi[0]) begin // write
-                                  case (extra_reg_loc)
-                                    'd00: extra_reg_disable <= 1'b1;
-                                    'd01: begin hs_sta[7:0] <= extra_reg_lo; hs_sta[9:8] <= extra_reg_hi[1:0]; end
-                                    'd02: begin hs_end[7:0] <= extra_reg_lo; hs_end[9:8] <= extra_reg_hi[1:0]; end
-                                    'd03: begin ha_sta[7:0] <= extra_reg_lo; ha_sta[9:8] <= extra_reg_hi[1:0]; end
-                                    'd04: begin vs_sta[7:0] <= extra_reg_lo; vs_sta[9:8] <= extra_reg_hi[1:0]; end
-                                    'd05: begin vs_end[7:0] <= extra_reg_lo; vs_end[9:8] <= extra_reg_hi[1:0]; end
-                                    'd06: begin va_end[7:0] <= extra_reg_lo; va_end[9:8] <= extra_reg_hi[1:0]; end
-                                    'd07: begin hoffset[7:0] <= extra_reg_lo; hoffset[9:8] <= extra_reg_hi[1:0]; end
-                                    'd08: begin voffset[7:0] <= extra_reg_lo; voffset[9:8] <= extra_reg_hi[1:0]; end
-                                    default: ;
-                                  endcase
-                                  end else begin // read
-                                  case (extra_reg_loc)
-                                    'd01: begin extra_reg_lo <= hs_sta[7:0]; extra_reg_hi <= {6'b0, hs_sta[9:8]}; end
-                                    'd02: begin extra_reg_lo <= hs_end[7:0]; extra_reg_hi <= {6'b0, hs_end[9:8]}; end
-                                    'd03: begin extra_reg_lo <= ha_sta[7:0]; extra_reg_hi <= {6'b0, ha_sta[9:8]}; end
-                                    'd04: begin extra_reg_lo <= vs_sta[7:0]; extra_reg_hi <= {6'b0, vs_sta[9:8]}; end
-                                    'd05: begin extra_reg_lo <= vs_end[7:0]; extra_reg_hi <= {6'b0, vs_end[9:8]}; end
-                                    'd06: begin extra_reg_lo <= va_end[7:0]; extra_reg_hi <= {6'b0, va_end[9:8]}; end
-                                    'd07: begin extra_reg_lo <= hoffset[7:0]; extra_reg_hi <= {6'b0, hoffset[9:8]}; end
-                                    'd08: begin extra_reg_lo <= voffset[7:0]; extra_reg_hi <= {6'b0, voffset[9:8]}; end
-                                    default: ;
-                                  endcase
-                                  end
-                                  extra_reg_state <= 3'd0;
-                               end
-                               else
-                                  extra_reg_state <= 3'd0;
-                            end
-                        end
-`endif
                         default:;
                     endcase
                 end
