@@ -12,6 +12,8 @@
 #define CHIP6567R56A 2
 #define CHIPUNUSED 3
 
+#define BORDER_DELAY 2
+
 // Dot 8.1818181
 // Color 3.579545
 #define NTSC_HALF_4X_DOT_PS 15277   // half the period of 32.727272Mhz
@@ -140,8 +142,8 @@
 #define V_SPRITE_MCBASE top__DOT__vic_inst__DOT__vic_sprites__DOT__sprite_mcbase
 #define V_SPRITE_RASTER_X top__DOT__sprite_raster_x
 #define V_RASTER_IRQ_TRIGGERED top__DOT__vic_inst__DOT__raster_irq_triggered
-#define V_TBBORDER top__DOT__vic_inst__DOT__top_bot_border
-#define V_LRBORDER top__DOT__vic_inst__DOT__left_right_border
+#define V_VBORDER top__DOT__vic_inst__DOT__top_bot_border
+#define V_MAIN_BORDER top__DOT__vic_inst__DOT____Vcellout__vic_border__main_border
 #define V_SET_VBORDER top__DOT__vic_inst__DOT__vic_border__DOT__set_vborder
 #define V_COLLISION top__DOT__collision
 #define V_CHAR_NEXT top__DOT__vic_inst__DOT__char_next
@@ -151,3 +153,4 @@
 #define V_LPX top__DOT__vic_inst__DOT__lpx
 #define V_LPY top__DOT__vic_inst__DOT__lpy
 #define V_CHIP top__DOT__chip
+#define V_LOAD_PIXELS top__DOT__vic_inst__DOT__vic_pixel_sequencer__DOT__load_pixels

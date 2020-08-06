@@ -395,15 +395,16 @@ always @(posedge clk_dot4x)
     else
         cycle_fine_ctr <= cycle_fine_ctr + 5'b1;
 
-// xpos_d is xpos shifted by the pixel delay minus 1. It is used
-// to delay both pixels and border locations to align with expected
-// times pixels should come out of the sequencer.
+// xpos_d is xpos shifted by the pixel delay minus 1 to delay
+// border values to match VICE logic. Also used in sprite module
+// for x location matches to start the shifter.
 assign xpos_d = xpos >= (`DATA_PIXEL_DELAY - 1) ? xpos - (`DATA_PIXEL_DELAY - 1) : max_xpos - (`DATA_PIXEL_DELAY - 2) + xpos;
 
-// border
-reg top_bot_border;
-reg left_right_border;
 
+`define BORDER_DELAY 2
+// border logic
+reg top_bot_border;
+reg left_right_border[`BORDER_DELAY + 1];
 border vic_border(
            .rst(rst),
            .clk_dot4x(clk_dot4x),
@@ -415,22 +416,17 @@ border vic_border(
            .csel(csel),
            .den(den),
            .vborder(top_bot_border),
-           .main_border(left_right_border)
+           .main_border(left_right_border[0])
        );
 
-// We delay the border mask by 2 dots. For simulator comparison to VICE,
-// however, we use the non-delayed values.
-reg top_bot_border1;
-reg top_bot_border2;
-reg left_right_border1;
-reg left_right_border2;
+// We delay the left/right border mask. For simulator
+// comparison to VICE, however, we use the non-delayed values.
 always @(posedge clk_dot4x)
 begin
    if (dot_rising[0]) begin
-      top_bot_border1 <= top_bot_border;
-      top_bot_border2 <= top_bot_border1;
-      left_right_border1 <= left_right_border;
-      left_right_border2 <= left_right_border1;
+      for (n=0; n < `BORDER_DELAY; n++) begin
+          left_right_border[n+1] <= left_right_border[n];
+      end
    end
 end
 
@@ -444,7 +440,7 @@ lightpen vic_lightpen(
            .raster_line(raster_line),
            .raster_y_max(raster_y_max),
            .lp(lp),
-           .xpos_div_2(xpos_d[8:1]),
+           .xpos_div_2(xpos_d[8:1]), // use xpos here instead?
            .lpx(lpx),
            .lpy(lpy),
            .ilp(ilp)
@@ -640,8 +636,8 @@ sprites vic_sprites(
          .sprite_pixels(sprite_pixels),
          .vic_write_db(vic_write_db),
          .is_background_pixel1(is_background_pixel1),
-         .top_bot_border(top_bot_border2), // delayed
-         .left_right_border(left_right_border2), // delayed
+         .top_bot_border(top_bot_border),
+         .left_right_border(left_right_border[`BORDER_DELAY]), // delayed
          .imbc_clr(imbc_clr),
          .immc_clr(immc_clr),
          .sprite_dmachk1(sprite_dmachk1),
@@ -857,6 +853,7 @@ pixel_sequencer vic_pixel_sequencer(
                     .mcm(reg16_delayed[4]), // delayed
                     .bmm(reg11_delayed[5]), // delayed
                     .ecm(reg11_delayed[6]), // delayed
+                    .cycle_num(cycle_num),
                     .xpos_mod_8(xpos_d[2:0]), // delayed
                     .xscroll(xscroll),
                     .pixels_read(pixels_read),
@@ -866,8 +863,8 @@ pixel_sequencer vic_pixel_sequencer(
                     .b2c(b2c),
                     .b3c(b3c),
                     .ec(ec),
-                    .left_right_border(left_right_border2), // delayed
-                    .top_bot_border(top_bot_border2), // delayed
+                    .left_right_border(left_right_border[`BORDER_DELAY]), // delayed
+                    .top_bot_border(top_bot_border),
                     .sprite_cur_pixel(sprite_cur_pixel),
                     .sprite_pri(sprite_pri),
                     .sprite_mmc(sprite_mmc),

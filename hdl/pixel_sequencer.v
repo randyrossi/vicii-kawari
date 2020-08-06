@@ -12,6 +12,7 @@ module pixel_sequencer(
            input bmm,
            input ecm,
            input [2:0] xpos_mod_8,
+           input [6:0] cycle_num,
            input [2:0] xscroll,
            input [7:0] pixels_read,
            input [11:0] char_read,
@@ -59,10 +60,13 @@ begin
     //    pixels_delayed[0] <= 8'd0;
     //    char_delayed[0] <= 12'd0;
     //end else
+    // align char, pixel and xscroll to start of high phase
     if (clk_phi == `FALSE && phi_phase_start_15) begin
         pixels_delayed[0] <= pixels_read;
         char_delayed[0] <= char_read;
-        xscroll_delayed <= xscroll; // aligns xscroll changes to start of high phase
+        // pick up xscroll only inside visible cycles
+        if (cycle_num >= 15 && cycle_num <= 55)
+           xscroll_delayed <= xscroll;
     end
 end
 

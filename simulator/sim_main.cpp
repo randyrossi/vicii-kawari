@@ -137,6 +137,7 @@ static void HEADER(Vtop *top) {
    "D4X "
    "CNT "
    "POS "
+   "POSD "
    "CYC "
    "DOTR "
    "PHI "
@@ -172,6 +173,7 @@ static void STATE(Vtop *top) {
    "%01d   "   /*D4x*/
    "%02d  "   /*CNT*/
    "%03x "   /*POS*/
+   "%03x "   /*POS D*/
    " %02d "  /*CYC*/
    " %01d  "   /*DOTR*/
    " %01d  "   /*PHI*/
@@ -208,6 +210,7 @@ static void STATE(Vtop *top) {
    top->clk_dot4x ? 1 : 0,
    nextClkCnt,
    top->V_XPOS,
+   top->V_XPOS_D,
    top->V_CYCLE_NUM,
    top->V_CLK_DOT & 8 ? 1 : 0,
    top->clk_phi,
@@ -395,8 +398,8 @@ static void regs_vice_to_fpga(Vtop* top, struct vicii_state* state) {
        if (state->vice_reg[0x1e] != 0) top->V_M2M_TRIGGERED = 1;
        top->V_ILP = state->ilp;
 
-       top->V_TBBORDER = state->vborder;
-       top->V_LRBORDER = state->main_border;
+       top->V_VBORDER = state->vborder;
+       top->V_MAIN_BORDER = state->main_border;
        top->V_SET_VBORDER = state->set_vborder;
 
        // We need to populate our char buf from VICE's
@@ -819,8 +822,8 @@ int main(int argc, char** argv, char** env) {
     top->V_DEN = 1;
     top->V_CSEL = 1;
     top->V_RSEL = 1;
-    top->V_TBBORDER = 1;
-    top->V_LRBORDER = 1;
+    top->V_VBORDER = 1;
+    top->V_MAIN_BORDER = 1;
     top->V_SET_VBORDER = 1;
     top->V_B0C = 6;
     top->V_EC = 14;
@@ -1058,8 +1061,9 @@ int main(int argc, char** argv, char** env) {
 	   state->idle = top->V_IDLE;
 	   state->allow_bad_lines = top->V_ALLOW_BAD_LINES;
 	   state->reg11_delayed = top->V_REG11_DELAYED;
-	   state->vborder = top->V_TBBORDER;
-	   state->main_border = top->V_LRBORDER;
+	   state->vborder = top->V_VBORDER;
+	   state->main_border = top->V_MAIN_BORDER;
+
            if (top->ce == 0 && top->rw == 1) {
               // Chip selected and read, set data in state
               state->data_from_sim = top->V_DBO;
@@ -1138,6 +1142,7 @@ int main(int argc, char** argv, char** env) {
 				    for (n=0;n<0x2f;n++) {
                                        printf ("%02x=%02x\n", n, tmp_state.fpga_reg[n]);
                                     }
+				    break;
 			       default:
 				  break;
 		            }
