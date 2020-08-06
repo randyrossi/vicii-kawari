@@ -230,15 +230,13 @@ begin
     //end else
     begin
         // illegal modes should have black pixels
-        vic_color pixel_color1a;
         case ({ecm, bmm, mcm})
             MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR,
             MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP,
             MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
-                pixel_color1a = BLACK;
-            default: pixel_color1a = pixel_color1;
+                pixel_color2 = BLACK;
+            default: pixel_color2 = pixel_color1;
         endcase
-        pixel_color2 = pixel_color1a;
         // sprites overwrite pixels
         // The comparisons of background pixel and sprite pixels must be
         // on the same delay 'schedule' here.
@@ -263,7 +261,13 @@ begin
             // priority sprite's desire to leave foreground pixels alone overrides a lower
             // sprite's desire to overwrite it.
             if (sprite_pri[n] && !is_background_pixel2 && sprite_pixels_delayed1[n][1]) begin
-                pixel_color2 = pixel_color1a;
+                case ({ecm, bmm, mcm})
+                    MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR,
+                    MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP,
+                    MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
+                        pixel_color2 = BLACK;
+                    default: pixel_color2 = pixel_color1;
+                endcase
             end
         end
     end
