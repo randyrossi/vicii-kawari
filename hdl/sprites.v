@@ -85,8 +85,11 @@ always @(posedge clk_dot4x)
                 end
             end
         end
-        // check dma (VICE does this on HIGH, not sure if correct)
-        if (clk_phi && phi_phase_start_1 && (cycle_num == sprite_dmachk1 || cycle_num == sprite_dmachk2)) begin
+        // check dma
+        // NOTE: We used to do this on phi2 high like vice but this can't be correct because
+        // it causes ba to go low much too late for sprite 0.  An exception for checking
+        // dma/mcbase/ye_ff was added to the simulator.
+        if (!clk_phi && phi_phase_start_1 && (cycle_num == sprite_dmachk1 || cycle_num == sprite_dmachk2)) begin
             for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
                 if (!sprite_dma[n] && sprite_en[n] && raster_line[7:0] == sprite_y[n]) begin
                     sprite_dma[n] = 1;

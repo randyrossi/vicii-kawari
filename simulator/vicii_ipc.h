@@ -43,6 +43,7 @@ struct vicii_state {
   unsigned char irq;
   unsigned char badline;
   unsigned char char_buf[40]; // what's in the character buffer (char data)
+  unsigned int fpga_char_buf[40]; // what fpga thinks comparison in vice (both col and data)
   unsigned char color_buf[40]; // what's in the character buffer (upper 4 bits color data)
   unsigned char aec;
   unsigned char idle;

@@ -403,11 +403,9 @@ static void regs_vice_to_fpga(Vtop* top, struct vicii_state* state) {
        top->V_SET_VBORDER = state->set_vborder;
 
        // We need to populate our char buf from VICE's
-       top->V_CHAR_BUF[38] = state->char_buf[0] | (state->color_buf[0] << 8);
-       for (int i=37,j=1;i>=0;i--,j++) {
-          top->V_CHAR_BUF[i] = state->char_buf[j] | (state->color_buf[j] << 8);
+       for (int i=0;i < 40; i++) {
+           top->V_CHAR_BUF[i] = state->char_buf[i] | (state->color_buf[i] << 8);
        }
-       top->V_CHAR_NEXT = state->char_buf[39] | (state->color_buf[39] << 8);
 }
 
 static void regs_fpga_to_vice(Vtop* top, struct vicii_state* state) {
@@ -509,6 +507,11 @@ static void regs_fpga_to_vice(Vtop* top, struct vicii_state* state) {
           state->ye_ff[n] = top->V_SPRITE_YE_FF[n];
           state->sprite_dma[n] = top->V_SPRITE_DMA[n];
           state->fpga_reg[0x27+n] = top->V_SPRITE_COL[n] | 0xf0;
+       }
+
+       // Tell VICE what our char buf looks like or comparison
+       for (int i=0; i < 40; i++) {
+	  state->fpga_char_buf[i] = top->V_CHAR_BUF[i];
        }
 }
 
@@ -1128,6 +1131,10 @@ int main(int argc, char** argv, char** env) {
 				 // Next half cycle
                                  case SDLK_RIGHT:
                                     quit=true; break;
+				 // Next 10 cycles
+				 case SDLK_l:
+		        	    cycleByCycleCount = 20;
+                                    quit=true; break;
 				 // Next lines
                                  case SDLK_SPACE:
 		        	    cycleByCycleCount = numCycles * 2;
@@ -1140,8 +1147,15 @@ int main(int argc, char** argv, char** env) {
                                  case SDLK_r:
 				    regs_fpga_to_vice(top, &tmp_state);
 				    for (n=0;n<0x2f;n++) {
-                                       printf ("%02x=%02x\n", n, tmp_state.fpga_reg[n]);
+                                       printf ("%02x=%02x %s\n", n,
+                                          tmp_state.fpga_reg[n],
+					     toBin(8,tmp_state.fpga_reg[n]));
                                     }
+                                    printf ("IDLE %d\n", top->V_IDLE);
+                                    printf ("CYCLE_TYPE  %d\n", top->V_CYCLE_TYPE);
+                                    printf ("CHAR NEXT  %x\n", top->V_CHAR_NEXT);
+                                    printf ("CB %s\n", toBin(3,top->V_CB));
+                                    printf ("VM %s\n", toBin(4,top->V_VM));
 				    break;
 			       default:
 				  break;

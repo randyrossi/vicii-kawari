@@ -28,39 +28,39 @@ module bus_access(
 
 integer n;
 // our character line buffer
-reg [11:0] char_buf [38:0];
+reg [11:0] char_buf [39:0];
+reg [5:0] char_buf_counter;
 
 // c-access reads
 always @(posedge clk_dot4x)
     if (rst) begin
-        char_next <= 12'b0;
+        char_buf_counter <= 0;
+        char_next = 12'b0;
         for (n = 0; n < 39; n = n + 1) begin
             char_buf[n] <= 12'hff;
         end
     end else
     if (phi_phase_start_dav) begin
         case (cycle_type)
-            VIC_HRC, VIC_HGC: // badline c-access
-                if (!aec && !vic_write_db)
-                    char_next <= dbi;
-                else begin
-                    // We can get here if a badline condition brings ba low
-                    // and the 3 high aec cycles have not yet passed. When this
-                    // happens, we deliver 0xff for data but color is still
-                    // read from the data bus.
-                    char_next <= { dbi[11:8], 8'b11111111 };
+            VIC_HRC, VIC_HGC: begin // badline c-access
+                // Always read color and init data to 0xff
+                // - krestage 1st demo/starwars falcon cloud/comaland bee pic
+                char_next = { dbi[11:8], 8'b11111111 };
+                if (!aec) begin
+                    char_next[7:0] = dbi[7:0];
                 end
+                char_buf[char_buf_counter] = char_next;
+            end
             VIC_HRX, VIC_HGI: // not badline idle (char from cache)
-                char_next <= char_buf[38];
+                char_next = char_buf[char_buf_counter];
             default: ;
         endcase
-
         case (cycle_type)
             VIC_HRC, VIC_HGC, VIC_HRX, VIC_HGI: begin
-                for (n = 38; n > 0; n = n - 1) begin
-                    char_buf[n] = char_buf[n-1];
-                end
-                char_buf[0] = char_next;
+                if (char_buf_counter < 39)
+                    char_buf_counter <= char_buf_counter + 1;
+                 else
+                    char_buf_counter <= 0;
             end
             default: ;
         endcase

@@ -334,7 +334,7 @@ always @(posedge clk_dot4x)
 begin
     if (rst)
         allow_bad_lines <= `FALSE;
-    else if (phi_phase_start[0]) begin
+    else if (clk_phi && phi_phase_start[0]) begin
         if (raster_line == 48 && den == `TRUE)
             allow_bad_lines <= `TRUE;
         if (raster_line == 248)

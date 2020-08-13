@@ -33,7 +33,7 @@ typedef enum bit[3:0] {
             VIC_HRI  = 9, // high phase, refresh idle
             VIC_HRC  = 10, // high phase, c-access after r
             VIC_HGC  = 11, // high phase, c-access after g
-            VIC_HGI  = 12, // high phase, idle after g
+            VIC_HGI  = 12, // high phase, cached-c-access after g
             VIC_HI   = 13, // high phase, idle
             VIC_LI   = 14, // low phase, idle
             VIC_HRX  = 15  // high phase, cached-c-access after r
