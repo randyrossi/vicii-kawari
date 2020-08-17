@@ -17,7 +17,7 @@ module addressgen(
            input idle,
            input [7:0] refc,
            input [7:0] char_ptr,
-           input vic_write_db,
+           input aec,
            input [2:0] sprite_cnt,
            input [7:0] sprite_ptr[0:`NUM_SPRITES - 1],
            input [5:0] sprite_mc[0:`NUM_SPRITES - 1],
@@ -53,7 +53,7 @@ begin
         VIC_LP:
             vic_addr = {vm, 7'b1111111, sprite_cnt}; // p-access
         VIC_HS1, VIC_LS2, VIC_HS3:
-            if (!vic_write_db)
+            if (!aec)
                 vic_addr = {sprite_ptr[sprite_cnt], sprite_mc[sprite_cnt]}; // s-access
             else begin
                 if (ecm) // ecm

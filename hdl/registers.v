@@ -11,7 +11,7 @@ module registers(
            input phi_phase_start_dav,
            input ce,
            input rw,
-           input vic_write_ab,
+           input aec,
            input [5:0] adi,
            input [7:0] dbi,
            input [8:0] raster_line,
@@ -69,6 +69,7 @@ module registers(
 integer n;
 
 // Register Read/Write
+reg dbo_set;
 always @(posedge clk_dot4x)
     if (rst) begin
         //ec <= BLACK;
@@ -119,6 +120,9 @@ always @(posedge clk_dot4x)
             immc_clr <= `FALSE;
             ilp_clr <= `FALSE;
         end
+        if (!aec || ce) begin
+            dbo_set <= `FALSE;
+        end
         // sprite crunch simulation must be done before [15] of
         // the current phase
         if (phi_phase_start_15) begin
@@ -130,10 +134,12 @@ always @(posedge clk_dot4x)
             m2m_clr <= `FALSE;
             m2d_clr <= `FALSE;
         end
-        if (!vic_write_ab && !ce) begin
+        if (aec && !ce) begin
             // READ from register
-            if (rw) begin
-                dbo[7:0] <= 8'hFF;
+            if (rw && !dbo_set) begin
+                // Set dbo at first occurrence of aec && ew && !ce
+                // based on adi.
+                dbo_set <= `TRUE;
                 case (adi[5:0])
                     /* 0x00 */ REG_SPRITE_X_0:
                         dbo[7:0] <= sprite_x[0][7:0];
@@ -248,7 +254,8 @@ always @(posedge clk_dot4x)
                         dbo[7:0] <= {4'b1111, sprite_col[6]};
                     /* 0x2e */ REG_SPRITE_COLOR_7:
                         dbo[7:0] <= {4'b1111, sprite_col[7]};
-                    default:;
+                    default:
+                        dbo[7:0] <= 8'hFF;
                 endcase
             end
             // WRITE to register
@@ -258,8 +265,7 @@ always @(posedge clk_dot4x)
             //           111111          111111|
             // 01234567890123450123456789012345|
             //
-            else if (phi_phase_start_dav) begin
-                if (!rw) begin
+            else if (!rw && phi_phase_start_dav) begin
                     case (adi[5:0])
                         /* 0x00 */ REG_SPRITE_X_0:
                             sprite_x[0][7:0] <= dbi[7:0];
@@ -378,7 +384,6 @@ always @(posedge clk_dot4x)
                             sprite_col[7] <= vic_color'(dbi[3:0]);
                         default:;
                     endcase
-                end
             end
         end
     end

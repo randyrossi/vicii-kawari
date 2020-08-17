@@ -24,7 +24,7 @@ module sprites(
         input [7:0] sprite_mmc,
         input [2:0] sprite_cnt,
         input [7:0] raster_line, // top bit omitted for comparison to y
-        input vic_write_db,
+        input aec,
         input is_background_pixel1,
         input top_bot_border,
         input left_right_border,
@@ -179,7 +179,7 @@ begin
 
         // Transfer pixels from read register into the shifting register.  No real reason
         // we needed to do this. It just keeps the bus accesses all together in one module.
-        if (!vic_write_db && phi_phase_start_davp1) begin
+        if (!aec && phi_phase_start_davp1) begin
             case (cycle_type)
                 VIC_HS1, VIC_LS2, VIC_HS3:
                     if (sprite_dma[sprite_cnt])

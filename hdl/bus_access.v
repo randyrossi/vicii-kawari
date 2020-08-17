@@ -11,7 +11,6 @@
 module bus_access(
         input rst,
         input clk_dot4x,
-        input vic_write_db,
         input phi_phase_start_dav,
         input [3:0] cycle_type,
         input [11:0] dbi,
@@ -73,7 +72,7 @@ begin
         pixels_read <= 8'd0;
         char_read <= 12'd0;
     end else
-    if (!vic_write_db && phi_phase_start_dav) begin
+    if (!aec && phi_phase_start_dav) begin
         pixels_read <= 8'd0;
         if (cycle_type == VIC_LG) begin // g-access
             pixels_read <= dbi[7:0];
@@ -90,7 +89,7 @@ always @(posedge clk_dot4x)
         end
     end else
     begin
-        if (!vic_write_db && phi_phase_start_dav) begin
+        if (!aec && phi_phase_start_dav) begin
             case (cycle_type)
                 VIC_LP: // p-access
                     if (sprite_dma[sprite_cnt])
@@ -109,7 +108,7 @@ always @(posedge clk_dot4x)
 //            sprite_pixels[sprite_cnt] <= 23'd0;
 //        end
 //    end else
-    if (!vic_write_db && phi_phase_start_dav) begin
+    if (!aec && phi_phase_start_dav) begin
         case (cycle_type)
             VIC_HS1, VIC_LS2, VIC_HS3:
                 if (sprite_dma[sprite_cnt])

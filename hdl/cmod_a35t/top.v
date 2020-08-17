@@ -23,8 +23,11 @@
 // NOTE: The system clock configuration does not produce a suitable
 // color clock for PAL composite video.  This is due to there being
 // no mult/div possible from a 12Mhz clock to get an accurate color
-// clock.  Colors will 'shimmer'.  For a stable PAL composite signal,
-// an external clock must be used.
+// clock.  Consequently, colors will 'shimmer'.  For a stable PAL
+// composite signal, an external clock must be used. HDMI or VGA
+// output options don't require a color clock so the clock gens
+// could be modified to accept a 4x dot clock and phi could then
+// be derived from that clock.
 
 module top(
            input sys_clock,
@@ -69,7 +72,7 @@ wire [1:0] chip;
 wire clk_col4x;
 
 `ifndef IS_SIMULATOR
-// Vendor specific clock generators and chip selection
+// Clock generators and chip selection
 clockgen cmod_clockgen(
          .sys_clock(sys_clock),
          .clk_dot4x(clk_dot4x),
@@ -80,7 +83,8 @@ clockgen cmod_clockgen(
 
 // This is a reset line for the CPU which would have to be
 // connected with a jumper.  It holds the CPU in reset
-// before the clock is locked.
+// before the clock is locked.  TODO: Find out if this is
+// actually required.
 assign cpu_reset = rst;
 
 wire [7:0] dbo;
@@ -184,9 +188,9 @@ vga_sync vic_vga_sync(
 // FINAL OUTPUT RGB values from stage 4 indexed value.
 // The source pixel depends on video type (composite/vga)
 
-// NOTE: It would be possible to output both VGA and Composite
-// simultaneously if we had dedicated rgb lines for each video
-// standard.
+// NOTE: It would be possible to output both HDMI/VGA and
+// Composite simultaneously if we had dedicated rgb lines for
+// each.
 
 // Translate pixel_color3 (indexed) to RGB values
 color vic_colors(

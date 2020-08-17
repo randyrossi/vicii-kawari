@@ -137,10 +137,6 @@ reg allow_bad_lines;
 reg [7:0] reg11_delayed;
 reg [4:0] reg16_delayed;
 
-// A counter that increments with each dot4x clock tick
-// Used for precise timing within a phase for some circumstances
-reg [4:0] cycle_fine_ctr;
-
 // xpos is the x coordinate relative to raster irq
 // It is not simply raster_x with an offset, it does not
 // increment on certain cycles for 6567R8
@@ -389,12 +385,6 @@ always @(posedge clk_dot4x)
         refc <= 8'hff;
     end
 
-always @(posedge clk_dot4x)
-    if (rst)
-        cycle_fine_ctr <= 5'd3;
-    else
-        cycle_fine_ctr <= cycle_fine_ctr + 5'b1;
-
 // xpos_d is xpos shifted by the pixel delay minus 1 to delay
 // border values to match VICE logic. Also used in sprite module
 // for x location matches to start the shifter.
@@ -488,7 +478,7 @@ always @(*)
         else
             ba_chars = `TRUE;
     end
-
+    
 // Handle when ba should go low due to s-access. These ranges are
 // compared against sprite_raster_x which is just raster_x with an
 // offset that brings sprite 0 to the start.
@@ -634,7 +624,7 @@ sprites vic_sprites(
          .sprite_mmc(sprite_mmc),
          .sprite_cnt(sprite_cnt),
          .sprite_pixels(sprite_pixels),
-         .vic_write_db(vic_write_db),
+         .aec(aec),
          .is_background_pixel1(is_background_pixel1),
          .top_bot_border(top_bot_border),
          .left_right_border(left_right_border[`BORDER_DELAY]), // delayed
@@ -668,52 +658,28 @@ always @(posedge clk_dot4x)
     end
 
 // For reference, on LS245's:
-// OE pin low = all channels active
-// OE pin high = all channels disabled
+//    OE pin low = all channels active
+//    OE pin high = all channels disabled
+//    DIR pin low = Bx to Ax (vic sets bus)
+//    DIR pin high = Ax to Bx (vic reads bus)
 
-// aec -> LS245 DIR Pin (addr)
-// aec   : low = VIC sets address lines (Bx to Ax)
-//       : high = VIC reads address lines(Ax to Bx)
-// When CPU owns the bus (aec high), VIC reads address lines (high)
-// When VIC owns the bus (aec low), VIC sets address lines (low)
-// OE pin is grounded (always enabled)
+// Both data/addr LS245s have OE pin grounded (always enabled)
 
-// ls245_dir -> LS245 DIR Pin (data)
-// ls245_dir : low = VIC writes to data lines (Bx to Ax)
-//             high = VIC reads from data lines (Ax to Bx)
-// When CPU owns the bus (aec high)
-//   VIC writes to data bus when rw high (rw)
-//   VIC reads from data bus when rw low (rw)
-// When VIC owns the bus (aec low)
-//   VIC reads from data (1)
-// OE pin is grounded (always enabled)
-assign ls245_dir = aec ? (!ce ? ~rw : `TRUE) : `TRUE;
-
-// aec ce rw den dir
-// 0   x  x  0   1    ; vic or stollen cycle, enable db and read
-// 1   0  1  0   0    ; cpu read from vic, enable db and write
-// 1   0  0  0   1    ; cpu write to vic, enable db and read
-// 1   1  x  1   1    ; cpu neither read nor write from/to vic, disable db, read
-
-// Apparently, even though AEC is high, we can't enable the data bus or we
-// have contention issues with something else (what?). There are timing
-// constraints that must go with our write condition.
-assign vic_write_db = aec && rw && ~ce && cycle_fine_ctr <= 23;
-
-// NTSC : 977.8ns - 1 tick is 30.55ns
-// PAL : 1014.9ns - 1 tick is 31.71ns
-// 0123 4567 8911 1111 1111 2222 2222 2233
-//             01 2345 6789 0123 4567 8901
-
+// We write to data bus when aec is high, chip select is low and rw is high
+// (cpu reading from us).  
+assign vic_write_db = aec && rw && ~ce;
 
 // AEC low means we own the address bus so we can write to it.
+// For address bus direction pin, use aec,
 assign vic_write_ab = ~aec;
+
+// For data bus direction, use inverse of vic_write_db
+assign ls245_dir = ~vic_write_db;
 
 // Handle cycles that perform data bus accesses
 bus_access vic_bus_access(
          .rst(rst),
          .clk_dot4x(clk_dot4x),
-         .vic_write_db(vic_write_db),
          .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
          .cycle_type(cycle_type),
          .dbi(dbi),
@@ -744,7 +710,7 @@ addressgen vic_addressgen(
                .idle(idle),
                .refc(refc),
                .char_ptr(char_next[7:0]),
-               .vic_write_db(vic_write_db),
+               .aec(aec),
                .sprite_cnt(sprite_cnt),
                .sprite_ptr(sprite_ptr),
                .sprite_mc(sprite_mc),
@@ -760,7 +726,7 @@ registers vic_registers(
               .phi_phase_start_dav(phi_phase_start[`REG_DAV]),
               .ce(ce),
               .rw(rw),
-              .vic_write_ab(vic_write_ab),
+              .aec(aec),
               .adi(adi),
               .dbi(dbi[7:0]),
               .raster_line(raster_line_d), // advertise the delayed version
