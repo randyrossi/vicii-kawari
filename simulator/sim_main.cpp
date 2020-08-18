@@ -435,6 +435,7 @@ static void regs_fpga_to_vice(Vtop* top, struct vicii_state* state) {
           ((top->V_VM & 0xf) << 4);
 
        state->fpga_reg[0x19] =
+	  (top->V_IRQ ? 128 : 0) |
           (top->V_IRST ? 1 : 0) |
           (top->V_IMBC ? 2 : 0) |
           (top->V_IMMC ? 4 : 0) |

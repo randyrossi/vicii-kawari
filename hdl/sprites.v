@@ -54,6 +54,14 @@ reg [7:0] sprite_shift;
 reg       sprite_mmc_ff[0:`NUM_SPRITES-1];
 reg [23:0] sprite_pixels_shifting [0:`NUM_SPRITES-1];
 
+// NOTE: If we match VICE, then ba will go low much too late for sprite 0.  Slight
+// difference between simulator and non-simulator code.
+`ifndef IS_SIMULATOR
+`define PHI_DMA_CONDITION !clk_phi
+`else
+`define PHI_DMA_CONDITION clk_phi
+`endif
+
 always @(posedge clk_dot4x)
     if (rst) begin
         for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
@@ -86,10 +94,7 @@ always @(posedge clk_dot4x)
             end
         end
         // check dma
-        // NOTE: We used to do this on phi2 high like vice but this can't be correct because
-        // it causes ba to go low much too late for sprite 0.  An exception for checking
-        // dma/mcbase/ye_ff was added to the simulator.
-        if (!clk_phi && phi_phase_start_1 && (cycle_num == sprite_dmachk1 || cycle_num == sprite_dmachk2)) begin
+        if (`PHI_DMA_CONDITION && phi_phase_start_1 && (cycle_num == sprite_dmachk1 || cycle_num == sprite_dmachk2)) begin
             for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
                 if (!sprite_dma[n] && sprite_en[n] && raster_line[7:0] == sprite_y[n]) begin
                     sprite_dma[n] = 1;
