@@ -330,7 +330,7 @@ always @(posedge clk_dot4x)
 begin
     if (rst)
         allow_bad_lines <= `FALSE;
-    else if (clk_phi && phi_phase_start[0]) begin
+    else if (clk_phi && phi_phase_start[1]) begin
         if (raster_line == 48 && den == `TRUE)
             allow_bad_lines <= `TRUE;
         if (raster_line == 248)
@@ -458,6 +458,7 @@ matrix vic_matrix(
    .clk_phi(clk_phi),
    .clk_dot4x(clk_dot4x),
    .phi_phase_start_1(phi_phase_start[1]),
+   .phi_phase_start_14(phi_phase_start[14]),
    .cycle_num(cycle_num),
    .raster_line(raster_line),
    .badline(badline),
@@ -600,7 +601,7 @@ reg m2m_clr;
 reg m2d_clr;
 reg [7:0] sprite_m2m;
 reg [7:0] sprite_m2d;
-        
+
 sprites vic_sprites(
          .rst(rst),
          .clk_dot4x(clk_dot4x),
@@ -802,10 +803,10 @@ begin
 end
 
 // use delayed reg11 for yscroll
-always @(raster_line, reg11_delayed, allow_bad_lines)
+always @(raster_line_d, reg11_delayed, allow_bad_lines)
 begin
     badline = `FALSE;
-    if (raster_line[2:0] == reg11_delayed[2:0] && allow_bad_lines == `TRUE && raster_line >= 48 && raster_line < 248)
+    if (raster_line_d[2:0] == reg11_delayed[2:0] && allow_bad_lines == `TRUE && raster_line_d >= 48 && raster_line_d < 248)
         badline = `TRUE;
 end
 

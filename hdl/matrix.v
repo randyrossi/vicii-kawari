@@ -8,6 +8,7 @@ module matrix(
    input clk_phi,
    input clk_dot4x,
    input phi_phase_start_1,
+   input phi_phase_start_14,
    input [6:0] cycle_num,
    input [8:0] raster_line,
    input badline,
@@ -51,14 +52,16 @@ always @(posedge clk_dot4x)
             if (cycle_num == 57) begin
                 if (rc == 3'd7) begin
                     vc_base <= vc;
-                    idle = 1;
+                    idle = `TRUE;
                 end
                 if (!idle | badline) begin
                     rc <= rc + 1'b1;
                     idle = `FALSE;
                 end
             end
+        end
 
+        if (clk_phi && phi_phase_start_14) begin
             if (badline)
                 idle = `FALSE;
         end

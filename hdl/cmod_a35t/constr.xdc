@@ -15,7 +15,7 @@ create_clock -add -name pal_clk_pin -period 56.38 -waveform {0 28.19} [get_ports
 set_property -dict { PACKAGE_PIN W5 IOSTANDARD LVCMOS33 } [get_ports { sys_clock }];
 
 # USE_EXTCLOCK_NTSC - Pin36 External 14.3Mhz
-#create_clock -add -name pal_clk_pin -period 69.84 -waveform {0 34.92} [get_ports {sys_clock}];
+#create_clock -add -name ntsc_clk_pin -period 69.84 -waveform {0 34.92} [get_ports {sys_clock}];
 #set_property -dict { PACKAGE_PIN W5 IOSTANDARD LVCMOS33 } [get_ports { sys_clock }];
 
 # Board Pins
