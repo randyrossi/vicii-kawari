@@ -1,29 +1,35 @@
 !to "pound.prg",cbm
 
-; Futz with yscroll to mess with badlines
+; Shove random bytes into vic registers
 
-  *=$8000
+  *=$800
 
+!byte $00,$0b,$08,$01,$00,$9e,$32,$30,$36,$31,$00,$00,$00
 
-  lda #$f8
-  and $d011
-  and $d016
+begin:
+  ; start sync
+  lda #1
+  sta $d3ff
 
-reset
-  ldy #7
-loop
-  tya
-  sta $d020
-  sta $d021
-  and $d011
-  and $d016
+loop:
+  ; 8100 is reg offset
+  lda #$2e
+  sta $8100
 
-  dey
-  bne loop
-
-  lda $d012
-  sta $d011
-  sta $d016
-  sta $d018
-  
-  jmp reset
+fill:
+  ; gen a random byte into $64
+  jsr $e09a
+  lda $8100
+  tax
+  ; don't ever poke $1a to enable interrupts
+  cpx #$1a
+  beq skip
+  lda $64
+  sta $d000,x
+skip
+  dex
+  txa
+  sta $8100
+  cmp #$ff
+  bne fill 
+  jmp loop
