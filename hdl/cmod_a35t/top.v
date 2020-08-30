@@ -64,7 +64,7 @@ module top(
            output ba,           // ba
            output cas,          // column address strobe
            output ras,          // row address strobe
-           output ls245_dir     // DIR for bus transceiver
+           output ls245_data_dir   // DIR for data bus transceiver
        );
 
 wire rst;
@@ -136,7 +136,7 @@ vicii vic_inst(
           .ba(ba),
           .cas(cas),
           .ras(ras),
-          .ls245_dir(ls245_dir),
+          .ls245_data_dir(ls245_data_dir),
           .vic_write_db(vic_write_db),
           .vic_write_ab(vic_write_ab)
       );

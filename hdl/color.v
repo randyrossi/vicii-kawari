@@ -12,7 +12,7 @@ module color(
 always @*
     case (out_pixel)
         BLACK:{red, green, blue} = {3'h00, 3'h00, 3'h00 };
-        WHITE:{red, green, blue} = {3'h06, 3'h06, 3'h06 };
+        WHITE:{red, green, blue} = {3'h07, 3'h07, 3'h07 };
         RED:{red, green, blue} = {3'h03, 3'h01, 3'h01 };
         CYAN:{red, green, blue} = {3'h03, 3'h05, 3'h05 };
         PURPLE:{red, green, blue} = {3'h03, 3'h01, 3'h04 };

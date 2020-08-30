@@ -38,7 +38,7 @@ module vicii(
            output ba,
            output ras,
            output cas,
-           output ls245_dir,
+           output ls245_data_dir,
            output vic_write_db,
            output vic_write_ab
        );
@@ -330,7 +330,7 @@ always @(posedge clk_dot4x)
 begin
     if (rst)
         allow_bad_lines <= `FALSE;
-    else if (clk_phi && phi_phase_start[1]) begin
+    else if (clk_phi && phi_phase_start[0]) begin
         if (raster_line == 48 && den == `TRUE)
             allow_bad_lines <= `TRUE;
         if (raster_line == 248)
@@ -675,7 +675,9 @@ assign vic_write_db = aec && rw && ~ce;
 assign vic_write_ab = ~aec;
 
 // For data bus direction, use inverse of vic_write_db
-assign ls245_dir = ~vic_write_db;
+assign ls245_data_dir = ~vic_write_db;
+//assign ls245_data_oe = aec & ce;
+
 
 // Handle cycles that perform data bus accesses
 bus_access vic_bus_access(
