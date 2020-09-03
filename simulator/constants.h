@@ -62,8 +62,7 @@
 #define V_DBI top__DOT____Vcellinp__vic_inst__dbi
 #define V_ADO ado_sim
 #define V_PPS top__DOT__vic_inst__DOT__phi_phase_start
-#define V_XPOS top__DOT__vic_inst__DOT__xpos
-#define V_XPOS_D top__DOT__xpos_d
+#define V_XPOS top__DOT__xpos
 #define V_CYCLE_NUM top__DOT__vic_inst__DOT__cycle_num
 #define V_CLK_DOT top__DOT__vic_inst__DOT__dot_rising
 #define V_CYCLE_BIT top__DOT__vic_inst__DOT__vic_raster__DOT__cycle_bit

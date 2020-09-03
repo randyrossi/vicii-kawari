@@ -101,7 +101,7 @@ wire vic_write_ab;
 wire vic_write_db;
 
 reg [9:0] raster_x;
-reg [9:0] xpos_d;
+reg [9:0] xpos;
 reg [8:0] raster_line;
 vic_color pixel_color3;
 
@@ -121,7 +121,7 @@ vicii vic_inst(
           .clk_dot4x(clk_dot4x),
           .clk_phi(clk_phi),
           .raster_x(raster_x),
-          .xpos_d(xpos_d),
+          .xpos(xpos),
           .raster_line(raster_line),
           .pixel_color3(pixel_color3),
           .adi(adl[5:0]),
@@ -160,7 +160,7 @@ comp_sync vic_comp_sync(
          .clk_dot4x(clk_dot4x),
          .clk_col4x(clk_col4x),
          .chip(chip),
-         .raster_x(xpos_d),
+         .raster_x(xpos),
          .raster_y(raster_line),
          .pixel_color3(pixel_color3),
          .csync(csync),

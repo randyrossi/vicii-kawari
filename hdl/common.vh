@@ -7,8 +7,12 @@
 `define DATA_DAV 13
 // Sprite read phi_phase_start data available
 `define SPRITE_DAV 13
-// How many dot ticks we need to delay our bitmap pixels before they get into the shifter
-`define DATA_PIXEL_DELAY 8
+// How many dot ticks gfx data is delayed before it gets into the shifter
+`define XPOS_GFX_DELAY 8
+// How many dot ticks sprite data is delayed before entering sprite shifter
+// Sprite pixels out of the shifter are delayed by 3 more pixels to align with gfx.
+`define XPOS_SPRITE_DELAY 5
+
 // Will never change but used in loops
 `define NUM_SPRITES 8
 

@@ -21,8 +21,7 @@ module pixel_sequencer(
            input vic_color b2c,
            input vic_color b3c,
            input vic_color ec,
-           input left_right_border,
-           input top_bot_border,
+           input main_border,
            input [1:0] sprite_cur_pixel [`NUM_SPRITES-1:0],
            input [7:0] sprite_pri,
            input [7:0] sprite_mmc,
@@ -43,8 +42,8 @@ integer n;
 // char and pixels delayed before entering shifter
 // TODO: Now that the precise delay is known, there's no need for this
 // many regs for char/pixels delay. Change to use one reg.
-reg [11:0] char_delayed[`DATA_PIXEL_DELAY + 1];
-reg [7:0] pixels_delayed[`DATA_PIXEL_DELAY + 1];
+reg [11:0] char_delayed[`XPOS_GFX_DELAY + 1];
+reg [7:0] pixels_delayed[`XPOS_GFX_DELAY + 1];
 reg [2:0] xscroll_delayed;
 reg [1:0] sprite_pixels_delayed1[`NUM_SPRITES];
 
@@ -70,7 +69,7 @@ begin
     end
 end
 
-// Now delay these pixels until pixels_delayed[DATA_PIXEL_DELAY]
+// Now delay these pixels until pixels_delayed[XPOS_GFX_DELAY]
 // is available for loading into shifting pixels by load_pixels
 // flag starting with xpos ##0 and fully available until xpos ##7.
 // This makes loading pixels on ##0 make the first pixel show
@@ -79,13 +78,13 @@ end
 always @(posedge clk_dot4x)
 begin
     //if (rst) begin
-    //    for (n = `DATA_PIXEL_DELAY; n > 0; n = n - 1) begin
+    //    for (n = `XPOS_GFX_DELAY; n > 0; n = n - 1) begin
     //        pixels_delayed[n] <= 8'd0;
     //        char_delayed[n] <= 12'd0;
     //    end
     //end else
     if (dot_rising_0) begin
-        for (n = `DATA_PIXEL_DELAY; n > 0; n = n - 1) begin
+        for (n = `XPOS_GFX_DELAY; n > 0; n = n - 1) begin
             pixels_delayed[n] <= pixels_delayed[n-1];
             char_delayed[n] <= char_delayed[n-1];
         end
@@ -122,7 +121,7 @@ always @(posedge clk_dot4x)
     //end else
     if (dot_rising_0) begin // rising dot
         if (load_pixels)
-            shift_pixels <= ~(mcm & (bmm | ecm | char_delayed[`DATA_PIXEL_DELAY][11]));
+            shift_pixels <= ~(mcm & (bmm | ecm | char_delayed[`XPOS_GFX_DELAY][11]));
         else
             shift_pixels <= ismc ? ~shift_pixels : shift_pixels;
     end
@@ -133,7 +132,7 @@ always @(posedge clk_dot4x)
     //end else
     if (dot_rising_0) begin
         if (load_pixels)
-            char_shifting <= char_delayed[`DATA_PIXEL_DELAY];
+            char_shifting <= char_delayed[`XPOS_GFX_DELAY];
     end
 
 // Pixel shifter
@@ -146,8 +145,8 @@ always @(posedge clk_dot4x) begin
     // for the currently shifting pixel entering the final output pipeline
     else if (dot_rising_0) begin
         if (load_pixels) begin
-            pixels_shifting <= pixels_delayed[`DATA_PIXEL_DELAY];
-            is_background_pixel1 <= !pixels_delayed[`DATA_PIXEL_DELAY][7];
+            pixels_shifting <= pixels_delayed[`XPOS_GFX_DELAY];
+            is_background_pixel1 <= !pixels_delayed[`XPOS_GFX_DELAY][7];
         end else if (shift_pixels) begin
             if (ismc) begin
                 pixels_shifting <= {pixels_shifting[5:0], 2'b0};
@@ -280,7 +279,7 @@ begin
     //    pixel_color3 <= BLACK;
     //end else
     begin
-        if (left_right_border | top_bot_border)
+        if (main_border)
             pixel_color3 <= ec;
         else
             pixel_color3 <= pixel_color2;

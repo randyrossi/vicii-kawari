@@ -137,7 +137,6 @@ static void HEADER(Vtop *top) {
    "D4X "
    "CNT "
    "POS "
-   "POSD "
    "CYC "
    "DOTR "
    "PHI "
@@ -173,7 +172,6 @@ static void STATE(Vtop *top) {
    "%01d   "   /*D4x*/
    "%02d  "   /*CNT*/
    "%03x "   /*POS*/
-   "%03x "   /*POS D*/
    " %02d "  /*CYC*/
    " %01d  "   /*DOTR*/
    " %01d  "   /*PHI*/
@@ -210,7 +208,6 @@ static void STATE(Vtop *top) {
    top->clk_dot4x ? 1 : 0,
    nextClkCnt,
    top->V_XPOS,
-   top->V_XPOS_D,
    top->V_CYCLE_NUM,
    top->V_CLK_DOT & 8 ? 1 : 0,
    top->clk_phi,
@@ -1104,8 +1101,8 @@ int main(int argc, char** argv, char** env) {
            }
 
 	   if (cycleByCycle && top->clk_phi != last_phase) {
-               printf ("FINISHED PHASE %d (now cycle=%d, line=%d, xpos=%03x) VC=%d VCBASE=%d RC=%d\n",
-                     last_phase+1, top->V_CYCLE_NUM, top->V_RASTER_LINE, top->V_XPOS, top->V_VC, top->V_VCBASE, top->V_RC);
+               printf ("FINISHED PHASE %d (now cycle=%d, line=%d, xpos=%03x) VC=%d VCBASE=%d RC=%d XPOS=%d\n",
+                     last_phase+1, top->V_CYCLE_NUM, top->V_RASTER_LINE, top->V_XPOS, top->V_VC, top->V_VCBASE, top->V_RC, top->V_XPOS);
 	       last_phase = top->clk_phi;
 	   }
 
