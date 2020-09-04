@@ -8,7 +8,7 @@
 // starting things off with PHI LOW but already 1/4 the way
 // through its phase and with DOT high but already on the second
 // pixel. (This really only matters for the simulator since things
-// would eventually come into line the next cycle anyway).
+// would eventually fall into line eventually anyway).
 
 // Notes on RST : The reset signal has to reach every flip flop we
 // end up resetting.  Try to keep this list to essential resets only.
@@ -43,7 +43,8 @@ module vicii(
            output vic_write_ab
        );
 
-// BA must go low 3 cycles before HS1, HS3, HRC & HGC
+// BA must go low 3 cycles before any dma access on a PHI
+// HIGH phase.
 
 // AEC is LOW for PHI LOW phase (vic) and HIGH for PHI
 // HIGH phase (cpu) but kept LOW in PHI HIGH phase if vic
@@ -76,11 +77,6 @@ reg [9:0] sprite_raster_x;
 // clk_dot;       8.18181 Mhz NTSC, 7.8819888 Mhz PAL
 // clk_colref     3.579545 Mhz NTSC, 4.43361875 Mhz PAL
 // clk_phi        1.02272 Mhz NTSC, .985248 Mhz PAL
-
-// TODO: ba rise is configured to be on the falling edge of
-// phi.  Not sure if this is correct.  Might be on the rising
-// edge of the next high.  Need to check the scope.  If so, add
-// 4 to every ba_end below.
 
 // Set limits for chips
 always @(chip)
@@ -142,9 +138,8 @@ reg [4:0] reg16_delayed;
 // increment on certain cycles for 6567R8
 // chips and wraps at the high phase of cycle 12.
 
-// xpos_d is xpos shifted by the pixel delay minus 1 to delay
-// border values to match VICE logic. Also used in sprite module
-// for x location matches to start the shifter.
+// xpos_sprite and xpos_gfx is xpos shifted by a delay
+// value so the comparisons match VICE logic.
 reg [9:0] xpos_sprite;
 reg [9:0] xpos_gfx;
 
@@ -161,6 +156,7 @@ reg [2:0] sprite_cnt;
 reg [2:0] refresh_cnt;
 reg [2:0] idle_cnt;
 
+// Video matrix and character banks.
 reg [3:0] vm;
 reg [2:0] cb;
 
@@ -515,6 +511,7 @@ always @(posedge clk_dot4x)
         end
     end
 
+// Cycle state machine
 cycles vic_cycles(
    .rst(rst),
    .clk_dot4x(clk_dot4x),
@@ -679,6 +676,7 @@ assign vic_write_ab = ~aec;
 // For data bus direction, use inverse of vic_write_db
 assign ls245_data_dir = ~vic_write_db;
 //assign ls245_data_oe = aec & ce;
+//assign ls245_addr_dir = aec;
 
 
 // Handle cycles that perform data bus accesses

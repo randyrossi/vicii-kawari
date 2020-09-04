@@ -31,7 +31,7 @@
 
 module top(
            input sys_clock,
-           input is_composite,  // 1=composite, 0=vga/hdmi
+           input is_composite,  // HIGH=composite, LOW=vga/hdmi
            output cpu_reset,    // reset for 6510 CPU
            output clk_colref,   // output color ref clock for CXA1545P
            output clk_phi,      // output phi clock for CPU
@@ -39,7 +39,7 @@ module top(
            output csync,        // composite sync signal for CXA1545P
            output hsync,        // hsync signal for VGA/HDMI
            output vsync,        // vsync signal for VGA/HDMI
-           output active,
+           output active,       // display active for HDMI
            output [2:0] red,    // red out for CXA1545P
            output [2:0] green,  // green out for CXA1545P
            output [2:0] blue,   // blue out for CXA1545P
@@ -105,6 +105,7 @@ reg [9:0] xpos;
 reg [8:0] raster_line;
 vic_color pixel_color3;
 
+// Some vga/hdmi video timing regs
 reg [9:0] hs_sta;
 reg [9:0] hs_end;
 reg [9:0] ha_sta;
