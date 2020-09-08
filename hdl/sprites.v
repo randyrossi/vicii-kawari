@@ -65,19 +65,19 @@ reg [23:0] sprite_pixels_shifting [0:`NUM_SPRITES-1];
 always @(posedge clk_dot4x)
     if (rst) begin
         for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-            sprite_mc[n] = 6'd63;
-            sprite_mcbase[n] = 6'd63;
-            sprite_ye_ff[n] = 1;
-            sprite_dma[n] = 0;
+            sprite_mc[n] <= 6'd63;
+            sprite_mcbase[n] <= 6'd63;
+            sprite_ye_ff[n] <= 1;
+            sprite_dma[n] <= 0;
         end
     end else begin
         // update mcbase
         if (clk_phi && phi_phase_start_1 && cycle_num == 15) begin
             for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
                 if (sprite_ye_ff[n]) begin
-                    sprite_mcbase[n] = sprite_mc[n];
-                    if (sprite_mcbase[n] == 63)
-                        sprite_dma[n] = 0;
+                    sprite_mcbase[n] <= sprite_mc[n];
+                    if (sprite_mc[n] == 63) // equiv sprite_mcbase[n] == 63 after assignment above
+                        sprite_dma[n] <= 0;
                 end
             end
         end
@@ -86,10 +86,10 @@ always @(posedge clk_dot4x)
             for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
                 if (!sprite_ye[n] && !sprite_ye_ff[n]) begin
                     if (cycle_num == 14) begin
-                        sprite_mc[n] = (6'h2a & (sprite_mcbase[n] & sprite_mc[n])) |
+                        sprite_mc[n] <= (6'h2a & (sprite_mcbase[n] & sprite_mc[n])) |
                                  (6'h15 & (sprite_mcbase[n] | sprite_mc[n])) ;
                     end
-                    sprite_ye_ff[n] = `TRUE;
+                    sprite_ye_ff[n] <= `TRUE;
                 end
             end
         end
@@ -97,9 +97,9 @@ always @(posedge clk_dot4x)
         if (`PHI_DMA_CONDITION && phi_phase_start_1 && (cycle_num == sprite_dmachk1 || cycle_num == sprite_dmachk2)) begin
             for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
                 if (!sprite_dma[n] && sprite_en[n] && raster_line[7:0] == sprite_y[n]) begin
-                    sprite_dma[n] = 1;
-                    sprite_mcbase[n] = 0;
-                    sprite_ye_ff[n] = 1;
+                    sprite_dma[n] <= 1;
+                    sprite_mcbase[n] <= 0;
+                    sprite_ye_ff[n] <= 1;
                 end
             end
         end
@@ -107,13 +107,13 @@ always @(posedge clk_dot4x)
         if (clk_phi && phi_phase_start_1 && cycle_num == sprite_yexp_chk) begin
             for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
                 if (sprite_dma[n] && sprite_ye[n])
-                    sprite_ye_ff[n] = !sprite_ye_ff[n];
+                    sprite_ye_ff[n] <= !sprite_ye_ff[n];
             end
         end
         // sprite display check
         if (clk_phi && phi_phase_start_1 && cycle_num == sprite_disp_chk) begin
             for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-                sprite_mc[n] = sprite_mcbase[n];
+                sprite_mc[n] <= sprite_mcbase[n];
             end
         end
 
@@ -128,7 +128,7 @@ always @(posedge clk_dot4x)
             case (cycle_type)
                 VIC_HS1,VIC_LS2,VIC_HS3:
                     if (sprite_dma[sprite_cnt])
-                        sprite_mc[sprite_cnt] = sprite_mc[sprite_cnt] + 1'b1;
+                        sprite_mc[sprite_cnt] <= sprite_mc[sprite_cnt] + 1'b1;
                 default: ;
             endcase
         end
@@ -154,7 +154,6 @@ begin
     else begin
         // Handle next pixel
         if (dot_rising_0) begin
-            
             // The sprite pixel shifter will deactivate a sprite
             // or halt the shifter entirely around the cycles that
             // perform dma access. 
