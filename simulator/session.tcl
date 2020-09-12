@@ -24,5 +24,9 @@ lappend pickedsigs "TOP.vicii.vic_addr"
 lappend pickedsigs "vicii.vic_pixel_sequencer.pixel_color1"
 lappend pickedsigs "vicii.vic_pixel_sequencer.pixel_color2"
 lappend pickedsigs "vicii.pixel_color3"
+lappend pickedsigs "TOP.ras"
+lappend pickedsigs "top.vic_inst.mux"
+lappend pickedsigs "TOP.cas"
+lappend pickedsigs "top.vic_inst.ado"
 
 set num_added [ gtkwave::addSignalsFromList $pickedsigs ]

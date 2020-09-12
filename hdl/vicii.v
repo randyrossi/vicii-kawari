@@ -179,9 +179,7 @@ reg [15:0] phi_phase_start;
 
 // determines timing within a phase when RAS,CAS and MUX will
 // fall.  (MUX determines when address transition occurs which
-// should be between RAS and CAS. MUX falls one cycle early
-// because mux is then used in a delayed assignment for ado
-// which makes the transition happen between RAS and CAS.)
+// should be between RAS and CAS)
 reg [15:0] ras_gen;
 reg [15:0] cas_gen;
 reg [15:0] mux_gen;
@@ -536,61 +534,39 @@ cycles vic_cycles(
 // the left but I like to look at the last bit when debugging to
 // know if the line is high or low.
 
+// Timing observed
+// NTSC:
+//       CAS/RAS separated by ~52ns
+//       RAS falls ~167ns after PHI edge
+//       ADDR mux @ ~38ns after RAS edge
+
 // RAS/CAS/MUX profiles
 // Data must be stable by falling RAS edge
 // Then stable by falling CAS edge
-// MUX drops at the same time ras_gen drops due
-// to its delayed use to set ado
 always @(posedge clk_dot4x)
     if (rst) begin
         ras_gen <= 16'b1100000000000111;
         cas_gen <= 16'b1111000000000111;
     end
     else if (phi_phase_start[2]) begin
-        // Now that the cycle type is known, make ras/cas fall
-        // at expected times.  RAS should be high 5 ticks
-        // into the phase (counting from [0]) and fall on
-        // the 6th tick.  CAS is 7.
-        if (~clk_phi)
-        case (cycle_type)
-            VIC_LPI2, VIC_LI: begin
-                ras_gen <= 16'b1111111111111111;
-                cas_gen <= 16'b1111111111111111;
-            end
-            default: begin
-                ras_gen <= 16'b1100000000000111;
-                cas_gen <= 16'b1111000000000111;
-            end
-        endcase
-        else begin
-            ras_gen <= 16'b1100000000000111;
-            cas_gen <= 16'b1111000000000111;
-        end
+        ras_gen <= 16'b1100000000000111;
+        cas_gen <= 16'b1111000000000111;
     end else begin
         ras_gen <= {ras_gen[14:0], 1'b0};
         cas_gen <= {cas_gen[14:0], 1'b0};
     end
+
 assign ras = ras_gen[15];
 assign cas = cas_gen[15];
 
-// mux_gen drops 1 cycle early due to delayed use for
-// ado.  The ado transition happens between ras and cas.
+// The ado transition happens between ras and cas.
 always @(posedge clk_dot4x)
     if (rst)
-        mux_gen <= 16'b1100000000000111;
+        mux_gen <= 16'b1110000000000001;
     else if (phi_phase_start[2]) begin
         // Now that the cycle type is known, make mux fall
-        // at expected times.  MUX should be high 5 ticks
-        // into the phase (counting from [0]) and fall on
-        // the 6th tick.
-        if (~clk_phi)
-        case (cycle_type)
-            VIC_LPI2, VIC_LI: mux_gen <= 16'b1111111111111111;
-            VIC_LR:           mux_gen <= 16'b1111111111111111;
-            default:          mux_gen <= 16'b1100000000000111;
-        endcase
-        else
-            mux_gen <= 16'b1100000000000111;
+        // at expected times.
+        mux_gen <= 16'b1110000000000001;
     end else
         mux_gen <= {mux_gen[14:0], 1'b0};
 assign mux = mux_gen[15];
@@ -700,7 +676,6 @@ bus_access vic_bus_access(
 // Address generation
 addressgen vic_addressgen(
                //.rst(rst),
-               .clk_dot4x(clk_dot4x),
                .cycle_type(cycle_type),
                .cb(cb),
                .vc(vc),

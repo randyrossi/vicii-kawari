@@ -10,13 +10,17 @@ set_property CFGBVS VCCO [current_design]
 #create_clock -add -name sys_clk_pin -period 83.33 -waveform {0 41.66} [get_ports {sys_clock}];
 #set_property -dict { PACKAGE_PIN L17 IOSTANDARD LVCMOS33 } [get_ports { sys_clock }]; 
 
-# USE_EXTCLOCK_PAL - Pin36 External 17.3Mhz
-create_clock -add -name pal_clk_pin -period 56.38 -waveform {0 28.19} [get_ports {sys_clock}];
-set_property -dict { PACKAGE_PIN W5 IOSTANDARD LVCMOS33 } [get_ports { sys_clock }];
+# USE_EXTCLOCK_PAL - Pin3 External 17.3Mhz
+create_clock -add -name pal_clk_in -period 56.38 -waveform {0 28.19} [get_ports {sys_clock}];
+set_property -dict { PACKAGE_PIN A16 IOSTANDARD LVCMOS33 } [get_ports { sys_clock }];
+#create_clock -add -name phi_clk_out -period 1014.97 -waveform {0 507.48} [get_ports {clk_phi}];
+#create_clock -add -name dot4x_clk_out -period 31.71 -waveform {0 15.85} [get_ports {clk_dot4x}];
 
-# USE_EXTCLOCK_NTSC - Pin36 External 14.3Mhz
+# USE_EXTCLOCK_NTSC - Pin3 External 14.3Mhz
 #create_clock -add -name ntsc_clk_pin -period 69.84 -waveform {0 34.92} [get_ports {sys_clock}];
-#set_property -dict { PACKAGE_PIN W5 IOSTANDARD LVCMOS33 } [get_ports { sys_clock }];
+#set_property -dict { PACKAGE_PIN A16 IOSTANDARD LVCMOS33 } [get_ports { sys_clock }];
+#create_clock -add -name phi_clk_out -period 977.78 -waveform {0 488.89} [get_ports {clk_phi}];
+
 
 # Board Pins
 
@@ -107,8 +111,8 @@ set_property -dict { PACKAGE_PIN H1  IOSTANDARD LVCMOS33 } [get_ports { dbl[2]  
 set_property -dict { PACKAGE_PIN C15 IOSTANDARD LVCMOS33 } [get_ports { dbl[3]  }];
 # db[4] inout, Pin 4
 set_property -dict { PACKAGE_PIN K3  IOSTANDARD LVCMOS33 } [get_ports { dbl[4]  }];
-# db[5] inout, Pin 3
-set_property -dict { PACKAGE_PIN A16 IOSTANDARD LVCMOS33 } [get_ports { dbl[5]  }];
+# db[5] inout, Pin 36
+set_property -dict { PACKAGE_PIN W5 IOSTANDARD LVCMOS33 } [get_ports { dbl[5]  }];
 # db[6] inout, Pin 2
 set_property -dict { PACKAGE_PIN L3  IOSTANDARD LVCMOS33 } [get_ports { dbl[6]  }];
 # db[7] inout, Pin 1
@@ -148,3 +152,101 @@ set_property -dict { PACKAGE_PIN U2    IOSTANDARD LVCMOS33 } [get_ports { lp }];
 
 # DIR, Pin 38
 set_property -dict { PACKAGE_PIN U4    IOSTANDARD LVCMOS33 } [get_ports { ls245_data_dir }];
+
+# INPUT DELAY
+# min = how long after rising clock edge previous data is still valid for
+# max = how long after rising clock edge until this period's data becomes valid
+# data valid window = period(ns) - max + min
+set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { adl[0] }];
+set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { adl[1] }];
+set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { adl[2] }];
+set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { adl[3] }];
+set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { adl[4] }];
+set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { adl[5] }];
+set_input_delay 0 -min -clock clk_dot4x_clk_wiz_0 [get_ports { adl[0] }];
+set_input_delay 0 -min -clock clk_dot4x_clk_wiz_0 [get_ports { adl[1] }];
+set_input_delay 0 -min -clock clk_dot4x_clk_wiz_0 [get_ports { adl[2] }];
+set_input_delay 0 -min -clock clk_dot4x_clk_wiz_0 [get_ports { adl[3] }];
+set_input_delay 0 -min -clock clk_dot4x_clk_wiz_0 [get_ports { adl[4] }];
+set_input_delay 0 -min -clock clk_dot4x_clk_wiz_0 [get_ports { adl[5] }];
+
+set_input_delay 0 -min -clock clk_dot4x_clk_wiz_0 [get_ports { ce }];
+set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { ce }];
+
+set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { dbh[0] }];
+set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { dbh[1] }];
+set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { dbh[2] }];
+set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { dbh[3] }];
+set_input_delay 0 -min -clock clk_dot4x_clk_wiz_0 [get_ports { dbh[0] }];
+set_input_delay 0 -min -clock clk_dot4x_clk_wiz_0 [get_ports { dbh[1] }];
+set_input_delay 0 -min -clock clk_dot4x_clk_wiz_0 [get_ports { dbh[2] }];
+set_input_delay 0 -min -clock clk_dot4x_clk_wiz_0 [get_ports { dbh[3] }];
+
+set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { dbl[0] }];
+set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { dbl[1] }];
+set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { dbl[2] }];
+set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { dbl[3] }];
+set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { dbl[4] }];
+set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { dbl[5] }];
+set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { dbl[6] }];
+set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { dbl[7] }];
+set_input_delay 0 -min -clock clk_dot4x_clk_wiz_0 [get_ports { dbl[0] }];
+set_input_delay 0 -min -clock clk_dot4x_clk_wiz_0 [get_ports { dbl[1] }];
+set_input_delay 0 -min -clock clk_dot4x_clk_wiz_0 [get_ports { dbl[2] }];
+set_input_delay 0 -min -clock clk_dot4x_clk_wiz_0 [get_ports { dbl[3] }];
+set_input_delay 0 -min -clock clk_dot4x_clk_wiz_0 [get_ports { dbl[4] }];
+set_input_delay 0 -min -clock clk_dot4x_clk_wiz_0 [get_ports { dbl[5] }];
+set_input_delay 0 -min -clock clk_dot4x_clk_wiz_0 [get_ports { dbl[6] }];
+set_input_delay 0 -min -clock clk_dot4x_clk_wiz_0 [get_ports { dbl[7] }];
+
+set_input_delay 0 -min -clock clk_dot4x_clk_wiz_0 [get_ports { lp }];
+set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { lp }];
+
+set_input_delay 0 -min -clock clk_dot4x_clk_wiz_0 [get_ports { rw }];
+set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { rw }];
+
+# OUTPUT DELAY
+# when is data needed by external device measured from end of period
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { active }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { red[0] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { red[1] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { red[2] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { green[0] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { green[1] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { green[2] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { blue[0] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { blue[1] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { blue[2] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { csync }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { hsync }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { vsync }];
+set_output_delay -clock clk_col4x_clk_wiz_0 0 [get_ports { clk_colref }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { cpu_reset }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { clk_phi }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { adh[0] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { adh[1] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { adh[2] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { adh[3] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { adh[4] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { adh[5] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { adl[0] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { adl[1] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { adl[2] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { adl[3] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { adl[4] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { adl[5] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { aec }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { ba }];
+
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { dbl[0] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { dbl[1] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { dbl[2] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { dbl[3] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { dbl[4] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { dbl[5] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { dbl[6] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { dbl[7] }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { irq }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { ls245_data_dir }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { ras }];
+set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { cas }];

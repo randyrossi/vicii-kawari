@@ -5,7 +5,6 @@
 // Address generation
 module addressgen(
            //input rst,
-           input clk_dot4x,
            input [3:0] cycle_type,
            input [2:0] cb,
            input [9:0] vc,
@@ -27,7 +26,7 @@ module addressgen(
 // VIC read address
 reg [13:0] vic_addr;
 // the lower 8 bits of ado are muxed
-reg [7:0] ado8;
+//reg [7:0] ado8;
 always @*
 begin
     case(cycle_type)
@@ -69,12 +68,5 @@ end
 
 // Address out
 // ROW first, COL second
-always @(posedge clk_dot4x) begin
-    //if (rst)
-    //    ado8 <= 8'hFF;
-    //else
-    ado8 <= mux ? vic_addr[7:0] : {2'b11, vic_addr[13:8]};
-end
-
-assign ado = {vic_addr[11:8], ado8};
+assign ado = {vic_addr[11:8], mux ? vic_addr[7:0] : {2'b11, vic_addr[13:8]}};
 endmodule
