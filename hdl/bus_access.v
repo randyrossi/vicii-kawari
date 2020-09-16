@@ -34,10 +34,10 @@ reg [5:0] char_buf_counter;
 always @(posedge clk_dot4x)
     if (rst) begin
         char_buf_counter <= 0;
-        char_next = 12'b0;
-        for (n = 0; n < 39; n = n + 1) begin
-            char_buf[n] <= 12'hff;
-        end
+//        char_next = 12'b0;
+//        for (n = 0; n < 39; n = n + 1) begin
+//            char_buf[n] <= 12'hff;
+//        end
     end else
     if (phi_phase_start_dav) begin
         case (cycle_type)
