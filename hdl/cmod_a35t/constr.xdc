@@ -153,10 +153,6 @@ set_property -dict { PACKAGE_PIN U2    IOSTANDARD LVCMOS33 } [get_ports { lp }];
 # DIR, Pin 38
 set_property -dict { PACKAGE_PIN U4    IOSTANDARD LVCMOS33 } [get_ports { ls245_data_dir }];
 
-# INPUT DELAY
-# min = how long after rising clock edge previous data is still valid for
-# max = how long after rising clock edge until this period's data becomes valid
-# data valid window = period(ns) - max + min
 set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { adl[0] }];
 set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { adl[1] }];
 set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { adl[2] }];
@@ -205,8 +201,6 @@ set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { lp }];
 set_input_delay 0 -min -clock clk_dot4x_clk_wiz_0 [get_ports { rw }];
 set_input_delay 0 -max -clock clk_dot4x_clk_wiz_0 [get_ports { rw }];
 
-# OUTPUT DELAY
-# when is data needed by external device measured from end of period
 set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { active }];
 set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { red[0] }];
 set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { red[1] }];
@@ -250,3 +244,50 @@ set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { irq }];
 set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { ls245_data_dir }];
 set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { ras }];
 set_output_delay -clock clk_dot4x_clk_wiz_0 0 [get_ports { cas }];
+
+
+
+#set_property DRIVE 4 [get_ports adh[0]];
+#set_property DRIVE 4 [get_ports adh[1]];
+#set_property DRIVE 4 [get_ports adh[2]];
+#set_property DRIVE 4 [get_ports adh[3]];
+#set_property DRIVE 4 [get_ports adh[4]];
+#set_property DRIVE 4 [get_ports adh[5]];
+#set_property DRIVE 4 [get_ports adl[0]];
+#set_property DRIVE 4 [get_ports adl[1]];
+#set_property DRIVE 4 [get_ports adl[2]];
+#set_property DRIVE 4 [get_ports adl[3]];
+#set_property DRIVE 4 [get_ports adl[4]];
+#set_property DRIVE 4 [get_ports adl[5]];
+#set_property DRIVE 4 [get_ports aec];
+#set_property DRIVE 4 [get_ports ras];
+#set_property DRIVE 4 [get_ports cas];
+#set_property DRIVE 4 [get_ports ba];
+#set_property DRIVE 4 [get_ports clk_phi];
+#set_property DRIVE 4 [get_ports dbl[0]];
+#set_property DRIVE 4 [get_ports dbl[1]];
+#set_property DRIVE 4 [get_ports dbl[2]];
+#set_property DRIVE 4 [get_ports dbl[3]];
+#set_property DRIVE 4 [get_ports dbl[4]];
+#set_property DRIVE 4 [get_ports dbl[5]];
+#set_property DRIVE 4 [get_ports dbl[6]];
+#set_property DRIVE 4 [get_ports dbl[7]];
+#set_property DRIVE 4 [get_ports irq];
+#set_property DRIVE 4 [get_ports cpu_reset];
+
+#set_property DRIVE 16 [get_ports { clk_dot4x }];
+#set_property DRIVE 16 [get_ports { active }];
+#set_property DRIVE 12 [get_ports { csync }];
+#set_property DRIVE 12 [get_ports { clk_colref }];
+#set_property DRIVE 16 [get_ports { hsync }];
+#set_property DRIVE 16 [get_ports { vsync }];
+#set_property DRIVE 12 [get_ports { red[0] }];
+#set_property DRIVE 12 [get_ports { red[1] }];
+#set_property DRIVE 12 [get_ports { red[2] }];
+#set_property DRIVE 12 [get_ports { green[0] }];
+#set_property DRIVE 12 [get_ports { green[1] }];
+#set_property DRIVE 12 [get_ports { green[2] }];
+#set_property DRIVE 12 [get_ports { blue[0] }];
+#set_property DRIVE 12 [get_ports { blue[1] }];
+#set_property DRIVE 12 [get_ports { blue[2] }];
+
