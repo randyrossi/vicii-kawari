@@ -2,14 +2,14 @@
 
 `include "common.vh"
 
-// Top level module for the CMod A35t PDIP board.
+// Top level module for the QMTech XCT7A100T Core Board
 //
 // Two clock configurations are supported:
-//     1) using the on-board 12Mhz clock
+//     1) using the on-board 50Mhz clock
 //     2) using external 14.318181 and/or 17.734475 Mhz clocks
 //
 // System clock:
-//     This config uses the on-board 12Mhz clock and uses two MMCMs
+//     This config uses the on-board 50Mhz clock and uses two MMCMs
 //     to generate both the 4x dot and 4x color clocks.
 // 
 // External Clocks:
@@ -19,15 +19,6 @@
 // In either case, the 4x color clock is divided by 4 to produce a
 // color ref clock for an external composite encoder.  The 4x dot clock
 // is divided by 32 to generate the CPU phi clock.
-//
-// NOTE: The system clock configuration does not produce a suitable
-// color clock for PAL composite video.  This is due to there being
-// no mult/div possible from a 12Mhz clock to get an accurate color
-// clock.  Consequently, colors will 'shimmer'.  For a stable PAL
-// composite signal, an external clock must be used. HDMI or VGA
-// output options don't require a color clock so the clock gens
-// could be modified to accept a 4x dot clock and phi could then
-// be derived from that clock.
 
 module top(
            input sys_clock,
@@ -74,7 +65,7 @@ wire clk_rascas;
 
 `ifndef IS_SIMULATOR
 // Clock generators and chip selection
-clockgen cmod_clockgen(
+clockgen qmtech_clockgen(
          .sys_clock(sys_clock),
          .clk_dot4x(clk_dot4x),
          .clk_col4x(clk_col4x),

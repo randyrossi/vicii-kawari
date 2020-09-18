@@ -21,6 +21,7 @@ module vicii(
            input chip_type chip,
            input rst,
            input clk_dot4x,
+           input clk_rascas,
            output clk_phi,
            output reg [9:0] xpos,
            output reg [9:0] raster_x,
@@ -78,6 +79,13 @@ reg [9:0] sprite_raster_x;
 // clk_colref     3.579545 Mhz NTSC, 4.43361875 Mhz PAL
 // clk_phi        1.02272 Mhz NTSC, .985248 Mhz PAL
 
+// TODO: clk_rascas is a higher speed clock used to fine tune the position
+// and spacing of RAS/CAS pulses.  Consider going back to clk_dot4x if
+// timing is not so critical.  Try using combinations of pos/neg edge to
+// get better timing around the mux.
+// clk_rascas (internal) 95.62500 Mhz NTSC  90.642857 Mhz Pal
+// clk_rascas (external) 98.1818 Mhz NTSC , 94.583866 Mhz Pal
+                  
 // Set limits for chips
 always @(chip)
 case(chip)
@@ -176,12 +184,13 @@ vic_color b0c,b1c,b2c,b3c;
 // starting within a 4x dot always block
 // phi_phase_start[15]==1 means phi will transition next tick
 reg [15:0] phi_phase_start;
+reg [47:0] phi_phase_start_rascas;
 
 // determines timing within a phase when RAS,CAS and MUX will
 // fall.  (MUX determines when address transition occurs which
 // should be between RAS and CAS)
-reg [15:0] ras_gen;
-reg [15:0] cas_gen;
+reg [47:0] ras_gen;
+reg [47:0] cas_gen;
 reg [15:0] mux_gen;
 
 // muxes the last 8 bits of our read address for CAS/RAS latches
@@ -319,6 +328,12 @@ always @(posedge clk_dot4x)
         phi_phase_start <= 16'b0000000000001000;
     end else
         phi_phase_start <= {phi_phase_start[14:0], phi_phase_start[15]};
+
+always @(posedge clk_rascas)
+    if (rst) begin
+        phi_phase_start_rascas <= 48'b000000000000000000000000000000000000001000000000;
+    end else
+        phi_phase_start_rascas <= {phi_phase_start_rascas[46:0], phi_phase_start_rascas[47]};
 
 // This is simply raster_x divided by 8.
 assign cycle_num = raster_x[9:3];
@@ -542,22 +557,29 @@ cycles vic_cycles(
 
 // RAS/CAS/MUX profiles
 // Data must be stable by falling RAS edge
-// Then stable by falling CAS edge
-always @(posedge clk_dot4x)
-    if (rst) begin
-        ras_gen <= 16'b1100000000000111;
-        cas_gen <= 16'b1111000000000111;
-    end
-    else if (phi_phase_start[2]) begin
-        ras_gen <= 16'b1100000000000111;
-        cas_gen <= 16'b1111000000000111;
-    end else begin
-        ras_gen <= {ras_gen[14:0], 1'b0};
-        cas_gen <= {cas_gen[14:0], 1'b0};
-    end
+// TODO: Consider using old dot4x schedule which might be okay
+//       ras_gen <= 16'b1100000000000111;
+always @(posedge clk_rascas)
+    if (rst)
+        ras_gen <= 48'b111111110000000000000000000000000000000000011111;
+    else if (phi_phase_start_rascas[6])
+        ras_gen <= 48'b111111110000000000000000000000000000000000011111;
+    else
+        ras_gen <= {ras_gen[46:0], 1'b0};
 
-assign ras = ras_gen[15];
-assign cas = cas_gen[15];
+// Then stable by falling CAS edge
+// TODO: Consider using old dot4x schedule which might be okay
+//       cas_gen <= 16'b1111000000000111;
+always @(posedge clk_rascas)
+    if (rst)
+        cas_gen <= 48'b111111111111100000000000000000000000000000011111;
+    else if (phi_phase_start_rascas[6])
+        cas_gen <= 48'b111111111111100000000000000000000000000000011111;
+    else
+        cas_gen <= {cas_gen[46:0], 1'b0};
+
+assign ras = ras_gen[47];
+assign cas = cas_gen[47];
 
 // The ado transition happens between ras and cas.
 always @(posedge clk_dot4x)

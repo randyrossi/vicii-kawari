@@ -12,7 +12,7 @@
 //`define USE_EXTCLOCK_NTSC    // use external clock
 
 
-// For the CMod A35t PDIP board.
+// Used with QMTech XCT7A100T Core Board
 // This module:
 //     1) generates the 4x dot and 4x color clocks
 //     2) selects the chip
