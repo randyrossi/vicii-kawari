@@ -1,16 +1,16 @@
 `timescale 1ns/1ps
 
-module color4x_12_ntsc_clockgen
+module color4x_50_pal_clockgen
        (output wire clk_col4x,
         input wire reset,
-        input wire clk_in12mhz
+        input wire clk_in50mhz
        );
 // Input buffering
 wire clk_in1_clk_wiz_0;
 wire clk_in2_clk_wiz_0;
 //    IBUF clkin1_ibufg
 //         (.O(clk_in1_clk_wiz_0),
-//             .I(clk_in12mhz));
+//             .I(clk_in50mhz));
 
 wire clk_col4x_clk_wiz_0;
 
@@ -25,20 +25,24 @@ wire clkfbstopped_unused;
 wire clkinstopped_unused;
 wire reset_high;
 
+// NOTE: The PAL values below give 17.734513 vs needed 17.734475?. The
+// on-board 50Mhz clock is not capable of getting close enough to avoid
+// shimmering display. So we can get A picture but not a GOOD picture
+// unless we bring in an external clock.
 MMCME2_ADV
     #(.BANDWIDTH("HIGH"),
       .CLKOUT4_CASCADE("FALSE"),
       .COMPENSATION("ZHOLD"),
       .STARTUP_WAIT("FALSE"),
-      .DIVCLK_DIVIDE(1),
-      .CLKFBOUT_MULT_F(52.500),
+      .DIVCLK_DIVIDE(3),
+      .CLKFBOUT_MULT_F(47.750),
       .CLKFBOUT_PHASE(0.000),
       .CLKFBOUT_USE_FINE_PS("FALSE"),
-      .CLKOUT0_DIVIDE_F(44.000),
+      .CLKOUT0_DIVIDE_F(44.875),
       .CLKOUT0_PHASE(0.000),
       .CLKOUT0_DUTY_CYCLE(0.500),
       .CLKOUT0_USE_FINE_PS("FALSE"),
-      .CLKIN1_PERIOD(83.333))
+      .CLKIN1_PERIOD(20))
     mmcm_adv_inst
     // Output clocks
     (
@@ -57,7 +61,7 @@ MMCME2_ADV
         .CLKOUT6(clkout6_unused),
         // Input clock control
         .CLKFBIN(clkfbout_buf_clk_wiz_0),
-        .CLKIN1(clk_in12mhz), // was clk_in1_clk_wiz_0
+        .CLKIN1(clk_in50mhz), // was clk_in1_clk_wiz_0
         .CLKIN2(1'b0),
         // Tied to always select the primary input clock
         .CLKINSEL(1'b1),

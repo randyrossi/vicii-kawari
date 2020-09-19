@@ -57,13 +57,14 @@ dot4x_12_pal_clockgen dot4x_12_pal_clockgen(
                           .clk_in12mhz(sys_clockb),    // external 12 Mhz clock
                           .reset(internal_rst),
                           .clk_dot4x(clk_dot4x),      // generated 4x dot clock
+                          .clk_rascas(clk_rascas),
                           .locked(locked)
                       );
 // Generate a 4x color clock. See vicii.v for values.
 color4x_12_pal_clockgen color4x_12_pal_clockgen(
                             .clk_in12mhz(sys_clockb),    // external 12 Mhz clock
                             .reset(internal_rst),
-                            .clk_color4x(clk_col4x)     // generated 4x col clock
+                            .clk_col4x(clk_col4x)     // generated 4x col clock
                         );
 `endif
 
@@ -76,13 +77,14 @@ dot4x_12_ntsc_clockgen dot4x_12_ntsc_clockgen(
                            .clk_in12mhz(sys_clockb),    // external 12 Mhz clock
                            .reset(internal_rst),
                            .clk_dot4x(clk_dot4x),      // generated 4x dot clock
+                           .clk_rascas(clk_rascas),
                            .locked(locked)
                        );
 // Generate a 4x color clock. See vicii.v for values.
 color4x_12_ntsc_clockgen color4x_12_ntsc_clockgen(
                              .clk_in12mhz(sys_clockb),    // external 12 Mhz clock
                              .reset(internal_rst),
-                             .clk_color4x(clk_col4x)     // generated 4x col clock
+                             .clk_col4x(clk_col4x)     // generated 4x col clock
                          );
 `endif
 
@@ -111,6 +113,7 @@ dot4x_14_ntsc_clockgen dot4x_14_ntsc_clockgen(
                            .reset(internal_rst),
                            .clk_col4x(clk_col4x),
                            .clk_dot4x(clk_dot4x),
+                           .clk_rascas(clk_rascas),
                            .locked(locked)
                        );
 `endif

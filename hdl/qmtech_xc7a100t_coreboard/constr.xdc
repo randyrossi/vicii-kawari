@@ -7,7 +7,7 @@ set_property CFGBVS VCCO [current_design]
 # ---------------------------------------------------------
 
 # USE_INTCLOCK_NTSC or USE_INTCLOCK_PAL - Internal D18 50Mhz Pin
-#create_clock -add -name sys_clk_pin -period 83.33 -waveform {0 41.66} [get_ports {sys_clock}];
+#create_clock -add -name sys_clk_pin -period 20 -waveform {0 10} [get_ports {sys_clock}];
 #set_property -dict { PACKAGE_PIN D18 IOSTANDARD LVCMOS33 } [get_ports { sys_clock }]; 
 
 # USE_EXTCLOCK_PAL - Pin16 External 17.3Mhz
@@ -46,7 +46,7 @@ set_property -dict { PACKAGE_PIN U1 IOSTANDARD LVCMOS33 } [get_ports { is_compos
 set_property -dict { PACKAGE_PIN A5 IOSTANDARD LVCMOS33 } [get_ports { active }];
 
 # clk_phi out, Pin U4/58
-set_property -dict { PACKAGE_PIN AC24 IOSTANDARD LVCMOS33 } [get_ports { clk_phi }];
+set_property -dict { PACKAGE_PIN AA24 IOSTANDARD LVCMOS33 } [get_ports { clk_phi }];
 
 # rst out, Pin U4/9
 set_property -dict { PACKAGE_PIN A23 IOSTANDARD LVCMOS33 } [get_ports { cpu_reset }];
@@ -92,7 +92,7 @@ set_property -dict { PACKAGE_PIN P25 IOSTANDARD LVCMOS33 } [get_ports { adh[0] }
 # ad[7] inout, Pin U4/46
 set_property -dict { PACKAGE_PIN U26 IOSTANDARD LVCMOS33 } [get_ports { adh[1] }];
 # ad[8] inout, Pin U4/47
-set_property -dict { PACKAGE_PIN T25 IOSTANDARD LVCMOS33 } [get_ports { adh[2] }];
+set_property -dict { PACKAGE_PIN T25 IOSTANDARD LVCMOS33 } [get_ports  { adh[2] }];
 # ad[9] inout, Pin U4/50
 set_property -dict { PACKAGE_PIN V26 IOSTANDARD LVCMOS33 } [get_ports { adh[3] }];
 # ad[10] inout, Pin U4/51
@@ -135,7 +135,7 @@ set_property -dict { PACKAGE_PIN B26 IOSTANDARD LVCMOS33 } [get_ports { rw }];
 # aec, Pin U4/55
 set_property -dict { PACKAGE_PIN AA25 IOSTANDARD LVCMOS33 } [get_ports { aec }];
 
-# ba, Pin U4/17
+# ba, Pin U4/53
 set_property -dict { PACKAGE_PIN W24 IOSTANDARD LVCMOS33 } [get_ports { ba }];
 
 # irq, Pin U4/20
@@ -273,19 +273,19 @@ set_property DRIVE 4 [get_ports dbl[6]];
 set_property DRIVE 4 [get_ports dbl[7]];
 set_property DRIVE 4 [get_ports irq];
 set_property DRIVE 4 [get_ports cpu_reset];
-set_property DRIVE 4 [get_ports { clk_dot4x }];
-set_property DRIVE 4 [get_ports { active }];
-set_property DRIVE 4 [get_ports { csync }];
-set_property DRIVE 4 [get_ports { clk_colref }];
-set_property DRIVE 4 [get_ports { hsync }];
-set_property DRIVE 4 [get_ports { vsync }];
-set_property DRIVE 4 [get_ports { red[0] }];
-set_property DRIVE 4 [get_ports { red[1] }];
-set_property DRIVE 4 [get_ports { red[2] }];
-set_property DRIVE 4 [get_ports { green[0] }];
-set_property DRIVE 4 [get_ports { green[1] }];
-set_property DRIVE 4 [get_ports { green[2] }];
-set_property DRIVE 4 [get_ports { blue[0] }];
-set_property DRIVE 4 [get_ports { blue[1] }];
-set_property DRIVE 4 [get_ports { blue[2] }];
+set_property DRIVE 4 [get_ports clk_dot4x];
+set_property DRIVE 4 [get_ports active];
+set_property DRIVE 4 [get_ports csync];
+set_property DRIVE 4 [get_ports clk_colref];
+set_property DRIVE 4 [get_ports hsync];
+set_property DRIVE 4 [get_ports vsync];
+set_property DRIVE 4 [get_ports red[0]];
+set_property DRIVE 4 [get_ports red[1]];
+set_property DRIVE 4 [get_ports red[2]];
+set_property DRIVE 4 [get_ports green[0]];
+set_property DRIVE 4 [get_ports green[1]];
+set_property DRIVE 4 [get_ports green[2]];
+set_property DRIVE 4 [get_ports blue[0]];
+set_property DRIVE 4 [get_ports blue[1]];
+set_property DRIVE 4 [get_ports blue[2]];
 

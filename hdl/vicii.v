@@ -82,9 +82,8 @@ reg [9:0] sprite_raster_x;
 // TODO: clk_rascas is a higher speed clock used to fine tune the position
 // and spacing of RAS/CAS pulses.  Consider going back to clk_dot4x if
 // timing is not so critical.  Try using combinations of pos/neg edge to
-// get better timing around the mux.
-// clk_rascas (internal) 95.62500 Mhz NTSC  90.642857 Mhz Pal
-// clk_rascas (external) 98.1818 Mhz NTSC , 94.583866 Mhz Pal
+// get better timing around the mux drop point.
+// clk_rascas     98.1818 Mhz NTSC , 94.583866 Mhz Pal
                   
 // Set limits for chips
 always @(chip)
