@@ -104,7 +104,7 @@ set_property -dict { PACKAGE_PIN V24 IOSTANDARD LVCMOS33 } [get_ports { adh[5] }
 # db[0] inout, Pin U4/7
 set_property -dict { PACKAGE_PIN A22 IOSTANDARD LVCMOS33 } [get_ports { dbl[0]  }];
 # db[1] inout, Pin U4/10
-set_property -dict { PACKAGE_PIN B22 IOSTANDARD LVCMOS33 } [get_ports { dbl[1]  }];
+set_property -dict { PACKAGE_PIN A24 IOSTANDARD LVCMOS33 } [get_ports { dbl[1]  }];
 # db[2] inout, Pin U4/11
 set_property -dict { PACKAGE_PIN A25 IOSTANDARD LVCMOS33 } [get_ports { dbl[2]  }];
 # db[3] inout, Pin U4/14
@@ -114,7 +114,7 @@ set_property -dict { PACKAGE_PIN B24  IOSTANDARD LVCMOS33 } [get_ports { dbl[4] 
 # db[5] inout, Pin U4/18
 set_property -dict { PACKAGE_PIN C26 IOSTANDARD LVCMOS33 } [get_ports { dbl[5]  }];
 # db[6] inout, Pin U4/19
-set_property -dict { PACKAGE_PIN D25 IOSTANDARD LVCMOS33 } [get_ports { dbl[6]  }];
+set_property -dict { PACKAGE_PIN D24 IOSTANDARD LVCMOS33 } [get_ports { dbl[6]  }];
 # db[7] inout, Pin U4/22
 set_property -dict { PACKAGE_PIN E25 IOSTANDARD LVCMOS33 } [get_ports { dbl[7]  }];
 # db[8] in, Pin U4/23
