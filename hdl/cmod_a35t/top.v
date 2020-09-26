@@ -70,7 +70,6 @@ module top(
 wire rst;
 wire [1:0] chip;
 wire clk_col4x;
-wire clk_rascas;
 
 `ifndef IS_SIMULATOR
 // Clock generators and chip selection
@@ -78,7 +77,6 @@ clockgen cmod_clockgen(
          .sys_clock(sys_clock),
          .clk_dot4x(clk_dot4x),
          .clk_col4x(clk_col4x),
-         .clk_rascas(clk_rascas),
          .rst(rst),
          .chip(chip));
 `endif
@@ -122,7 +120,6 @@ vicii vic_inst(
           .rst(rst),
           .chip(chip),
           .clk_dot4x(clk_dot4x),
-          .clk_rascas(clk_rascas),
           .clk_phi(clk_phi),
           .raster_x(raster_x),
           .xpos(xpos),

@@ -61,7 +61,6 @@ module top(
 wire rst;
 wire [1:0] chip;
 wire clk_col4x;
-wire clk_rascas;
 
 `ifndef IS_SIMULATOR
 // Clock generators and chip selection
@@ -69,7 +68,6 @@ clockgen qmtech_clockgen(
          .sys_clock(sys_clock),
          .clk_dot4x(clk_dot4x),
          .clk_col4x(clk_col4x),
-         .clk_rascas(clk_rascas),
          .rst(rst),
          .chip(chip));
 `endif
@@ -113,7 +111,6 @@ vicii vic_inst(
           .rst(rst),
           .chip(chip),
           .clk_dot4x(clk_dot4x),
-          .clk_rascas(clk_rascas),
           .clk_phi(clk_phi),
           .raster_x(raster_x),
           .xpos(xpos),
@@ -139,6 +136,7 @@ vicii vic_inst(
 `ifndef IS_SIMULATOR
 // Write to bus condition, else tri state.
 assign dbl[7:0] = vic_write_db ? dbo : 8'bz; // CPU reading
+
 assign adl = vic_write_ab ? ado[5:0] : 6'bz; // vic or stollen cycle
 assign adh = vic_write_ab ? ado[11:6] : 6'bz;
 `else

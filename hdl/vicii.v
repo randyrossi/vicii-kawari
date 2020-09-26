@@ -21,7 +21,6 @@ module vicii(
            input chip_type chip,
            input rst,
            input clk_dot4x,
-           input clk_rascas,
            output clk_phi,
            output reg [9:0] xpos,
            output reg [9:0] raster_x,
@@ -79,12 +78,6 @@ reg [9:0] sprite_raster_x;
 // clk_colref     3.579545 Mhz NTSC, 4.43361875 Mhz PAL
 // clk_phi        1.02272 Mhz NTSC, .985248 Mhz PAL
 
-// TODO: clk_rascas is a higher speed clock used to fine tune the position
-// and spacing of RAS/CAS pulses.  Consider going back to clk_dot4x if
-// timing is not so critical.  Try using combinations of pos/neg edge to
-// get better timing around the mux drop point.
-// clk_rascas     98.1818 Mhz NTSC , 94.583866 Mhz Pal
-                  
 // Set limits for chips
 always @(chip)
 case(chip)
@@ -183,13 +176,12 @@ vic_color b0c,b1c,b2c,b3c;
 // starting within a 4x dot always block
 // phi_phase_start[15]==1 means phi will transition next tick
 reg [15:0] phi_phase_start;
-reg [47:0] phi_phase_start_rascas;
 
 // determines timing within a phase when RAS,CAS and MUX will
 // fall.  (MUX determines when address transition occurs which
 // should be between RAS and CAS)
-reg [47:0] ras_gen;
-reg [47:0] cas_gen;
+reg [15:0] ras_gen;
+reg [15:0] cas_gen;
 reg [15:0] mux_gen;
 
 // muxes the last 8 bits of our read address for CAS/RAS latches
@@ -315,10 +307,12 @@ always @(posedge clk_dot4x)
 
 // phi_gen[31]=HIGH means phi is high next cycle
 always @(posedge clk_dot4x)
-    if (rst)
+    if (rst) begin
         phi_gen <= 32'b00000000000011111111111111110000;
-    else
+    end else begin
         phi_gen <= {phi_gen[30:0], phi_gen[31]};
+    end
+    
 assign clk_phi = phi_gen[0];
 
 // phi_phase_start[15]=HIGH means phi is high next cycle
@@ -328,12 +322,6 @@ always @(posedge clk_dot4x)
     end else
         phi_phase_start <= {phi_phase_start[14:0], phi_phase_start[15]};
 
-always @(posedge clk_rascas)
-    if (rst) begin
-        phi_phase_start_rascas <= 48'b000000000000000000000000000000000000001000000000;
-    end else
-        phi_phase_start_rascas <= {phi_phase_start_rascas[46:0], phi_phase_start_rascas[47]};
-
 // This is simply raster_x divided by 8.
 assign cycle_num = raster_x[9:3];
 
@@ -342,11 +330,12 @@ assign cycle_num = raster_x[9:3];
 // if den is high at any point on line 48
 // allow_bad_lines falls on line 248
 // den only takes effect on line 48
+// the timing here ensures we have allow_bad_lines available @ [0]
 always @(posedge clk_dot4x)
 begin
     if (rst)
         allow_bad_lines <= `FALSE;
-    else if (clk_phi && phi_phase_start[0]) begin
+    else if (~clk_phi && phi_phase_start[15]) begin // about to tick high
         if (raster_line == 48 && den == `TRUE)
             allow_bad_lines <= `TRUE;
         if (raster_line == 248)
@@ -392,13 +381,13 @@ assign irq = (ilp & elp) | (immc & emmc) | (imbc & embc) | (irst & erst);
 always @(posedge clk_dot4x)
     if (rst)
         refc <= 8'hff;
-    else if (phi_phase_start[1]) begin // about to transition
+    else if (phi_phase_start[0]) begin // cycle_type is about to transition
         // Decrement at the start of the phase when cycle_type is still valid for
         // the previous half cycle.
-        if (cycle_type == VIC_LR)
+        if (cycle_num == 1 && raster_line == 9'd0)
+            refc <= 8'hff;
+        else if (cycle_type == VIC_LR)
             refc <= refc - 8'd1;
-    end else if (clk_phi == `TRUE && phi_phase_start[0] && cycle_num == 1 && raster_line == 9'd0) begin
-        refc <= 8'hff;
     end
 
 // Border pixels are delayed to align with gfx data.
@@ -529,7 +518,7 @@ cycles vic_cycles(
    .clk_dot4x(clk_dot4x),
    .clk_phi(clk_phi),
    .chip(chip),
-   .phi_phase_start_1(phi_phase_start[1]),
+   .phi_phase_start_0(phi_phase_start[0]),
    .sprite_dma(sprite_dma),
    .badline(badline),
    .cycle_num(cycle_num),
@@ -558,36 +547,42 @@ cycles vic_cycles(
 // Data must be stable by falling RAS edge
 // TODO: Consider using old dot4x schedule which might be okay
 //       ras_gen <= 16'b1100000000000111;
-always @(posedge clk_rascas)
+always @(posedge clk_dot4x)
     if (rst)
-        ras_gen <= 48'b111111110000000000000000000000000000000001111111;
-    else if (phi_phase_start_rascas[6])
-        ras_gen <= 48'b111111110000000000000000000000000000000001111111;
+        ras_gen <= 16'b1110000000000111;
+    else if (phi_phase_start[2])
+        ras_gen <= 16'b1110000000000111;
     else
-        ras_gen <= {ras_gen[46:0], 1'b0};
+        ras_gen <= {ras_gen[14:0], 1'b0};
 
 // Then stable by falling CAS edge
 // TODO: Consider using old dot4x schedule which might be okay
 //       cas_gen <= 16'b1111000000000111;
-always @(posedge clk_rascas)
-    if (rst)
-        cas_gen <= 48'b111111111111100000000000000000000000000001111111;
-    else if (phi_phase_start_rascas[6])
-        cas_gen <= 48'b111111111111100000000000000000000000000001111111;
-    else
-        cas_gen <= {cas_gen[46:0], 1'b0};
-
-assign ras = ras_gen[47];
-assign cas = cas_gen[47];
-
-// The ado transition happens between ras and cas.
 always @(posedge clk_dot4x)
     if (rst)
-        mux_gen <= 16'b1110000000000001;
+        cas_gen <= 16'b1111100000000111;
+    else if (phi_phase_start[2])
+        cas_gen <= 16'b1111100000000111;
+    else
+        cas_gen <= {cas_gen[14:0], 1'b0};
+
+assign ras = ras_gen[15];
+assign cas = cas_gen[15];
+
+// The ado transition happens between ras and cas.
+// NOTE: We make mux rise back up at the same time
+// the cycle type transitions so that mux changes along
+// with the address gen.  This avoids unnecessary
+// noise due to address line switching. (So mux goes
+// up one cycle after phi does which is when address
+// gen does its thing.)
+always @(posedge clk_dot4x)
+    if (rst)
+        mux_gen <= 16'b1111000000000011;
     else if (phi_phase_start[2]) begin
         // Now that the cycle type is known, make mux fall
         // at expected times.
-        mux_gen <= 16'b1110000000000001;
+        mux_gen <= 16'b1111000000000011;
     end else
         mux_gen <= {mux_gen[14:0], 1'b0};
 assign mux = mux_gen[15];
@@ -674,8 +669,9 @@ assign vic_write_ab = ~aec;
 assign ls245_data_dir = ~vic_write_db;
 //assign ls245_data_oe = aec & ce;
 //assign ls245_addr_dir = aec;
-
-
+//assign ls245_addr_oe = aec & ce;
+  
+  
 // Handle cycles that perform data bus accesses
 bus_access vic_bus_access(
          .rst(rst),
@@ -801,6 +797,7 @@ begin
 end
 
 // use delayed reg11 for yscroll
+// since badline is set @ [0], this is also available @ [0]
 always @(raster_line_d, reg11_delayed, allow_bad_lines)
 begin
     badline = `FALSE;

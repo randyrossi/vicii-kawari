@@ -9,7 +9,6 @@
 module dot4x_14_ntsc_clockgen
        (output wire clk_dot4x,
         output wire clk_col4x,
-        output wire clk_rascas,
         input wire reset,
         input wire clk_in14mhz,
         output locked
@@ -23,7 +22,6 @@ wire clk_in2_clk_wiz_0;
 
 wire clk_dot4x_clk_wiz_0;
 wire clk_col4x_clk_wiz_0;
-wire clk_rascas_clk_wiz_0;
 
 wire [15:0] do_unused;
 wire drdy_unused;
@@ -41,21 +39,17 @@ MMCME2_ADV
       .COMPENSATION("ZHOLD"),
       .STARTUP_WAIT("FALSE"),
       .DIVCLK_DIVIDE(1),
-      .CLKFBOUT_MULT_F(48.000),
+      .CLKFBOUT_MULT_F(64.000),
       .CLKFBOUT_PHASE(0.000),
       .CLKFBOUT_USE_FINE_PS("FALSE"),
-      .CLKOUT0_DIVIDE_F(48.000),
+      .CLKOUT0_DIVIDE_F(64.000),
       .CLKOUT0_PHASE(0.000),
       .CLKOUT0_DUTY_CYCLE(0.500),
       .CLKOUT0_USE_FINE_PS("FALSE"),
-      .CLKOUT1_DIVIDE(21.000),
+      .CLKOUT1_DIVIDE(28.000),
       .CLKOUT1_PHASE(0.000),
       .CLKOUT1_DUTY_CYCLE(0.500),
       .CLKOUT1_USE_FINE_PS("FALSE"),
-      .CLKOUT2_DIVIDE(7.000),
-      .CLKOUT2_PHASE(0.000),
-      .CLKOUT2_DUTY_CYCLE(0.500),
-      .CLKOUT2_USE_FINE_PS("FALSE"),
       .CLKIN1_PERIOD(69.841))
     mmcm_adv_inst
     // Output clocks
@@ -66,7 +60,7 @@ MMCME2_ADV
         .CLKOUT0B(clkout0b_unused),
         .CLKOUT1(clk_dot4x_clk_wiz_0),
         .CLKOUT1B(clkout1b_unused),
-        .CLKOUT2(clk_rascas_clk_wiz_0),
+        .CLKOUT2(clkout2_unused),
         .CLKOUT2B(clkout2b_unused),
         .CLKOUT3(clkout3_unused),
         .CLKOUT3B(clkout3b_unused),
@@ -111,9 +105,5 @@ BUFG clkout1_buf
 BUFG clkout2_buf
      (.O(clk_dot4x),
       .I(clk_dot4x_clk_wiz_0));
-
-BUFG clkout3_buf
-     (.O(clk_rascas),
-      .I(clk_rascas_clk_wiz_0));
 
 endmodule

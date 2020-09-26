@@ -141,11 +141,11 @@ set_property -dict { PACKAGE_PIN W24 IOSTANDARD LVCMOS33 } [get_ports { ba }];
 # irq, Pin U4/20
 set_property -dict { PACKAGE_PIN D23 IOSTANDARD LVCMOS33 } [get_ports { irq }];
 
-# RAS, Pin U4/59
-set_property -dict { PACKAGE_PIN AC26 IOSTANDARD LVCMOS33 } [get_ports { ras }];
+# RAS, Pin U2/57
+set_property -dict { PACKAGE_PIN P1 IOSTANDARD LVCMOS33 } [get_ports { ras }];
 
-# CAS, Pin U4/60
-set_property -dict { PACKAGE_PIN AB26 IOSTANDARD LVCMOS33 } [get_ports { cas }];
+# CAS, Pin U2/60
+set_property -dict { PACKAGE_PIN U2 IOSTANDARD LVCMOS33 } [get_ports { cas }];
 
 # LP, Pin U4/16
 set_property -dict { PACKAGE_PIN C24 IOSTANDARD LVCMOS33 } [get_ports { lp }];

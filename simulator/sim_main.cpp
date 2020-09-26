@@ -162,7 +162,7 @@ static void HEADER(Vtop *top) {
 }
 
 static void STATE(Vtop *top) {
-   if ((top->clk_dot4x & 1) == 0) return;
+   if ((top->V_DOT4X & 1) == 0) return;
 
    if(HASCHANGED(OUT_DOT) && RISING(OUT_DOT))
       HEADER(top);
@@ -205,7 +205,7 @@ static void STATE(Vtop *top) {
    ,
 
    top->V_RST ? 'R' : HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ',
-   top->clk_dot4x ? 1 : 0,
+   top->V_DOT4X ? 1 : 0,
    nextClkCnt,
    top->V_XPOS,
    top->V_CYCLE_NUM,
@@ -276,7 +276,7 @@ static vluint64_t nextTick(Vtop* top) {
    vluint64_t diff1 = nextClk - ticks;
 
    nextClk += half4XDotPS;
-   top->clk_dot4x = ~top->clk_dot4x;
+   top->V_DOT4X = ~top->V_DOT4X;
    nextClkCnt = (nextClkCnt + 1) % 32;
    return ticks + diff1;
 }

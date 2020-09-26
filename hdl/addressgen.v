@@ -25,8 +25,7 @@ module addressgen(
 
 // VIC read address
 reg [13:0] vic_addr;
-// the lower 8 bits of ado are muxed
-//reg [7:0] ado8;
+
 always @*
 begin
     case(cycle_type)

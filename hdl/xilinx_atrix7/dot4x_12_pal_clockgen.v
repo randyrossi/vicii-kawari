@@ -4,7 +4,6 @@
 
 module dot4x_12_pal_clockgen
        (output wire clk_dot4x,
-        output wire clk_rascas,
         input wire reset,
         input wire clk_in12mhz,
         output locked
@@ -17,7 +16,6 @@ wire clk_in2_clk_wiz_0;
 //             .I(clk_in12mhz));
 
 wire clk_dot4x_clk_wiz_0;
-wire clk_rascas_clk_wiz_0;
 
 wire [15:0] do_unused;
 wire drdy_unused;
@@ -42,10 +40,6 @@ MMCME2_ADV
       .CLKOUT0_PHASE(0.000),
       .CLKOUT0_DUTY_CYCLE(0.500),
       .CLKOUT0_USE_FINE_PS("FALSE"),
-      .CLKOUT1_DIVIDE(7),
-      .CLKOUT1_PHASE(0.000),
-      .CLKOUT1_DUTY_CYCLE(0.500),
-      .CLKOUT1_USE_FINE_PS("FALSE"),
       .CLKIN1_PERIOD(83.333))
     mmcm_adv_inst
     // Output clocks
@@ -54,7 +48,7 @@ MMCME2_ADV
         .CLKFBOUTB(clkfboutb_unused),
         .CLKOUT0(clk_dot4x_clk_wiz_0),
         .CLKOUT0B(clkout0b_unused),
-        .CLKOUT1(clk_rascas_clk_wiz_0),
+        .CLKOUT1(clkout1_unused),
         .CLKOUT1B(clkout1b_unused),
         .CLKOUT2(clkout2_unused),
         .CLKOUT2B(clkout2b_unused),
@@ -98,9 +92,5 @@ BUFG clkf_buf
 BUFG clkout_buf
      (.O(clk_dot4x),
       .I(clk_dot4x_clk_wiz_0));
-
-BUFG clkout2_buf
-     (.O(clk_rascas),
-      .I(clk_rascas_clk_wiz_0));
 
 endmodule
