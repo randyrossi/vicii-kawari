@@ -92,9 +92,9 @@ wire [11:0] ado;
 wire vic_write_ab;
 wire vic_write_db;
 
-reg [9:0] raster_x;
-reg [9:0] xpos;
-reg [8:0] raster_line;
+wire [9:0] raster_x;
+wire [9:0] xpos;
+wire [8:0] raster_line;
 vic_color pixel_color3;
 
 // Instantiate the vicii with our clocks and pins.
