@@ -545,24 +545,20 @@ cycles vic_cycles(
 
 // RAS/CAS/MUX profiles
 // Data must be stable by falling RAS edge
-// TODO: Consider using old dot4x schedule which might be okay
-//       ras_gen <= 16'b1100000000000111;
 always @(posedge clk_dot4x)
     if (rst)
-        ras_gen <= 16'b1110000000000111;
+        ras_gen <= 16'b1100000000000111;
     else if (phi_phase_start[2])
-        ras_gen <= 16'b1110000000000111;
+        ras_gen <= 16'b1100000000000111;
     else
         ras_gen <= {ras_gen[14:0], 1'b0};
 
 // Then stable by falling CAS edge
-// TODO: Consider using old dot4x schedule which might be okay
-//       cas_gen <= 16'b1111000000000111;
 always @(posedge clk_dot4x)
     if (rst)
-        cas_gen <= 16'b1111100000000111;
+        cas_gen <= 16'b1111000000000111;
     else if (phi_phase_start[2])
-        cas_gen <= 16'b1111100000000111;
+        cas_gen <= 16'b1111000000000111;
     else
         cas_gen <= {cas_gen[14:0], 1'b0};
 
@@ -574,15 +570,15 @@ assign cas = cas_gen[15];
 // the cycle type transitions so that mux changes along
 // with the address gen.  This avoids unnecessary
 // noise due to address line switching. (So mux goes
-// up one cycle after phi does which is when address
+// up one cycle after phi falls which is when address
 // gen does its thing.)
 always @(posedge clk_dot4x)
     if (rst)
-        mux_gen <= 16'b1111000000000011;
+        mux_gen <= 16'b1110000000000011;
     else if (phi_phase_start[2]) begin
         // Now that the cycle type is known, make mux fall
         // at expected times.
-        mux_gen <= 16'b1111000000000011;
+        mux_gen <= 16'b1110000000000011;
     end else
         mux_gen <= {mux_gen[14:0], 1'b0};
 assign mux = mux_gen[15];
