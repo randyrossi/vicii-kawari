@@ -13,12 +13,6 @@ module dot4x_17_pal_clockgen
         input wire clk_in17mhz,
         output locked
        );
-// Input buffering
-wire clk_in1_clk_wiz_0;
-wire clk_in2_clk_wiz_0;
-//    IBUF clkin1_ibufg
-//         (.O(clk_in1_clk_wiz_0),
-//             .I(clk_in17mhz));
 
 wire clk_dot4x_clk_wiz_0;
 wire clk_col4x_clk_wiz_0;

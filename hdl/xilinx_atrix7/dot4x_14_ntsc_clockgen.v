@@ -13,12 +13,6 @@ module dot4x_14_ntsc_clockgen
         input wire clk_in14mhz,
         output locked
        );
-// Input buffering
-wire clk_in1_clk_wiz_0;
-wire clk_in2_clk_wiz_0;
-//    IBUF clkin1_ibufg
-//         (.O(clk_in1_clk_wiz_0),
-//             .I(clk_in14mhz));
 
 wire clk_dot4x_clk_wiz_0;
 wire clk_col4x_clk_wiz_0;

@@ -1,23 +1,21 @@
 `timescale 1ns/1ps
 
-module color4x_12_ntsc_clockgen
-       (output wire clk_col4x,
-        input wire reset,
-        input wire clk_in12mhz
-       );
-// Input buffering
-wire clk_in1_clk_wiz_0;
-wire clk_in2_clk_wiz_0;
-//    IBUF clkin1_ibufg
-//         (.O(clk_in1_clk_wiz_0),
-//             .I(clk_in12mhz));
+// Generate clk_dot4x from a 50Mhz input clock
 
+module dot4x_50_ntscclockgen
+       (output wire clk_dot4x,
+        output wire clk_col4x,
+        input wire reset,
+        input wire clk_in50mhz,
+        output locked
+       );
+
+wire clk_dot4x_clk_wiz_0;
 wire clk_col4x_clk_wiz_0;
 
 wire [15:0] do_unused;
 wire drdy_unused;
 wire psdone_unused;
-wire locked_int;
 wire clkfbout_clk_wiz_0;
 wire clkfbout_buf_clk_wiz_0;
 wire clkfboutb_unused;
@@ -31,14 +29,18 @@ MMCME2_ADV
       .COMPENSATION("ZHOLD"),
       .STARTUP_WAIT("FALSE"),
       .DIVCLK_DIVIDE(1),
-      .CLKFBOUT_MULT_F(52.500),
+      .CLKFBOUT_MULT_F(13.750),
       .CLKFBOUT_PHASE(0.000),
       .CLKFBOUT_USE_FINE_PS("FALSE"),
-      .CLKOUT0_DIVIDE_F(44.000),
+      .CLKOUT0_DIVIDE_F(48),
       .CLKOUT0_PHASE(0.000),
       .CLKOUT0_DUTY_CYCLE(0.500),
       .CLKOUT0_USE_FINE_PS("FALSE"),
-      .CLKIN1_PERIOD(83.333))
+      .CLKOUT1_DIVIDE(21),
+      .CLKOUT1_PHASE(0.000),
+      .CLKOUT1_DUTY_CYCLE(0.500),
+      .CLKOUT1_USE_FINE_PS("FALSE"),
+      .CLKIN1_PERIOD(20))
     mmcm_adv_inst
     // Output clocks
     (
@@ -46,7 +48,7 @@ MMCME2_ADV
         .CLKFBOUTB(clkfboutb_unused),
         .CLKOUT0(clk_col4x_clk_wiz_0),
         .CLKOUT0B(clkout0b_unused),
-        .CLKOUT1(clkout1_unused),
+        .CLKOUT1(clk_dot4x_clk_wiz_0),
         .CLKOUT1B(clkout1b_unused),
         .CLKOUT2(clkout2_unused),
         .CLKOUT2B(clkout2b_unused),
@@ -57,7 +59,7 @@ MMCME2_ADV
         .CLKOUT6(clkout6_unused),
         // Input clock control
         .CLKFBIN(clkfbout_buf_clk_wiz_0),
-        .CLKIN1(clk_in12mhz), // was clk_in1_clk_wiz_0
+        .CLKIN1(clk_in50mhz), // was clk_in1_clk_wiz_0
         .CLKIN2(1'b0),
         // Tied to always select the primary input clock
         .CLKINSEL(1'b1),
@@ -75,18 +77,23 @@ MMCME2_ADV
         .PSINCDEC(1'b0),
         .PSDONE(psdone_unused),
         // Other control and status signals
-        .LOCKED(locked_int),
+        .LOCKED(locked),
         .CLKINSTOPPED(clkinstopped_unused),
         .CLKFBSTOPPED(clkfbstopped_unused),
         .PWRDWN(1'b0),
         .RST(reset_high));
 assign reset_high = reset;
 
+
 BUFG clkf_buf
      (.O(clkfbout_buf_clk_wiz_0),
       .I(clkfbout_clk_wiz_0));
 
 BUFG clkout_buf
+     (.O(clk_dot4x),
+      .I(clk_dot4x_clk_wiz_0));
+
+BUFG clkout_buf2
      (.O(clk_col4x),
       .I(clk_col4x_clk_wiz_0));
 

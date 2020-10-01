@@ -4,18 +4,14 @@
 
 module dot4x_12_pal_clockgen
        (output wire clk_dot4x,
+        output wire clk_col4x,
         input wire reset,
         input wire clk_in12mhz,
         output locked
        );
-// Input buffering
-wire clk_in1_clk_wiz_0;
-wire clk_in2_clk_wiz_0;
-//    IBUF clkin1_ibufg
-//         (.O(clk_in1_clk_wiz_0),
-//             .I(clk_in12mhz));
 
 wire clk_dot4x_clk_wiz_0;
+wire clk_col4x_clk_wiz_0;
 
 wire [15:0] do_unused;
 wire drdy_unused;
@@ -33,22 +29,26 @@ MMCME2_ADV
       .COMPENSATION("ZHOLD"),
       .STARTUP_WAIT("FALSE"),
       .DIVCLK_DIVIDE(1),
-      .CLKFBOUT_MULT_F(52.875),
+      .CLKFBOUT_MULT_F(63),
       .CLKFBOUT_PHASE(0.000),
       .CLKFBOUT_USE_FINE_PS("FALSE"),
-      .CLKOUT0_DIVIDE_F(20.125),
+      .CLKOUT0_DIVIDE_F(42.625),
       .CLKOUT0_PHASE(0.000),
       .CLKOUT0_DUTY_CYCLE(0.500),
       .CLKOUT0_USE_FINE_PS("FALSE"),
+      .CLKOUT1_DIVIDE(24),
+      .CLKOUT1_PHASE(0.000),
+      .CLKOUT1_DUTY_CYCLE(0.500),
+      .CLKOUT1_USE_FINE_PS("FALSE"),
       .CLKIN1_PERIOD(83.333))
     mmcm_adv_inst
     // Output clocks
     (
         .CLKFBOUT(clkfbout_clk_wiz_0),
         .CLKFBOUTB(clkfboutb_unused),
-        .CLKOUT0(clk_dot4x_clk_wiz_0),
+        .CLKOUT0(clk_col4x_clk_wiz_0),
         .CLKOUT0B(clkout0b_unused),
-        .CLKOUT1(clkout1_unused),
+        .CLKOUT1(clk_dot4x_clk_wiz_0),
         .CLKOUT1B(clkout1b_unused),
         .CLKOUT2(clkout2_unused),
         .CLKOUT2B(clkout2b_unused),
@@ -59,7 +59,7 @@ MMCME2_ADV
         .CLKOUT6(clkout6_unused),
         // Input clock control
         .CLKFBIN(clkfbout_buf_clk_wiz_0),
-        .CLKIN1(clk_in12mhz), // was clk_in1_clk_wiz_0
+        .CLKIN1(clk_in12mhz),
         .CLKIN2(1'b0),
         // Tied to always select the primary input clock
         .CLKINSEL(1'b1),
@@ -92,5 +92,9 @@ BUFG clkf_buf
 BUFG clkout_buf
      (.O(clk_dot4x),
       .I(clk_dot4x_clk_wiz_0));
+
+BUFG clkout_buf2
+     (.O(clk_col4x),
+      .I(clk_col4x_clk_wiz_0));
 
 endmodule

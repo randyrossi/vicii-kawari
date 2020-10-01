@@ -25,20 +25,13 @@ module clockgen(
            output [1:0] chip
        );
 
-wire sys_clockb;
-
-// 21 = 150ms
+// 21 = ~150ms
 // 25 = ~4s for testing
 reg [21:0] rstcntr = 0;
 wire internal_rst = !rstcntr[21];
 
-BUFG sysbuf2 (
-         .O(sys_clockb),
-         .I(sys_clock)
-     );
-
 // Keep internel reset high for approx 150ms
-always @(posedge sys_clockb)
+always @(posedge sys_clock)
     if (internal_rst)
         rstcntr <= rstcntr + 4'd1;
 
@@ -53,17 +46,12 @@ assign chip = CHIP6569;
 
 // Generate the 4x dot clock. See vicii.v for values.
 dot4x_12_pal_clockgen dot4x_12_pal_clockgen(
-                          .clk_in12mhz(sys_clockb),    // external 12 Mhz clock
+                          .clk_in12mhz(sys_clock),    // external 12 Mhz clock
                           .reset(internal_rst),
                           .clk_dot4x(clk_dot4x),      // generated 4x dot clock
+                          .clk_col4x(clk_col4x)     // generated 4x col clock
                           .locked(locked)
                       );
-// Generate a 4x color clock. See vicii.v for values.
-color4x_12_pal_clockgen color4x_12_pal_clockgen(
-                            .clk_in12mhz(sys_clockb),    // external 12 Mhz clock
-                            .reset(internal_rst),
-                            .clk_col4x(clk_col4x)     // generated 4x col clock
-                        );
 `endif
 
 `ifdef USE_INTCLOCK_NTSC
@@ -72,17 +60,12 @@ assign chip = CHIP6567R8;
 
 // Generate the 4x dot clock. See vicii.v for values.
 dot4x_12_ntsc_clockgen dot4x_12_ntsc_clockgen(
-                           .clk_in12mhz(sys_clockb),    // external 12 Mhz clock
+                           .clk_in12mhz(sys_clock),    // external 12 Mhz clock
                            .reset(internal_rst),
                            .clk_dot4x(clk_dot4x),      // generated 4x dot clock
+                           .clk_col4x(clk_col4x)     // generated 4x col clock
                            .locked(locked)
                        );
-// Generate a 4x color clock. See vicii.v for values.
-color4x_12_ntsc_clockgen color4x_12_ntsc_clockgen(
-                             .clk_in12mhz(sys_clockb),    // external 12 Mhz clock
-                             .reset(internal_rst),
-                             .clk_col4x(clk_col4x)     // generated 4x col clock
-                         );
 `endif
 
 // Use an external clock for pal.
@@ -91,7 +74,7 @@ color4x_12_ntsc_clockgen color4x_12_ntsc_clockgen(
 assign chip = CHIP6569;
 
 dot4x_17_pal_clockgen dot4x_17_pal_clockgen(
-                          .clk_in17mhz(sys_clockb),
+                          .clk_in17mhz(sys_clock),
                           .reset(internal_rst),
                           .clk_col4x(clk_col4x),
                           .clk_dot4x(clk_dot4x),
@@ -105,7 +88,7 @@ dot4x_17_pal_clockgen dot4x_17_pal_clockgen(
 assign chip = CHIP6567R8;
 
 dot4x_14_ntsc_clockgen dot4x_14_ntsc_clockgen(
-                           .clk_in14mhz(sys_clockb),
+                           .clk_in14mhz(sys_clock),
                            .reset(internal_rst),
                            .clk_col4x(clk_col4x),
                            .clk_dot4x(clk_dot4x),

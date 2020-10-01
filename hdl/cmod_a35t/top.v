@@ -9,12 +9,13 @@
 //     2) using external 14.318181 and/or 17.734475 Mhz clocks
 //
 // System clock:
-//     This config uses the on-board 12Mhz clock and uses two MMCMs
+//     This config uses the on-board 12Mhz clock and uses an MMCM
 //     to generate both the 4x dot and 4x color clocks.
 // 
 // External Clocks:
 //     This config takes in a 4x color clock signal and uses an MMCM
-//     to generate the 4x dot clock.
+//     to generate the 4x dot clock and pass through the 4x color
+//     clock.
 //
 // In either case, the 4x color clock is divided by 4 to produce a
 // color ref clock for an external composite encoder.  The 4x dot clock
