@@ -40,7 +40,7 @@ module sprites(
         output reg imbc,
         output reg [1:0] sprite_cur_pixel_d3 [`NUM_SPRITES-1:0],
         output reg [5:0] sprite_mc[0:`NUM_SPRITES - 1],
-        output reg sprite_dma[0:`NUM_SPRITES - 1],
+        output reg [`NUM_SPRITES - 1:0] sprite_dma,
         output reg [7:0] sprite_m2m,
         output reg [7:0] sprite_m2d
 );

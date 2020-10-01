@@ -17,7 +17,7 @@ module bus_access(
         input idle,
         input [2:0] sprite_cnt,
         input aec,
-        input sprite_dma[0:`NUM_SPRITES - 1],
+        input [`NUM_SPRITES - 1:0] sprite_dma,
         output reg [7:0] sprite_ptr[0:`NUM_SPRITES - 1],
         output reg [7:0] pixels_read,
         output reg [11:0] char_read,

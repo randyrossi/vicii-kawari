@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-`include "common.vh"
+`include "../common.vh"
 
 // NOTE: Clock pins must be declared in constr.xdc to match
 // selected configuration here.

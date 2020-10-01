@@ -9,7 +9,7 @@ module cycles(
    input clk_phi,
    input [1:0] chip,
    input phi_phase_start_0,
-   input sprite_dma[0:`NUM_SPRITES - 1],
+   input [`NUM_SPRITES - 1:0] sprite_dma,
    input badline,
    input [6:0] cycle_num,
    output reg [3:0] cycle_type,

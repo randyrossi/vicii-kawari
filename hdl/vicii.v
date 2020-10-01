@@ -270,7 +270,7 @@ reg [7:0] sprite_ptr[0:`NUM_SPRITES - 1];
 // current byte offset within 63 bytes that make a sprite
 reg [5:0] sprite_mc[0:`NUM_SPRITES - 1];
 
-reg sprite_dma[0:`NUM_SPRITES - 1];
+reg [`NUM_SPRITES - 1:0] sprite_dma;
 
 reg [1:0] sprite_cur_pixel [`NUM_SPRITES-1:0];
 

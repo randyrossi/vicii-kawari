@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-`include "common.vh"
+`include "../common.vh"
 
 // Top level module for the QMTech XCT7A100T Core Board
 //
@@ -96,16 +96,6 @@ reg [9:0] raster_x;
 reg [9:0] xpos;
 reg [8:0] raster_line;
 vic_color pixel_color3;
-
-// Some vga/hdmi video timing regs
-reg [9:0] hs_sta;
-reg [9:0] hs_end;
-reg [9:0] ha_sta;
-reg [9:0] vs_sta;
-reg [9:0] vs_end;
-reg [9:0] va_end;
-reg [9:0] hoffset;
-reg [9:0] voffset;
 
 // Instantiate the vicii with our clocks and pins.
 vicii vic_inst(
