@@ -25,7 +25,7 @@ module vicii(
            output reg [9:0] xpos,
            output reg [9:0] raster_x,
            output reg [8:0] raster_line,
-           output vic_color pixel_color3,
+           output reg [3:0] pixel_color3,
            output [11:0] ado,
            input [5:0] adi,
            output reg [7:0] dbo,
@@ -168,9 +168,9 @@ wire [2:0] cb;
 wire [6:0] cycle_num;
 
 // ec : border (edge) color
-vic_color ec;
+wire [3:0] ec;
 // b#c : background color registers
-vic_color b0c,b1c,b2c,b3c;
+wire [3:0] b0c,b1c,b2c,b3c;
 
 // lets us detect when a phi phase is
 // starting within a 4x dot always block
@@ -254,8 +254,8 @@ reg [7:0] ba_sprite;
 wire [8:0] sprite_x[0:`NUM_SPRITES - 1];
 wire [7:0] sprite_y[0:`NUM_SPRITES - 1];
 wire [7:0] sprite_pri;
-vic_color sprite_col[0:`NUM_SPRITES - 1];
-vic_color sprite_mc0, sprite_mc1;
+wire [3:0] sprite_col[0:`NUM_SPRITES - 1];
+wire [3:0] sprite_mc0, sprite_mc1;
 wire [23:0] sprite_pixels [0:`NUM_SPRITES-1];
 
 wire [7:0] sprite_en;

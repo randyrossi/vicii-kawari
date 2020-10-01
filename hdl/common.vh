@@ -43,10 +43,23 @@
 `define TRUE	1'b1
 `define FALSE	1'b0
 
-typedef enum bit[3:0] {
-            BLACK, WHITE, RED, CYAN, PURPLE, GREEN, BLUE, YELLOW, ORANGE,
-            BROWN, PINK, DARK_GREY, GREY, LIGHT_GREEN, LIGHT_BLUE, LIGHT_GREY
-        } vic_color;
+// Colors
+`define BLACK        0
+`define WHITE        1
+`define RED          2
+`define CYAN         3
+`define PURPLE       4
+`define GREEN        5
+`define BLUE         6
+`define YELLOW       7
+`define ORANGE       8
+`define BROWN        9
+`define PINK        10
+`define DARK_GREY   11
+`define GREY        12
+`define LIGHT_GREEN 13
+`define LIGHT_BLUE  14
+`define LIGHT_GREY  15
 
 // Registers
 typedef enum bit[5:0]  {

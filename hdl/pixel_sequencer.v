@@ -16,20 +16,20 @@ module pixel_sequencer(
            input [2:0] xscroll,
            input [7:0] pixels_read,
            input [11:0] char_read,
-           input vic_color b0c,
-           input vic_color b1c,
-           input vic_color b2c,
-           input vic_color b3c,
-           input vic_color ec,
+           input [3:0] b0c,
+           input [3:0] b1c,
+           input [3:0] b2c,
+           input [3:0] b3c,
+           input [3:0] ec,
            input main_border,
            input [1:0] sprite_cur_pixel [`NUM_SPRITES-1:0],
            input [7:0] sprite_pri,
            input [7:0] sprite_mmc,
-           input vic_color sprite_col[0:`NUM_SPRITES - 1],
-           input vic_color sprite_mc0,
-           input vic_color sprite_mc1,
+           input [3:0] sprite_col[0:`NUM_SPRITES - 1],
+           input [3:0] sprite_mc0,
+           input [3:0] sprite_mc1,
            output reg is_background_pixel1,
-           output vic_color pixel_color3
+           output reg [3:0] pixel_color3
        );
 
 reg load_pixels;
@@ -160,38 +160,38 @@ always @(posedge clk_dot4x) begin
 end
 
 // handle display modes
-vic_color pixel_color1; // stage 1
+reg [3:0] pixel_color1; // stage 1
 always @(posedge clk_dot4x)
 begin
     //if (rst) begin
     //    is_background_pixel2 <= `FALSE;
-    //    pixel_color1 <= BLACK;
+    //    pixel_color1 <= `BLACK;
     //end else
     if (dot_rising_0) begin
         // this will bring 2nd in line with delayed sprite pixels 2
         is_background_pixel2 <= is_background_pixel1;
-        pixel_color1 <= BLACK;
+        pixel_color1 <= `BLACK;
         case ({ecm, bmm, mcm})
             MODE_STANDARD_CHAR:
-                pixel_color1 <= pixels_shifting[7] ? vic_color'(char_shifting[11:8]):b0c;
+                pixel_color1 <= pixels_shifting[7] ? char_shifting[11:8]:b0c;
             MODE_MULTICOLOR_CHAR:
                 if (char_shifting[11])
                 case (pixels_shifting[7:6])
                     2'b00: pixel_color1 <= b0c;
                     2'b01: pixel_color1 <= b1c;
                     2'b10: pixel_color1 <= b2c;
-                    2'b11: pixel_color1 <= vic_color'({1'b0, char_shifting[10:8]});
+                    2'b11: pixel_color1 <= {1'b0, char_shifting[10:8]};
                 endcase
                 else
-                    pixel_color1 <= pixels_shifting[7] ? vic_color'(char_shifting[11:8]):b0c;
+                    pixel_color1 <= pixels_shifting[7] ? char_shifting[11:8]:b0c;
             MODE_STANDARD_BITMAP, MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP:
-                pixel_color1 <= pixels_shifting[7] ? vic_color'(char_shifting[7:4]):vic_color'(char_shifting[3:0]);
+                pixel_color1 <= pixels_shifting[7] ? char_shifting[7:4]:char_shifting[3:0];
             MODE_MULTICOLOR_BITMAP, MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
             case (pixels_shifting[7:6])
                 2'b00: pixel_color1 <= b0c;
-                2'b01: pixel_color1 <= vic_color'(char_shifting[7:4]);
-                2'b10: pixel_color1 <= vic_color'(char_shifting[3:0]);
-                2'b11: pixel_color1 <= vic_color'(char_shifting[11:8]);
+                2'b01: pixel_color1 <= char_shifting[7:4];
+                2'b10: pixel_color1 <= char_shifting[3:0];
+                2'b11: pixel_color1 <= char_shifting[11:8];
             endcase
             MODE_EXTENDED_BG_COLOR:
             case ({pixels_shifting[7], char_shifting[7:6]})
@@ -199,7 +199,7 @@ begin
                 3'b001: pixel_color1 <= b1c;
                 3'b010: pixel_color1 <= b2c;
                 3'b011: pixel_color1 <= b3c;
-                default: pixel_color1 <= vic_color'(char_shifting[11:8]);
+                default: pixel_color1 <= char_shifting[11:8];
             endcase
             MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR:
                 if (char_shifting[11])
@@ -207,7 +207,7 @@ begin
                     2'b00: pixel_color1 <= b0c;
                     2'b01: pixel_color1 <= b1c;
                     2'b10: pixel_color1 <= b2c;
-                    2'b11: pixel_color1 <= vic_color'(char_shifting[11:8]);
+                    2'b11: pixel_color1 <= char_shifting[11:8];
                 endcase
                 else
                 case ({pixels_shifting[7], char_shifting[7:6]})
@@ -215,17 +215,17 @@ begin
                     3'b001: pixel_color1 <= b1c;
                     3'b010: pixel_color1 <= b2c;
                     3'b011: pixel_color1 <= b3c;
-                    default: pixel_color1 <= vic_color'(char_shifting[11:8]);
+                    default: pixel_color1 <= char_shifting[11:8];
                 endcase
         endcase
     end
 end
 
-vic_color pixel_color2; // stage 2
+reg [3:0] pixel_color2; // stage 2
 always @(posedge clk_dot4x)
 begin
     //if (rst) begin
-    //    pixel_color2 = BLACK;
+    //    pixel_color2 = `BLACK;
     //end else
     begin
         // illegal modes should have black pixels
@@ -233,7 +233,7 @@ begin
             MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR,
             MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP,
             MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
-                pixel_color2 = BLACK;
+                pixel_color2 = `BLACK;
             default: pixel_color2 = pixel_color1;
         endcase
         // sprites overwrite pixels
@@ -264,7 +264,7 @@ begin
                     MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR,
                     MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP,
                     MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
-                        pixel_color2 = BLACK;
+                        pixel_color2 = `BLACK;
                     default: pixel_color2 = pixel_color1;
                 endcase
             end
@@ -276,7 +276,7 @@ end
 always @(posedge clk_dot4x)
 begin
     //if (rst) begin
-    //    pixel_color3 <= BLACK;
+    //    pixel_color3 <= `BLACK;
     //end else
     begin
         if (main_border)

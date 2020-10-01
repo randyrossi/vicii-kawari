@@ -25,11 +25,11 @@ module registers(
            input [7:0] lpx,
            input [7:0] lpy,
 
-           output vic_color ec,
-           output vic_color b0c,
-           output vic_color b1c,
-           output vic_color b2c,
-           output vic_color b3c,
+           output reg [3:0] ec,
+           output reg [3:0] b0c,
+           output reg [3:0] b1c,
+           output reg [3:0] b2c,
+           output reg [3:0] b3c,
            output reg [2:0] xscroll,
            output reg [2:0] yscroll,
            output reg csel,
@@ -49,11 +49,11 @@ module registers(
            output reg [7:0] sprite_ye,
            output reg [7:0] sprite_pri,
            output reg [7:0] sprite_mmc,
-           output vic_color sprite_mc0,
-           output vic_color sprite_mc1,
+           output reg [3:0] sprite_mc0,
+           output reg [3:0] sprite_mc1,
            output reg [8:0] sprite_x[0:`NUM_SPRITES - 1],
            output reg [7:0] sprite_y[0:`NUM_SPRITES - 1],
-           output vic_color sprite_col[0:`NUM_SPRITES - 1],
+           output reg [3:0] sprite_col[0:`NUM_SPRITES - 1],
            output reg m2m_clr,
            output reg m2d_clr,
            output reg handle_sprite_crunch,
@@ -353,35 +353,35 @@ always @(posedge clk_dot4x)
                         /* 0x1d */ REG_SPRITE_EXPAND_X:
                             sprite_xe <= dbi[7:0];
                         /* 0x20 */ REG_BORDER_COLOR:
-                            ec <= vic_color'(dbi[3:0]);
+                            ec <= dbi[3:0];
                         /* 0x21 */ REG_BACKGROUND_COLOR_0:
-                            b0c <= vic_color'(dbi[3:0]);
+                            b0c <= dbi[3:0];
                         /* 0x22 */ REG_BACKGROUND_COLOR_1:
-                            b1c <= vic_color'(dbi[3:0]);
+                            b1c <= dbi[3:0];
                         /* 0x23 */ REG_BACKGROUND_COLOR_2:
-                            b2c <= vic_color'(dbi[3:0]);
+                            b2c <= dbi[3:0];
                         /* 0x24 */ REG_BACKGROUND_COLOR_3:
-                            b3c <= vic_color'(dbi[3:0]);
+                            b3c <= dbi[3:0];
                         /* 0x25 */ REG_SPRITE_MULTI_COLOR_0:
-                            sprite_mc0 <= vic_color'(dbi[3:0]);
+                            sprite_mc0 <= dbi[3:0];
                         /* 0x26 */ REG_SPRITE_MULTI_COLOR_1:
-                            sprite_mc1 <= vic_color'(dbi[3:0]);
+                            sprite_mc1 <= dbi[3:0];
                         /* 0x27 */ REG_SPRITE_COLOR_0:
-                            sprite_col[0] <= vic_color'(dbi[3:0]);
+                            sprite_col[0] <= dbi[3:0];
                         /* 0x28 */ REG_SPRITE_COLOR_1:
-                            sprite_col[1] <= vic_color'(dbi[3:0]);
+                            sprite_col[1] <= dbi[3:0];
                         /* 0x29 */ REG_SPRITE_COLOR_2:
-                            sprite_col[2] <= vic_color'(dbi[3:0]);
+                            sprite_col[2] <= dbi[3:0];
                         /* 0x2a */ REG_SPRITE_COLOR_3:
-                            sprite_col[3] <= vic_color'(dbi[3:0]);
+                            sprite_col[3] <= dbi[3:0];
                         /* 0x2b */ REG_SPRITE_COLOR_4:
-                            sprite_col[4] <= vic_color'(dbi[3:0]);
+                            sprite_col[4] <= dbi[3:0];
                         /* 0x2c */ REG_SPRITE_COLOR_5:
-                            sprite_col[5] <= vic_color'(dbi[3:0]);
+                            sprite_col[5] <= dbi[3:0];
                         /* 0x2d */ REG_SPRITE_COLOR_6:
-                            sprite_col[6] <= vic_color'(dbi[3:0]);
+                            sprite_col[6] <= dbi[3:0];
                         /* 0x2e */ REG_SPRITE_COLOR_7:
-                            sprite_col[7] <= vic_color'(dbi[3:0]);
+                            sprite_col[7] <= dbi[3:0];
                         default:;
                     endcase
             end

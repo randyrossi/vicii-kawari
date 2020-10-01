@@ -20,14 +20,14 @@ module vga_sync(
     input [1:0] chip,
     input [9:0] raster_x,
     input [8:0] raster_y,
-    input vic_color pixel_color3,
+    input [3:0] pixel_color3,
     output reg hsync,             // horizontal sync
     output reg vsync,             // vertical sync
     output reg active,
-    output vic_color pixel_color4
+    output reg [3:0] pixel_color4
  );
 
-    vic_color vga_color;
+    reg [3:0] vga_color;
     reg [9:0] h_count;  // line position
     reg [9:0] v_count;  // screen position
     reg ff = 1'b1;
@@ -39,7 +39,7 @@ module vga_sync(
     // active: high during active pixel drawing
     assign active = ~((h_count < ha_sta) | (v_count > va_end - 1)); 
 
-    assign pixel_color4 = active ? vga_color : BLACK;
+    assign pixel_color4 = active ? vga_color : `BLACK;
 
     always @ (posedge clk_dot4x)
     begin
@@ -168,10 +168,10 @@ always @(posedge clk_dot4x)
 begin
    if (!rst) begin
        if (h_count >= hoffset) begin
-           vga_color = !active_buf ? vic_color'(line_buf_0[h_count - hoffset]) :
-                                     vic_color'(line_buf_1[h_count - hoffset]);
+           vga_color = !active_buf ? line_buf_0[h_count - hoffset] :
+                                     line_buf_1[h_count - hoffset];
        end else
-           vga_color = BLACK;
+           vga_color = `BLACK;
    end
 end
 

@@ -9,11 +9,11 @@ module comp_sync(
            input wire clk_dot4x,
            input wire clk_col4x,
            input [1:0] chip,
-           input vic_color pixel_color3,
+           input [3:0] pixel_color3,
            input wire [9:0] raster_x,
            input wire [8:0] raster_y,
            output reg csync,
-           output vic_color pixel_color4,
+           output reg [3:0] pixel_color4,
            output clk_colref);
 
 reg [9:0] hsync_start;
@@ -38,7 +38,7 @@ begin
        else
            composite_active = 1'b0;
 
-       pixel_color4 = composite_active ? pixel_color3 : BLACK;
+       pixel_color4 = composite_active ? pixel_color3 : `BLACK;
 end
 
 always @(chip)

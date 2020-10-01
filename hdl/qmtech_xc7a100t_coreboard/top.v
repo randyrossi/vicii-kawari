@@ -95,7 +95,7 @@ wire vic_write_db;
 wire [9:0] raster_x;
 wire [9:0] xpos;
 wire [8:0] raster_line;
-vic_color pixel_color3;
+wire [3:0] pixel_color3;
 
 // Instantiate the vicii with our clocks and pins.
 vicii vic_inst(
@@ -138,7 +138,7 @@ assign dbo_sim = dbo;
 // ----------------------------------------------------
 // Composite output - csync and color_ref
 // ----------------------------------------------------
-vic_color pixel_color4_composite;
+wire [3:0] pixel_color4_composite;
 comp_sync vic_comp_sync(
          .rst(rst),
          .clk_dot4x(clk_dot4x),
@@ -155,7 +155,7 @@ comp_sync vic_comp_sync(
 // ----------------------------------------------------
 // VGA/HDMI output - hsync/vsync
 // ----------------------------------------------------
-vic_color pixel_color4_vga;
+wire [3:0] pixel_color4_vga;
 vga_sync vic_vga_sync(
     .rst(rst),
     .clk_dot4x(clk_dot4x),
