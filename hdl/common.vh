@@ -62,55 +62,53 @@
 `define LIGHT_GREY  15
 
 // Registers
-typedef enum bit[5:0]  {
-            REG_SPRITE_X_0 = 6'h00,
-            REG_SPRITE_Y_0 = 6'h01,
-            REG_SPRITE_X_1 = 6'h02,
-            REG_SPRITE_Y_1 = 6'h03,
-            REG_SPRITE_X_2 = 6'h04,
-            REG_SPRITE_Y_2 = 6'h05,
-            REG_SPRITE_X_3 = 6'h06,
-            REG_SPRITE_Y_3 = 6'h07,
-            REG_SPRITE_X_4 = 6'h08,
-            REG_SPRITE_Y_4 = 6'h09,
-            REG_SPRITE_X_5 = 6'h0A,
-            REG_SPRITE_Y_5 = 6'h0B,
-            REG_SPRITE_X_6 = 6'h0C,
-            REG_SPRITE_Y_6 = 6'h0D,
-            REG_SPRITE_X_7 = 6'h0E,
-            REG_SPRITE_Y_7 = 6'h0F,
-            REG_SPRITE_X_BIT_8 = 6'h10,
-            REG_SCREEN_CONTROL_1 = 6'h11,
-            REG_RASTER_LINE = 6'h12,
-            REG_LIGHT_PEN_X = 6'h13,
-            REG_LIGHT_PEN_Y = 6'h14,
-            REG_SPRITE_ENABLE = 6'h15,
-            REG_SCREEN_CONTROL_2 = 6'h16,
-            REG_SPRITE_EXPAND_Y = 6'h17,
-            REG_MEMORY_SETUP = 6'h18,
-            REG_INTERRUPT_STATUS = 6'h19,
-            REG_INTERRUPT_CONTROL = 6'h1a,
-            REG_SPRITE_PRIORITY = 6'h1b,
-            REG_SPRITE_MULTICOLOR_MODE = 6'h1c,
-            REG_SPRITE_EXPAND_X = 6'h1d,
-            REG_SPRITE_2_SPRITE_COLLISION = 6'h1e,
-            REG_SPRITE_2_DATA_COLLISION = 6'h1f,
-            REG_BORDER_COLOR = 6'h20,
-            REG_BACKGROUND_COLOR_0 = 6'h21,
-            REG_BACKGROUND_COLOR_1 = 6'h22,
-            REG_BACKGROUND_COLOR_2 = 6'h23,
-            REG_BACKGROUND_COLOR_3 = 6'h24,
-            REG_SPRITE_MULTI_COLOR_0 = 6'h25,
-            REG_SPRITE_MULTI_COLOR_1 = 6'h26,
-            REG_SPRITE_COLOR_0 = 6'h27,
-            REG_SPRITE_COLOR_1 = 6'h28,
-            REG_SPRITE_COLOR_2 = 6'h29,
-            REG_SPRITE_COLOR_3 = 6'h2A,
-            REG_SPRITE_COLOR_4 = 6'h2B,
-            REG_SPRITE_COLOR_5 = 6'h2C,
-            REG_SPRITE_COLOR_6 = 6'h2D,
-            REG_SPRITE_COLOR_7 = 6'h2E
-        } vicii_register;
+`define REG_SPRITE_X_0                6'h00
+`define REG_SPRITE_Y_0                6'h01
+`define REG_SPRITE_X_1                6'h02
+`define REG_SPRITE_Y_1                6'h03
+`define REG_SPRITE_X_2                6'h04
+`define REG_SPRITE_Y_2                6'h05
+`define REG_SPRITE_X_3                6'h06
+`define REG_SPRITE_Y_3                6'h07
+`define REG_SPRITE_X_4                6'h08
+`define REG_SPRITE_Y_4                6'h09
+`define REG_SPRITE_X_5                6'h0A
+`define REG_SPRITE_Y_5                6'h0B
+`define REG_SPRITE_X_6                6'h0C
+`define REG_SPRITE_Y_6                6'h0D
+`define REG_SPRITE_X_7                6'h0E
+`define REG_SPRITE_Y_7                6'h0F
+`define REG_SPRITE_X_BIT_8            6'h10
+`define REG_SCREEN_CONTROL_1          6'h11
+`define REG_RASTER_LINE               6'h12
+`define REG_LIGHT_PEN_X               6'h13
+`define REG_LIGHT_PEN_Y               6'h14
+`define REG_SPRITE_ENABLE             6'h15
+`define REG_SCREEN_CONTROL_2          6'h16
+`define REG_SPRITE_EXPAND_Y           6'h17
+`define REG_MEMORY_SETUP              6'h18
+`define REG_INTERRUPT_STATUS          6'h19
+`define REG_INTERRUPT_CONTROL         6'h1a
+`define REG_SPRITE_PRIORITY           6'h1b
+`define REG_SPRITE_MULTICOLOR_MODE    6'h1c
+`define REG_SPRITE_EXPAND_X           6'h1d
+`define REG_SPRITE_2_SPRITE_COLLISION 6'h1e
+`define REG_SPRITE_2_DATA_COLLISION   6'h1f
+`define REG_BORDER_COLOR              6'h20
+`define REG_BACKGROUND_COLOR_0        6'h21
+`define REG_BACKGROUND_COLOR_1        6'h22
+`define REG_BACKGROUND_COLOR_2        6'h23
+`define REG_BACKGROUND_COLOR_3        6'h24
+`define REG_SPRITE_MULTI_COLOR_0      6'h25
+`define REG_SPRITE_MULTI_COLOR_1      6'h26
+`define REG_SPRITE_COLOR_0            6'h27
+`define REG_SPRITE_COLOR_1            6'h28
+`define REG_SPRITE_COLOR_2            6'h29
+`define REG_SPRITE_COLOR_3            6'h2A
+`define REG_SPRITE_COLOR_4            6'h2B
+`define REG_SPRITE_COLOR_5            6'h2C
+`define REG_SPRITE_COLOR_6            6'h2D
+`define REG_SPRITE_COLOR_7            6'h2E
 
 // Official video modes, source https://www.c64-wiki.com/wiki/Graphics_Modes
 typedef enum bit[2:0] {
