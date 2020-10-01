@@ -143,22 +143,22 @@ reg [4:0] reg16_delayed;
 reg [9:0] xpos_sprite;
 reg [9:0] xpos_gfx;
 
-// What cycle we are on.  Only valid on 3rd tick (or greater)
-// within a phase.
-reg [3:0] cycle_type;
+// What cycle we are on.  Only valid on 2nd tick (or greater)
+// within a half-phase.
+wire [3:0] cycle_type;
 
 // DRAM refresh counter
 reg [7:0] refc;
 
 // Counters for sprite, refresh and idle 'stretches' for
 // the cycle_type state machine.
-reg [2:0] sprite_cnt;
-reg [2:0] refresh_cnt;
-reg [2:0] idle_cnt;
+wire [2:0] sprite_cnt;
+wire [2:0] refresh_cnt;
+wire [2:0] idle_cnt;
 
 // Video matrix and character banks.
-reg [3:0] vm;
-reg [2:0] cb;
+wire [3:0] vm;
+wire [2:0] cb;
 
 // cycleNum : Each cycle is 8 pixels.
 // 6567R56A : 0-63
@@ -191,58 +191,58 @@ wire mux;
 // types of interrupts happened, but may not be
 // reported via irq unless enabled
 reg irst;
-reg ilp;
-reg immc;
-reg imbc;
+wire ilp;
+wire immc;
+wire imbc;
 
 // interrupt latches for $d019, these are set HIGH when
 // an interrupt of that type occurs. They are not automatically
 // cleared by the VIC.
 reg irst_clr;
-reg imbc_clr;
-reg immc_clr;
-reg ilp_clr;
+wire imbc_clr;
+wire immc_clr;
+wire ilp_clr;
 
 // interrupt enable registers for $d01a, these determine
 // if these types of interrupts will make irq low
-reg erst;
-reg embc;
-reg emmc;
-reg elp;
+wire erst;
+wire embc;
+wire emmc;
+wire elp;
 
 // if enabled, what raster line do we trigger irq for irst?
-reg [8:0] raster_irq_compare;
+wire [8:0] raster_irq_compare;
 // keeps track of whether raster irq was raised on a line
 reg raster_irq_triggered;
 
-reg [9:0] vc_base; // video counter base
-reg [9:0] vc; // video counter
-reg [2:0] rc; // row counter
-reg idle;
+wire [9:0] vc_base; // video counter base
+wire [9:0] vc; // video counter
+wire [2:0] rc; // row counter
+wire idle;
 
-reg den; // display enable
-reg bmm; // bitmap mode
-reg ecm; // extended color mode
+wire den; // display enable
+wire bmm; // bitmap mode
+wire ecm; // extended color mode
 
 wire [2:0] xscroll;
 wire [2:0] yscroll;
 
-reg rsel; // border row select
-reg csel; // border column select
-reg mcm; // multi color mode
-reg res; // no function
+wire rsel; // border row select
+wire csel; // border column select
+wire mcm; // multi color mode
+wire res; // no function
 
-reg is_background_pixel1;
+wire is_background_pixel1;
 
 // mostly used for iterating over sprites
 integer n;
 
 // char read off the bus, eventually transfered to charRead
-reg [11:0] char_next;
+wire [11:0] char_next;
 
 // pixels read off the data bus and char read from the bus (char_next on badline) or char_buf (not badline)
-reg [11:0] char_read;
-reg [7:0] pixels_read;
+wire [11:0] char_read;
+wire [7:0] pixels_read;
 
 // badline condition
 reg badline;
@@ -251,28 +251,28 @@ reg badline;
 reg ba_chars;
 reg [7:0] ba_sprite;
 
-reg [8:0] sprite_x[0:`NUM_SPRITES - 1];
-reg [7:0] sprite_y[0:`NUM_SPRITES - 1];
-reg [7:0] sprite_pri;
+wire [8:0] sprite_x[0:`NUM_SPRITES - 1];
+wire [7:0] sprite_y[0:`NUM_SPRITES - 1];
+wire [7:0] sprite_pri;
 vic_color sprite_col[0:`NUM_SPRITES - 1];
 vic_color sprite_mc0, sprite_mc1;
-reg [23:0] sprite_pixels [0:`NUM_SPRITES-1];
+wire [23:0] sprite_pixels [0:`NUM_SPRITES-1];
 
-reg [7:0] sprite_en;
+wire [7:0] sprite_en;
 
-reg [7:0] sprite_xe;
-reg [7:0] sprite_ye;
-reg [7:0] sprite_mmc;
+wire [7:0] sprite_xe;
+wire [7:0] sprite_ye;
+wire [7:0] sprite_mmc;
 
 // data pointers for each sprite
-reg [7:0] sprite_ptr[0:`NUM_SPRITES - 1];
+wire [7:0] sprite_ptr[0:`NUM_SPRITES - 1];
 
 // current byte offset within 63 bytes that make a sprite
-reg [5:0] sprite_mc[0:`NUM_SPRITES - 1];
+wire [5:0] sprite_mc[0:`NUM_SPRITES - 1];
 
-reg [`NUM_SPRITES - 1:0] sprite_dma;
+wire [`NUM_SPRITES - 1:0] sprite_dma;
 
-reg [1:0] sprite_cur_pixel [`NUM_SPRITES-1:0];
+wire [1:0] sprite_cur_pixel [`NUM_SPRITES-1:0];
 
 // Setup sprite ba start/end ranges.  These are compared against
 // sprite_raster_x which is makes sprite #0 drop point = 0
@@ -390,11 +390,13 @@ always @(posedge clk_dot4x)
             refc <= refc - 8'd1;
     end
 
-// Border pixels are delayed to align with gfx data.
-`define BORDER_DELAY 2
+// Border pixels are delayed 2 dots to align with gfx data.
+
 // border logic
-reg top_bot_border;
-reg main_border[`BORDER_DELAY + 1];
+wire top_bot_border;
+wire main_border;
+reg main_border_d1;
+reg main_border_d2;
 border vic_border(
            .rst(rst),
            .clk_dot4x(clk_dot4x),
@@ -406,7 +408,7 @@ border vic_border(
            .csel(csel),
            .den(den),
            .vborder(top_bot_border),
-           .main_border(main_border[0])
+           .main_border(main_border)
        );
 
 // NOTE: We delay the left/right border mask. For simulator
@@ -414,14 +416,13 @@ border vic_border(
 always @(posedge clk_dot4x)
 begin
    if (dot_rising[0]) begin
-      for (n=0; n < `BORDER_DELAY; n++) begin
-          main_border[n+1] <= main_border[n];
-      end
+      main_border_d1 <= main_border;
+      main_border_d2 <= main_border_d1;
    end
 end
 
-reg [7:0] lpx;
-reg [7:0] lpy;
+wire [7:0] lpx;
+wire [7:0] lpy;
 
 lightpen vic_lightpen(
            .clk_dot4x(clk_dot4x),
@@ -584,11 +585,11 @@ always @(posedge clk_dot4x)
 assign mux = mux_gen[15];
 
 // sprite logic
-reg handle_sprite_crunch;
-reg m2m_clr;
-reg m2d_clr;
-reg [7:0] sprite_m2m;
-reg [7:0] sprite_m2d;
+wire handle_sprite_crunch;
+wire m2m_clr;
+wire m2d_clr;
+wire [7:0] sprite_m2m;
+wire [7:0] sprite_m2d;
 
 sprites vic_sprites(
          .rst(rst),
@@ -615,7 +616,7 @@ sprites vic_sprites(
          .sprite_pixels(sprite_pixels),
          .aec(aec),
          .is_background_pixel1(is_background_pixel1),
-         .main_border(main_border[`BORDER_DELAY]), // delayed
+         .main_border(main_border_d2), // delayed
          .imbc_clr(imbc_clr),
          .immc_clr(immc_clr),
          .sprite_dmachk1(sprite_dmachk1),
@@ -821,7 +822,7 @@ pixel_sequencer vic_pixel_sequencer(
                     .b2c(b2c),
                     .b3c(b3c),
                     .ec(ec),
-                    .main_border(main_border[`BORDER_DELAY]), // delayed
+                    .main_border(main_border_d2), // delayed
                     .sprite_cur_pixel(sprite_cur_pixel),
                     .sprite_pri(sprite_pri),
                     .sprite_mmc(sprite_mmc),
