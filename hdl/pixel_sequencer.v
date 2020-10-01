@@ -172,9 +172,9 @@ begin
         is_background_pixel2 <= is_background_pixel1;
         pixel_color1 <= `BLACK;
         case ({ecm, bmm, mcm})
-            MODE_STANDARD_CHAR:
+            `MODE_STANDARD_CHAR:
                 pixel_color1 <= pixels_shifting[7] ? char_shifting[11:8]:b0c;
-            MODE_MULTICOLOR_CHAR:
+            `MODE_MULTICOLOR_CHAR:
                 if (char_shifting[11])
                 case (pixels_shifting[7:6])
                     2'b00: pixel_color1 <= b0c;
@@ -184,16 +184,16 @@ begin
                 endcase
                 else
                     pixel_color1 <= pixels_shifting[7] ? char_shifting[11:8]:b0c;
-            MODE_STANDARD_BITMAP, MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP:
+            `MODE_STANDARD_BITMAP, `MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP:
                 pixel_color1 <= pixels_shifting[7] ? char_shifting[7:4]:char_shifting[3:0];
-            MODE_MULTICOLOR_BITMAP, MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
+            `MODE_MULTICOLOR_BITMAP, `MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
             case (pixels_shifting[7:6])
                 2'b00: pixel_color1 <= b0c;
                 2'b01: pixel_color1 <= char_shifting[7:4];
                 2'b10: pixel_color1 <= char_shifting[3:0];
                 2'b11: pixel_color1 <= char_shifting[11:8];
             endcase
-            MODE_EXTENDED_BG_COLOR:
+            `MODE_EXTENDED_BG_COLOR:
             case ({pixels_shifting[7], char_shifting[7:6]})
                 3'b000: pixel_color1 <= b0c;
                 3'b001: pixel_color1 <= b1c;
@@ -201,7 +201,7 @@ begin
                 3'b011: pixel_color1 <= b3c;
                 default: pixel_color1 <= char_shifting[11:8];
             endcase
-            MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR:
+            `MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR:
                 if (char_shifting[11])
                 case (pixels_shifting[7:6])
                     2'b00: pixel_color1 <= b0c;
@@ -230,9 +230,9 @@ begin
     begin
         // illegal modes should have black pixels
         case ({ecm, bmm, mcm})
-            MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR,
-            MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP,
-            MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
+            `MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR,
+            `MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP,
+            `MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
                 pixel_color2 = `BLACK;
             default: pixel_color2 = pixel_color1;
         endcase
@@ -261,9 +261,9 @@ begin
             // sprite's desire to overwrite it.
             if (sprite_pri[n] && !is_background_pixel2 && sprite_pixels_delayed1[n][1]) begin
                 case ({ecm, bmm, mcm})
-                    MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR,
-                    MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP,
-                    MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
+                    `MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR,
+                    `MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP,
+                    `MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
                         pixel_color2 = `BLACK;
                     default: pixel_color2 = pixel_color1;
                 endcase
