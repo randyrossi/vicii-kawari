@@ -42,7 +42,7 @@ always @(posedge sys_clock)
 
 `ifdef USE_INTCLOCK_PAL
 
-assign chip = CHIP6569;
+assign chip = `CHIP6569;
 
 // Generate the 4x dot clock. See vicii.v for values.
 dot4x_12_pal_clockgen dot4x_12_pal_clockgen(
@@ -56,7 +56,7 @@ dot4x_12_pal_clockgen dot4x_12_pal_clockgen(
 
 `ifdef USE_INTCLOCK_NTSC
 
-assign chip = CHIP6567R8;
+assign chip = `CHIP6567R8;
 
 // Generate the 4x dot clock. See vicii.v for values.
 dot4x_12_ntsc_clockgen dot4x_12_ntsc_clockgen(
@@ -71,7 +71,7 @@ dot4x_12_ntsc_clockgen dot4x_12_ntsc_clockgen(
 // Use an external clock for pal.
 `ifdef USE_EXTCLOCK_PAL
 
-assign chip = CHIP6569;
+assign chip = `CHIP6569;
 
 dot4x_17_pal_clockgen dot4x_17_pal_clockgen(
                           .clk_in17mhz(sys_clock),
@@ -85,7 +85,7 @@ dot4x_17_pal_clockgen dot4x_17_pal_clockgen(
 // Use an external clock for ntsc.
 `ifdef USE_EXTCLOCK_NTSC
 
-assign chip = CHIP6567R8;
+assign chip = `CHIP6567R8;
 
 dot4x_14_ntsc_clockgen dot4x_14_ntsc_clockgen(
                            .clk_in14mhz(sys_clock),

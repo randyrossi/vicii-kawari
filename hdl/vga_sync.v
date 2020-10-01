@@ -47,24 +47,24 @@ module vga_sync(
         begin
             h_count <= 0;
             case (chip)
-            CHIP6569, CHIPUNUSED: begin
+            `CHIP6569, `CHIPUNUSED: begin
                max_width = 503;
                max_height = 623;
                v_count <= 623 - voffset;
             end 
-            CHIP6567R8: begin
+            `CHIP6567R8: begin
                max_width = 519;
                max_height = 525;
                v_count <= 525 - voffset;
             end
-            CHIP6567R56A: begin
+            `CHIP6567R56A: begin
                max_width = 511;
                max_height = 523;
                v_count <= 523 - voffset;
             end
             endcase
                     case (chip)
-            CHIP6569, CHIPUNUSED: begin
+            `CHIP6569, `CHIPUNUSED: begin
                hs_sta <= 10;             // h front porch 10
                hs_end <= 10 + 60;        // h sync pulse  60
                ha_sta <= 10 + 60 + 30;   // h back porch  30
@@ -77,7 +77,7 @@ module vga_sync(
                hoffset <= 10;
                voffset <= 20;
             end 
-            CHIP6567R8: begin
+            `CHIP6567R8: begin
                hs_sta <= 10;
                hs_end <= 10 + 62;
                ha_sta <= 10 + 62 + 31;
@@ -90,7 +90,7 @@ module vga_sync(
                hoffset <= 20;
                voffset <= 52;
             end
-            CHIP6567R56A: begin
+            `CHIP6567R56A: begin
                hs_sta <= 10;
                hs_end <= 10 + 61;
                ha_sta <= 10 + 61 + 31;
@@ -123,9 +123,9 @@ module vga_sync(
             end
             if (raster_x == 0 && raster_y == 0) begin
                 case (chip)
-                CHIP6569, CHIPUNUSED: v_count <= 623 - voffset;
-                CHIP6567R8: v_count <= 525 - voffset;
-                CHIP6567R56A: v_count <= 523 - voffset;
+                `CHIP6569, `CHIPUNUSED: v_count <= 623 - voffset;
+                `CHIP6567R8: v_count <= 525 - voffset;
+                `CHIP6567R56A: v_count <= 523 - voffset;
                 endcase
             end
         end

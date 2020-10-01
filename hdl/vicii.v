@@ -18,7 +18,7 @@
 // causing it.
 
 module vicii(
-           input chip_type chip,
+           input [1:0] chip,
            input rst,
            input clk_dot4x,
            output clk_phi,
@@ -81,7 +81,7 @@ reg [9:0] sprite_raster_x;
 // Set limits for chips
 always @(chip)
 case(chip)
-    CHIP6567R8:
+    `CHIP6567R8:
     begin
         raster_x_max = 10'd519;    // 520 pixels
         raster_y_max = 9'd262;     // 263 lines
@@ -93,7 +93,7 @@ case(chip)
         chars_ba_start = 'h1f4;
         chars_ba_end = 'h14c;
     end
-    CHIP6567R56A:
+    `CHIP6567R56A:
     begin
         raster_x_max = 10'd511;    // 512 pixels
         raster_y_max = 9'd261;     // 262 lines
@@ -105,7 +105,7 @@ case(chip)
         chars_ba_start = 'h1f4;
         chars_ba_end = 'h14c;
     end
-    CHIP6569, CHIPUNUSED:
+    `CHIP6569, `CHIPUNUSED:
     begin
         raster_x_max = 10'd503;     // 504 pixels
         raster_y_max = 9'd311;      // 312
@@ -386,7 +386,7 @@ always @(posedge clk_dot4x)
         // the previous half cycle.
         if (cycle_num == 1 && raster_line == 9'd0)
             refc <= 8'hff;
-        else if (cycle_type == VIC_LR)
+        else if (cycle_type == `VIC_LR)
             refc <= refc - 8'd1;
     end
 

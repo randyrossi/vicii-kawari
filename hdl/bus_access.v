@@ -41,7 +41,7 @@ always @(posedge clk_dot4x)
     end else
     if (phi_phase_start_dav) begin
         case (cycle_type)
-            VIC_HRC, VIC_HGC: begin // badline c-access
+            `VIC_HRC, `VIC_HGC: begin // badline c-access
                 // Always read color and init data to 0xff
                 // - krestage 1st demo/starwars falcon cloud/comaland bee pic
                 char_next = { dbi[11:8], 8'b11111111 };
@@ -50,12 +50,12 @@ always @(posedge clk_dot4x)
                 end
                 char_buf[char_buf_counter] = char_next;
             end
-            VIC_HRX, VIC_HGI: // not badline idle (char from cache)
+            `VIC_HRX, `VIC_HGI: // not badline idle (char from cache)
                 char_next = char_buf[char_buf_counter];
             default: ;
         endcase
         case (cycle_type)
-            VIC_HRC, VIC_HGC, VIC_HRX, VIC_HGI: begin
+            `VIC_HRC, `VIC_HGC, `VIC_HRX, `VIC_HGI: begin
                 if (char_buf_counter < 39)
                     char_buf_counter <= char_buf_counter + 1;
                  else
@@ -74,7 +74,7 @@ begin
     end else
     if (!aec && phi_phase_start_dav) begin
         pixels_read <= 8'd0;
-        if (cycle_type == VIC_LG) begin // g-access
+        if (cycle_type == `VIC_LG) begin // g-access
             pixels_read <= dbi[7:0];
             char_read <= idle ? 12'd0 : char_next;
         end
@@ -91,7 +91,7 @@ always @(posedge clk_dot4x)
     begin
         if (!aec && phi_phase_start_dav) begin
             case (cycle_type)
-                VIC_LP: // p-access
+                `VIC_LP: // p-access
                     if (sprite_dma[sprite_cnt])
                         sprite_ptr[sprite_cnt] <= dbi[7:0];
                     else
@@ -110,7 +110,7 @@ always @(posedge clk_dot4x)
 //    end else
     if (!aec && phi_phase_start_dav) begin
         case (cycle_type)
-            VIC_HS1, VIC_LS2, VIC_HS3:
+            `VIC_HS1, `VIC_LS2, `VIC_HS3:
                 if (sprite_dma[sprite_cnt])
                     sprite_pixels[sprite_cnt] <= {sprite_pixels[sprite_cnt][15:0], dbi[7:0]};
             default: ;

@@ -29,9 +29,9 @@ reg [13:0] vic_addr;
 always @*
 begin
     case(cycle_type)
-        VIC_LR:
+        `VIC_LR:
             vic_addr = {6'b111111, refc};
-        VIC_LG: begin
+        `VIC_LG: begin
             if (idle)
                 if (ecm) // ecm
                     vic_addr = 14'h39FF;
@@ -46,11 +46,11 @@ begin
                     vic_addr[10:9] = 2'b00;
             end
         end
-        VIC_HRC, VIC_HGC:
+        `VIC_HRC, `VIC_HGC:
             vic_addr = {vm, vc}; // video matrix c-access
-        VIC_LP:
+        `VIC_LP:
             vic_addr = {vm, 7'b1111111, sprite_cnt}; // p-access
-        VIC_HS1, VIC_LS2, VIC_HS3:
+        `VIC_HS1, `VIC_LS2, `VIC_HS3:
             if (!aec)
                 vic_addr = {sprite_ptr[sprite_cnt], sprite_mc[sprite_cnt]}; // s-access
             else begin

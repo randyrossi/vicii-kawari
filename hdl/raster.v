@@ -44,13 +44,13 @@ always @(posedge clk_dot4x)
         start_of_line = 0;
         start_of_frame = 0;
         case(chip)
-            CHIP6567R56A: begin
+            `CHIP6567R56A: begin
                 xpos <= 10'h19c;
                 sprite_raster_x <= 72; // 512 - 55*8
-            end CHIP6567R8: begin
+            end `CHIP6567R8: begin
                 xpos <= 10'h19c;
                 sprite_raster_x <= 80; // 520 - 55*8
-            end CHIP6569, CHIPUNUSED: begin
+            end `CHIP6569, `CHIPUNUSED: begin
                 xpos <= 10'h194;
                 sprite_raster_x <= 72; // 504 - 54*8
             end
@@ -74,7 +74,7 @@ always @(posedge clk_dot4x)
 
                 // Handle xpos move but deal with special cases
                 case(chip)
-                    CHIP6567R8:
+                    `CHIP6567R8:
                         if (cycle_num == 7'd0 && cycle_bit == 3'd0)
                             xpos <= 10'h19d;
                         else if (cycle_num == 7'd60 && cycle_bit == 3'd7)
@@ -85,14 +85,14 @@ always @(posedge clk_dot4x)
                             xpos <= 10'h0;
                         else
                             xpos <= xpos + 10'd1;
-                    CHIP6567R56A:
+                    `CHIP6567R56A:
                         if (cycle_num == 7'd0 && cycle_bit == 3'd0)
                             xpos <= 10'h19d;
                         else if (cycle_num == 7'd12 && cycle_bit == 3'd3)
                             xpos <= 10'h0;
                         else
                             xpos <= xpos + 10'd1;
-                    CHIP6569, CHIPUNUSED:
+                    `CHIP6569, `CHIPUNUSED:
                         if (cycle_num == 7'd0 && cycle_bit == 3'd0)
                             xpos <= 10'h195;
                         else if (cycle_num == 7'd12 && cycle_bit == 3'd3)
@@ -107,9 +107,9 @@ always @(posedge clk_dot4x)
 
                 // xpos also goes back to start value
                 case(chip)
-                    CHIP6567R56A, CHIP6567R8:
+                    `CHIP6567R56A, `CHIP6567R8:
                         xpos <= 10'h19c;
-                    CHIP6569, CHIPUNUSED:
+                    `CHIP6569, `CHIPUNUSED:
                         xpos <= 10'h194;
                 endcase
 

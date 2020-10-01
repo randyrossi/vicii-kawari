@@ -7,7 +7,7 @@ module EqualizationPulse(
 
 always @*
 case (chip)
-CHIP6567R8:
+`CHIP6567R8:
     EQ =		//  4% tH equalization width
         (raster_x < 10'd21) ||
         (
@@ -15,7 +15,7 @@ CHIP6567R8:
             (raster_x < 10'd281)		// 54%
         )
         ;
-CHIP6567R56A:
+`CHIP6567R56A:
         EQ =           //  4% tH equalization width
         (raster_x < 10'd20) ||
         (
@@ -23,7 +23,7 @@ CHIP6567R56A:
                 (raster_x < 10'd276)
         )
         ;
-CHIP6569, CHIPUNUSED:
+`CHIP6569, `CHIPUNUSED:
         EQ =           //  4% tH equalization width
         (raster_x < 10'd20) ||   // 4%
         (

@@ -5,7 +5,7 @@ module SerrationPulse(
 
 always @*
 case (chip)
-CHIP6567R8:
+`CHIP6567R8:
         SE =  // 93% tH (7%tH) (3051-427)
         (raster_x < 10'd224) ||	// 43%
         (
@@ -13,7 +13,7 @@ CHIP6567R8:
             (raster_x < 10'd484)		// 93%
         )
         ;
-CHIP6567R56A:
+`CHIP6567R56A:
         SE =  // 93% tH (7%tH) (3051-427)
         (raster_x < 10'd220) ||  // 43%
         (
@@ -21,7 +21,7 @@ CHIP6567R56A:
                 (raster_x < 10'd476)
         )
         ;
-CHIP6569, CHIPUNUSED:
+`CHIP6569, `CHIPUNUSED:
         SE = // 93% tH (7%tH) (3051-427)
         (raster_x < 10'd217) ||
         (

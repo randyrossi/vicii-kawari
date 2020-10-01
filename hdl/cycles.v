@@ -40,11 +40,11 @@ module cycles(
 // LI -> HI
 always @(posedge clk_dot4x)
     if (rst) begin
-        if (chip == CHIP6567R8) begin
-            cycle_type <= VIC_LS2;
+        if (chip == `CHIP6567R8) begin
+            cycle_type <= `VIC_LS2;
             idle_cnt <= 3'd4;
         end else begin
-            cycle_type <= VIC_LP;
+            cycle_type <= `VIC_LP;
             idle_cnt <= 3'd3;
         end
         sprite_cnt <= 3'd3;
@@ -52,81 +52,81 @@ always @(posedge clk_dot4x)
     end else if (phi_phase_start_0) begin // badline is valid on [0]
         if (clk_phi == `TRUE) begin
             case (cycle_type)
-                VIC_LP: begin
+                `VIC_LP: begin
                     if (sprite_dma[sprite_cnt])
-                        cycle_type <= VIC_HS1;
+                        cycle_type <= `VIC_HS1;
                     else
-                        cycle_type <= VIC_HPI1;
+                        cycle_type <= `VIC_HPI1;
                 end
-                VIC_LPI2:
-                    cycle_type <= VIC_HPI3;
-                VIC_LS2:
-                    cycle_type <= VIC_HS3;
-                VIC_LR: begin
+                `VIC_LPI2:
+                    cycle_type <= `VIC_HPI3;
+                `VIC_LS2:
+                    cycle_type <= `VIC_HS3;
+                `VIC_LR: begin
                     if (refresh_cnt == 4) begin
                         if (badline == `TRUE)
-                            cycle_type <= VIC_HRC;
+                            cycle_type <= `VIC_HRC;
                         else
-                            cycle_type <= VIC_HRX;
+                            cycle_type <= `VIC_HRX;
                     end else
-                        cycle_type <= VIC_HRI;
+                        cycle_type <= `VIC_HRI;
                 end
-                VIC_LG: begin
+                `VIC_LG: begin
                     if (cycle_num == 54) begin
-                        cycle_type <= VIC_HI;
+                        cycle_type <= `VIC_HI;
                         idle_cnt <= 0;
                     end else
                         if (badline == `TRUE)
-                            cycle_type <= VIC_HGC;
+                            cycle_type <= `VIC_HGC;
                         else
-                            cycle_type <= VIC_HGI;
+                            cycle_type <= `VIC_HGI;
                 end
-                VIC_LI: cycle_type <= VIC_HI;
+                `VIC_LI: cycle_type <= `VIC_HI;
                 default: ;
             endcase
         end else begin
             case (cycle_type)
-                VIC_HS1: cycle_type <= VIC_LS2;
-                VIC_HPI1: cycle_type <= VIC_LPI2;
-                VIC_HS3, VIC_HPI3: begin
+                `VIC_HS1: cycle_type <= `VIC_LS2;
+                `VIC_HPI1: cycle_type <= `VIC_LPI2;
+                `VIC_HS3, `VIC_HPI3: begin
                     if (sprite_cnt == 7) begin
                         // The R8's extra idle cycle comes after
                         // Sprite 7.
-                        if (chip == CHIP6567R8)
-                            cycle_type <= VIC_LI;
+                        if (chip == `CHIP6567R8)
+                            cycle_type <= `VIC_LI;
                         else
-                            cycle_type <= VIC_LR;
+                            cycle_type <= `VIC_LR;
                         sprite_cnt <= 0;
                         refresh_cnt <= 0;
                     end else begin
-                        cycle_type <= VIC_LP;
+                        cycle_type <= `VIC_LP;
                         sprite_cnt <= sprite_cnt + 1'd1;
                     end
                 end
-                VIC_HRI: begin
-                    cycle_type <= VIC_LR;
+                `VIC_HRI: begin
+                    cycle_type <= `VIC_LR;
                     refresh_cnt <= refresh_cnt + 1'd1;
                 end
-                VIC_HRC, VIC_HRX:
-                    cycle_type <= VIC_LG;
-                VIC_HGC, VIC_HGI: cycle_type <= VIC_LG;
-                VIC_HI: begin
-                    if (chip == CHIP6567R56A && idle_cnt == 3)
-                        cycle_type <= VIC_LP;
+                `VIC_HRC, `VIC_HRX:
+                    cycle_type <= `VIC_LG;
+                `VIC_HGC, `VIC_HGI: cycle_type <= `VIC_LG;
+                `VIC_HI: begin
+                    if (chip == `CHIP6567R56A && idle_cnt == 3)
+                        cycle_type <= `VIC_LP;
                     // The R8's extra idle cycle is deferred until
                     // after sprite 7. See above.
-                    else if (chip == CHIP6567R8 && idle_cnt == 3) begin
+                    else if (chip == `CHIP6567R8 && idle_cnt == 3) begin
                         idle_cnt <= idle_cnt + 1'd1;
-                        cycle_type <= VIC_LP;
+                        cycle_type <= `VIC_LP;
                         // This is the extra idle cycle after Sprite 7. Now
                         // go to refresh.
-                    end else if (chip == CHIP6567R8 && idle_cnt == 4)
-                        cycle_type <= VIC_LR;
-                    else if (chip == CHIP6569 && idle_cnt == 2)
-                        cycle_type <= VIC_LP;
+                    end else if (chip == `CHIP6567R8 && idle_cnt == 4)
+                        cycle_type <= `VIC_LR;
+                    else if (chip == `CHIP6569 && idle_cnt == 2)
+                        cycle_type <= `VIC_LP;
                     else begin
                         idle_cnt <= idle_cnt + 1'd1;
-                        cycle_type <= VIC_LI;
+                        cycle_type <= `VIC_LI;
                     end
                 end
                 default: ;

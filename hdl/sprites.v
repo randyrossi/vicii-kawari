@@ -126,7 +126,7 @@ always @(posedge clk_dot4x)
         // the expected times.
         if (phi_phase_start_13) begin
             case (cycle_type)
-                VIC_HS1,VIC_LS2,VIC_HS3:
+                `VIC_HS1,`VIC_LS2,`VIC_HS3:
                     if (sprite_dma[sprite_cnt])
                         sprite_mc[sprite_cnt] <= sprite_mc[sprite_cnt] + 1'b1;
                 default: ;
@@ -157,16 +157,16 @@ begin
             // The sprite pixel shifter will deactivate a sprite
             // or halt the shifter entirely around the cycles that
             // perform dma access. 
-            if (cycle_bit == 2 && (cycle_type == VIC_LS2 || cycle_type == VIC_LPI2)) begin
+            if (cycle_bit == 2 && (cycle_type == `VIC_LS2 || cycle_type == `VIC_LPI2)) begin
                 sprite_active[sprite_cnt] = `FALSE;
                 // Not sure whether clearing the data here is right.  This makes
                 // things look correct and the data is about to get clobbered on
                 // the next half cycle anyway so doesn't seem to hurt.                
                 sprite_cur_pixel[sprite_cnt] <= 0;
                 sprite_pixels_shifting[sprite_cnt] <= 0;
-            end else if (cycle_bit == 3 && cycle_type == VIC_LP)
+            end else if (cycle_bit == 3 && cycle_type == `VIC_LP)
                 sprite_halt[sprite_cnt] = `TRUE;
-            else if (cycle_bit == 7 && (cycle_type == VIC_HS3 || cycle_type == VIC_HPI3))
+            else if (cycle_bit == 7 && (cycle_type == `VIC_HS3 || cycle_type == `VIC_HPI3))
                 sprite_halt[sprite_cnt] = `FALSE;
 
             // when xpos matches sprite_x, turn on shift
@@ -206,7 +206,7 @@ begin
         // we needed to do this. It just keeps the bus accesses all together in one module.
         if (!aec && phi_phase_start_davp1) begin
             case (cycle_type)
-                VIC_HS3:
+                `VIC_HS3:
                     if (sprite_dma[sprite_cnt])
                         sprite_pixels_shifting[sprite_cnt] <= sprite_pixels[sprite_cnt];
                 default: ;

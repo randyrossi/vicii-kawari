@@ -43,7 +43,7 @@ end
 
 always @(chip)
 case(chip)
-    CHIP6567R8:
+    `CHIP6567R8:
     begin
         hsync_start = 10'd409;
         hsync_end = 10'd446;       // ~4.6us
@@ -51,7 +51,7 @@ case(chip)
         vblank_start = 9'd14;
         vblank_end = 9'd22;
     end
-    CHIP6567R56A:
+    `CHIP6567R56A:
     begin
         hsync_start = 10'd409;
         hsync_end = 10'd446;       // ~4.6us
@@ -59,7 +59,7 @@ case(chip)
         vblank_start = 9'd14;
         vblank_end = 9'd22;
     end
-    CHIP6569, CHIPUNUSED:
+    `CHIP6569, `CHIPUNUSED:
     begin
         hsync_start = 10'd408;
         hsync_end = 10'd444;        // ~4.6us
