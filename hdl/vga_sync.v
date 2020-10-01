@@ -48,60 +48,55 @@ module vga_sync(
             h_count <= 0;
             case (chip)
             `CHIP6569, `CHIPUNUSED: begin
+               hs_sta <= 10;   //  h front porch 10
+               hs_end <= 70;   // +h sync pulse  10 + 60
+               ha_sta <= 100;  // +h back porch  10 + 60 + 30
+               // v front porch 11
+               // v sync pulse 3
+               // v back porch 41
+               // HEIGHT = 624
+               vs_sta <= 580;  // HEIGHT - v back porch - v sync pulse
+               vs_end <= 583;  // HEIGHT - v back porch
+               va_end <= 569;  // HEIGHT - v back porch - v sync pulse - v front porch
+               hoffset <= 10;
+               voffset = 20;
                max_width = 503;
                max_height = 623;
                v_count <= 623 - voffset;
             end 
             `CHIP6567R8: begin
+               hs_sta <= 10;   //  h front porch 10
+               hs_end <= 72;   // +h sync pulse  10 + 62
+               ha_sta <= 103;  // +h back porch  10 + 62 + 31
+               // v front porch 10
+               // v sync pulse 3
+               // v back porch 11
+               // HEIGHT = 526
+               vs_sta <= 512;  // HEIGHT - v back porch - v sync pulse
+               vs_end <= 515;  // HEIGHT - v back porch
+               va_end <= 502;  // HEIGHT - v back porch - v sync pulse - v front porch
+               hoffset <= 20;
+               voffset = 52;
                max_width = 519;
                max_height = 525;
                v_count <= 525 - voffset;
             end
             `CHIP6567R56A: begin
-               max_width = 511;
-               max_height = 523;
-               v_count <= 523 - voffset;
-            end
-            endcase
-                    case (chip)
-            `CHIP6569, `CHIPUNUSED: begin
-               hs_sta <= 10;             // h front porch 10
-               hs_end <= 10 + 60;        // h sync pulse  60
-               ha_sta <= 10 + 60 + 30;   // h back porch  30
-               // v front porch 11
-               // v sync pulse 3
-               // v back porch 41
-               vs_sta <= 624 - 41 - 3;       // V - v back porch - v sync pulse
-               vs_end <= 624 - 41;           // V - v back porch
-               va_end <= 624 - 41 - 3 - 11;  // V - v back porch - v sync pulse - v front porch
-               hoffset <= 10;
-               voffset <= 20;
-            end 
-            `CHIP6567R8: begin
-               hs_sta <= 10;
-               hs_end <= 10 + 62;
-               ha_sta <= 10 + 62 + 31;
-               // v front porch 10
-               // v sync pulse 3
-               // v back porch 11
-               vs_sta <= 526 - 11 - 3;
-               vs_end <= 526 - 11;
-               va_end <= 526 - 11 - 3 - 10;
-               hoffset <= 20;
-               voffset <= 52;
-            end
-            `CHIP6567R56A: begin
-               hs_sta <= 10;
-               hs_end <= 10 + 61;
-               ha_sta <= 10 + 61 + 31;
+               hs_sta <= 10;   //  h front porch 10
+               hs_end <= 71;   // +h sync pulse  10 + 61
+               ha_sta <= 102;  // +h back porch  10 + 61 + 31
                // v front porch 10
                // v sync pulse 3
                // v back porch 9
-               vs_sta <= 524 - 9 - 3;
-               vs_end <= 524 - 9;
-               va_end <= 524 - 9 - 3 - 10;
+               // HEIGHT = 524
+               vs_sta <= 512; // HEIGHT - v back porch - v sync pulse
+               vs_end <= 515; // HEIGHT - v back porch
+               va_end <= 502; // HEIGHT - v back porch - v sync pulse - v front porch
                hoffset <= 20;
-               voffset <= 52;
+               voffset = 52;
+               max_width = 511;
+               max_height = 523;
+               v_count <= 523 - voffset;
             end
          endcase
         end else begin
@@ -122,11 +117,7 @@ module vga_sync(
                 end
             end
             if (raster_x == 0 && raster_y == 0) begin
-                case (chip)
-                `CHIP6569, `CHIPUNUSED: v_count <= 623 - voffset;
-                `CHIP6567R8: v_count <= 525 - voffset;
-                `CHIP6567R56A: v_count <= 523 - voffset;
-                endcase
+                v_count <= max_height - voffset;
             end
         end
     end
