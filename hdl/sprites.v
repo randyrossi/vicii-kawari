@@ -16,8 +16,8 @@ module sprites(
         input [6:0] cycle_num,
         input [2:0] cycle_bit,
         input handle_sprite_crunch,
-        input [8:0] sprite_x[0:`NUM_SPRITES - 1],
-        input [7:0] sprite_y[0:`NUM_SPRITES - 1],
+        input [71:0] sprite_x_o,
+        input [63:0] sprite_y_o,
         input [7:0] sprite_xe,
         input [7:0] sprite_ye,
         input [7:0] sprite_en,
@@ -35,17 +35,25 @@ module sprites(
         input [6:0] sprite_disp_chk,
         input m2m_clr,
         input m2d_clr,
-        input [23:0] sprite_pixels [0:`NUM_SPRITES-1],
+        input [191:0] sprite_pixels_o,
         output reg immc,
         output reg imbc,
-        output reg [1:0] sprite_cur_pixel_d3 [`NUM_SPRITES-1:0],
-        output reg [5:0] sprite_mc[0:`NUM_SPRITES - 1],
+        output wire [15:0] sprite_cur_pixel_o,
+        output wire [47:0] sprite_mc_o,
         output reg [`NUM_SPRITES - 1:0] sprite_dma,
         output reg [7:0] sprite_m2m,
         output reg [7:0] sprite_m2d
 );
 
 integer n;
+
+wire [8:0] sprite_x[0:`NUM_SPRITES - 1];
+wire [7:0] sprite_y[0:`NUM_SPRITES - 1];
+wire [23:0] sprite_pixels [0:`NUM_SPRITES-1];
+
+reg [5:0] sprite_mc[0:`NUM_SPRITES - 1];
+reg [1:0] sprite_cur_pixel_d3 [`NUM_SPRITES-1:0];
+
 reg [5:0] sprite_mcbase[0:`NUM_SPRITES - 1];
 reg       sprite_xe_ff[0:`NUM_SPRITES-1];
 reg       sprite_ye_ff[0:`NUM_SPRITES-1];
@@ -53,6 +61,36 @@ reg [7:0] sprite_active;
 reg [7:0] sprite_halt;
 reg       sprite_mmc_ff[0:`NUM_SPRITES-1];
 reg [23:0] sprite_pixels_shifting [0:`NUM_SPRITES-1];
+
+assign sprite_x[0] = sprite_x_o[71:63];
+assign sprite_x[1] = sprite_x_o[62:54];
+assign sprite_x[2] = sprite_x_o[53:45];
+assign sprite_x[3] = sprite_x_o[44:36];
+assign sprite_x[4] = sprite_x_o[35:27];
+assign sprite_x[5] = sprite_x_o[26:18];
+assign sprite_x[6] = sprite_x_o[17:9];
+assign sprite_x[7] = sprite_x_o[8:0];
+
+assign sprite_y[0] = sprite_y_o[63:56];
+assign sprite_y[1] = sprite_y_o[55:48];
+assign sprite_y[2] = sprite_y_o[47:40];
+assign sprite_y[3] = sprite_y_o[39:32];
+assign sprite_y[4] = sprite_y_o[31:24];
+assign sprite_y[5] = sprite_y_o[23:16];
+assign sprite_y[6] = sprite_y_o[15:8];
+assign sprite_y[7] = sprite_y_o[7:0];
+
+assign sprite_pixels[0] = sprite_pixels_o[191:168];
+assign sprite_pixels[1] = sprite_pixels_o[167:144];
+assign sprite_pixels[2] = sprite_pixels_o[143:120];
+assign sprite_pixels[3] = sprite_pixels_o[119:96];
+assign sprite_pixels[4] = sprite_pixels_o[95:72];
+assign sprite_pixels[5] = sprite_pixels_o[71:48];
+assign sprite_pixels[6] = sprite_pixels_o[47:24];
+assign sprite_pixels[7] = sprite_pixels_o[23:0];
+
+assign sprite_mc_o = {sprite_mc[0], sprite_mc[1], sprite_mc[2], sprite_mc[3], sprite_mc[4], sprite_mc[5], sprite_mc[6], sprite_mc[7]};
+assign sprite_cur_pixel_o = {sprite_cur_pixel_d3[0], sprite_cur_pixel_d3[1], sprite_cur_pixel_d3[2], sprite_cur_pixel_d3[3], sprite_cur_pixel_d3[4], sprite_cur_pixel_d3[5], sprite_cur_pixel_d3[6], sprite_cur_pixel_d3[7]};
 
 // NOTE: If we match VICE, then ba will go low much too late for sprite 0.  Slight
 // difference between simulator and non-simulator code.

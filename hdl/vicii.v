@@ -22,13 +22,13 @@ module vicii(
            input rst,
            input clk_dot4x,
            output clk_phi,
-           output reg [9:0] xpos,
-           output reg [9:0] raster_x,
-           output reg [8:0] raster_line,
-           output reg [3:0] pixel_color3,
+           output [9:0] xpos,
+           output [9:0] raster_x,
+           output [8:0] raster_line,
+           output [3:0] pixel_color3,
            output [11:0] ado,
            input [5:0] adi,
-           output reg [7:0] dbo,
+           output [7:0] dbo,
            input [11:0] dbi,
            input ce,
            input rw,
@@ -63,14 +63,14 @@ reg [9:0] chars_ba_end;
 // These xpos's cover the sprite dma period and 3 cycles
 // before the first dma access is required. They are used
 // in ba low calcs.
-reg [9:0] sprite_ba_start [`NUM_SPRITES];
-reg [9:0] sprite_ba_end [`NUM_SPRITES];
+wire [9:0] sprite_ba_start [`NUM_SPRITES-1:0];
+wire [9:0] sprite_ba_end [`NUM_SPRITES-1:0];
 
 // raster_x but offset such that the BA fall for the
 // first sprite is position 0. This is so we can use a
 // simple interval comparison for ba high/low and avoid
 // wrap around conditions.
-reg [9:0] sprite_raster_x;
+wire [9:0] sprite_raster_x;
 
 // clk_dot4x;     32.727272 Mhz NTSC, 31.527955 Mhz PAL
 // clk_col4x;     14.318181 Mhz NTSC, 17.734475 Mhz PAL
@@ -127,7 +127,7 @@ reg [31:0] dot_gen;
 reg [3:0] dot_rising;
 
 // delayed raster line for irq comparison
-reg [8:0] raster_line_d;
+wire [8:0] raster_line_d;
 reg allow_bad_lines;
 
 reg [7:0] reg11_delayed;
@@ -140,8 +140,8 @@ reg [4:0] reg16_delayed;
 
 // xpos_sprite and xpos_gfx is xpos shifted by a delay
 // value so the comparisons match VICE logic.
-reg [9:0] xpos_sprite;
-reg [9:0] xpos_gfx;
+wire [9:0] xpos_sprite;
+wire [9:0] xpos_gfx;
 
 // What cycle we are on.  Only valid on 2nd tick (or greater)
 // within a half-phase.
@@ -198,7 +198,7 @@ wire imbc;
 // interrupt latches for $d019, these are set HIGH when
 // an interrupt of that type occurs. They are not automatically
 // cleared by the VIC.
-reg irst_clr;
+wire irst_clr;
 wire imbc_clr;
 wire immc_clr;
 wire ilp_clr;
@@ -251,12 +251,13 @@ reg badline;
 reg ba_chars;
 reg [7:0] ba_sprite;
 
-wire [8:0] sprite_x[0:`NUM_SPRITES - 1];
-wire [7:0] sprite_y[0:`NUM_SPRITES - 1];
+wire [71:0] sprite_x_o;
+wire [63:0] sprite_y_o;
+wire [31:0] sprite_col_o;
+wire [191:0] sprite_pixels_o;
+
 wire [7:0] sprite_pri;
-wire [3:0] sprite_col[0:`NUM_SPRITES - 1];
 wire [3:0] sprite_mc0, sprite_mc1;
-wire [23:0] sprite_pixels [0:`NUM_SPRITES-1];
 
 wire [7:0] sprite_en;
 
@@ -265,14 +266,16 @@ wire [7:0] sprite_ye;
 wire [7:0] sprite_mmc;
 
 // data pointers for each sprite
-wire [7:0] sprite_ptr[0:`NUM_SPRITES - 1];
+wire [63:0] sprite_ptr_o;
 
 // current byte offset within 63 bytes that make a sprite
-wire [5:0] sprite_mc[0:`NUM_SPRITES - 1];
+// 6 bits per sprite
+wire [47:0] sprite_mc_o;
 
 wire [`NUM_SPRITES - 1:0] sprite_dma;
 
-wire [1:0] sprite_cur_pixel [`NUM_SPRITES-1:0];
+// 2 bits per sprite
+wire [15:0] sprite_cur_pixel_o;
 
 // Setup sprite ba start/end ranges.  These are compared against
 // sprite_raster_x which is makes sprite #0 drop point = 0
@@ -606,14 +609,14 @@ sprites vic_sprites(
          .cycle_num(cycle_num),
          .cycle_bit(raster_x[2:0]),
          .handle_sprite_crunch(handle_sprite_crunch),
-         .sprite_x(sprite_x),
-         .sprite_y(sprite_y),
+         .sprite_x_o(sprite_x_o),
+         .sprite_y_o(sprite_y_o),
          .sprite_xe(sprite_xe),
          .sprite_ye(sprite_ye),
          .sprite_en(sprite_en),
          .sprite_mmc(sprite_mmc),
          .sprite_cnt(sprite_cnt),
-         .sprite_pixels(sprite_pixels),
+         .sprite_pixels_o(sprite_pixels_o),
          .aec(aec),
          .is_background_pixel1(is_background_pixel1),
          .main_border(main_border_d2), // delayed
@@ -625,8 +628,8 @@ sprites vic_sprites(
          .sprite_disp_chk(sprite_disp_chk),
          .immc(immc),
          .imbc(imbc),
-         .sprite_cur_pixel_d3(sprite_cur_pixel),
-         .sprite_mc(sprite_mc),
+         .sprite_cur_pixel_o(sprite_cur_pixel_o),
+         .sprite_mc_o(sprite_mc_o),
          .sprite_dma(sprite_dma),
          .m2m_clr(m2m_clr),
          .m2d_clr(m2d_clr),
@@ -679,12 +682,12 @@ bus_access vic_bus_access(
          .idle(idle),
          .sprite_cnt(sprite_cnt),
          .sprite_dma(sprite_dma),
-         .sprite_ptr(sprite_ptr),
+         .sprite_ptr_o(sprite_ptr_o),
          .pixels_read(pixels_read),
          .char_read(char_read),
          .char_next(char_next),
          .aec(aec),
-         .sprite_pixels(sprite_pixels)
+         .sprite_pixels_o(sprite_pixels_o)
 );
 
 // Address generation
@@ -704,8 +707,8 @@ addressgen vic_addressgen(
                .char_ptr(char_next[7:0]),
                .aec(aec),
                .sprite_cnt(sprite_cnt),
-               .sprite_ptr(sprite_ptr),
-               .sprite_mc(sprite_mc),
+               .sprite_ptr_o(sprite_ptr_o),
+               .sprite_mc_o(sprite_mc_o),
                .ado(ado));
 
 // Handle set/get registers
@@ -757,9 +760,9 @@ registers vic_registers(
               .sprite_mmc(sprite_mmc),
               .sprite_mc0(sprite_mc0),
               .sprite_mc1(sprite_mc1),
-              .sprite_x(sprite_x),
-              .sprite_y(sprite_y),
-              .sprite_col(sprite_col),
+              .sprite_x_o(sprite_x_o),
+              .sprite_y_o(sprite_y_o),
+              .sprite_col_o(sprite_col_o),
               .m2m_clr(m2m_clr),
               .m2d_clr(m2d_clr),
               .handle_sprite_crunch(handle_sprite_crunch),
@@ -823,10 +826,10 @@ pixel_sequencer vic_pixel_sequencer(
                     .b3c(b3c),
                     .ec(ec),
                     .main_border(main_border_d2), // delayed
-                    .sprite_cur_pixel(sprite_cur_pixel),
+                    .sprite_cur_pixel_o(sprite_cur_pixel_o),
                     .sprite_pri(sprite_pri),
                     .sprite_mmc(sprite_mmc),
-                    .sprite_col(sprite_col),
+                    .sprite_col_o(sprite_col_o),
                     .sprite_mc0(sprite_mc0),
                     .sprite_mc1(sprite_mc1),
                     .is_background_pixel1(is_background_pixel1),

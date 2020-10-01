@@ -38,8 +38,8 @@ VERILOG_SOURCES = ../hdl/cmod_a35t/top.v ../hdl/vicii.v ../hdl/common.vh \
                   ../hdl/border.v      ../hdl/color.v      ../hdl/lightpen.v      ../hdl/raster.v           ../hdl/serration.v  ../hdl/bus_access.v \
 		  ../hdl/cycles.v     ../hdl/matrix.v      ../hdl/sprites.v          ../hdl/vga_sync.v      ../hdl/clockdivs.v
 
-obj_dir/Vtop: vicii_ipc.o libvicii_ipc.so $(VERILOG_SOURCES) sim_main.cpp vicii_ipc.c vicii_ipc.h tests/test*.cpp
-	$(VERILATOR) -DIS_SIMULATOR --trace -cc  --exe -I../hdl $(VERILOG_SOURCES) sim_main.cpp test.cpp log.cpp tests/test*.cpp \
+obj_dir/Vtop: vicii_ipc.o libvicii_ipc.so $(VERILOG_SOURCES) sim_main.cpp vicii_ipc.c vicii_ipc.h 
+	$(VERILATOR) -DIS_SIMULATOR --trace -cc  --exe -I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
 	               -CFLAGS -g -LDFLAGS '../vicii_ipc.o -lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
 
@@ -67,12 +67,6 @@ logic:
 # Render a frame in the window
 view: obj_dir/Vtop
 	obj_dir/Vtop -w
-
-test:
-	victest
-
-make_golden:
-	victest 1
 
 ######################################################################
 

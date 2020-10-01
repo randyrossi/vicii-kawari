@@ -18,13 +18,34 @@ module addressgen(
            input [7:0] char_ptr,
            input aec,
            input [2:0] sprite_cnt,
-           input [7:0] sprite_ptr[0:`NUM_SPRITES - 1],
-           input [5:0] sprite_mc[0:`NUM_SPRITES - 1],
-           output reg [11:0] ado
+           input [63:0] sprite_ptr_o,
+           input [47:0] sprite_mc_o,
+           output [11:0] ado
        );
 
 // VIC read address
 reg [13:0] vic_addr;
+
+wire [7:0] sprite_ptr[0:`NUM_SPRITES - 1];
+wire [5:0] sprite_mc[0:`NUM_SPRITES - 1];
+
+assign sprite_ptr[0] = sprite_ptr_o[63:56];
+assign sprite_ptr[1] = sprite_ptr_o[55:48];
+assign sprite_ptr[2] = sprite_ptr_o[47:40];
+assign sprite_ptr[3] = sprite_ptr_o[39:32];
+assign sprite_ptr[4] = sprite_ptr_o[31:24];
+assign sprite_ptr[5] = sprite_ptr_o[23:16];
+assign sprite_ptr[6] = sprite_ptr_o[15:8];
+assign sprite_ptr[7] = sprite_ptr_o[7:0];
+
+assign sprite_mc[0] = sprite_mc_o[47:42];
+assign sprite_mc[1] = sprite_mc_o[41:36];
+assign sprite_mc[2] = sprite_mc_o[35:30];
+assign sprite_mc[3] = sprite_mc_o[29:24];
+assign sprite_mc[4] = sprite_mc_o[23:18];
+assign sprite_mc[5] = sprite_mc_o[17:12];
+assign sprite_mc[6] = sprite_mc_o[11:6];
+assign sprite_mc[7] = sprite_mc_o[5:0];
 
 always @*
 begin

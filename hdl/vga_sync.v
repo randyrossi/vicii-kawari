@@ -3,17 +3,6 @@
 // A module to prouce horizontal and vertical sync pulses for VGA/HDMI output.
 // Timings are not standard and may not work on all monitors.
 
-reg [9:0] max_width;
-reg [9:0] max_height;
-reg [9:0] hs_sta;
-reg [9:0] hs_end;
-reg [9:0] ha_sta;
-reg [9:0] vs_sta;
-reg [9:0] vs_end;
-reg [9:0] va_end;
-reg [9:0] hoffset;
-reg [9:0] voffset;
-                              
 module vga_sync(
     input wire clk_dot4x,
     input wire rst,
@@ -21,11 +10,22 @@ module vga_sync(
     input [9:0] raster_x,
     input [8:0] raster_y,
     input [3:0] pixel_color3,
-    output reg hsync,             // horizontal sync
-    output reg vsync,             // vertical sync
-    output reg active,
-    output reg [3:0] pixel_color4
+    output wire hsync,             // horizontal sync
+    output wire vsync,             // vertical sync
+    output wire active,
+    output wire [3:0] pixel_color4
  );
+ 
+    reg [9:0] max_width;
+    reg [9:0] max_height;
+    reg [9:0] hs_sta;
+    reg [9:0] hs_end;
+    reg [9:0] ha_sta;
+    reg [9:0] vs_sta;
+    reg [9:0] vs_end;
+    reg [9:0] va_end;
+    reg [9:0] hoffset;
+    reg [9:0] voffset;
 
     reg [3:0] vga_color;
     reg [9:0] h_count;  // line position

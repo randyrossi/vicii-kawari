@@ -1,5 +1,0 @@
-verb: raster_irq_once_per_line
-CHIP: 6569
-VIDEO: PAL
-Log Level: 4
-verb:   D4X CNT POS CYC DOT PHI BIT IRQ BA AEC VCY RAS MUX CAS  X   Y  ADI  ADO  DBI DBO RW CE RFC BIN

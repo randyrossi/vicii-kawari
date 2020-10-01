@@ -22,10 +22,10 @@ module pixel_sequencer(
            input [3:0] b3c,
            input [3:0] ec,
            input main_border,
-           input [1:0] sprite_cur_pixel [`NUM_SPRITES-1:0],
+           input [15:0] sprite_cur_pixel_o,
            input [7:0] sprite_pri,
            input [7:0] sprite_mmc,
-           input [3:0] sprite_col[0:`NUM_SPRITES - 1],
+           input [31:0] sprite_col_o,
            input [3:0] sprite_mc0,
            input [3:0] sprite_mc1,
            output reg is_background_pixel1,
@@ -39,13 +39,34 @@ reg is_background_pixel2;
 
 integer n;
 
+wire [1:0] sprite_cur_pixel [`NUM_SPRITES-1:0];
+wire [3:0] sprite_col [`NUM_SPRITES-1:0];
+
+assign sprite_cur_pixel[0] = sprite_cur_pixel_o[15:14];
+assign sprite_cur_pixel[1] = sprite_cur_pixel_o[13:12];
+assign sprite_cur_pixel[2] = sprite_cur_pixel_o[11:10];
+assign sprite_cur_pixel[3] = sprite_cur_pixel_o[9:8];
+assign sprite_cur_pixel[4] = sprite_cur_pixel_o[7:6];
+assign sprite_cur_pixel[5] = sprite_cur_pixel_o[5:4];
+assign sprite_cur_pixel[6] = sprite_cur_pixel_o[3:2];
+assign sprite_cur_pixel[7] = sprite_cur_pixel_o[1:0];
+
+assign sprite_col[0] = sprite_col_o[31:28];
+assign sprite_col[1] = sprite_col_o[27:24];
+assign sprite_col[2] = sprite_col_o[23:20];
+assign sprite_col[3] = sprite_col_o[19:16];
+assign sprite_col[4] = sprite_col_o[15:12];
+assign sprite_col[5] = sprite_col_o[11:8];
+assign sprite_col[6] = sprite_col_o[7:4];
+assign sprite_col[7] = sprite_col_o[3:0];
+
 // char and pixels delayed before entering shifter
 // TODO: Now that the precise delay is known, there's no need for this
 // many regs for char/pixels delay. Change to use one reg.
-reg [11:0] char_delayed[`XPOS_GFX_DELAY + 1];
-reg [7:0] pixels_delayed[`XPOS_GFX_DELAY + 1];
+reg [11:0] char_delayed[`XPOS_GFX_DELAY + 1:0];
+reg [7:0] pixels_delayed[`XPOS_GFX_DELAY + 1:0];
 reg [2:0] xscroll_delayed;
-reg [1:0] sprite_pixels_delayed1[`NUM_SPRITES];
+reg [1:0] sprite_pixels_delayed1[`NUM_SPRITES-1:0];
 
 // pixels being shifted and the associated char (for color info)
 reg [11:0] char_shifting;

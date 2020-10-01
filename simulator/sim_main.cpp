@@ -21,7 +21,6 @@ extern "C" {
 #include "vicii_ipc.h"
 }
 #include "log.h"
-#include "test.h"
 // Current simulation time (64-bit unsigned). See
 // constants.h for how much each tick represents.
 static vluint64_t ticks = 0;
@@ -377,11 +376,12 @@ static void regs_vice_to_fpga(Vtop* top, struct vicii_state* state) {
        top->V_SPRITE_MC0 = state->vice_reg[0x25];
        top->V_SPRITE_MC1 = state->vice_reg[0x26];
 
-       for (int n=0;n<8;n++) {
+       top->V_SPRITE_DMA = 0;
+       for (int n=0, b=1;n<8;n++,b=b*2) {
           top->V_SPRITE_MC[n] = state->mc[n];
           top->V_SPRITE_MCBASE[n] = state->mcbase[n];
           top->V_SPRITE_YE_FF[n] = state->ye_ff[n];
-	  top->V_SPRITE_DMA[n] = state->sprite_dma[n];
+	  top->V_SPRITE_DMA |= state->sprite_dma[n] ? b : 0;
           top->V_SPRITE_COL[n] = state->vice_reg[0x27+n];
        }
 
@@ -499,11 +499,11 @@ static void regs_fpga_to_vice(Vtop* top, struct vicii_state* state) {
        state->fpga_reg[0x25] = top->V_SPRITE_MC0 | 0xf0;
        state->fpga_reg[0x26] = top->V_SPRITE_MC1 | 0xf0;
 
-       for (int n=0;n<8;n++) {
+       for (int n=0,b=1;n<8;n++,b=b*2) {
           state->mc[n] = top->V_SPRITE_MC[n];
           state->mcbase[n] = top->V_SPRITE_MCBASE[n];
           state->ye_ff[n] = top->V_SPRITE_YE_FF[n];
-          state->sprite_dma[n] = top->V_SPRITE_DMA[n];
+          state->sprite_dma[n] = top->V_SPRITE_DMA & b ? 1 : 0;
           state->fpga_reg[0x27+n] = top->V_SPRITE_COL[n] | 0xf0;
        }
 
@@ -550,22 +550,11 @@ int main(int argc, char** argv, char** env) {
     regex_t regex;
     int reti, reti2;
     char regex_buf[32];
-    int testDriver = -1;
-    int setGolden = 0;
 
     while ((c = getopt (argc, argv, "c:hs:d:wi:zbl:r:gt")) != -1)
     switch (c) {
       case 't':
         tracing = true;
-        break;
-      case 'g':
-        setGolden = 1;
-        break;
-      case 'r':
-        testDriver = atoi(optarg);
-        if (testDriver < 1) testDriver = 1;
-        captureByTime = false;
-        captureByFrame = false;
         break;
       case 'l':
         logLevel = atoi(optarg);
@@ -598,8 +587,6 @@ int main(int argc, char** argv, char** env) {
         printf ("  -z        : single step eval for shadow vic via ipc\n");
         printf ("  -b        : render each cycle, waiting for key press after each one\n");
         printf ("  -c <chip> : 0=CHIP6567R8, 1=CHIP6569 2=CHIP6567R56A\n");
-        printf ("  -r <test> : run test driver #\n");
-        printf ("  -g <test> : make golden master for test #\n");
         printf ("  -h        : start under reset\n");
         printf ("  -l        : log level\n");
         exit(0);
@@ -832,12 +819,6 @@ int main(int argc, char** argv, char** env) {
     top->V_CB = 2; //  010
     top->V_YSCROLL = 3; //  011
 
-    if (testDriver >= 0 && do_test_start(testDriver, top, setGolden) == TEST_FAIL) {
-       STATE(top);
-       LOG(LOG_ERROR, "test %d failed\n", testDriver);
-       exit(-1);
-    }
-
     if (shadowVic) {
        ipc = ipc_init(IPC_RECEIVER);
        ipc_open(ipc);
@@ -947,24 +928,6 @@ int main(int argc, char** argv, char** env) {
 #if VM_TRACE
 	if (tfp) tfp->dump(ticks / TICKS_TO_TIMESCALE);
 #endif
-
-        // When driving a test, it's nice to only show what's being captured
-        // by that test.
-        if (testDriver >= 0) {
-           int tst = do_test(testDriver, top, setGolden);
-           if (tst == TEST_END) {
-              if (showState) {
-                 STATE(top);
-              }
-	      break;
-	   }
-           if (tst == TEST_FAIL) {
-              STATE(top);
-              LOG(LOG_ERROR, "test %d failed\n", testDriver);
-              exit(-1);
-           }
-           showState = tst == TEST_CONTINUE_CAPTURING ? true : false;
-        }
 
         if (showState) {
            STATE(top);

@@ -18,17 +18,23 @@ module bus_access(
         input [2:0] sprite_cnt,
         input aec,
         input [`NUM_SPRITES - 1:0] sprite_dma,
-        output reg [7:0] sprite_ptr[0:`NUM_SPRITES - 1],
+        output [63:0] sprite_ptr_o,
         output reg [7:0] pixels_read,
+        output [191:0] sprite_pixels_o,
         output reg [11:0] char_read,
-        output reg [11:0] char_next,
-        output reg [23:0] sprite_pixels [0:`NUM_SPRITES-1]
+        output reg [11:0] char_next
 );
 
 integer n;
 // our character line buffer
 reg [11:0] char_buf [39:0];
 reg [5:0] char_buf_counter;
+
+reg [7:0] sprite_ptr[0:`NUM_SPRITES - 1];
+reg [23:0] sprite_pixels[0:`NUM_SPRITES - 1];
+
+assign sprite_ptr_o = {sprite_ptr[0], sprite_ptr[1], sprite_ptr[2], sprite_ptr[3], sprite_ptr[4], sprite_ptr[5], sprite_ptr[6], sprite_ptr[7]};
+assign sprite_pixels_o = {sprite_pixels[0], sprite_pixels[1], sprite_pixels[2], sprite_pixels[3], sprite_pixels[4], sprite_pixels[5], sprite_pixels[6], sprite_pixels[7]};
 
 // c-access reads
 always @(posedge clk_dot4x)

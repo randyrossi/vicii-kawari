@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-`include "../common.vh"
+`include "common.vh"
 
 // Top level module for the CMod A35t PDIP board.
 //
@@ -101,8 +101,8 @@ wire [11:0] ado;
 wire vic_write_ab;
 wire vic_write_db;
 
-wire [9:0] raster_x;
 wire [9:0] xpos;
+wire [9:0] raster_x;
 wire [8:0] raster_line;
 wire [3:0] pixel_color3;
 
