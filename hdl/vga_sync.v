@@ -41,6 +41,7 @@ module vga_sync(
 
     assign pixel_color4 = active ? vga_color : `BLACK;
 
+    // TODO: Try "8 64 32" for alternative horiz sync params
     always @ (posedge clk_dot4x)
     begin
         if (rst)
