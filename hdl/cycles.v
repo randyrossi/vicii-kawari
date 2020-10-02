@@ -13,10 +13,13 @@ module cycles(
    input badline,
    input [6:0] cycle_num,
    output reg [3:0] cycle_type,
-   output reg [2:0] sprite_cnt,
-   output reg [2:0] refresh_cnt,
-   output reg [2:0] idle_cnt
+   output reg [2:0] sprite_cnt
 );
+
+// Counters for sprite, refresh and idle 'stretches' for
+// the cycle_type state machine.
+reg [2:0] refresh_cnt;
+reg [2:0] idle_cnt;
 
 // cycle_type state machine
 //

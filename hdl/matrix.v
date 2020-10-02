@@ -13,10 +13,11 @@ module matrix(
    input [8:0] raster_line,
    input badline,
    output reg idle,
-   output reg [9:0] vc_base,
    output reg [9:0] vc,
    output reg [2:0] rc
 );
+
+reg [9:0] vc_base;
 
 // Update rc/vc/vc_base
 always @(posedge clk_dot4x)

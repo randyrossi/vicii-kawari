@@ -85,10 +85,13 @@ clockgen cmod_clockgen(
 
 // https://www.xilinx.com/support/answers/35032.html
 ODDR2 oddr2(
-	.D0(1),
-	.D1(0),
+	.D0(1'b1),
+	.D1(1'b0),
 	.C0(clk_dot4x),
 	.C1(~clk_dot4x),
+	.CE(1'b1),
+	.R(1'b0),
+	.S(1'b0),
 	.Q(clk_dot4x_ext)
 );
 
