@@ -296,8 +296,8 @@ assign sprite_ba_end[6] = 10'd40 + 10'd16 * 6;
 assign sprite_ba_start[7] = 10'd0 + 10'd16 * 7;
 assign sprite_ba_end[7] = 10'd40 + 10'd16 * 7;
 
-assign xpos_sprite = xpos >= (`XPOS_SPRITE_DELAY - 1) ? xpos - (`XPOS_SPRITE_DELAY - 1) : max_xpos - (`XPOS_SPRITE_DELAY - 2) + xpos;
-assign xpos_gfx = xpos >= (`XPOS_GFX_DELAY - 1) ? xpos - (`XPOS_GFX_DELAY - 1) : max_xpos - (`XPOS_GFX_DELAY - 2) + xpos;
+assign xpos_sprite = xpos >= (`XPOS_SPRITE_DELAY - 9'd1) ? xpos - (`XPOS_SPRITE_DELAY - 9'd1) : max_xpos - (`XPOS_SPRITE_DELAY - 9'd2) + xpos;
+assign xpos_gfx = xpos >= (`XPOS_GFX_DELAY - 9'd1) ? xpos - (`XPOS_GFX_DELAY - 9'd1) : max_xpos - (`XPOS_GFX_DELAY - 9'd2) + xpos;
 
 // dot_rising[3] means dot going high next cycle
 always @(posedge clk_dot4x)

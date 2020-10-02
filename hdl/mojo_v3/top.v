@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-`include "common.vh"
+`include "../common.vh"
 
 // Top level module for the MojoV3 dev board.
 //
@@ -36,7 +36,7 @@ module top(
            output cpu_reset,    // reset for 6510 CPU
            output clk_colref,   // output color ref clock for CXA1545P
            output clk_phi,      // output phi clock for CPU
-           output clk_dot4x,    // pixel clock for external HDMI encoder
+           output clk_dot4x_ext,    // pixel clock for external HDMI encoder
            output csync,        // composite sync signal for CXA1545P
            output hsync,        // hsync signal for VGA/HDMI
            output vsync,        // vsync signal for VGA/HDMI
@@ -71,6 +71,7 @@ module top(
 wire rst;
 wire [1:0] chip;
 wire clk_col4x;
+wire clk_dot4x;
 
 `ifndef IS_SIMULATOR
 // Clock generators and chip selection
@@ -81,6 +82,15 @@ clockgen cmod_clockgen(
          .rst(rst),
          .chip(chip));
 `endif
+
+// https://www.xilinx.com/support/answers/35032.html
+ODDR2 oddr2(
+	.D0(1),
+	.D1(0),
+	.C0(clk_dot4x),
+	.C1(~clk_dot4x),
+	.Q(clk_dot4x_ext)
+);
 
 // This is a reset line for the CPU which would have to be
 // connected with a jumper.  It holds the CPU in reset

@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-`include "common.vh"
+`include "../common.vh"
 
 // NOTE: Clock pins must be declared in constr.xdc to match
 // selected configuration here.
@@ -25,13 +25,12 @@ module clockgen(
            output [1:0] chip
        );
 
-// 21 = ~150ms
-// 25 = ~4s for testing
-reg [21:0] rstcntr = 0;
-wire internal_rst = !rstcntr[21];
+// 22 = ~150ms
+// 27 = ~4s for testing
+reg [22:0] rstcntr = 0;
+wire internal_rst = !rstcntr[22];
 
-// Keep internel reset high for approx 150ms
-always @(posedge sys_clock)
+always @(posedge clk_dot4x)
     if (internal_rst)
         rstcntr <= rstcntr + 4'd1;
 
@@ -47,9 +46,9 @@ assign chip = `CHIP6569;
 // Generate the 4x dot clock. See vicii.v for values.
 dot4x_50_pal_clockgen dot4x_50_pal_clockgen(
                           .clk_in50mhz(sys_clock),    // board 50 Mhz clock
-                          .reset(internal_rst),
+                          .reset(0),
                           .clk_dot4x(clk_dot4x),      // generated 4x dot clock
-                          .clk_col4x(clk_col4x)     // generated 4x col clock
+                          .clk_col4x(clk_col4x),     // generated 4x col clock
                           .locked(locked)
                       );
 `endif
@@ -61,7 +60,7 @@ assign chip = `CHIP6567R8;
 // Generate the 4x dot clock. See vicii.v for values.
 dot4x_50_ntsc_clockgen dot4x_50_ntsc_clockgen(
                            .clk_in50mhz(sys_clock),    // external 50 Mhz clock
-                           .reset(internal_rst),
+                           .reset(0),
                            .clk_dot4x(clk_dot4x),      // generated 4x dot clock
                            .clk_col4x(clk_col4x)     // generated 4x col clock
                            .locked(locked)
@@ -75,7 +74,7 @@ assign chip = `CHIP6569;
 
 dot4x_17_pal_clockgen dot4x_17_pal_clockgen(
                           .clk_in17mhz(sys_clock),
-                          .reset(internal_rst),
+                          .reset(0),
                           .clk_col4x(clk_col4x),
                           .clk_dot4x(clk_dot4x),
                           .locked(locked)
@@ -89,7 +88,7 @@ assign chip = `CHIP6567R8;
 
 dot4x_14_ntsc_clockgen dot4x_14_ntsc_clockgen(
                            .clk_in14mhz(sys_clock),
-                           .reset(internal_rst),
+                           .reset(0),
                            .clk_col4x(clk_col4x),
                            .clk_dot4x(clk_dot4x),
                            .locked(locked)
@@ -97,7 +96,9 @@ dot4x_14_ntsc_clockgen dot4x_14_ntsc_clockgen(
 `endif
 
 // Synchronize reset to clock using locked output
-RisingEdge_DFlipFlop_SyncReset ff1(1'b0, clk_dot4x, !locked, ff1_q);
-RisingEdge_DFlipFlop_SyncReset ff2(ff1_q, clk_dot4x, !locked, rst);
+wire hold;
+assign hold = !locked & !internal_rst; 
+RisingEdge_DFlipFlop_SyncReset ff1(1'b0, clk_dot4x, hold, ff1_q);
+RisingEdge_DFlipFlop_SyncReset ff2(ff1_q, clk_dot4x, hold, rst);
 
 endmodule : clockgen

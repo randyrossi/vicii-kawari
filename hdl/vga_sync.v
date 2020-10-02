@@ -106,11 +106,11 @@ module vga_sync(
             // buffer is drawn twice.
             if (ff) begin
                 if (h_count < max_width) begin
-                   h_count <= h_count + 1;
+                   h_count <= h_count + 9'b1;
                 end else begin
                    h_count <= 0;
                    if (v_count < max_height) begin
-                      v_count <= v_count + 1;
+                      v_count <= v_count + 9'b1;
                    end else begin
                       v_count <= 0;
                    end

@@ -1,3 +1,7 @@
+`timescale 1ns / 1ps
+
+`include "common.vh"
+
 module SerrationPulse(
    input [9:0] raster_x,
    input [1:0] chip,

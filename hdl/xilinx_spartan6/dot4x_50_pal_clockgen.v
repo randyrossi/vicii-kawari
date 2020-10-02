@@ -54,8 +54,8 @@ module dot4x_50_pal_clockgen
     .CLKOUT4               (clkout4_unused),
     .CLKOUT5               (clkout5_unused),
     // Status and control signals
-    .LOCKED                (LOCKED),
-    .RST                   (RESET),
+    .LOCKED                (locked),
+    .RST                   (reset),
      // Input clock control
     .CLKFBIN               (clkfbout_buf),
     .CLKIN                 (clkin1));

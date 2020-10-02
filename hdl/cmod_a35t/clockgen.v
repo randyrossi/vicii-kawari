@@ -49,7 +49,7 @@ dot4x_12_pal_clockgen dot4x_12_pal_clockgen(
                           .clk_in12mhz(sys_clock),    // external 12 Mhz clock
                           .reset(internal_rst),
                           .clk_dot4x(clk_dot4x),      // generated 4x dot clock
-                          .clk_col4x(clk_col4x)     // generated 4x col clock
+                          .clk_col4x(clk_col4x),     // generated 4x col clock
                           .locked(locked)
                       );
 `endif
@@ -63,7 +63,7 @@ dot4x_12_ntsc_clockgen dot4x_12_ntsc_clockgen(
                            .clk_in12mhz(sys_clock),    // external 12 Mhz clock
                            .reset(internal_rst),
                            .clk_dot4x(clk_dot4x),      // generated 4x dot clock
-                           .clk_col4x(clk_col4x)     // generated 4x col clock
+                           .clk_col4x(clk_col4x),     // generated 4x col clock
                            .locked(locked)
                        );
 `endif

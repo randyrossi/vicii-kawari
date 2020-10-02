@@ -9,7 +9,7 @@ begin
     counter = 'b0;
 end
 
-always @ (posedge clk_in, posedge reset)
+always @ (posedge clk_in)
 begin
     if (reset == 1'b1)
         counter <= 'b0;

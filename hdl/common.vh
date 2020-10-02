@@ -8,10 +8,10 @@
 // Sprite read phi_phase_start data available
 `define SPRITE_DAV 13
 // How many dot ticks gfx data is delayed before it gets into the shifter
-`define XPOS_GFX_DELAY 8
+`define XPOS_GFX_DELAY 9'd8
 // How many dot ticks sprite data is delayed before entering sprite shifter
 // Sprite pixels out of the shifter are delayed by 3 more pixels to align with gfx.
-`define XPOS_SPRITE_DELAY 5
+`define XPOS_SPRITE_DELAY 9'd5
 
 // Will never change but used in loops
 `define NUM_SPRITES 8
@@ -44,22 +44,22 @@
 `define FALSE	1'b0
 
 // Colors
-`define BLACK        0
-`define WHITE        1
-`define RED          2
-`define CYAN         3
-`define PURPLE       4
-`define GREEN        5
-`define BLUE         6
-`define YELLOW       7
-`define ORANGE       8
-`define BROWN        9
-`define PINK        10
-`define DARK_GREY   11
-`define GREY        12
-`define LIGHT_GREEN 13
-`define LIGHT_BLUE  14
-`define LIGHT_GREY  15
+`define BLACK        4'd0
+`define WHITE        4'd1
+`define RED          4'd2
+`define CYAN         4'd3
+`define PURPLE       4'd4
+`define GREEN        4'd5
+`define BLUE         4'd6
+`define YELLOW       4'd7
+`define ORANGE       4'd8
+`define BROWN        4'd9
+`define PINK         4'd10
+`define DARK_GREY    4'd11
+`define GREY         4'd12
+`define LIGHT_GREEN  4'd13
+`define LIGHT_BLUE   4'd14
+`define LIGHT_GREY   4'd15
 
 // Registers
 `define REG_SPRITE_X_0                6'h00

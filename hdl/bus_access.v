@@ -67,7 +67,7 @@ always @(posedge clk_dot4x)
         case (cycle_type)
             `VIC_HRC, `VIC_HGC, `VIC_HRX, `VIC_HGI: begin
                 if (char_buf_counter < 39)
-                    char_buf_counter <= char_buf_counter + 1;
+                    char_buf_counter <= char_buf_counter + 6'd1;
                  else
                     char_buf_counter <= 0;
             end
