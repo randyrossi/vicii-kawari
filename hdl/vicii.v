@@ -251,31 +251,29 @@ reg badline;
 reg ba_chars;
 reg [7:0] ba_sprite;
 
-wire [71:0] sprite_x_o;
-wire [63:0] sprite_y_o;
-wire [31:0] sprite_col_o;
-wire [191:0] sprite_pixels_o;
+// NOTE: The sprite_*_o regs/wires are 'flattened' 2D arrays that we
+// pack and slice between modules.  Verilog does not support passing
+// 2D arrays to modules as params so we have to do this for our
+// sprite arrays.  The module that owns the register declares a
+// 'flattened' _o output wire that we hook up here.  Any module that
+// receives the _o flattened wire via an input will slice it apart
+// back into a usable 2D array.
+wire [71:0] sprite_x_o; // 9 bits * 8 sprites
+wire [63:0] sprite_y_o; // 8 bits * 8 sprites
+wire [31:0] sprite_col_o; // 4 bits * 8 sprites
+wire [191:0] sprite_pixels_o; // 24 bits * 8 sprites
+wire [63:0] sprite_ptr_o; // 8 bits * 8 sprites
+wire [47:0] sprite_mc_o; // 6 bits * 8 sprites
+wire [15:0] sprite_cur_pixel_o; // 2 bits * 8 sprites
 
 wire [7:0] sprite_pri;
-wire [3:0] sprite_mc0, sprite_mc1;
-
+wire [3:0] sprite_mc0;
+wire [3:0] sprite_mc1;
 wire [7:0] sprite_en;
-
 wire [7:0] sprite_xe;
 wire [7:0] sprite_ye;
 wire [7:0] sprite_mmc;
-
-// data pointers for each sprite
-wire [63:0] sprite_ptr_o;
-
-// current byte offset within 63 bytes that make a sprite
-// 6 bits per sprite
-wire [47:0] sprite_mc_o;
-
 wire [`NUM_SPRITES - 1:0] sprite_dma;
-
-// 2 bits per sprite
-wire [15:0] sprite_cur_pixel_o;
 
 // Setup sprite ba start/end ranges.  These are compared against
 // sprite_raster_x which is makes sprite #0 drop point = 0

@@ -23,12 +23,14 @@ module addressgen(
            output [11:0] ado
        );
 
-// VIC read address
-reg [13:0] vic_addr;
-
+// Destinations for flattened inputs that need to be sliced back into an array
 wire [7:0] sprite_ptr[0:`NUM_SPRITES - 1];
 wire [5:0] sprite_mc[0:`NUM_SPRITES - 1];
 
+// VIC read address
+reg [13:0] vic_addr;
+
+// Handle un-flattening inputs here
 assign sprite_ptr[0] = sprite_ptr_o[63:56];
 assign sprite_ptr[1] = sprite_ptr_o[55:48];
 assign sprite_ptr[2] = sprite_ptr_o[47:40];

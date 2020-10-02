@@ -47,13 +47,16 @@ module sprites(
 
 integer n;
 
+// Destinations for flattened inputs that need to be sliced back into an array
 wire [8:0] sprite_x[0:`NUM_SPRITES - 1];
 wire [7:0] sprite_y[0:`NUM_SPRITES - 1];
 wire [23:0] sprite_pixels [0:`NUM_SPRITES-1];
 
+// 2D arrays that need to be flattened for output
 reg [5:0] sprite_mc[0:`NUM_SPRITES - 1];
 reg [1:0] sprite_cur_pixel_d3 [`NUM_SPRITES-1:0];
 
+// Other internal regs
 reg [5:0] sprite_mcbase[0:`NUM_SPRITES - 1];
 reg       sprite_xe_ff[0:`NUM_SPRITES-1];
 reg       sprite_ye_ff[0:`NUM_SPRITES-1];
@@ -62,6 +65,7 @@ reg [7:0] sprite_halt;
 reg       sprite_mmc_ff[0:`NUM_SPRITES-1];
 reg [23:0] sprite_pixels_shifting [0:`NUM_SPRITES-1];
 
+// Handle un-flattening here
 assign sprite_x[0] = sprite_x_o[71:63];
 assign sprite_x[1] = sprite_x_o[62:54];
 assign sprite_x[2] = sprite_x_o[53:45];
@@ -89,6 +93,7 @@ assign sprite_pixels[5] = sprite_pixels_o[71:48];
 assign sprite_pixels[6] = sprite_pixels_o[47:24];
 assign sprite_pixels[7] = sprite_pixels_o[23:0];
 
+// Handle flattening outputs here
 assign sprite_mc_o = {sprite_mc[0], sprite_mc[1], sprite_mc[2], sprite_mc[3], sprite_mc[4], sprite_mc[5], sprite_mc[6], sprite_mc[7]};
 assign sprite_cur_pixel_o = {sprite_cur_pixel_d3[0], sprite_cur_pixel_d3[1], sprite_cur_pixel_d3[2], sprite_cur_pixel_d3[3], sprite_cur_pixel_d3[4], sprite_cur_pixel_d3[5], sprite_cur_pixel_d3[6], sprite_cur_pixel_d3[7]};
 

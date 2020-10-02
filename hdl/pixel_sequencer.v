@@ -39,9 +39,11 @@ reg is_background_pixel2;
 
 integer n;
 
+// Destinations for flattened inputs that need to be sliced back into an array
 wire [1:0] sprite_cur_pixel [`NUM_SPRITES-1:0];
 wire [3:0] sprite_col [`NUM_SPRITES-1:0];
 
+// Handle un-flattening inputs here
 assign sprite_cur_pixel[0] = sprite_cur_pixel_o[15:14];
 assign sprite_cur_pixel[1] = sprite_cur_pixel_o[13:12];
 assign sprite_cur_pixel[2] = sprite_cur_pixel_o[11:10];
