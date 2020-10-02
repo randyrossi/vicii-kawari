@@ -46,7 +46,7 @@ assign chip = `CHIP6569;
 // Generate the 4x dot clock. See vicii.v for values.
 dot4x_50_pal_clockgen dot4x_50_pal_clockgen(
                           .clk_in50mhz(sys_clock),    // board 50 Mhz clock
-                          .reset(0),
+                          .reset(1'b0),
                           .clk_dot4x(clk_dot4x),      // generated 4x dot clock
                           .clk_col4x(clk_col4x),     // generated 4x col clock
                           .locked(locked)
@@ -60,7 +60,7 @@ assign chip = `CHIP6567R8;
 // Generate the 4x dot clock. See vicii.v for values.
 dot4x_50_ntsc_clockgen dot4x_50_ntsc_clockgen(
                            .clk_in50mhz(sys_clock),    // external 50 Mhz clock
-                           .reset(0),
+                           .reset(1'b0),
                            .clk_dot4x(clk_dot4x),      // generated 4x dot clock
                            .clk_col4x(clk_col4x)     // generated 4x col clock
                            .locked(locked)
@@ -74,7 +74,7 @@ assign chip = `CHIP6569;
 
 dot4x_17_pal_clockgen dot4x_17_pal_clockgen(
                           .clk_in17mhz(sys_clock),
-                          .reset(0),
+                          .reset(1'b0),
                           .clk_col4x(clk_col4x),
                           .clk_dot4x(clk_dot4x),
                           .locked(locked)
@@ -88,7 +88,7 @@ assign chip = `CHIP6567R8;
 
 dot4x_14_ntsc_clockgen dot4x_14_ntsc_clockgen(
                            .clk_in14mhz(sys_clock),
-                           .reset(0),
+                           .reset(1'b0),
                            .clk_col4x(clk_col4x),
                            .clk_dot4x(clk_dot4x),
                            .locked(locked)

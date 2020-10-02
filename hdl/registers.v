@@ -37,7 +37,6 @@ module registers(
            output reg den,
            output reg bmm,
            output reg ecm,
-           output reg res,
            output reg mcm,
            output reg irst_clr,
            output reg imbc_clr,
@@ -77,6 +76,8 @@ integer n;
 assign sprite_x_o = {sprite_x[0], sprite_x[1], sprite_x[2], sprite_x[3], sprite_x[4], sprite_x[5], sprite_x[6], sprite_x[7]};
 assign sprite_y_o = {sprite_y[0], sprite_y[1], sprite_y[2], sprite_y[3], sprite_y[4], sprite_y[5], sprite_y[6], sprite_y[7]};
 assign sprite_col_o = {sprite_col[0], sprite_col[1], sprite_col[2], sprite_col[3], sprite_col[4], sprite_col[5], sprite_col[6],sprite_col[7]};
+
+reg res;
 
 // Register Read/Write
 reg dbo_set;

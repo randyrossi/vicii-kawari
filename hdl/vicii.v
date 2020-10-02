@@ -150,11 +150,7 @@ wire [3:0] cycle_type;
 // DRAM refresh counter
 reg [7:0] refc;
 
-// Counters for sprite, refresh and idle 'stretches' for
-// the cycle_type state machine.
 wire [2:0] sprite_cnt;
-wire [2:0] refresh_cnt;
-wire [2:0] idle_cnt;
 
 // Video matrix and character banks.
 wire [3:0] vm;
@@ -215,7 +211,6 @@ wire [8:0] raster_irq_compare;
 // keeps track of whether raster irq was raised on a line
 reg raster_irq_triggered;
 
-wire [9:0] vc_base; // video counter base
 wire [9:0] vc; // video counter
 wire [2:0] rc; // row counter
 wire idle;
@@ -230,7 +225,6 @@ wire [2:0] yscroll;
 wire rsel; // border row select
 wire csel; // border column select
 wire mcm; // multi color mode
-wire res; // no function
 
 wire is_background_pixel1;
 
@@ -394,7 +388,6 @@ always @(posedge clk_dot4x)
 // Border pixels are delayed 2 dots to align with gfx data.
 
 // border logic
-wire top_bot_border;
 wire main_border;
 reg main_border_d1;
 reg main_border_d2;
@@ -408,7 +401,6 @@ border vic_border(
            .rsel(rsel),
            .csel(csel),
            .den(den),
-           .vborder(top_bot_border),
            .main_border(main_border)
        );
 
@@ -465,7 +457,6 @@ matrix vic_matrix(
    .raster_line(raster_line),
    .badline(badline),
    .idle(idle),
-   .vc_base(vc_base),
    .vc(vc),
    .rc(rc)
 );
@@ -525,9 +516,7 @@ cycles vic_cycles(
    .badline(badline),
    .cycle_num(cycle_num),
    .cycle_type(cycle_type),
-   .sprite_cnt(sprite_cnt),
-   .refresh_cnt(refresh_cnt),
-   .idle_cnt(idle_cnt)
+   .sprite_cnt(sprite_cnt)
 );
 
 // Notes on RAS/CAS/MUX: We don't know what the cycle type is
@@ -744,7 +733,6 @@ registers vic_registers(
               .den(den),
               .bmm(bmm),
               .ecm(ecm),
-              .res(res),
               .mcm(mcm),
               .irst_clr(irst_clr),
               .imbc_clr(imbc_clr),
