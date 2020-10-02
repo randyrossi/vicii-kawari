@@ -364,7 +364,7 @@ always @(posedge clk_dot4x)
             imbc <= imbc_pending;
         end
         for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-            if (sprite_cur_pixel_d3[n][1] & !is_background_pixel1 & !(main_border)) begin
+            if ((sprite_cur_pixel_d3[n] != 0) & !is_background_pixel1 & !(main_border)) begin
                 sprite_m2d_pending[n] <= `TRUE;
                 if (!m2d_triggered) begin
                     m2d_triggered <= `TRUE;
