@@ -177,7 +177,7 @@ vga_sync vic_vga_sync(
 // each.
 
 // Translate pixel_color3 (indexed) to RGB values
-color vic_colors(
+color3 vic_colors(
      .out_pixel(is_composite ? pixel_color4_composite : pixel_color4_vga),
      .red(red),
      .green(green),
