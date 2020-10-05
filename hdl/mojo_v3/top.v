@@ -32,18 +32,15 @@
 
 module top(
            input sys_clock,
-           input is_composite,  // HIGH=composite, LOW=vga/hdmi
            output cpu_reset,    // reset for 6510 CPU
-           output clk_colref,   // output color ref clock for CXA1545P
            output clk_phi,      // output phi clock for CPU
            output clk_dot4x_ext,    // pixel clock for external HDMI encoder
-           output csync,        // composite sync signal for CXA1545P
            output hsync,        // hsync signal for VGA/HDMI
            output vsync,        // vsync signal for VGA/HDMI
            output active,       // display active for HDMI
-           output [2:0] red,    // red out for CXA1545P
-           output [2:0] green,  // green out for CXA1545P
-           output [2:0] blue,   // blue out for CXA1545P
+           output [3:0] red,    // red out for CXA1545P
+           output [3:0] green,  // green out for CXA1545P
+           output [3:0] blue,   // blue out for CXA1545P
 `ifndef IS_SIMULATOR    
            inout tri [5:0] adl, // address (lower 6 bits)
            output tri [5:0] adh,// address (high 6 bits)
@@ -65,6 +62,9 @@ module top(
            output ba,           // ba
            output cas,          // column address strobe
            output ras,          // row address strobe
+			  output ls245_addr_oe,   // OE for addr bus transceviers
+           output ls245_addr_dir,  // DIR for addr bus transceivers
+			  output ls245_data_oe,   // OE for data bus transcevier
            output ls245_data_dir   // DIR for data bus transceiver
        );
 
@@ -75,7 +75,7 @@ wire clk_dot4x;
 
 `ifndef IS_SIMULATOR
 // Clock generators and chip selection
-clockgen cmod_clockgen(
+clockgen mojo_clockgen(
          .sys_clock(sys_clock),
          .clk_dot4x(clk_dot4x),
          .clk_col4x(clk_col4x),
@@ -142,6 +142,9 @@ vicii vic_inst(
           .cas(cas),
           .ras(ras),
           .ls245_data_dir(ls245_data_dir),
+          .ls245_data_oe(ls245_data_oe),
+          .ls245_addr_dir(ls245_addr_dir),
+          .ls245_addr_oe(ls245_addr_oe),
           .vic_write_db(vic_write_db),
           .vic_write_ab(vic_write_ab)
       );
@@ -155,23 +158,6 @@ assign adh = vic_write_ab ? ado[11:6] : 6'bz;
 assign ado_sim = ado;
 assign dbo_sim = dbo;
 `endif
-
-// ----------------------------------------------------
-// Composite output - csync and color_ref
-// ----------------------------------------------------
-wire [3:0] pixel_color4_composite;
-comp_sync vic_comp_sync(
-         .rst(rst),
-         .clk_dot4x(clk_dot4x),
-         .clk_col4x(clk_col4x),
-         .chip(chip),
-         .raster_x(xpos),
-         .raster_y(raster_line),
-         .pixel_color3(pixel_color3),
-         .csync(csync),
-         .clk_colref(clk_colref),
-         .pixel_color4(pixel_color4_composite)
-     );
 
 // ----------------------------------------------------
 // VGA/HDMI output - hsync/vsync
@@ -197,9 +183,9 @@ vga_sync vic_vga_sync(
 // Composite simultaneously if we had dedicated rgb lines for
 // each.
 
-// Translate pixel_color3 (indexed) to RGB values
-color vic_colors(
-     .out_pixel(is_composite ? pixel_color4_composite : pixel_color4_vga),
+// Translate pixel_color (indexed) to RGB values
+color4 vic_colors(
+     .out_pixel(pixel_color4_vga),
      .red(red),
      .green(green),
      .blue(blue)

@@ -39,6 +39,9 @@ module vicii(
            output ras,
            output cas,
            output ls245_data_dir,
+           output ls245_data_oe,
+           output ls245_addr_dir,
+           output ls245_addr_oe,
            output vic_write_db,
            output vic_write_ab
        );
@@ -654,10 +657,10 @@ assign vic_write_ab = ~aec;
 
 // For data bus direction, use inverse of vic_write_db
 assign ls245_data_dir = ~vic_write_db;
-//assign ls245_data_oe = aec & ce;
-//assign ls245_addr_dir = aec;
-//assign ls245_addr_oe = aec & ce;
-  
+assign ls245_data_oe = 1'b0; // aec & ce;  for now, always enable
+assign ls245_addr_dir = aec;
+assign ls245_addr_oe = 1'b0; // aec & ce;  for now, always enable
+ 
   
 // Handle cycles that perform data bus accesses
 bus_access vic_bus_access(
