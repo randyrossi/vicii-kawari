@@ -102,7 +102,7 @@
 #define V_NEXTCHAR top__DOT__next_char
 #define V_BADLINE top__DOT__vic_inst__DOT__badline
 #define V_VC top__DOT__vic_inst__DOT__vc
-#define V_VCBASE top__DOT__vic_inst__DOT__vc_base
+#define V_VCBASE top__DOT__vic_inst__DOT__vic_matrix__DOT__vc_base
 #define V_RC top__DOT__vic_inst__DOT__rc
 #define V_YSCROLL top__DOT__vic_inst__DOT__yscroll
 #define V_XSCROLL top__DOT__vic_inst__DOT__xscroll
@@ -112,7 +112,7 @@
 #define V_BMM top__DOT__vic_inst__DOT__bmm
 #define V_ECM top__DOT__vic_inst__DOT__ecm
 #define V_MCM top__DOT__vic_inst__DOT__mcm
-#define V_RES top__DOT__vic_inst__DOT__res
+#define V_RES top__DOT__vic_inst__DOT__vic_registers__DOT__res
 #define V_ALLOW_BAD_LINES top__DOT__vic_inst__DOT__allow_bad_lines
 #define V_CYCLE_FINE_CTR top__DOT__cycle_fine_ctr
 #define V_IDLE top__DOT__vic_inst__DOT__idle

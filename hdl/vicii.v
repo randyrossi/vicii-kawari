@@ -294,7 +294,7 @@ assign sprite_ba_start[7] = 10'd0 + 10'd16 * 7;
 assign sprite_ba_end[7] = 10'd40 + 10'd16 * 7;
 
 assign xpos_sprite = xpos >= (`XPOS_SPRITE_DELAY - 9'd1) ? xpos - (`XPOS_SPRITE_DELAY - 9'd1) : max_xpos - (`XPOS_SPRITE_DELAY - 9'd2) + xpos;
-assign xpos_gfx = xpos >= (`XPOS_GFX_DELAY - 9'd1) ? xpos - (`XPOS_GFX_DELAY - 9'd1) : max_xpos - (`XPOS_GFX_DELAY - 9'd2) + xpos;
+assign xpos_gfx = xpos >= (`XPOS_GFX_DELAY_9BIT - 9'd1) ? xpos - (`XPOS_GFX_DELAY_9BIT - 9'd1) : max_xpos - (`XPOS_GFX_DELAY_9BIT - 9'd2) + xpos;
 
 // dot_rising[3] means dot going high next cycle
 always @(posedge clk_dot4x)
@@ -394,6 +394,7 @@ always @(posedge clk_dot4x)
 wire main_border;
 reg main_border_d1;
 reg main_border_d2;
+wire top_bot_border;
 border vic_border(
            .rst(rst),
            .clk_dot4x(clk_dot4x),
@@ -404,6 +405,7 @@ border vic_border(
            .rsel(rsel),
            .csel(csel),
            .den(den),
+           .vborder(top_bot_border),
            .main_border(main_border)
        );
 

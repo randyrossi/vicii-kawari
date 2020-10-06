@@ -4,8 +4,8 @@
 
 // border on/off logic
 module border(
-      input rst,
-      input clk_dot4x,
+       input rst,
+       input clk_dot4x,
 	   input clk_phi,
 	   input [6:0] cycle_num,
 	   input [9:0] xpos,
@@ -13,11 +13,11 @@ module border(
 	   input rsel,
 	   input csel,
 	   input den,
+	   output reg vborder,
 	   output reg main_border
 );
 
 reg set_vborder;
-reg vborder;
 
 always @(posedge clk_dot4x)
 begin

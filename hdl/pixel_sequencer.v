@@ -65,8 +65,8 @@ assign sprite_col[7] = sprite_col_o[3:0];
 // char and pixels delayed before entering shifter
 // TODO: Now that the precise delay is known, there's no need for this
 // many regs for char/pixels delay. Change to use one reg.
-reg [11:0] char_delayed[`XPOS_GFX_DELAY + 1:0];
-reg [7:0] pixels_delayed[`XPOS_GFX_DELAY + 1:0];
+reg [11:0] char_delayed[`XPOS_GFX_DELAY_4BIT + 1:0];
+reg [7:0] pixels_delayed[`XPOS_GFX_DELAY_4BIT + 1:0];
 reg [2:0] xscroll_delayed;
 reg [1:0] sprite_pixels_delayed1[`NUM_SPRITES-1:0];
 
@@ -107,7 +107,7 @@ begin
     //    end
     //end else
     if (dot_rising_0) begin
-        for (n = `XPOS_GFX_DELAY; n > 0; n = n - 1) begin
+        for (n = `XPOS_GFX_DELAY_32BIT; n > 0; n = n - 1) begin
             pixels_delayed[n] <= pixels_delayed[n-1];
             char_delayed[n] <= char_delayed[n-1];
         end
@@ -144,7 +144,7 @@ always @(posedge clk_dot4x)
     //end else
     if (dot_rising_0) begin // rising dot
         if (load_pixels)
-            shift_pixels <= ~(mcm & (bmm | ecm | char_delayed[`XPOS_GFX_DELAY][11]));
+            shift_pixels <= ~(mcm & (bmm | ecm | char_delayed[`XPOS_GFX_DELAY_4BIT][11]));
         else
             shift_pixels <= ismc ? ~shift_pixels : shift_pixels;
     end
@@ -155,7 +155,7 @@ always @(posedge clk_dot4x)
     //end else
     if (dot_rising_0) begin
         if (load_pixels)
-            char_shifting <= char_delayed[`XPOS_GFX_DELAY];
+            char_shifting <= char_delayed[`XPOS_GFX_DELAY_4BIT];
     end
 
 // Pixel shifter
@@ -168,8 +168,8 @@ always @(posedge clk_dot4x) begin
     // for the currently shifting pixel entering the final output pipeline
     else if (dot_rising_0) begin
         if (load_pixels) begin
-            pixels_shifting <= pixels_delayed[`XPOS_GFX_DELAY];
-            is_background_pixel1 <= !pixels_delayed[`XPOS_GFX_DELAY][7];
+            pixels_shifting <= pixels_delayed[`XPOS_GFX_DELAY_4BIT];
+            is_background_pixel1 <= !pixels_delayed[`XPOS_GFX_DELAY_4BIT][7];
         end else if (shift_pixels) begin
             if (ismc) begin
                 pixels_shifting <= {pixels_shifting[5:0], 2'b0};
