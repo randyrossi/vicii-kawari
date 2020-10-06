@@ -10,7 +10,6 @@ filesets:
       - hdl/vicii.v
       - hdl/serration.v
       - hdl/clockdivs.v
-      - hdl/color.v
       - hdl/sync.v
       - hdl/registers.v
       - hdl/addressgen.v
