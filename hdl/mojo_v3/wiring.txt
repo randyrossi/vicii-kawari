@@ -1,70 +1,71 @@
 # Bi-directional address bus
-SV2    8        L64N_2    P40     A0       adl[0]
-SV2    10       L1N_3     P34     A1       adl[1]
-SV2    12       L2N_3     P32     A2       adl[2]
-SV2    14       L36N_3    P29     A3       adl[3]
-SV2    17       L41P_3    P24     A4       adl[4]
-SV2    20       L42N_3    P21     A5       adl[5]
-SV2    22       L43N_3    P16     A6       adh[0]
-SV2    24       L44N_3    P14     A7       adh[1]
-SV2    26       L49N_3    P11     A8       adh[2]
-SV2    28       L50N_3    P9      A9       adh[3]
-SV2    30       L51N_3    P7      A10      adh[4]
-SV2     6       L31N_2    P50     A11      adh[5]
+SV2    8        L64N_2    P40     A0       adl[0]  IO
+SV2    10       L1N_3     P34     A1       adl[1]  IO
+SV2    12       L2N_3     P32     A2       adl[2]  IO
+SV2    14       L36N_3    P29     A3       adl[3]  IO
+SV2    17       L41P_3    P24     A4       adl[4]  IO
+SV2    20       L42N_3    P21     A5       adl[5]  IO
+SV2    22       L43N_3    P16     A6       adh[0]  IO
+SV2    24       L44N_3    P14     A7       adh[1]  IO
+SV2    26       L49N_3    P11     A8       adh[2]  IO
+SV2    28       L50N_3    P9      A9       adh[3]  IO
+SV2    30       L51N_3    P7      A10      adh[4]  IO
+SV2     6       L31N_2    P50     A11      adh[5]  IO
 
 # Read only lines
-SV2    40       L3N_0     P139    D8       dbh[0]
-SV2    38       L2N_0     P141    D9       dbh[1]
-SV2    36       L1N_0     P143    D10      dbh[2]
-SV2    34       L83N_3    P1      D11      dbh[3]
-SV2    42       L4N_0     P137    LP       lp
-SV2    44       L34N_0    P133    CE       ce
-SV2    46       L35N_0    P131    RW       rw
+SV2    40       L3N_0     P139    D8       dbh[0]  I
+SV2    38       L2N_0     P141    D9       dbh[1]  I
+SV2    36       L1N_0     P143    D10      dbh[2]  I
+SV2    34       L83N_3    P1      D11      dbh[3]  I
+SV2    42       L4N_0     P137    LP       lp      I
+SV2    44       L34N_0    P133    CE       ce      I
+SV2    46       L35N_0    P131    RW       rw      I
 
 # Bi-directional databus
-SV1    43       L62P_0    P121    D7       dbl[7]
-SV1    41       L63P_0    P119    D6       dbl[6]
-SV1    39       L64P_0    P117    D5       dbl[5]
-SV1    37       L65P_0    P115    D4       dbl[4]
-SV1    36       L66N_0    P111    D3       dbl[3]
-SV1    35       L66P_0    P112    D2       dbl[2]
-SV1    34       L1N_1     P104    D1       dbl[1]
-SV1    33       L1P_1     P105    D0       dbl[0]
+SV1    43       L62P_0    P121    D7       dbl[7]  IO
+SV1    41       L63P_0    P119    D6       dbl[6]  IO
+SV1    39       L64P_0    P117    D5       dbl[5]  IO
+SV1    37       L65P_0    P115    D4       dbl[4]  IO
+SV1    36       L66N_0    P111    D3       dbl[3]  IO
+SV1    35       L66P_0    P112    D2       dbl[2]  IO
+SV1    34       L1N_1     P104    D1       dbl[1]  IO
+SV1    33       L1P_1     P105    D0       dbl[0]  IO
 
 # Write only lines
-SV1    7        L14P_2    P58     CAS      cas
-SV1    9        L2P_2     P67     RAS      ras
-SV1    11       L74P_1    P75     PHI      clk_phi
-SV1    13       L47P_1    P79     AEC      aec
-SV1    15       L46P_1    P81     BA       ba
+SV1    7        L14P_2    P58     CAS      cas     O
+SV1    9        L2P_2     P67     RAS      ras     O
+SV1    11       L74P_1    P75     PHI      clk_phi O
+SV1    13       L47P_1    P79     AEC      aec     O
+SV1    15       L46P_1    P81     BA       ba      O
 
 # Control ines
-SV1    31       L32P_1    P102    data_oe  ls245_data_oe
-SV1    29       L33P_1    P100    data_dir ls245_data_dir
-SV2    32       L52N_3    P5      addr_dir ls245_addr_dir
-SV2    29       L51P_3    P8      addr_oe  ls245_addr_oe
-SV1    21       L42P_1    P88     IRQ      irq
-SV1    27       L34P_1    P98     RESET    cpu_reset
+SV1    31       L32P_1    P102    data_oe  ls245_data_oe  O
+SV1    29       L33P_1    P100    data_dir ls245_data_dir O
+SV2    32       L52N_3    P5      addr_dir ls245_addr_dir O
+SV2    29       L51P_3    P8      addr_oe  ls245_addr_oe  O
+SV1    21       L42P_1    P88     IRQ      irq            O
+SV1    27       L34P_1    P98     RESET    cpu_reset      O
 
 # Config
-#SV2    18       L41N_3    P23     CONFIG0  chip[0]
-#SV2    17       L41P_3    P24     CONFIG1  chip[1]
+#SV2    18       L41N_3    P23     CONFIG0  chip[0]   I
+#SV2    17       L41P_3    P24     CONFIG1  chip[1]   I
 
 # Video output
-SV2    39       L3P_0     P140    PMOD11   red[3]
-SV2    41       L4P_0     P138    PMOD12   red[2]
-SV2    43       L34P_0    P134    PMOD9    red[1]
-SV2    45       L35P_0    P132    PMOD10   red[0]
-SV2    48       L36N_0    P126    PMOD7    green[3]
-SV2    47       L36P_0    P127    PMOD8    green[2]
-SV2    50       L37N_0    P123    PMOD5    green[1]
-SV2    49       L37P_0    P124    PMOD6    green[0]
-SV1    42       L63N_0    P118    PMOD11   blue[3]
-SV1    44       L62N_0    P120    PMOD12   blue[2]
-SV1    38       L65N_0    P114    PMOD9    clk_dot4x_ext
-SV1    40       L64N_0    P116    PMOD10   blue[1]
-SV1    30       L33N_1    P99     PMOD7    blue[0]
-SV1    32       L32N_1    P101    PMOD8    active
-SV1    26       L40N_1    P94     PMOD5    hsync
-SV1    28       L34N_1    P97     PMOD6    vsync
+SV2    39       L3P_0     P140    PMOD11   red[3]          O
+SV2    41       L4P_0     P138    PMOD12   red[2]          O
+SV2    43       L34P_0    P134    PMOD9    red[1]          O
+SV2    45       L35P_0    P132    PMOD10   red[0]          O
+SV2    48       L36N_0    P126    PMOD7    green[3]        O
+SV2    47       L36P_0    P127    PMOD8    green[2]        O
+SV2    50       L37N_0    P123    PMOD5    green[1]        O
+SV2    49       L37P_0    P124    PMOD6    green[0]        O
+SV1    42       L63N_0    P118    PMOD11   blue[3]         O
+SV1    44       L62N_0    P120    PMOD12   blue[2]         O
+SV1    38       L65N_0    P114    PMOD9    clk_dot4x_ext   O
+SV1    40       L64N_0    P116    PMOD10   blue[1]         O
+SV1    30       L33N_1    P99     PMOD7    blue[0]         O
+SV1    32       L32N_1    P101    PMOD8    active          O
+SV1    26       L40N_1    P94     PMOD5    hsync           O
+SV1    28       L34N_1    P97     PMOD6    vsync           O
 
+N/A    N/A      L30P_2    P56     CLK      sys_clock       I
