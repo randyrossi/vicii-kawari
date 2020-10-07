@@ -44,28 +44,57 @@ always @(posedge sys_clock)
 
 assign chip = `CHIP6569;
 
+// This isn't the right thing to do here. This causes a couple of
+// synthesis warnings.  This is just for the case where we don't
+// have an external clock to use so no biggie.
+BUFG sysbuf2 (
+         .O(sys_clockb),
+         .I(sys_clock)
+     );
+
 // Generate the 4x dot clock. See vicii.v for values.
 dot4x_12_pal_clockgen dot4x_12_pal_clockgen(
                           .clk_in12mhz(sys_clock),    // external 12 Mhz clock
                           .reset(internal_rst),
                           .clk_dot4x(clk_dot4x),      // generated 4x dot clock
-                          .clk_col4x(clk_col4x),     // generated 4x col clock
                           .locked(locked)
                       );
+                      
+// Generate a 4x color clock. See vicii.v for values.
+color4x_12_pal_clockgen color4x_12_pal_clockgen(
+                           .clk_in12mhz(sys_clockb), // external 12 Mhz clock
+                           .reset(internal_rst),
+                           .clk_col4x(clk_col4x)     // generated 4x col clock
+                       );
+
 `endif
 
 `ifdef USE_INTCLOCK_NTSC
 
 assign chip = `CHIP6567R8;
 
+// This isn't the right thing to do here. This causes a couple of
+// synthesis warnings.  This is just for the case where we don't
+// have an external clock to use so no biggie.
+BUFG sysbuf2 (
+         .O(sys_clockb),
+         .I(sys_clock)
+     );
+
 // Generate the 4x dot clock. See vicii.v for values.
 dot4x_12_ntsc_clockgen dot4x_12_ntsc_clockgen(
                            .clk_in12mhz(sys_clock),    // external 12 Mhz clock
                            .reset(internal_rst),
                            .clk_dot4x(clk_dot4x),      // generated 4x dot clock
-                           .clk_col4x(clk_col4x),     // generated 4x col clock
                            .locked(locked)
                        );
+
+// Generate a 4x color clock. See vicii.v for values.
+color4x_12_ntsc_clockgen color4x_12_ntsc_clockgen(
+                           .clk_in12mhz(sys_clockb),    // external 12 Mhz clock
+                           .reset(internal_rst),
+                           .clk_col4x(clk_col4x)     // generated 4x col clock
+                      );
 `endif
 
 // Use an external clock for pal.
@@ -80,6 +109,7 @@ dot4x_17_pal_clockgen dot4x_17_pal_clockgen(
                           .clk_dot4x(clk_dot4x),
                           .locked(locked)
                       );
+
 `endif
 
 // Use an external clock for ntsc.
