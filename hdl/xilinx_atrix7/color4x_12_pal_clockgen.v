@@ -1,19 +1,17 @@
 `timescale 1ns/1ps
 
-// Generate clk_dot4x from a 12Mhz input clock
-
-module dot4x_12_ntsc_clockgen
-       (output wire clk_dot4x,
+module color4x_12_pal_clockgen
+       (output wire clk_col4x,
         input wire reset,
-        input wire clk_in12mhz,
-        output locked
+        input wire clk_in12mhz
        );
 
-wire clk_dot4x_clk_wiz_0;
+wire clk_col4x_clk_wiz_0;
 
 wire [15:0] do_unused;
 wire drdy_unused;
 wire psdone_unused;
+wire locked_int;
 wire clkfbout_clk_wiz_0;
 wire clkfbout_buf_clk_wiz_0;
 wire clkfboutb_unused;
@@ -21,16 +19,20 @@ wire clkfbstopped_unused;
 wire clkinstopped_unused;
 wire reset_high;
 
+// NOTE: The PAL values below give 17.734513 vs needed 17.734475?. The
+// on-board 12Mhz clock is not capable of getting close enough to avoid
+// shimmering display. So we can get A picture but not a GOOD picture
+// unless we bring in an external clock.
 MMCME2_ADV
     #(.BANDWIDTH("HIGH"),
       .CLKOUT4_CASCADE("FALSE"),
       .COMPENSATION("ZHOLD"),
       .STARTUP_WAIT("FALSE"),
       .DIVCLK_DIVIDE(1),
-      .CLKFBOUT_MULT_F(63.750),
+      .CLKFBOUT_MULT_F(62.625),
       .CLKFBOUT_PHASE(0.000),
       .CLKFBOUT_USE_FINE_PS("FALSE"),
-      .CLKOUT0_DIVIDE_F(23.375),
+      .CLKOUT0_DIVIDE_F(42.375),
       .CLKOUT0_PHASE(0.000),
       .CLKOUT0_DUTY_CYCLE(0.500),
       .CLKOUT0_USE_FINE_PS("FALSE"),
@@ -40,7 +42,7 @@ MMCME2_ADV
     (
         .CLKFBOUT(clkfbout_clk_wiz_0),
         .CLKFBOUTB(clkfboutb_unused),
-        .CLKOUT0(clk_dot4x_clk_wiz_0),
+        .CLKOUT0(clk_col4x_clk_wiz_0),
         .CLKOUT0B(clkout0b_unused),
         .CLKOUT1(clkout1_unused),
         .CLKOUT1B(clkout1b_unused),
@@ -71,20 +73,19 @@ MMCME2_ADV
         .PSINCDEC(1'b0),
         .PSDONE(psdone_unused),
         // Other control and status signals
-        .LOCKED(locked),
+        .LOCKED(locked_int),
         .CLKINSTOPPED(clkinstopped_unused),
         .CLKFBSTOPPED(clkfbstopped_unused),
         .PWRDWN(1'b0),
         .RST(reset_high));
 assign reset_high = reset;
 
-
 BUFG clkf_buf
      (.O(clkfbout_buf_clk_wiz_0),
       .I(clkfbout_clk_wiz_0));
 
 BUFG clkout_buf
-     (.O(clk_dot4x),
-      .I(clk_dot4x_clk_wiz_0));
+     (.O(clk_col4x),
+      .I(clk_col4x_clk_wiz_0));
 
 endmodule
