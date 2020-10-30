@@ -3,7 +3,7 @@ SV2    8        L64N_2    P40     A0       adl[0]  IO
 SV2    10       L1N_3     P34     A1       adl[1]  IO
 SV2    12       L2N_3     P32     A2       adl[2]  IO
 SV2    14       L36N_3    P29     A3       adl[3]  IO
-SV2    17       L41P_3    P24     A4       adl[4]  IO
+SV2    16       L37N_3    P26     A4       adl[4]  IO
 SV2    20       L42N_3    P21     A5       adl[5]  IO
 SV2    22       L43N_3    P16     A6       adh[0]  IO
 SV2    24       L44N_3    P14     A7       adh[1]  IO
@@ -17,9 +17,9 @@ SV2    40       L3N_0     P139    D8       dbh[0]  I
 SV2    38       L2N_0     P141    D9       dbh[1]  I
 SV2    36       L1N_0     P143    D10      dbh[2]  I
 SV2    34       L83N_3    P1      D11      dbh[3]  I
-SV2    42       L4N_0     P137    LP       lp      I
+SV2    42       L4N_0     P137    RW       rw      I
 SV2    44       L34N_0    P133    CE       ce      I
-SV2    46       L35N_0    P131    RW       rw      I
+SV2    46       L35N_0    P131    LP       lp      I
 
 # Bi-directional databus
 SV1    43       L62P_0    P121    D7       dbl[7]  IO
@@ -51,21 +51,25 @@ SV1    27       L34P_1    P98     RESET    cpu_reset      O
 #SV2    17       L41P_3    P24     CONFIG1  chip[1]   I
 
 # Video output
-SV2    39       L3P_0     P140    PMOD11   red[3]          O
-SV2    41       L4P_0     P138    PMOD12   red[2]          O
-SV2    43       L34P_0    P134    PMOD9    red[1]          O
-SV2    45       L35P_0    P132    PMOD10   red[0]          O
-SV2    48       L36N_0    P126    PMOD7    green[3]        O
-SV2    47       L36P_0    P127    PMOD8    green[2]        O
-SV2    50       L37N_0    P123    PMOD5    green[1]        O
-SV2    49       L37P_0    P124    PMOD6    green[0]        O
-SV1    42       L63N_0    P118    PMOD11   blue[3]         O
-SV1    44       L62N_0    P120    PMOD12   blue[2]         O
-SV1    38       L65N_0    P114    PMOD9    clk_dot4x_ext   O
-SV1    40       L64N_0    P116    PMOD10   blue[1]         O
-SV1    30       L33N_1    P99     PMOD7    blue[0]         O
-SV1    32       L32N_1    P101    PMOD8    active          O
-SV1    26       L40N_1    P94     PMOD5    hsync           O
-SV1    28       L34N_1    P97     PMOD6    vsync           O
+SV1    38       L65N_0    P114    PMOD12   red[1]          O
+SV1    40       L64N_0    P116    PMOD11   red[0]          O
+SV1    42       L63N_0    P118    PMOD10   red[3]          O
+SV1    44       L62N_0    P120    PMOD9    red[2]          O
+
+SV1    26       L40N_1    P94     PMOD8    green[1]        O
+SV1    28       L34N_1    P97     PMOD7    green[0]        O
+SV1    30       L33N_1    P99     PMOD6    green[3]        O
+SV1    32       L32N_1    P101    PMOD5    green[2]        O
+
+SV2    39       L3P_0     P140    PMOD11   blue[3]          O
+SV2    41       L4P_0     P138    PMOD12   blue[2]          O
+SV2    43       L34P_0    P134    PMOD9    clk_dot4x_ext    O
+SV2    45       L35P_0    P132    PMOD10   blue[1]          O
+
+SV2    48       L36N_0    P126    PMOD7    blue[0]          O
+SV2    47       L36P_0    P127    PMOD8    active           O
+SV2    50       L37N_0    P123    PMOD5    hsync            O
+SV2    49       L37P_0    P124    PMOD6    vsync            O
+
 
 N/A    N/A      L30P_2    P56     CLK      sys_clock       I
