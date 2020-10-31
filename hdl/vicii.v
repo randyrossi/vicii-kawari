@@ -258,7 +258,6 @@ reg [7:0] ba_sprite;
 wire [71:0] sprite_x_o; // 9 bits * 8 sprites
 wire [63:0] sprite_y_o; // 8 bits * 8 sprites
 wire [31:0] sprite_col_o; // 4 bits * 8 sprites
-wire [191:0] sprite_pixels_o; // 24 bits * 8 sprites
 wire [63:0] sprite_ptr_o; // 8 bits * 8 sprites
 wire [47:0] sprite_mc_o; // 6 bits * 8 sprites
 wire [15:0] sprite_cur_pixel_o; // 2 bits * 8 sprites
@@ -589,11 +588,12 @@ sprites vic_sprites(
          .clk_dot4x(clk_dot4x),
          .clk_phi(clk_phi),
          .cycle_type(cycle_type),
+         .dbi(dbi),
          .dot_rising_0(dot_rising[0]),
          .phi_phase_start_0(phi_phase_start[0]),
          .phi_phase_start_1(phi_phase_start[1]),
          .phi_phase_start_13(phi_phase_start[13]),
-         .phi_phase_start_davp1(phi_phase_start[`SPRITE_DAV+1]),
+         .phi_phase_start_dav(phi_phase_start[`SPRITE_DAV]),
          .xpos(xpos_sprite[8:0]), // top bit omitted
          .raster_line(raster_line[7:0]), // top bit omitted
          .cycle_num(cycle_num),
@@ -606,7 +606,6 @@ sprites vic_sprites(
          .sprite_en(sprite_en),
          .sprite_mmc(sprite_mmc),
          .sprite_cnt(sprite_cnt),
-         .sprite_pixels_o(sprite_pixels_o),
          .aec(aec),
          .is_background_pixel1(is_background_pixel1),
          .main_border(main_border_d2), // delayed
@@ -676,8 +675,7 @@ bus_access vic_bus_access(
          .pixels_read(pixels_read),
          .char_read(char_read),
          .char_next(char_next),
-         .aec(aec),
-         .sprite_pixels_o(sprite_pixels_o)
+         .aec(aec)
 );
 
 // Address generation

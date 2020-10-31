@@ -6,12 +6,13 @@ module sprites(
         input rst,
         input clk_dot4x,
         input clk_phi,
+        input [11:0] dbi,
         input [3:0] cycle_type,
         input dot_rising_0,
         input phi_phase_start_0,
         input phi_phase_start_1,
         input phi_phase_start_13,
-        input phi_phase_start_davp1,
+        input phi_phase_start_dav,
         input [8:0] xpos, // top bit omitted for comparison to x
         input [6:0] cycle_num,
         input [2:0] cycle_bit,
@@ -35,7 +36,6 @@ module sprites(
         input [6:0] sprite_disp_chk,
         input m2m_clr,
         input m2d_clr,
-        input [191:0] sprite_pixels_o,
         output reg immc,
         output reg imbc,
         output wire [15:0] sprite_cur_pixel_o,
@@ -50,7 +50,6 @@ integer n;
 // Destinations for flattened inputs that need to be sliced back into an array
 wire [8:0] sprite_x[0:`NUM_SPRITES - 1];
 wire [7:0] sprite_y[0:`NUM_SPRITES - 1];
-wire [23:0] sprite_pixels [0:`NUM_SPRITES-1];
 
 // 2D arrays that need to be flattened for output
 reg [5:0] sprite_mc[0:`NUM_SPRITES - 1];
@@ -83,15 +82,6 @@ assign sprite_y[4] = sprite_y_o[31:24];
 assign sprite_y[5] = sprite_y_o[23:16];
 assign sprite_y[6] = sprite_y_o[15:8];
 assign sprite_y[7] = sprite_y_o[7:0];
-
-assign sprite_pixels[0] = sprite_pixels_o[191:168];
-assign sprite_pixels[1] = sprite_pixels_o[167:144];
-assign sprite_pixels[2] = sprite_pixels_o[143:120];
-assign sprite_pixels[3] = sprite_pixels_o[119:96];
-assign sprite_pixels[4] = sprite_pixels_o[95:72];
-assign sprite_pixels[5] = sprite_pixels_o[71:48];
-assign sprite_pixels[6] = sprite_pixels_o[47:24];
-assign sprite_pixels[7] = sprite_pixels_o[23:0];
 
 // Handle flattening outputs here
 assign sprite_mc_o = {sprite_mc[0], sprite_mc[1], sprite_mc[2], sprite_mc[3], sprite_mc[4], sprite_mc[5], sprite_mc[6], sprite_mc[7]};
@@ -202,14 +192,11 @@ begin
             // perform dma access. 
             if (cycle_bit == 2 && (cycle_type == `VIC_LS2 || cycle_type == `VIC_LPI2)) begin
                 sprite_active[sprite_cnt] = `FALSE;
-                // Not sure whether clearing the data here is right.  This makes
-                // things look correct and the data is about to get clobbered on
-                // the next half cycle anyway so doesn't seem to hurt.                
                 sprite_cur_pixel[sprite_cnt] <= 0;
-                sprite_pixels_shifting[sprite_cnt] <= 0;
-            end else if (cycle_bit == 3 && cycle_type == `VIC_LP)
+            end else if (cycle_bit == 3 && cycle_type == `VIC_LP) begin
                 sprite_halt[sprite_cnt] = `TRUE;
-            else if (cycle_bit == 7 && (cycle_type == `VIC_HS3 || cycle_type == `VIC_HPI3))
+					 sprite_pixels_shifting[sprite_cnt] <= 24'b0;
+            end else if (cycle_bit == 7 && (cycle_type == `VIC_HS3 || cycle_type == `VIC_HPI3))
                 sprite_halt[sprite_cnt] = `FALSE;
 
             // when xpos matches sprite_x, turn on shift
@@ -245,15 +232,15 @@ begin
             end
         end
 
-        // Transfer pixels from read register into the shifting register.  No real reason
-        // we needed to do this. It just keeps the bus accesses all together in one module.
-        if (!aec && phi_phase_start_davp1) begin
-            case (cycle_type)
-                `VIC_HS3:
-                    if (sprite_dma[sprite_cnt])
-                        sprite_pixels_shifting[sprite_cnt] <= sprite_pixels[sprite_cnt];
-                default: ;
-            endcase
+        // s-access - This must be done here instead of bus_access because this is where the shifting
+		  // logic resides.
+		  if (!aec && phi_phase_start_dav) begin
+          case (cycle_type)
+              `VIC_HS1, `VIC_LS2, `VIC_HS3:
+                  if (sprite_dma[sprite_cnt])
+                      sprite_pixels_shifting[sprite_cnt] <= {sprite_pixels_shifting[sprite_cnt][15:0], dbi[7:0]};
+              default: ;
+          endcase
         end
     end
 end

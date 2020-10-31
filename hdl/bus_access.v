@@ -20,7 +20,6 @@ module bus_access(
         input [`NUM_SPRITES - 1:0] sprite_dma,
         output [63:0] sprite_ptr_o,
         output reg [7:0] pixels_read,
-        output [191:0] sprite_pixels_o,
         output reg [11:0] char_read,
         output reg [11:0] char_next
 );
@@ -29,7 +28,6 @@ integer n;
 
 // 2D arrays that need to be flattened for output 
 reg [7:0] sprite_ptr[0:`NUM_SPRITES - 1];
-reg [23:0] sprite_pixels[0:`NUM_SPRITES - 1];
 
 // Internal regs
 // our character line buffer
@@ -38,7 +36,6 @@ reg [5:0] char_buf_counter;
 
 // Handle flattening outputs here
 assign sprite_ptr_o = {sprite_ptr[0], sprite_ptr[1], sprite_ptr[2], sprite_ptr[3], sprite_ptr[4], sprite_ptr[5], sprite_ptr[6], sprite_ptr[7]};
-assign sprite_pixels_o = {sprite_pixels[0], sprite_pixels[1], sprite_pixels[2], sprite_pixels[3], sprite_pixels[4], sprite_pixels[5], sprite_pixels[6], sprite_pixels[7]};
 
 // c-access reads
 always @(posedge clk_dot4x)
@@ -111,20 +108,6 @@ always @(posedge clk_dot4x)
         end
     end
 
-// s-access reads
-always @(posedge clk_dot4x)
-//    if (rst) begin
-//        for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-//            sprite_pixels[sprite_cnt] <= 23'd0;
-//        end
-//    end else
-    if (!aec && phi_phase_start_dav) begin
-        case (cycle_type)
-            `VIC_HS1, `VIC_LS2, `VIC_HS3:
-                if (sprite_dma[sprite_cnt])
-                    sprite_pixels[sprite_cnt] <= {sprite_pixels[sprite_cnt][15:0], dbi[7:0]};
-            default: ;
-        endcase
-    end
+// s-access reads are performed in vic_sprites
 
 endmodule: bus_access
