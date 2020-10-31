@@ -1,22 +1,21 @@
-# Commodore VIC-IIe Replacement Project
+# VICII-Kawari
 
-## What is this?
-This is a replacement project for the VIC-IIe (Video Interface Chip II) found in Commodore 64 home computers.
+## What is VICII-Kawari?
+VICII-Kawari is a hardware replacement for the VIC-II (Video Interface Chip II) found in Commodore 64 home computers.
 
 This project contains:
 
-1) an open source VIC-IIe FPGA core written in Verilog
-2) schematics and PCB design(s) for a Xilinx Spartan6 based board
-3) schematics and PCB design(s) for an optional luma/chroma video generator
+1) an open source VIC-II FPGA core written in Verilog
+2) schematics and PCB design for a Xilinx Spartan6 based interface
 
-The PCB interfaces with a real C64 address and data bus through the VIC-IIe socket on the C64 motherboard. The board can replace all the functions of a real VIC-IIe chip including DRAM refresh, light pen interrupts (real CRT only), PHI2 clock source for the CPU and, of course, video output.
+The PCB interfaces with a real C64 address and data bus through the VIC-II socket on the C64 motherboard. The board can replace all the functions of a real VIC-II chip including DRAM refresh, light pen interrupts (real CRT only), PHI2 clock source for the CPU and, of course, video output.
 
 ## What kind of video output options are there?
 There are three video output options:
 
-    1) composite - requires a custom composite adapter based on the Sony CXA1645P composite encoder IC (separate luma/chroma also available for s-video)
-    2) VGA - requires a GERT VGA666 adapter board
-    3) HDMI - requires an ICEBreaker Pmod Digital Video Interface adapter
+* Composite
+* VGA
+* HDMI
 
 NOTE: The VGA and HDMI modes are not standard so they may not work on older monitors/TVs or capture cards.
 
@@ -24,16 +23,16 @@ NOTE: The VGA and HDMI modes are not standard so they may not work on older moni
 It can replace the 6567 (NTSC/All revisions) and the 6569 (PAL/All revisions). The FPGA core functions as either a 6567R8 or 6569R9. Unlike the original chips, however, it can assume the functionality of either NTSC or PAL models with a simple configuration change followed by a machine reset. This means your C64 can be both an NTSC and PAL machine.
 
 ## Can this replace the 8562/8565 found in the 'newer' Commodore 64 short boards?
-Since the VDD pin is not connected, it will work.  However, space is more limited in the C64-C cases and it is unlikely you will be able to close the machine with this board installed.
+Yes. The VDD pin is not connected so there is no voltage compatibility issue.
 
 ## What about the 6567R56A?
-The resolution and cycle schedule (and hence timing) is slighly different in the 6567R56A. It generates a composite signal slightly out of range from the expected 15.734khz horizontal frequency for NTSC (15.980khz). Some composite LCD monitors don't like this and these chips produce unwanted artifacts. CRTs, however, are more forgiving. The composite video quality is generally not as good as the 6567R8. The FPGA core does support the 6567R56A with a configuration change.
+Yes, the 6567R56A is supported.  However, the resolution and cycle schedule (and hence timing) is slighly different in the 6567R56A. It generates a composite signal slightly out of range from the expected 15.734khz horizontal frequency for NTSC (15.980khz). Some composite LCD monitors don't like this and the (real) chips produced unwanted artifacts. You will get the same unwanted artifacts from a VICII-Kawari producing composite video when configured as a 6567R56A.  CRTs, however, are more forgiving and you probably wouldn't notice the difference. When using HDMI output, however, the video is perfect.  
 
 ## What about the 6569R1/R3/R5?
 There are subtle differences between the different revisions mostly to due with luminance values. Since the palette is configurable (with at least 4 bits of precision), it's not worth adding configuration for these revisions.
 
-## Do I need a functioning clock circuit on my board?
-No. The clock input pins (color and dot) are not connected. The board comes with its own clock and can switch between PAL and NTSC timing with a configuration change. (So if your C64 has died due to a malfunctioning clock circuit, this is an option to get your computer back to a working state).
+## Do I need a functioning clock circuit on my motherboard?
+No. The clock input pins (color and dot) are not connected. The board comes with its own clock and can switch between PAL and NTSC timing with a configuration change. (So if your C64 has died due to a malfunctioning clock circuit, this is an option to get your machine back to a working state).
 
 ## Do I need to modify my board?
 No, modifications to the motherboard are not required. However, if you plan on using VGA or HDMI output, it is recommended the RF modulator be removed. The hole previously used for the composite jack may then be used for an HDMI or VGA cable. Otherwise, there is no practical way for a cable to exit the machine.
@@ -47,8 +46,11 @@ Yes. The pixel perfect look of HDMI output will resemble an emulator. This may n
 ## Will HDMI/VGA add delay to the video output?
 There is no frame buffer for video output. However, there is a single raster line buffer necessary to double the 15khz horizontal frequency. Although this adds a very small delay, it is a tiny fraction of the frame rate and is imperceivable by a human. Any latency added will be from the monitor you use. Most TVs have a 'game mode' that turns off extra processing that can introduce latency.
 
+## Do light pens work?
+Yes but only when you use one of the analog modes (Composite/VGA) on a real CRT. (LCD or HDMI monitors will not work.)
+
 ## Why not just buy a real one?
-If you need a VIC-IIe to replace a broken one, you should just buy one off eBay. This project is for fun/interest and would certainly cost more than just buying the real thing.
+If you need a VIC-II to replace a broken one, you should just buy one off eBay. This project is for fun/interest and would certainly cost more than just buying the real thing.
 
 ## Will there be any extras?
 Maybe. Here is the list of extras I would like to add:
