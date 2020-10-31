@@ -33,7 +33,7 @@ reg [23:0] sprite_pixels[0:`NUM_SPRITES - 1];
 
 // Internal regs
 // our character line buffer
-reg [11:0] char_buf [39:0];
+reg [11:0] char_buf [63:0];
 reg [5:0] char_buf_counter;
 
 // Handle flattening outputs here

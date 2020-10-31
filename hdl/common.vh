@@ -1,12 +1,10 @@
 `ifndef common_vh_
 `define common_vh_
 
-// Register write phi_phase_start data available
-`define REG_DAV 7
 // Char/pixel read phi_phase_start data available
-`define DATA_DAV 13
+`define DATA_DAV 14
 // Sprite read phi_phase_start data available
-`define SPRITE_DAV 13
+`define SPRITE_DAV 14
 // How many dot ticks gfx data is delayed before it gets into the shifter
 `define XPOS_GFX_DELAY_9BIT 9'd8
 `define XPOS_GFX_DELAY_4BIT 4'd8

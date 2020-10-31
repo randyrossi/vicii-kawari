@@ -328,12 +328,12 @@ assign cycle_num = raster_x[9:3];
 // if den is high at any point on line 48
 // allow_bad_lines falls on line 248
 // den only takes effect on line 48
-// the timing here ensures we have allow_bad_lines available @ [0]
+// the timing here ensures we have allow_bad_lines available @ [1]
 always @(posedge clk_dot4x)
 begin
     if (rst)
         allow_bad_lines <= `FALSE;
-    else if (~clk_phi && phi_phase_start[15]) begin // about to tick high
+    else if (clk_phi && phi_phase_start[0]) begin // just ticked high
         if (raster_line == 48 && den == `TRUE)
             allow_bad_lines <= `TRUE;
         if (raster_line == 248)
@@ -379,7 +379,7 @@ assign irq = (ilp & elp) | (immc & emmc) | (imbc & embc) | (irst & erst);
 always @(posedge clk_dot4x)
     if (rst)
         refc <= 8'hff;
-    else if (phi_phase_start[0]) begin // cycle_type is about to transition
+    else if (phi_phase_start[1]) begin // cycle_type is about to transition
         // Decrement at the start of the phase when cycle_type is still valid for
         // the previous half cycle.
         if (cycle_num == 1 && raster_line == 9'd0)
@@ -516,7 +516,7 @@ cycles vic_cycles(
    .clk_dot4x(clk_dot4x),
    .clk_phi(clk_phi),
    .chip(chip),
-   .phi_phase_start_0(phi_phase_start[0]),
+   .phi_phase_start_1(phi_phase_start[1]),
    .sprite_dma(sprite_dma),
    .badline(badline),
    .cycle_num(cycle_num),
@@ -543,18 +543,18 @@ cycles vic_cycles(
 // Data must be stable by falling RAS edge
 always @(posedge clk_dot4x)
     if (rst)
-        ras_gen <= 16'b1100000000000111;
+        ras_gen <= 16'b1110000000000111;
     else if (phi_phase_start[2])
-        ras_gen <= 16'b1100000000000111;
+        ras_gen <= 16'b1110000000000111;
     else
         ras_gen <= {ras_gen[14:0], 1'b0};
 
 // Then stable by falling CAS edge
 always @(posedge clk_dot4x)
     if (rst)
-        cas_gen <= 16'b1111000000000111;
+        cas_gen <= 16'b1111100000000111;
     else if (phi_phase_start[2])
-        cas_gen <= 16'b1111000000000111;
+        cas_gen <= 16'b1111100000000111;
     else
         cas_gen <= {cas_gen[14:0], 1'b0};
 
@@ -565,16 +565,14 @@ assign cas = cas_gen[15];
 // NOTE: We make mux rise back up at the same time
 // the cycle type transitions so that mux changes along
 // with the address gen.  This avoids unnecessary
-// noise due to address line switching. (So mux goes
-// up one cycle after phi falls which is when address
-// gen does its thing.)
+// noise due to address line switching.
 always @(posedge clk_dot4x)
     if (rst)
-        mux_gen <= 16'b1110000000000011;
+        mux_gen <= 16'b1111000000000001;
     else if (phi_phase_start[2]) begin
         // Now that the cycle type is known, make mux fall
         // at expected times.
-        mux_gen <= 16'b1110000000000011;
+        mux_gen <= 16'b1111000000000001;
     end else
         mux_gen <= {mux_gen[14:0], 1'b0};
 assign mux = mux_gen[15];
@@ -710,7 +708,6 @@ registers vic_registers(
               .clk_phi(clk_phi),
               .phi_phase_start_15(phi_phase_start[15]),
               .phi_phase_start_1(phi_phase_start[1]),
-              .phi_phase_start_dav(phi_phase_start[`REG_DAV]),
               .ce(ce),
               .rw(rw),
               .aec(aec),
@@ -774,7 +771,7 @@ begin
         reg11_delayed <= 8'b0;
         reg16_delayed <= 5'b0;
     end else
-    if (clk_phi && phi_phase_start[0]) begin // must be before badline idle reset below
+    if (clk_phi && phi_phase_start[0]) begin // must be before badline idle reset in vic_matrix
         reg11_delayed[2:0] <= yscroll;
         reg11_delayed[3] <= rsel;
         reg11_delayed[4] <= den;
@@ -788,7 +785,7 @@ begin
 end
 
 // use delayed reg11 for yscroll
-// since badline is set @ [0], this is also available @ [0]
+// since allow_bad_lines is set @ [1], this is also available @ [1]
 always @(raster_line_d, reg11_delayed, allow_bad_lines)
 begin
     badline = `FALSE;

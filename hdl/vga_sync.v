@@ -130,8 +130,8 @@ reg active_buf;
 //  Fill active buf while producing pixels from previous line from filled_buf
 
 // Cover the max possible here. Not all may be used depending on chip.
-(* ram_style = "block" *) reg [3:0] line_buf_0[519:0];
-(* ram_style = "block" *) reg [3:0] line_buf_1[519:0];
+(* ram_style = "block" *) reg [3:0] line_buf_0[1023:0];
+(* ram_style = "block" *) reg [3:0] line_buf_1[1023:0];
 
 reg [3:0] dot_rising;
 always @(posedge clk_dot4x)

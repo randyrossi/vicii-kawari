@@ -26,6 +26,7 @@ public class GenConstraints
 		System.out.println("NET \""+t6+"\" LOC="+t4+";");
                 if (t7.equals("O") || t7.equals("IO")) {
 		   System.out.println("NET \""+t6+"\" DRIVE=4;");
+		   System.out.println("NET \""+t6+"\" SLOW;");
                 }
 		if (map.get(t4) != null) { System.out.println("PIN USED TWICE " + t4); System.exit(0);}
 		map.put(t4,1);

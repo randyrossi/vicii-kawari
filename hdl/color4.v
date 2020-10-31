@@ -12,7 +12,7 @@ module color4(
     always @*
         case (out_pixel)
         `BLACK:{red, green, blue} = {4'h00, 4'h00, 4'h00 };
-        `WHITE:{red, green, blue} = {4'h0f, 4'h0f, 4'h0f };
+        `WHITE:{red, green, blue} = {4'h0e, 4'h0e, 4'h0e };
         `RED:{red, green, blue} = {4'h06, 4'h03, 4'h02 };
         `CYAN:{red, green, blue} = {4'h07, 4'h0a, 4'h0b };
         `PURPLE:{red, green, blue} = {4'h06, 4'h03, 4'h08 };
