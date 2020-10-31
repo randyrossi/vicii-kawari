@@ -22,12 +22,13 @@ public class GenConstraints
 		String t5 = st.nextToken();
 		String t6 = st.nextToken();
 		String t7 = st.nextToken();
-		String t8 = st.nextToken();
+		String slew = st.nextToken();
+		String strength = st.nextToken();
 
 		System.out.println("NET \""+t6+"\" LOC="+t4+";");
                 if (t7.equals("O") || t7.equals("IO")) {
-		   System.out.println("NET \""+t6+"\" DRIVE=4;");
-		   System.out.println("NET \""+t6+"\" "+t8+";");
+		   System.out.println("NET \""+t6+"\" DRIVE="+strength+";");
+		   System.out.println("NET \""+t6+"\" "+slew+";");
                 }
 		if (map.get(t4) != null) { System.out.println("PIN USED TWICE " + t4); System.exit(0);}
 		map.put(t4,1);
