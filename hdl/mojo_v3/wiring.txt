@@ -38,7 +38,7 @@ SV1    11       L74P_1    P75     PHI      clk_phi O    QUIETIO  2
 SV1    13       L47P_1    P79     AEC      aec     O    QUIETIO  2
 SV1    15       L46P_1    P81     BA       ba      O    QUIETIO  2
 
-SV1    21       L42P_1    P88     IRQ      irq            O    QUIETIO 2
+SV1    21       L42P_1    P88     IRQ      irq            O    SLOW 2
 
 # Control ines
 SV1    31       L32P_1    P102    data_oe  ls245_data_oe  O    SLOW 4
@@ -52,22 +52,22 @@ SV1    27       L34P_1    P98     RESET    cpu_reset      O    SLOW 4
 #SV2    17       L41P_3    P24     CONFIG1  chip[1]   I     NA  NA
 
 # Video output
-SV1    38       L65N_0    P114    PMOD12   red[1]          O   SLOW 4
-SV1    40       L64N_0    P116    PMOD11   red[0]          O   SLOW 4
-SV1    42       L63N_0    P118    PMOD10   red[3]          O   SLOW 4
-SV1    44       L62N_0    P120    PMOD9    red[2]          O   SLOW 4
+SV1    38       L65N_0    P114    PMOD12   red[1]          O   QUIETIO 2
+SV1    40       L64N_0    P116    PMOD11   red[0]          O   QUIETIO 2
+SV1    42       L63N_0    P118    PMOD10   red[3]          O   QUIETIO 2
+SV1    44       L62N_0    P120    PMOD9    red[2]          O   QUIETIO 2
 
-SV1    26       L40N_1    P94     PMOD8    green[1]        O   SLOW 4
-SV1    28       L34N_1    P97     PMOD7    green[0]        O   SLOW 4
-SV1    30       L33N_1    P99     PMOD6    green[3]        O   SLOW 4
-SV1    32       L32N_1    P101    PMOD5    green[2]        O   SLOW 4
+SV1    26       L40N_1    P94     PMOD8    green[1]        O   QUIETIO 2
+SV1    28       L34N_1    P97     PMOD7    green[0]        O   QUIETIO 2
+SV1    30       L33N_1    P99     PMOD6    green[3]        O   QUIETIO 2
+SV1    32       L32N_1    P101    PMOD5    green[2]        O   QUIETIO 2
 
-SV2    39       L3P_0     P140    PMOD11   blue[3]          O   SLOW 4
-SV2    41       L4P_0     P138    PMOD12   blue[2]          O   SLOW 4
+SV2    39       L3P_0     P140    PMOD11   blue[3]          O   QUIETIO 2
+SV2    41       L4P_0     P138    PMOD12   blue[2]          O   QUIETIO 2
 SV2    43       L34P_0    P134    PMOD9    clk_dot4x_ext    O   SLOW 4
-SV2    45       L35P_0    P132    PMOD10   blue[1]          O   SLOW 4
+SV2    45       L35P_0    P132    PMOD10   blue[1]          O   QUIETIO 2
 
-SV2    48       L36N_0    P126    PMOD7    blue[0]          O   SLOW 4
+SV2    48       L36N_0    P126    PMOD7    blue[0]          O   QUIETIO 2
 SV2    47       L36P_0    P127    PMOD8    active           O   SLOW 4
 SV2    50       L37N_0    P123    PMOD5    hsync            O   SLOW 4
 SV2    49       L37P_0    P124    PMOD6    vsync            O   SLOW 4
