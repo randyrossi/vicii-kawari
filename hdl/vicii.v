@@ -348,7 +348,7 @@ begin
         irst <= `FALSE;
         raster_irq_triggered <= `FALSE;
     end else begin
-        if (clk_phi && phi_phase_start[1]) begin
+        if (clk_phi && phi_phase_start[3]) begin
             // Here, we use the delayed raster line to match the expected
             // behavior of triggering the interrupt on cycle 1 for raster line
             // 0 and cycle 0 for any other line.
@@ -540,20 +540,22 @@ cycles vic_cycles(
 
 // RAS/CAS/MUX profiles
 // Data must be stable by falling RAS edge
+// NOTE: Rise with AEC
 always @(posedge clk_dot4x)
     if (rst)
-        ras_gen <= 16'b1110000000000111;
+        ras_gen <= 16'b1100000000000011;
     else if (phi_phase_start[2])
-        ras_gen <= 16'b1110000000000111;
+        ras_gen <= 16'b1100000000000011;
     else
         ras_gen <= {ras_gen[14:0], 1'b0};
 
 // Then stable by falling CAS edge
+// NOTE: Rise with AEC
 always @(posedge clk_dot4x)
     if (rst)
-        cas_gen <= 16'b1111100000000111;
+        cas_gen <= 16'b1111000000000011;
     else if (phi_phase_start[2])
-        cas_gen <= 16'b1111100000000111;
+        cas_gen <= 16'b1111000000000011;
     else
         cas_gen <= {cas_gen[14:0], 1'b0};
 
@@ -567,11 +569,11 @@ assign cas = cas_gen[15];
 // noise due to address line switching.
 always @(posedge clk_dot4x)
     if (rst)
-        mux_gen <= 16'b1111000000000001;
+        mux_gen <= 16'b1110000000000001;
     else if (phi_phase_start[2]) begin
         // Now that the cycle type is known, make mux fall
         // at expected times.
-        mux_gen <= 16'b1111000000000001;
+        mux_gen <= 16'b1110000000000001;
     end else
         mux_gen <= {mux_gen[14:0], 1'b0};
 assign mux = mux_gen[15];
@@ -593,7 +595,7 @@ sprites vic_sprites(
          .phi_phase_start_0(phi_phase_start[0]),
          .phi_phase_start_1(phi_phase_start[1]),
          .phi_phase_start_13(phi_phase_start[13]),
-         .phi_phase_start_dav(phi_phase_start[`SPRITE_DAV]),
+         .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
          .xpos(xpos_sprite[8:0]), // top bit omitted
          .raster_line(raster_line[7:0]), // top bit omitted
          .cycle_num(cycle_num),
@@ -665,8 +667,10 @@ assign ls245_addr_oe = 1'b0; // aec & ce;  for now, always enable
 bus_access vic_bus_access(
          .rst(rst),
          .clk_dot4x(clk_dot4x),
+			.phi_phase_start_12(phi_phase_start[12]),
          .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
          .cycle_type(cycle_type),
+			.cycle_num(cycle_num),
          .dbi(dbi),
          .idle(idle),
          .sprite_cnt(sprite_cnt),
@@ -706,9 +710,11 @@ registers vic_registers(
               .clk_phi(clk_phi),
               .phi_phase_start_15(phi_phase_start[15]),
               .phi_phase_start_1(phi_phase_start[1]),
+	           .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
               .ce(ce),
               .rw(rw),
               .aec(aec),
+				  .ras(ras),
               .adi(adi),
               .dbi(dbi[7:0]),
               .raster_line(raster_line_d), // advertise the delayed version
@@ -797,6 +803,7 @@ pixel_sequencer vic_pixel_sequencer(
                     .clk_dot4x(clk_dot4x),
                     .clk_phi(clk_phi),
                     .dot_rising_0(dot_rising[0]),
+                    .phi_phase_start_12(phi_phase_start[12]),
                     .phi_phase_start_15(phi_phase_start[15]),
                     .mcm(reg16_delayed[4]), // delayed
                     .bmm(reg11_delayed[5]), // delayed

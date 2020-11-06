@@ -11,8 +11,10 @@
 module bus_access(
         input rst,
         input clk_dot4x,
-        input phi_phase_start_dav,
+        input phi_phase_start_12, // used to clear pixels_read on cycle 55
+		  input phi_phase_start_dav,
         input [3:0] cycle_type,
+		  input [6:0] cycle_num,
         input [11:0] dbi,
         input idle,
         input [2:0] sprite_cnt,
@@ -75,17 +77,22 @@ always @(posedge clk_dot4x)
 // g-access reads
 always @(posedge clk_dot4x)
 begin
-     if (rst) begin
+    if (rst) begin
         pixels_read <= 8'd0;
         char_read <= 12'd0;
     end else
-    if (!aec && phi_phase_start_dav) begin
-        pixels_read <= 8'd0;
-        if (cycle_type == `VIC_LG) begin // g-access
-            pixels_read <= dbi[7:0];
-            char_read <= idle ? 12'd0 : char_next;
-        end
+    if (!aec && phi_phase_start_dav && cycle_type == `VIC_LG) begin
+        pixels_read <= dbi[7:0];
+        char_read <= idle ? 12'd0 : char_next;
     end
+	 if (cycle_num == 55 && phi_phase_start_12) begin
+	     // This makes sure pixels are zeroed out when we
+		  // enter non visible area.  This should happen
+		  // at the same time pixels are latched from this
+		  // register inside the pixel sequencer (or some
+		  // short time afterwards)
+	     pixels_read <= 8'd0;
+	 end
 end
 
 // p-access reads

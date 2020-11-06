@@ -1,14 +1,17 @@
 `ifndef common_vh_
 `define common_vh_
 
-// Char/pixel read phi_phase_start data available
-`define DATA_DAV 14
-// Sprite read phi_phase_start data available
-`define SPRITE_DAV 14
+// When to read data lines for both char/pixel and sprite dma
+// in terms of phi_phase_start index.
+// This can't be changed without some serious rework of xpos and 
+// read delays in the pixel sequencer. This value tells the bus
+// access module to read data on the edge of phi as indicated
+// by the datasheet.
+`define DATA_DAV 0
+
 // How many dot ticks gfx data is delayed before it gets into the shifter
 `define XPOS_GFX_DELAY_9BIT 9'd8
-`define XPOS_GFX_DELAY_4BIT 4'd8
-`define XPOS_GFX_DELAY_32BIT 32'd8
+
 // How many dot ticks sprite data is delayed before entering sprite shifter
 // Sprite pixels out of the shifter are delayed by 3 more pixels to align with gfx.
 `define XPOS_SPRITE_DELAY 9'd5

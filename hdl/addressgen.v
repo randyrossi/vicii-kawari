@@ -90,10 +90,13 @@ end
 
 // Address out
 // ROW first, COL second
-// NOTE: a6/a7 on COL was previously 2'b11 because it doesn't matter what we set it to.
-// The 74LS258 will use VA14 and VA15 when AEC and CAS are low.
-// So instead of a6/a12 and a7/a13 switching, keep them
-// steady by repeating a6/a7 for col address.  Seems to have no ill effects and
-// should cut down on switching noise.
-assign ado = {vic_addr[11:8], mux ? vic_addr[7:0] : {vic_addr[7:6], vic_addr[13:8]}};
+assign ado = {vic_addr[11:8], mux ? vic_addr[7:0] : {2'b11, vic_addr[13:8]}};
 endmodule
+
+// Alternate ado assignment for consideration
+//    a6/a7 on COL is 2'b11 because it doesn't matter what we set.
+//    The 74LS258 will use VA14 and VA15 when AEC and CAS are low.
+//    So instead of a6/a12 and a7/a13 switching, we could keep them
+//    steady by repeating a6/a7 for col address.  This seems to have no
+//    ill effects and could cut down on switching noise.
+// assign ado = {vic_addr[11:8], mux ? vic_addr[7:0] : {vic_addr[7:6], vic_addr[13:8]}};
