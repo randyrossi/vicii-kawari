@@ -8,6 +8,8 @@ module registers(
            input clk_phi,
            input phi_phase_start_15,
            input phi_phase_start_1,
+			  input phi_phase_start_dav,
+			  input ras,
            input ce,
            input rw,
            input aec,
@@ -79,7 +81,8 @@ assign sprite_col_o = {sprite_col[0], sprite_col[1], sprite_col[2], sprite_col[3
 reg res;
 
 // Register Read/Write
-reg write_done;
+reg [5:0] addr_latched;
+reg addr_latch_done;
 reg read_done;
 always @(posedge clk_dot4x)
     if (rst) begin
@@ -132,7 +135,7 @@ always @(posedge clk_dot4x)
             ilp_clr <= `FALSE;
         end
         if (phi_phase_start_1) begin
-            write_done <= `FALSE;
+		      addr_latch_done <= `FALSE;
 				read_done <= `FALSE;
         end
         // sprite crunch simulation must be done before [15] of
@@ -146,11 +149,15 @@ always @(posedge clk_dot4x)
             m2m_clr <= `FALSE;
             m2d_clr <= `FALSE;
         end
-        if (aec && !ce) begin
+        if (!ras && clk_phi && !addr_latch_done) begin
+            addr_latched <= adi[5:0];
+            addr_latch_done <= `TRUE;
+		  end
+        if (aec && !ce && addr_latch_done) begin
             // READ from register
             if (rw && !read_done) begin
 					 read_done <= `TRUE;
-                case (adi[5:0])
+                case (addr_latched)
                     /* 0x00 */ `REG_SPRITE_X_0:
                         dbo[7:0] <= sprite_x[0][7:0];
                     /* 0x02 */ `REG_SPRITE_X_1:
@@ -269,9 +276,8 @@ always @(posedge clk_dot4x)
                 endcase
             end
             // WRITE to register
-            else if (!rw && !write_done) begin
-				        write_done <= `TRUE;
-                    case (adi[5:0])
+            else if (!rw && phi_phase_start_dav) begin
+                    case (addr_latched)
                         /* 0x00 */ `REG_SPRITE_X_0:
                             sprite_x[0][7:0] <= dbi[7:0];
                         /* 0x02 */ `REG_SPRITE_X_1:
