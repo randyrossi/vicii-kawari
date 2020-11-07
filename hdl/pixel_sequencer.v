@@ -7,7 +7,7 @@ module pixel_sequencer(
            input clk_dot4x,
            input clk_phi,
            input dot_rising_0,
-           input phi_phase_start_12, // when we latch pixels_read into pixels_read_delayed
+           input phi_phase_start_pixel_latch, // when we latch pixels_read into pixels_read_delayed
            input phi_phase_start_15,
            input mcm,
            input bmm,
@@ -84,7 +84,8 @@ begin
 	 // Need to delay pixels to align properly with delayed xpos
 	 // value so we don't load pixels too early.  Basically, pixels_read
 	 // needs to be visislbe to the sequencer first when xpos_mod_8 == 0
-    if (clk_phi == `FALSE && phi_phase_start_12) begin
+	 // which is when load_pixels rises.
+    if (clk_phi == `FALSE && phi_phase_start_pixel_latch) begin
         pixels_read_delayed <= pixels_read;
 		  char_read_delayed <= char_read;
     end

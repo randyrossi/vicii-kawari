@@ -667,7 +667,7 @@ assign ls245_addr_oe = 1'b0; // aec & ce;  for now, always enable
 bus_access vic_bus_access(
          .rst(rst),
          .clk_dot4x(clk_dot4x),
-			.phi_phase_start_12(phi_phase_start[12]),
+			.phi_phase_start_pixel_latch(phi_phase_start[12]),
          .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
          .cycle_type(cycle_type),
 			.cycle_num(cycle_num),
@@ -679,6 +679,7 @@ bus_access vic_bus_access(
          .pixels_read(pixels_read),
          .char_read(char_read),
          .char_next(char_next),
+			.clk_phi(clk_phi),
          .aec(aec)
 );
 
@@ -803,7 +804,7 @@ pixel_sequencer vic_pixel_sequencer(
                     .clk_dot4x(clk_dot4x),
                     .clk_phi(clk_phi),
                     .dot_rising_0(dot_rising[0]),
-                    .phi_phase_start_12(phi_phase_start[12]),
+                    .phi_phase_start_pixel_latch(phi_phase_start[12]),
                     .phi_phase_start_15(phi_phase_start[15]),
                     .mcm(reg16_delayed[4]), // delayed
                     .bmm(reg11_delayed[5]), // delayed

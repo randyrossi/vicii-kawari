@@ -9,7 +9,10 @@
 // by the datasheet.
 `define DATA_DAV 0
 
-// How many dot ticks gfx data is delayed before it gets into the shifter
+// This is an adjusted xpos we pass to the border and pixel sequencer
+// modules.  It's neccessary to get xscroll == 0 lined up
+// with load_pixels correctly.  Also, the border logic xpos values are
+// taken from VICE which will match this adjusted value.
 `define XPOS_GFX_DELAY_9BIT 9'd8
 
 // How many dot ticks sprite data is delayed before entering sprite shifter
