@@ -6,10 +6,9 @@ module registers(
            input rst,
            input clk_dot4x,
            input clk_phi,
-           input phi_phase_start_15,
            input phi_phase_start_1,
-			  input phi_phase_start_dav,
-			  input ras,
+           input phi_phase_start_dav,
+           input ras,
            input ce,
            input rw,
            input aec,
@@ -127,20 +126,21 @@ always @(posedge clk_dot4x)
         //handle_sprite_crunch <= `FALSE;
     end else
     begin
-        // always clear these at the end of the high phase
-        if (phi_phase_start_15 && clk_phi) begin
+        // always clear these immediately after they may
+	// have been used. This should be DAV + 1
+        if (phi_phase_start_1 && ~clk_phi) begin
             irst_clr <= `FALSE;
             imbc_clr <= `FALSE;
             immc_clr <= `FALSE;
             ilp_clr <= `FALSE;
         end
         if (phi_phase_start_1) begin
-		      addr_latch_done <= `FALSE;
-				read_done <= `FALSE;
+            addr_latch_done <= `FALSE;
+            read_done <= `FALSE;
         end
-        // sprite crunch simulation must be done before [15] of
-        // the current phase
-        if (phi_phase_start_15) begin
+        // clear sprite crunch immediately after it may
+        // have been used
+        if (phi_phase_start_1) begin
             handle_sprite_crunch <= `FALSE;
         end
         // m2m/m2d clear after register reads must be
@@ -152,11 +152,11 @@ always @(posedge clk_dot4x)
         if (!ras && clk_phi && !addr_latch_done) begin
             addr_latched <= adi[5:0];
             addr_latch_done <= `TRUE;
-		  end
+        end
         if (aec && !ce && addr_latch_done) begin
             // READ from register
             if (rw && !read_done) begin
-					 read_done <= `TRUE;
+                read_done <= `TRUE;
                 case (addr_latched)
                     /* 0x00 */ `REG_SPRITE_X_0:
                         dbo[7:0] <= sprite_x[0][7:0];

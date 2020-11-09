@@ -87,6 +87,9 @@ struct vicii_state {
   unsigned char set_vborder;
 
   int cycleByCycleStepping;
+
+  int pps;
+  int dot4x;
 };
 
 #define END1_PRODUCER_SIG_END2_CONSUME_OK 0

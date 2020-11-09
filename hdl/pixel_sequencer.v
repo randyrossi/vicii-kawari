@@ -8,7 +8,7 @@ module pixel_sequencer(
            input clk_phi,
            input dot_rising_0,
            input phi_phase_start_pixel_latch, // when we latch pixels_read into pixels_read_delayed
-           input phi_phase_start_15,
+           input phi_phase_start_xscroll_latch,
            input mcm,
            input bmm,
            input ecm,
@@ -29,14 +29,14 @@ module pixel_sequencer(
            input [31:0] sprite_col_o,
            input [3:0] sprite_mc0,
            input [3:0] sprite_mc1,
-           output reg is_background_pixel1,
+           output reg is_background_pixel2,
            output reg [3:0] pixel_color3
        );
 
 reg load_pixels;
 reg shift_pixels;
 reg ismc;
-reg is_background_pixel2;
+reg is_background_pixel1;
 
 integer n;
 
@@ -64,10 +64,9 @@ assign sprite_col[6] = sprite_col_o[7:4];
 assign sprite_col[7] = sprite_col_o[3:0];
 
 reg [2:0] xscroll_delayed;
-reg [1:0] sprite_pixels_delayed1[`NUM_SPRITES-1:0];
 reg [7:0] pixels_read_delayed;
 reg [11:0] char_read_delayed;
-			  
+ 
 // pixels being shifted and the associated char (for color info)
 reg [11:0] char_shifting;
 reg [7:0] pixels_shifting;
@@ -76,36 +75,20 @@ reg [7:0] pixels_shifting;
 // are available at the first dot of PHI2
 always @(posedge clk_dot4x)
 begin
-    if (clk_phi == `FALSE && phi_phase_start_15) begin
+    if (clk_phi == `TRUE && phi_phase_start_xscroll_latch) begin
         // pick up xscroll only inside visible cycles
         if (cycle_num >= 15 && cycle_num <= 55)
            xscroll_delayed <= xscroll;
     end
-	 // Need to delay pixels to align properly with delayed xpos
-	 // value so we don't load pixels too early.  Basically, pixels_read
-	 // needs to be visislbe to the sequencer first when xpos_mod_8 == 0
-	 // which is when load_pixels rises.
-    if (clk_phi == `FALSE && phi_phase_start_pixel_latch) begin
+    // Need to delay pixels to align properly with delayed xpos
+    // value so we don't load pixels too early.  Basically, pixels_read
+    // needs to be visislbe to the sequencer first when xpos_mod_8 == 0
+    // which is when load_pixels rises.
+    if (clk_phi == `TRUE && phi_phase_start_pixel_latch) begin
         pixels_read_delayed <= pixels_read;
-		  char_read_delayed <= char_read;
+        char_read_delayed <= char_read;
     end
 end
-
-// Delay sprite pixels
-always @(posedge clk_dot4x)
-begin
-    //if (rst) begin
-    //    for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-    //        sprite_pixels_delayed1[n][1:0] <= 2'b0;
-    //    end
-    //end else
-    if (dot_rising_0) begin
-        for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-            sprite_pixels_delayed1[n][1:0] <= sprite_cur_pixel[n][1:0];
-        end
-    end
-end
-
 
 always @(*)
     ismc = mcm & (bmm | ecm | char_shifting[11]);
@@ -240,15 +223,15 @@ begin
         for (n = `NUM_SPRITES-1; n >= 0; n = n - 1) begin
             if (!sprite_pri[n] || is_background_pixel2) begin
                 if (sprite_mmc[n]) begin  // multi-color mode ?
-                    if (sprite_pixels_delayed1[n] != 2'b00) begin
-                        case(sprite_pixels_delayed1[n])
+                    if (sprite_cur_pixel[n] != 2'b00) begin
+                        case(sprite_cur_pixel[n])
                             2'b00:  ;
                             2'b01:  pixel_color2 = sprite_mc0;
                             2'b10:  pixel_color2 = sprite_col[n[2:0]];
                             2'b11:  pixel_color2 = sprite_mc1;
                         endcase
                     end
-                end else if (sprite_pixels_delayed1[n][1]) begin
+                end else if (sprite_cur_pixel[n][1]) begin
                     pixel_color2 = sprite_col[n[2:0]];
                 end
             end
@@ -257,7 +240,7 @@ begin
             // priority sprite has sprite_pri 1 (Uncensored ski hill).  In other words, a higher
             // priority sprite's desire to leave foreground pixels alone overrides a lower
             // sprite's desire to overwrite it.
-            if (sprite_pri[n] && !is_background_pixel2 && sprite_pixels_delayed1[n][1]) begin
+            if (sprite_pri[n] && !is_background_pixel2 && sprite_cur_pixel[n][1]) begin
                 case ({ecm, bmm, mcm})
                     `MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR,
                     `MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP,

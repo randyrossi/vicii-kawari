@@ -141,9 +141,10 @@ reg [4:0] reg16_delayed;
 // increment on certain cycles for 6567R8
 // chips and wraps at the high phase of cycle 12.
 
-// xpos_sprite and xpos_gfx is xpos shifted by a delay
+// xpos_sprite and xpos_border is xpos shifted by a delay
 // value so the comparisons match VICE logic.
 wire [9:0] xpos_sprite;
+wire [9:0] xpos_border;
 wire [9:0] xpos_gfx;
 
 // What cycle we are on.  Only valid on 2nd tick (or greater)
@@ -229,7 +230,7 @@ wire rsel; // border row select
 wire csel; // border column select
 wire mcm; // multi color mode
 
-wire is_background_pixel1;
+wire is_background_pixel;
 
 // mostly used for iterating over sprites
 integer n;
@@ -293,7 +294,10 @@ assign sprite_ba_start[7] = 10'd0 + 10'd16 * 7;
 assign sprite_ba_end[7] = 10'd40 + 10'd16 * 7;
 
 assign xpos_sprite = xpos >= (`XPOS_SPRITE_DELAY - 9'd1) ? xpos - (`XPOS_SPRITE_DELAY - 9'd1) : max_xpos - (`XPOS_SPRITE_DELAY - 9'd2) + xpos;
+assign xpos_border = xpos >= (`XPOS_BORDER_DELAY_9BIT - 9'd1) ? xpos - (`XPOS_BORDER_DELAY_9BIT - 9'd1) : max_xpos - (`XPOS_BORDER_DELAY_9BIT - 9'd2) + xpos;
+/* verilator lint_off UNSIGNED */
 assign xpos_gfx = xpos >= (`XPOS_GFX_DELAY_9BIT - 9'd1) ? xpos - (`XPOS_GFX_DELAY_9BIT - 9'd1) : max_xpos - (`XPOS_GFX_DELAY_9BIT - 9'd2) + xpos;
+/* verilator lint_on UNSIGNED */
 
 // dot_rising[3] means dot going high next cycle
 always @(posedge clk_dot4x)
@@ -387,19 +391,22 @@ always @(posedge clk_dot4x)
             refc <= refc - 8'd1;
     end
 
-// Border pixels are delayed 2 dots to align with gfx data.
-
-// border logic
+// Border pixels are delayed to align with gfx data.
+// For reasons not fully understood:
+//    d3 is passed to the pixel sequencer
+//    d4 is passed to sprite module
 wire main_border;
 reg main_border_d1;
 reg main_border_d2;
+reg main_border_d3;
+reg main_border_d4;
 wire top_bot_border;
 border vic_border(
            .rst(rst),
            .clk_dot4x(clk_dot4x),
            .clk_phi(clk_phi),
            .cycle_num(cycle_num),
-           .xpos(xpos_gfx),
+           .xpos(xpos_border),
            .raster_line(raster_line),
            .rsel(rsel),
            .csel(csel),
@@ -415,6 +422,8 @@ begin
    if (dot_rising[0]) begin
       main_border_d1 <= main_border;
       main_border_d2 <= main_border_d1;
+      main_border_d3 <= main_border_d2;
+      main_border_d4 <= main_border_d3;
    end
 end
 
@@ -592,9 +601,9 @@ sprites vic_sprites(
          .cycle_type(cycle_type),
          .dbi(dbi),
          .dot_rising_0(dot_rising[0]),
-         .phi_phase_start_0(phi_phase_start[0]),
-         .phi_phase_start_1(phi_phase_start[1]),
+         .dot_rising_1(dot_rising[1]),
          .phi_phase_start_13(phi_phase_start[13]),
+         .phi_phase_start_1(phi_phase_start[1]),
          .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
          .xpos(xpos_sprite[8:0]), // top bit omitted
          .raster_line(raster_line[7:0]), // top bit omitted
@@ -609,8 +618,8 @@ sprites vic_sprites(
          .sprite_mmc(sprite_mmc),
          .sprite_cnt(sprite_cnt),
          .aec(aec),
-         .is_background_pixel1(is_background_pixel1),
-         .main_border(main_border_d2), // delayed
+         .is_background_pixel(is_background_pixel),
+         .main_border(main_border_d4), // delayed
          .imbc_clr(imbc_clr),
          .immc_clr(immc_clr),
          .sprite_dmachk1(sprite_dmachk1),
@@ -667,10 +676,10 @@ assign ls245_addr_oe = 1'b0; // aec & ce;  for now, always enable
 bus_access vic_bus_access(
          .rst(rst),
          .clk_dot4x(clk_dot4x),
-			.phi_phase_start_pixel_latch(phi_phase_start[12]),
+         .phi_phase_start_pixel_latch(phi_phase_start[`PIXEL_LATCH]),
          .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
          .cycle_type(cycle_type),
-			.cycle_num(cycle_num),
+         .cycle_num(cycle_num),
          .dbi(dbi),
          .idle(idle),
          .sprite_cnt(sprite_cnt),
@@ -679,7 +688,7 @@ bus_access vic_bus_access(
          .pixels_read(pixels_read),
          .char_read(char_read),
          .char_next(char_next),
-			.clk_phi(clk_phi),
+         .clk_phi(clk_phi),
          .aec(aec)
 );
 
@@ -709,13 +718,12 @@ registers vic_registers(
               .rst(rst),
               .clk_dot4x(clk_dot4x),
               .clk_phi(clk_phi),
-              .phi_phase_start_15(phi_phase_start[15]),
               .phi_phase_start_1(phi_phase_start[1]),
-	           .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
+              .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
               .ce(ce),
               .rw(rw),
               .aec(aec),
-				  .ras(ras),
+              .ras(ras),
               .adi(adi),
               .dbi(dbi[7:0]),
               .raster_line(raster_line_d), // advertise the delayed version
@@ -776,7 +784,8 @@ begin
         reg11_delayed <= 8'b0;
         reg16_delayed <= 5'b0;
     end else
-    if (clk_phi && phi_phase_start[0]) begin // must be before badline idle reset in vic_matrix
+    // must be before badline idle reset in vic_matrix
+    if (clk_phi && phi_phase_start[0]) begin
         reg11_delayed[2:0] <= yscroll;
         reg11_delayed[3] <= rsel;
         reg11_delayed[4] <= den;
@@ -804,13 +813,13 @@ pixel_sequencer vic_pixel_sequencer(
                     .clk_dot4x(clk_dot4x),
                     .clk_phi(clk_phi),
                     .dot_rising_0(dot_rising[0]),
-                    .phi_phase_start_pixel_latch(phi_phase_start[12]),
-                    .phi_phase_start_15(phi_phase_start[15]),
+                    .phi_phase_start_pixel_latch(phi_phase_start[`PIXEL_LATCH]),
+                    .phi_phase_start_xscroll_latch(phi_phase_start[`XSCROLL_LATCH]),
                     .mcm(reg16_delayed[4]), // delayed
                     .bmm(reg11_delayed[5]), // delayed
                     .ecm(reg11_delayed[6]), // delayed
                     .cycle_num(cycle_num),
-                    .xpos_mod_8(xpos_gfx[2:0]), // delayed
+                    .xpos_mod_8(xpos_gfx[2:0]),
                     .xscroll(xscroll),
                     .pixels_read(pixels_read),
                     .char_read(char_read),
@@ -819,14 +828,14 @@ pixel_sequencer vic_pixel_sequencer(
                     .b2c(b2c),
                     .b3c(b3c),
                     .ec(ec),
-                    .main_border(main_border_d2), // delayed
+                    .main_border(main_border_d3), // delayed
                     .sprite_cur_pixel_o(sprite_cur_pixel_o),
                     .sprite_pri(sprite_pri),
                     .sprite_mmc(sprite_mmc),
                     .sprite_col_o(sprite_col_o),
                     .sprite_mc0(sprite_mc0),
                     .sprite_mc1(sprite_mc1),
-                    .is_background_pixel1(is_background_pixel1),
+                    .is_background_pixel2(is_background_pixel),
                     .pixel_color3(pixel_color3)
                 );
 

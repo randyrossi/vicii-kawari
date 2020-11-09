@@ -1,4 +1,4 @@
-all: sprite5.prg sprite6.prg sprite7.prg regs.prg
+all: sprite5.prg sprite6.prg sprite7.prg regs.prg sprite8.prg
 
 %.prg: %.basic
 	petcat -w2 -o $@ -- $<

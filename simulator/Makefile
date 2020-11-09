@@ -64,6 +64,10 @@ install: libvicii_ipc.so
 
 # Bring up the logic analyser on most recent session
 logic:
+	vicrepair session.vcd
+	gtkwave session.vcd --script session.tcl
+
+logic2:
 	gtkwave session.vcd --script session.tcl
 
 # Render a frame in the window

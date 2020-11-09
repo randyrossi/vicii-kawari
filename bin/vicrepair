@@ -1,0 +1,7 @@
+#!/bin/sh
+SIZE=`wc -l $1 | awk '{print $1}'`
+head -1000 $1 | sed 's/(0)/_0/' > tmp
+REMAIN=$(( $SIZE-1000 ))
+tail -$REMAIN $1> tmp2
+cat tmp2 >> tmp
+mv tmp $1

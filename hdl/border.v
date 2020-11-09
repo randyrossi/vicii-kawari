@@ -6,15 +6,15 @@
 module border(
        input rst,
        input clk_dot4x,
-	   input clk_phi,
-	   input [6:0] cycle_num,
-	   input [9:0] xpos,
-	   input [8:0] raster_line,
-	   input rsel,
-	   input csel,
-	   input den,
-	   output reg vborder,
-	   output reg main_border
+       input clk_phi,
+       input [6:0] cycle_num,
+       input [9:0] xpos,
+       input [8:0] raster_line,
+       input rsel,
+       input csel,
+       input den,
+       output reg vborder,
+       output reg main_border
 );
 
 reg set_vborder;

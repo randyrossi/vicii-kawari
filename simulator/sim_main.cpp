@@ -1027,6 +1027,8 @@ int main(int argc, char** argv, char** env) {
 	   state->reg11_delayed = top->V_REG11_DELAYED;
 	   state->vborder = top->V_VBORDER;
 	   state->main_border = top->V_MAIN_BORDER;
+	   state->pps = top->V_PPS;
+	   state->dot4x = top->V_DOT4X ? 1 : 0;
 
            if (top->ce == 0 && top->rw == 1) {
               // Chip selected and read, set data in state

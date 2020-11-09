@@ -9,9 +9,9 @@ module sprites(
         input [11:0] dbi,
         input [3:0] cycle_type,
         input dot_rising_0,
-        input phi_phase_start_0,
-        input phi_phase_start_1,
+        input dot_rising_1,
         input phi_phase_start_13,
+        input phi_phase_start_1,
         input phi_phase_start_dav,
         input [8:0] xpos, // top bit omitted for comparison to x
         input [6:0] cycle_num,
@@ -26,7 +26,7 @@ module sprites(
         input [2:0] sprite_cnt,
         input [7:0] raster_line, // top bit omitted for comparison to y
         input aec,
-        input is_background_pixel1,
+        input is_background_pixel,
         input main_border,
         input imbc_clr,
         input immc_clr,
@@ -53,7 +53,7 @@ wire [7:0] sprite_y[0:`NUM_SPRITES - 1];
 
 // 2D arrays that need to be flattened for output
 reg [5:0] sprite_mc[0:`NUM_SPRITES - 1];
-reg [1:0] sprite_cur_pixel_d3 [`NUM_SPRITES-1:0];
+reg [1:0] sprite_cur_pixel [`NUM_SPRITES-1:0];
 
 // Other internal regs
 reg [5:0] sprite_mcbase[0:`NUM_SPRITES - 1];
@@ -85,7 +85,7 @@ assign sprite_y[7] = sprite_y_o[7:0];
 
 // Handle flattening outputs here
 assign sprite_mc_o = {sprite_mc[0], sprite_mc[1], sprite_mc[2], sprite_mc[3], sprite_mc[4], sprite_mc[5], sprite_mc[6], sprite_mc[7]};
-assign sprite_cur_pixel_o = {sprite_cur_pixel_d3[0], sprite_cur_pixel_d3[1], sprite_cur_pixel_d3[2], sprite_cur_pixel_d3[3], sprite_cur_pixel_d3[4], sprite_cur_pixel_d3[5], sprite_cur_pixel_d3[6], sprite_cur_pixel_d3[7]};
+assign sprite_cur_pixel_o = {sprite_cur_pixel[0], sprite_cur_pixel[1], sprite_cur_pixel[2], sprite_cur_pixel[3], sprite_cur_pixel[4], sprite_cur_pixel[5], sprite_cur_pixel[6], sprite_cur_pixel[7]};
 
 // NOTE: If we match VICE, then ba will go low much too late for sprite 0.  Slight
 // difference between simulator and non-simulator code.
@@ -118,7 +118,11 @@ always @(posedge clk_dot4x)
             // sprite crunch
             for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
                 if (!sprite_ye[n] && !sprite_ye_ff[n]) begin
-                    if (cycle_num == 14) begin
+                    // NOTE: When DAV == 0, we have to check against
+		    // 15 even though the register set happened on 14.
+		    // That's because we crossed over to the next cycle
+		    // by the time handle_sprite_crunch rose.
+                    if (cycle_num == 15) begin
                         sprite_mc[n] <= (6'h2a & (sprite_mcbase[n] & sprite_mc[n])) |
                                  (6'h15 & (sprite_mcbase[n] | sprite_mc[n])) ;
                     end
@@ -171,7 +175,6 @@ always @(posedge clk_dot4x)
 // here. They are then delayed before being interpreted
 // by the pixel sequencer or sprite to sprite collision
 // detection.
-reg [1:0] sprite_cur_pixel [`NUM_SPRITES-1:0];
 always @(posedge clk_dot4x)
 begin
     if (rst) begin
@@ -195,7 +198,7 @@ begin
                 sprite_cur_pixel[sprite_cnt] <= 0;
             end else if (cycle_bit == 3 && cycle_type == `VIC_LP) begin
                 sprite_halt[sprite_cnt] = `TRUE;
-					 sprite_pixels_shifting[sprite_cnt] <= 24'b0;
+                sprite_pixels_shifting[sprite_cnt] <= 24'b0;
             end else if (cycle_bit == 7 && (cycle_type == `VIC_HS3 || cycle_type == `VIC_HPI3))
                 sprite_halt[sprite_cnt] = `FALSE;
 
@@ -232,33 +235,18 @@ begin
             end
         end
 
-        // s-access - This must be done here instead of bus_access because this is where the shifting
-		  // logic resides.
-		  if (!aec && phi_phase_start_dav) begin
+        // s-access - This must be done here instead of bus_access because
+        // this is where the shifting logic resides.
+        if (!aec && phi_phase_start_dav) begin
           case (cycle_type)
               `VIC_HS1, `VIC_LS2, `VIC_HS3:
                   if (sprite_dma[sprite_cnt])
-                      sprite_pixels_shifting[sprite_cnt] <= {sprite_pixels_shifting[sprite_cnt][15:0], dbi[7:0]};
+                      sprite_pixels_shifting[sprite_cnt] <=
+                          {sprite_pixels_shifting[sprite_cnt][15:0], dbi[7:0]};
               default: ;
           endcase
         end
     end
-end
-
-// We have to delay sprite pixels by 3 dot ticks to
-// align with graphics data output.
-reg [1:0] sprite_cur_pixel_d1 [`NUM_SPRITES-1:0];
-reg [1:0] sprite_cur_pixel_d2 [`NUM_SPRITES-1:0];
-//reg [1:0] sprite_cur_pixel_d3 [`NUM_SPRITES-1:0];
-always @(posedge clk_dot4x)
-begin
-   if (dot_rising_0) begin
-      for (n = 0; n < `NUM_SPRITES; n = n + 1) begin 
-         sprite_cur_pixel_d1[n] <= sprite_cur_pixel[n];
-         sprite_cur_pixel_d2[n] <= sprite_cur_pixel_d1[n];
-         sprite_cur_pixel_d3[n] <= sprite_cur_pixel_d2[n];
-      end
-   end
 end
 
 // Sprite to sprite collision logic (m2m)
@@ -268,7 +256,7 @@ end
 reg [`NUM_SPRITES-1:0] collision;
 always @*
     for (n = 0; n < `NUM_SPRITES; n = n + 1)
-        collision[n] = sprite_cur_pixel_d3[n][1];
+        collision[n] = sprite_cur_pixel[n][1];
 
 reg m2m_triggered;
 reg [7:0] sprite_m2m_pending;
@@ -286,8 +274,8 @@ always @(posedge clk_dot4x)
             immc <= `FALSE;
             immc_pending <= `FALSE;
         end
-        if (phi_phase_start_0 && !clk_phi) begin
-            // must do this before m2m_clr itself is reset on [1]
+        if (phi_phase_start_1 && !clk_phi) begin
+            // must use before m2m_clr is reset in registers
             if (m2m_clr) begin
                 sprite_m2m[7:0] <= 8'd0;
                 sprite_m2m_pending[7:0] <= 8'd0;
@@ -342,8 +330,8 @@ always @(posedge clk_dot4x)
             imbc <= `FALSE;
             imbc_pending <= `FALSE;
         end
-        // must do this before m2m_clr itself is reset on [1]
-        if (phi_phase_start_0 && !clk_phi) begin
+        if (phi_phase_start_1 && !clk_phi) begin
+            // must use before m2d_clr is reset in registers
             if (m2d_clr) begin
                 sprite_m2d <= 8'd0;
                 sprite_m2d_pending <= 8'd0;
@@ -355,15 +343,18 @@ always @(posedge clk_dot4x)
             sprite_m2d <= sprite_m2d_pending;
             imbc <= imbc_pending;
         end
-        for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-            if ((sprite_cur_pixel_d3[n] != 0) & !is_background_pixel1 & !(main_border)) begin
+	if (dot_rising_1) begin
+          for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
+            if ((sprite_cur_pixel[n] != 0) &
+                    !is_background_pixel & !(main_border)) begin
                 sprite_m2d_pending[n] <= `TRUE;
                 if (!m2d_triggered) begin
                     m2d_triggered <= `TRUE;
                     imbc_pending <= `TRUE;
                 end
             end
-        end
+          end
+	end
     end
 
 endmodule: sprites
