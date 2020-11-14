@@ -9,7 +9,7 @@ module sprites(
         input [11:0] dbi,
         input [3:0] cycle_type,
         input dot_rising_0,
-        input dot_rising_1,
+        input phi_phase_start_m2clr,
         input phi_phase_start_13,
         input phi_phase_start_1,
         input phi_phase_start_dav,
@@ -27,6 +27,7 @@ module sprites(
         input [7:0] raster_line, // top bit omitted for comparison to y
         input aec,
         input is_background_pixel,
+        input stage,
         input main_border,
         input imbc_clr,
         input immc_clr,
@@ -118,11 +119,10 @@ always @(posedge clk_dot4x)
             // sprite crunch
             for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
                 if (!sprite_ye[n] && !sprite_ye_ff[n]) begin
-                    // NOTE: When DAV == 0, we have to check against
-		    // 15 even though the register set happened on 14.
-		    // That's because we crossed over to the next cycle
-		    // by the time handle_sprite_crunch rose.
-                    if (cycle_num == 15) begin
+                    // NOTE: If DAV == 0, we have to compare the cycle to 15 even though the
+		    // register set happened on 14. That's because we just crossed over to the
+		    // next cycle by the time handle_sprite_crunch rose.
+                    if (cycle_num == `SPRITE_CRUNCH_CYCLE_CHECK) begin
                         sprite_mc[n] <= (6'h2a & (sprite_mcbase[n] & sprite_mc[n])) |
                                  (6'h15 & (sprite_mcbase[n] | sprite_mc[n])) ;
                     end
@@ -274,7 +274,7 @@ always @(posedge clk_dot4x)
             immc <= `FALSE;
             immc_pending <= `FALSE;
         end
-        if (phi_phase_start_1 && !clk_phi) begin
+        if (phi_phase_start_m2clr && `M2CLR_PHASE) begin
             // must use before m2m_clr is reset in registers
             if (m2m_clr) begin
                 sprite_m2m[7:0] <= 8'd0;
@@ -330,7 +330,7 @@ always @(posedge clk_dot4x)
             imbc <= `FALSE;
             imbc_pending <= `FALSE;
         end
-        if (phi_phase_start_1 && !clk_phi) begin
+        if (phi_phase_start_m2clr && `M2CLR_PHASE) begin
             // must use before m2d_clr is reset in registers
             if (m2d_clr) begin
                 sprite_m2d <= 8'd0;
@@ -343,18 +343,20 @@ always @(posedge clk_dot4x)
             sprite_m2d <= sprite_m2d_pending;
             imbc <= imbc_pending;
         end
-	if (dot_rising_1) begin
-          for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-            if ((sprite_cur_pixel[n] != 0) &
-                    !is_background_pixel & !(main_border)) begin
-                sprite_m2d_pending[n] <= `TRUE;
-                if (!m2d_triggered) begin
-                    m2d_triggered <= `TRUE;
-                    imbc_pending <= `TRUE;
+	// This triggers the sprite stage of the pixel sequencer.
+	if (stage) begin
+            for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
+                if (((sprite_mmc[n] && sprite_cur_pixel[n] != 0) || // multicolor
+	           (!sprite_mmc[n] && sprite_cur_pixel[n][1] != 0)) & // non multicolor
+                       !is_background_pixel & !(main_border)) begin
+                    sprite_m2d_pending[n] <= `TRUE;
+                    if (!m2d_triggered) begin
+                        m2d_triggered <= `TRUE;
+                        imbc_pending <= `TRUE;
+                    end
                 end
             end
-          end
-	end
+        end
     end
 
 endmodule: sprites

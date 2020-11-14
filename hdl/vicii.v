@@ -230,7 +230,8 @@ wire rsel; // border row select
 wire csel; // border column select
 wire mcm; // multi color mode
 
-wire is_background_pixel;
+wire stage1;
+wire is_background_pixel1;
 
 // mostly used for iterating over sprites
 integer n;
@@ -396,10 +397,6 @@ always @(posedge clk_dot4x)
 //    d3 is passed to the pixel sequencer
 //    d4 is passed to sprite module
 wire main_border;
-reg main_border_d1;
-reg main_border_d2;
-reg main_border_d3;
-reg main_border_d4;
 wire top_bot_border;
 border vic_border(
            .rst(rst),
@@ -414,18 +411,6 @@ border vic_border(
            .vborder(top_bot_border),
            .main_border(main_border)
        );
-
-// NOTE: We delay the left/right border mask. For simulator
-// comparison to VICE, however, we use the non-delayed values.
-always @(posedge clk_dot4x)
-begin
-   if (dot_rising[0]) begin
-      main_border_d1 <= main_border;
-      main_border_d2 <= main_border_d1;
-      main_border_d3 <= main_border_d2;
-      main_border_d4 <= main_border_d3;
-   end
-end
 
 wire [7:0] lpx;
 wire [7:0] lpy;
@@ -593,6 +578,7 @@ wire m2m_clr;
 wire m2d_clr;
 wire [7:0] sprite_m2m;
 wire [7:0] sprite_m2d;
+wire main_border_stage1;
 
 sprites vic_sprites(
          .rst(rst),
@@ -601,7 +587,7 @@ sprites vic_sprites(
          .cycle_type(cycle_type),
          .dbi(dbi),
          .dot_rising_0(dot_rising[0]),
-         .dot_rising_1(dot_rising[1]),
+         .phi_phase_start_m2clr(phi_phase_start[`M2CLR_CHECK]),
          .phi_phase_start_13(phi_phase_start[13]),
          .phi_phase_start_1(phi_phase_start[1]),
          .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
@@ -618,8 +604,9 @@ sprites vic_sprites(
          .sprite_mmc(sprite_mmc),
          .sprite_cnt(sprite_cnt),
          .aec(aec),
-         .is_background_pixel(is_background_pixel),
-         .main_border(main_border_d4), // delayed
+         .is_background_pixel(is_background_pixel1),
+         .stage(stage1),
+         .main_border(main_border_stage1),
          .imbc_clr(imbc_clr),
          .immc_clr(immc_clr),
          .sprite_dmachk1(sprite_dmachk1),
@@ -813,6 +800,7 @@ pixel_sequencer vic_pixel_sequencer(
                     .clk_dot4x(clk_dot4x),
                     .clk_phi(clk_phi),
                     .dot_rising_0(dot_rising[0]),
+                    .dot_rising_1(dot_rising[1]),
                     .phi_phase_start_pixel_latch(phi_phase_start[`PIXEL_LATCH]),
                     .phi_phase_start_xscroll_latch(phi_phase_start[`XSCROLL_LATCH]),
                     .mcm(reg16_delayed[4]), // delayed
@@ -828,14 +816,16 @@ pixel_sequencer vic_pixel_sequencer(
                     .b2c(b2c),
                     .b3c(b3c),
                     .ec(ec),
-                    .main_border(main_border_d3), // delayed
+                    .main_border(main_border),
+                    .main_border_stage1(main_border_stage1),
                     .sprite_cur_pixel_o(sprite_cur_pixel_o),
                     .sprite_pri(sprite_pri),
                     .sprite_mmc(sprite_mmc),
                     .sprite_col_o(sprite_col_o),
                     .sprite_mc0(sprite_mc0),
                     .sprite_mc1(sprite_mc1),
-                    .is_background_pixel2(is_background_pixel),
+                    .is_background_pixel1(is_background_pixel1),
+                    .stage1(stage1),
                     .pixel_color3(pixel_color3)
                 );
 

@@ -1,41 +1,85 @@
 `ifndef common_vh_
 `define common_vh_
 
+// DATA_DAV
+//
 // When to read from the data bus for both char/pixel and sprite dma
 // in terms of phi_phase_start index.  This can't be changed without
 // some serious rework of xpos, read delays in the pixel sequencer
 // and many other timing values elsewhere. Zero value tells the bus
 // access module to read data on the edge of phi as indicated
-// by the datasheet.
-`define DATA_DAV 0
+// by the datasheet. But we use a much earlier value for VICE
+// simuation comparison.
 
+// PIXEL_LATCH
+//
 // This is the phi_phase_start value used to move pixels read from
 // the databus onto the delayed register.  It should be set so that
 // the pixels are valid at the same time xscroll mod 8 == 0 and
 // load_pixelse rise.  (So typically one tick before those two.)
-`define PIXEL_LATCH 0
 
+// XSCROLL_LATCH
+//
 // This is the phi_phase_start_value used to 'pick up' xscroll changes
 // but only during visible cycles.  Unless this is set right, xscroll
 // won't be a pixel perfect match to VICE.  I don't think it's
 // critical for behavior but it's good to be able to match VICE.
-// (Use xscroll2.prg)
-`define XSCROLL_LATCH 0
+// (Use xscroll2.prg to verify). It looks like the right value here
+// should be the same as PIXEL_LATCH.
 
+// XPOS_BORDER_DELAY_9BIT
+//
 // This is an adjusted xpos we pass to the border module.
 // The border logic xpos comparison values are taken from VICE
-// which will match this adjusted value.
+// and this adjustment is needed to trigger the logic
+// correctly.
+
+// XPOS_GFX_DELAY_9BIT
+//
+// This value -1 is how much we adjust xpos by before we give it
+// to the pixel sequencer.  It is used to control the point
+// at which xpos_mod_8 == 0.  A value of 1 here means no adjustment
+// but if DATA_DAV changes, this must also change.
+
+// XPOS_SPRITE_DELAY
+//
+// This value -1 is how much we adjust xpos by before we give it
+// to the sprite module.  This delays the time at which sprite
+// shifter starts due to a xpos match.  It is adjusted to make
+// sprite pixels align with graphics.
+
+`ifndef IS_SIMULATOR
+// Real hardware values
+`define DATA_DAV 13
+`define PIXEL_LATCH 12
+`define XSCROLL_LATCH 12
 `define XPOS_BORDER_DELAY_9BIT 9'd8
+`define XPOS_GFX_DELAY_9BIT 9'd8
+`define XPOS_SPRITE_DELAY 9'd7
 
-// How much we adjust xpos by (-1) before we give it to the
-// pixel sequencer.  A value of 1 here means no adjustment but if
-// DATA_DAV changes, this must also change.
-`define XPOS_GFX_DELAY_9BIT 9'd1
+`define PIXEL_LATCH_PHASE clk_phi
+`define XSCROLL_LATCH_PHASE clk_phi
+`define SPRITE_CRUNCH_CYCLE_CHECK 15
+`define M2CLR_CHECK 1
+`define M2CLR_PHASE !clk_phi
 
-// How much we adjust xpos by (-1) before we give it to the
-// sprite module.  This delays the time at which sprite
-// shifter starts due to a match xpos.
-`define XPOS_SPRITE_DELAY 9'd10
+`else
+
+// Simlation values
+`define DATA_DAV 13
+`define PIXEL_LATCH 12
+`define XSCROLL_LATCH 12
+`define XPOS_BORDER_DELAY_9BIT 9'd8
+`define XPOS_GFX_DELAY_9BIT 9'd8
+`define XPOS_SPRITE_DELAY 9'd7
+
+`define PIXEL_LATCH_PHASE !clk_phi
+`define XSCROLL_LATCH_PHASE !clk_phi
+`define SPRITE_CRUNCH_CYCLE_CHECK 14
+`define M2CLR_CHECK 15
+`define M2CLR_PHASE clk_phi
+
+`endif
 
 // Will never change but used in loops
 `define NUM_SPRITES 8

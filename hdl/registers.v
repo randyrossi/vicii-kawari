@@ -155,6 +155,23 @@ always @(posedge clk_dot4x)
         end
         if (aec && !ce && addr_latch_done) begin
             // READ from register
+	    // For registers that clear collisions, we do it on [dav].
+	    // Otherwise, we'd do it way too early if we did it at the
+	    // same time we assert dbo in the block below.  VICE sync
+	    // complains it is too early.
+	    if (rw && phi_phase_start_dav) begin
+                case (addr_latched)
+                    /* 0x1e */ `REG_SPRITE_2_SPRITE_COLLISION: begin
+                        // reading this register clears the value
+                        m2m_clr <= 1;
+                    end
+                    /* 0x1f */ `REG_SPRITE_2_DATA_COLLISION: begin
+                        // reading this register clears the value
+                        m2d_clr <= 1;
+                    end
+		    default: ;
+		endcase
+            end
             if (rw && !read_done) begin
                 read_done <= `TRUE;
                 case (addr_latched)
@@ -231,16 +248,10 @@ always @(posedge clk_dot4x)
                         dbo[7:0] <= sprite_mmc;
                     /* 0x1d */ `REG_SPRITE_EXPAND_X:
                         dbo[7:0] <= sprite_xe;
-                    /* 0x1e */ `REG_SPRITE_2_SPRITE_COLLISION: begin
+                    /* 0x1e */ `REG_SPRITE_2_SPRITE_COLLISION:
                         dbo[7:0] <= sprite_m2m;
-                        // reading this register clears the value
-                        m2m_clr <= 1;
-                    end
-                    /* 0x1f */ `REG_SPRITE_2_DATA_COLLISION: begin
+                    /* 0x1f */ `REG_SPRITE_2_DATA_COLLISION:
                         dbo[7:0] <= sprite_m2d;
-                        // reading this register clears the value
-                        m2d_clr <= 1;
-                    end
                     /* 0x20 */ `REG_BORDER_COLOR:
                         dbo[7:0] <= {4'b1111, ec};
                     /* 0x21 */ `REG_BACKGROUND_COLOR_0:
