@@ -12,6 +12,7 @@ module bus_access(
         input rst,
         input clk_dot4x,
         input phi_phase_start_dav,
+        input phi_phase_start_0,
         input [3:0] cycle_type,
         input [6:0] cycle_num,
         input [11:0] dbi,
@@ -85,12 +86,11 @@ begin
         pixels_read <= dbi[7:0];
         char_read <= idle ? 12'd0 : char_next;
     end
-    if (clk_phi == `TRUE && cycle_num == 55) begin
+    if (clk_phi && cycle_num == 55 && phi_phase_start_0) begin
         // This makes sure pixels are zeroed out when we
-        // enter non visible area.  This should happen
-        // at the same time pixels are latched from this
-        // register inside the pixel sequencer (or some
-        // short time afterwards)
+        // enter non visible area.  (This condition is for
+	// non-sim settings but it also works for sim so we
+	// don't have to change the phi phase condition here.)
         pixels_read <= 8'd0;
     end
 end

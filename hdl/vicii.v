@@ -651,6 +651,7 @@ assign ls245_addr_oe = 1'b0; // aec & ce;  for now, always enable
 bus_access vic_bus_access(
          .rst(rst),
          .clk_dot4x(clk_dot4x),
+         .phi_phase_start_0(phi_phase_start[0]),
          .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
          .cycle_type(cycle_type),
          .cycle_num(cycle_num),

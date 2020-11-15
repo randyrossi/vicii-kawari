@@ -45,7 +45,6 @@
 `define DATA_DAV 0
 `define XSCROLL_LATCH 0
 `define XSCROLL_LATCH_PHASE clk_phi
-`define BORDER_PHASE clk_phi
 `define BORDER_DELAY 8
 `define SPRITE_CRUNCH_CYCLE_CHECK 15
 `define M2CLR_CHECK 1
@@ -57,7 +56,6 @@
 `define DATA_DAV 12
 `define XSCROLL_LATCH 0
 `define XSCROLL_LATCH_PHASE clk_phi
-`define BORDER_PHASE clk_phi
 `define BORDER_DELAY 8
 `define SPRITE_CRUNCH_CYCLE_CHECK 14
 `define M2CLR_CHECK 15

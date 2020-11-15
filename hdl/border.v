@@ -27,7 +27,7 @@ begin
         vborder = `FALSE;
     end else begin
         // check hborder
-        if (`BORDER_PHASE && ((xpos == 31+`BORDER_DELAY && csel == `FALSE) || (xpos == 24+`BORDER_DELAY && csel == `TRUE))) begin
+        if ((xpos == 31+`BORDER_DELAY && csel == `FALSE) || (xpos == 24+`BORDER_DELAY && csel == `TRUE)) begin
            // check vborder bottom
            if ((raster_line == 247 && rsel == `FALSE) || (raster_line == 251 && rsel == `TRUE))
               set_vborder = 1;
@@ -36,7 +36,7 @@ begin
               main_border = 0;
            end
         end
-        else if (`BORDER_PHASE && ((xpos == 335+`BORDER_DELAY && csel == `FALSE) || (xpos == 344+`BORDER_DELAY && csel == `TRUE))) begin
+        else if ((xpos == 335+`BORDER_DELAY && csel == `FALSE) || (xpos == 344+`BORDER_DELAY && csel == `TRUE)) begin
            main_border = 1;
         end
 
