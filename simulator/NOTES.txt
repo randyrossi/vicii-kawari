@@ -1,0 +1,126 @@
+Matching VICE half-cycle checks
+-------------------------------
+
+At the end of every half-cycle, VICE hooks will compare the internal
+state of VICE's emulated VICII and the verilated verilog VICII state.
+
+PPS = Phi Phase Start Index
+      0 - 15, 15 means phi will transition at start of next tick 
+
+      111          111111          111111
+      34501234567890123450123456789012345012
+      ___                ________________
+PHI      ________________                ____
+
+
+For simulator builds, we read data from the databus at PPS=12. This is late
+on the cycle but well before the phase changes.  For the real hardware,
+however, we use PPS=0.  According to the VICII datasheet, data reads (memory,
+register, etc) should happen at PHI clock edges.  But this is too late for our
+VICE synchronization checks.  If we were to step that far, we would cross over
+into the next half cycle and many checks would fail.  VICE seems to emulate the
+complete half cycle including the data reads whereas the fpga has not actually
+completed the half cycle when the comparison takes place.  (At least this is
+true for the location where I placed the hooks.)
+
+So for state verification, we move the data available point back 4 PPS ticks.
+
+Here are some notes on how I 'tune' all the conditions so that the simulator
+data availble 'DATA_DAV' PPS passes the checks.  The real hardware DAV PPS of
+0 will shift the reads out but we 'hope' it matches what the real behavior
+should be.  So far this has worked out.
+
+The register xpos is set so that when PPS passes 0 (PHI transition),
+xpos MOD 8 will == 0.  This means pixels 0-3 happen on the low cycle while
+pixels 4-7 happen on the high cycle.  However, it's important to note
+that pixel 3 sprite to data collisions actually bleed into the high cycle
+(which causes some 0x1f mismatches as explained below).  It's not clear
+whether this happens on the real hardware too.
+
+Check the timing
+----------------
+
+Launch x64sc and place a RED solid block in top left corner using
+reverse video. Then place a white letter A directly underneath that.
+Run and trace the simulation on a single frame. Inspect the trace
+and find where pixels_read got set. This when the data is read
+off the databus.  It is then delayed through pixels_read_delayed0
+and pixels_read_delayed1 and finally hit pixels_read_delayed
+where it becomes valid at the next PHI transition (one cycle later)
+This happens for both simualtor and real hardware builds. Even
+though the simulator pixel reads happen on PPS 12, it will still
+get latched into pixels_read_delayed on the PHI transition one
+full cycle later.
+
+When xpos_mod_8 == 0, load_pixels will rise.  This means pixel
+(and char) data must be valid starting precicely at that time
+and remain valid for 8 full pixels.  If this isn't true, then
+xscroll will not work properly.
+
+Sprite pixels are also and shifted into sprite_pixels_shifting
+register.  The start shifting out of that register when the
+xpos reaches the sprite X location.  But those 'current' pixels
+are delayed just like the graphics pixels are delayed (one
+full cycle).  The 'sprite_cur_pixel' registers that come out
+of the sprite module have been delayed to align with graphics.
+
+It's important to note that sprite to data (m2d) and sprite
+to sprite (m2m) collisions are detected on the DELAYED
+pixels.  The delayed pixels are what also go into the pixel
+sequencer module for stage 1 (overwrite of background/foreground
+pixels).  Also, it appears that sprite to data collisions are
+still allowed on the last pixel of a raster line even though
+it is a border pixel (Lunatico MISC).  This is why the sprite
+module keeps track of the previous main_border value.  It needs
+to detect low to high transisions and make an exception.
+
+Important note:  Sprite collisions m2d/m2m that happen on
+high cycles are deferred until the next LOW cycle (making them
+'visible' to the CPU only on the next HIGH cycle.  This appears
+to be what VICE wants.  However, as mentioned above, the sprite
+collisions for the last pixel inside the LOW cycle actually
+happen just after phi transitions to HIGH.  This makes that
+sprite collision get deferred.  It's not clear whether this is
+what happens on the real hardware.  So far, it doesn't appear to
+make much difference.  If this turns out to be a problem, we
+may have to adjust the conditions for when deferral happens.
+That is, make 0-3 never defer and 4-7 always defer to match
+VICE checks.
+
+The pixel sequencer has multiple stages.  The stages are kicked
+off when xpos_mod_8 matches xscroll.  (NOTE: The xscroll value
+must only be latched during visible cycles.  This doesn't seem
+to be necessary for behavior but we won't get a pixel perfect
+match to VICE if we don't do the same and it makes xscroll2.prg
+look right).  Basically, stages after 0 happen on the dot4x
+tick (so 'while' the xpos/pixel is still valid).  We cascade
+certain values like border and background pixel flags so that
+they remain valid for the stage they are accessed on. (In other
+words, if main_border was valid at stage 0, then main_border_1
+will be valid for checks at stage 1).
+
+The stages are as follows:
+   stage 0: shifting pixels when xpos mod 8 == xscroll
+   stage 1: set foreground pixels
+   stage 2: overwrite with sprite pixels if necessary
+   stage 3: final delay of output pixels
+
+The stage 3 delay delays pixels by another half cycle and 
+is necessary to align with border color register changes
+that might occur. A good example is EOD Sarah Conner
+chronciles scroll where the border next to the
+sprite label is changed to match the sprite logo/label.
+If the delay was not used, there would be a larger
+gap there.  This also brings the total delay between
+when pixels are read and when they are displayed to
+about 12 pixels which agrees with Christian's doc.
+
+Tests:
+   sprite5.prg
+   sprite6.prg
+   sprite8.prg
+   sprite9.prg
+   Edge of Disgrace Disk 1 first checkerboard sequence
+   Edge of Disgrace Disk 2 sarah conner chronicles vertical scroll
+   Lunatico massively interleaved sprite crunch intro
+   Uncensored satellite sprite collisions
