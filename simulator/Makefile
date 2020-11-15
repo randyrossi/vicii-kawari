@@ -63,11 +63,11 @@ install: libvicii_ipc.so
 	sudo chmod oug+r /usr/include/vicii_ipc.h
 
 # Bring up the logic analyser on most recent session
-logic:
+logic_fix:
 	vicrepair session.vcd
 	gtkwave session.vcd --script session.tcl
 
-logic2:
+logic:
 	gtkwave session.vcd --script session.tcl
 
 # Render a frame in the window

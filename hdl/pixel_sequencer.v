@@ -130,6 +130,7 @@ always @(posedge clk_dot4x)
 
 reg stage0;
 always @(posedge clk_dot4x)
+begin
     //if (rst) begin
     //    char_shifting <= 12'b0;
     //end else
@@ -138,6 +139,9 @@ always @(posedge clk_dot4x)
         if (load_pixels)
             char_shifting <= char_read_delayed;
     end
+    if (stage0)
+        stage0 <= 1'b0;
+end
 
 // Pixel shifter
 always @(posedge clk_dot4x) begin
@@ -169,11 +173,12 @@ begin
     //    is_background_pixel1 <= 1'b0;
     //    pixel_color1 <= `BLACK;
     //end else
+    if (stage1)
+        stage1 <= 1'b0;
     if (stage0) begin
         pixel_color1 <= `BLACK;
 	is_background_pixel1 <= is_background_pixel0;
 	main_border_stage1 <= main_border;
-	stage0 <= 1'b0;
 	stage1 <= 1'b1;
         case ({ecm, bmm, mcm})
             `MODE_STANDARD_CHAR:
@@ -233,7 +238,6 @@ begin
     //    pixel_color2 = `BLACK;
     //end else
     if (stage1) begin
-        stage1 <= 1'b0;
 	main_border_stage2 <= main_border_stage1;
         // illegal modes should have black pixels
         case ({ecm, bmm, mcm})
