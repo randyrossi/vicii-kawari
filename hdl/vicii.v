@@ -141,12 +141,6 @@ reg [4:0] reg16_delayed;
 // increment on certain cycles for 6567R8
 // chips and wraps at the high phase of cycle 12.
 
-// xpos_sprite and xpos_border is xpos shifted by a delay
-// value so the comparisons match VICE logic.
-wire [9:0] xpos_sprite;
-wire [9:0] xpos_border;
-wire [9:0] xpos_gfx;
-
 // What cycle we are on.  Only valid on 2nd tick (or greater)
 // within a half-phase.
 wire [3:0] cycle_type;
@@ -294,12 +288,6 @@ assign sprite_ba_end[6] = 10'd40 + 10'd16 * 6;
 assign sprite_ba_start[7] = 10'd0 + 10'd16 * 7;
 assign sprite_ba_end[7] = 10'd40 + 10'd16 * 7;
 
-assign xpos_sprite = xpos >= (`XPOS_SPRITE_DELAY - 9'd1) ? xpos - (`XPOS_SPRITE_DELAY - 9'd1) : max_xpos - (`XPOS_SPRITE_DELAY - 9'd2) + xpos;
-assign xpos_border = xpos >= (`XPOS_BORDER_DELAY_9BIT - 9'd1) ? xpos - (`XPOS_BORDER_DELAY_9BIT - 9'd1) : max_xpos - (`XPOS_BORDER_DELAY_9BIT - 9'd2) + xpos;
-/* verilator lint_off UNSIGNED */
-assign xpos_gfx = xpos >= (`XPOS_GFX_DELAY_9BIT - 9'd1) ? xpos - (`XPOS_GFX_DELAY_9BIT - 9'd1) : max_xpos - (`XPOS_GFX_DELAY_9BIT - 9'd2) + xpos;
-/* verilator lint_on UNSIGNED */
-
 // dot_rising[3] means dot going high next cycle
 always @(posedge clk_dot4x)
     if (rst)
@@ -403,7 +391,7 @@ border vic_border(
            .clk_dot4x(clk_dot4x),
            .clk_phi(clk_phi),
            .cycle_num(cycle_num),
-           .xpos(xpos_border),
+           .xpos(xpos),
            .raster_line(raster_line),
            .rsel(rsel),
            .csel(csel),
@@ -591,7 +579,7 @@ sprites vic_sprites(
          .phi_phase_start_13(phi_phase_start[13]),
          .phi_phase_start_1(phi_phase_start[1]),
          .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
-         .xpos(xpos_sprite[8:0]), // top bit omitted
+         .xpos(xpos[8:0]), // top bit omitted
          .raster_line(raster_line[7:0]), // top bit omitted
          .cycle_num(cycle_num),
          .cycle_bit(raster_x[2:0]),
@@ -663,7 +651,6 @@ assign ls245_addr_oe = 1'b0; // aec & ce;  for now, always enable
 bus_access vic_bus_access(
          .rst(rst),
          .clk_dot4x(clk_dot4x),
-         .phi_phase_start_pixel_latch(phi_phase_start[`PIXEL_LATCH]),
          .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
          .cycle_type(cycle_type),
          .cycle_num(cycle_num),
@@ -801,13 +788,14 @@ pixel_sequencer vic_pixel_sequencer(
                     .clk_phi(clk_phi),
                     .dot_rising_0(dot_rising[0]),
                     .dot_rising_1(dot_rising[1]),
-                    .phi_phase_start_pixel_latch(phi_phase_start[`PIXEL_LATCH]),
+                    .phi_phase_start_0(phi_phase_start[0]),
+                    .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
                     .phi_phase_start_xscroll_latch(phi_phase_start[`XSCROLL_LATCH]),
                     .mcm(reg16_delayed[4]), // delayed
                     .bmm(reg11_delayed[5]), // delayed
                     .ecm(reg11_delayed[6]), // delayed
                     .cycle_num(cycle_num),
-                    .xpos_mod_8(xpos_gfx[2:0]),
+                    .xpos_mod_8(xpos[2:0]),
                     .xscroll(xscroll),
                     .pixels_read(pixels_read),
                     .char_read(char_read),

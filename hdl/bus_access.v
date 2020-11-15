@@ -11,7 +11,6 @@
 module bus_access(
         input rst,
         input clk_dot4x,
-        input phi_phase_start_pixel_latch, // used to clear pixels_read on cycle 55
         input phi_phase_start_dav,
         input [3:0] cycle_type,
         input [6:0] cycle_num,
@@ -86,7 +85,7 @@ begin
         pixels_read <= dbi[7:0];
         char_read <= idle ? 12'd0 : char_next;
     end
-    if (clk_phi == `TRUE && cycle_num == 55 && phi_phase_start_pixel_latch) begin
+    if (clk_phi == `TRUE && cycle_num == 55) begin
         // This makes sure pixels are zeroed out when we
         // enter non visible area.  This should happen
         // at the same time pixels are latched from this

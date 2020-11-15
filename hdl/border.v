@@ -26,22 +26,21 @@ begin
         main_border = `FALSE;
         vborder = `FALSE;
     end else begin
-        if (!clk_phi) begin
-           // check hborder
-           if ((xpos == 31 && csel == `FALSE) || (xpos == 24 && csel == `TRUE)) begin
-              // check vborder bottom
-              if ((raster_line == 247 && rsel == `FALSE) || (raster_line == 251 && rsel == `TRUE))
-                 set_vborder = 1;
-              vborder = set_vborder;
-              if (vborder == 0) begin
-                 main_border = 0;
-              end
-           end
-           else if ((xpos == 335 && csel == `FALSE) || (xpos == 344 && csel == `TRUE)) begin
-              main_border = 1;
+        // check hborder
+        if (`BORDER_PHASE && ((xpos == 31+`BORDER_DELAY && csel == `FALSE) || (xpos == 24+`BORDER_DELAY && csel == `TRUE))) begin
+           // check vborder bottom
+           if ((raster_line == 247 && rsel == `FALSE) || (raster_line == 251 && rsel == `TRUE))
+              set_vborder = 1;
+           vborder = set_vborder;
+           if (vborder == 0) begin
+              main_border = 0;
            end
         end
-        else begin
+        else if (`BORDER_PHASE && ((xpos == 335+`BORDER_DELAY && csel == `FALSE) || (xpos == 344+`BORDER_DELAY && csel == `TRUE))) begin
+           main_border = 1;
+        end
+
+	if (clk_phi) begin
           // check vborder top
           if (((raster_line == 55 && rsel == `FALSE) || (raster_line == 51 && rsel == `TRUE)) && den) begin
              vborder = 0;

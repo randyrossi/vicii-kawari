@@ -8,7 +8,8 @@ module pixel_sequencer(
            input clk_phi,
            input dot_rising_0,
            input dot_rising_1,
-           input phi_phase_start_pixel_latch, // when we latch pixels_read into pixels_read_delayed
+           input phi_phase_start_0,
+           input phi_phase_start_dav,
            input phi_phase_start_xscroll_latch,
            input mcm,
            input bmm,
@@ -66,9 +67,13 @@ assign sprite_col[6] = sprite_col_o[7:4];
 assign sprite_col[7] = sprite_col_o[3:0];
 
 reg [2:0] xscroll_delayed;
+reg [7:0] pixels_read_delayed0;
+reg [7:0] pixels_read_delayed1;
 reg [7:0] pixels_read_delayed;
+reg [11:0] char_read_delayed0;
+reg [11:0] char_read_delayed1;
 reg [11:0] char_read_delayed;
- 
+
 // pixels being shifted and the associated char (for color info)
 reg [11:0] char_shifting;
 reg [7:0] pixels_shifting;
@@ -84,12 +89,26 @@ begin
     end
     // Need to delay pixels to align properly with delayed xpos
     // value so we don't load pixels too early.  Basically, pixels_read
-    // needs to be visislbe to the sequencer first when xpos_mod_8 == 0
+    // needs to be visible to the sequencer first when xpos_mod_8 == 0
     // which is when load_pixels rises.
-    if (`PIXEL_LATCH_PHASE && phi_phase_start_pixel_latch) begin
-        pixels_read_delayed <= pixels_read;
-        char_read_delayed <= char_read;
+    if (phi_phase_start_dav) begin
+        pixels_read_delayed0 <= pixels_read;
+        pixels_read_delayed1 <= pixels_read_delayed0;
+
+        char_read_delayed0 <= char_read;
+        char_read_delayed1 <= char_read_delayed0;
     end
+`ifndef IS_SIMULATOR
+    if (phi_phase_start_0) begin
+        pixels_read_delayed <= pixels_read_delayed0;
+        char_read_delayed <= char_read_delayed0;
+    end
+`else
+    if (phi_phase_start_0) begin
+        pixels_read_delayed <= pixels_read_delayed1;
+        char_read_delayed <= char_read_delayed1;
+    end
+`endif
 end
 
 always @(*)
@@ -207,7 +226,7 @@ begin
 end
 
 reg [3:0] pixel_color2; // stage 2
-reg stage2;
+reg main_border_stage2;
 always @(posedge clk_dot4x)
 begin
     //if (rst) begin
@@ -215,7 +234,7 @@ begin
     //end else
     if (stage1) begin
         stage1 <= 1'b0;
-	stage2 <= 1'b1;
+	main_border_stage2 <= main_border_stage1;
         // illegal modes should have black pixels
         case ({ecm, bmm, mcm})
             `MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR,
@@ -260,19 +279,36 @@ begin
     end
 end
 
+// We delay the final stage3 output by 4 more pixels
+// to 'reach' edge color transitions.  This brings
+// the total pixel delay from the time data is
+// fetched off the databus to the time it is
+// displayed to 12 pixels.
+reg[3:0] pixel_color2a;
+reg[3:0] pixel_color2b;
+reg[3:0] pixel_color2c;
+reg main_border_stage2a;
+reg main_border_stage2b;
+reg main_border_stage2c;
+always @(posedge clk_dot4x)
+begin
+    if (dot_rising_1) begin
+        pixel_color2a <= pixel_color2;
+        pixel_color2b <= pixel_color2a;
+        pixel_color2c <= pixel_color2b;
+        main_border_stage2a <= main_border_stage2;
+        main_border_stage2b <= main_border_stage2a;
+        main_border_stage2c <= main_border_stage2b;
+    end
+end
+
 // mask with border - pixel_color3 = stage 3
 always @(posedge clk_dot4x)
 begin
-    //if (rst) begin
-    //    pixel_color3 <= `BLACK;
-    //end else
-    if (stage2) begin
-	stage2 <= 1'b0;
-        if (main_border)
-            pixel_color3 <= ec;
-        else
-            pixel_color3 <= pixel_color2;
-    end
+    if (main_border_stage2c)
+        pixel_color3 <= ec;
+    else
+        pixel_color3 <= pixel_color2c;
 end
 
 endmodule

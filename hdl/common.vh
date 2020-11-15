@@ -11,21 +11,13 @@
 // by the datasheet. But we use a much earlier value for VICE
 // simuation comparison.
 
-// PIXEL_LATCH
-//
-// This is the phi_phase_start value used to move pixels read from
-// the databus onto the delayed register.  It should be set so that
-// the pixels are valid at the same time xscroll mod 8 == 0 and
-// load_pixelse rise.  (So typically one tick before those two.)
-
 // XSCROLL_LATCH
 //
 // This is the phi_phase_start_value used to 'pick up' xscroll changes
 // but only during visible cycles.  Unless this is set right, xscroll
 // won't be a pixel perfect match to VICE.  I don't think it's
 // critical for behavior but it's good to be able to match VICE.
-// (Use xscroll2.prg to verify). It looks like the right value here
-// should be the same as PIXEL_LATCH.
+// (Use xscroll2.prg to verify).
 
 // XPOS_BORDER_DELAY_9BIT
 //
@@ -50,15 +42,11 @@
 
 `ifndef IS_SIMULATOR
 // Real hardware values
-`define DATA_DAV 13
-`define PIXEL_LATCH 12
-`define XSCROLL_LATCH 12
-`define XPOS_BORDER_DELAY_9BIT 9'd8
-`define XPOS_GFX_DELAY_9BIT 9'd8
-`define XPOS_SPRITE_DELAY 9'd7
-
-`define PIXEL_LATCH_PHASE clk_phi
+`define DATA_DAV 0
+`define XSCROLL_LATCH 0
 `define XSCROLL_LATCH_PHASE clk_phi
+`define BORDER_PHASE clk_phi
+`define BORDER_DELAY 8
 `define SPRITE_CRUNCH_CYCLE_CHECK 15
 `define M2CLR_CHECK 1
 `define M2CLR_PHASE !clk_phi
@@ -66,15 +54,11 @@
 `else
 
 // Simlation values
-`define DATA_DAV 13
-`define PIXEL_LATCH 12
-`define XSCROLL_LATCH 12
-`define XPOS_BORDER_DELAY_9BIT 9'd8
-`define XPOS_GFX_DELAY_9BIT 9'd8
-`define XPOS_SPRITE_DELAY 9'd7
-
-`define PIXEL_LATCH_PHASE !clk_phi
-`define XSCROLL_LATCH_PHASE !clk_phi
+`define DATA_DAV 12
+`define XSCROLL_LATCH 0
+`define XSCROLL_LATCH_PHASE clk_phi
+`define BORDER_PHASE clk_phi
+`define BORDER_DELAY 8
 `define SPRITE_CRUNCH_CYCLE_CHECK 14
 `define M2CLR_CHECK 15
 `define M2CLR_PHASE clk_phi

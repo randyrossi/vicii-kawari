@@ -56,6 +56,14 @@ wire [7:0] sprite_y[0:`NUM_SPRITES - 1];
 reg [5:0] sprite_mc[0:`NUM_SPRITES - 1];
 reg [1:0] sprite_cur_pixel [`NUM_SPRITES-1:0];
 
+reg [1:0] sprite_cur_pixel1 [`NUM_SPRITES-1:0];
+reg [1:0] sprite_cur_pixel2 [`NUM_SPRITES-1:0];
+reg [1:0] sprite_cur_pixel3 [`NUM_SPRITES-1:0];
+reg [1:0] sprite_cur_pixel4 [`NUM_SPRITES-1:0];
+reg [1:0] sprite_cur_pixel5 [`NUM_SPRITES-1:0];
+reg [1:0] sprite_cur_pixel6 [`NUM_SPRITES-1:0];
+reg [1:0] sprite_cur_pixel7 [`NUM_SPRITES-1:0];
+
 // Other internal regs
 reg [5:0] sprite_mcbase[0:`NUM_SPRITES - 1];
 reg       sprite_xe_ff[0:`NUM_SPRITES-1];
@@ -182,9 +190,7 @@ begin
             sprite_active[n] = `FALSE;
             sprite_halt[n] = `FALSE;
             sprite_xe_ff[n] = `FALSE;
-            //sprite_pixels_shifting[n] <= 24'b0;
             sprite_mmc_ff[n] = `FALSE;
-            //sprite_cur_pixel[n] <= 2'b0;
         end
     end
     else begin
@@ -195,7 +201,7 @@ begin
             // perform dma access. 
             if (cycle_bit == 2 && (cycle_type == `VIC_LS2 || cycle_type == `VIC_LPI2)) begin
                 sprite_active[sprite_cnt] = `FALSE;
-                sprite_cur_pixel[sprite_cnt] <= 0;
+                sprite_cur_pixel1[sprite_cnt] <= 0;
             end else if (cycle_bit == 3 && cycle_type == `VIC_LP) begin
                 sprite_halt[sprite_cnt] = `TRUE;
                 sprite_pixels_shifting[sprite_cnt] <= 24'b0;
@@ -217,11 +223,11 @@ begin
                 //    sprite_active[n], sprite_halt[n], sprite_pixels_shifting[n], sprite_cur_pixel[n]);
                 // Is this sprite shifting?
                 if (sprite_active[n]) begin
-                    if (sprite_pixels_shifting[n] != 0 || sprite_cur_pixel[n] != 0) begin
+                    if (sprite_pixels_shifting[n] != 0 || sprite_cur_pixel1[n] != 0) begin
                        if (!sprite_halt[n]) begin
                           if (!sprite_xe_ff[n]) begin
                               if (!sprite_mmc_ff[n])
-                                  sprite_cur_pixel[n] <= sprite_pixels_shifting[n][23:22];
+                                  sprite_cur_pixel1[n] <= sprite_pixels_shifting[n][23:22];
                               sprite_pixels_shifting[n] <= {sprite_pixels_shifting[n][22:0], 1'b0};
                               sprite_mmc_ff[n] = !sprite_mmc_ff[n] & sprite_mmc[n];
                           end
@@ -246,6 +252,22 @@ begin
               default: ;
           endcase
         end
+    end
+end
+
+always @(posedge clk_dot4x)
+begin
+    if (dot_rising_0) begin
+        for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
+            sprite_cur_pixel2[n] <= sprite_cur_pixel1[n];
+            sprite_cur_pixel3[n] <= sprite_cur_pixel2[n];
+            sprite_cur_pixel4[n] <= sprite_cur_pixel3[n];
+            sprite_cur_pixel5[n] <= sprite_cur_pixel4[n];
+            sprite_cur_pixel6[n] <= sprite_cur_pixel5[n];
+            sprite_cur_pixel7[n] <= sprite_cur_pixel6[n];
+
+            sprite_cur_pixel[n] <= sprite_cur_pixel7[n];
+	end
     end
 end
 
