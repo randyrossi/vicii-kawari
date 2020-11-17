@@ -297,6 +297,13 @@ assign sprite_ba_end[7] = 10'd40 + 10'd16 * 7;
 wire [9:0] xpos_gfx;
 assign xpos_gfx = xpos >= 10'd3 ? xpos - 10'd3 : max_xpos - 10'd2 + xpos;
 
+// When we pass xpos to the sprite module, we subtract 4
+// pixels to make shifting start at the right time.  The output
+// pixels are shifted another 6 before reaching the pixel
+// sequencer.
+wire [9:0] xpos_sprite;
+assign xpos_sprite = xpos >= 10'd4 ? xpos - 10'd4 : max_xpos - 10'd3 + xpos;
+
 // dot_rising[3] means dot going high next cycle
 always @(posedge clk_dot4x)
     if (rst)
@@ -588,7 +595,7 @@ sprites vic_sprites(
          .phi_phase_start_13(phi_phase_start[13]),
          .phi_phase_start_1(phi_phase_start[1]),
          .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
-         .xpos(xpos[8:0]), // top bit omitted
+         .xpos(xpos_sprite[8:0]), // top bit omitted
          .raster_line(raster_line[7:0]), // top bit omitted
          .cycle_num(cycle_num),
          .cycle_bit(raster_x[2:0]),

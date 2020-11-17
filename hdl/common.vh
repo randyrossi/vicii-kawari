@@ -44,8 +44,9 @@
 //
 // This is how many pixels to delay sprite pixels before it enters
 // the final delayed register (sprite_cur_pixel) which collisions
-// and the pixel sequencer operate on.  It is hard coded to 10
-// in sprite.v
+// and the pixel sequencer operate on.  It is hard coded to a total
+// of 10 (4 by shifting xpos and another 6 before passing pixels
+// to the pixel sequencer).
 
 `ifndef IS_SIMULATOR
 // Real hardware values

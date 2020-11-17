@@ -62,10 +62,6 @@ reg [1:0] sprite_cur_pixel3 [`NUM_SPRITES-1:0];
 reg [1:0] sprite_cur_pixel4 [`NUM_SPRITES-1:0];
 reg [1:0] sprite_cur_pixel5 [`NUM_SPRITES-1:0];
 reg [1:0] sprite_cur_pixel6 [`NUM_SPRITES-1:0];
-reg [1:0] sprite_cur_pixel7 [`NUM_SPRITES-1:0];
-reg [1:0] sprite_cur_pixel8 [`NUM_SPRITES-1:0];
-reg [1:0] sprite_cur_pixel9 [`NUM_SPRITES-1:0];
-reg [1:0] sprite_cur_pixel10 [`NUM_SPRITES-1:0];
 
 // Other internal regs
 reg [5:0] sprite_mcbase[0:`NUM_SPRITES - 1];
@@ -282,12 +278,8 @@ begin
             sprite_cur_pixel4[n] <= sprite_cur_pixel3[n];
             sprite_cur_pixel5[n] <= sprite_cur_pixel4[n];
             sprite_cur_pixel6[n] <= sprite_cur_pixel5[n];
-            sprite_cur_pixel7[n] <= sprite_cur_pixel6[n];
-            sprite_cur_pixel8[n] <= sprite_cur_pixel7[n];
-            sprite_cur_pixel9[n] <= sprite_cur_pixel8[n];
-            sprite_cur_pixel10[n] <= sprite_cur_pixel9[n];
 
-            sprite_cur_pixel[n] <= sprite_cur_pixel10[n];
+            sprite_cur_pixel[n] <= sprite_cur_pixel6[n];
 	end
     end
 end
