@@ -24,18 +24,39 @@ completed the half cycle when the comparison takes place.  (At least this is
 true for the location where I placed the hooks.)
 
 So for state verification, we move the data available point back 4 PPS ticks.
+Doing so has some consequences for 0x1f register checks as well as possibly
+IMBC and 0x19 as described below.
 
 Here are some notes on how I 'tune' all the conditions so that the simulator
 data availble 'DATA_DAV' PPS passes the checks.  The real hardware DAV PPS of
 0 will shift the reads out but we 'hope' it matches what the real behavior
 should be.  So far this has worked out.
 
-The register xpos is set so that when PPS passes 0 (PHI transition),
-xpos MOD 8 will == 0.  This means pixels 0-3 happen on the low cycle while
-pixels 4-7 happen on the high cycle.  However, it's important to note
-that pixel 3 sprite to data collisions actually bleed into the high cycle
-(which causes some 0x1f mismatches as explained below).  It's not clear
-whether this happens on the real hardware too.
+The register xpos is set so that shortly before PHI transitions HIGH
+to LOW, xpos MOD 8 will == 0.  The location was chosen to align with
+certain timed register changes in demos (Krestage).  In VICE,
+pixels 0-3 are rendered on the LOW cycle while pixels 4-7 render on the
+high cycle.  But due to our xpos being slightly shifted from PHI, our
+pixel 0 lands inside the end of the HIGH cycle.  This causes some 0x1f
+mismatches since that m2d rise is delayed until the next high cycle. 
+(TODO: Look into making pixel 0 not do that?). 
+
+* It might be the case that we should be delaying xpos by another
+  pixel (shift mod 8 == 0 one more to the right) so that instead
+  of the situation being this:
+
+   HLLLLHHH
+   01234556
+
+  We have this:
+
+   LLLLHHHH
+   70123456
+
+  In which case it's the same problem but we 3 bleeds into the HIGH
+  which would defer 0x1f.  Keeping the current delay until I find
+  a demo that fails.  In either case, we would possibly need to
+  change the deferral logic so that we make m2d change when VICE does.
 
 Check the timing
 ----------------
@@ -105,15 +126,15 @@ The stages are as follows:
    stage 2: overwrite with sprite pixels if necessary
    stage 3: final delay of output pixels
 
-The stage 3 delay delays pixels by another half cycle and 
+The stage 3 delay delays pixels by another pixel and 
 is necessary to align with border color register changes
 that might occur. A good example is EOD Sarah Conner
 chronciles scroll where the border next to the
 sprite label is changed to match the sprite logo/label.
-If the delay was not used, there would be a larger
-gap there.  This also brings the total delay between
-when pixels are read and when they are displayed to
-about 12 pixels which agrees with Christian's doc.
+If the delay was not used, there would be a gap there.
+This also brings the total delay between when pixels are
+read and when they are displayed to about 12 pixels which
+agrees with Christian's doc.
 
 Tests:
    sprite5.prg
@@ -124,3 +145,5 @@ Tests:
    Edge of Disgrace Disk 2 sarah conner chronicles vertical scroll
    Lunatico massively interleaved sprite crunch intro
    Uncensored satellite sprite collisions
+   Krestage veritcal scrolling gfx should not be doubled (b0c on/off timed regs)
+
