@@ -8,7 +8,9 @@ module pixel_sequencer(
            input clk_phi,
            input dot_rising_0,
            input dot_rising_1,
-           input phi_phase_start_0,
+	   // chosen to make pixels/chars delayed valid when load_pixels rises
+	   // (when xpos_mod_8 == 0)
+           input phi_phase_start_lp,
            input phi_phase_start_dav,
            input phi_phase_start_xscroll_latch,
            input mcm,
@@ -98,17 +100,22 @@ begin
         char_read_delayed0 <= char_read;
         char_read_delayed1 <= char_read_delayed0;
     end
-`ifndef IS_SIMULATOR
-    if (phi_phase_start_0) begin
-        pixels_read_delayed <= pixels_read_delayed0;
-        char_read_delayed <= char_read_delayed0;
-    end
-`else
-    if (phi_phase_start_0) begin
+// This was left over from the time when we grabbed
+// pixels/chars exacty at pps 0. But now that it
+// has been pushed over a bit, we can share this
+// logic between sim and non-sim. Leave here in case
+// it's useful again.
+//`ifndef IS_SIMULATOR
+//    if (phi_phase_start_0) begin
+//        pixels_read_delayed <= pixels_read_delayed0;
+//        char_read_delayed <= char_read_delayed0;
+//    end
+//`else
+    if (phi_phase_start_lp) begin
         pixels_read_delayed <= pixels_read_delayed1;
         char_read_delayed <= char_read_delayed1;
     end
-`endif
+//`endif
 end
 
 always @(*)
@@ -283,36 +290,38 @@ begin
     end
 end
 
-// We delay the final stage3 output by 4 more pixels
-// to 'reach' edge color transitions.  This brings
+// We delay the final stage3 output by 1 more pixel
+// to 'reach' edge color transitions. This brings
 // the total pixel delay from the time data is
 // fetched off the databus to the time it is
-// displayed to 12 pixels.
+// displayed to 12 pixels (which seems to agree with
+// Christian's doc.
+
 reg[3:0] pixel_color2a;
-reg[3:0] pixel_color2b;
-reg[3:0] pixel_color2c;
+//reg[3:0] pixel_color2b;
+//reg[3:0] pixel_color2c;
 reg main_border_stage2a;
-reg main_border_stage2b;
-reg main_border_stage2c;
+//reg main_border_stage2b;
+//reg main_border_stage2c;
 always @(posedge clk_dot4x)
 begin
     if (dot_rising_1) begin
         pixel_color2a <= pixel_color2;
-        pixel_color2b <= pixel_color2a;
-        pixel_color2c <= pixel_color2b;
+        //pixel_color2b <= pixel_color2a;
+        //pixel_color2c <= pixel_color2b;
         main_border_stage2a <= main_border_stage2;
-        main_border_stage2b <= main_border_stage2a;
-        main_border_stage2c <= main_border_stage2b;
+        //main_border_stage2b <= main_border_stage2a;
+        //main_border_stage2c <= main_border_stage2b;
     end
 end
 
 // mask with border - pixel_color3 = stage 3
 always @(posedge clk_dot4x)
 begin
-    if (main_border_stage2c)
+    if (main_border_stage2a)
         pixel_color3 <= ec;
     else
-        pixel_color3 <= pixel_color2c;
+        pixel_color3 <= pixel_color2a;
 end
 
 endmodule

@@ -288,6 +288,15 @@ assign sprite_ba_end[6] = 10'd40 + 10'd16 * 6;
 assign sprite_ba_start[7] = 10'd0 + 10'd16 * 7;
 assign sprite_ba_end[7] = 10'd40 + 10'd16 * 7;
 
+// When we pass in xpos to the pixel sequencer, we subtract 3
+// pixels to make the xpos_mod_8 zero point 3 pixles past the
+// phi clock edge, which appears to be the right spot to 'catch'
+// the b0c register changes on Krestage to hide foreground pixels
+// on the vertical scrolling text at the bottom (to the left and
+// right of the sprites).
+reg [9:0] xpos_gfx;
+assign xpos_gfx = xpos >= 10'd3 ? xpos - 10'd3 : max_xpos - 10'd2 + xpos;
+
 // dot_rising[3] means dot going high next cycle
 always @(posedge clk_dot4x)
     if (rst)
@@ -789,14 +798,14 @@ pixel_sequencer vic_pixel_sequencer(
                     .clk_phi(clk_phi),
                     .dot_rising_0(dot_rising[0]),
                     .dot_rising_1(dot_rising[1]),
-                    .phi_phase_start_0(phi_phase_start[0]),
+                    .phi_phase_start_lp(phi_phase_start[12]),
                     .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
                     .phi_phase_start_xscroll_latch(phi_phase_start[`XSCROLL_LATCH]),
                     .mcm(reg16_delayed[4]), // delayed
                     .bmm(reg11_delayed[5]), // delayed
                     .ecm(reg11_delayed[6]), // delayed
                     .cycle_num(cycle_num),
-                    .xpos_mod_8(xpos[2:0]),
+                    .xpos_mod_8(xpos_gfx[2:0]),
                     .xscroll(xscroll),
                     .pixels_read(pixels_read),
                     .char_read(char_read),
