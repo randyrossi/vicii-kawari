@@ -798,7 +798,7 @@ pixel_sequencer vic_pixel_sequencer(
                     .clk_phi(clk_phi),
                     .dot_rising_0(dot_rising[0]),
                     .dot_rising_1(dot_rising[1]),
-                    .phi_phase_start_lp(phi_phase_start[12]),
+                    .phi_phase_start_pl(phi_phase_start[`PIXEL_LATCH]),
                     .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
                     .phi_phase_start_xscroll_latch(phi_phase_start[`XSCROLL_LATCH]),
                     .mcm(reg16_delayed[4]), // delayed

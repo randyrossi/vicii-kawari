@@ -11,13 +11,21 @@
 // by the datasheet. But we use a much earlier value for VICE
 // simuation comparison.
 
+// PIXEL_LATCH
+//
+// When to transfer char/pixel data into the final delayed register
+// from the delay pipeline.  This is chosen so that the data
+// in the final delay register is first available when load_pixels
+// rises (xpos_mod_8 == 0)
+
 // XSCROLL_LATCH
 //
 // This is the phi_phase_start_value used to 'pick up' xscroll changes
 // but only during visible cycles.  Unless this is set right, xscroll
 // won't be a pixel perfect match to VICE.  I don't think it's
 // critical for behavior but it's good to be able to match VICE.
-// (Use xscroll2.prg to verify).
+// (Use xscroll2.prg to verify).  The right value seems to be the same
+// value used for PIXEL_LATCH.
 
 // XPOS_BORDER_DELAY_9BIT
 //
@@ -26,24 +34,24 @@
 // and this adjustment is needed to trigger the logic
 // correctly.
 
-// XPOS_GFX_DELAY_9BIT
+// XPOS_GFX_DELAY
 //
-// This value -1 is how much we adjust xpos by before we give it
+// This value is how much we subtract from xpos by before we give it
 // to the pixel sequencer.  It is used to control the point
-// at which xpos_mod_8 == 0.  A value of 1 here means no adjustment
-// but if DATA_DAV changes, this must also change.
+// at which xpos_mod_8 == 0.  It is hard coded to 3 in vicii.v
 
-// XPOS_SPRITE_DELAY
+// SPRITE_DELAY
 //
-// This value -1 is how much we adjust xpos by before we give it
-// to the sprite module.  This delays the time at which sprite
-// shifter starts due to a xpos match.  It is adjusted to make
-// sprite pixels align with graphics.
+// This is how many pixels to delay sprite pixels before it enters
+// the final delayed register (sprite_cur_pixel) which collisions
+// and the pixel sequencer operate on.  It is hard coded to 10
+// in sprite.v
 
 `ifndef IS_SIMULATOR
 // Real hardware values
 `define DATA_DAV 0
-`define XSCROLL_LATCH 0
+`define PIXEL_LATCH 12
+`define XSCROLL_LATCH 12
 `define XSCROLL_LATCH_PHASE clk_phi
 `define BORDER_DELAY 11
 `define SPRITE_CRUNCH_CYCLE_CHECK 15
@@ -54,7 +62,8 @@
 
 // Simlation values
 `define DATA_DAV 12
-`define XSCROLL_LATCH 0
+`define PIXEL_LATCH 12
+`define XSCROLL_LATCH 12
 `define XSCROLL_LATCH_PHASE clk_phi
 `define BORDER_DELAY 11
 `define SPRITE_CRUNCH_CYCLE_CHECK 14

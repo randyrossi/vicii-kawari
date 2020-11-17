@@ -10,7 +10,7 @@ module pixel_sequencer(
            input dot_rising_1,
 	   // chosen to make pixels/chars delayed valid when load_pixels rises
 	   // (when xpos_mod_8 == 0)
-           input phi_phase_start_lp,
+           input phi_phase_start_pl,
            input phi_phase_start_dav,
            input phi_phase_start_xscroll_latch,
            input mcm,
@@ -89,7 +89,7 @@ begin
         if (cycle_num >= 15 && cycle_num <= 55)
            xscroll_delayed <= xscroll;
     end
-    // Need to delay pixels to align properly with delayed xpos
+    // Need to delay pixels to align properly with adjusted xpos
     // value so we don't load pixels too early.  Basically, pixels_read
     // needs to be visible to the sequencer first when xpos_mod_8 == 0
     // which is when load_pixels rises.
@@ -111,7 +111,7 @@ begin
 //        char_read_delayed <= char_read_delayed0;
 //    end
 //`else
-    if (phi_phase_start_lp) begin
+    if (phi_phase_start_pl) begin
         pixels_read_delayed <= pixels_read_delayed1;
         char_read_delayed <= char_read_delayed1;
     end
