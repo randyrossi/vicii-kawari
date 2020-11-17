@@ -294,7 +294,7 @@ assign sprite_ba_end[7] = 10'd40 + 10'd16 * 7;
 // the b0c register changes on Krestage to hide foreground pixels
 // on the vertical scrolling text at the bottom (to the left and
 // right of the sprites).
-reg [9:0] xpos_gfx;
+wire [9:0] xpos_gfx;
 assign xpos_gfx = xpos >= 10'd3 ? xpos - 10'd3 : max_xpos - 10'd2 + xpos;
 
 // dot_rising[3] means dot going high next cycle
