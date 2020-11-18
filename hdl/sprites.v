@@ -9,6 +9,7 @@ module sprites(
         input [11:0] dbi,
         input [3:0] cycle_type,
         input dot_rising_0,
+        input dot_rising_1,
         input phi_phase_start_m2clr,
         input phi_phase_start_13,
         input phi_phase_start_1,
@@ -69,8 +70,9 @@ reg       sprite_xe_ff[0:`NUM_SPRITES-1];
 reg       sprite_ye_ff[0:`NUM_SPRITES-1];
 reg [7:0] sprite_active;
 reg [7:0] sprite_halt;
-reg       sprite_mmc_ff[0:`NUM_SPRITES-1];
+reg [7:0] sprite_mmc_ff;
 reg [23:0] sprite_pixels_shifting [0:`NUM_SPRITES-1];
+reg [7:0] sprite_mmc_d;
 
 // Handle un-flattening here
 assign sprite_x[0] = sprite_x_o[71:63];
@@ -208,6 +210,20 @@ begin
         end
     end
     else begin
+        // Krestage3 - "No VIC  inside" fails without this flip flop quirk
+	// This is timed to happen just after the last pixel of a cycle
+	// which happened just after phi transition from high to low and the
+	// register set should have taken place by then.
+        if (dot_rising_1 && cycle_bit == 0) begin
+           //$display("before cycle %d line %d : %d %d %d",
+	   //    cycle_num, raster_line, sprite_mmc_ff, sprite_mmc, sprite_mmc_d);
+	   // My sprite_mmc_ff bits are opposite to VICE so this is | rather &~
+           sprite_mmc_ff = sprite_mmc_ff | (sprite_mmc ^ sprite_mmc_d);
+           sprite_mmc_d <= sprite_mmc;
+           //$display("after cycle %d line %d : %d %d %d",
+	   //    cycle_num, raster_line, sprite_mmc_ff, sprite_mmc, sprite_mmc_d);
+        end
+
         // Handle next pixel
         if (dot_rising_0) begin
             // The sprite pixel shifter will deactivate a sprite
@@ -243,7 +259,7 @@ begin
                               if (!sprite_mmc_ff[n])
                                   sprite_cur_pixel1[n] <= sprite_pixels_shifting[n][23:22];
                               sprite_pixels_shifting[n] <= {sprite_pixels_shifting[n][22:0], 1'b0};
-                              sprite_mmc_ff[n] = !sprite_mmc_ff[n] & sprite_mmc[n];
+                              sprite_mmc_ff[n] = !sprite_mmc_ff[n] & sprite_mmc_d[n];
                           end
                           sprite_xe_ff[n] = !sprite_xe_ff[n] & sprite_xe[n];
                        end
@@ -381,8 +397,8 @@ always @(posedge clk_dot4x)
 	// This triggers the sprite stage of the pixel sequencer.
 	if (stage) begin
             for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-                if (((sprite_mmc[n] && sprite_cur_pixel[n] != 0) || // multicolor
-	           (!sprite_mmc[n] && sprite_cur_pixel[n][1] != 0)) & // non multicolor
+                if (((sprite_mmc_d[n] && sprite_cur_pixel[n] != 0) || // multicolor
+	           (!sprite_mmc_d[n] && sprite_cur_pixel[n][1] != 0)) & // non multicolor
                        !is_background_pixel & (!main_border || border_low_to_high)) begin
                     sprite_m2d_pending[n] <= `TRUE;
                     if (!m2d_triggered) begin

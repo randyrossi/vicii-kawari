@@ -591,6 +591,7 @@ sprites vic_sprites(
          .cycle_type(cycle_type),
          .dbi(dbi),
          .dot_rising_0(dot_rising[0]),
+         .dot_rising_1(dot_rising[1]),
          .phi_phase_start_m2clr(phi_phase_start[`M2CLR_CHECK]),
          .phi_phase_start_13(phi_phase_start[13]),
          .phi_phase_start_1(phi_phase_start[1]),
