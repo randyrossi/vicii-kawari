@@ -288,21 +288,21 @@ assign sprite_ba_end[6] = 10'd40 + 10'd16 * 6;
 assign sprite_ba_start[7] = 10'd0 + 10'd16 * 7;
 assign sprite_ba_end[7] = 10'd40 + 10'd16 * 7;
 
-// When we pass in xpos to the pixel sequencer, we subtract 3
-// pixels to make the xpos_mod_8 zero point 3 pixles past the
+// When we pass in xpos to the pixel sequencer, we subtract 4
+// pixels to make the xpos_mod_8 zero point 4 pixles past the
 // phi clock edge, which appears to be the right spot to 'catch'
 // the b0c register changes on Krestage to hide foreground pixels
 // on the vertical scrolling text at the bottom (to the left and
 // right of the sprites).
 wire [9:0] xpos_gfx;
-assign xpos_gfx = xpos >= 10'd3 ? xpos - 10'd3 : max_xpos - 10'd2 + xpos;
+assign xpos_gfx = xpos >= 10'd2 ? xpos - 10'd2 : max_xpos - 10'd1 + xpos;
 
-// When we pass xpos to the sprite module, we subtract 4
+// When we pass xpos to the sprite module, we subtract 5
 // pixels to make shifting start at the right time.  The output
 // pixels are shifted another 6 before reaching the pixel
 // sequencer.
 wire [9:0] xpos_sprite;
-assign xpos_sprite = xpos >= 10'd4 ? xpos - 10'd4 : max_xpos - 10'd3 + xpos;
+assign xpos_sprite = xpos >= 10'd3 ? xpos - 10'd3 : max_xpos - 10'd2 + xpos;
 
 // dot_rising[3] means dot going high next cycle
 always @(posedge clk_dot4x)

@@ -229,13 +229,13 @@ begin
             // The sprite pixel shifter will deactivate a sprite
             // or halt the shifter entirely around the cycles that
             // perform dma access. 
-            if (cycle_bit == 2 && (cycle_type == `VIC_LS2 || cycle_type == `VIC_LPI2)) begin
+            if (cycle_bit == 1 && (cycle_type == `VIC_LS2 || cycle_type == `VIC_LPI2)) begin
                 sprite_active[sprite_cnt] = `FALSE;
                 sprite_cur_pixel1[sprite_cnt] <= 0;
-            end else if (cycle_bit == 3 && cycle_type == `VIC_LP) begin
+            end else if (cycle_bit == 2 && cycle_type == `VIC_LP) begin
                 sprite_halt[sprite_cnt] = `TRUE;
                 sprite_pixels_shifting[sprite_cnt] <= 24'b0;
-            end else if (cycle_bit == 7 && (cycle_type == `VIC_HS3 || cycle_type == `VIC_HPI3))
+            end else if (cycle_bit == 6 && (cycle_type == `VIC_HS3 || cycle_type == `VIC_HPI3))
                 sprite_halt[sprite_cnt] = `FALSE;
 
             // when xpos matches sprite_x, turn on shift
