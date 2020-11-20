@@ -8,8 +8,8 @@ module pixel_sequencer(
            input clk_phi,
            input dot_rising_0,
            input dot_rising_1,
-	   // chosen to make pixels/chars delayed valid when load_pixels rises
-	   // (when xpos_mod_8 == 0)
+           // chosen to make pixels/chars delayed valid when load_pixels rises
+           // (when xpos_mod_8 == 0)
            input phi_phase_start_pl,
            input phi_phase_start_dav,
            input phi_phase_start_xscroll_latch,
@@ -17,6 +17,7 @@ module pixel_sequencer(
            input bmm,
            input ecm,
            input [2:0] xpos_mod_8,
+           input idle,
            input [6:0] cycle_num,
            input [2:0] xscroll,
            input [7:0] pixels_read,
@@ -34,6 +35,7 @@ module pixel_sequencer(
            input [31:0] sprite_col_o,
            input [3:0] sprite_mc0,
            input [3:0] sprite_mc1,
+           input vborder,
            output reg is_background_pixel1,
            output reg stage1,
            output reg [3:0] pixel_color3
@@ -44,6 +46,9 @@ reg shift_pixels;
 reg ismc;
 reg is_background_pixel0;
 integer n;
+
+wire visible;
+assign visible = cycle_num >= 15 && cycle_num <= 56;
 
 // Destinations for flattened inputs that need to be sliced back into an array
 wire [1:0] sprite_cur_pixel [`NUM_SPRITES-1:0];
@@ -86,7 +91,7 @@ always @(posedge clk_dot4x)
 begin
     if (`XSCROLL_LATCH_PHASE && phi_phase_start_xscroll_latch) begin
         // pick up xscroll only inside visible cycles
-        if (cycle_num >= 15 && cycle_num <= 55)
+        if (visible)
            xscroll_delayed <= xscroll;
     end
     // Need to delay pixels to align properly with adjusted xpos
@@ -143,8 +148,15 @@ begin
     //end else
     if (dot_rising_1) begin
         stage0 <= 1'b1;
-        if (load_pixels)
-            char_shifting <= char_read_delayed;
+        if (!vborder && visible) begin
+            if (!idle) begin
+               if (load_pixels) begin
+                  char_shifting <= char_read_delayed;
+               end
+            end else begin
+               char_shifting <= 12'b0;
+            end
+        end
     end
     if (stage0)
         stage0 <= 1'b0;
@@ -158,8 +170,13 @@ always @(posedge clk_dot4x) begin
     end
     else if (dot_rising_1) begin
         if (load_pixels) begin
-            pixels_shifting <= pixels_read_delayed;
-            is_background_pixel0 <= !pixels_read_delayed[7];
+            if (!vborder && visible) begin
+               pixels_shifting <= pixels_read_delayed;
+               is_background_pixel0 <= !pixels_read_delayed[7];
+            end else begin
+               pixels_shifting <= 8'b0;
+               is_background_pixel0 <= 1'b1;
+            end
         end else if (shift_pixels) begin
             if (ismc) begin
                 pixels_shifting <= {pixels_shifting[5:0], 2'b0};
@@ -184,9 +201,9 @@ begin
         stage1 <= 1'b0;
     if (stage0) begin
         pixel_color1 <= `BLACK;
-	is_background_pixel1 <= is_background_pixel0;
-	main_border_stage1 <= main_border;
-	stage1 <= 1'b1;
+        is_background_pixel1 <= is_background_pixel0;
+        main_border_stage1 <= main_border;
+        stage1 <= 1'b1;
         case ({ecm, bmm, mcm})
             `MODE_STANDARD_CHAR:
                 pixel_color1 <= pixels_shifting[7] ? char_shifting[11:8]:b0c;
@@ -245,7 +262,7 @@ begin
     //    pixel_color2 = `BLACK;
     //end else
     if (stage1) begin
-	main_border_stage2 <= main_border_stage1;
+        main_border_stage2 <= main_border_stage1;
         // illegal modes should have black pixels
         case ({ecm, bmm, mcm})
             `MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR,

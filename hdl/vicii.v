@@ -812,6 +812,7 @@ pixel_sequencer vic_pixel_sequencer(
                     .mcm(reg16_delayed[4]), // delayed
                     .bmm(reg11_delayed[5]), // delayed
                     .ecm(reg11_delayed[6]), // delayed
+                    .idle(idle),
                     .cycle_num(cycle_num),
                     .xpos_mod_8(xpos_gfx[2:0]),
                     .xscroll(xscroll),
@@ -824,6 +825,7 @@ pixel_sequencer vic_pixel_sequencer(
                     .ec(ec),
                     .main_border(main_border),
                     .main_border_stage1(main_border_stage1),
+                    .vborder(top_bot_border),
                     .sprite_cur_pixel_o(sprite_cur_pixel_o),
                     .sprite_pri(sprite_pri),
                     .sprite_mmc(sprite_mmc),
