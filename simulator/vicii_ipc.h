@@ -30,6 +30,8 @@ union semun {
 #define VICII_OP_SYNC_STATE    8
 // Only start capture when x,y hit 0,0 and do one frame only
 #define VICII_OP_CAPTURE_ONE_FRAME 16
+// Abort
+#define VICII_OP_CAPTURE_ABORT   32
 
 // Must not exceed IPC_BUFSIZE
 struct vicii_state {

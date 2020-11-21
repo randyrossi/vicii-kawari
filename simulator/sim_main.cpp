@@ -538,6 +538,7 @@ int main(int argc, char** argv, char** env) {
     int prevY = -1;
     struct vicii_ipc* ipc;
     bool keyPressToQuit = true;
+    bool viceCapture = false;
 
     // Default to 16.7us starting at 0
     startTicks = US_TO_TICKS(0);
@@ -551,7 +552,7 @@ int main(int argc, char** argv, char** env) {
     int reti, reti2;
     char regex_buf[32];
 
-    while ((c = getopt (argc, argv, "c:hs:d:wi:zbl:r:gt")) != -1)
+    while ((c = getopt (argc, argv, "c:hs:d:wi:zbl:r:gtx")) != -1)
     switch (c) {
       case 't':
         tracing = true;
@@ -589,7 +590,11 @@ int main(int argc, char** argv, char** env) {
         printf ("  -c <chip> : 0=CHIP6567R8, 1=CHIP6569 2=CHIP6567R56A\n");
         printf ("  -h        : start under reset\n");
         printf ("  -l        : log level\n");
+        printf ("  -x        : sync with VICE and save a frame before exiting\n");
         exit(0);
+      case 'x':
+	viceCapture = true;
+	break;
       case '?':
         if (optopt == 't' || optopt == 's') {
           LOG(LOG_ERROR, "Option -%c requires an argument", optopt);
@@ -830,11 +835,19 @@ int main(int argc, char** argv, char** env) {
     int ticksUntilDone = 0;
     int ticksUntilPhase = 0;
     bool showState = true;
+    bool viceCaptureWaitLine1 = true;
     while (!Verilated::gotFinish()) {
 
         // Are we shadowing from VICE? Wait for sync data, then
         // step until next dot clock tick.
         if (shadowVic && ticksUntilDone == 0) {
+
+           // This is technically a race condition. We might miss the
+	   // first send...should really do this on another thread.
+           if (viceCapture && (state->flags & VICII_OP_CAPTURE_START) == 0) {
+               state->flags |= VICII_OP_CAPTURE_START;
+	   }
+
            // Do not change state before this line
            if (ipc_receive(ipc))
               break;
@@ -1050,6 +1063,24 @@ int main(int argc, char** argv, char** env) {
               ipc_receive_done(ipc);
               break;
            }
+	   if (viceCapture) {
+              if (viceCaptureWaitLine1) {
+		     if (top->V_XPOS == 0 && top->V_RASTER_LINE == 0) {
+		         viceCaptureWaitLine1 = false;
+		     }
+	      } else if (top->V_XPOS == lastXPos && top->V_RASTER_LINE == screenHeight - 1) {
+		 state->flags |= VICII_OP_CAPTURE_ABORT;
+                 ipc_receive_done(ipc);
+
+                 SDL_Surface *sshot = SDL_CreateRGBSurface(0, screenWidth*2, screenHeight*2,
+                     32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+                 SDL_RenderReadPixels(ren, NULL, SDL_PIXELFORMAT_ARGB8888,
+                                      sshot->pixels, sshot->pitch);
+                 SDL_SaveBMP(sshot, "screenshot.bmp");
+                 SDL_FreeSurface(sshot);
+                 exit(0);
+	      }
+	   }
 
            ticksUntilDone--;
            ticksUntilPhase--;
