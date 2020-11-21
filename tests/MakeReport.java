@@ -15,6 +15,7 @@ public class MakeReport
                 if (l == null) break;
                 if (l.length() == 0) continue;
 		int i = l.lastIndexOf("/");
+		String web_dir = "tests/"+l.substring(0,i);
 		String d = l.substring(0,i);
 		String fn = l.substring(i+1);
 
@@ -26,10 +27,10 @@ public class MakeReport
 
 		System.out.println("<tr>");
 		System.out.println("<td>");
-		System.out.println("<img src=\""+d+"/vice_"+fn+".png\"></img>");
+		System.out.println("<img src=\""+web_dir+"/vice_"+fn+".png\"></img>");
 		System.out.println("</td>");
 		System.out.println("<td>");
-		System.out.println("<img src=\""+d+"/fpga_"+fn+".png\"></img>");
+		System.out.println("<img src=\""+web_dir+"/fpga_"+fn+".png\"></img>");
 		System.out.println("</td>");
 		System.out.println("<td>");
 		System.out.println("<textarea rows=\"10\" cols=\"50\">");
@@ -43,6 +44,7 @@ public class MakeReport
 	   while (count < 10) {
                 String l2 = br2.readLine();
                 if (l2 == null) break;
+		if (l2.startsWith("INFO: next xpos")) continue;
 		System.out.println(l2);
 		count++;
 	   }

@@ -989,9 +989,9 @@ int main(int argc, char** argv, char** env) {
           // If rendering, draw current color on dot clock
           if (showWindow && HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
              SDL_SetRenderDrawColor(ren,
-                top->red << 5,
-                top->green << 5,
-                top->blue << 5,
+                top->red << 5 | 0b11100,
+                top->green << 5 | 0b11100,
+                top->blue << 5 | 0b11100,
                 255);
              drawPixel(ren,
                 top->V_RASTER_X,

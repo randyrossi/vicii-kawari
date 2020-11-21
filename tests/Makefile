@@ -1,6 +1,6 @@
 all: list.txt index.html
 
-index.html:
+index.html: MakeReport.java
 	javac MakeReport.java
 	java MakeReport > index.html
 
@@ -15,3 +15,10 @@ clean:
 	find . -name 'vice_*.png' -exec rm -f {} \;
 	find . -name 'vice_*.log' -exec rm -f {} \;
 	find . -name 'fpga_*.png' -exec rm -f {} \;
+
+publish:
+	sudo cp -R * /var/www/html/tests
+	sudo cp index.html /var/www/html
+	sudo chown -R root:root  /var/www/html/*
+	sudo chmod -R oug+rw /var/www/html/*
+	sudo find /var/www/html -type d -exec chmod oug+x {} \;
