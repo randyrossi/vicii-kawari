@@ -115,6 +115,8 @@ assign sprite_cur_pixel_o = {sprite_cur_pixel[0], sprite_cur_pixel[1], sprite_cu
 reg prev_main_border;
 wire border_low_to_high;
 
+reg [7:0] sprite_display;
+
 always @(posedge clk_dot4x)
    prev_main_border <= main_border;
 
@@ -175,6 +177,13 @@ always @(posedge clk_dot4x)
         if (clk_phi && phi_phase_start_1 && cycle_num == sprite_disp_chk) begin
             for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
                 sprite_mc[n] <= sprite_mcbase[n];
+		if (sprite_dma[n]) begin
+                   if (sprite_en[n] && raster_line[7:0] == sprite_y[n]) begin
+		       sprite_display[n] = 1'b1;
+		   end
+	         end else begin
+		    sprite_display[n] = 1'b0;
+	         end
             end
         end
 
@@ -240,7 +249,7 @@ begin
 
             // when xpos matches sprite_x, turn on shift
             for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-               if (!sprite_halt[n] && sprite_x[n] == xpos[8:0]) begin
+               if (sprite_display[n] && !sprite_halt[n] && sprite_x[n] == xpos[8:0]) begin
                    sprite_active[n] = `TRUE;
                    sprite_xe_ff[n] = `FALSE;
                    sprite_mmc_ff[n] = `FALSE;
@@ -272,13 +281,22 @@ begin
         end
 
         // s-access - This must be done here instead of bus_access because
-        // this is where the shifting logic resides.
-        if (!aec && phi_phase_start_dav) begin
+        // this is where the shifting logic resides.  NOTE: On
+	// spriteenable2.prg test, sprite 0's first byte is accessed before
+	// AEC had a chance to remain LOW due to d015 futzing just before the
+	// fetch cycle.  When AEC is low shift 0xff into the register since we
+	// can't read dbi.
+        if (phi_phase_start_dav) begin
           case (cycle_type)
               `VIC_HS1, `VIC_LS2, `VIC_HS3:
-                  if (sprite_dma[sprite_cnt])
-                      sprite_pixels_shifting[sprite_cnt] <=
-                          {sprite_pixels_shifting[sprite_cnt][15:0], dbi[7:0]};
+                   if (sprite_dma[sprite_cnt])
+                      if (!aec)
+                         sprite_pixels_shifting[sprite_cnt] <=
+                             {sprite_pixels_shifting[sprite_cnt][15:0], dbi[7:0]};
+		      else
+                         sprite_pixels_shifting[sprite_cnt] <=
+                             {sprite_pixels_shifting[sprite_cnt][15:0], 8'hff};
+
               default: ;
           endcase
         end
