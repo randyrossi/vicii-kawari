@@ -48,7 +48,7 @@ reg is_background_pixel0;
 integer n;
 
 wire visible;
-assign visible = cycle_num >= 15 && cycle_num <= 56;
+assign visible = (cycle_num == 16 && clk_phi) || (cycle_num > 16 && cycle_num <= 56);
 
 // Destinations for flattened inputs that need to be sliced back into an array
 wire [1:0] sprite_cur_pixel [`NUM_SPRITES-1:0];
@@ -91,7 +91,7 @@ always @(posedge clk_dot4x)
 begin
     if (`XSCROLL_LATCH_PHASE && phi_phase_start_xscroll_latch) begin
         // pick up xscroll only inside visible cycles
-        if (visible)
+        if (visible && !vborder)
            xscroll_delayed <= xscroll;
     end
     // Need to delay pixels to align properly with adjusted xpos
@@ -148,13 +148,13 @@ begin
     //end else
     if (dot_rising_1) begin
         stage0 <= 1'b1;
-        if (!vborder && visible) begin
-            if (!idle) begin
-               if (load_pixels) begin
-                  char_shifting <= char_read_delayed;
-               end
-            end else begin
-               char_shifting <= 12'b0;
+	if (load_pixels) begin
+            if (!vborder && visible) begin
+                if (!idle) begin
+                    char_shifting <= char_read_delayed;
+                end else begin
+                    char_shifting <= 12'b0;
+		end
             end
         end
     end
