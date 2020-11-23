@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PRG_TESTS=`find . -name '*.prg' -type f`
+PRG_TESTS=`find ./VICII_Old -name '*.prg' -type f`
 VSF_TESTS=`find . -name '*.vsf' -type f`
 TESTS="$PRG_TESTS $VSF_TESTS"
 

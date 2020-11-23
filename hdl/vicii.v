@@ -337,12 +337,19 @@ assign cycle_num = raster_x[9:3];
 // allow_bad_lines falls on line 248
 // den only takes effect on line 48
 // the timing here ensures we have allow_bad_lines available @ [1]
+// by the PHI high cycle.
 always @(posedge clk_dot4x)
 begin
     if (rst)
         allow_bad_lines <= `FALSE;
     else if (clk_phi && phi_phase_start[0]) begin // just ticked high
-        if (raster_line == 48 && den == `TRUE)
+        // There is an exception here for line 49 cycle 0 because if
+	// den changes on the falling edge of PHI of the last cycle of
+	// line 48, it should still trigger allow bad lines but only
+	// when PHI goes high again next which is going to be 49/0.
+	// See test den01-49-1.prg
+        if ((raster_line == 48 || (raster_line == 49 && cycle_num == 0))
+		&& den == `TRUE)
             allow_bad_lines <= `TRUE;
         if (raster_line == 248)
             allow_bad_lines <= `FALSE;
