@@ -27,10 +27,10 @@ public class MakeReport
 
 		System.out.println("<tr>");
 		System.out.println("<td>");
-		System.out.println("<img src=\""+web_dir+"/vice_"+fn+".png\"></img>");
+		System.out.println("<a target=_blank href=\""+web_dir+"/vice_"+fn+".png\"><img src=\""+web_dir+"/vice_"+fn+".png\"></img></a>");
 		System.out.println("</td>");
 		System.out.println("<td>");
-		System.out.println("<img src=\""+web_dir+"/fpga_"+fn+".png\"></img>");
+		System.out.println("<a target=_blank href=\""+web_dir+"/fpga_"+fn+".png\"><img src=\""+web_dir+"/fpga_"+fn+".png\"></img></a>");
 		System.out.println("</td>");
 		System.out.println("<td>");
 		System.out.println("<textarea rows=\"10\" cols=\"50\">");

@@ -19,7 +19,8 @@ clean_results:
 	find . -name 'fpga_*.png' -exec rm -f {} \;
 
 publish:
-	sudo cp -R * /var/www/html/tests
+	sudo mkdir -p /var/www/html/tests/VICII_Old
+	sudo cp -R VICII_Old/* /var/www/html/tests/VICII_Old
 	sudo cp index.html /var/www/html
 	sudo chown -R root:root  /var/www/html/*
 	sudo chmod -R oug+rw /var/www/html/*
