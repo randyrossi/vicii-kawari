@@ -286,6 +286,22 @@ begin
     end
 end
 
+// Used in the stop bit logic below. Since we pushed our
+// sprite pixels out by 2, our cycle type checks would not
+// match the adjusted pixel comparison numbers unless
+// keep track of the previous cycle.
+reg[3:0] prev_cycle_type;
+reg[2:0] prev_sprite_cnt;
+always @(posedge clk_dot4x)
+begin
+   // This will keep track of prev cycle/sprite count
+   // valid at the same time cycle_type changes.
+   if (phi_phase_start_dav) begin
+       prev_cycle_type <= cycle_type;
+       prev_sprite_cnt <= sprite_cnt;
+   end
+end
+
 // Sprite pixel sequencer.
 // The bits that 'fall off' the shift register get put
 // into sprite_cur_pixel1. They are then delayed before being
@@ -325,17 +341,23 @@ begin
             // The sprite pixel shifter will deactivate a sprite
             // or halt the shifter entirely around the cycles that
             // perform dma access. This logic comes from VICE.
+	    // NOTE: Since we pushed our pixels out by 2 in order to
+	    // simulate pri/xe splits preperly, we have to use a delayed
+	    // check on the cycle type for the pixel #'s to make sense here.
+	    // Deactivate on pixel 2 on 2nd dma cycle
+	    // Halt on pixel 3 on spr ptr cycle
+	    // Resume on pixel 7 on 3rd dma cycle
             if (cycle_bit == `SPRITE_PIXEL_2 &&
-                    (cycle_type == `VIC_LS2 || cycle_type == `VIC_LPI2)) begin
-                sprite_active[sprite_cnt] = `FALSE;
-                sprite_cur_pixel1[sprite_cnt] = 0;
+                    (prev_cycle_type == `VIC_LS2 || prev_cycle_type == `VIC_LPI2)) begin
+                sprite_active[prev_sprite_cnt] = `FALSE;
+                sprite_cur_pixel1[prev_sprite_cnt] = 0;
             end else if (cycle_bit == `SPRITE_PIXEL_3 &&
-                    cycle_type == `VIC_LP) begin
-                sprite_halt[sprite_cnt] = `TRUE;
-                sprite_pixels_shifting[sprite_cnt] <= 32'b0;
+                    prev_cycle_type == `VIC_LP) begin
+                sprite_halt[prev_sprite_cnt] = `TRUE;
+                sprite_pixels_shifting[prev_sprite_cnt] <= 32'b0;
             end else if (cycle_bit == `SPRITE_PIXEL_7 &&
-                    (cycle_type == `VIC_HS3 || cycle_type == `VIC_HPI3))
-                sprite_halt[sprite_cnt] = `FALSE;
+                    (prev_cycle_type == `VIC_HS3 || prev_cycle_type == `VIC_HPI3))
+                sprite_halt[prev_sprite_cnt] = `FALSE;
 
             // When xpos matches sprite_x, turn on the shifter
 	    // As noted above, we actually trigger the active flag 
@@ -364,7 +386,7 @@ begin
 	    // We keep track of which sprite is active for the pixel
 	    // sequencer when it does its overlap logic.
             for (n = `NUM_SPRITES-1; n >= 0; n = n - 1) begin
-                //$display("XPOS %d SPRITE %d active %d halt %d reg %x pixel %d",xpos,n,
+                //$display("%d BIT %d SPRITE %d active %d halt %d reg %x pixel %d",raster_line, cycle_bit >= 2 ? cycle_bit -2 : 6 + cycle_bit,n,
                 //    sprite_active[n], sprite_halt[n], sprite_pixels_shifting[n], sprite_cur_pixel[n]);
                 // Is this sprite active?
                 if (sprite_active[n]) begin
@@ -439,6 +461,7 @@ begin
         end
     end
 end
+
 
 // This is a delay pipeline to carry sprite cur pixel out
 // to align with gfx in the pixel sequencer. We also carry

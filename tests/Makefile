@@ -5,7 +5,7 @@ index.html: MakeReport.java
 	java MakeReport > index.html
 
 list.txt:
-	find VICII_Old -name '*.prg' -type f > list.txt
+	find VICII -name '*.prg' -type f > list.txt
 	find . -name '*.vsf' -type f >> list.txt
 
 clean:
@@ -19,9 +19,9 @@ clean_results:
 	find . -name 'fpga_*.png' -exec rm -f {} \;
 
 publish:
-	sudo mkdir -p /var/www/html/tests/VICII_Old
+	sudo mkdir -p /var/www/html/tests/VICII
 	sudo mkdir -p /var/www/html/tests/snapshots
-	sudo cp -R VICII_Old/* /var/www/html/tests/VICII_Old
+	sudo cp -R VICII/* /var/www/html/tests/VICII
 	sudo cp -R snapshots/* /var/www/html/tests/snapshots
 	sudo cp index.html /var/www/html
 	sudo chown -R root:root  /var/www/html/*
