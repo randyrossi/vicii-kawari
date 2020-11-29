@@ -88,9 +88,7 @@ begin
     end
     if (clk_phi && cycle_num == 55 && phi_phase_start_0) begin
         // This makes sure pixels are zeroed out when we
-        // enter non visible area.  (This condition is for
-	// non-sim settings but it also works for sim so we
-	// don't have to change the phi phase condition here.)
+        // enter non visible area.
         pixels_read <= 8'd0;
     end
 end

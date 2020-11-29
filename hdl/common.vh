@@ -48,33 +48,33 @@
 // of 10 (4 by shifting xpos and another 6 before passing pixels
 // to the pixel sequencer).
 
-`ifndef IS_SIMULATOR
-// Real hardware values
 `define DATA_DAV 0
-`define PIXEL_LATCH 8
-`define XSCROLL_LATCH 8
-`define XSCROLL_LATCH_PHASE clk_phi
-`define BORDER_DELAY 10
+`define PIXEL_LATCH 0
+`define XSCROLL_LATCH 0
+`define XSCROLL_LATCH_PHASE !clk_phi
+`define BORDER_DELAY 12
 `define SPRITE_CRUNCH_CYCLE_CHECK 15
 `define M2CLR_CHECK 1
 `define M2CLR_PHASE !clk_phi
 
-`else
-
-// Simlation values
-`define DATA_DAV 12
-`define PIXEL_LATCH 8
-`define XSCROLL_LATCH 8
-`define XSCROLL_LATCH_PHASE clk_phi
-`define BORDER_DELAY 10
-`define SPRITE_CRUNCH_CYCLE_CHECK 14
-`define M2CLR_CHECK 15
-`define M2CLR_PHASE clk_phi
-
-`endif
-
 // Will never change but used in loops
 `define NUM_SPRITES 8
+
+// cycle_bit values for sprite pixels
+`define SPRITE_PIXEL_0 2
+`define SPRITE_PIXEL_1 3
+`define SPRITE_PIXEL_2 4
+`define SPRITE_PIXEL_3 5
+`define SPRITE_PIXEL_4 6
+`define SPRITE_PIXEL_5 7
+`define SPRITE_PIXEL_6 0
+`define SPRITE_PIXEL_7 1
+
+// dot_rising values for pixel ticks
+`define PIXEL_TICK_0 1
+`define PIXEL_TICK_1 2
+`define PIXEL_TICK_2 3
+`define PIXEL_TICK_3 0
 
 // Chip types
 `define CHIP6567R8   0

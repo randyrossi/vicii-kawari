@@ -20,7 +20,9 @@ clean_results:
 
 publish:
 	sudo mkdir -p /var/www/html/tests/VICII_Old
+	sudo mkdir -p /var/www/html/tests/snapshots
 	sudo cp -R VICII_Old/* /var/www/html/tests/VICII_Old
+	sudo cp -R snapshots/* /var/www/html/tests/snapshots
 	sudo cp index.html /var/www/html
 	sudo chown -R root:root  /var/www/html/*
 	sudo chmod -R oug+rw /var/www/html/*

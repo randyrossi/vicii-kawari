@@ -224,6 +224,7 @@ wire rsel; // border row select
 wire csel; // border column select
 wire mcm; // multi color mode
 
+wire stage0;
 wire stage1;
 wire is_background_pixel1;
 
@@ -289,20 +290,18 @@ assign sprite_ba_start[7] = 10'd0 + 10'd16 * 7;
 assign sprite_ba_end[7] = 10'd40 + 10'd16 * 7;
 
 // When we pass in xpos to the pixel sequencer, we subtract 4
-// pixels to make the xpos_mod_8 zero point 4 pixles past the
-// phi clock edge, which appears to be the right spot to 'catch'
-// the b0c register changes on Krestage to hide foreground pixels
-// on the vertical scrolling text at the bottom (to the left and
-// right of the sprites).
+// pixels to make the xpos_mod_8 zero point where we need it
+// to be.
 wire [9:0] xpos_gfx;
-assign xpos_gfx = xpos >= 10'd2 ? xpos - 10'd2 : max_xpos - 10'd1 + xpos;
+assign xpos_gfx = xpos >= 10'd4 ? xpos - 10'd4 : max_xpos - 10'd3 + xpos;
 
 // When we pass xpos to the sprite module, we subtract 5
 // pixels to make shifting start at the right time.  The output
 // pixels are shifted another 6 before reaching the pixel
 // sequencer.
 wire [9:0] xpos_sprite;
-assign xpos_sprite = xpos >= 10'd3 ? xpos - 10'd3 : max_xpos - 10'd2 + xpos;
+assign xpos_sprite = xpos >= 10'd6 ? xpos - 10'd6 : max_xpos - 10'd5 + xpos;
+
 
 // dot_rising[3] means dot going high next cycle
 always @(posedge clk_dot4x)
@@ -344,12 +343,12 @@ begin
         allow_bad_lines <= `FALSE;
     else if (clk_phi && phi_phase_start[0]) begin // just ticked high
         // There is an exception here for line 49 cycle 0 because if
-	// den changes on the falling edge of PHI of the last cycle of
-	// line 48, it should still trigger allow bad lines but only
-	// when PHI goes high again next which is going to be 49/0.
-	// See test den01-49-1.prg
+        // den changes on the falling edge of PHI of the last cycle of
+        // line 48, it should still trigger allow bad lines but only
+        // when PHI goes high again next which is going to be 49/0.
+        // See test den01-49-1.prg
         if ((raster_line == 48 || (raster_line == 49 && cycle_num == 0))
-		&& den == `TRUE)
+               && den == `TRUE)
             allow_bad_lines <= `TRUE;
         if (raster_line == 248)
             allow_bad_lines <= `FALSE;
@@ -591,13 +590,16 @@ wire [7:0] sprite_m2m;
 wire [7:0] sprite_m2d;
 wire main_border_stage1;
 
+wire [7:0] sprite_mmc_d;
+wire [7:0] sprite_pri_d;
+wire [3:0] active_sprite_d;
+
 sprites vic_sprites(
          .rst(rst),
          .clk_dot4x(clk_dot4x),
          .clk_phi(clk_phi),
          .cycle_type(cycle_type),
          .dbi(dbi),
-         .dot_rising_0(dot_rising[0]),
          .dot_rising_1(dot_rising[1]),
          .phi_phase_start_m2clr(phi_phase_start[`M2CLR_CHECK]),
          .phi_phase_start_13(phi_phase_start[13]),
@@ -614,10 +616,13 @@ sprites vic_sprites(
          .sprite_ye(sprite_ye),
          .sprite_en(sprite_en),
          .sprite_mmc(sprite_mmc),
+         .sprite_pri(sprite_pri),
+         .sprite_pri_d(sprite_pri_d),
          .sprite_cnt(sprite_cnt),
          .aec(aec),
          .is_background_pixel(is_background_pixel1),
-         .stage(stage1),
+         .stage0(stage0),
+         .stage1(stage1),
          .main_border(main_border_stage1),
          .imbc_clr(imbc_clr),
          .immc_clr(immc_clr),
@@ -633,7 +638,9 @@ sprites vic_sprites(
          .m2m_clr(m2m_clr),
          .m2d_clr(m2d_clr),
          .sprite_m2m(sprite_m2m),
-         .sprite_m2d(sprite_m2d)
+         .sprite_m2d(sprite_m2d),
+	 .sprite_mmc_d(sprite_mmc_d),
+	 .active_sprite_d(active_sprite_d)
 );
 
 
@@ -834,14 +841,16 @@ pixel_sequencer vic_pixel_sequencer(
                     .main_border_stage1(main_border_stage1),
                     .vborder(top_bot_border),
                     .sprite_cur_pixel_o(sprite_cur_pixel_o),
-                    .sprite_pri(sprite_pri),
-                    .sprite_mmc(sprite_mmc),
+                    .sprite_pri_d(sprite_pri_d),  // delayed
+                    .sprite_mmc_d(sprite_mmc_d),  // delayed
                     .sprite_col_o(sprite_col_o),
                     .sprite_mc0(sprite_mc0),
                     .sprite_mc1(sprite_mc1),
                     .is_background_pixel1(is_background_pixel1),
+                    .stage0(stage0),
                     .stage1(stage1),
-                    .pixel_color3(pixel_color3)
+                    .pixel_color3(pixel_color3),
+		    .active_sprite_d(active_sprite_d)
                 );
 
 endmodule : vicii
