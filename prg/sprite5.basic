@@ -10,7 +10,7 @@
 46 a=peek(53278):a=peek(53278):poke53273,4
 47 for x = 0 to 8
 50 poke 53248,25+x:poke 53250,25+23+x
-70 a=peek(53278):a=peek(53278)
+70 a=peek(53278):poke 53280,2
 80 poke 53248,25+x:poke 53250,25+50+x
-82 a=peek(53278):a=peek(53278):poke 53273,4
+82 a=peek(53278):poke 53273,4:poke53280,5
 83 next

@@ -258,12 +258,8 @@ always @(posedge clk_dot4x)
         end
 
         // Advance sprite byte offset while dma is happening (at end of cycle)
-        // Increment on [1] just before cycle_type changes for the next half
-        // cycle (safe for sprite_cnt too).
-        // TODO: If we set this to [1], it work's just fine but our VICE sync
-	// fails on every MC value as being one off. Set this to [13] but [1]
-	// looks much better in the logic analyser since the address
-	// transitions happen at the expected times.
+        // Need to increment before cycle_type changes for the next half
+	// cycle.
         if (phi_phase_start_13) begin
             case (cycle_type)
                 `VIC_HS1,`VIC_LS2,`VIC_HS3:
@@ -513,9 +509,6 @@ begin
 end
 
 // Sprite to sprite collision logic (m2m)
-// NOTE: VICE seems to want m2m collisions to rise by the end of the low
-// phase of phi. So we defer collisions discovered during the high phase
-// until next next low phase.
 // TODO: This makes sprite-sprite collisions happen on the DELAYED
 // sprite pixels. Find out if this is correct.
 reg [`NUM_SPRITES-1:0] collision;
@@ -524,33 +517,21 @@ always @*
         collision[n] = sprite_cur_pixel[n][1];
 
 reg m2m_triggered;
-reg [7:0] sprite_m2m_pending;
-reg immc_pending;
-
 always @(posedge clk_dot4x)
     if (rst) begin
         sprite_m2m <= 8'b0;
-        sprite_m2m_pending <= 8'b0;
         m2m_triggered <= `FALSE;
         immc <= `FALSE;
-        immc_pending <= `FALSE;
     end else begin
         if (immc_clr) begin
             immc <= `FALSE;
-            immc_pending <= `FALSE;
         end
         if (phi_phase_start_m2clr && `M2CLR_PHASE) begin
             // must use before m2m_clr is reset in registers
             if (m2m_clr) begin
                 sprite_m2m[7:0] <= 8'd0;
-                sprite_m2m_pending[7:0] <= 8'd0;
                 m2m_triggered <= `FALSE;
             end
-        end
-        // This is the deferral mentioned above
-        if (!clk_phi) begin
-            sprite_m2m <= sprite_m2m_pending;
-            immc <= immc_pending;
         end
         case(collision)
             8'b00000000,
@@ -565,50 +546,34 @@ always @(posedge clk_dot4x)
                 ;
             default:
             begin
-                sprite_m2m_pending <= sprite_m2m_pending | collision;
+                sprite_m2m <= sprite_m2m | collision;
                 if (!m2m_triggered) begin
                     m2m_triggered <= `TRUE;
-                    immc_pending <= `TRUE;
+                    immc <= `TRUE;
                 end
             end
         endcase
     end
 
 // Sprite to data collision logic (m2d)
-// NOTE: VICE seems to want m2d collisions to rise by the end of the low
-// phase of phi. So we defer collisions discovered during the high phase
-// until next next low phase.
-// TODO: This makes sprite-data collisions happen on the DELAYED
-// sprite pixels. Find out if this is correct.
-reg [7:0] sprite_m2d_pending;
 reg m2d_triggered;
-reg imbc_pending;
 
 always @(posedge clk_dot4x)
     if (rst) begin
         sprite_m2d <= 8'b0;
-        sprite_m2d_pending <= 8'b0;
         m2d_triggered <= `FALSE;
         imbc <= `FALSE;
-        imbc_pending <= `FALSE;
     end
     else begin
         if (imbc_clr) begin
             imbc <= `FALSE;
-            imbc_pending <= `FALSE;
         end
         if (phi_phase_start_m2clr && `M2CLR_PHASE) begin
             // must use before m2d_clr is reset in registers
             if (m2d_clr) begin
                 sprite_m2d <= 8'd0;
-                sprite_m2d_pending <= 8'd0;
                 m2d_triggered <= `FALSE;
             end
-        end
-        // This is the deferral mentioned above
-        if (!clk_phi) begin
-            sprite_m2d <= sprite_m2d_pending;
-            imbc <= imbc_pending;
         end
         // This triggers at the same time the sprite stage of the pixel
 	// sequencer works.  So sprite to data collisions happen on the
@@ -618,10 +583,10 @@ always @(posedge clk_dot4x)
                 if (((sprite_mmc_d[n] && sprite_cur_pixel[n] != 0) || // multicolor
                    (!sprite_mmc_d[n] && sprite_cur_pixel[n][1] != 0)) & // non multicolor
                        !is_background_pixel & (!main_border || border_low_to_high)) begin
-                    sprite_m2d_pending[n] <= `TRUE;
+                    sprite_m2d[n] <= `TRUE;
                     if (!m2d_triggered) begin
                         m2d_triggered <= `TRUE;
-                        imbc_pending <= `TRUE;
+                        imbc <= `TRUE;
                     end
                 end
             end

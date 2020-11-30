@@ -87,9 +87,7 @@
 #define V_ELP top__DOT__vic_inst__DOT__elp
 #define V_IRST top__DOT__vic_inst__DOT__irst
 #define V_IMBC top__DOT__vic_inst__DOT__imbc
-#define V_IMBC_PENDING top__DOT__vic_inst__DOT__vic_sprites__DOT__imbc_pending
 #define V_IMMC top__DOT__vic_inst__DOT__immc
-#define V_IMMC_PENDING top__DOT__vic_inst__DOT__vic_sprites__DOT__immc_pending
 #define V_ILP top__DOT__vic_inst__DOT__ilp
 #define V_IRST_CLR top__DOT__vic_inst__DOT__irst_clr
 #define V_IMBC_CLR top__DOT__vic_inst__DOT__imbc_clr
@@ -127,9 +125,7 @@
 #define V_SPRITE_XE top__DOT__vic_inst__DOT__sprite_xe
 #define V_SPRITE_YE top__DOT__vic_inst__DOT__sprite_ye
 #define V_SPRITE_M2M top__DOT__vic_inst__DOT__sprite_m2m
-#define V_SPRITE_M2M_PENDING top__DOT__vic_inst__DOT__vic_sprites__DOT__sprite_m2m_pending
 #define V_SPRITE_M2D top__DOT__vic_inst__DOT__sprite_m2d
-#define V_SPRITE_M2D_PENDING top__DOT__vic_inst__DOT__vic_sprites__DOT__sprite_m2d_pending
 #define V_SPRITE_PRI top__DOT__vic_inst__DOT__sprite_pri
 #define V_SPRITE_MMC top__DOT__vic_inst__DOT__sprite_mmc
 #define V_SPRITE_MC0 top__DOT__vic_inst__DOT__sprite_mc0

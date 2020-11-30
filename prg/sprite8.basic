@@ -1,23 +1,23 @@
 10 rem test sprite to data collision in top left corner
 20 rem should run until well after ready prompt
 30 print chr$(147);
-31 print
-32 a=peek(53272)
-35 poke 53272,peek(53272)or14
-36 fort=256 to 264:poke14336+t,0:next
-37 fort=0 to 7:poke14336+t,0:next
-40 poke 2040,192
-50 poke 2041,192
-55 poke 53269,1:poke 1024,0
-56 poke 55296,2
-60 for t=0to63:poke192*64+t,0:next
-61 poke 53248,24+0:poke53249,50:
-62 m=128
-63 poke 54271,1
-64 for q=0to7
-65 poke 192*64,m
-66 poke 14336,m
-67 m=m/2
-130 b=peek(53279)
-135 next
-140 poke 53272,a
+40 print
+50 a=peek(53272)
+60 poke 53272,peek(53272)or14
+70 fort=256 to 264:poke14336+t,0:next
+80 fort=0 to 7:poke14336+t,0:next
+90 poke 2040,192
+100 poke 2041,192
+110 poke 53269,1:poke 1024,0
+120 poke 55296,2
+130 for t=0to63:poke192*64+t,0:next
+140 poke 53248,24+0:poke53249,50
+150 m=128:b=peek(53279):poke 53280,5
+160 poke 54271,1
+170 for q=0to7
+180 poke 192*64,m
+190 poke 14336,m
+200 m=m/2:poke 53280,2
+210 b=peek(53279):poke 53280,5
+220 next
+230 poke 53272,a
