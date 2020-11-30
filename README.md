@@ -20,7 +20,7 @@ There are three video output options:
 NOTE: The VGA and HDMI modes double the horizontal frequency from ~15.7khz to ~31.4khz and are not standard so they may not work on older monitors/TVs or capture cards.  A native 15khz frequency RGB output may also possible for CRTs that support it.
 
 ## What chip models can this replace?
-It can replace the 6567/8562 (NTSC) models and the 6569/8565 (PAL-B) models. It behaves as a 6567R8 or 6569R9 (even when replacing a 8562 or 8565).  The VDD pin is not connected, so there is no voltage compatibility issue between 'breadbin' and 'short' boards like with the real chips.
+It can replace the 6567/8562 (NTSC) models and the 6569/8565 (PAL-B) models. NOTE: It behaves as a 6567R8 or 6569R9 (even when replacing a 8562 or 8565).  The VDD pin is not connected, so there is no voltage compatibility issue between 'breadbin' and 'short' boards like with the real chips.
 
 Unlike the real chips, however, it can assume the functionality of either NTSC or PAL-B models with a simple configuration change followed by a machine reset. This means your C64 can be both an NTSC and PAL machine.  PAL-N / PAL-M composite out is not supported.  
 
@@ -37,7 +37,12 @@ No. The clock input pins (color and dot) are not connected. The board comes with
 It depends on what video output you chose. If you use the composite encoder option, no modifications to the motherboard are required.  However, if you plan on using VGA or HDMI output, it is recommended the RF modulator be removed. The hole previously used for the composite jack may then be used for an HDMI or VGA cable. Otherwise, there is no practical way for a video cable to exit the machine.
 
 ## How accurate is it?
-I'm going to say 99%. I can't test every program but it supports the graphics tricks programmers used in their demos/games.  So far the results have been excellent but more testing is needed.  Also, it is possible some glitch in the real hardware could be discovered in the future that would require an update to the logic in the core.
+To measure accuracy, I use the same suite of programs VICE (The Versatile Commodore Emulator) uses to catch regressions in their releases.  Out of a total of 230 VICII tests, X are currently passing.  That's a X% success rate.  
+
+I obviously can't test every program but it supports all the graphics tricks programmers used in their demos/games.
+
+## Is this emulation?
+This is a matter of opinion. Some people consider fpga hardware that 'mimicks' real hardware simplay another form of emulation. In my opinion, this is closer to emulation than not.
 
 ## Will HDMI make my C64 look like an emulator?
 Yes. The pixel perfect look of HDMI output will resemble an emulator. This may not be desirable by some. There is no attempt to add any video processing to make HDMI look like a CRT (scanlines, curve, etc.)  If you want the look of a CRT, you should chose the Composite/VGA options and use a real CRT.  Also, the resolution will not match an HDMI monitor's native resolution so there will always be some scaling taking place.
@@ -46,16 +51,16 @@ Yes. The pixel perfect look of HDMI output will resemble an emulator. This may n
 There is no frame buffer for video output. However, there is a single raster line buffer necessary to double the 15khz horizontal frequency. Although this adds a very small delay, it is a tiny fraction of the frame rate and is imperceivable by a human. For HDMI, any additional latency will be from the monitor you use. Most TVs have a 'game mode' that turns off extra processing that can introduce latency.
 
 ## Do light pens work?
-Yes, but only if you use one of the analog modes (Composite/VGA) on a real CRT. (LCD or HDMI monitors will not work with light pens.)
+Yes, but light pens only work using analog modes (Composite/VGA) and only on a real CRT. (LCD or HDMI monitors will not work with light pens.)
 
-## Why not just buy a real one?
+## This is more expensive. Why not just buy a real one?
 If you need a VIC-II to replace a broken one, you should just buy one off eBay. This project is for fun/interest and would certainly cost more than just buying the real thing.  However, there are some advantages to using VICII-Kawari:
 
 * No 'VSP' bug
-* Configurable palette
+* Configurable color palette
 * No need for a working clock circuit
 * Can software switch between NTSC and PAL
-* It's not a near 40 year old device that may fail at any time
+* It's not an almost 40 year old device that may fail at any time
 
 Also, since the core is open source, hobbyests can add their own interesting new features (i.e. a math co-processor, more sprites, more colors, a new graphics mode, another 6510 processor, etc)
 
