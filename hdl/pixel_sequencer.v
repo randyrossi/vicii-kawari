@@ -142,22 +142,10 @@ begin
         char_read_delayed0 <= char_read;
         char_read_delayed1 <= char_read_delayed0;
     end
-// This was left over from the time when we grabbed
-// pixels/chars exacty at pps 0. But now that it
-// has been pushed over a bit, we can share this
-// logic between sim and non-sim. Leave here in case
-// it's useful again.
-//`ifndef IS_SIMULATOR
-//    if (phi_phase_start_0) begin
-//        pixels_read_delayed <= pixels_read_delayed0;
-//        char_read_delayed <= char_read_delayed0;
-//    end
-//`else
     if (!clk_phi && phi_phase_start_pl) begin
         pixels_read_delayed <= pixels_read_delayed1;
         char_read_delayed <= char_read_delayed1;
     end
-//`endif
 end
 
 always @(*)
