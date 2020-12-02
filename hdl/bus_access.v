@@ -86,11 +86,6 @@ begin
         pixels_read <= dbi[7:0];
         char_read <= idle ? 12'd0 : char_next;
     end
-    if (clk_phi && cycle_num == 55 && phi_phase_start_0) begin
-        // This makes sure pixels are zeroed out when we
-        // enter non visible area.
-        pixels_read <= 8'd0;
-    end
 end
 
 // p-access reads

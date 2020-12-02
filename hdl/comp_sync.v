@@ -38,7 +38,12 @@ begin
        else
            composite_active = 1'b0;
 
+`ifdef IS_SIMULATOR
+       // We don't want blanking intervals on simulator output
+       pixel_color4 = pixel_color3;
+`else
        pixel_color4 = composite_active ? pixel_color3 : `BLACK;
+`endif
 end
 
 always @(chip)

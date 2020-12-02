@@ -2,3 +2,5 @@ MakeReport.class
 list.txt
 index.html
 screenshot.bmp
+*.log
+*.png

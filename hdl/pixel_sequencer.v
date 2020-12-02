@@ -8,17 +8,18 @@ module pixel_sequencer(
            input clk_phi,
            input dot_rising_0,
            input dot_rising_1,
+           input dot_rising_3,
            // chosen to make pixels/chars delayed valid when load_pixels rises
-           // (when xpos_mod_8 == 0)
+           // (when cycle_bit == 0)
            input phi_phase_start_pl,
            input phi_phase_start_dav,
-           input phi_phase_start_xscroll_latch,
            input mcm,
            input bmm,
            input ecm,
-           input [2:0] xpos_mod_8,
            input idle,
            input [6:0] cycle_num,
+           input [2:0] cycle_bit,
+           input [8:0] raster_line,
            input [2:0] xscroll,
            input [7:0] pixels_read,
            input [11:0] char_read,
@@ -44,15 +45,7 @@ module pixel_sequencer(
        );
 
 reg load_pixels;
-reg shift_pixels;
-reg ismc;
-reg is_background_pixel0;
 integer n;
-
-wire visible;
-assign visible = cycle_num >= 15 && cycle_num <= 55;
-wire visible_d;
-assign visible_d = cycle_num >= 17 && cycle_num <= 57;
 
 // Destinations for flattened inputs that need to be sliced back into an array
 wire [1:0] sprite_cur_pixel [`NUM_SPRITES-1:0];
@@ -85,6 +78,9 @@ reg [7:0] pixels_read_delayed;
 reg [11:0] char_read_delayed0;
 reg [11:0] char_read_delayed1;
 reg [11:0] char_read_delayed;
+reg [6:0] cycle_num_delayed0;
+reg [6:0] cycle_num_delayed1;
+reg [6:0] cycle_num_delayed;
 
 reg [3:0] sprite_col_d1 [`NUM_SPRITES-1:0];
 reg [3:0] sprite_col_d2 [`NUM_SPRITES-1:0];
@@ -93,14 +89,15 @@ reg [3:0] sprite_mc0_d2;
 reg [3:0] sprite_mc1_d1;
 reg [3:0] sprite_mc1_d2;
 
-reg [3:0] b0c_d1;
-reg [3:0] b1c_d1;
-reg [3:0] b2c_d1;
-reg [3:0] b3c_d1;
-
 // pixels being shifted and the associated char (for color info)
 reg [11:0] char_shifting;
 reg [7:0] pixels_shifting;
+
+reg [3:0] ec_d2;
+reg [3:0] b0c_d2;
+reg [3:0] b1c_d2;
+reg [3:0] b2c_d2;
+reg [3:0] b3c_d2;
 
 // For color splits to work on sprites, we need to delay
 // register changes by 2 pixels and to become valid by stage1
@@ -111,10 +108,6 @@ begin
           sprite_col_d1[n[2:0]] <= sprite_col[n[2:0]];
           sprite_col_d2[n[2:0]] <= sprite_col_d1[n[2:0]];
        end
-       b0c_d1 <= b0c;
-       b1c_d1 <= b1c;
-       b2c_d1 <= b2c;
-       b3c_d1 <= b3c;
        sprite_mc0_d1 <= sprite_mc0;
        sprite_mc0_d2 <= sprite_mc0_d1;
        sprite_mc1_d1 <= sprite_mc1;
@@ -126,11 +119,6 @@ end
 // are available at the first dot of PHI2
 always @(posedge clk_dot4x)
 begin
-    if (`XSCROLL_LATCH_PHASE && phi_phase_start_xscroll_latch) begin
-        // pick up xscroll only inside visible cycles
-        if (visible && !vborder)
-           xscroll_delayed <= xscroll;
-    end
     // Need to delay pixels to align properly with adjusted xpos
     // value so we don't load pixels too early.  Basically, pixels_read
     // needs to be visible to the sequencer first when xpos_mod_8 == 0
@@ -141,83 +129,123 @@ begin
 
         char_read_delayed0 <= char_read;
         char_read_delayed1 <= char_read_delayed0;
+
+	cycle_num_delayed0 <= cycle_num;
+	cycle_num_delayed1 <= cycle_num_delayed0;
     end
+
     if (!clk_phi && phi_phase_start_pl) begin
         pixels_read_delayed <= pixels_read_delayed1;
         char_read_delayed <= char_read_delayed1;
+	cycle_num_delayed <= cycle_num_delayed1;
+        if (visible && !vborder)
+            xscroll_delayed <= xscroll;
+    end
+
+    if (stage0) begin
+	b0c_d2 <= b0c;
+	b1c_d2 <= b1c;
+	b2c_d2 <= b2c;
+	b3c_d2 <= b3c;
+    end
+ 
+    if (stage1) begin
+        ec_d2 <= ec;
     end
 end
 
-always @(*)
-    ismc = mcm & (bmm | ecm | char_shifting[11]);
+wire visible;
+wire visible_d;
+assign visible = cycle_num >= 15 && cycle_num <= 54;
+assign visible_d = cycle_num_delayed >= 15 && cycle_num_delayed <= 54;
 
-always @(*)
-    load_pixels = xpos_mod_8 == xscroll_delayed;
+reg g_mc_ff;
+reg mcm_d;
+reg mcm_d_prev;
+reg bmm_d;
+reg ecm_d;
 
-always @(posedge clk_dot4x)
-    //if (rst) begin
-    //    shift_pixels <= `FALSE;
-    //end else
-    // Make shift_pixels valid at the beginning of the next pixel.
-    if (dot_rising_0) begin
-        if (load_pixels)
-            shift_pixels <= ~(mcm & (bmm | ecm | char_read_delayed[11]));
-        else
-            shift_pixels <= ismc ? ~shift_pixels : shift_pixels;
-    end
-
+reg is_background_pixel0;
+// pixel_value is not a color, it encodes
+// {bcm,bmm,mcm,px1,px0}
+reg [4:0] pixel_value;
 always @(posedge clk_dot4x)
 begin
-    //if (rst) begin
-    //    char_shifting <= 12'b0;
-    //end else
-    // Grab data into our shift register on the first tick of our pixel.
+    if (stage0)
+        stage0 <= 1'b0;
+
+    // First tick of a pixel
     if (dot_rising_1) begin
         // We 'work' on several stages of a pixel over the next 3 dot4x
 	// ticks. It begins here when we set stage0 high.
         stage0 <= 1'b1;
-	if (load_pixels) begin
+
+        if (cycle_bit == 4) begin
+           mcm_d = mcm;
+           bmm_d = bmm_d | bmm;
+           ecm_d = ecm_d | ecm;
+        end else if (cycle_bit == 6) begin
+           bmm_d = bmm_d & bmm;
+           ecm_d = ecm_d & ecm;
+        end else if (cycle_bit == 7) begin
+          if (mcm_d && !mcm_d_prev)
+              g_mc_ff = 0;
+          mcm_d_prev = mcm_d;
+        end
+
+`ifdef PIXEL_LOG
+	if (cycle_num >= 15 && cycle_num <=54) begin
+           $display("PIXEL %d WITH XSCROLL=%d VM11=%d%d VM16=%d(%d) MC=%d",
+	       cycle_bit, xscroll_delayed, bmm_d, ecm_d, mcm_d_prev, mcm_d, g_mc_ff);
+        end
+`endif
+
+	// load pixels when xscroll matches pixel 0-7
+	if (xscroll_delayed == cycle_bit) begin
+            g_mc_ff = 1;
             if (!vborder && visible_d) begin
+                pixels_shifting = pixels_read_delayed;
                 if (!idle) begin
                     char_shifting <= char_read_delayed;
                 end else begin
                     char_shifting <= 12'b0;
 		end
-            end
-        end
-    end
-    // This will happen on the next pixel tick. Clear the stage reg
-    // in prep for the next pixel.
-    if (stage0)
-        stage0 <= 1'b0;
-end
+            end else
+               pixels_shifting = 8'b0;
 
-// Pixel shifter
-always @(posedge clk_dot4x) begin
-    if (rst) begin
-        pixels_shifting <= 8'b0;
-        //is_background_pixel0 <= `FALSE;
-    end
-    // Grab data into our shift register on the first tick of our pixel.
-    // Also keep track of whether this is a background pixe or not.
-    else if (dot_rising_1) begin
-        if (load_pixels) begin
-            if (!vborder && visible_d) begin
-               pixels_shifting <= pixels_read_delayed;
-               is_background_pixel0 <= !pixels_read_delayed[7];
-            end else begin
-               pixels_shifting <= 8'b0;
-               is_background_pixel0 <= 1'b1;
+`ifdef PIXEL_LOG
+            if (cycle_num >= 15 && cycle_num <=54) begin
+                $display("LINE %03x", raster_line);
+                $display("%d CHECK LOADING %x %x",
+                   cycle_num, idle ? 12'b0 : char_read_delayed, pixels_shifting);
             end
-        end else if (shift_pixels) begin
-            if (ismc) begin
-                pixels_shifting <= {pixels_shifting[5:0], 2'b0};
-                is_background_pixel0 <= !pixels_shifting[5];
-            end else begin
-                pixels_shifting <= {pixels_shifting[6:0], 1'b0};
-                is_background_pixel0 <= !pixels_shifting[6];
-            end
+`endif
         end
+
+        // mc pixels if MCM=1 and BMM=1, or MCM=1 & CBUF[11]=1
+        if (mcm_d_prev) begin
+           if (bmm_d | char_shifting[11]) begin
+               if (g_mc_ff) begin
+                  pixel_value <= {ecm_d, bmm_d, mcm_d, pixels_shifting[7:6]};
+                  is_background_pixel0 <= !pixels_shifting[7];
+               end else
+                  pixel_value <= {ecm_d, bmm_d, mcm_d, pixel_value[1:0]};
+           end else begin
+               pixel_value <= {ecm_d, bmm_d, mcm_d, pixels_shifting[7] ? 2'b11 : 2'b0};
+               is_background_pixel0 <= !pixels_shifting[7];
+           end
+        end else begin
+           if (bmm_d | char_shifting[11])
+              pixel_value <= {ecm_d, bmm_d, mcm_d, pixels_shifting[7], 1'b0};
+           else
+              pixel_value <= {ecm_d, bmm_d, mcm_d, pixels_shifting[7] ? 2'b11 : 2'b0};
+           is_background_pixel0 <= !pixels_shifting[7];
+        end
+        pixels_shifting = {pixels_shifting[6:0], 1'b0};
+    end
+
+    if (dot_rising_3) begin
+        g_mc_ff = ~g_mc_ff;
     end
 end
 
@@ -232,56 +260,51 @@ begin
     if (stage1)
         stage1 <= 1'b0;
     if (stage0) begin
-        pixel_color1 <= `BLACK;
         is_background_pixel1 <= is_background_pixel0;
         main_border_stage1 <= main_border;
         stage1 <= 1'b1;
-        case ({ecm, bmm, mcm})
+	// Switch on pixel_value's vidmode and then use lower 2 bits for
+	// color interpretation.
+	// ECM, BMM, MCM, PX1, PX0
+`ifdef PIXEL_LOG
+	$display("PV:%02x FROM %02x", pixel_value, pixels_shifting);
+`endif
+        case (pixel_value[4:2])
             `MODE_STANDARD_CHAR:
-                pixel_color1 <= pixels_shifting[7] ? char_shifting[11:8]:b0c_d1;
+                pixel_color1 <= pixel_value[1] ? char_shifting[11:8]:b0c_d2;
             `MODE_MULTICOLOR_CHAR:
-                if (char_shifting[11])
-                case (pixels_shifting[7:6])
-                    2'b00: pixel_color1 <= b0c_d1;
-		    2'b01: pixel_color1 <= b1c_d1;
-		    2'b10: pixel_color1 <= b2c_d1;
-		    2'b11: pixel_color1 <= {1'b0, char_shifting[10:8]};
-                endcase
-		else
-                    pixel_color1 <= pixels_shifting[7] ? char_shifting[11:8]:b0c_d1;
-            `MODE_STANDARD_BITMAP, `MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP:
-                pixel_color1 <= pixels_shifting[7] ? char_shifting[7:4]:char_shifting[3:0];
-            `MODE_MULTICOLOR_BITMAP, `MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
-            case (pixels_shifting[7:6])
-                2'b00: pixel_color1 <= b0c_d1;
+		if (char_shifting[11])
+                   case (pixel_value[1:0])
+                      2'b00: pixel_color1 <= b0c_d2;
+		      2'b01: pixel_color1 <= b1c_d2;
+		      2'b10: pixel_color1 <= b2c_d2;
+		      2'b11: pixel_color1 <= {1'b0, char_shifting[10:8]};
+                   endcase
+                else
+                    pixel_color1 <= pixel_value[1] ? {1'b0,char_shifting[10:8]}:b0c_d2;
+            `MODE_STANDARD_BITMAP:
+                pixel_color1 <= pixel_value[1] ? char_shifting[7:4]:char_shifting[3:0];
+            `MODE_MULTICOLOR_BITMAP:
+            case (pixel_value[1:0])
+                2'b00: pixel_color1 <= b0c_d2;
                 2'b01: pixel_color1 <= char_shifting[7:4];
                 2'b10: pixel_color1 <= char_shifting[3:0];
                 2'b11: pixel_color1 <= char_shifting[11:8];
             endcase
             `MODE_EXTENDED_BG_COLOR:
-            case ({pixels_shifting[7], char_shifting[7:6]})
-                3'b000: pixel_color1 <= b0c_d1;
-                3'b001: pixel_color1 <= b1c_d1;
-                3'b010: pixel_color1 <= b2c_d1;
-                3'b011: pixel_color1 <= b3c_d1;
+            case ({pixel_value[1], char_shifting[7:6]})
+                3'b000: pixel_color1 <= b0c_d2;
+                3'b001: pixel_color1 <= b1c_d2;
+                3'b010: pixel_color1 <= b2c_d2;
+                3'b011: pixel_color1 <= b3c_d2;
                 default: pixel_color1 <= char_shifting[11:8];
             endcase
             `MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR:
-                if (char_shifting[11])
-                case (pixels_shifting[7:6])
-                    2'b00: pixel_color1 <= b0c_d1;
-                    2'b01: pixel_color1 <= b1c_d1;
-                    2'b10: pixel_color1 <= b2c_d1;
-                    2'b11: pixel_color1 <= char_shifting[11:8];
-                endcase
-                else
-                case ({pixels_shifting[7], char_shifting[7:6]})
-                    3'b000: pixel_color1 <= b0c_d1;
-                    3'b001: pixel_color1 <= b1c_d1;
-                    3'b010: pixel_color1 <= b2c_d1;
-                    3'b011: pixel_color1 <= b3c_d1;
-                    default: pixel_color1 <= char_shifting[11:8];
-                endcase
+                pixel_color1 <= `BLACK;
+            `MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
+                pixel_color1 <= `BLACK;
+            `MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP:
+                pixel_color1 <= `BLACK;
         endcase
     end
 end
@@ -289,16 +312,14 @@ end
 // Handle sprite overlay in stage 1
 // NOTE: This is also when sprites.v will handle sprite to data collisions
 reg [3:0] pixel_color2;
-reg main_border_stage2;
 always @(posedge clk_dot4x)
 begin
     //if (rst) begin
     //    pixel_color2 = `BLACK;
     //end else
     if (stage1) begin
-        main_border_stage2 <= main_border_stage1;
         // illegal modes should have black pixels
-        case ({ecm, bmm, mcm})
+        case (pixel_value[4:2])
             `MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR,
             `MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP,
             `MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
@@ -324,28 +345,12 @@ begin
             end
         end
     end
-end
 
-// We delay the stage2 output by 1 more pixel
-// to 'reach' edge color transitions.
-
-reg[3:0] pixel_color2a;
-reg main_border_stage2a;
-always @(posedge clk_dot4x)
-begin
-    if (dot_rising_1) begin
-        pixel_color2a <= pixel_color2;
-        main_border_stage2a <= main_border_stage2;
-    end
-end
-
-// Final stage 3. Border mask.
-always @(posedge clk_dot4x)
-begin
-    if (main_border_stage2a)
-        pixel_color3 <= ec;
+    // Final stage 3. Border mask.
+    if (main_border_stage1)
+       pixel_color3 <= ec_d2;
     else
-        pixel_color3 <= pixel_color2a;
+       pixel_color3 <= pixel_color2;
 end
 
 endmodule

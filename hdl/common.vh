@@ -18,15 +18,6 @@
 // in the final delay register is first available when load_pixels
 // rises (xpos_mod_8 == 0)
 
-// XSCROLL_LATCH
-//
-// This is the phi_phase_start_value used to 'pick up' xscroll changes
-// but only during visible cycles.  Unless this is set right, xscroll
-// won't be a pixel perfect match to VICE.  I don't think it's
-// critical for behavior but it's good to be able to match VICE.
-// (Use xscroll2.prg to verify).  The right value seems to be the same
-// value used for PIXEL_LATCH.
-
 // XPOS_BORDER_DELAY_9BIT
 //
 // This is an adjusted xpos we pass to the border module.
@@ -50,8 +41,6 @@
 
 `define DATA_DAV 0
 `define PIXEL_LATCH 0
-`define XSCROLL_LATCH 0
-`define XSCROLL_LATCH_PHASE !clk_phi
 `define BORDER_DELAY 12
 `define SPRITE_CRUNCH_CYCLE_CHECK 15
 `define M2CLR_CHECK 1
