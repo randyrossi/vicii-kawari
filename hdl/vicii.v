@@ -592,7 +592,7 @@ sprites vic_sprites(
          .clk_dot4x(clk_dot4x),
          .clk_phi(clk_phi),
          .cycle_type(cycle_type),
-         .dbi(dbi),
+         .dbi8(dbi[7:0]),
          .dot_rising_1(dot_rising[1]),
          .phi_phase_start_m2clr(phi_phase_start[`M2CLR_CHECK]),
          .phi_phase_start_13(phi_phase_start[13]),
@@ -675,10 +675,8 @@ assign ls245_addr_oe = 1'b0; // aec & ce;  for now, always enable
 bus_access vic_bus_access(
          .rst(rst),
          .clk_dot4x(clk_dot4x),
-         .phi_phase_start_0(phi_phase_start[0]),
          .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
          .cycle_type(cycle_type),
-         .cycle_num(cycle_num),
          .dbi(dbi),
          .idle(idle),
          .sprite_cnt(sprite_cnt),
@@ -687,7 +685,6 @@ bus_access vic_bus_access(
          .pixels_read(pixels_read),
          .char_read(char_read),
          .char_next(char_next),
-         .clk_phi(clk_phi),
          .aec(aec)
 );
 
@@ -808,10 +805,8 @@ end
 
 // Pixel sequencer - outputs stage 3 pixel_color3
 pixel_sequencer vic_pixel_sequencer(
-                    .rst(rst),
                     .clk_dot4x(clk_dot4x),
                     .clk_phi(clk_phi),
-                    .dot_rising_0(dot_rising[0]),
                     .dot_rising_1(dot_rising[1]),
                     .dot_rising_3(dot_rising[3]),
                     .phi_phase_start_pl(phi_phase_start[`PIXEL_LATCH]),
@@ -822,7 +817,9 @@ pixel_sequencer vic_pixel_sequencer(
                     .idle(idle),
                     .cycle_bit(raster_x[2:0]),
                     .cycle_num(cycle_num),
+`ifdef PIXEL_LOG
 		    .raster_line(raster_line),
+`endif
                     .xscroll(xscroll),
                     .pixels_read(pixels_read),
                     .char_read(char_read),

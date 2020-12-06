@@ -3,10 +3,8 @@
 `include "common.vh"
 
 module pixel_sequencer(
-           input rst,
            input clk_dot4x,
            input clk_phi,
-           input dot_rising_0,
            input dot_rising_1,
            input dot_rising_3,
            // chosen to make pixels/chars delayed valid when load_pixels rises
@@ -19,7 +17,9 @@ module pixel_sequencer(
            input idle,
            input [6:0] cycle_num,
            input [2:0] cycle_bit,
+`ifdef PIXEL_LOG
            input [8:0] raster_line,
+`endif
            input [2:0] xscroll,
            input [7:0] pixels_read,
            input [11:0] char_read,
@@ -99,6 +99,11 @@ reg [3:0] b1c_d2;
 reg [3:0] b2c_d2;
 reg [3:0] b3c_d2;
 
+wire visible;
+wire visible_d;
+assign visible = cycle_num >= 15 && cycle_num <= 54;
+assign visible_d = cycle_num_delayed >= 15 && cycle_num_delayed <= 54;
+
 // For color splits to work on sprites, we need to delay
 // register changes by 2 pixels and to become valid by stage1
 always @(posedge clk_dot4x)
@@ -153,11 +158,6 @@ begin
         ec_d2 <= ec;
     end
 end
-
-wire visible;
-wire visible_d;
-assign visible = cycle_num >= 15 && cycle_num <= 54;
-assign visible_d = cycle_num_delayed >= 15 && cycle_num_delayed <= 54;
 
 reg g_mc_ff;
 reg mcm_d;
@@ -253,10 +253,6 @@ end
 reg [3:0] pixel_color1;
 always @(posedge clk_dot4x)
 begin
-    //if (rst) begin
-    //    is_background_pixel1 <= 1'b0;
-    //    pixel_color1 <= `BLACK;
-    //end else
     if (stage1)
         stage1 <= 1'b0;
     if (stage0) begin
@@ -314,9 +310,6 @@ end
 reg [3:0] pixel_color2;
 always @(posedge clk_dot4x)
 begin
-    //if (rst) begin
-    //    pixel_color2 = `BLACK;
-    //end else
     if (stage1) begin
         // illegal modes should have black pixels
         case (pixel_value[4:2])

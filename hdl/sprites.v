@@ -33,7 +33,7 @@ module sprites(
         input rst,
         input clk_dot4x,
         input clk_phi,
-        input [11:0] dbi,
+        input [7:0] dbi8,
         input [3:0] cycle_type,
         input dot_rising_1,
         input phi_phase_start_m2clr,
@@ -447,7 +447,7 @@ begin
                    if (sprite_dma[sprite_cnt]) begin
                       if (!aec)
                          sprite_pixels_shifting[sprite_cnt] <=
-                             {sprite_pixels_shifting[sprite_cnt][23:0], dbi[7:0]};
+                             {sprite_pixels_shifting[sprite_cnt][23:0], dbi8[7:0]};
                       else
                          sprite_pixels_shifting[sprite_cnt] <=
                              {sprite_pixels_shifting[sprite_cnt][23:0], 8'hff};
