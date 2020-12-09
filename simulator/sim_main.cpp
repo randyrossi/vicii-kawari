@@ -145,7 +145,6 @@ static void HEADER(Vtop *top) {
    "AEC "
    "VCY "
    "RAS "
-   "MUX "
    "CAS "
    " X  "
    " Y  "
@@ -180,7 +179,6 @@ static void STATE(Vtop *top) {
    " %01d  "   /*AEC*/
    "%c  "     /*VCY*/
    " %01d  "   /*RAS*/
-   " %01d  "   /*MUX*/
    " %01d  "   /*CAS*/
    "%03d "   /*  X*/
    "%03d "   /*  Y*/
@@ -216,7 +214,6 @@ static void STATE(Vtop *top) {
    top->aec,
    cycleToChar(top->V_CYCLE_TYPE),
    top->ras,
-   top->V_MUXR & 32768 ? 1 : 0,
    top->cas,
    top->V_RASTER_X,
    top->V_RASTER_LINE,
@@ -229,7 +226,6 @@ static void STATE(Vtop *top) {
    top->V_REFC,
 
    //toBin(16, top->V_RASR),
-   //toBin(16, top->V_MUXR),
    //toBin(16, top->V_CASR),
 
    toBin(16, top->V_PPS),
@@ -974,12 +970,6 @@ int main(int argc, char** argv, char** env) {
              //if (top->V_RASTER_X == 0 && top->V_RASTER_LINE == 0) TODO Put back
              //   CHECK (top, top->V_REFC == 0xff, __LINE__);
 
-             if(top->V_CYCLE_BIT == 0 || top->V_CYCLE_BIT == 4) {
-                // CAS & RAS should be high at the start of each phase
-                // Timing and vicycle will determine when they fall if ever
-                CHECK (top, top->cas != 0, __LINE__);
-                CHECK (top, top->ras != 0, __LINE__);
-             }
           }
 
           // If rendering, draw current color on dot clock

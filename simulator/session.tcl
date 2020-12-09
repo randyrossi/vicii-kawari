@@ -50,5 +50,10 @@ lappend pickedsigs "top.vic_inst.vic_pixel_sequencer.stage1"
 lappend pickedsigs "top.vic_inst.vic_sprites.sprite_m2d"
 lappend pickedsigs "top.vic_inst.vic_sprites.sprite_mmc"
 lappend pickedsigs "top.vic_inst.vic_sprites.sprite_mmc_ff"
+lappend pickedsigs "top.vic_inst.clk_dot4x"
+lappend pickedsigs "top.vic_inst.vic_addressgen.ras"
+lappend pickedsigs "top.vic_inst.vic_addressgen.cas"
+lappend pickedsigs "top.vic_inst.mux"
+lappend pickedsigs "top.vic_inst.ado"
 
 set num_added [ gtkwave::addSignalsFromList $pickedsigs ]

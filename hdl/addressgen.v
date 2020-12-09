@@ -5,12 +5,12 @@
 // Address generation
 module addressgen(
            //input rst,
+           input clk_dot4x,
            input [3:0] cycle_type,
            input [2:0] cb,
            input [9:0] vc,
            input [3:0] vm,
            input [2:0] rc,
-           input mux,
            input bmm,
            input ecm,
            input idle,
@@ -20,7 +20,15 @@ module addressgen(
            input [2:0] sprite_cnt,
            input [63:0] sprite_ptr_o,
            input [47:0] sprite_mc_o,
-           output [11:0] ado
+           input phi_phase_start_rlh,
+           input phi_phase_start_rhl,
+           input phi_phase_start_clh,
+           input phi_phase_start_chl,
+           input phi_phase_start_row,
+           input phi_phase_start_col,
+           output reg [11:0] ado,
+           output reg ras,
+           output reg cas
        );
 
 // Destinations for flattened inputs that need to be sliced back into an array
@@ -51,8 +59,7 @@ assign sprite_mc[7] = sprite_mc_o[5:0];
 
 always @*
 begin
-    case(cycle_type)
-        `VIC_LR:
+    case(cycle_type) `VIC_LR:
             vic_addr = {6'b111111, refc};
         `VIC_LG: begin
             if (idle)
@@ -88,15 +95,37 @@ begin
     endcase
 end
 
+// Timing observed
+// NTSC:
+//       CAS/RAS separated by ~52ns
+//       RAS falls ~167ns after PHI edge
+//       ADDR mux @ ~38ns after RAS edge
+
+always @(posedge clk_dot4x)
+    if (phi_phase_start_rlh)
+        ras <= 1'b1;
+    else if (phi_phase_start_rhl)
+        ras <= 1'b0;
+
+always @(posedge clk_dot4x)
+    if (phi_phase_start_clh)
+        cas <= 1'b1;
+    else if (phi_phase_start_chl)
+        cas <= 1'b0;
+
 // Address out
 // ROW first, COL second
-assign ado = {vic_addr[11:8], mux ? vic_addr[7:0] : {2'b11, vic_addr[13:8]}};
-endmodule
+always @(posedge clk_dot4x) begin
+    // a6/a7 on COL is usually 2'b11 because it doesn't matter what we set.
+    // The 74LS258 will use VA14 and VA15 when AEC and CAS are low.
+    // So instead of a6/a12 and a7/a13 switching, we keep them
+    // steady by repeating a6/a7 for col address.  This seems to have no
+    // ill effects and might cut down on switching noise.
+    if (!aec)
+       if (phi_phase_start_row)
+          ado <= {vic_addr[11:8], vic_addr[7:0] };
+       else if (phi_phase_start_col)
+          ado <= {vic_addr[11:8], {vic_addr[7:6], vic_addr[13:8]}};
+end
 
-// Alternate ado assignment for consideration
-//    a6/a7 on COL is 2'b11 because it doesn't matter what we set.
-//    The 74LS258 will use VA14 and VA15 when AEC and CAS are low.
-//    So instead of a6/a12 and a7/a13 switching, we could keep them
-//    steady by repeating a6/a7 for col address.  This seems to have no
-//    ill effects and could cut down on switching noise.
-// assign ado = {vic_addr[11:8], mux ? vic_addr[7:0] : {vic_addr[7:6], vic_addr[13:8]}};
+endmodule

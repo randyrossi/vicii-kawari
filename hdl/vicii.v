@@ -171,16 +171,6 @@ wire [3:0] b0c,b1c,b2c,b3c;
 // phi_phase_start[15]==1 means phi will transition next tick
 reg [15:0] phi_phase_start;
 
-// determines timing within a phase when RAS,CAS and MUX will
-// fall.  (MUX determines when address transition occurs which
-// should be between RAS and CAS)
-reg [15:0] ras_gen;
-reg [15:0] cas_gen;
-reg [15:0] mux_gen;
-
-// muxes the last 8 bits of our read address for CAS/RAS latches
-wire mux;
-
 // tracks whether the condition for triggering these
 // types of interrupts happened, but may not be
 // reported via irq unless enabled
@@ -520,61 +510,6 @@ cycles vic_cycles(
    .sprite_cnt(sprite_cnt)
 );
 
-// Notes on RAS/CAS/MUX: We don't know what the cycle type is
-// until the 3rd tick into the phase ([2]). The lines should
-// be high upon entering the phase for 3 ticks until the blocks
-// below reset the registers to make them fall at the defined
-// times. I could just as easily have changed the assigns
-// to use [2] instead of [15] and lined all the 1's flush against
-// the left but I like to look at the last bit when debugging to
-// know if the line is high or low.
-
-// Timing observed
-// NTSC:
-//       CAS/RAS separated by ~52ns
-//       RAS falls ~167ns after PHI edge
-//       ADDR mux @ ~38ns after RAS edge
-
-// RAS/CAS/MUX profiles
-// Data must be stable by falling RAS edge
-// NOTE: Rise with AEC
-always @(posedge clk_dot4x)
-    if (rst)
-        ras_gen <= 16'b1100000000000011;
-    else if (phi_phase_start[2])
-        ras_gen <= 16'b1100000000000011;
-    else
-        ras_gen <= {ras_gen[14:0], 1'b0};
-
-// Then stable by falling CAS edge
-// NOTE: Rise with AEC
-always @(posedge clk_dot4x)
-    if (rst)
-        cas_gen <= 16'b1111000000000011;
-    else if (phi_phase_start[2])
-        cas_gen <= 16'b1111000000000011;
-    else
-        cas_gen <= {cas_gen[14:0], 1'b0};
-
-assign ras = ras_gen[15];
-assign cas = cas_gen[15];
-
-// The ado transition happens between ras and cas.
-// NOTE: We make mux rise back up at the same time
-// the cycle type transitions so that mux changes along
-// with the address gen.  This avoids unnecessary
-// noise due to address line switching.
-always @(posedge clk_dot4x)
-    if (rst)
-        mux_gen <= 16'b1110000000000001;
-    else if (phi_phase_start[2]) begin
-        // Now that the cycle type is known, make mux fall
-        // at expected times.
-        mux_gen <= 16'b1110000000000001;
-    end else
-        mux_gen <= {mux_gen[14:0], 1'b0};
-assign mux = mux_gen[15];
-
 // sprite logic
 wire handle_sprite_crunch;
 wire m2m_clr;
@@ -656,9 +591,9 @@ always @(posedge clk_dot4x)
 
 // Both data/addr LS245s have OE pin grounded (always enabled)
 
-// We write to data bus when aec is high, chip select is low and rw is high
-// (cpu reading from us).  
-assign vic_write_db = aec && rw && ~ce;
+// We write to data bus when chip select is low and rw is high
+// (cpu reading from us).
+assign vic_write_db = rw && ~ce;
 
 // AEC low means we own the address bus so we can write to it.
 // For address bus direction pin, use aec,
@@ -692,11 +627,13 @@ bus_access vic_bus_access(
 addressgen vic_addressgen(
                //.rst(rst),
                .cycle_type(cycle_type),
+	       .clk_dot4x(clk_dot4x),
                .cb(cb),
                .vc(vc),
                .vm(vm),
                .rc(rc),
-               .mux(mux),
+               .ras(ras),
+               .cas(cas),
                // Some magic from VICE: g_fetch_addr((uint8_t)(vicii.regs[0x11] | (vicii.reg11_delay & 0x20)));
                .bmm(bmm | reg11_delayed[5]),
                .ecm(ecm), // NOT delayed!
@@ -707,6 +644,12 @@ addressgen vic_addressgen(
                .sprite_cnt(sprite_cnt),
                .sprite_ptr_o(sprite_ptr_o),
                .sprite_mc_o(sprite_mc_o),
+               .phi_phase_start_rlh(phi_phase_start[0]),
+               .phi_phase_start_rhl(phi_phase_start[5]),
+               .phi_phase_start_clh(phi_phase_start[15]),
+               .phi_phase_start_chl(phi_phase_start[7]),
+               .phi_phase_start_row(phi_phase_start[2]),
+               .phi_phase_start_col(phi_phase_start[6]),
                .ado(ado));
 
 // Handle set/get registers

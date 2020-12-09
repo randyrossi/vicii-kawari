@@ -77,9 +77,6 @@
 #define V_EC top__DOT__vic_inst__DOT__ec
 #define V_PHIR top__DOT__vic_inst__DOT__phi_gen
 #define V_DOTR top__DOT__vic_inst__DOT__dot_gen
-#define V_RASR top__DOT__vic_inst__DOT__ras_gen
-#define V_CASR top__DOT__vic_inst__DOT__cas_gen
-#define V_MUXR top__DOT__vic_inst__DOT__mux_gen
 #define V_REFC top__DOT__vic_inst__DOT__refc
 #define V_ERST top__DOT__vic_inst__DOT__erst
 #define V_EMBC top__DOT__vic_inst__DOT__embc
