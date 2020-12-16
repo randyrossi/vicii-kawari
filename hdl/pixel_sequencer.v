@@ -72,6 +72,7 @@ assign sprite_col[7] = sprite_col_o[3:0];
 
 // Various delay registers
 reg [2:0] xscroll_delayed;
+reg [2:0] xscroll_delayed0;
 reg [7:0] pixels_read_delayed0;
 reg [7:0] pixels_read_delayed1;
 reg [7:0] pixels_read_delayed;
@@ -137,14 +138,17 @@ begin
 
 	cycle_num_delayed0 <= cycle_num;
 	cycle_num_delayed1 <= cycle_num_delayed0;
+
+	xscroll_delayed0 <= xscroll;
     end
 
     if (!clk_phi && phi_phase_start_pl) begin
         pixels_read_delayed <= pixels_read_delayed1;
         char_read_delayed <= char_read_delayed1;
 	cycle_num_delayed <= cycle_num_delayed1;
-        if (visible && !vborder)
-            xscroll_delayed <= xscroll;
+	if (visible && !vborder) begin
+            xscroll_delayed <= xscroll_delayed0;
+        end
     end
 
     if (stage0) begin
@@ -206,9 +210,9 @@ begin
             if (!vborder && visible_d) begin
                 pixels_shifting = pixels_read_delayed;
                 if (!idle) begin
-                    char_shifting <= char_read_delayed;
+                    char_shifting = char_read_delayed;
                 end else begin
-                    char_shifting <= 12'b0;
+                    char_shifting = 12'b0;
 		end
             end else
                pixels_shifting = 8'b0;
