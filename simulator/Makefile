@@ -40,12 +40,22 @@ VERILOG_SOURCES = ../hdl/cmod_a35t/top.v ../hdl/vicii.v ../hdl/common.vh \
 	          ../hdl/serration.v  ../hdl/bus_access.v ../hdl/cycles.v \
                   ../hdl/matrix.v ../hdl/sprites.v  ../hdl/vga_sync.v ../hdl/clockdivs.v
 
-obj_dir/Vtop: vicii_ipc.o libvicii_ipc.so $(VERILOG_SOURCES) sim_main.cpp vicii_ipc.c vicii_ipc.h 
-	$(VERILATOR) -DIS_SIMULATOR --trace -cc  --exe -I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
+VTOP_DEPS = vicii_ipc.o libvicii_ipc.so $(VERILOG_SOURCES) sim_main.cpp vicii_ipc.c vicii_ipc.h 
+
+obj_dir/Vtop: $(VTOP_DEPS) obj_dir/Vtop_13
+	$(VERILATOR) -DIS_SIMULATOR --trace -cc  --exe \
+		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
 	               -CFLAGS -g -LDFLAGS '../vicii_ipc.o -lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
 
-default: obj_dir/VVicii
+obj_dir/Vtop_13: $(VTOP_DEPS)
+	$(VERILATOR) -DEARLY_DAV -DIS_SIMULATOR --trace -cc  --exe \
+		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
+	               -CFLAGS -g -LDFLAGS '../vicii_ipc.o -lSDL2'
+	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
+	mv obj_dir/Vtop obj_dir/Vtop_13
+
+default: obj_dir/Vtop
 
 vicii_ipc.o: vicii_ipc.c
 	$(CC) -o vicii_ipc.o -fPIC -c vicii_ipc.c

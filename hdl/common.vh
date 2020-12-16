@@ -18,33 +18,21 @@
 // in the final delay register is first available when load_pixels
 // rises (xpos_mod_8 == 0)
 
-// XPOS_BORDER_DELAY_9BIT
-//
-// This is an adjusted xpos we pass to the border module.
-// The border logic xpos comparison values are taken from VICE
-// and this adjustment is needed to trigger the logic
-// correctly.
+// TODO: Describe EARLY_DAV for simulator use.
 
-// XPOS_GFX_DELAY
-//
-// This value is how much we subtract from xpos by before we give it
-// to the pixel sequencer.  It is used to control the point
-// at which xpos_mod_8 == 0.  It is hard coded to 3 in vicii.v
-
-// SPRITE_DELAY
-//
-// This is how many pixels to delay sprite pixels before it enters
-// the final delayed register (sprite_cur_pixel) which collisions
-// and the pixel sequencer operate on.  It is hard coded to a total
-// of 10 (4 by shifting xpos and another 6 before passing pixels
-// to the pixel sequencer).
-
+`ifdef EARLY_DAV
+`define DATA_DAV 13
+`define M2CLR_CHECK 14
+`define M2CLR_PHASE clk_phi
+`else
 `define DATA_DAV 0
+`define M2CLR_CHECK 1
+`define M2CLR_PHASE !clk_phi
+`endif
+
 `define PIXEL_LATCH 0
 `define BORDER_DELAY 12
 `define SPRITE_CRUNCH_CYCLE_CHECK 15
-`define M2CLR_CHECK 1
-`define M2CLR_PHASE !clk_phi
 
 // Will never change but used in loops
 `define NUM_SPRITES 8

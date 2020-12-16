@@ -531,6 +531,7 @@ int main(int argc, char** argv, char** env) {
     struct vicii_ipc* ipc;
     bool keyPressToQuit = true;
     bool viceCapture = false;
+    bool scanline = true;
 
     // Default to 16.7us starting at 0
     startTicks = US_TO_TICKS(0);
@@ -544,8 +545,10 @@ int main(int argc, char** argv, char** env) {
     int reti, reti2;
     char regex_buf[32];
 
-    while ((c = getopt (argc, argv, "c:hs:d:wi:zbl:r:gtx")) != -1)
+    while ((c = getopt (argc, argv, "c:hs:d:wi:zbl:r:gtxq")) != -1)
     switch (c) {
+      case 'q':
+        scanline = false;
       case 't':
         tracing = true;
         break;
@@ -582,6 +585,7 @@ int main(int argc, char** argv, char** env) {
         printf ("  -c <chip> : 0=CHIP6567R8, 1=CHIP6569 2=CHIP6567R56A\n");
         printf ("  -h        : start under reset\n");
         printf ("  -l        : log level\n");
+        printf ("  -q        : hide scanline\n");
         printf ("  -x        : sync with VICE and save a frame before exiting\n");
         exit(0);
       case 'x':
@@ -988,10 +992,12 @@ int main(int argc, char** argv, char** env) {
              if (prevY != top->V_RASTER_LINE) {
                 prevY = top->V_RASTER_LINE;
 
-		for (int xx=0; xx < 504; xx++) {
-                   SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
-                   drawPixel(ren, xx, top->V_RASTER_LINE+1);
-		}
+                if (scanline) {
+                   for (int xx=0; xx < 504; xx++) {
+                     SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
+                     drawPixel(ren, xx, top->V_RASTER_LINE+1);
+                   }
+                }
 
                 SDL_RenderPresent(ren);
                 SDL_PollEvent(&event);
