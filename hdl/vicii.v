@@ -377,9 +377,9 @@ end
 // NOTE: Things like raster irq conditions happen even if the enable bit is off.
 // That means as soon as erst is enabled, for example, if the condition was
 // met, it will trigger irq immediately.  This seems consistent with how the
-// C64 works.  Even if you set raster_irq_compare to 11, when you first enable erst,
-// your ISR will get called immediately on the next line. Then, only afer you clear
-// the interrupt will you actually get the ISR on the desired line.
+// C64 works.  Even if you set raster_irq_compare to 11, when you first enable
+// erst, your ISR will get called immediately on the next line. Then, only afer
+// you clear the interrupt will you actually get the ISR on the desired line.
 assign irq = (ilp & elp) | (immc & emmc) | (imbc & embc) | (irst & erst);
 
 // DRAM refresh counter
@@ -387,20 +387,18 @@ always @(posedge clk_dot4x)
     if (rst)
         refc <= 8'hff;
     else if (phi_phase_start[1]) begin // cycle_type is about to transition
-        // Decrement at the start of the phase when cycle_type is still valid for
-        // the previous half cycle.
+        // Decrement at the start of the phase when cycle_type is still valid
+	// for the previous half cycle.
         if (cycle_num == 1 && raster_line == 9'd0)
             refc <= 8'hff;
         else if (cycle_type == `VIC_LR)
             refc <= refc - 8'd1;
     end
 
-// Border pixels are delayed to align with gfx data.
-// For reasons not fully understood:
-//    d3 is passed to the pixel sequencer
-//    d4 is passed to sprite module
+// Handle border
 wire main_border;
 wire top_bot_border;
+
 border vic_border(
            .rst(rst),
            .clk_dot4x(clk_dot4x),

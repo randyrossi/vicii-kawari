@@ -163,14 +163,6 @@ assign sprite_y[7] = sprite_y_o[7:0];
 assign sprite_mc_o = {sprite_mc[0], sprite_mc[1], sprite_mc[2], sprite_mc[3], sprite_mc[4], sprite_mc[5], sprite_mc[6], sprite_mc[7]};
 assign sprite_cur_pixel_o = {sprite_cur_pixel[0], sprite_cur_pixel[1], sprite_cur_pixel[2], sprite_cur_pixel[3], sprite_cur_pixel[4], sprite_cur_pixel[5], sprite_cur_pixel[6], sprite_cur_pixel[7]};
 
-// NOTE: If we match VICE, then ba will go low much too late for sprite 0.  Slight
-// difference between simulator and non-simulator code.
-`ifndef IS_SIMULATOR
-`define PHI_DMA_CONDITION !clk_phi
-`else
-`define PHI_DMA_CONDITION clk_phi
-`endif
-
 // We keep track of the previous border value (at the dot4x resolution)
 // so that we can detect border transitions from low to high.  This is
 // necessary because it appears that the last pixel of a raster
@@ -224,7 +216,9 @@ always @(posedge clk_dot4x)
             end
         end
         // check dma
-        if (`PHI_DMA_CONDITION && phi_phase_start_1 &&
+	// NOTE: VICE does this on high but that is much too late for
+	// sprite 0. BA will not go low early enough.
+        if (!clk_phi && phi_phase_start_1 &&
                 (cycle_num == sprite_dmachk1 || cycle_num == sprite_dmachk2))
         begin
             for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
