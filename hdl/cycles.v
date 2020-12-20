@@ -52,7 +52,10 @@ always @(posedge clk_dot4x)
         end
         sprite_cnt <= 3'd3;
         refresh_cnt <= 3'd0;
-    end else if (phi_phase_start_1) begin // badline is valid on [1]
+    // TODO: This could be pusehd to [0] since badline
+    // is available.  That would let cycle type get
+    // set one cycle earlier.
+    end else if (phi_phase_start_1) begin
         if (clk_phi == `TRUE) begin
             case (cycle_type)
                 `VIC_LP: begin

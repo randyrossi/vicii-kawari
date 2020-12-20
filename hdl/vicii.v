@@ -131,10 +131,13 @@ reg [3:0] dot_rising;
 
 // delayed raster line for irq comparison
 wire [8:0] raster_line_d;
-reg allow_bad_lines;
 
+`ifdef IS_SIMULATOR
 reg [7:0] reg11_delayed;
-reg [4:0] reg16_delayed;
+`endif
+reg bmm_delayed;
+reg mcm_delayed;
+reg ecm_delayed;
 
 // xpos is the x coordinate relative to raster irq
 // It is not simply raster_x with an offset, it does not
@@ -300,7 +303,7 @@ always @(posedge clk_dot4x)
     end else begin
         phi_gen <= {phi_gen[30:0], phi_gen[31]};
     end
-    
+
 assign clk_phi = phi_gen[0];
 
 // phi_phase_start[15]=HIGH means phi is high next cycle
@@ -313,52 +316,59 @@ always @(posedge clk_dot4x)
 // This is simply raster_x divided by 8.
 assign cycle_num = raster_x[9:3];
 
-
 // allow_bad_lines goes high on line 48
 // if den is high at any point on line 48
 // allow_bad_lines falls on line 248
-// den only takes effect on line 48
-// the timing here ensures we have allow_bad_lines available @ [1]
-// by the PHI high cycle.
+// den only takes effect on line 48 (including very last cycle)
+reg allow_bad_lines;
 always @(posedge clk_dot4x)
 begin
     if (rst)
-        allow_bad_lines <= `FALSE;
-    else if (clk_phi && phi_phase_start[0]) begin // just ticked high
-        // There is an exception here for line 49 cycle 0 because if
-        // den changes on the falling edge of PHI of the last cycle of
-        // line 48, it should still trigger allow bad lines but only
-        // when PHI goes high again next which is going to be 49/0.
-        // See test den01-49-1.prg
-        if ((raster_line == 48 || (raster_line == 49 && cycle_num == 0))
-               && den == `TRUE)
-            allow_bad_lines <= `TRUE;
+        allow_bad_lines = `FALSE;
+    else if (~clk_phi && phi_phase_start[1]) begin
+	// Use raster_line_d here on [1] before it transitions
+	// to the next line in the low cycle so we can catch
+	// den on the last cycle of line 48.  den01-49-1.prg
+        // sets den on the last cycle of line 48 (cycle 62) so
+	// our check has to be made before raster line changes.
+	// For cycle 0, use raster_line to catch den at the
+	// beginning of 48.
+        if (den && ((raster_line == 48 && cycle_num == 0) || raster_line_d == 48))
+            allow_bad_lines = `TRUE;
+
         if (raster_line == 248)
-            allow_bad_lines <= `FALSE;
+            allow_bad_lines = `FALSE;
+
+        badline = `FALSE;
+        if (raster_line[2:0] == yscroll && allow_bad_lines == `TRUE && raster_line >= 48 && raster_line < 248)
+           badline = `TRUE;
     end
 end
 
 // Raise raster irq once per raster line
-// On raster line 0, it happens on cycle 1, otherwise, cycle 0
-always @(posedge clk_dot4x)
-begin
+reg [8:0] raster_irq_compare_d;
+always @(posedge clk_dot4x) begin
     if (rst) begin
         irst <= `FALSE;
         raster_irq_triggered <= `FALSE;
     end else begin
-        if (clk_phi && phi_phase_start[3]) begin
-            // Here, we use the delayed raster line to match the expected
-            // behavior of triggering the interrupt on cycle 1 for raster line
-            // 0 and cycle 0 for any other line.
-            if (raster_line_d == raster_irq_compare) begin
-                if (!raster_irq_triggered) begin
-                    raster_irq_triggered <= `TRUE;
-                    irst <= `TRUE;
-                end
-            end else begin
-                raster_irq_triggered <= `FALSE;
+	raster_irq_compare_d <= raster_irq_compare;
+        // To pass rasterirq_hold.prg, we have to make sure raster_irq_compare
+	// is set along with the time raster_line_d changes.  This test
+	// program 'chases' the raster line comparison test so that the VICII
+	// comparison always results in a match (after line 18). So
+	// raster_irq_triggered remains true and only lines 16,17,18 should
+	// trigger irq.
+        if (raster_line_d == raster_irq_compare_d) begin
+            if (!clk_phi && phi_phase_start[8] && !raster_irq_triggered) begin
+               raster_irq_triggered <= `TRUE;
+               irst <= `TRUE;
+	       //$display("IRQ TRIGGERON CYCLE %d LINE %d", cycle_num,raster_line_d);
             end
+        end else begin
+            raster_irq_triggered <= `FALSE;
         end
+
         if (irst_clr)
             irst <= `FALSE;
     end
@@ -463,7 +473,7 @@ always @(*)
         else
             ba_chars = `TRUE;
     end
-    
+
 // Handle when ba should go low due to s-access. These ranges are
 // compared against sprite_raster_x which is just raster_x with an
 // offset that brings sprite 0 to the start.
@@ -530,7 +540,7 @@ sprites vic_sprites(
          .dbi8(dbi[7:0]),
          .dot_rising_1(dot_rising[1]),
          .phi_phase_start_m2clr(phi_phase_start[`M2CLR_CHECK]),
-         .phi_phase_start_13(phi_phase_start[13]),
+         .phi_phase_start_spr_advance(phi_phase_start[`SPRITE_ADVANCE]),
          .phi_phase_start_1(phi_phase_start[1]),
          .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
          .xpos(xpos_sprite[8:0]), // top bit omitted
@@ -604,8 +614,8 @@ assign ls245_data_dir = ~vic_write_db;
 assign ls245_data_oe = 1'b0; // aec & ce;  for now, always enable
 assign ls245_addr_dir = aec;
 assign ls245_addr_oe = 1'b0; // aec & ce;  for now, always enable
- 
-  
+
+
 // Handle cycles that perform data bus accesses
 bus_access vic_bus_access(
          .rst(rst),
@@ -635,7 +645,7 @@ addressgen vic_addressgen(
                .ras(ras),
                .cas(cas),
                // Some magic from VICE: g_fetch_addr((uint8_t)(vicii.regs[0x11] | (vicii.reg11_delay & 0x20)));
-               .bmm(bmm | reg11_delayed[5]),
+               .bmm(bmm | bmm_delayed),
                .ecm(ecm), // NOT delayed!
                .idle(idle),
                .refc(refc),
@@ -657,7 +667,7 @@ registers vic_registers(
               .rst(rst),
               .clk_dot4x(clk_dot4x),
               .clk_phi(clk_phi),
-              .phi_phase_start_1(phi_phase_start[1]),
+              .phi_phase_start_dav_plus_1(phi_phase_start[`DATA_DAV_PLUS_1]),
               .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
               .ce(ce),
               .rw(rw),
@@ -719,32 +729,17 @@ registers vic_registers(
 // and badline calcs
 always @(posedge clk_dot4x)
 begin
-    if (rst) begin
-        reg11_delayed <= 8'b0;
-        reg16_delayed <= 5'b0;
-    end else
     // must be before badline idle reset in vic_matrix
     if (clk_phi && phi_phase_start[0]) begin
-        reg11_delayed[2:0] <= yscroll;
-        reg11_delayed[3] <= rsel;
-        reg11_delayed[4] <= den;
-        reg11_delayed[5] <= bmm;
-        reg11_delayed[6] <= ecm;
-        reg11_delayed[7] <= raster_line[8];
-        reg16_delayed[2:0] <= xscroll;
-        reg16_delayed[3] <= csel;
-        reg16_delayed[4] <= mcm;
+`ifdef IS_SIMULATOR
+        reg11_delayed <= { raster_line[8], ecm, bmm, den, rsel, yscroll };
+`endif
+        bmm_delayed <= bmm;
+        ecm_delayed <= ecm;
+        mcm_delayed <= mcm;
     end
 end
 
-// use delayed reg11 for yscroll
-// since allow_bad_lines is set @ [1], this is also available @ [1]
-always @(raster_line_d, reg11_delayed, allow_bad_lines)
-begin
-    badline = `FALSE;
-    if (raster_line_d[2:0] == reg11_delayed[2:0] && allow_bad_lines == `TRUE && raster_line_d >= 48 && raster_line_d < 248)
-        badline = `TRUE;
-end
 
 // Pixel sequencer - outputs stage 3 pixel_color3
 pixel_sequencer vic_pixel_sequencer(
@@ -754,9 +749,9 @@ pixel_sequencer vic_pixel_sequencer(
                     .dot_rising_3(dot_rising[3]),
                     .phi_phase_start_pl(phi_phase_start[`PIXEL_LATCH]),
                     .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
-                    .mcm(reg16_delayed[4]), // delayed
-                    .bmm(reg11_delayed[5]), // delayed
-                    .ecm(reg11_delayed[6]), // delayed
+                    .mcm(mcm_delayed), // delayed
+                    .bmm(bmm_delayed), // delayed
+                    .ecm(ecm_delayed), // delayed
                     .idle(idle),
                     .cycle_bit(raster_x[2:0]),
                     .cycle_num(cycle_num),

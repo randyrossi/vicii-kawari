@@ -91,6 +91,7 @@
 #define V_IMMC_CLR top__DOT__vic_inst__DOT__immc_clr
 #define V_ILP_CLR top__DOT__vic_inst__DOT__ilp_clr
 #define V_RASTERCMP top__DOT__vic_inst__DOT__raster_irq_compare
+#define V_RASTERCMP_D top__DOT__vic_inst__DOT__raster_irq_compare_d
 #define V_VICADDR top__DOT__vic_inst__DOT__vic_addressgen__DOT__vic_addr
 #define V_CB top__DOT__vic_inst__DOT__cb
 #define V_VM top__DOT__vic_inst__DOT__vm
@@ -111,7 +112,6 @@
 #define V_ALLOW_BAD_LINES top__DOT__vic_inst__DOT__allow_bad_lines
 #define V_CYCLE_FINE_CTR top__DOT__cycle_fine_ctr
 #define V_IDLE top__DOT__vic_inst__DOT__idle
-#define V_REG11_DELAYED top__DOT__vic_inst__DOT__reg11_delayed
 #define V_CYCLE_TYPE top__DOT__vic_inst__DOT__cycle_type
 #define V_SPRITE_DMA top__DOT__vic_inst__DOT__sprite_dma
 #define V_SPRITE_EN top__DOT__vic_inst__DOT__sprite_en
@@ -148,3 +148,5 @@
 #define V_LOAD_PIXELS top__DOT__vic_inst__DOT__vic_pixel_sequencer__DOT__load_pixels
 #define V_IRQ irq
 #define V_DOT4X clk_dot4x
+#define V_REG11_DELAYED top__DOT__vic_inst__DOT__reg11_delayed
+

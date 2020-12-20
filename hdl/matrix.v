@@ -29,11 +29,7 @@ always @(posedge clk_dot4x)
         idle = `TRUE;
     end
     else begin
-        // This needs to be checked next 4x tick within the phase because
-        // badline does not trigger until after raster line has incremented
-        // which is after start of line which happens on tick 0 and due to
-        // delayed assignment raster line yscroll comparison won't happen until
-        // tick 1.
+	// Must be on [1] for cycle_num to be valid
         if (clk_phi && phi_phase_start_1) begin
             // Reset at start of frame
             if (cycle_num == 1 && raster_line == 9'd0) begin

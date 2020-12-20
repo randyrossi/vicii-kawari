@@ -22,17 +22,22 @@
 
 `ifdef EARLY_DAV
 `define DATA_DAV 13
+`define DATA_DAV_PLUS_1 14
 `define M2CLR_CHECK 14
 `define M2CLR_PHASE clk_phi
+`define SPRITE_CRUNCH_CYCLE_CHECK 14
+`define SPRITE_ADVANCE 12
 `else
 `define DATA_DAV 0
+`define DATA_DAV_PLUS_1 1
 `define M2CLR_CHECK 1
 `define M2CLR_PHASE !clk_phi
+`define SPRITE_CRUNCH_CYCLE_CHECK 15
+`define SPRITE_ADVANCE 13
 `endif
 
 `define PIXEL_LATCH 0
 `define BORDER_DELAY 12
-`define SPRITE_CRUNCH_CYCLE_CHECK 15
 
 // Will never change but used in loops
 `define NUM_SPRITES 8

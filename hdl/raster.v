@@ -57,15 +57,17 @@ always @(posedge clk_dot4x)
         endcase
     end
     else begin
-        if (clk_phi && phi_phase_start_0) begin
-            if (start_of_line) begin
-                raster_line_d <= raster_line_d + 9'd1;
-                start_of_line = 0;
-            end else if (start_of_frame && cycle_num == 1) begin
-                raster_line_d <= 9'd0;
-                start_of_frame = 0;
-            end
+
+        if (!clk_phi && start_of_line) begin
+            raster_line_d <= raster_line_d + 9'd1;
+            start_of_line = 0;
+	end
+
+	if (!clk_phi && start_of_frame && cycle_num == 1) begin
+            raster_line_d <= 9'd0;
+            start_of_frame = 0;
         end
+
         if (dot_rising_0) begin
             if (raster_x < raster_x_max)
             begin

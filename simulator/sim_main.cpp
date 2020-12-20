@@ -148,6 +148,7 @@ static void HEADER(Vtop *top) {
    "CAS "
    " X  "
    " Y  "
+   " Y  "
    "ADI  "
    "ADO  "
    "DBI "
@@ -181,6 +182,7 @@ static void STATE(Vtop *top) {
    " %01d  "   /*RAS*/
    " %01d  "   /*CAS*/
    "%03d "   /*  X*/
+   "%03d "   /*  Y*/
    "%03d "   /*  Y*/
    "%04x "   /*ADI*/
    "%04x "   /*ADO*/
@@ -217,6 +219,7 @@ static void STATE(Vtop *top) {
    top->cas,
    top->V_RASTER_X,
    top->V_RASTER_LINE,
+   top->V_RASTER_LINE_D,
    top->adl,
    top->V_ADO,
    top->V_DBI,
@@ -297,6 +300,7 @@ static void regs_vice_to_fpga(Vtop* top, struct vicii_state* state) {
 
        val = state->vice_reg[0x12];
        top->V_RASTERCMP = val | rasterCmp8;
+       top->V_RASTERCMP_D = val | rasterCmp8;
 
        top->V_LPX = state->vice_reg[0x13];
        top->V_LPY = state->vice_reg[0x14];
