@@ -149,4 +149,4 @@
 #define V_IRQ irq
 #define V_DOT4X clk_dot4x
 #define V_REG11_DELAYED top__DOT__vic_inst__DOT__reg11_delayed
-
+#define V_LIGHTPEN_TRIGGERED top__DOT__vic_inst__DOT__vic_lightpen__DOT__light_pen_triggered

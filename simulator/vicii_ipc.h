@@ -92,6 +92,8 @@ struct vicii_state {
 
   int pps;
   int dot4x;
+  unsigned char lp;
+  unsigned int light_pen_triggered;
 };
 
 #define END1_PRODUCER_SIG_END2_CONSUME_OK 0

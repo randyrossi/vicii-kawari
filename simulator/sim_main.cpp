@@ -286,6 +286,7 @@ static void drawPixel(SDL_Renderer* ren, int x,int y) {
    SDL_RenderDrawPoint(ren, x*2+1,y*2+1);
 }
 
+// Initial sync
 static void regs_vice_to_fpga(Vtop* top, struct vicii_state* state) {
        top->V_IDLE = state->idle;
 
@@ -394,6 +395,8 @@ static void regs_vice_to_fpga(Vtop* top, struct vicii_state* state) {
        top->V_VBORDER = state->vborder;
        top->V_MAIN_BORDER = state->main_border;
        top->V_SET_VBORDER = state->set_vborder;
+
+       top->V_LIGHTPEN_TRIGGERED = state->light_pen_triggered;
 
        // We need to populate our char buf from VICE's
        for (int i=0;i < 40; i++) {
@@ -810,6 +813,7 @@ int main(int argc, char** argv, char** env) {
     top->V_RST = 0;
     top->rw = 1;
     top->ce = 1;
+    top->lp = 1;
     top->adl = 0;
     top->V_DBI = 0;
     top->V_DEN = 1;
@@ -927,6 +931,8 @@ int main(int argc, char** argv, char** env) {
            top->dbh = (state->data_to_sim >> 8) & 0xf;
            top->ce = state->ce;
            top->rw = state->rw;
+	   top->lp = state->lp;
+
         }
 
         // Evaluate model

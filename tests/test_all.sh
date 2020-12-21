@@ -39,10 +39,10 @@ do
 		delay="8"
 	elif [[ $i == +(*reg_timing*) ]]
 	then
-		delay="12"
+		delay="14"
 	elif [[ $i == +(*lightpen*) ]]
 	then
-		delay="12"
+		delay="16"
 	elif [[ $i == +(*lft-safe-vsp*) ]]
 	then
 		delay="19"
