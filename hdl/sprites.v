@@ -162,22 +162,6 @@ assign sprite_y[7] = sprite_y_o[7:0];
 assign sprite_mc_o = {sprite_mc[0], sprite_mc[1], sprite_mc[2], sprite_mc[3], sprite_mc[4], sprite_mc[5], sprite_mc[6], sprite_mc[7]};
 assign sprite_cur_pixel_o = {sprite_cur_pixel[0], sprite_cur_pixel[1], sprite_cur_pixel[2], sprite_cur_pixel[3], sprite_cur_pixel[4], sprite_cur_pixel[5], sprite_cur_pixel[6], sprite_cur_pixel[7]};
 
-// We keep track of the previous border value (at the dot4x resolution)
-// so that we can detect border transitions from low to high.  This is
-// necessary because it appears that the last pixel of a raster
-// line WILL trigger sprite to data collisions even though it is a
-// border pixel.  If we don't have this special case in the m2d collision
-// detection below, lunatico MISC will fail.  This allows sprite collisions
-// to work while still maintaining the correct border location visually.
-reg prev_main_border;
-wire border_low_to_high;
-
-// Used to detect rising border edge
-always @(posedge clk_dot4x)
-   prev_main_border <= main_border;
-
-assign border_low_to_high = main_border && !prev_main_border;
-
 always @(posedge clk_dot4x)
     if (rst) begin
         for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
@@ -575,7 +559,7 @@ always @(posedge clk_dot4x)
             for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
                 if (((sprite_mmc_d[n] && sprite_cur_pixel[n] != 0) || // multicolor
                    (!sprite_mmc_d[n] && sprite_cur_pixel[n][1] != 0)) & // non multicolor
-                       !is_background_pixel & (!main_border || border_low_to_high)) begin
+                       !is_background_pixel & !main_border) begin
                     sprite_m2d[n] <= `TRUE;
                     if (!m2d_triggered) begin
                         m2d_triggered <= `TRUE;

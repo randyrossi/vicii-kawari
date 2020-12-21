@@ -399,6 +399,22 @@ always @(posedge clk_dot4x)
 wire main_border;
 wire top_bot_border;
 
+// Border values are delayed by 6 pixels
+// but we use the non delayed values for
+// VICE comparison
+reg main_border_d1;
+reg main_border_d2;
+reg main_border_d3;
+reg main_border_d4;
+reg main_border_d5;
+reg main_border_d6;
+reg top_bot_border_d1;
+reg top_bot_border_d2;
+reg top_bot_border_d3;
+reg top_bot_border_d4;
+reg top_bot_border_d5;
+reg top_bot_border_d6;
+
 border vic_border(
            .rst(rst),
            .clk_dot4x(clk_dot4x),
@@ -409,9 +425,28 @@ border vic_border(
            .rsel(rsel),
            .csel(csel),
            .den(den),
+	   .dot_rising(dot_rising[1]),
            .vborder(top_bot_border),
            .main_border(main_border)
        );
+
+always @(posedge clk_dot4x)
+begin
+    if (dot_rising[1]) begin
+	    main_border_d1 <= main_border;
+	    main_border_d2 <= main_border_d1;
+	    main_border_d3 <= main_border_d2;
+	    main_border_d4 <= main_border_d3;
+	    main_border_d5 <= main_border_d4;
+	    main_border_d6 <= main_border_d5;
+	    top_bot_border_d1 <= top_bot_border;
+	    top_bot_border_d2 <= top_bot_border_d1;
+	    top_bot_border_d3 <= top_bot_border_d2;
+	    top_bot_border_d4 <= top_bot_border_d3;
+	    top_bot_border_d5 <= top_bot_border_d4;
+	    top_bot_border_d6 <= top_bot_border_d5;
+    end
+end
 
 wire [7:0] lpx;
 wire [7:0] lpy;
@@ -763,9 +798,9 @@ pixel_sequencer vic_pixel_sequencer(
                     .b2c(b2c),
                     .b3c(b3c),
                     .ec(ec),
-                    .main_border(main_border),
-                    .main_border_stage1(main_border_stage1),
-                    .vborder(top_bot_border),
+                    .main_border(main_border_d6), // in
+                    .vborder(top_bot_border_d6), // in
+                    .main_border_stage1(main_border_stage1), // out for sprite
                     .sprite_cur_pixel_o(sprite_cur_pixel_o),
                     .sprite_pri_d(sprite_pri_d),  // delayed
                     .sprite_mmc_d(sprite_mmc_d),  // delayed
