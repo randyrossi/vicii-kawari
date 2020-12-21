@@ -23,7 +23,6 @@
 `define M2CLR_CHECK 1
 `define M2CLR_PHASE !clk_phi
 `define SPRITE_CRUNCH_CYCLE_CHECK 15
-`define SPRITE_ADVANCE 13
 
 `define PIXEL_LATCH 0
 `define BORDER_DELAY 12

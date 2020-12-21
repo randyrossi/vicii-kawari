@@ -37,7 +37,6 @@ module sprites(
         input [3:0] cycle_type,
         input dot_rising_1,
         input phi_phase_start_m2clr,
-        input phi_phase_start_spr_advance,
         input phi_phase_start_1,
         input phi_phase_start_dav,
         input [8:0] xpos, // top bit omitted for comparison to x
@@ -254,7 +253,7 @@ always @(posedge clk_dot4x)
         // Advance sprite byte offset while dma is happening (at end of cycle)
         // Need to increment before cycle_type changes for the next half
 	// cycle.
-        if (phi_phase_start_spr_advance) begin
+        if (phi_phase_start_1) begin
             case (cycle_type)
                 `VIC_HS1,`VIC_LS2,`VIC_HS3:
                     if (sprite_dma[sprite_cnt])

@@ -538,7 +538,6 @@ sprites vic_sprites(
          .dbi8(dbi[7:0]),
          .dot_rising_1(dot_rising[1]),
          .phi_phase_start_m2clr(phi_phase_start[`M2CLR_CHECK]),
-         .phi_phase_start_spr_advance(phi_phase_start[`SPRITE_ADVANCE]),
          .phi_phase_start_1(phi_phase_start[1]),
          .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
          .xpos(xpos_sprite[8:0]), // top bit omitted
