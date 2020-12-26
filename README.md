@@ -5,10 +5,14 @@ VICII-Kawari is a hardware replacement for the VIC-II (Video Interface Chip II) 
 
 This project contains:
 
-1) an open source VIC-II FPGA core written in Verilog
-2) schematics and PCB design for a Xilinx Spartan6 replacement board
+1. an open source VIC-II FPGA core written in Verilog
+2. schematics and PCB design for a replacement board based on the Xilinx Spartan6 FPGA
 
 The PCB interfaces with a real C64 address and data bus through the VIC-II socket on the C64 motherboard. The board can replace all the functions of a real VIC-II chip including DRAM refresh, light pen interrupts (real CRT only), PHI2 clock source for the CPU and, of course, video output.
+
+## Forking VICII-Kawari?
+
+If you intend to fork VICII-Kawari to add your own features, please read [FORKING.md](FORKING.md)
 
 ## What kind of video output options are there?
 There are three video output options:
@@ -37,7 +41,7 @@ No. The clock input pins (color and dot) are not connected. The board comes with
 It depends on what video output you chose. If you use the composite encoder option, no modifications to the motherboard are required.  However, if you plan on using VGA or HDMI output, it is recommended the RF modulator be removed. The hole previously used for the composite jack may then be used for an HDMI or VGA cable. Otherwise, there is no practical way for a video cable to exit the machine.
 
 ## How accurate is it?
-To measure accuracy, I use the same suite of programs VICE (The Versatile Commodore Emulator) uses to catch regressions in their releases.  Out of a total of 230 VICII tests, X are currently passing.  That's a X% success rate.  
+To measure accuracy, I use the same suite of programs VICE (The Versatile Commodore Emulator) uses to catch regressions in their releases.  Out of a total of 280 VICII tests, 280 are passing.
 
 I obviously can't test every program but it supports all the graphics tricks programmers used in their demos/games. It is safe to say it is a faithful reproduction of the original chips.
 
@@ -62,7 +66,7 @@ If you need a VIC-II to replace a broken one, you should just buy one off eBay. 
 * Can software switch between NTSC and PAL
 * It's not an almost 40 year old device that may fail at any time
 
-Also, since the core is open source, hobbyests can add their own interesting new features (i.e. a math co-processor, more sprites, more colors, a new graphics mode, another 6510 processor, etc)
+Also, since the core is open source, hobbyests can add their own interesting new features (i.e. a math co-processor, more sprites, more colors, a new graphics mode, a display address translator, etc)
 
 ## What are the installation options?
 
@@ -72,7 +76,7 @@ In this configuration, a composite encoder board is plugged into the video outpu
 
 ### Simple mod Composite
 
-In this configuration, the same composite encoder is plugged into the video output port.  The RF output jack is disconnected from the RF modulator.  A wire carrying the composite signal from the composite encoder board is then soldered to what used to be the RF output jack.  In this configuration, no video signals be present at the C64's video port.
+In this configuration, the same composite encoder is plugged into the video output port.  The wire leading to the RF output jack is disconnected from the modulator.  A wire carrying the composite signal from the composite encoder board is then soldered to what used to be the RF output jack.  In this configuration, no video signals will reach the C64's video port.
 
 ### VGA + RF Modulator Removal
 
@@ -81,5 +85,4 @@ In this configuration, the RF modulator is removed.  A VGA adapter board is plug
 ### HDMI + RF Modulator Removal
 
 In this configuration, the RF modulator is removed.  An HDMI adapter board is plugged into the VICII-Kawari's video output port.  The hole previously used for RF out is used for a HDMI cable connected to the HDMI board.  No video signals will be present at the C64's video port.
-
 
