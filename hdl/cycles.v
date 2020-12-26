@@ -4,17 +4,17 @@
 
 // Update matrix counters
 module cycles(
-   input rst,
-   input clk_dot4x,
-   input clk_phi,
-   input [1:0] chip,
-   input phi_phase_start_1,
-   input [`NUM_SPRITES - 1:0] sprite_dma,
-   input badline,
-   input [6:0] cycle_num,
-   output reg [3:0] cycle_type,
-   output reg [2:0] sprite_cnt
-);
+           input rst,
+           input clk_dot4x,
+           input clk_phi,
+           input [1:0] chip,
+           input phi_phase_start_1,
+           input [`NUM_SPRITES - 1:0] sprite_dma,
+           input badline,
+           input [6:0] cycle_num,
+           output reg [3:0] cycle_type,
+           output reg [2:0] sprite_cnt
+       );
 
 // Counters for sprite, refresh and idle 'stretches' for
 // the cycle_type state machine.
@@ -52,9 +52,9 @@ always @(posedge clk_dot4x)
         end
         sprite_cnt <= 3'd3;
         refresh_cnt <= 3'd0;
-    // TODO: This could be pusehd to [0] since badline
-    // is available.  That would let cycle type get
-    // set one cycle earlier.
+        // TODO: This could be pusehd to [0] since badline
+        // is available.  That would let cycle type get
+        // set one cycle earlier.
     end else if (phi_phase_start_1) begin
         if (clk_phi == `TRUE) begin
             case (cycle_type)

@@ -11,7 +11,7 @@
 // System clock:
 //     This config uses the on-board 12Mhz clock and uses an MMCM
 //     to generate both the 4x dot and 4x color clocks.
-// 
+//
 // External Clocks:
 //     This config takes in a 4x color clock signal and uses an MMCM
 //     to generate the 4x dot clock and pass through the 4x color
@@ -82,11 +82,11 @@ wire ls245_addr_oe;  // not enough pins on cmod_a7, just ground it
 `ifndef IS_SIMULATOR
 // Clock generators and chip selection
 clockgen cmod_clockgen(
-         .sys_clock(sys_clock),
-         .clk_dot4x(clk_dot4x),
-         .clk_col4x(clk_col4x),
-         .rst(rst),
-         .chip(chip));
+             .sys_clock(sys_clock),
+             .clk_dot4x(clk_dot4x),
+             .clk_col4x(clk_col4x),
+             .rst(rst),
+             .chip(chip));
 `endif
 
 // This is a reset line for the CPU which would have to be
@@ -158,34 +158,34 @@ assign dbo_sim = dbo;
 // ----------------------------------------------------
 wire [3:0] pixel_color4_composite;
 comp_sync vic_comp_sync(
-         .rst(rst),
-         .clk_dot4x(clk_dot4x),
-         .clk_col4x(clk_col4x),
-         .chip(chip),
-         .raster_x(xpos),
-         .raster_y(raster_line),
-         .pixel_color3(pixel_color3),
-         .csync(csync),
-         .clk_colref(clk_colref),
-         .pixel_color4(pixel_color4_composite)
-     );
+              .rst(rst),
+              .clk_dot4x(clk_dot4x),
+              .clk_col4x(clk_col4x),
+              .chip(chip),
+              .raster_x(xpos),
+              .raster_y(raster_line),
+              .pixel_color3(pixel_color3),
+              .csync(csync),
+              .clk_colref(clk_colref),
+              .pixel_color4(pixel_color4_composite)
+          );
 
 // ----------------------------------------------------
 // VGA/HDMI output - hsync/vsync
 // ----------------------------------------------------
 wire [3:0] pixel_color4_vga;
 vga_sync vic_vga_sync(
-    .rst(rst),
-    .clk_dot4x(clk_dot4x),
-    .raster_x(raster_x),
-    .raster_y(raster_line),
-    .chip(chip),
-    .pixel_color3(pixel_color3),
-    .hsync(hsync),
-    .vsync(vsync),
-    .active(active),
-    .pixel_color4(pixel_color4_vga)
-);
+             .rst(rst),
+             .clk_dot4x(clk_dot4x),
+             .raster_x(raster_x),
+             .raster_y(raster_line),
+             .chip(chip),
+             .pixel_color3(pixel_color3),
+             .hsync(hsync),
+             .vsync(vsync),
+             .active(active),
+             .pixel_color4(pixel_color4_vga)
+         );
 
 // FINAL OUTPUT RGB values from stage 4 indexed value.
 // The source pixel depends on video type (composite/vga)
@@ -196,10 +196,10 @@ vga_sync vic_vga_sync(
 
 // Translate pixel_color3 (indexed) to RGB values
 color3 vic_colors(
-     .out_pixel(is_composite ? pixel_color4_composite : pixel_color4_vga),
-     .red(red),
-     .green(green),
-     .blue(blue)
-);
+           .out_pixel(is_composite ? pixel_color4_composite : pixel_color4_vga),
+           .red(red),
+           .green(green),
+           .blue(blue)
+       );
 
 endmodule : top

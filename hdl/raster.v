@@ -4,21 +4,21 @@
 
 // Update raster x,y position
 module raster(
-   input clk_phi,
-   input clk_dot4x,
-   input rst,
-   input phi_phase_start_0,
-   input dot_rising_0,
-   input [1:0] chip,
-   input [6:0] cycle_num,
-   input[9:0] raster_x_max,
-   input[8:0] raster_y_max,
-   output reg [9:0] xpos,
-   output reg [9:0] raster_x,
-   output reg [9:0] sprite_raster_x,
-   output reg [8:0] raster_line,
-   output reg [8:0] raster_line_d
-);
+           input clk_phi,
+           input clk_dot4x,
+           input rst,
+           input phi_phase_start_0,
+           input dot_rising_0,
+           input [1:0] chip,
+           input [6:0] cycle_num,
+           input[9:0] raster_x_max,
+           input[8:0] raster_y_max,
+           output reg [9:0] xpos,
+           output reg [9:0] raster_x,
+           output reg [9:0] sprite_raster_x,
+           output reg [8:0] raster_line,
+           output reg [8:0] raster_line_d
+       );
 
 // sprite_raster_x is positioned such that the first cycle for
 // sprite #0 where ba should go low (if the sprite is enabled)
@@ -61,9 +61,9 @@ always @(posedge clk_dot4x)
         if (!clk_phi && start_of_line) begin
             raster_line_d <= raster_line_d + 9'd1;
             start_of_line = 0;
-	end
+        end
 
-	if (!clk_phi && start_of_frame && cycle_num == 1) begin
+        if (!clk_phi && start_of_frame && cycle_num == 1) begin
             raster_line_d <= 9'd0;
             start_of_frame = 0;
         end

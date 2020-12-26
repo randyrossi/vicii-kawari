@@ -4,18 +4,18 @@
 
 // Update matrix counters
 module matrix(
-   input rst,
-   input clk_phi,
-   input clk_dot4x,
-   input phi_phase_start_1,
-   input phi_phase_start_14,
-   input [6:0] cycle_num,
-   input [8:0] raster_line,
-   input badline,
-   output reg idle,
-   output reg [9:0] vc,
-   output reg [2:0] rc
-);
+           input rst,
+           input clk_phi,
+           input clk_dot4x,
+           input phi_phase_start_1,
+           input phi_phase_start_14,
+           input [6:0] cycle_num,
+           input [8:0] raster_line,
+           input badline,
+           output reg idle,
+           output reg [9:0] vc,
+           output reg [2:0] rc
+       );
 
 reg [9:0] vc_base;
 
@@ -29,7 +29,7 @@ always @(posedge clk_dot4x)
         idle = `TRUE;
     end
     else begin
-	// Must be on [1] for cycle_num to be valid
+        // Must be on [1] for cycle_num to be valid
         if (clk_phi && phi_phase_start_1) begin
             // Reset at start of frame
             if (cycle_num == 1 && raster_line == 9'd0) begin

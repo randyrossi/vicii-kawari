@@ -26,23 +26,23 @@ reg hSync;
 
 // Divides the color4x clock by 4 to get color reference clock
 clk_div4 clk_colorgen (
-          .clk_in(clk_col4x),     // from 4x color clock
-          .reset(rst),
-          .clk_out(clk_colref));  // create color ref clock
+             .clk_in(clk_col4x),     // from 4x color clock
+             .reset(rst),
+             .clk_out(clk_colref));  // create color ref clock
 
 always @(*)
 begin
-       if ((raster_x < hsync_start || raster_x > hvisible_start) &&
-           (raster_y < vblank_start || raster_y > vblank_end))
-           composite_active = 1'b1;
-       else
-           composite_active = 1'b0;
+    if ((raster_x < hsync_start || raster_x > hvisible_start) &&
+            (raster_y < vblank_start || raster_y > vblank_end))
+        composite_active = 1'b1;
+    else
+        composite_active = 1'b0;
 
 `ifdef IS_SIMULATOR
-       // We don't want blanking intervals on simulator output
-       pixel_color4 = pixel_color3;
+    // We don't want blanking intervals on simulator output
+    pixel_color4 = pixel_color3;
 `else
-       pixel_color4 = composite_active ? pixel_color3 : `BLACK;
+    pixel_color4 = composite_active ? pixel_color3 : `BLACK;
 `endif
 end
 

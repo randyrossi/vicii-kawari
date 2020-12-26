@@ -3,13 +3,13 @@
 `include "common.vh"
 
 module SerrationPulse(
-   input [9:0] raster_x,
-   input [1:0] chip,
-   output reg SE);
+           input [9:0] raster_x,
+           input [1:0] chip,
+           output reg SE);
 
 always @*
 case (chip)
-`CHIP6567R8:
+    `CHIP6567R8:
         SE =  // 93% tH (7%tH) (3051-427)
         (raster_x < 10'd224) ||	// 43%
         (
@@ -17,20 +17,20 @@ case (chip)
             (raster_x < 10'd484)		// 93%
         )
         ;
-`CHIP6567R56A:
+    `CHIP6567R56A:
         SE =  // 93% tH (7%tH) (3051-427)
         (raster_x < 10'd220) ||  // 43%
         (
-                (raster_x >= 10'd256) &&
-                (raster_x < 10'd476)
+            (raster_x >= 10'd256) &&
+            (raster_x < 10'd476)
         )
         ;
-`CHIP6569, `CHIPUNUSED:
+    `CHIP6569, `CHIPUNUSED:
         SE = // 93% tH (7%tH) (3051-427)
         (raster_x < 10'd217) ||
         (
-                (raster_x >= 10'd252) &&
-                (raster_x < 10'd469)
+            (raster_x >= 10'd252) &&
+            (raster_x < 10'd469)
         )
         ;
 endcase

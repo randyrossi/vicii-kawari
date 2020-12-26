@@ -127,7 +127,7 @@ always @(posedge clk_dot4x)
     end else
     begin
         // always clear these immediately after they may
-	// have been used. This should be DAV + 1
+        // have been used. This should be DAV + 1
         if (phi_phase_start_dav_plus_1 && ~clk_phi) begin
             irst_clr <= `FALSE;
             imbc_clr <= `FALSE;
@@ -155,11 +155,11 @@ always @(posedge clk_dot4x)
         end
         if (aec && !ce && addr_latch_done) begin
             // READ from register
-	    // For registers that clear collisions, we do it on [dav].
-	    // Otherwise, we'd do it way too early if we did it at the
-	    // same time we assert dbo in the block below.  VICE sync
-	    // complains it is too early.
-	    if (rw && phi_phase_start_dav) begin
+            // For registers that clear collisions, we do it on [dav].
+            // Otherwise, we'd do it way too early if we did it at the
+            // same time we assert dbo in the block below.  VICE sync
+            // complains it is too early.
+            if (rw && phi_phase_start_dav) begin
                 case (addr_latched)
                     /* 0x1e */ `REG_SPRITE_2_SPRITE_COLLISION: begin
                         // reading this register clears the value
@@ -169,8 +169,8 @@ always @(posedge clk_dot4x)
                         // reading this register clears the value
                         m2d_clr <= 1;
                     end
-		    default: ;
-		endcase
+                    default: ;
+                endcase
             end
             if (rw && !read_done) begin
                 read_done <= `TRUE;
@@ -288,124 +288,124 @@ always @(posedge clk_dot4x)
             end
             // WRITE to register
             else if (!rw && phi_phase_start_dav) begin
-                    case (addr_latched)
-                        /* 0x00 */ `REG_SPRITE_X_0:
-                            sprite_x[0][7:0] <= dbi[7:0];
-                        /* 0x02 */ `REG_SPRITE_X_1:
-                            sprite_x[1][7:0] <= dbi[7:0];
-                        /* 0x04 */ `REG_SPRITE_X_2:
-                            sprite_x[2][7:0] <= dbi[7:0];
-                        /* 0x06 */ `REG_SPRITE_X_3:
-                            sprite_x[3][7:0] <= dbi[7:0];
-                        /* 0x08 */ `REG_SPRITE_X_4:
-                            sprite_x[4][7:0] <= dbi[7:0];
-                        /* 0x0a */ `REG_SPRITE_X_5:
-                            sprite_x[5][7:0] <= dbi[7:0];
-                        /* 0x0c */ `REG_SPRITE_X_6:
-                            sprite_x[6][7:0] <= dbi[7:0];
-                        /* 0x0e */ `REG_SPRITE_X_7:
-                            sprite_x[7][7:0] <= dbi[7:0];
-                        /* 0x01 */ `REG_SPRITE_Y_0:
-                            sprite_y[0] <= dbi[7:0];
-                        /* 0x03 */ `REG_SPRITE_Y_1:
-                            sprite_y[1] <= dbi[7:0];
-                        /* 0x05 */ `REG_SPRITE_Y_2:
-                            sprite_y[2] <= dbi[7:0];
-                        /* 0x07 */ `REG_SPRITE_Y_3:
-                            sprite_y[3] <= dbi[7:0];
-                        /* 0x09 */ `REG_SPRITE_Y_4:
-                            sprite_y[4] <= dbi[7:0];
-                        /* 0x0b */ `REG_SPRITE_Y_5:
-                            sprite_y[5] <= dbi[7:0];
-                        /* 0x0d */ `REG_SPRITE_Y_6:
-                            sprite_y[6] <= dbi[7:0];
-                        /* 0x0f */ `REG_SPRITE_Y_7:
-                            sprite_y[7] <= dbi[7:0];
-                        /* 0x10 */ `REG_SPRITE_X_BIT_8: begin
-                            sprite_x[7][8] <= dbi[7];
-                            sprite_x[6][8] <= dbi[6];
-                            sprite_x[5][8] <= dbi[5];
-                            sprite_x[4][8] <= dbi[4];
-                            sprite_x[3][8] <= dbi[3];
-                            sprite_x[2][8] <= dbi[2];
-                            sprite_x[1][8] <= dbi[1];
-                            sprite_x[0][8] <= dbi[0];
-                        end
-                        /* 0x11 */ `REG_SCREEN_CONTROL_1: begin
-                            yscroll <= dbi[2:0];
-                            rsel <= dbi[3];
-                            den <= dbi[4];
-                            bmm <= dbi[5];
-                            ecm <= dbi[6];
-                            raster_irq_compare[8] <= dbi[7];
-                        end
-                        /* 0x12 */ `REG_RASTER_LINE: raster_irq_compare[7:0] <= dbi[7:0];
-                        /* 0x15 */ `REG_SPRITE_ENABLE: sprite_en <= dbi[7:0];
-                        /* 0x16 */ `REG_SCREEN_CONTROL_2: begin
-                            xscroll <= dbi[2:0];
-                            csel <= dbi[3];
-                            mcm <= dbi[4];
-                            res <= dbi[5];
-                        end
-                        /* 0x17 */ `REG_SPRITE_EXPAND_Y: begin
-                            // must be handled before end of phase (before reset)
-                            handle_sprite_crunch <= `TRUE;
-                            sprite_ye <= dbi[7:0];
-                        end
-                        /* 0x18 */ `REG_MEMORY_SETUP: begin
-                            cb[2:0] <= dbi[3:1];
-                            vm[3:0] <= dbi[7:4];
-                        end
-                        /* 0x19 */ `REG_INTERRUPT_STATUS: begin
-                            irst_clr <= dbi[0];
-                            imbc_clr <= dbi[1];
-                            immc_clr <= dbi[2];
-                            ilp_clr <= dbi[3];
-                        end
-                        /* 0x1a */ `REG_INTERRUPT_CONTROL: begin
-                            erst <= dbi[0];
-                            embc <= dbi[1];
-                            emmc <= dbi[2];
-                            elp <= dbi[3];
-                        end
-                        /* 0x1b */ `REG_SPRITE_PRIORITY:
-                            sprite_pri <= dbi[7:0];
-                        /* 0x1c */ `REG_SPRITE_MULTICOLOR_MODE:
-                            sprite_mmc <= dbi[7:0];
-                        /* 0x1d */ `REG_SPRITE_EXPAND_X:
-                            sprite_xe <= dbi[7:0];
-                        /* 0x20 */ `REG_BORDER_COLOR:
-                            ec <= dbi[3:0];
-                        /* 0x21 */ `REG_BACKGROUND_COLOR_0:
-                            b0c <= dbi[3:0];
-                        /* 0x22 */ `REG_BACKGROUND_COLOR_1:
-                            b1c <= dbi[3:0];
-                        /* 0x23 */ `REG_BACKGROUND_COLOR_2:
-                            b2c <= dbi[3:0];
-                        /* 0x24 */ `REG_BACKGROUND_COLOR_3:
-                            b3c <= dbi[3:0];
-                        /* 0x25 */ `REG_SPRITE_MULTI_COLOR_0:
-                            sprite_mc0 <= dbi[3:0];
-                        /* 0x26 */ `REG_SPRITE_MULTI_COLOR_1:
-                            sprite_mc1 <= dbi[3:0];
-                        /* 0x27 */ `REG_SPRITE_COLOR_0:
-                            sprite_col[0] <= dbi[3:0];
-                        /* 0x28 */ `REG_SPRITE_COLOR_1:
-                            sprite_col[1] <= dbi[3:0];
-                        /* 0x29 */ `REG_SPRITE_COLOR_2:
-                            sprite_col[2] <= dbi[3:0];
-                        /* 0x2a */ `REG_SPRITE_COLOR_3:
-                            sprite_col[3] <= dbi[3:0];
-                        /* 0x2b */ `REG_SPRITE_COLOR_4:
-                            sprite_col[4] <= dbi[3:0];
-                        /* 0x2c */ `REG_SPRITE_COLOR_5:
-                            sprite_col[5] <= dbi[3:0];
-                        /* 0x2d */ `REG_SPRITE_COLOR_6:
-                            sprite_col[6] <= dbi[3:0];
-                        /* 0x2e */ `REG_SPRITE_COLOR_7:
-                            sprite_col[7] <= dbi[3:0];
-                        default:;
-                    endcase
+                case (addr_latched)
+                    /* 0x00 */ `REG_SPRITE_X_0:
+                        sprite_x[0][7:0] <= dbi[7:0];
+                    /* 0x02 */ `REG_SPRITE_X_1:
+                        sprite_x[1][7:0] <= dbi[7:0];
+                    /* 0x04 */ `REG_SPRITE_X_2:
+                        sprite_x[2][7:0] <= dbi[7:0];
+                    /* 0x06 */ `REG_SPRITE_X_3:
+                        sprite_x[3][7:0] <= dbi[7:0];
+                    /* 0x08 */ `REG_SPRITE_X_4:
+                        sprite_x[4][7:0] <= dbi[7:0];
+                    /* 0x0a */ `REG_SPRITE_X_5:
+                        sprite_x[5][7:0] <= dbi[7:0];
+                    /* 0x0c */ `REG_SPRITE_X_6:
+                        sprite_x[6][7:0] <= dbi[7:0];
+                    /* 0x0e */ `REG_SPRITE_X_7:
+                        sprite_x[7][7:0] <= dbi[7:0];
+                    /* 0x01 */ `REG_SPRITE_Y_0:
+                        sprite_y[0] <= dbi[7:0];
+                    /* 0x03 */ `REG_SPRITE_Y_1:
+                        sprite_y[1] <= dbi[7:0];
+                    /* 0x05 */ `REG_SPRITE_Y_2:
+                        sprite_y[2] <= dbi[7:0];
+                    /* 0x07 */ `REG_SPRITE_Y_3:
+                        sprite_y[3] <= dbi[7:0];
+                    /* 0x09 */ `REG_SPRITE_Y_4:
+                        sprite_y[4] <= dbi[7:0];
+                    /* 0x0b */ `REG_SPRITE_Y_5:
+                        sprite_y[5] <= dbi[7:0];
+                    /* 0x0d */ `REG_SPRITE_Y_6:
+                        sprite_y[6] <= dbi[7:0];
+                    /* 0x0f */ `REG_SPRITE_Y_7:
+                        sprite_y[7] <= dbi[7:0];
+                    /* 0x10 */ `REG_SPRITE_X_BIT_8: begin
+                        sprite_x[7][8] <= dbi[7];
+                        sprite_x[6][8] <= dbi[6];
+                        sprite_x[5][8] <= dbi[5];
+                        sprite_x[4][8] <= dbi[4];
+                        sprite_x[3][8] <= dbi[3];
+                        sprite_x[2][8] <= dbi[2];
+                        sprite_x[1][8] <= dbi[1];
+                        sprite_x[0][8] <= dbi[0];
+                    end
+                    /* 0x11 */ `REG_SCREEN_CONTROL_1: begin
+                        yscroll <= dbi[2:0];
+                        rsel <= dbi[3];
+                        den <= dbi[4];
+                        bmm <= dbi[5];
+                        ecm <= dbi[6];
+                        raster_irq_compare[8] <= dbi[7];
+                    end
+                    /* 0x12 */ `REG_RASTER_LINE: raster_irq_compare[7:0] <= dbi[7:0];
+                    /* 0x15 */ `REG_SPRITE_ENABLE: sprite_en <= dbi[7:0];
+                    /* 0x16 */ `REG_SCREEN_CONTROL_2: begin
+                        xscroll <= dbi[2:0];
+                        csel <= dbi[3];
+                        mcm <= dbi[4];
+                        res <= dbi[5];
+                    end
+                    /* 0x17 */ `REG_SPRITE_EXPAND_Y: begin
+                        // must be handled before end of phase (before reset)
+                        handle_sprite_crunch <= `TRUE;
+                        sprite_ye <= dbi[7:0];
+                    end
+                    /* 0x18 */ `REG_MEMORY_SETUP: begin
+                        cb[2:0] <= dbi[3:1];
+                        vm[3:0] <= dbi[7:4];
+                    end
+                    /* 0x19 */ `REG_INTERRUPT_STATUS: begin
+                        irst_clr <= dbi[0];
+                        imbc_clr <= dbi[1];
+                        immc_clr <= dbi[2];
+                        ilp_clr <= dbi[3];
+                    end
+                    /* 0x1a */ `REG_INTERRUPT_CONTROL: begin
+                        erst <= dbi[0];
+                        embc <= dbi[1];
+                        emmc <= dbi[2];
+                        elp <= dbi[3];
+                    end
+                    /* 0x1b */ `REG_SPRITE_PRIORITY:
+                        sprite_pri <= dbi[7:0];
+                    /* 0x1c */ `REG_SPRITE_MULTICOLOR_MODE:
+                        sprite_mmc <= dbi[7:0];
+                    /* 0x1d */ `REG_SPRITE_EXPAND_X:
+                        sprite_xe <= dbi[7:0];
+                    /* 0x20 */ `REG_BORDER_COLOR:
+                        ec <= dbi[3:0];
+                    /* 0x21 */ `REG_BACKGROUND_COLOR_0:
+                        b0c <= dbi[3:0];
+                    /* 0x22 */ `REG_BACKGROUND_COLOR_1:
+                        b1c <= dbi[3:0];
+                    /* 0x23 */ `REG_BACKGROUND_COLOR_2:
+                        b2c <= dbi[3:0];
+                    /* 0x24 */ `REG_BACKGROUND_COLOR_3:
+                        b3c <= dbi[3:0];
+                    /* 0x25 */ `REG_SPRITE_MULTI_COLOR_0:
+                        sprite_mc0 <= dbi[3:0];
+                    /* 0x26 */ `REG_SPRITE_MULTI_COLOR_1:
+                        sprite_mc1 <= dbi[3:0];
+                    /* 0x27 */ `REG_SPRITE_COLOR_0:
+                        sprite_col[0] <= dbi[3:0];
+                    /* 0x28 */ `REG_SPRITE_COLOR_1:
+                        sprite_col[1] <= dbi[3:0];
+                    /* 0x29 */ `REG_SPRITE_COLOR_2:
+                        sprite_col[2] <= dbi[3:0];
+                    /* 0x2a */ `REG_SPRITE_COLOR_3:
+                        sprite_col[3] <= dbi[3:0];
+                    /* 0x2b */ `REG_SPRITE_COLOR_4:
+                        sprite_col[4] <= dbi[3:0];
+                    /* 0x2c */ `REG_SPRITE_COLOR_5:
+                        sprite_col[5] <= dbi[3:0];
+                    /* 0x2d */ `REG_SPRITE_COLOR_6:
+                        sprite_col[6] <= dbi[3:0];
+                    /* 0x2e */ `REG_SPRITE_COLOR_7:
+                        sprite_col[7] <= dbi[3:0];
+                    default:;
+                endcase
             end
         end
     end

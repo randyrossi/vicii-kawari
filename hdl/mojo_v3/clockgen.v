@@ -63,7 +63,7 @@ dot4x_50_ntsc_clockgen dot4x_50_ntsc_clockgen(
 
 // Synchronize reset to clock using locked output
 wire hold;
-assign hold = !locked & !internal_rst; 
+assign hold = !locked & !internal_rst;
 RisingEdge_DFlipFlop_SyncReset ff1(1'b0, clk_dot4x, hold, ff1_q);
 RisingEdge_DFlipFlop_SyncReset ff2(ff1_q, clk_dot4x, hold, rst);
 

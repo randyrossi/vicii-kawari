@@ -12,9 +12,9 @@ begin
 end
 endmodule
 
-module RisingEdge_DFlipFlop(input D, input clk,output reg Q);
-always @(posedge clk) 
+    module RisingEdge_DFlipFlop(input D, input clk,output reg Q);
+always @(posedge clk)
 begin
- Q <= D; 
-end 
-endmodule 
+    Q <= D;
+end
+endmodule

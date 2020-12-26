@@ -227,7 +227,8 @@ integer n;
 // char read off the bus, eventually transfered to charRead
 wire [11:0] char_next;
 
-// pixels read off the data bus and char read from the bus (char_next on badline) or char_buf (not badline)
+// pixels read off the data bus and char read from the bus (char_next on
+// badline) or char_buf (not badline)
 wire [11:0] char_read;
 wire [7:0] pixels_read;
 
@@ -326,22 +327,24 @@ begin
     if (rst)
         allow_bad_lines = `FALSE;
     else if (~clk_phi && phi_phase_start[1]) begin
-	// Use raster_line_d here on [1] before it transitions
-	// to the next line in the low cycle so we can catch
-	// den on the last cycle of line 48.  den01-49-1.prg
+        // Use raster_line_d here on [1] before it transitions
+        // to the next line in the low cycle so we can catch
+        // den on the last cycle of line 48.  den01-49-1.prg
         // sets den on the last cycle of line 48 (cycle 62) so
-	// our check has to be made before raster line changes.
-	// For cycle 0, use raster_line to catch den at the
-	// beginning of 48.
-        if (den && ((raster_line == 48 && cycle_num == 0) || raster_line_d == 48))
+        // our check has to be made before raster line changes.
+        // For cycle 0, use raster_line to catch den at the
+        // beginning of 48.
+        if (den && ((raster_line == 48 && cycle_num == 0) ||
+                    raster_line_d == 48))
             allow_bad_lines = `TRUE;
 
         if (raster_line == 248)
             allow_bad_lines = `FALSE;
 
         badline = `FALSE;
-        if (raster_line[2:0] == yscroll && allow_bad_lines == `TRUE && raster_line >= 48 && raster_line < 248)
-           badline = `TRUE;
+        if (raster_line[2:0] == yscroll && allow_bad_lines == `TRUE &&
+                raster_line >= 48 && raster_line < 248)
+            badline = `TRUE;
     end
 end
 
@@ -352,18 +355,17 @@ always @(posedge clk_dot4x) begin
         irst <= `FALSE;
         raster_irq_triggered <= `FALSE;
     end else begin
-	raster_irq_compare_d <= raster_irq_compare;
+        raster_irq_compare_d <= raster_irq_compare;
         // To pass rasterirq_hold.prg, we have to make sure raster_irq_compare
-	// is set along with the time raster_line_d changes.  This test
-	// program 'chases' the raster line comparison test so that the VICII
-	// comparison always results in a match (after line 18). So
-	// raster_irq_triggered remains true and only lines 16,17,18 should
-	// trigger irq.
+        // is set along with the time raster_line_d changes.  This test
+        // program 'chases' the raster line comparison test so that the VICII
+        // comparison always results in a match (after line 18). So
+        // raster_irq_triggered remains true and only lines 16,17,18 should
+        // trigger irq.
         if (raster_line_d == raster_irq_compare_d) begin
             if (!clk_phi && phi_phase_start[8] && !raster_irq_triggered) begin
-               raster_irq_triggered <= `TRUE;
-               irst <= `TRUE;
-	       //$display("IRQ TRIGGERON CYCLE %d LINE %d", cycle_num,raster_line_d);
+                raster_irq_triggered <= `TRUE;
+                irst <= `TRUE;
             end
         end else begin
             raster_irq_triggered <= `FALSE;
@@ -388,7 +390,7 @@ always @(posedge clk_dot4x)
         refc <= 8'hff;
     else if (phi_phase_start[1]) begin // cycle_type is about to transition
         // Decrement at the start of the phase when cycle_type is still valid
-	// for the previous half cycle.
+        // for the previous half cycle.
         if (cycle_num == 1 && raster_line == 9'd0)
             refc <= 8'hff;
         else if (cycle_type == `VIC_LR)
@@ -423,7 +425,7 @@ border vic_border(
            .rsel(rsel),
            .csel(csel),
            .den(den),
-	   .dot_rising(dot_rising[1]),
+           .dot_rising(dot_rising[1]),
            .vborder(top_bot_border),
            .main_border(main_border)
        );
@@ -431,16 +433,16 @@ border vic_border(
 always @(posedge clk_dot4x)
 begin
     if (dot_rising[0]) begin
-	    main_border_d1 <= main_border;
-	    main_border_d2 <= main_border_d1;
-	    main_border_d3 <= main_border_d2;
-	    main_border_d4 <= main_border_d3;
-	    main_border_d5 <= main_border_d4;
-	    top_bot_border_d1 <= top_bot_border;
-	    top_bot_border_d2 <= top_bot_border_d1;
-	    top_bot_border_d3 <= top_bot_border_d2;
-	    top_bot_border_d4 <= top_bot_border_d3;
-	    top_bot_border_d5 <= top_bot_border_d4;
+        main_border_d1 <= main_border;
+        main_border_d2 <= main_border_d1;
+        main_border_d3 <= main_border_d2;
+        main_border_d4 <= main_border_d3;
+        main_border_d5 <= main_border_d4;
+        top_bot_border_d1 <= top_bot_border;
+        top_bot_border_d2 <= top_bot_border_d1;
+        top_bot_border_d3 <= top_bot_border_d2;
+        top_bot_border_d4 <= top_bot_border_d3;
+        top_bot_border_d5 <= top_bot_border_d4;
     end
 end
 
@@ -448,48 +450,48 @@ wire [7:0] lpx;
 wire [7:0] lpy;
 
 lightpen vic_lightpen(
-           .clk_dot4x(clk_dot4x),
-           .rst(rst),
-           .ilp_clr(ilp_clr),
-           .raster_line(raster_line),
-           .raster_y_max(raster_y_max),
-           .lp(lp),
-           .xpos_div_2(xpos[8:1]),
-           .lpx(lpx),
-           .lpy(lpy),
-           .ilp(ilp)
-);
+             .clk_dot4x(clk_dot4x),
+             .rst(rst),
+             .ilp_clr(ilp_clr),
+             .raster_line(raster_line),
+             .raster_y_max(raster_y_max),
+             .lp(lp),
+             .xpos_div_2(xpos[8:1]),
+             .lpx(lpx),
+             .lpy(lpy),
+             .ilp(ilp)
+         );
 
 raster vic_raster(
-   .clk_phi(clk_phi),
-   .clk_dot4x(clk_dot4x),
-   .rst(rst),
-   .phi_phase_start_0(phi_phase_start[0]),
-   .dot_rising_0(dot_rising[0]),
-   .chip(chip),
-   .cycle_num(cycle_num),
-   .raster_x_max(raster_x_max),
-   .raster_y_max(raster_y_max),
-   .xpos(xpos),
-   .raster_x(raster_x),
-   .sprite_raster_x(sprite_raster_x),
-   .raster_line(raster_line),
-   .raster_line_d(raster_line_d)
-);
+           .clk_phi(clk_phi),
+           .clk_dot4x(clk_dot4x),
+           .rst(rst),
+           .phi_phase_start_0(phi_phase_start[0]),
+           .dot_rising_0(dot_rising[0]),
+           .chip(chip),
+           .cycle_num(cycle_num),
+           .raster_x_max(raster_x_max),
+           .raster_y_max(raster_y_max),
+           .xpos(xpos),
+           .raster_x(raster_x),
+           .sprite_raster_x(sprite_raster_x),
+           .raster_line(raster_line),
+           .raster_line_d(raster_line_d)
+       );
 
 matrix vic_matrix(
-   .rst(rst),
-   .clk_phi(clk_phi),
-   .clk_dot4x(clk_dot4x),
-   .phi_phase_start_1(phi_phase_start[1]),
-   .phi_phase_start_14(phi_phase_start[14]),
-   .cycle_num(cycle_num),
-   .raster_line(raster_line),
-   .badline(badline),
-   .idle(idle),
-   .vc(vc),
-   .rc(rc)
-);
+           .rst(rst),
+           .clk_phi(clk_phi),
+           .clk_dot4x(clk_dot4x),
+           .phi_phase_start_1(phi_phase_start[1]),
+           .phi_phase_start_14(phi_phase_start[14]),
+           .cycle_num(cycle_num),
+           .raster_line(raster_line),
+           .badline(badline),
+           .idle(idle),
+           .vc(vc),
+           .rc(rc)
+       );
 
 // Handle when ba should go low due to c-access. We can use xpos
 // here since there are no repeats within this range.
@@ -508,7 +510,8 @@ always @(*)
 // offset that brings sprite 0 to the start.
 always @(*) begin
     for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-        if (sprite_dma[n] && sprite_raster_x >= sprite_ba_start[n] && sprite_raster_x < sprite_ba_end[n])
+        if (sprite_dma[n] && sprite_raster_x >= sprite_ba_start[n] &&
+                sprite_raster_x < sprite_ba_end[n])
             ba_sprite[n] = 1;
         else
             ba_sprite[n] = 0;
@@ -537,17 +540,17 @@ always @(posedge clk_dot4x)
 
 // Cycle state machine
 cycles vic_cycles(
-   .rst(rst),
-   .clk_dot4x(clk_dot4x),
-   .clk_phi(clk_phi),
-   .chip(chip),
-   .phi_phase_start_1(phi_phase_start[1]),
-   .sprite_dma(sprite_dma),
-   .badline(badline),
-   .cycle_num(cycle_num),
-   .cycle_type(cycle_type),
-   .sprite_cnt(sprite_cnt)
-);
+           .rst(rst),
+           .clk_dot4x(clk_dot4x),
+           .clk_phi(clk_phi),
+           .chip(chip),
+           .phi_phase_start_1(phi_phase_start[1]),
+           .sprite_dma(sprite_dma),
+           .badline(badline),
+           .cycle_num(cycle_num),
+           .cycle_type(cycle_type),
+           .sprite_cnt(sprite_cnt)
+       );
 
 // sprite logic
 wire handle_sprite_crunch;
@@ -562,52 +565,52 @@ wire [7:0] sprite_pri_d;
 wire [3:0] active_sprite_d;
 
 sprites vic_sprites(
-         .rst(rst),
-         .clk_dot4x(clk_dot4x),
-         .clk_phi(clk_phi),
-         .cycle_type(cycle_type),
-         .dbi8(dbi[7:0]),
-         .dot_rising_1(dot_rising[1]),
-         .phi_phase_start_m2clr(phi_phase_start[`M2CLR_CHECK]),
-         .phi_phase_start_1(phi_phase_start[1]),
-         .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
-         .xpos(xpos_sprite[8:0]), // top bit omitted
-         .raster_line(raster_line[7:0]), // top bit omitted
-         .cycle_num(cycle_num),
-         .cycle_bit(raster_x[2:0]),
-         .handle_sprite_crunch(handle_sprite_crunch),
-         .sprite_x_o(sprite_x_o),
-         .sprite_y_o(sprite_y_o),
-         .sprite_xe(sprite_xe),
-         .sprite_ye(sprite_ye),
-         .sprite_en(sprite_en),
-         .sprite_mmc(sprite_mmc),
-         .sprite_pri(sprite_pri),
-         .sprite_pri_d(sprite_pri_d),
-         .sprite_cnt(sprite_cnt),
-         .aec(aec),
-         .is_background_pixel(is_background_pixel1),
-         .stage0(stage0),
-         .stage1(stage1),
-         .main_border(main_border_stage1),
-         .imbc_clr(imbc_clr),
-         .immc_clr(immc_clr),
-         .sprite_dmachk1(sprite_dmachk1),
-         .sprite_dmachk2(sprite_dmachk2),
-         .sprite_yexp_chk(sprite_yexp_chk),
-         .sprite_disp_chk(sprite_disp_chk),
-         .immc(immc),
-         .imbc(imbc),
-         .sprite_cur_pixel_o(sprite_cur_pixel_o),
-         .sprite_mc_o(sprite_mc_o),
-         .sprite_dma(sprite_dma),
-         .m2m_clr(m2m_clr),
-         .m2d_clr(m2d_clr),
-         .sprite_m2m(sprite_m2m),
-         .sprite_m2d(sprite_m2d),
-	 .sprite_mmc_d(sprite_mmc_d),
-	 .active_sprite_d(active_sprite_d)
-);
+            .rst(rst),
+            .clk_dot4x(clk_dot4x),
+            .clk_phi(clk_phi),
+            .cycle_type(cycle_type),
+            .dbi8(dbi[7:0]),
+            .dot_rising_1(dot_rising[1]),
+            .phi_phase_start_m2clr(phi_phase_start[`M2CLR_CHECK]),
+            .phi_phase_start_1(phi_phase_start[1]),
+            .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
+            .xpos(xpos_sprite[8:0]), // top bit omitted
+            .raster_line(raster_line[7:0]), // top bit omitted
+            .cycle_num(cycle_num),
+            .cycle_bit(raster_x[2:0]),
+            .handle_sprite_crunch(handle_sprite_crunch),
+            .sprite_x_o(sprite_x_o),
+            .sprite_y_o(sprite_y_o),
+            .sprite_xe(sprite_xe),
+            .sprite_ye(sprite_ye),
+            .sprite_en(sprite_en),
+            .sprite_mmc(sprite_mmc),
+            .sprite_pri(sprite_pri),
+            .sprite_pri_d(sprite_pri_d),
+            .sprite_cnt(sprite_cnt),
+            .aec(aec),
+            .is_background_pixel(is_background_pixel1),
+            .stage0(stage0),
+            .stage1(stage1),
+            .main_border(main_border_stage1),
+            .imbc_clr(imbc_clr),
+            .immc_clr(immc_clr),
+            .sprite_dmachk1(sprite_dmachk1),
+            .sprite_dmachk2(sprite_dmachk2),
+            .sprite_yexp_chk(sprite_yexp_chk),
+            .sprite_disp_chk(sprite_disp_chk),
+            .immc(immc),
+            .imbc(imbc),
+            .sprite_cur_pixel_o(sprite_cur_pixel_o),
+            .sprite_mc_o(sprite_mc_o),
+            .sprite_dma(sprite_dma),
+            .m2m_clr(m2m_clr),
+            .m2d_clr(m2d_clr),
+            .sprite_m2m(sprite_m2m),
+            .sprite_m2d(sprite_m2d),
+            .sprite_mmc_d(sprite_mmc_d),
+            .active_sprite_d(active_sprite_d)
+        );
 
 
 // AEC LOW tells CPU to tri-state its bus lines
@@ -646,26 +649,26 @@ assign ls245_addr_oe = 1'b0; // aec & ce;  for now, always enable
 
 // Handle cycles that perform data bus accesses
 bus_access vic_bus_access(
-         .rst(rst),
-         .clk_dot4x(clk_dot4x),
-         .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
-         .cycle_type(cycle_type),
-         .dbi(dbi),
-         .idle(idle),
-         .sprite_cnt(sprite_cnt),
-         .sprite_dma(sprite_dma),
-         .sprite_ptr_o(sprite_ptr_o),
-         .pixels_read(pixels_read),
-         .char_read(char_read),
-         .char_next(char_next),
-         .aec(aec)
-);
+               .rst(rst),
+               .clk_dot4x(clk_dot4x),
+               .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
+               .cycle_type(cycle_type),
+               .dbi(dbi),
+               .idle(idle),
+               .sprite_cnt(sprite_cnt),
+               .sprite_dma(sprite_dma),
+               .sprite_ptr_o(sprite_ptr_o),
+               .pixels_read(pixels_read),
+               .char_read(char_read),
+               .char_next(char_next),
+               .aec(aec)
+           );
 
 // Address generation
 addressgen vic_addressgen(
                //.rst(rst),
                .cycle_type(cycle_type),
-	       .clk_dot4x(clk_dot4x),
+               .clk_dot4x(clk_dot4x),
                .cb(cb),
                .vc(vc),
                .vm(vm),
@@ -784,7 +787,7 @@ pixel_sequencer vic_pixel_sequencer(
                     .cycle_bit(raster_x[2:0]),
                     .cycle_num(cycle_num),
 `ifdef PIXEL_LOG
-		    .raster_line(raster_line),
+                    .raster_line(raster_line),
 `endif
                     .xscroll(xscroll),
                     .pixels_read(pixels_read),
@@ -807,7 +810,7 @@ pixel_sequencer vic_pixel_sequencer(
                     .stage0(stage0),
                     .stage1(stage1),
                     .pixel_color3(pixel_color3),
-		    .active_sprite_d(active_sprite_d)
+                    .active_sprite_d(active_sprite_d)
                 );
 
 endmodule : vicii

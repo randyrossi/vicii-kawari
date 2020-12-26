@@ -6,7 +6,7 @@
 // Timing here is critical and sprites must get activated at
 // precicely the right time so that sprite priority register
 // changes causing splits happen between pixels 5 & 6. Same
-// for the sprite x expansion bits register. 
+// for the sprite x expansion bits register.
 //
 // Register changes become valid on PPS[1] after the falling
 // edge of PHI. Code that needs sprite_pri or sprite_xe needs
@@ -30,52 +30,52 @@
 // must be carried over to the pixel sequencer's 'schedule' by
 // suitable delay.  See below for more details.
 module sprites(
-        input rst,
-        input clk_dot4x,
-        input clk_phi,
-        input [7:0] dbi8,
-        input [3:0] cycle_type,
-        input dot_rising_1,
-        input phi_phase_start_m2clr,
-        input phi_phase_start_1,
-        input phi_phase_start_dav,
-        input [8:0] xpos, // top bit omitted for comparison to x
-        input [6:0] cycle_num,
-        input [2:0] cycle_bit,
-        input handle_sprite_crunch,
-        input [71:0] sprite_x_o,
-        input [63:0] sprite_y_o,
-        input [7:0] sprite_xe,
-        input [7:0] sprite_ye,
-        input [7:0] sprite_en,
-        input [7:0] sprite_mmc,
-        input [7:0] sprite_pri,
-        input [2:0] sprite_cnt,
-        input [7:0] raster_line, // top bit omitted for comparison to y
-        input aec,
-        input is_background_pixel,
-        input stage0,
-        input stage1,
-        input main_border,
-        input imbc_clr,
-        input immc_clr,
-        input [6:0] sprite_dmachk1,
-        input [6:0] sprite_dmachk2,
-        input [6:0] sprite_yexp_chk,
-        input [6:0] sprite_disp_chk,
-        input m2m_clr,
-        input m2d_clr,
-        output reg immc,
-        output reg imbc,
-        output wire [15:0] sprite_cur_pixel_o,
-        output wire [47:0] sprite_mc_o,
-        output reg [`NUM_SPRITES - 1:0] sprite_dma,
-        output reg [7:0] sprite_m2m,
-        output reg [7:0] sprite_m2d,
-	output reg [7:0] sprite_mmc_d,
-	output reg [7:0] sprite_pri_d,
-	output reg [3:0] active_sprite_d
-);
+           input rst,
+           input clk_dot4x,
+           input clk_phi,
+           input [7:0] dbi8,
+           input [3:0] cycle_type,
+           input dot_rising_1,
+           input phi_phase_start_m2clr,
+           input phi_phase_start_1,
+           input phi_phase_start_dav,
+           input [8:0] xpos, // top bit omitted for comparison to x
+           input [6:0] cycle_num,
+           input [2:0] cycle_bit,
+           input handle_sprite_crunch,
+           input [71:0] sprite_x_o,
+           input [63:0] sprite_y_o,
+           input [7:0] sprite_xe,
+           input [7:0] sprite_ye,
+           input [7:0] sprite_en,
+           input [7:0] sprite_mmc,
+           input [7:0] sprite_pri,
+           input [2:0] sprite_cnt,
+           input [7:0] raster_line, // top bit omitted for comparison to y
+           input aec,
+           input is_background_pixel,
+           input stage0,
+           input stage1,
+           input main_border,
+           input imbc_clr,
+           input immc_clr,
+           input [6:0] sprite_dmachk1,
+           input [6:0] sprite_dmachk2,
+           input [6:0] sprite_yexp_chk,
+           input [6:0] sprite_disp_chk,
+           input m2m_clr,
+           input m2d_clr,
+           output reg immc,
+           output reg imbc,
+           output wire [15:0] sprite_cur_pixel_o,
+           output wire [47:0] sprite_mc_o,
+           output reg [`NUM_SPRITES - 1:0] sprite_dma,
+           output reg [7:0] sprite_m2m,
+           output reg [7:0] sprite_m2d,
+           output reg [7:0] sprite_mmc_d,
+           output reg [7:0] sprite_pri_d,
+           output reg [3:0] active_sprite_d
+       );
 
 integer n;
 
@@ -186,12 +186,12 @@ always @(posedge clk_dot4x)
             for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
                 if (!sprite_ye[n] && !sprite_ye_ff[n]) begin
                     // NOTE: When DAV is set to 0, we have to compare the
-		    // cycle to 15 even though the register set happened on 14.
-		    // That's because we would have just crossed over to the
+                    // cycle to 15 even though the register set happened on 14.
+                    // That's because we would have just crossed over to the
                     // next cycle by the time handle_sprite_crunch rose.
                     if (cycle_num == `SPRITE_CRUNCH_CYCLE_CHECK) begin
                         sprite_mc[n] <=
-				 (6'h2a & (sprite_mcbase[n] & sprite_mc[n])) |
+                                 (6'h2a & (sprite_mcbase[n] & sprite_mc[n])) |
                                  (6'h15 & (sprite_mcbase[n] | sprite_mc[n])) ;
                     end
                     sprite_ye_ff[n] <= `TRUE;
@@ -199,8 +199,8 @@ always @(posedge clk_dot4x)
             end
         end
         // check dma
-	// NOTE: VICE does this on high but that is much too late for
-	// sprite 0. BA will not go low early enough.
+        // NOTE: VICE does this on high but that is much too late for
+        // sprite 0. BA will not go low early enough.
         if (!clk_phi && phi_phase_start_1 &&
                 (cycle_num == sprite_dmachk1 || cycle_num == sprite_dmachk2))
         begin
@@ -225,18 +225,18 @@ always @(posedge clk_dot4x)
             for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
                 sprite_mc[n] <= sprite_mcbase[n];
                 if (sprite_dma[n]) begin
-                   if (sprite_en[n] && raster_line[7:0] == sprite_y[n]) begin
-                      sprite_display[n] = 1'b1;
-                   end
+                    if (sprite_en[n] && raster_line[7:0] == sprite_y[n]) begin
+                        sprite_display[n] = 1'b1;
+                    end
                 end else begin
-                   sprite_display[n] = 1'b0;
+                    sprite_display[n] = 1'b0;
                 end
             end
         end
 
         // Advance sprite byte offset while dma is happening (at end of cycle)
         // Need to increment before cycle_type changes for the next half
-	// cycle.
+        // cycle.
         if (phi_phase_start_1) begin
             case (cycle_type)
                 `VIC_HS1,`VIC_LS2,`VIC_HS3:
@@ -252,10 +252,10 @@ always @(posedge clk_dot4x)
 always @(posedge clk_dot4x)
 begin
     if (dot_rising_1) begin
-       for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-          sprite_x_d[n] <= sprite_x[n];
-          sprite_x_d2[n] <= sprite_x_d[n];
-       end
+        for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
+            sprite_x_d[n] <= sprite_x[n];
+            sprite_x_d2[n] <= sprite_x_d[n];
+        end
     end
 end
 
@@ -267,12 +267,12 @@ reg[3:0] prev_cycle_type;
 reg[2:0] prev_sprite_cnt;
 always @(posedge clk_dot4x)
 begin
-   // This will keep track of prev cycle/sprite count
-   // valid at the same time cycle_type changes.
-   if (phi_phase_start_dav) begin
-       prev_cycle_type <= cycle_type;
-       prev_sprite_cnt <= sprite_cnt;
-   end
+    // This will keep track of prev cycle/sprite count
+    // valid at the same time cycle_type changes.
+    if (phi_phase_start_dav) begin
+        prev_cycle_type <= cycle_type;
+        prev_sprite_cnt <= sprite_cnt;
+    end
 end
 
 // Sprite pixel sequencer.
@@ -294,70 +294,70 @@ begin
         // Handle sprite mmc split.
         // Krestage3 - Will fail with "No VIC inside" without this flip flop quirk
         // This is timed to happen on the first tick of pixel 7 which appears
-	// as the second pixel in the low phase.  The register set of
-	// sprite_mmc_next will be valid for dot_rising_1 because these are
-	// blocking assignments.  So when pixel 7 'work' is performed, this
-	// is visible.  NOTE: This is hard coded behavior for 6569 where
-	// the split happens between pixel 6 & 7.
+        // as the second pixel in the low phase.  The register set of
+        // sprite_mmc_next will be valid for dot_rising_1 because these are
+        // blocking assignments.  So when pixel 7 'work' is performed, this
+        // is visible.  NOTE: This is hard coded behavior for 6569 where
+        // the split happens between pixel 6 & 7.
         if (dot_rising_1 && cycle_bit == `SPRITE_PIXEL_7) begin
-           //$display("before cycle %d line %d : %d %d %d",
-           //    cycle_num, raster_line, sprite_mmc_ff, sprite_mmc, sprite_mmc_next);
-           sprite_mmc_ff = sprite_mmc_ff & ~(sprite_mmc ^ sprite_mmc_next);
-           sprite_mmc_next = sprite_mmc;
-           //$display("after cycle %d line %d : %d %d %d",
-           //    cycle_num, raster_line, sprite_mmc_ff, sprite_mmc, sprite_mmc_next);
+            //$display("before cycle %d line %d : %d %d %d",
+            //    cycle_num, raster_line, sprite_mmc_ff, sprite_mmc, sprite_mmc_next);
+            sprite_mmc_ff = sprite_mmc_ff & ~(sprite_mmc ^ sprite_mmc_next);
+            sprite_mmc_next = sprite_mmc;
+            //$display("after cycle %d line %d : %d %d %d",
+            //    cycle_num, raster_line, sprite_mmc_ff, sprite_mmc, sprite_mmc_next);
         end
 
-	// We activate a sprite pixel when xpos hits sprite_x.
-	// We also set things like active and halt bits at this time. 
+        // We activate a sprite pixel when xpos hits sprite_x.
+        // We also set things like active and halt bits at this time.
         if (dot_rising_1) begin
             // The sprite pixel shifter will deactivate a sprite
             // or halt the shifter entirely around the cycles that
             // perform dma access. This logic comes from VICE.
-	    // NOTE: Since we pushed our pixels out by 2 in order to
-	    // simulate pri/xe splits preperly, we have to use a delayed
-	    // check on the cycle type for the pixel #'s to make sense here.
-	    // Deactivate on pixel 2 on 2nd dma cycle
-	    // Halt on pixel 3 on spr ptr cycle
-	    // Resume on pixel 7 on 3rd dma cycle
+            // NOTE: Since we pushed our pixels out by 2 in order to
+            // simulate pri/xe splits preperly, we have to use a delayed
+            // check on the cycle type for the pixel #'s to make sense here.
+            // Deactivate on pixel 2 on 2nd dma cycle
+            // Halt on pixel 3 on spr ptr cycle
+            // Resume on pixel 7 on 3rd dma cycle
             if (cycle_bit == `SPRITE_PIXEL_2 &&
                     (prev_cycle_type == `VIC_LS2 || prev_cycle_type == `VIC_LPI2)) begin
                 sprite_active[prev_sprite_cnt] = `FALSE;
                 sprite_cur_pixel1[prev_sprite_cnt] = 0;
             end else if (cycle_bit == `SPRITE_PIXEL_3 &&
-                    prev_cycle_type == `VIC_LP) begin
+                         prev_cycle_type == `VIC_LP) begin
                 sprite_halt[prev_sprite_cnt] = `TRUE;
                 sprite_pixels_shifting[prev_sprite_cnt] <= 32'b0;
             end else if (cycle_bit == `SPRITE_PIXEL_7 &&
-                    (prev_cycle_type == `VIC_HS3 || prev_cycle_type == `VIC_HPI3))
+                         (prev_cycle_type == `VIC_HS3 || prev_cycle_type == `VIC_HPI3))
                 sprite_halt[prev_sprite_cnt] = `FALSE;
 
             // When xpos matches sprite_x, turn on the shifter
-	    // As noted above, we actually trigger the active flag 
-	    // one pixel after the xpos match since this is the
-	    // final tick of an xpos.
+            // As noted above, we actually trigger the active flag
+            // one pixel after the xpos match since this is the
+            // final tick of an xpos.
             for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-               if (sprite_display[n] && !sprite_halt[n] &&
-                       sprite_x_d2[n] == xpos[8:0]) begin
-                   sprite_active[n] = `TRUE;
-                   sprite_xe_ff[n] = `TRUE;
-                   sprite_mmc_ff[n] = `TRUE;
-               end
+                if (sprite_display[n] && !sprite_halt[n] &&
+                        sprite_x_d2[n] == xpos[8:0]) begin
+                    sprite_active[n] = `TRUE;
+                    sprite_xe_ff[n] = `TRUE;
+                    sprite_mmc_ff[n] = `TRUE;
+                end
             end
         end
 
         // Do the work to produce a sprite pixel in the first tick of xpos.
-	// We also keep track of the priority and mmc values at the time cur
-	// pixel is created so that those values may enter the same delay
-	// pipeline as cur pixel. (The pixel sequencer needs to work on the
-	// mmc and pri values that go with the cur pixel for splits to work.)
+        // We also keep track of the priority and mmc values at the time cur
+        // pixel is created so that those values may enter the same delay
+        // pipeline as cur pixel. (The pixel sequencer needs to work on the
+        // mmc and pri values that go with the cur pixel for splits to work.)
         if (dot_rising_1) begin
             // Top bit is true if there is an active sprite. Lower 3 bits
-	    // indicate which sprite number is active.
-	    active_sprite1 = {4'b0};
+            // indicate which sprite number is active.
+            active_sprite1 = {4'b0};
             // Shift pixels into sprite_cur_pixel for each sprite.
-	    // We keep track of which sprite is active for the pixel
-	    // sequencer when it does its overlap logic.
+            // We keep track of which sprite is active for the pixel
+            // sequencer when it does its overlap logic.
             for (n = `NUM_SPRITES-1; n >= 0; n = n - 1) begin
                 //$display("%d BIT %d SPRITE %d active %d halt %d reg %x pixel %d",raster_line, cycle_bit >= 2 ? cycle_bit -2 : 6 + cycle_bit,n,
                 //    sprite_active[n], sprite_halt[n], sprite_pixels_shifting[n], sprite_cur_pixel[n]);
@@ -365,49 +365,49 @@ begin
                 if (sprite_active[n]) begin
                     //$display("SPR %d with a:%d h:%d x:%d xf:%d m:%d mf:%d p:%d BIT=%d", n,
                     //    sprite_active[n], sprite_halt[n], sprite_xe[n],
-		    //       sprite_xe_ff[n], sprite_mmc[n], sprite_mmc_ff[n], sprite_pri[n],
+                    //       sprite_xe_ff[n], sprite_mmc[n], sprite_mmc_ff[n], sprite_pri[n],
                     //          cycle_bit >=2 ? cycle_bit - 2: 6 + cycle_bit);
-		    // NOTE: Just like VICE, we use the upper byte of this
-		    // 32 bit register to allow the last 8 (or 4 for mmc)
-		    // shifting pixels drift in so this !=0 comparison will
-		    // make this block keep shifting even though 0's are being
-		    // grabbed out of the register.  This keeps our xe_ff in
-		    // sync with VICE.
+                    // NOTE: Just like VICE, we use the upper byte of this
+                    // 32 bit register to allow the last 8 (or 4 for mmc)
+                    // shifting pixels drift in so this !=0 comparison will
+                    // make this block keep shifting even though 0's are being
+                    // grabbed out of the register.  This keeps our xe_ff in
+                    // sync with VICE.
                     if (sprite_pixels_shifting[n] != 0 || sprite_cur_pixel1[n] != 0) begin
-                       if (!sprite_halt[n]) begin
-                          if (sprite_xe_ff[n]) begin
-                              if (sprite_mmc_next[n]) begin
-                                 if (sprite_mmc_ff[n]) begin
-                                     //$display("SPR %d got %d (dbl) FROM %06x",
-                                     //    n,sprite_pixels_shifting[n][23:22], sprite_pixels_shifting[n]);
-                                     sprite_cur_pixel1[n] = sprite_pixels_shifting[n][23:22];
-                                 end
-                                 sprite_mmc_ff[n] = !sprite_mmc_ff[n];
-                              end else begin
-                                 //$display("SPR %d got %d (single) FROM %06x",n,
-			         //    {sprite_pixels_shifting[n][23], 1'b0}, sprite_pixels_shifting[n]);
-                                 sprite_cur_pixel1[n] = {sprite_pixels_shifting[n][23], 1'b0};
-                             end
-                             sprite_mmc1 <= sprite_mmc_next;
-                          end
-                          sprite_pri1 <= sprite_pri;
-                          if (sprite_xe_ff[n]) begin
-                              sprite_pixels_shifting[n] <= {sprite_pixels_shifting[n][30:0], 1'b0};
-                          end
-			  if (sprite_xe[n])
-                              sprite_xe_ff[n] = !sprite_xe_ff[n];
-			  else
-                              sprite_xe_ff[n] = `TRUE;
+                        if (!sprite_halt[n]) begin
+                            if (sprite_xe_ff[n]) begin
+                                if (sprite_mmc_next[n]) begin
+                                    if (sprite_mmc_ff[n]) begin
+                                        //$display("SPR %d got %d (dbl) FROM %06x",
+                                        //    n,sprite_pixels_shifting[n][23:22], sprite_pixels_shifting[n]);
+                                        sprite_cur_pixel1[n] = sprite_pixels_shifting[n][23:22];
+                                    end
+                                    sprite_mmc_ff[n] = !sprite_mmc_ff[n];
+                                end else begin
+                                    //$display("SPR %d got %d (single) FROM %06x",n,
+                                    //    {sprite_pixels_shifting[n][23], 1'b0}, sprite_pixels_shifting[n]);
+                                    sprite_cur_pixel1[n] = {sprite_pixels_shifting[n][23], 1'b0};
+                                end
+                                sprite_mmc1 <= sprite_mmc_next;
+                            end
+                            sprite_pri1 <= sprite_pri;
+                            if (sprite_xe_ff[n]) begin
+                                sprite_pixels_shifting[n] <= {sprite_pixels_shifting[n][30:0], 1'b0};
+                            end
+                            if (sprite_xe[n])
+                                sprite_xe_ff[n] = !sprite_xe_ff[n];
+                            else
+                                sprite_xe_ff[n] = `TRUE;
 
-                       end
+                        end
 
-		       // Keep track of active sprite
-                       if (sprite_cur_pixel1[n] != 2'b0)
-                           active_sprite1 = {1'b1, n[2:0]};
-                   end
-                   else begin
-                       sprite_active[n] = `FALSE;
-                   end
+                        // Keep track of active sprite
+                        if (sprite_cur_pixel1[n] != 2'b0)
+                            active_sprite1 = {1'b1, n[2:0]};
+                    end
+                    else begin
+                        sprite_active[n] = `FALSE;
+                    end
                 end
             end
         end
@@ -419,18 +419,18 @@ begin
         // fetch cycle.  When AEC is low shift 0xff into the register since we
         // can't read from dbi.
         if (phi_phase_start_dav) begin
-          case (cycle_type)
+            case (cycle_type)
                 `VIC_HS1, `VIC_LS2, `VIC_HS3:
-                   if (sprite_dma[sprite_cnt]) begin
-                      if (!aec)
-                         sprite_pixels_shifting[sprite_cnt] <=
-                             {sprite_pixels_shifting[sprite_cnt][23:0], dbi8[7:0]};
-                      else
-                         sprite_pixels_shifting[sprite_cnt] <=
-                             {sprite_pixels_shifting[sprite_cnt][23:0], 8'hff};
-                  end
-              default: ;
-          endcase
+                    if (sprite_dma[sprite_cnt]) begin
+                        if (!aec)
+                            sprite_pixels_shifting[sprite_cnt] <=
+                            {sprite_pixels_shifting[sprite_cnt][23:0], dbi8[7:0]};
+                        else
+                            sprite_pixels_shifting[sprite_cnt] <=
+                            {sprite_pixels_shifting[sprite_cnt][23:0], 8'hff};
+                    end
+                default: ;
+            endcase
         end
     end
 end
@@ -453,12 +453,12 @@ begin
             sprite_cur_pixel6[n] <= sprite_cur_pixel5[n];
             sprite_cur_pixel[n] <= sprite_cur_pixel6[n];
 
-	    sprite_mmc2 <= sprite_mmc1;
-	    sprite_mmc3 <= sprite_mmc2;
-	    sprite_mmc4 <= sprite_mmc3;
-	    sprite_mmc5 <= sprite_mmc4;
-	    sprite_mmc6 <= sprite_mmc5;
-	    sprite_mmc_d <= sprite_mmc6;
+            sprite_mmc2 <= sprite_mmc1;
+            sprite_mmc3 <= sprite_mmc2;
+            sprite_mmc4 <= sprite_mmc3;
+            sprite_mmc5 <= sprite_mmc4;
+            sprite_mmc6 <= sprite_mmc5;
+            sprite_mmc_d <= sprite_mmc6;
         end
     end
 
@@ -466,21 +466,21 @@ begin
     // in the pixel sequencer so any pri splits happens when
     // the cur pixel is actually overlayed in the gfx pipeline.
     if (stage0) begin
-       sprite_pri2 <= sprite_pri1;
-       sprite_pri3 <= sprite_pri2;
-       sprite_pri4 <= sprite_pri3;
-       sprite_pri5 <= sprite_pri4;
-       sprite_pri6 <= sprite_pri5;
-       sprite_pri7 <= sprite_pri6;
-       sprite_pri_d <= sprite_pri7;
+        sprite_pri2 <= sprite_pri1;
+        sprite_pri3 <= sprite_pri2;
+        sprite_pri4 <= sprite_pri3;
+        sprite_pri5 <= sprite_pri4;
+        sprite_pri6 <= sprite_pri5;
+        sprite_pri7 <= sprite_pri6;
+        sprite_pri_d <= sprite_pri7;
 
-       active_sprite2 <= active_sprite1;
-       active_sprite3 <= active_sprite2;
-       active_sprite4 <= active_sprite3;
-       active_sprite5 <= active_sprite4;
-       active_sprite6 <= active_sprite5;
-       active_sprite7 <= active_sprite6;
-       active_sprite_d <= active_sprite7;
+        active_sprite2 <= active_sprite1;
+        active_sprite3 <= active_sprite2;
+        active_sprite4 <= active_sprite3;
+        active_sprite5 <= active_sprite4;
+        active_sprite6 <= active_sprite5;
+        active_sprite7 <= active_sprite6;
+        active_sprite_d <= active_sprite7;
     end
 
 end
@@ -553,13 +553,13 @@ always @(posedge clk_dot4x)
             end
         end
         // This triggers at the same time the sprite stage of the pixel
-	// sequencer works.  So sprite to data collisions happen on the
-	// delayed sprite pixels that overwrite any gfx pixels.
+        // sequencer works.  So sprite to data collisions happen on the
+        // delayed sprite pixels that overwrite any gfx pixels.
         if (stage1) begin
             for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
                 if (((sprite_mmc_d[n] && sprite_cur_pixel[n] != 0) || // multicolor
-                   (!sprite_mmc_d[n] && sprite_cur_pixel[n][1] != 0)) & // non multicolor
-                       !is_background_pixel & !main_border) begin
+                        (!sprite_mmc_d[n] && sprite_cur_pixel[n][1] != 0)) & // non multicolor
+                        !is_background_pixel & !main_border) begin
                     sprite_m2d[n] <= `TRUE;
                     if (!m2d_triggered) begin
                         m2d_triggered <= `TRUE;

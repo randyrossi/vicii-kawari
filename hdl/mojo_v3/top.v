@@ -43,9 +43,9 @@ module top(
            output ba,           // ba
            output cas,          // column address strobe
            output ras,          // row address strobe
-			  output ls245_addr_oe,   // OE for addr bus transceviers
+           output ls245_addr_oe,   // OE for addr bus transceviers
            output ls245_addr_dir,  // DIR for addr bus transceivers
-			  output ls245_data_oe,   // OE for data bus transcevier
+           output ls245_data_oe,   // OE for data bus transcevier
            output ls245_data_dir   // DIR for data bus transceiver
        );
 
@@ -56,23 +56,23 @@ wire clk_dot4x;
 `ifndef IS_SIMULATOR
 // Clock generators and chip selection
 clockgen mojo_clockgen(
-         .sys_clock(sys_clock),
-         .clk_dot4x(clk_dot4x),
-         .rst(rst),
-         .chip(chip));
+             .sys_clock(sys_clock),
+             .clk_dot4x(clk_dot4x),
+             .rst(rst),
+             .chip(chip));
 `endif
 
 // https://www.xilinx.com/support/answers/35032.html
 ODDR2 oddr2(
-	.D0(1'b1),
-	.D1(1'b0),
-	.C0(clk_dot4x),
-	.C1(~clk_dot4x),
-	.CE(1'b1),
-	.R(1'b0),
-	.S(1'b0),
-	.Q(clk_dot4x_ext)
-);
+          .D0(1'b1),
+          .D1(1'b0),
+          .C0(clk_dot4x),
+          .C1(~clk_dot4x),
+          .CE(1'b1),
+          .R(1'b0),
+          .S(1'b0),
+          .Q(clk_dot4x_ext)
+      );
 
 // This is a reset line for the CPU which would have to be
 // connected with a jumper.  It holds the CPU in reset
@@ -143,17 +143,17 @@ assign dbo_sim = dbo;
 // ----------------------------------------------------
 wire [3:0] pixel_color4_vga;
 vga_sync vic_vga_sync(
-    .rst(rst),
-    .clk_dot4x(clk_dot4x),
-    .raster_x(raster_x),
-    .raster_y(raster_line),
-    .chip(chip),
-    .pixel_color3(pixel_color3),
-    .hsync(hsync),
-    .vsync(vsync),
-    .active(active),
-    .pixel_color4(pixel_color4_vga)
-);
+             .rst(rst),
+             .clk_dot4x(clk_dot4x),
+             .raster_x(raster_x),
+             .raster_y(raster_line),
+             .chip(chip),
+             .pixel_color3(pixel_color3),
+             .hsync(hsync),
+             .vsync(vsync),
+             .active(active),
+             .pixel_color4(pixel_color4_vga)
+         );
 
 // FINAL OUTPUT RGB values from stage 4 indexed value.
 // The source pixel depends on video type (composite/vga)
@@ -164,10 +164,10 @@ vga_sync vic_vga_sync(
 
 // Translate pixel_color (indexed) to RGB values
 color4 vic_colors(
-     .out_pixel(pixel_color4_vga),
-     .red(red),
-     .green(green),
-     .blue(blue)
-);
+           .out_pixel(pixel_color4_vga),
+           .red(red),
+           .green(green),
+           .blue(blue)
+       );
 
 endmodule : top

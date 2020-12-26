@@ -41,7 +41,7 @@ module pixel_sequencer(
            output reg stage0,
            output reg stage1,
            output reg [3:0] pixel_color3,
-	   input [3:0] active_sprite_d
+           input [3:0] active_sprite_d
        );
 
 reg load_pixels;
@@ -110,14 +110,14 @@ assign visible_d = cycle_num_delayed >= 15 && cycle_num_delayed <= 54;
 always @(posedge clk_dot4x)
 begin
     if (stage0) begin
-       for (n = `NUM_SPRITES-1; n >= 0; n = n - 1) begin
-          sprite_col_d1[n[2:0]] <= sprite_col[n[2:0]];
-          sprite_col_d2[n[2:0]] <= sprite_col_d1[n[2:0]];
-       end
-       sprite_mc0_d1 <= sprite_mc0;
-       sprite_mc0_d2 <= sprite_mc0_d1;
-       sprite_mc1_d1 <= sprite_mc1;
-       sprite_mc1_d2 <= sprite_mc1_d1;
+        for (n = `NUM_SPRITES-1; n >= 0; n = n - 1) begin
+            sprite_col_d1[n[2:0]] <= sprite_col[n[2:0]];
+            sprite_col_d2[n[2:0]] <= sprite_col_d1[n[2:0]];
+        end
+        sprite_mc0_d1 <= sprite_mc0;
+        sprite_mc0_d2 <= sprite_mc0_d1;
+        sprite_mc1_d1 <= sprite_mc1;
+        sprite_mc1_d2 <= sprite_mc1_d1;
     end
 end
 
@@ -136,28 +136,28 @@ begin
         char_read_delayed0 <= char_read;
         char_read_delayed1 <= char_read_delayed0;
 
-	cycle_num_delayed0 <= cycle_num;
-	cycle_num_delayed1 <= cycle_num_delayed0;
+        cycle_num_delayed0 <= cycle_num;
+        cycle_num_delayed1 <= cycle_num_delayed0;
 
-	xscroll_delayed0 <= xscroll;
+        xscroll_delayed0 <= xscroll;
     end
 
     if (!clk_phi && phi_phase_start_pl) begin
         pixels_read_delayed <= pixels_read_delayed1;
         char_read_delayed <= char_read_delayed1;
-	cycle_num_delayed <= cycle_num_delayed1;
-	if (visible && !vborder) begin
+        cycle_num_delayed <= cycle_num_delayed1;
+        if (visible && !vborder) begin
             xscroll_delayed <= xscroll_delayed0;
         end
     end
 
     if (stage0) begin
-	b0c_d2 <= b0c;
-	b1c_d2 <= b1c;
-	b2c_d2 <= b2c;
-	b3c_d2 <= b3c;
+        b0c_d2 <= b0c;
+        b1c_d2 <= b1c;
+        b2c_d2 <= b2c;
+        b3c_d2 <= b3c;
     end
- 
+
     if (stage1) begin
         ec_d2 <= ec;
     end
@@ -181,31 +181,31 @@ begin
     // First tick of a pixel
     if (dot_rising_1) begin
         // We 'work' on several stages of a pixel over the next 3 dot4x
-	// ticks. It begins here when we set stage0 high.
+        // ticks. It begins here when we set stage0 high.
         stage0 <= 1'b1;
 
         if (cycle_bit == 4) begin
-           mcm_d = mcm;
-           bmm_d = bmm_d | bmm;
-           ecm_d = ecm_d | ecm;
+            mcm_d = mcm;
+            bmm_d = bmm_d | bmm;
+            ecm_d = ecm_d | ecm;
         end else if (cycle_bit == 6) begin
-           bmm_d = bmm_d & bmm;
-           ecm_d = ecm_d & ecm;
+            bmm_d = bmm_d & bmm;
+            ecm_d = ecm_d & ecm;
         end else if (cycle_bit == 7) begin
-          if (mcm_d && !mcm_d_prev)
-              g_mc_ff = 0;
-          mcm_d_prev = mcm_d;
+            if (mcm_d && !mcm_d_prev)
+                g_mc_ff = 0;
+            mcm_d_prev = mcm_d;
         end
 
 `ifdef PIXEL_LOG
-	if (cycle_num >= 15 && cycle_num <=54) begin
-           $display("PIXEL %d WITH XSCROLL=%d VM11=%d%d VM16=%d(%d) MC=%d",
-	       cycle_bit, xscroll_delayed, bmm_d, ecm_d, mcm_d_prev, mcm_d, g_mc_ff);
+        if (cycle_num >= 15 && cycle_num <=54) begin
+            $display("PIXEL %d WITH XSCROLL=%d VM11=%d%d VM16=%d(%d) MC=%d",
+                     cycle_bit, xscroll_delayed, bmm_d, ecm_d, mcm_d_prev, mcm_d, g_mc_ff);
         end
 `endif
 
-	// load pixels when xscroll matches pixel 0-7
-	if (xscroll_delayed == cycle_bit) begin
+        // load pixels when xscroll matches pixel 0-7
+        if (xscroll_delayed == cycle_bit) begin
             g_mc_ff = 1;
             if (!vborder && visible_d) begin
                 pixels_shifting = pixels_read_delayed;
@@ -213,37 +213,37 @@ begin
                     char_shifting = char_read_delayed;
                 end else begin
                     char_shifting = 12'b0;
-		end
+                end
             end else
-               pixels_shifting = 8'b0;
+                pixels_shifting = 8'b0;
 
 `ifdef PIXEL_LOG
             if (cycle_num >= 15 && cycle_num <=54) begin
                 $display("LINE %03x", raster_line);
                 $display("%d CHECK LOADING %x %x",
-                   cycle_num, idle ? 12'b0 : char_read_delayed, pixels_shifting);
+                         cycle_num, idle ? 12'b0 : char_read_delayed, pixels_shifting);
             end
 `endif
         end
 
         // mc pixels if MCM=1 and BMM=1, or MCM=1 & CBUF[11]=1
         if (mcm_d_prev) begin
-           if (bmm_d | char_shifting[11]) begin
-               if (g_mc_ff) begin
-                  pixel_value <= {ecm_d, bmm_d, mcm_d, pixels_shifting[7:6]};
-                  is_background_pixel0 <= !pixels_shifting[7];
-               end else
-                  pixel_value <= {ecm_d, bmm_d, mcm_d, pixel_value[1:0]};
-           end else begin
-               pixel_value <= {ecm_d, bmm_d, mcm_d, pixels_shifting[7] ? 2'b11 : 2'b0};
-               is_background_pixel0 <= !pixels_shifting[7];
-           end
+            if (bmm_d | char_shifting[11]) begin
+                if (g_mc_ff) begin
+                    pixel_value <= {ecm_d, bmm_d, mcm_d, pixels_shifting[7:6]};
+                    is_background_pixel0 <= !pixels_shifting[7];
+                end else
+                    pixel_value <= {ecm_d, bmm_d, mcm_d, pixel_value[1:0]};
+            end else begin
+                pixel_value <= {ecm_d, bmm_d, mcm_d, pixels_shifting[7] ? 2'b11 : 2'b0};
+                is_background_pixel0 <= !pixels_shifting[7];
+            end
         end else begin
-           if (bmm_d | char_shifting[11])
-              pixel_value <= {ecm_d, bmm_d, mcm_d, pixels_shifting[7], 1'b0};
-           else
-              pixel_value <= {ecm_d, bmm_d, mcm_d, pixels_shifting[7] ? 2'b11 : 2'b0};
-           is_background_pixel0 <= !pixels_shifting[7];
+            if (bmm_d | char_shifting[11])
+                pixel_value <= {ecm_d, bmm_d, mcm_d, pixels_shifting[7], 1'b0};
+            else
+                pixel_value <= {ecm_d, bmm_d, mcm_d, pixels_shifting[7] ? 2'b11 : 2'b0};
+            is_background_pixel0 <= !pixels_shifting[7];
         end
         pixels_shifting = {pixels_shifting[6:0], 1'b0};
     end
@@ -263,23 +263,23 @@ begin
         is_background_pixel1 <= is_background_pixel0;
         main_border_stage1 <= main_border;
         stage1 <= 1'b1;
-	// Switch on pixel_value's vidmode and then use lower 2 bits for
-	// color interpretation.
-	// ECM, BMM, MCM, PX1, PX0
+        // Switch on pixel_value's vidmode and then use lower 2 bits for
+        // color interpretation.
+        // ECM, BMM, MCM, PX1, PX0
 `ifdef PIXEL_LOG
-	$display("PV:%02x FROM %02x", pixel_value, pixels_shifting);
+        $display("PV:%02x FROM %02x", pixel_value, pixels_shifting);
 `endif
         case (pixel_value[4:2])
             `MODE_STANDARD_CHAR:
                 pixel_color1 <= pixel_value[1] ? char_shifting[11:8]:b0c_d2;
             `MODE_MULTICOLOR_CHAR:
-		if (char_shifting[11])
-                   case (pixel_value[1:0])
-                      2'b00: pixel_color1 <= b0c_d2;
-		      2'b01: pixel_color1 <= b1c_d2;
-		      2'b10: pixel_color1 <= b2c_d2;
-		      2'b11: pixel_color1 <= {1'b0, char_shifting[10:8]};
-                   endcase
+                if (char_shifting[11])
+                case (pixel_value[1:0])
+                    2'b00: pixel_color1 <= b0c_d2;
+                    2'b01: pixel_color1 <= b1c_d2;
+                    2'b10: pixel_color1 <= b2c_d2;
+                    2'b11: pixel_color1 <= {1'b0, char_shifting[10:8]};
+                endcase
                 else
                     pixel_color1 <= pixel_value[1] ? {1'b0,char_shifting[10:8]}:b0c_d2;
             `MODE_STANDARD_BITMAP:
@@ -326,16 +326,16 @@ begin
         // sprites overwrite pixels
         // The comparisons of background pixel and sprite pixels must be
         // on the same delay 'schedule' here.  Also, the pri, mmc and colors
-	// need to be delayed so they split this properly on reg changes.
-	if (active_sprite_d[3]) begin
+        // need to be delayed so they split this properly on reg changes.
+        if (active_sprite_d[3]) begin
             if (!sprite_pri_d[active_sprite_d[2:0]] || is_background_pixel1) begin
                 if (sprite_mmc_d[active_sprite_d[2:0]]) begin  // multi-color mode ?
-                        case(sprite_cur_pixel[active_sprite_d[2:0]])
-                            2'b00:  ;
-                            2'b01:  pixel_color2 = sprite_mc0_d2;
-                            2'b10:  pixel_color2 = sprite_col_d2[active_sprite_d[2:0]];
-                            2'b11:  pixel_color2 = sprite_mc1_d2;
-                        endcase
+                    case(sprite_cur_pixel[active_sprite_d[2:0]])
+                        2'b00:  ;
+                        2'b01:  pixel_color2 = sprite_mc0_d2;
+                        2'b10:  pixel_color2 = sprite_col_d2[active_sprite_d[2:0]];
+                        2'b11:  pixel_color2 = sprite_mc1_d2;
+                    endcase
                 end else if (sprite_cur_pixel[active_sprite_d[2:0]][1]) begin
                     pixel_color2 = sprite_col_d2[active_sprite_d[2:0]];
                 end
@@ -345,9 +345,9 @@ begin
 
     // Final stage 3. Border mask.
     if (main_border_stage1)
-       pixel_color3 <= ec_d2;
+        pixel_color3 <= ec_d2;
     else
-       pixel_color3 <= pixel_color2;
+        pixel_color3 <= pixel_color2;
 end
 
 endmodule

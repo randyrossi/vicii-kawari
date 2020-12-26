@@ -3,17 +3,17 @@
 `include "common.vh"
 
 module lightpen(
-   input clk_dot4x,
-   input rst,
-   input ilp_clr,
-   input [8:0] raster_line,
-   input [8:0] raster_y_max,
-   input lp,
-   input [7:0] xpos_div_2,
-   output reg [7:0] lpx,
-   output reg [7:0] lpy,
-   output reg ilp
-);
+           input clk_dot4x,
+           input rst,
+           input ilp_clr,
+           input [8:0] raster_line,
+           input [8:0] raster_y_max,
+           input lp,
+           input [7:0] xpos_div_2,
+           output reg [7:0] lpx,
+           output reg [7:0] lpy,
+           output reg ilp
+       );
 
 reg light_pen_triggered;
 always @(posedge clk_dot4x)

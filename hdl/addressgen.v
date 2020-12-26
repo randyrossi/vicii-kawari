@@ -122,10 +122,10 @@ always @(posedge clk_dot4x) begin
     // steady by repeating a6/a7 for col address.  This seems to have no
     // ill effects and might cut down on switching noise.
     if (!aec)
-       if (phi_phase_start_row)
-          ado <= {vic_addr[11:8], vic_addr[7:0] };
-       else if (phi_phase_start_col)
-          ado <= {vic_addr[11:8], {vic_addr[7:6], vic_addr[13:8]}};
+        if (phi_phase_start_row)
+            ado <= {vic_addr[11:8], vic_addr[7:0] };
+        else if (phi_phase_start_col)
+            ado <= {vic_addr[11:8], {vic_addr[7:6], vic_addr[13:8]}};
 end
 
 endmodule
