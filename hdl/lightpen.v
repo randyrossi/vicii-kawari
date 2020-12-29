@@ -31,7 +31,7 @@ begin
         else if (!light_pen_triggered && lp == `FALSE) begin
             light_pen_triggered <= `TRUE;
             ilp <= `TRUE;
-            lpx <= xpos_div_2;
+            lpx <= xpos_div_2 + 2; // 6567/6569 offset
             lpy <= raster_line[7:0];
         end
     end
