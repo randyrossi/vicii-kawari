@@ -4,11 +4,10 @@
 
 // We initialize raster_x,raster_y = (0,0) and let the fist tick
 // bring us to raster_x=1 because that initial state is common to all
-// chip types. So for reset blocks, remember we are
-// starting things off with PHI LOW but already 1/4 the way
-// through its phase and with DOT high but already on the second
-// pixel. (This really only matters for the simulator since things
-// would eventually fall into line eventually anyway).
+// chip types. So for reset conditions, remember we are starting things
+// off with PHI LOW but already 1/4 the way through its phase and with
+// DOT high but already on the second pixel. (This really only matters
+// for the simulator since things would eventually fall into line anyway).
 
 // Notes on RST : The reset signal has to reach every flip flop we
 // end up resetting.  Try to keep this list to essential resets only.
@@ -16,6 +15,12 @@
 // complains about placing dbl into IOB that is connected to flip flops
 // with multiple set/reset signals, it'slikely a reset signal (or signals)
 // causing it.
+//
+// clk_dot4x;     32.727272 Mhz NTSC, 31.527955 Mhz PAL
+// clk_col4x;     14.318181 Mhz NTSC, 17.734475 Mhz PAL
+// clk_dot;       8.18181 Mhz NTSC, 7.8819888 Mhz PAL
+// clk_colref     3.579545 Mhz NTSC, 4.43361875 Mhz PAL
+// clk_phi        1.02272 Mhz NTSC, .985248 Mhz PAL
 
 module vicii(
            input [1:0] chip,
@@ -63,23 +68,17 @@ reg [6:0] sprite_yexp_chk;
 reg [6:0] sprite_disp_chk;
 reg [9:0] chars_ba_start;
 reg [9:0] chars_ba_end;
+
 // These xpos's cover the sprite dma period and 3 cycles
 // before the first dma access is required. They are used
 // in ba low calcs.
 wire [9:0] sprite_ba_start [`NUM_SPRITES-1:0];
 wire [9:0] sprite_ba_end [`NUM_SPRITES-1:0];
 
-// raster_x but offset such that the BA fall for the
-// first sprite is position 0. This is so we can use a
-// simple interval comparison for ba high/low and avoid
-// wrap around conditions.
+// sprite_raster_x is raster_x but offset such that the BA fall for the
+// first sprite is position 0. This is so we can use a simple interval
+// comparison for ba high/low and avoid wrap around conditions.
 wire [9:0] sprite_raster_x;
-
-// clk_dot4x;     32.727272 Mhz NTSC, 31.527955 Mhz PAL
-// clk_col4x;     14.318181 Mhz NTSC, 17.734475 Mhz PAL
-// clk_dot;       8.18181 Mhz NTSC, 7.8819888 Mhz PAL
-// clk_colref     3.579545 Mhz NTSC, 4.43361875 Mhz PAL
-// clk_phi        1.02272 Mhz NTSC, .985248 Mhz PAL
 
 // Set limits for chips
 always @(chip)
@@ -122,35 +121,39 @@ case(chip)
     end
 endcase
 
-// used to generate phi and dot clocks
+// Used to generate phi and dot clocks
 reg [31:0] phi_gen;
 reg [31:0] dot_gen;
 
-// used to detect rising edge of dot clock inside a dot4x always block
+// Used to detect rising edge of dot clock inside a dot4x always block
+// Sequence goes 1 2 3 0:
+//    [1] is first tick inside a single pixel
+//    [0] is last tick inside a single pixel
 reg [3:0] dot_rising;
 
-// delayed raster line for irq comparison
+// Delayed raster line for irq comparison
 wire [8:0] raster_line_d;
 
 `ifdef IS_SIMULATOR
 reg [7:0] reg11_delayed;
 `endif
+
 reg bmm_delayed;
 reg mcm_delayed;
 reg ecm_delayed;
 
-// xpos is the x coordinate relative to raster irq
-// It is not simply raster_x with an offset, it does not
-// increment on certain cycles for 6567R8
-// chips and wraps at the high phase of cycle 12.
+// xpos is the x coordinate relative to raster irq. It is not simply
+// raster_x with an offset. It does not increment on certain cycles for
+// 6567R8 chips and wraps at the high phase of cycle 12.
 
-// What cycle we are on.  Only valid on 2nd tick (or greater)
-// within a half-phase.
+// What cycle we are on. Only valid on PPS[2] (or greater) within a
+// half-phase.
 wire [3:0] cycle_type;
 
 // DRAM refresh counter
 reg [7:0] refc;
 
+// Current sprite number for dma cycles
 wire [2:0] sprite_cnt;
 
 // Video matrix and character banks.
@@ -161,7 +164,7 @@ wire [2:0] cb;
 // 6567R56A : 0-63
 // 6567R8   : 0-64
 // 6569     : 0-62
-// NOTE: cycleNum not valid until 2nd tick within low phase of phi
+// NOTE: cycle_num is not valid until PPS[1] within low phase of PHI
 wire [6:0] cycle_num;
 
 // ec : border (edge) color
@@ -169,12 +172,11 @@ wire [3:0] ec;
 // b#c : background color registers
 wire [3:0] b0c,b1c,b2c,b3c;
 
-// lets us detect when a phi phase is
-// starting within a 4x dot always block
-// phi_phase_start[15]==1 means phi will transition next tick
+// Lets us detect our progress through a half cycle inside a dot4x block.
+// Range is 0-15. PPS[15] == 1 means PHI will transition next tick.
 reg [15:0] phi_phase_start;
 
-// tracks whether the condition for triggering these
+// Tracks whether the condition for triggering these
 // types of interrupts happened, but may not be
 // reported via irq unless enabled
 reg irst;
@@ -182,24 +184,24 @@ wire ilp;
 wire immc;
 wire imbc;
 
-// interrupt latches for $d019, these are set HIGH when
-// an interrupt of that type occurs. They are not automatically
-// cleared by the VIC.
+// Interrupt latches for $d019, these are set HIGH when an interrupt of that
+// type occurs. They are not automatically cleared by the VIC.
 wire irst_clr;
 wire imbc_clr;
 wire immc_clr;
 wire ilp_clr;
 
-// interrupt enable registers for $d01a, these determine
-// if these types of interrupts will make irq low
+// Interrupt enable registers for $d01a, these determine if these types of
+// interrupts will make irq low.
 wire erst;
 wire embc;
 wire emmc;
 wire elp;
 
-// if enabled, what raster line do we trigger irq for irst?
+// If enabled, what raster line do we trigger irq for irst?
 wire [8:0] raster_irq_compare;
-// keeps track of whether raster irq was raised on a line
+
+// Keeps track of whether raster irq was raised on a line
 reg raster_irq_triggered;
 
 wire [9:0] vc; // video counter
@@ -224,7 +226,7 @@ wire is_background_pixel1;
 // mostly used for iterating over sprites
 integer n;
 
-// char read off the bus, eventually transfered to charRead
+// char read off the bus, eventually transfered to char_read
 wire [11:0] char_next;
 
 // pixels read off the data bus and char read from the bus (char_next on
@@ -253,6 +255,7 @@ wire [63:0] sprite_ptr_o; // 8 bits * 8 sprites
 wire [47:0] sprite_mc_o; // 6 bits * 8 sprites
 wire [15:0] sprite_cur_pixel_o; // 2 bits * 8 sprites
 
+// Some sprite stuff
 wire [7:0] sprite_pri;
 wire [3:0] sprite_mc0;
 wire [3:0] sprite_mc1;
@@ -283,21 +286,21 @@ assign sprite_ba_end[6] = 10'd40 + 10'd16 * 6;
 assign sprite_ba_start[7] = 10'd0 + 10'd16 * 7;
 assign sprite_ba_end[7] = 10'd40 + 10'd16 * 7;
 
-// When we pass xpos to the sprite module, we subtract 5
-// pixels to make shifting start at the right time.  The output
-// pixels are shifted another 6 before reaching the pixel
-// sequencer.
+// When we pass xpos to the sprite module, we subtract 6 pixels to make
+// shifting start at the right time.  The output pixels are shifted another
+// 6 before reaching the pixel sequencer.
 wire [9:0] xpos_sprite;
 assign xpos_sprite = xpos >= 10'd6 ? xpos - 10'd6 : max_xpos - 10'd5 + xpos;
 
-// dot_rising[3] means dot going high next cycle
+// Shift dot_rising register.
 always @(posedge clk_dot4x)
     if (rst)
         dot_rising <= 4'b1000;
     else
         dot_rising <= {dot_rising[2:0], dot_rising[3]};
 
-// phi_gen[31]=HIGH means phi is high next cycle
+// This is our PHI clock signal generator. Misaligned at reset
+// due to where we start our x pos.
 always @(posedge clk_dot4x)
     if (rst) begin
         phi_gen <= 32'b00000000000011111111111111110000;
@@ -307,7 +310,8 @@ always @(posedge clk_dot4x)
 
 assign clk_phi = phi_gen[0];
 
-// phi_phase_start[15]=HIGH means phi is high next cycle
+// PHI phase start shifter. Misaligned at reset due to where we
+// start our x pos.
 always @(posedge clk_dot4x)
     if (rst) begin
         phi_phase_start <= 16'b0000000000001000;
@@ -330,7 +334,7 @@ begin
         // Use raster_line_d here on [1] before it transitions
         // to the next line in the low cycle so we can catch
         // den on the last cycle of line 48.  den01-49-1.prg
-        // sets den on the last cycle of line 48 (cycle 62) so
+        // sets den on the last cycle of line 48 (PAL cycle 62) so
         // our check has to be made before raster line changes.
         // For cycle 0, use raster_line to catch den at the
         // beginning of 48.
@@ -361,7 +365,7 @@ always @(posedge clk_dot4x) begin
         // program 'chases' the raster line comparison test so that the VICII
         // comparison always results in a match (after line 18). So
         // raster_irq_triggered remains true and only lines 16,17,18 should
-        // trigger irq.
+        // trigger irq (for this particular test program).
         if (raster_line_d == raster_irq_compare_d) begin
             if (!clk_phi && phi_phase_start[8] && !raster_irq_triggered) begin
                 raster_irq_triggered <= `TRUE;
@@ -394,16 +398,15 @@ always @(posedge clk_dot4x)
         if (cycle_num == 1 && raster_line == 9'd0)
             refc <= 8'hff;
         else if (cycle_type == `VIC_LR)
-            refc <= refc - 8'd1;
+            refc <= refc - 8'd1; // decrements at END of LR cycle
     end
 
 // Handle border
 wire main_border;
 wire top_bot_border;
 
-// Border values are delayed by 6 pixels
-// but we use the non delayed values for
-// VICE comparison
+// Border values are delayed by 6 pixels before entering the pixel
+// sequencer  but we use the non delayed values for VICE comparison.
 reg main_border_d1;
 reg main_border_d2;
 reg main_border_d3;
@@ -614,7 +617,7 @@ sprites vic_sprites(
 
 
 // AEC LOW tells CPU to tri-state its bus lines
-// AEC will remain HIGH during Phi phase 2 for 3 cycles
+// AEC will remain HIGH during PHI phase 2 for 3 cycles
 // after which it will remain LOW with ba.
 always @(posedge clk_dot4x)
     if (rst) begin
@@ -675,7 +678,9 @@ addressgen vic_addressgen(
                .rc(rc),
                .ras(ras),
                .cas(cas),
-               // Some magic from VICE: g_fetch_addr((uint8_t)(vicii.regs[0x11] | (vicii.reg11_delay & 0x20)));
+               // Some magic from VICE:
+               //    g_fetch_addr((uint8_t)(vicii.regs[0x11] |
+               //        (vicii.reg11_delay & 0x20)));
                .bmm(bmm | bmm_delayed),
                .ecm(ecm), // NOT delayed!
                .idle(idle),

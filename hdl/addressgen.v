@@ -59,7 +59,8 @@ assign sprite_mc[7] = sprite_mc_o[5:0];
 
 always @*
 begin
-    case(cycle_type) `VIC_LR:
+    case(cycle_type)
+        `VIC_LR:
             vic_addr = {6'b111111, refc};
         `VIC_LG: begin
             if (idle)
