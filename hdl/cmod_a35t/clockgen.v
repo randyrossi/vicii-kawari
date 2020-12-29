@@ -126,8 +126,14 @@ dot4x_14_ntsc_clockgen dot4x_14_ntsc_clockgen(
                        );
 `endif
 
-// Synchronize reset to clock using locked output
-RisingEdge_DFlipFlop_SyncReset ff1(1'b0, clk_dot4x, !locked, ff1_q);
-RisingEdge_DFlipFlop_SyncReset ff2(ff1_q, clk_dot4x, !locked, rst);
+wire running;
+
+// If we are locked and internal reset timer has been reached, then
+// we are running.
+assign running = locked & internal_rst;
+
+// Synchronize reset to clock
+RisingEdge_DFlipFlop_SyncReset ff1(1'b0, clk_dot4x, running, ff1_q);
+RisingEdge_DFlipFlop_SyncReset ff2(ff1_q, clk_dot4x, running, rst);
 
 endmodule : clockgen
