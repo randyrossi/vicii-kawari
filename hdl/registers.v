@@ -126,28 +126,23 @@ always @(posedge clk_dot4x)
         //handle_sprite_crunch <= `FALSE;
     end else
     begin
-        // always clear these immediately after they may
-        // have been used. This should be DAV + 1
-        if (phi_phase_start_dav_plus_1 && ~clk_phi) begin
-            irst_clr <= `FALSE;
-            imbc_clr <= `FALSE;
-            immc_clr <= `FALSE;
-            ilp_clr <= `FALSE;
-        end
         if (phi_phase_start_dav_plus_1) begin
+            if (!clk_phi) begin
+                // always clear these immediately after they may
+                // have been used. This should be DAV + 1
+                irst_clr <= `FALSE;
+                imbc_clr <= `FALSE;
+                immc_clr <= `FALSE;
+                ilp_clr <= `FALSE;
+                m2m_clr <= `FALSE;
+                m2d_clr <= `FALSE;
+            end
+
             addr_latch_done <= `FALSE;
             read_done <= `FALSE;
-        end
-        // clear sprite crunch immediately after it may
-        // have been used
-        if (phi_phase_start_dav_plus_1) begin
+            // clear sprite crunch immediately after it may
+            // have been used
             handle_sprite_crunch <= `FALSE;
-        end
-        // m2m/m2d clear after register reads must be
-        // done on [1] of the next low phase
-        if (phi_phase_start_dav_plus_1 && !clk_phi) begin
-            m2m_clr <= `FALSE;
-            m2d_clr <= `FALSE;
         end
         if (!ras && clk_phi && !addr_latch_done) begin
             addr_latched <= adi[5:0];
