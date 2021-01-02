@@ -64,10 +64,7 @@ begin
             vic_addr = {6'b111111, refc};
         `VIC_LG: begin
             if (idle)
-                if (ecm) // ecm
-                    vic_addr = 14'h39FF;
-                else
-                    vic_addr = 14'h3FFF;
+                vic_addr = ecm ? 14'h39FF : 14'h3FFF;
             else begin
                 if (bmm) // bmm
                     vic_addr = {cb[2], vc, rc}; // bitmap data
@@ -111,22 +108,18 @@ always @(posedge clk_dot4x)
 always @(posedge clk_dot4x)
     if (phi_phase_start_clh)
         cas <= 1'b1;
-    else if (phi_phase_start_chl)
+    else if (phi_phase_start_chl && cycle_type != `VIC_LR)
         cas <= 1'b0;
 
 // Address out
 // ROW first, COL second
 always @(posedge clk_dot4x) begin
-    // a6/a7 on COL is usually 2'b11 because it doesn't matter what we set.
-    // The 74LS258 will use VA14 and VA15 when AEC and CAS are low.
-    // So instead of a6/a12 and a7/a13 switching, we keep them
-    // steady by repeating a6/a7 for col address.  This seems to have no
-    // ill effects and might cut down on switching noise.
-    if (!aec)
+    if (!aec) begin
         if (phi_phase_start_row)
             ado <= {vic_addr[11:8], vic_addr[7:0] };
-        else if (phi_phase_start_col)
-            ado <= {vic_addr[11:8], {vic_addr[7:6], vic_addr[13:8]}};
+        else if (phi_phase_start_col && cycle_type != `VIC_LR)
+            ado <= {vic_addr[11:8], {2'b11, vic_addr[13:8]}};
+	 end
 end
 
 endmodule

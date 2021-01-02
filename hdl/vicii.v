@@ -40,7 +40,7 @@ module vicii(
            output irq,
            input lp,
            output reg aec,
-           output ba,
+           output reg ba,
            output ras,
            output cas,
            output ls245_data_dir,
@@ -522,23 +522,17 @@ always @(*) begin
 end
 
 // Drop BA if either chars or sprites need it.
-assign ba = ba_chars & (ba_sprite == 0);
+always @(posedge clk_dot4x)
+    ba <= ba_chars & (ba_sprite == 0);
 
 // Cascade ba through three cycles, making sure
 // aec is lowered 3 cycles after ba went low
 reg ba1,ba2,ba3;
 always @(posedge clk_dot4x)
-    if (rst) begin
-        ba1 <= `TRUE;
-        ba2 <= `TRUE;
-        ba3 <= `TRUE;
-    end
-    else begin
-        if (clk_phi == `TRUE && phi_phase_start[15]) begin
-            ba1 <= ba;
-            ba2 <= ba1 | ba;
-            ba3 <= ba2 | ba;
-        end
+    if (clk_phi == `TRUE && phi_phase_start[15]) begin
+        ba1 <= ba;
+        ba2 <= ba1 | ba;
+        ba3 <= ba2 | ba;
     end
 
 // Cycle state machine
@@ -620,12 +614,7 @@ sprites vic_sprites(
 // AEC will remain HIGH during PHI phase 2 for 3 cycles
 // after which it will remain LOW with ba.
 always @(posedge clk_dot4x)
-    if (rst) begin
-        aec <= `FALSE;
-    end else
-    begin
-        aec <= ba ? clk_phi : ba3 & clk_phi;
-    end
+    aec <= ba ? clk_phi : ba3 & clk_phi;
 
 // For reference, on LS245's:
 //    OE pin low = all channels active
@@ -639,9 +628,20 @@ always @(posedge clk_dot4x)
 // (cpu reading from us).
 assign vic_write_db = rw && ~ce;
 
+// Provide a delayed version of aec
+reg aec2;
+reg aec3;
+always @(posedge clk_dot4x) begin
+   aec2 <= aec;
+   aec3 <= aec2;
+end
+
 // AEC low means we own the address bus so we can write to it.
 // For address bus direction pin, use aec,
-assign vic_write_ab = ~aec;
+// This used to be simply ~aec.  But instead we use
+// ~(aec | aec3) so that we switch to output a couple ticks after aec
+// falls but still switch back to input with rising aec.
+assign vic_write_ab = ~(aec | aec3);
 
 // For data bus direction, use inverse of vic_write_db
 assign ls245_data_dir = ~vic_write_db;
@@ -690,12 +690,12 @@ addressgen vic_addressgen(
                .sprite_cnt(sprite_cnt),
                .sprite_ptr_o(sprite_ptr_o),
                .sprite_mc_o(sprite_mc_o),
-               .phi_phase_start_rlh(phi_phase_start[0]),
-               .phi_phase_start_rhl(phi_phase_start[5]),
-               .phi_phase_start_clh(phi_phase_start[15]),
-               .phi_phase_start_chl(phi_phase_start[7]),
-               .phi_phase_start_row(phi_phase_start[2]),
-               .phi_phase_start_col(phi_phase_start[6]),
+               .phi_phase_start_rlh(phi_phase_start[0]), // ras rise
+               .phi_phase_start_rhl(phi_phase_start[5]), // ras fall
+               .phi_phase_start_clh(phi_phase_start[15]), // cas rise
+               .phi_phase_start_chl(phi_phase_start[7]), // cas fall
+               .phi_phase_start_row(phi_phase_start[2]), // after cycle_type is valid
+               .phi_phase_start_col(phi_phase_start[6]), // mux between rhl and chl
                .ado(ado));
 
 // Handle set/get registers
