@@ -24,15 +24,18 @@ There are three video output options:
 NOTE: The VGA and HDMI modes double the horizontal frequency from ~15.7khz to ~31.4khz and are not standard so they may not work with older monitors/TVs or HDMI capture cards.  A native 15khz frequency RGB output may also possible for CRTs that support it.
 
 ## What chip models can this replace?
-It can replace the 6567/8562 (NTSC) models and the 6569/8565 (PAL-B) models. NOTE: It behaves as a 6567R8 or 6569R9 (even when replacing a 8562 or 8565).  The VDD pin is not connected, so there is no voltage compatibility issue between 'breadbin' and 'short' boards like with the real chips.
+It can replace the 6567(NTSC) and the 6569(PAL-B) models.  It can assume the functionality of either video standard with a simple configuration change followed by a reset. This means your C64 can be both an NTSC and PAL machine.  (PAL-N / PAL-M are not supported.)
 
-Unlike the real chips, however, it can assume the functionality of either NTSC or PAL-B models with a simple configuration change followed by a machine reset. This means your C64 can be both an NTSC and PAL machine.  PAL-N / PAL-M composite out is not supported.  
+## Will this work in C64-C (short board) models?
+It will function if plugged into a C64-C 'short' board. The VDD pin is not connected so there is no voltage compatibility issue like with the real 8562/8565 models.  However, the design is for breadbin models.  It is unlikely you will be able to close the machine as there is not enough room.  It is possible another board design will be produced in the future.
+
+Also, keep in mind that the board will behave as a 6567/6569 even when replacing a 8562/8565. (The differences are minor, though.)
 
 ## Can it be a 6567R56A?
-Yes, the 6567R56A is supported.  However, for composite output, be aware that the cycle schedule (and hence timing) is slighly different in the 6567R56A. It generates a composite signal slightly out of range from the expected 15.734khz horizontal frequency for NTSC (15.980khz). Some composite LCD monitors don't like this and the (real) chips produced unwanted artifacts on those types of displays. You will get the same unwanted artifacts from a VICII-Kawari producing composite video when configured as a 6567R56A.  CRTs, however, are more forgiving and you probably wouldn't notice the difference. When using HDMI or VGA output, this is of no consequence. There may be _some_ NTSC programs that depend on 6567R56A to run properly but I'm not aware of any.
+Yes, the 6567R56A is supported.  However, for composite output, be aware that the cycle schedule (and hence timing) is slighly different in the 6567R56A. It generates a composite signal slightly out of range from the expected 15.734khz horizontal frequency for NTSC (15.980khz). Some composite LCD monitors don't like this and even the real chips produced unwanted artifacts on those types of displays. You will get the same unwanted artifacts from a VICII-Kawari producing composite video when configured as a 6567R56A.  CRTs, however, are more forgiving and you probably wouldn't notice the difference. When using HDMI or VGA output, this is of no consequence. There may be _some_ NTSC programs that depend on 6567R56A to run properly but I'm not aware of any.
 
 ## What about the 6569R1/R3/R5?
-There are subtle differences between the different revisions mostly to due with luminance values. Since the palette is configurable (with at least 3 bits of precision), it's not worth adding separate configurations for these revisions.
+There are subtle differences between the different revisions mostly to due with luminance levels. Since the palette is configurable (with at least 3 bits of precision), it's not worth adding separate configurations for these revisions.
 
 ## Do I need a functioning clock circuit on my motherboard?
 No. The clock input pins (color and dot) are not connected. The board comes with its own clock and can switch between PAL and NTSC timing with a configuration change. (So if your C64 has died due to a malfunctioning clock circuit, this is an option to get your machine back to a working state).
@@ -43,10 +46,10 @@ It depends on what video output you chose. If you use the composite encoder opti
 ## How accurate is it?
 To measure accuracy, I use the same suite of programs VICE (The Versatile Commodore Emulator) uses to catch regressions in their releases.  Out of a total of 280 VICII tests, 280 are passing.
 
-I obviously can't test every program but it supports all the graphics tricks programmers used in their demos/games. It is safe to say it is a faithful reproduction of the original chips.
+I can't test every program but it supports all the graphics tricks programmers used in their demos/games. It is safe to say it is a faithful reproduction of the original chips.
 
 ## Is this emulation?
-This is a matter of opinion. Some people consider fpga hardware that 'mimicks' real hardware simplay another form of emulation. In my opinion, this is closer to emulation than not.
+This is a matter of opinion. Some people consider FPGA hardware that 'mimicks' real hardware simply another form of emulation.
 
 ## Will HDMI make my C64 look like an emulator?
 Yes. The pixel perfect look of HDMI output will resemble an emulator. This may not be desirable by some. There is no attempt to add any video processing to make HDMI look like a CRT (scanlines, curve, etc.)  If you want the look of a CRT, you should chose the Composite/VGA options and use a real CRT.  Also, the resolution will not match an HDMI monitor's native resolution so there will always be some scaling taking place.
@@ -66,7 +69,7 @@ If you need a VIC-II to replace a broken one, you should just buy one off eBay. 
 * Can software switch between NTSC and PAL
 * It's not an almost 40 year old device that may fail at any time
 
-Also, since the core is open source, hobbyests can add their own interesting new features (i.e. a math co-processor, more sprites, more colors, a new graphics mode, a display address translator, etc)
+Also, since the core is open source, hobbyests can add their own interesting new features (i.e. a math co-processor, more sprites, more colors, a new graphics mode, a display address translator, etc) See [FORKING.md](FORKING.md) for some a list of possible add-ons.
 
 ## What are the installation options?
 
