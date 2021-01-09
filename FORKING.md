@@ -16,9 +16,9 @@ We ask that all forks do the following:
 
 The variant identifier is found in registers.v file.  Your fork should change this value.
 
-## Capability descriptions
+## Capability Strings
 
-The capability strings are found in capabilities.v. It is recommended you provide a short string that will identify the extensions your fork has added.
+The capability strings are found in capabilities.v. It is recommended you provide a short string that will identify the extensions your fork has added.  For example, MATHCO or BANKRAM.
 
 ## Versioning
 
@@ -26,34 +26,39 @@ You should probably version your fork separately from the official version to av
 
 ## Do I have to maintain backwards compatibility with the VICII?
 
-No. It's your fork. You can do whatever you want. You can design a new graphics chip that is completely incompatible with the 6567/6569 chips if you want.  We just ask that the extra mem interface and the registers 00-5f remain consistent between forks. It is just a nice-to-have ask that makes identifying variants convenient but is not in any way mandatory.
+No. It's your fork. You can do whatever you want. You can design a new graphics chip that is completely incompatible with the 6567/6569 chips if you want.  We just ask that the extra mem interface and the registers 00-5f remain consistent between forks. It is just a nice-to-have ask that makes identifying variants convenient but is not in any way mandatory. If you don't intend to release your fork as a Kawari variant, you can do whatever you want.
+
+## Can my feature be upstreamed into the official variant?
+
+If your feature is a good fit for being upstreamed, it will be considered.  It would have to be a feature that should be common to all variants.  Bug fixes should almost always be upstreamed so if you find any, please submit a pull request with a good description of the issue and the fix.
 
 ## What are some things I can do in my fork?
 
 Here are some possibilities:
 
-1. A math co-processor
+1. Add a math co-processor
 
    Repurpose some of the unused registers between 0x30 and 0x3c for a math
-   co-processor.
+   co-processor. Use the math co-processor to write some accelerated drawing
+   routines.
 
-2. A display address translator
+2. Add a display address translator (DAT)
 
    Provide a convenient x,y coordinate to memory location & bit function for
    different graphics modes so the CPU doesn't have to make those computations.
    This can make for much faster drawing routines.
 
-3. Extra sprites
+3. Add extra sprites
 
-   Add a sprite 'bank' register to multiplex in more than 8 sprites.
+   Add a sprite bank register to multiplex in more than 8 sprites.
 
 4. Larger sprites/Wider character cells
 
-   It might be possible to fetch more than one byte inside a half cycle if using 150ns or 120ns RAM.  Some RAM chips have page modes where you can keep the same row address while strobing in successive column addresses.
+   It might be possible to fetch more than one byte inside a half cycle if using 150ns or 120ns RAM.  Some RAM chips have page modes where you can keep the same row address while strobing in successive column addresses too.
 
 5. A new video mode/more colors
 
-   Turn one or more of the 'illegal' video modes into a working mode.
+   Turn one or more of the 'illegal' video modes into a working mode. There are some unused bits in certain modes which could be repurposed.
 
 6. An 80 column mode
 
@@ -61,11 +66,14 @@ Here are some possibilities:
 
 7. Use idle cycles to execute instructions.
 
-8. Another processor
+   Instead of executing idle cycles and throwing away the bytes read, use those cycles for extra some processing.
+
+8. Add another processor
 
    Add another processor core. It may have to block on read/write until an idle cycle or unused sprite dma cycle is reached.  The addressable range would be limited to 16k and be confined to the same bank as the VIC but this could be interesting.
 
 9. Write to memory from the VIC
 
    A real VICII chip cannot write to memory since it can't set the WR line LOW.  VICII-Kawari, however, can set WR LOW so this is theoretically possible.
+
 
