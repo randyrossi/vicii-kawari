@@ -82,6 +82,10 @@ for a simple check routine that will run on all variants
 and can product a friendly user message indicating the
 wrong variant is installed.
 
+### Bank 0 REG/ROM Overlay
+
+NOTE: 0x0000 - 0x03FF overlay is enabled by BIT 4 of EXTRA_MEM_OP. Otherwise, the full 64k in the bank is available for R/W.
+
 Location  | Notes
 ----------|------------------------------
 0x0000    | Col0R Col0G Col0B Unused (RW)
@@ -114,8 +118,6 @@ Location  | Notes
 ----------|------------------------------
 0x0049<br>to<br>0x005f | Reserved for official
 0x0060<br>to<br>0x00ff | Available for variants
-
-### R/W Memory
 
 Location               | Notes
 -----------------------|------------------------------
