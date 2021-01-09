@@ -27,37 +27,46 @@ REG | Notes
 0x3a|AVAILABLE FOR VARIANTS
 
 Registers 0x3b - 0x3f are reserved across all variants for extra memory
-access.  This mechanism allows addressing up to 32 banks of 64k each.
+access.  This mechanism allows addressing up to 16 banks of 64k each.
 
 REG | Notes
 ----|----------------------
-0x3b|EXTRA MEM ADDR HI
-0x3c|EXTRA MEM ADDR LO
-0x3d|EXTRA MEM OPERATION
-    |BIT 1   = 0 = READ, 1 = WRITE
-    |BIT 2,3 = 0 = NO INCREMENT
-    |          1 = AUTO INCREMENT ADDR
-    |          2 = AUTO DECREMENT ADDR
-    |          3 = UNUSED
-    |BIT 4-8 = BANK
-0x3e|EXTRA MEM SET/GET VALUE
-0x3f|EXTRA MEM ACTIVATION PORT
+0x3b|EXTRA_MEM_ADDR_HI
+0x3c|EXTRA_MEM_ADDR_LO
+0x3d|EXTRA_MEM_OP (see below)
+0x3e|EXTRA_MEM_VALUE
+0x3f|EXTENSION_ACTIVATION
 
-### Writing to an extra register
-    POKE 0xd33b, ADDRHI
-    POKE 0xd33c, ADDRLO
-    POKE 0xd33e, VALUE     prepare byte for write
-    POKE 0xd33d, 1         performs the write
+EXTRA_MEM_OP            | Notes
+------------------------|------
+BIT 1                   | 0 = READ<br>1 = WRITE
+BIT 2,3                 | 0 = NO INCREMENT<br>1 = AUTO INCREMENT ADDR<br>2 = AUTO DECREMENT ADDR<br>3 = UNUSED
+BIT 4                   | 1 = REG/ROM OVERLAY, 0 = NO REG/ROM OVERLAY (Bank 0)
+BIT 5-8                 | BANK (0-15)
 
-### Reading from an extra register
-    POKE 0xd33b, ADDRHI
-    POKE 0xd33c, ADDRLO
-    POKE 0xd33d, 0         performs the read
-    val = PEEK(0xd33e)     retrieve byte read
+### Writing to extra memory
+    LDA <ADDR
+    STA $d33b  ; addr hi
+    LDA >ADDR
+    STA $d33c  ; addr lo
+    LDA #$55
+    STA $d33e  ; prepare byte for write
+    LDA #1
+    STA $d33d  ; perform the write
+
+### Reading from extra memory
+    LDA <ADDR
+    STA $d33b  ; addr hi
+    LDA >ADDR
+    STA $d33c  ; addr lo
+    LDA #0
+    STA $d33d  ; perform the read
+    LDA $d33e  ; read the value
    
-The first 256 bytes of extra mem is mapped to extra registers.
-These registers should remain consistent between VICII-Kawari
-variants for two reasons: 
+When BIT 4 of register EXTRA_MEM_OP is set, the first 256 bytes
+of extra mem BANK 0 is mapped to extra registers and the next 768 bytes
+is mapped to ROM. These registers and ROM should remain consistent between
+VICII-Kawari variants for two reasons: 
 
 1) the official configuration utility will be able to at
 least query the variant and capability strings on any
@@ -91,41 +100,25 @@ Location  | Notes
 0x0034    | ColdR ColdG ColdB Unused (RW)
 0x0038    | ColeR ColeG ColeB Unused (RW)
 0x003c    | ColfR ColfG ColfB Unused (RW)
-0x0040    | Video Standard Select (0=PAL/NTSC, 1=15.7/34.1 khz) (RW)
-0x0041    | Chip Model Select (0=6567R56A, 1=6567R8, 2=6569, (3-7) reserved (RW)
-0x0042    | Minor Version (RO)
-0x0043    | Major Version (RO)
-0x0044    | Reset Port (WO)
+0x0040    | Video Standard Select (0=PAL, 1=NTSC) (RW)
+0x0041    | Video Standard Select (0=15.7, 1=34.1 khz) (RW)
+0x0042    | Chip Model Select (0=6567R56A, 1=6567R8, 2=6569, (3-7) reserved (RW)
+0x0043    | Version (high nibble = major, low nibble = minor) (RO)
+0x0044    | Config Operation (0=SAVE, 1=RESET)
 0x0045    | Palette Reset Port (WO)
-0x0046    | Auto Increment Value (RW)
-0x0046    | Save Port (WO)
-0x0047    | Num Banks (RO)
+0x0046    | Auto Increment Value (RW) (Default 1, Two's complement)
+0x0047    | Num Banks Available (RO)
+0x0048    | Half brightness on alt lines Enable/Disable (HDMI/VGA only)
 
 Location  | Notes
 ----------|------------------------------
-0x0048    |
-  to      | Reserved for official
-0x005f    |
-
-Location  | Notes
-----------|------------------------------
-0x0060    |
-  to      | Available for variants
-0x00ff    |
+0x0049<br>to<br>0x005f | Reserved for official
+0x0060<br>to<br>0x00ff | Available for variants
 
 ### R/W Memory
 
-Location  | Notes
-----------|------------------------------
-0x0100    |
-  to      | Variant String (null terminated, max 16 bytes)
-0x010f    |
-          |
-0x0110    |
-  to      | Capability Strings (double null terminated, max 512 bytes)
-0x030f    |
-          |
-0x0310    |
-  to      | Free space
-x0ffff    |
-
+Location               | Notes
+-----------------------|------------------------------
+0x0100<br>to<br>0x010f | Variant String (null terminated, max 16 bytes)
+0x0110<br>to<br>0x03ff | Capability Strings (double null terminated, max 512 bytes)
+0x0400<br>to<br>0xffff | Free space

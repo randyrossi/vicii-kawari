@@ -52,19 +52,19 @@ Here are some possibilities:
 
    Add a sprite bank register to multiplex in more than 8 sprites.
 
-4. Larger sprites/Wider character cells
+4. Larger sprites/wider character cells
 
    It might be possible to fetch more than one byte inside a half cycle if using 150ns or 120ns RAM.  Some RAM chips have page modes where you can keep the same row address while strobing in successive column addresses too.
 
-5. A new video mode/more colors
+5. Add a new video mode/more colors/half brightness mode
 
-   Turn one or more of the 'illegal' video modes into a working mode. There are some unused bits in certain modes which could be repurposed.
+   Turn one or more of the 'illegal' video modes into a working mode. There are some unused bits in certain modes which could be repurposed (brightness levels, for example).
 
-6. An 80 column mode
+6. Add an 80 column mode
 
    Try making a 640x200 30fps video mode to get 80 columns. (This would probably need a patched kernel.)
 
-7. Use idle cycles to execute instructions.
+7. Use idle cycles to execute instructions
 
    Instead of executing idle cycles and throwing away the bytes read, use those cycles for extra some processing.
 
