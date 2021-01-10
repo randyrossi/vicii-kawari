@@ -46,49 +46,10 @@ static int numCycles;
 
 // Add new input/output here
 enum {
-   OUT_PHI = 0,
-   IN_RST,
-   OUT_R0, OUT_R1,
-   OUT_G0, OUT_G1,
-   OUT_B0, OUT_B1,
-   OUT_DOT,
-   //OUT_CSYNC,
-   OUT_A0, OUT_A1, OUT_A2, OUT_A3, OUT_A4, OUT_A5, OUT_A6, OUT_A7,
-   OUT_A8, OUT_A9, OUT_A10, OUT_A11,
-   IN_A0, IN_A1, IN_A2, IN_A3, IN_A4, IN_A5, IN_A6, IN_A7,
-   IN_A8, IN_A9, IN_A10, IN_A11,
-   OUT_D0, OUT_D1, OUT_D2, OUT_D3, OUT_D4, OUT_D5, OUT_D6, OUT_D7,
-   IN_D0, IN_D1, IN_D2, IN_D3, IN_D4, IN_D5, IN_D6, IN_D7,
-   IN_D8, IN_D9, IN_D10, IN_D11,
-   IN_CE,
-   IN_RW,
-   OUT_BA,
-   OUT_AEC,
-   OUT_IRQ,
-   OUT_RAS, OUT_CAS
+   OUT_DOT = 0, OUT_DOT_RISING,
 };
 
-#define NUM_SIGNALS 60
-
-// Add new input/output here
-const char *signal_labels[] = {
-   "phi", "rst", "r0", "r1", "g0", "g1", "b0", "b1" , "dot", //"csync",
-   "ao0", "ao1", "ao2", "ao3", "ao4", "ao5", "ao6", "ao7", "ao8", "ao9", "ao10", "ao11",
-   "ai0", "ai1", "ai2", "ai3", "ai4", "ai5", "ai6", "ai7", "ai8", "ai9", "ai10", "ai11",
-   "do0", "do1", "do2", "do3", "do4", "do5", "do6", "do7",
-   "di0", "di1", "di2", "di3", "di4", "di5", "di6", "di7", "di8", "di9", "di10", "di11",
-   "ce", "rw", "ba", "aec", "irq",
-   "ras", "cas"
-};
-const char *signal_ids[] = {
-   "p", "r" ,  "r0", "r1", "g0", "g1", "b0", "b1" , "dot", //"s",
-   "ao0", "ao1", "ao2", "ao3", "ao4", "ao5", "ao6", "ao7", "ao8", "ao9", "ao10", "ao11",
-   "ai0", "ai1", "ai2", "ai3", "ai4", "ai5", "ai6", "ai7", "ai8", "ai9", "ai10", "ai11",
-   "do0", "do1", "do2", "do3", "do4", "do5", "do6", "do7",
-   "di0", "di1", "di2", "di3", "di4", "di5", "di6", "di7", "di8", "di9", "di10", "di11",
-   "ce", "rw", "ba", "aec", "irq",
-   "ras", "cas"
-};
+#define NUM_SIGNALS 2
 
 static unsigned int signal_width[NUM_SIGNALS];
 static unsigned char *signal_src8[NUM_SIGNALS];
@@ -120,11 +81,16 @@ static char cycleToChar(int cycle){
   }
 }
 
+// TODO : Add a signal_shift so we can shift before we mask with signal
+// bit in case we want to isolate higher bits of a signal?
 static int SGETVAL(int signum) {
-  if (signal_width[signum] <= 8) {
+  if (signal_width[signum] == 1) {
+     // When width is 1, we can pick out any bit
      return (*signal_src8[signum] & signal_bit[signum] ? 1 : 0);
+  } else if (signal_width[signum] <= 8) {
+     return (*signal_src8[signum] & signal_bit[signum]);
   } else if (signal_width[signum] > 8 && signal_width[signum] < 16) {
-     return (*signal_src16[signum] & signal_bit[signum] ? 1 : 0);
+     return (*signal_src16[signum] & signal_bit[signum]);
   } else {
     abort();
   }
@@ -280,10 +246,8 @@ static vluint64_t nextTick(Vtop* top) {
 }
 
 static void drawPixel(SDL_Renderer* ren, int x,int y) {
-   SDL_RenderDrawPoint(ren, x*2,y*2);
-   SDL_RenderDrawPoint(ren, x*2+1,y*2);
-   SDL_RenderDrawPoint(ren, x*2,y*2+1);
-   SDL_RenderDrawPoint(ren, x*2+1,y*2+1);
+   SDL_RenderDrawPoint(ren, x,y*2);
+   SDL_RenderDrawPoint(ren, x,y*2+1);
 }
 
 // Initial sync
@@ -741,55 +705,10 @@ int main(int argc, char** argv, char** env) {
     }
 
     // Add new input/output here.
-    signal_src8[OUT_PHI] = &top->clk_phi;
-    signal_src8[IN_RST] = &top->V_RST;
-    signal_src8[OUT_R0] = &top->red;
-    signal_src8[OUT_R1] = &top->red;
-    signal_bit[OUT_R1] = 2;
-    signal_src8[OUT_G0] = &top->green;
-    signal_src8[OUT_G1] = &top->green;
-    signal_bit[OUT_G1] = 2;
-    signal_src8[OUT_B0] = &top->blue;
-    signal_src8[OUT_B1] = &top->blue;
-    signal_bit[OUT_B1] = 2;
     signal_src8[OUT_DOT] = &top->V_CLK_DOT;
-    //signal_src8[OUT_CSYNC] = &top->V_CSYNC;
-    signal_src8[IN_CE] = &top->ce;
-    signal_src8[IN_RW] = &top->rw;
-    signal_src8[OUT_BA] = &top->ba;
-    signal_src8[OUT_AEC] = &top->aec;
-    signal_src8[OUT_IRQ] = &top->irq;
-    signal_src8[OUT_RAS] = &top->ras;
-    signal_src8[OUT_CAS] = &top->cas;
-
-    int bt = 1;
-    for (int i=OUT_A0; i<= OUT_A11; i++) {
-       signal_width[i] = 12;
-       signal_bit[i] = bt;
-       signal_src16[i] = &top->V_ADO;
-       bt = bt * 2;
-    }
-    bt = 1;
-    for (int i=IN_A0; i<= IN_A11; i++) {
-       signal_width[i] = 6;
-       signal_bit[i] = bt;
-       signal_src8[i] = &top->adl;
-       bt = bt * 2;
-    }
-    bt = 1;
-    for (int i=OUT_D0; i<= OUT_D7; i++) {
-       signal_width[i] = 8;
-       signal_bit[i] = bt;
-       signal_src8[i] = &top->V_DBO;
-       bt = bt * 2;
-    }
-    bt = 1;
-    for (int i=IN_D0; i<= IN_D11; i++) {
-       signal_width[i] = 12;
-       signal_bit[i] = bt;
-       signal_src16[i] = &top->V_DBI;
-       bt = bt * 2;
-    }
+    signal_src8[OUT_DOT_RISING] = &top->V_CLK_DOT;
+    signal_width[OUT_DOT_RISING] = 4; // 4 bit shif reg
+    signal_bit[OUT_DOT_RISING] = 0b1111; // mask to get values
 
     HEADER(top);
 
@@ -987,14 +906,18 @@ int main(int argc, char** argv, char** env) {
           }
 
           // If rendering, draw current color on dot clock
-          if (showWindow && HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
+	  // Our simulator resolution is twice that of native so we can
+	  // update every other dot clock tick.
+          if (showWindow && HASCHANGED(OUT_DOT_RISING) &&
+			  (top->V_CLK_DOT == 2 || top->V_CLK_DOT == 8)) {
              SDL_SetRenderDrawColor(ren,
-                top->red << 4 | 0b1111,
-                top->green << 4 | 0b1111,
-                top->blue << 4 | 0b1111,
+                (top->red << 4) | 0b1111,
+                (top->green << 4) | 0b1111,
+                (top->blue << 4) | 0b1111,
                 255);
+	     int hoffset = top->V_CLK_DOT == 2 ? 0 : 1;
              drawPixel(ren,
-                top->V_RASTER_X,
+                top->V_RASTER_X*2+hoffset,
                 top->V_RASTER_LINE
              );
 
@@ -1005,7 +928,7 @@ int main(int argc, char** argv, char** env) {
                 if (scanline) {
                    for (int xx=0; xx < 504; xx++) {
                      SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
-                     drawPixel(ren, xx, top->V_RASTER_LINE+1);
+                     drawPixel(ren, xx*2, top->V_RASTER_LINE+1);
                    }
                 }
 
