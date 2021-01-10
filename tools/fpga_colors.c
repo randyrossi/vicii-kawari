@@ -14,7 +14,7 @@ static char* names[16] = {
 	"`ORANGE","`BROWN","`PINK","`DARK_GREY","`GREY", "`LIGHT_GREEN","`LIGHT_BLUE","`LIGHT_GREY" 
 };
 
-// Take top N bits from VICE palette. Change later if we use more wires
+// Take top 4 bits from VICE palette. Change later if we use more wires
 // for colors.
 int main(int argc, char *argv[]) {
     for (int i=0;i<16;i++) {
@@ -22,6 +22,6 @@ int main(int argc, char *argv[]) {
 	    int g = (pal[i*3+1] >> 4);
 	    int b = (pal[i*3+2] >> 4);
 	    printf ("%s:{red, green, blue} = {4'h%02x, 4'h%02x, 4'h%02x };\n",
-			    names[i],r&0xe,g&0xe,b&0xe); // TURN OFF BIT 0 !!
+			    names[i],r,g,b);
     } 
 }

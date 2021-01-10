@@ -174,6 +174,7 @@ comp_sync vic_comp_sync(
 // VGA/HDMI output - hsync/vsync
 // ----------------------------------------------------
 wire [3:0] pixel_color4_vga;
+wire half_bright;
 vga_sync vic_vga_sync(
              .rst(rst),
              .clk_dot4x(clk_dot4x),
@@ -184,7 +185,8 @@ vga_sync vic_vga_sync(
              .hsync(hsync),
              .vsync(vsync),
              .active(active),
-             .pixel_color4(pixel_color4_vga)
+             .pixel_color4(pixel_color4_vga),
+	     .half_bright(half_bright)
          );
 
 // FINAL OUTPUT RGB values from stage 4 indexed value.
@@ -197,6 +199,7 @@ vga_sync vic_vga_sync(
 // Translate pixel_color3 (indexed) to RGB values
 color3 vic_colors(
            .out_pixel(is_composite ? pixel_color4_composite : pixel_color4_vga),
+	   .half_bright(half_bright),
            .red(red),
            .green(green),
            .blue(blue)

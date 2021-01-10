@@ -5,6 +5,7 @@
 // Given an indexed color in out_pixel, set 3-bit red, green and blue values.
 module color3(
            input [3:0] out_pixel,
+	   input half_bright,
            output reg [2:0] red,
            output reg [2:0] green,
            output reg [2:0] blue);

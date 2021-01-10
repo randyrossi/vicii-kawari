@@ -46,7 +46,8 @@ module vga_sync(
            output wire hsync,             // horizontal sync
            output wire vsync,             // vertical sync
            output wire active,
-           output wire [3:0] pixel_color4
+           output wire [3:0] pixel_color4,
+           output reg half_bright
        );
 
 reg [9:0] max_width;
@@ -145,8 +146,11 @@ begin
                 h_count <= 0;
                 if (v_count < max_height) begin
                     v_count <= v_count + 9'b1;
+                    half_bright <= ~half_bright;
                 end else begin
                     v_count <= 0;
+                    // First line is always full brightness
+                    half_bright <= 0;
                 end
             end
         end
@@ -161,8 +165,8 @@ end
 reg active_buf;
 
 // Cover the max possible here. Not all may be used depending on chip.
-wire [0:3] dout0; // output color from line_buf_0
-wire [0:3] dout1; // output color from line_buf_0
+wire [3:0] dout0; // output color from line_buf_0
+wire [3:0] dout1; // output color from line_buf_0
 
 wire [9:0] output_x;
 
