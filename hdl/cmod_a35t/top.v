@@ -41,9 +41,9 @@ module top(
            output hsync,        // hsync signal for VGA/HDMI
            output vsync,        // vsync signal for VGA/HDMI
            output active,       // display active for HDMI
-           output [2:0] red,    // red out for CXA1545P
-           output [2:0] green,  // green out for CXA1545P
-           output [2:0] blue,   // blue out for CXA1545P
+           output [3:0] red,    // red out for CXA1545P
+           output [3:0] green,  // green out for CXA1545P
+           output [3:0] blue,   // blue out for CXA1545P
 `ifndef IS_SIMULATOR    
            inout tri [5:0] adl, // address (lower 6 bits)
            output tri [5:0] adh,// address (high 6 bits)
@@ -197,9 +197,9 @@ vga_sync vic_vga_sync(
 // each.
 
 // Translate pixel_color3 (indexed) to RGB values
-color3 vic_colors(
+color4 vic_colors(
            .out_pixel(is_composite ? pixel_color4_composite : pixel_color4_vga),
-	   .half_bright(half_bright),
+	   .half_bright(is_composite ? 1'b1 : half_bright),
            .red(red),
            .green(green),
            .blue(blue)

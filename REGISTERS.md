@@ -108,14 +108,13 @@ Location  | Description
 0x0001    | Video Standard Select (0=15.7, 1=34.1 khz) (RW)
 0x0002    | Chip Model Select (0=6567R56A, 1=6567R8, 2=6569, (3-7) reserved (RW)
 0x0003    | Version (high nibble = major, low nibble = minor) (RO)
-0x0004    | Config Operation (0=SAVE, 1=RESET, 2=PALETTE RESET)
-0x0005    | Unused
-0x0006    | Auto Increment Value (RW) (Default 1, Two's complement)
-0x0007    | Bits 0-3 = Num extra memoray banks available (RO)
-0x0008    | Half brightness on alt lines Enable/Disable (HDMI/VGA only)
-0x0009    | Color 0-7 HI/LO Nibble Select
-0x000a    | Color 8-f HI/LO Nibble Select
-0x000b<br>to<br>0x000f | Reserved for future use
+0x0004    | Config Operation (see below)
+0x0005    | Auto Increment Value (RW) (Default 1, Two's complement)
+0x0006    | Bits 0-3 = Num extra memory banks available (RO)
+0x0007    | Bit 0 = Raster Effect, Bit 1 = Video Extensions Enable, 2-6 Reserved
+0x0008    | Color 0-7 HI/LO Nibble Select
+0x0009    | Color 8-f HI/LO Nibble Select
+0x000a<br>to<br>0x000f | Reserved for future use
 
 Location  | Description
 ----------|------------------------------
@@ -173,12 +172,22 @@ defining two color palettes. The CPU can set RGB values then swap the nibble
 select bit(s).  Otherwise, several pixels would render with unwanted
 intermediate RGB color combinations.
 
+
 Location  | Description
 ----------|------------------------------
 0x0040<br>to<br>0x00ff | Available for variants
+
 
 Location               | Description
 -----------------------|------------------------------
 0x0100<br>to<br>0x010f | Variant String (null terminated, max 16 bytes)
 0x0110<br>to<br>0x03ff | Capability Strings (double null terminated, max 512 bytes)
 0x0400<br>to<br>0xffff | RAM
+
+
+Config Operation        | Description
+------------------------|------
+0                       | Save
+1                       | Reset VIC and Computer
+2                       | Restore Default Palette
+3                       | Disable extra registers
