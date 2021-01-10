@@ -111,7 +111,7 @@ Location  | Description
 0x0004    | Config Operation (0=SAVE, 1=RESET, 2=PALETTE RESET)
 0x0005    | Unused
 0x0006    | Auto Increment Value (RW) (Default 1, Two's complement)
-0x0007    | Num Banks Available (RO)
+0x0007    | Bits 0-3 = Num extra memoray banks available (RO)
 0x0008    | Half brightness on alt lines Enable/Disable (HDMI/VGA only)
 0x0009    | Color 0-7 HI/LO Nibble Select
 0x000a    | Color 8-f HI/LO Nibble Select
@@ -119,57 +119,59 @@ Location  | Description
 
 Location  | Description
 ----------|------------------------------
-0x0010    | Color0_R_HI_Nibble | Color0_R_LO_Nibble
-0x0011    | Color0_G_HI_Nibble | Color0_G_LO_Nibble
-0x0012    | Color0_B_HI_Nibble | Color0_B_LO_Nibble
-0x0013    | Color1_R_HI_Nibble | Color1_R_LO_Nibble
-0x0014    | Color1_G_HI_Nibble | Color1_G_LO_Nibble
-0x0015    | Color1_B_HI_Nibble | Color1_B_LO_Nibble
-0x0016    | Color2_R_HI_Nibble | Color2_R_LO_Nibble
-0x0017    | Color2_G_HI_Nibble | Color2_G_LO_Nibble
-0x0018    | Color2_B_HI_Nibble | Color2_B_LO_Nibble
-0x0019    | Color3_R_HI_Nibble | Color3_R_LO_Nibble
-0x001a    | Color3_G_HI_Nibble | Color3_G_LO_Nibble
-0x001b    | Color3_B_HI_Nibble | Color3_B_LO_Nibble
-0x001c    | Color4_R_HI_Nibble | Color4_R_LO_Nibble
-0x001d    | Color4_G_HI_Nibble | Color4_G_LO_Nibble
-0x001e    | Color4_B_HI_Nibble | Color4_B_LO_Nibble
-0x001f    | Color5_R_HI_Nibble | Color5_R_LO_Nibble
-0x0020    | Color5_G_HI_Nibble | Color5_G_LO_Nibble
-0x0021    | Color5_B_HI_Nibble | Color5_B_LO_Nibble
-0x0022    | Color6_R_HI_Nibble | Color6_R_LO_Nibble
-0x0023    | Color6_G_HI_Nibble | Color6_G_LO_Nibble
-0x0024    | Color6_B_HI_Nibble | Color6_B_LO_Nibble
-0x0025    | Color7_R_HI_Nibble | Color7_R_LO_Nibble
-0x0026    | Color7_G_HI_Nibble | Color7_G_LO_Nibble
-0x0027    | Color7_B_HI_Nibble | Color7_B_LO_Nibble
-0x0028    | Color8_R_HI_Nibble | Color8_R_LO_Nibble
-0x0029    | Color8_G_HI_Nibble | Color8_G_LO_Nibble
-0x002a    | Color8_B_HI_Nibble | Color8_B_LO_Nibble
-0x002b    | Color9_R_HI_Nibble | Color9_R_LO_Nibble
-0x002c    | Color9_G_HI_Nibble | Color9_G_LO_Nibble
-0x002d    | Color9_B_HI_Nibble | Color9_B_LO_Nibble
-0x002e    | ColorA_R_HI_Nibble | ColorA_R_LO_Nibble
-0x002f    | ColorA_G_HI_Nibble | ColorA_G_LO_Nibble
-0x0030    | ColorA_B_HI_Nibble | ColorA_B_LO_Nibble
-0x0031    | ColorB_R_HI_Nibble | ColorB_R_LO_Nibble
-0x0032    | ColorB_G_HI_Nibble | ColorB_G_LO_Nibble
-0x0033    | ColorB_B_HI_Nibble | ColorB_B_LO_Nibble
-0x0034    | ColorC_R_HI_Nibble | ColorC_R_LO_Nibble
-0x0035    | ColorC_G_HI_Nibble | ColorC_G_LO_Nibble
-0x0036    | ColorC_B_HI_Nibble | ColorC_B_LO_Nibble
-0x0037    | ColorD_R_HI_Nibble | ColorD_R_LO_Nibble
-0x0038    | ColorD_G_HI_Nibble | ColorD_G_LO_Nibble
-0x0039    | ColorD_B_HI_Nibble | ColorD_B_LO_Nibble
-0x003a    | ColorE_R_HI_Nibble | ColorE_R_LO_Nibble
-0x003b    | ColorE_G_HI_Nibble | ColorE_G_LO_Nibble
-0x003c    | ColorE_B_HI_Nibble | ColorE_B_LO_Nibble
-0x003d    | ColorF_R_HI_Nibble | ColorF_R_LO_Nibble
-0x003e    | ColorF_G_HI_Nibble | ColorF_G_LO_Nibble
-0x003f    | ColorF_B_HI_Nibble | ColorF_B_LO_Nibble
+0x0010    | Color0_R_HI_Nibble + Color0_R_LO_Nibble
+0x0011    | Color0_G_HI_Nibble + Color0_G_LO_Nibble
+0x0012    | Color0_B_HI_Nibble + Color0_B_LO_Nibble
+0x0013    | Color1_R_HI_Nibble + Color1_R_LO_Nibble
+0x0014    | Color1_G_HI_Nibble + Color1_G_LO_Nibble
+0x0015    | Color1_B_HI_Nibble + Color1_B_LO_Nibble
+0x0016    | Color2_R_HI_Nibble + Color2_R_LO_Nibble
+0x0017    | Color2_G_HI_Nibble + Color2_G_LO_Nibble
+0x0018    | Color2_B_HI_Nibble + Color2_B_LO_Nibble
+0x0019    | Color3_R_HI_Nibble + Color3_R_LO_Nibble
+0x001a    | Color3_G_HI_Nibble + Color3_G_LO_Nibble
+0x001b    | Color3_B_HI_Nibble + Color3_B_LO_Nibble
+0x001c    | Color4_R_HI_Nibble + Color4_R_LO_Nibble
+0x001d    | Color4_G_HI_Nibble + Color4_G_LO_Nibble
+0x001e    | Color4_B_HI_Nibble + Color4_B_LO_Nibble
+0x001f    | Color5_R_HI_Nibble + Color5_R_LO_Nibble
+0x0020    | Color5_G_HI_Nibble + Color5_G_LO_Nibble
+0x0021    | Color5_B_HI_Nibble + Color5_B_LO_Nibble
+0x0022    | Color6_R_HI_Nibble + Color6_R_LO_Nibble
+0x0023    | Color6_G_HI_Nibble + Color6_G_LO_Nibble
+0x0024    | Color6_B_HI_Nibble + Color6_B_LO_Nibble
+0x0025    | Color7_R_HI_Nibble + Color7_R_LO_Nibble
+0x0026    | Color7_G_HI_Nibble + Color7_G_LO_Nibble
+0x0027    | Color7_B_HI_Nibble + Color7_B_LO_Nibble
+0x0028    | Color8_R_HI_Nibble + Color8_R_LO_Nibble
+0x0029    | Color8_G_HI_Nibble + Color8_G_LO_Nibble
+0x002a    | Color8_B_HI_Nibble + Color8_B_LO_Nibble
+0x002b    | Color9_R_HI_Nibble + Color9_R_LO_Nibble
+0x002c    | Color9_G_HI_Nibble + Color9_G_LO_Nibble
+0x002d    | Color9_B_HI_Nibble + Color9_B_LO_Nibble
+0x002e    | ColorA_R_HI_Nibble + ColorA_R_LO_Nibble
+0x002f    | ColorA_G_HI_Nibble + ColorA_G_LO_Nibble
+0x0030    | ColorA_B_HI_Nibble + ColorA_B_LO_Nibble
+0x0031    | ColorB_R_HI_Nibble + ColorB_R_LO_Nibble
+0x0032    | ColorB_G_HI_Nibble + ColorB_G_LO_Nibble
+0x0033    | ColorB_B_HI_Nibble + ColorB_B_LO_Nibble
+0x0034    | ColorC_R_HI_Nibble + ColorC_R_LO_Nibble
+0x0035    | ColorC_G_HI_Nibble + ColorC_G_LO_Nibble
+0x0036    | ColorC_B_HI_Nibble + ColorC_B_LO_Nibble
+0x0037    | ColorD_R_HI_Nibble + ColorD_R_LO_Nibble
+0x0038    | ColorD_G_HI_Nibble + ColorD_G_LO_Nibble
+0x0039    | ColorD_B_HI_Nibble + ColorD_B_LO_Nibble
+0x003a    | ColorE_R_HI_Nibble + ColorE_R_LO_Nibble
+0x003b    | ColorE_G_HI_Nibble + ColorE_G_LO_Nibble
+0x003c    | ColorE_B_HI_Nibble + ColorE_B_LO_Nibble
+0x003d    | ColorF_R_HI_Nibble + ColorF_R_LO_Nibble
+0x003e    | ColorF_G_HI_Nibble + ColorF_G_LO_Nibble
+0x003f    | ColorF_B_HI_Nibble + ColorF_B_LO_Nibble
 
-* 0x0009 and 0x000a regs allow the instantaneous switching of colors
-(The CPU can set RGB values then swap nibble select)
+* 0x0009 and 0x000a regs allow the instantaneous switching of colors by
+defining two color palettes. The CPU can set RGB values then swap the nibble
+select bit(s).  Otherwise, several pixels would render with unwanted
+intermediate RGB color combinations.
 
 Location  | Description
 ----------|------------------------------
