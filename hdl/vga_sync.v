@@ -1,8 +1,41 @@
 `include "common.vh"
 
-// A module to prouce horizontal and vertical sync pulses for VGA/HDMI output.
+// A module to produce horizontal and vertical sync pulses for VGA/HDMI output.
 // Timings are not standard and may not work on all monitors.
 
+// A block ram module to hold a single raster line of pixel colors
+module linebuf_RAM
+#(
+    parameter addr_width = 10, // covers max width of 520
+              data_width = 4   // 4 bit color index
+)
+(
+    input wire clk,
+    input wire we,
+    input wire [addr_width-1:0] addr,
+    input wire [data_width-1:0] din,
+    output reg [data_width-1:0] dout
+);
+
+// Tell IDE to use block ram resources.
+(* ram_style = "block" *) reg [data_width-1:0] ram_single_port[2**addr_width-1:0];
+
+always @(posedge clk)
+begin
+    if (we)
+        ram_single_port[addr] <= din;
+    dout <= ram_single_port[addr];
+end
+
+endmodule 
+
+// This module manages a double buffer of raster lines. It stores the current
+// pixel_color3 value into one buffer using raster_x as the address.  It reads
+// pixels from the other buffer using h_count as the address.  h_count increments
+// at 2x the rate of raster_x but each line is 'drawn' twice.  So v_count also
+// increments at 2x the rate as raster_y.  We are always one raster line behind.
+// The buffers are swapped after drawing a single input raster line so that we are
+// always filling one buffer while reading from the other.
 module vga_sync(
            input wire clk_dot4x,
            input wire rst,
@@ -28,8 +61,8 @@ reg [9:0] hoffset;
 reg [9:0] voffset;
 
 reg [3:0] vga_color;
-reg [9:0] h_count;  // line position
-reg [9:0] v_count;  // screen position
+reg [9:0] h_count;  // output x position
+reg [9:0] v_count;  // output y position
 reg ff = 1'b1;
 
 // generate sync signals active low
@@ -104,7 +137,7 @@ begin
         ff = ~ff;
         // Increment x/y every other clock for a 2x dot clock in which
         // only our Y dimension is doubled.  Each line from the line
-        // buffer is drawn twice.
+        // buffer is 'drawn' twice.
         if (ff) begin
             if (h_count < max_width) begin
                 h_count <= h_count + 9'b1;
@@ -123,15 +156,24 @@ begin
     end
 end
 
-// Double buffer, while active_buf is being filled, we draw from filled_buf
-// for output.
+// Double buffer flip flop.  When active_buf is HIGH, we are writing to
+// line_buf_0 while reading from line_buf_1.  Reversed when active_buf is LOW.
 reg active_buf;
 
-//  Fill active buf while producing pixels from previous line from filled_buf
-
 // Cover the max possible here. Not all may be used depending on chip.
-(* ram_style = "block" *) reg [3:0] line_buf_0[1023:0];
-(* ram_style = "block" *) reg [3:0] line_buf_1[1023:0];
+wire [0:3] dout0; // output color from line_buf_0
+wire [0:3] dout1; // output color from line_buf_0
+
+wire [9:0] output_x;
+
+assign output_x = h_count - hoffset;
+
+// When the line buffer is being written to, we use raster_x (the VIC native
+// resolution x) as the address.
+// When the line buffer is being read from, we used h_count (this scan
+// doubler's x adjusted by hoffset) as the address.
+linebuf_RAM line_buf_0(clk_dot4x, active_buf, active_buf ? raster_x : output_x, pixel_color3, dout0);
+linebuf_RAM line_buf_1(clk_dot4x, !active_buf, !active_buf ? raster_x : output_x, pixel_color3, dout1);
 
 reg [3:0] dot_rising;
 always @(posedge clk_dot4x)
@@ -140,30 +182,20 @@ always @(posedge clk_dot4x)
     else
         dot_rising <= {dot_rising[2:0], dot_rising[3]};
 
+// Whenever we reach the beginning of a raster line, swap buffers.
 always @(posedge clk_dot4x)
 begin
     if (!rst) begin
         if (dot_rising[0]) begin
             if (raster_x == 0)
                 active_buf = ~active_buf;
-
-            // Store pixels into line buf
-            if (active_buf)
-                line_buf_0[raster_x[9:0]] = pixel_color3;
-            else
-                line_buf_1[raster_x[9:0]] = pixel_color3;
         end
-    end
-end
 
-always @(posedge clk_dot4x)
-begin
-    if (!rst) begin
-        if (h_count >= hoffset) begin
-            vga_color = !active_buf ? line_buf_0[h_count - hoffset] :
-                      line_buf_1[h_count - hoffset];
-        end else
+        if (h_count >= hoffset)
+            vga_color = active_buf ? dout1 : dout0;
+        else
             vga_color = `BLACK;
+
     end
 end
 
