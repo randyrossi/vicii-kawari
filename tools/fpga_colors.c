@@ -18,10 +18,10 @@ static char* names[16] = {
 // for colors.
 int main(int argc, char *argv[]) {
     for (int i=0;i<16;i++) {
-	    int r = pal[i*3] >> 4;
-	    int g = pal[i*3+1] >> 4;
-	    int b = pal[i*3+2] >> 4;
+	    int r = (pal[i*3] >> 4) ;
+	    int g = (pal[i*3+1] >> 4);
+	    int b = (pal[i*3+2] >> 4);
 	    printf ("%s:{red, green, blue} = {4'h%02x, 4'h%02x, 4'h%02x };\n",
-			    names[i],r&0x8,g&0x8,b&0x8); // TURN OFF BIT 0 !!
+			    names[i],r&0xe,g&0xe,b&0xe); // TURN OFF BIT 0 !!
     } 
 }
