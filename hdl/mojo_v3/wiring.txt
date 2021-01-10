@@ -36,7 +36,7 @@ SV1    7        L14P_2    P58     CAS      cas     O    QUIETIO  2
 SV1    9        L2P_2     P67     RAS      ras     O    QUIETIO  2
 SV1    11       L74P_1    P75     PHI      clk_phi O    QUIETIO  2
 SV1    13       L47P_1    P79     AEC      aec     O    QUIETIO  2
-SV1    15       L46P_1    P81     BA       ba      O    QUIETIO  2
+SV1    15       L46P_1    P83     BA       ba      O    QUIETIO  2
 
 SV1    21       L42P_1    P88     IRQ      irq            O    SLOW 2
 
@@ -66,9 +66,9 @@ SV2    43       L34P_0    P24     PMOD9    clk_dot4x_ext   O   SLOW 4
 SV2    45       L35P_0    P132    PMOD10   blue[1]         O   QUIETIO 2
 
 # Force LOW at high drive and tie to GND to help reduce SSN
-SV1    40       L64N_0    P116    PMOD11   red[0]          O   SLOW 16
-SV1    28       L34N_1    P97     PMOD7    green[0]        O   SLOW 16
-SV2    48       L36N_0    P126    PMOD7    blue[0]         O   SLOW 16
+SV1    40       L64N_0    P116    PMOD11   red[0]          O   QUIETIO 2
+SV1    28       L34N_1    P97     PMOD7    green[0]        O   QUIETIO 2
+SV2    48       L36N_0    P126    PMOD7    blue[0]         O   QUIETIO 2
 
 SV2    47       L36P_0    P127    PMOD8    active          O   SLOW 4
 SV2    50       L37N_0    P123    PMOD5    hsync           O   SLOW 4
