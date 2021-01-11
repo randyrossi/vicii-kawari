@@ -41,17 +41,17 @@ REG | Notes
 
 EXTRA_MEM_OP            | Notes
 ------------------------|------
-BIT 1                   | 0 = READ<br>1 = WRITE
-BIT 2,3                 | 0 = NO INCREMENT<br>1 = AUTO INCREMENT ADDR<br>2 = AUTO DECREMENT ADDR<br>3 = UNUSED
-BIT 4                   | 1 = REG/ROM OVERLAY, 0 = NO REG/ROM OVERLAY (Bank 0)
-BIT 5-8                 | BANK (0-15)
+BIT 1&2                 | 0 = NO INCREMENT<br>1 = AUTO INCREMENT ADDR<br>2 = AUTO DECREMENT ADDR<br>3 = RESERVED
+BIT 3                   | 1 = REG/ROM OVERLAY, 0 = NO REG/ROM OVERLAY (Bank 0)
+BIT 4-7                 | BANK (0-15)
+BIT 8                   | RESERVED
 
 ### Writing to extra memory
     LDA <ADDR
     STA $d33c  ; addr hi
     LDA >ADDR
     STA $d33d  ; addr lo
-    LDA #3     ; write with increment, bank 0
+    LDA #1     ; auto increment, bank 0 no overlay
     STA $d33f  ; set op
     LDA #$55
     STA $d33e  ; write $55 to ADDR
@@ -69,7 +69,7 @@ BIT 5-8                 | BANK (0-15)
     STA $d33c  ; addr hi
     LDA >ADDR
     STA $d33d  ; addr lo
-    LDA #2     ; read with increment, bank 0
+    LDA #1     ; auto increment, bank 0 no overlay
     STA $d33f  ; set op
     LDA $d33e  ; read the value
 
@@ -109,12 +109,11 @@ Location  | Description
 0x0002    | Chip Model Select (0=6567R56A, 1=6567R8, 2=6569, (3-7) reserved (RW)
 0x0003    | Version (high nibble = major, low nibble = minor) (RO)
 0x0004    | Config Operation (see below)
-0x0005    | Auto Increment Value (RW) (Default 1, Two's complement)
-0x0006    | Bits 0-3 = Num extra memory banks available (RO)
-0x0007    | Bit 0 = Raster Effect, Bit 1 = Video Extensions Enable, 2-6 Reserved
-0x0008    | Color 0-7 HI/LO Nibble Select
-0x0009    | Color 8-f HI/LO Nibble Select
-0x000a<br>to<br>0x000f | Reserved for future use
+0x0005    | Bits 0-3 = Num extra memory banks available (RO)
+0x0006    | Bit 0 = Raster Effect, Bit 1 = Video Extensions Enable, 2-6 Reserved
+0x0007    | Color 0-7 HI/LO Nibble Select
+0x0008    | Color 8-f HI/LO Nibble Select
+0x0009<br>to<br>0x000f | Reserved for future use
 
 Location  | Description
 ----------|------------------------------
@@ -167,7 +166,7 @@ Location  | Description
 0x003e    | ColorF_G_HI_Nibble + ColorF_G_LO_Nibble
 0x003f    | ColorF_B_HI_Nibble + ColorF_B_LO_Nibble
 
-* 0x0009 and 0x000a regs allow the instantaneous switching of colors by
+* 0x0007 and 0x0008 regs allow the instantaneous switching of colors by
 defining two color palettes. The CPU can set RGB values then swap the nibble
 select bit(s).  Otherwise, several pixels would render with unwanted
 intermediate RGB color combinations.
