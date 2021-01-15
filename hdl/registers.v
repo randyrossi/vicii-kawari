@@ -83,6 +83,60 @@ reg res;
 reg [5:0] addr_latched;
 reg addr_latch_done;
 reg read_done;
+
+// --- BEGIN EXTENSIONS ----
+
+reg [1:0] extra_regs_activation_ctr;
+reg extra_regs_activated;
+
+// Flags to govern read accesses causing auto inc/dec
+reg video_ram_r;
+reg video_ram_r2;
+reg video_ram_sel;
+
+reg [7:0] video_ram_flags;
+
+// Port A used for CPU access
+reg [14:0] video_ram_addr_a;
+reg video_ram_wr_a;
+reg [7:0] video_ram_hi_1;
+reg [7:0] video_ram_lo_1;
+reg [7:0] video_ram_hi_2;
+reg [7:0] video_ram_lo_2;
+reg [7:0] video_ram_data_in_a;
+wire [7:0] video_ram_data_out_a;
+
+// TODO : Port B will be used for video access
+reg [14:0] video_ram_addr_b;
+reg video_ram_wr_b;
+reg [7:0] video_ram_data_in_b;
+wire [7:0] video_ram_data_out_b;
+
+// Auto increment/decrement of extra reg addr should happen on reads/writes
+// to the extra reg data port.  Some CPU instructions result in a single
+// read or write.  However, some CPU instructions address the
+// memory location over 2 cycles, once for a read and then again for a write.
+// We defer read inc/dec until the following cycle in case it is immediately
+// followed by a write. This ensures increment happens after the CPU
+// instruction is complete.
+
+// We have enough block ram on the Mojo's Spartan6 for one bank of 64k. But
+// we're going to limit ourselves to 32k for video ram and leave another 32k
+// for other purposes. If using a different FPGA, the address constructed here
+// could add bank select lines here.
+VIDEO_RAM video_ram(clk_dot4x,
+                    video_ram_wr_a,
+                    video_ram_addr_a,
+                    video_ram_data_in_a,
+                    video_ram_data_out_a,
+                    video_ram_wr_b,
+                    video_ram_addr_b,
+                    video_ram_data_in_b,
+                    video_ram_data_out_b
+                    );
+
+// --- END EXTENSIONS ----
+
 always @(posedge clk_dot4x)
     if (rst) begin
         //ec <= BLACK;
@@ -124,6 +178,17 @@ always @(posedge clk_dot4x)
         elp <= `FALSE;
         //dbo[7:0] <= 8'd0;
         //handle_sprite_crunch <= `FALSE;
+
+        // --- BEGIN EXTENSIONS ----
+        extra_regs_activation_ctr <= 2'b0;
+`ifdef IS_SIMULATOR
+        extra_regs_activated <= 1'b1;
+        video_ram_flags <= 8'b1;
+`else
+        extra_regs_activated <= 1'b0;
+`endif
+        // --- END EXTENSIONS ----
+
     end else
     begin
         if (phi_phase_start_dav_plus_1) begin
@@ -145,6 +210,8 @@ always @(posedge clk_dot4x)
             handle_sprite_crunch <= `FALSE;
         end
         if (!ras && clk_phi && !addr_latch_done) begin
+            // Make sure we 'pretend' we can only see 6 address bits unless
+            // extra regs are activated so 64 reg space repeats as expected.
             addr_latched <= adi[5:0];
             addr_latch_done <= `TRUE;
         end
@@ -155,7 +222,7 @@ always @(posedge clk_dot4x)
             // same time we assert dbo in the block below.  VICE sync
             // complains it is too early.
             if (rw && phi_phase_start_dav) begin
-                case (addr_latched)
+                case (addr_latched[5:0])
                     /* 0x1e */ `REG_SPRITE_2_SPRITE_COLLISION: begin
                         // reading this register clears the value
                         m2m_clr <= 1;
@@ -169,7 +236,7 @@ always @(posedge clk_dot4x)
             end
             if (rw && !read_done) begin
                 read_done <= `TRUE;
-                case (addr_latched)
+                case (addr_latched[5:0])
                     /* 0x00 */ `REG_SPRITE_X_0:
                         dbo[7:0] <= sprite_x[0][7:0];
                     /* 0x02 */ `REG_SPRITE_X_1:
@@ -277,13 +344,43 @@ always @(posedge clk_dot4x)
                         dbo[7:0] <= {4'b1111, sprite_col[6]};
                     /* 0x2e */ `REG_SPRITE_COLOR_7:
                         dbo[7:0] <= {4'b1111, sprite_col[7]};
+
+                    // --- BEGIN EXTENSIONS ----
+
+                    `VIDEO_MEM_1_HI:
+                        dbo[7:0] <= video_ram_hi_1;
+                    `VIDEO_MEM_1_LO:
+                        dbo[7:0] <= video_ram_lo_1;
+                    `VIDEO_MEM_1_VAL:
+                        begin
+                           video_ram_r <= 1;
+                           video_ram_sel <= 0;
+                           video_ram_addr_a <= {video_ram_hi_1[6:0],
+                                                video_ram_lo_1};
+                        end
+                    `VIDEO_MEM_2_HI:
+                        dbo[7:0] <= video_ram_hi_2;
+                    `VIDEO_MEM_2_LO:
+                        dbo[7:0] <= video_ram_lo_2;
+                    `VIDEO_MEM_2_VAL:
+                        begin
+                           video_ram_r <= 1;
+                           video_ram_sel <= 1;
+                           video_ram_addr_a <= {video_ram_hi_2[6:0],
+                                                video_ram_lo_2};
+                        end
+                    /* 0x3F */ `VIDEO_MEM_FLAGS:
+                        dbo[7:0] <= video_ram_flags;
+
+                    // --- END EXTENSIONS ----
+
                     default:
                         dbo[7:0] <= 8'hFF;
                 endcase
             end
             // WRITE to register
             else if (!rw && phi_phase_start_dav) begin
-                case (addr_latched)
+                case (addr_latched[5:0])
                     /* 0x00 */ `REG_SPRITE_X_0:
                         sprite_x[0][7:0] <= dbi[7:0];
                     /* 0x02 */ `REG_SPRITE_X_1:
@@ -399,9 +496,133 @@ always @(posedge clk_dot4x)
                         sprite_col[6] <= dbi[3:0];
                     /* 0x2e */ `REG_SPRITE_COLOR_7:
                         sprite_col[7] <= dbi[3:0];
+
+                    // --- BEGIN EXTENSIONS ----
+
+                    /* 0x3f */ `VIDEO_MEM_FLAGS:
+                        if (~extra_regs_activated) begin
+                        case (dbi[7:0])
+                        /* "V" */ 8'd86:
+                            if (extra_regs_activation_ctr == 2'd0)
+                                 extra_regs_activation_ctr <= extra_regs_activation_ctr + 2'b1;
+                            else
+                                 extra_regs_activation_ctr <= 2'd0;
+                        /* "I" */ 8'd73:
+                            if (extra_regs_activation_ctr == 2'd1)
+                                 extra_regs_activation_ctr <= extra_regs_activation_ctr + 2'b1;
+                            else
+                                 extra_regs_activation_ctr <= 2'd0;
+                        /* "C" */ 8'd67:
+                            if (extra_regs_activation_ctr == 2'd2)
+                                extra_regs_activation_ctr <= extra_regs_activation_ctr + 2'b1;
+                            else
+                                extra_regs_activation_ctr <= 2'd0;
+                        /* "2" */ 8'd50:
+                            if (extra_regs_activation_ctr == 2'd3)
+                                extra_regs_activated <= 1'b1;
+                            else
+                                extra_regs_activation_ctr <= 2'd0;
+                        default:
+                            extra_regs_activation_ctr <= 2'd0;
+                        endcase
+                        end else begin
+                            video_ram_flags <= dbi[7:0];
+                        end
+
+                    `VIDEO_MEM_1_HI:
+                        video_ram_hi_1 <= dbi[7:0];
+                    `VIDEO_MEM_1_LO:
+                        video_ram_lo_1 <= dbi[7:0];
+                    `VIDEO_MEM_1_VAL:
+                        begin
+                           video_ram_wr_a <= 1;
+                           video_ram_sel <= 0;
+                           video_ram_data_in_a <= dbi[7:0];
+                           video_ram_addr_a <= {video_ram_hi_1[6:0],
+                                                video_ram_lo_1};
+                        end
+                    `VIDEO_MEM_2_HI:
+                        video_ram_hi_2 <= dbi[7:0];
+                    `VIDEO_MEM_2_LO:
+                        video_ram_lo_2 <= dbi[7:0];
+                    `VIDEO_MEM_2_VAL:
+                        begin
+                           video_ram_wr_a <= 1;
+                           video_ram_sel <= 1;
+                           video_ram_data_in_a <= dbi[7:0];
+                           video_ram_addr_a <= {video_ram_hi_2[6:0],
+                                                video_ram_lo_2};
+                        end
+
+                    // --- END EXTENSIONS ----
+
                     default:;
                 endcase
             end
         end
+
+        // CPU access to port a of video mem
+        if (video_ram_r)
+            dbo[7:0] <= video_ram_data_out_a;
+
+        // --- BEGIN EXTENSIONS ----
+        if (~clk_phi && phi_phase_start_dav_plus_1) begin
+            // Always clear both flags and propagate r to r2 here.
+            video_ram_r <= 0;
+            video_ram_r2 <= video_ram_r;
+
+            video_ram_wr_a <= 0;
+            video_ram_wr_b <= 0;
+
+            if (video_ram_r2 || video_ram_wr_a) begin
+                // Handle auto increment /decrement after port access
+                if (video_ram_sel == 0) begin // loc 1 of port a
+                    case(video_ram_flags[1:0])
+                    2'd1: begin
+                        if (video_ram_lo_1 < 8'hff)
+                            video_ram_lo_1 <= video_ram_lo_1 + 8'b1;
+                        else begin
+                             video_ram_lo_1 <= 8'h00;
+                             video_ram_hi_1 <= video_ram_hi_1 + 8'b1;
+                         end
+                    end
+                    2'd2: begin
+                       if (video_ram_lo_1 > 8'h00)
+                            video_ram_lo_1 <= video_ram_lo_1 - 8'b1;
+                       else begin
+                            video_ram_lo_1 <= 8'hff;
+                            video_ram_hi_1 <= video_ram_hi_1 - 8'b1;
+                       end
+                    end
+                    default:
+                       ;
+                    endcase
+                end else begin // loc 2 of port a
+                    case(video_ram_flags[3:2])
+                    2'd1: begin
+                        if (video_ram_lo_2 < 8'hff)
+                            video_ram_lo_2 <= video_ram_lo_2 + 8'b1;
+                        else begin
+                             video_ram_lo_2 <= 8'h00;
+                             video_ram_hi_2 <= video_ram_hi_2 + 8'b1;
+                         end
+                    end
+                    2'd2: begin
+                       if (video_ram_lo_2 > 8'h00)
+                            video_ram_lo_2 <= video_ram_lo_2 - 8'b1;
+                       else begin
+                            video_ram_lo_2 <= 8'hff;
+                            video_ram_hi_2 <= video_ram_hi_2 - 8'b1;
+                       end
+                    end
+                    default:
+                       ;
+                    endcase
+                end
+
+            end
+        end
+        // --- END EXTENSIONS ----
     end
 endmodule
+

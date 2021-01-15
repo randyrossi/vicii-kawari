@@ -1,7 +1,7 @@
 # VICII-Kawari
 
 ## What is VICII-Kawari?
-VICII-Kawari is a hardware replacement for the VIC-II (Video Interface Chip II) found in Commodore 64 home computers.
+VICII-Kawari is a hardware replacement for the VIC-II (Video Interface Chip II) found in Commodore 64 home computers.  In addition to being compatible with the original VIC-II 6567/6569 chips, a number of enhancements are also available.
 
 This project contains:
 
@@ -70,6 +70,22 @@ If you need a VIC-II to replace a broken one, you should just buy one off eBay. 
 * It's not an almost 40 year old device that may fail at any time
 
 Also, since the core is open source, hobbyests can add their own interesting new features (i.e. a math co-processor, more sprites, more colors, a new graphics mode, a display address translator, etc) See [FORKING.md](FORKING.md) for some a list of possible add-ons.
+
+## What extra features are available?
+
+### A configurable color palette
+
+Each of the Commodore 64's 16 colors can be set with RGB values inside a 12 bit color space (4096 colors).
+
+### An 80 column text mode
+
+A true 16 color 80 column text mode is now available.  This is NOT a soft-80 mode that uses bitmap graphics but rather a true text mode.  A small kernal patch can also enable this for basic programming.
+
+### New graphics modes
+
+Some new graphics modes are also added.
+
+### Software switch between PAL and NTSC
 
 ## What are the installation options?
 

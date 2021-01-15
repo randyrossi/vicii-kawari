@@ -138,6 +138,27 @@
 `define REG_SPRITE_COLOR_6            6'h2D
 `define REG_SPRITE_COLOR_7            6'h2E
 
+`define REG_UNUSED1                   6'h2F
+`define REG_UNUSED2                   6'h30
+`define REG_UNUSED3                   6'h31
+`define REG_UNUSED4                   6'h32
+`define REG_UNUSED5                   6'h33
+`define REG_UNUSED6                   6'h34
+`define REG_UNUSED7                   6'h35
+`define REG_UNUSED8                   6'h36
+`define REG_UNUSED9                   6'h37
+
+// --- BEGIN EXTENSIONS ---
+`define VIDEO_FLAGS                   6'h38
+`define VIDEO_MEM_1_HI                6'h39
+`define VIDEO_MEM_1_LO                6'h3A
+`define VIDEO_MEM_1_VAL               6'h3B
+`define VIDEO_MEM_2_HI                6'h3C
+`define VIDEO_MEM_2_LO                6'h3D
+`define VIDEO_MEM_2_VAL               6'h3E
+`define VIDEO_MEM_FLAGS               6'h3F  // Extra Reg Activation Port
+// --- END EXTENSIONS ---
+
 // Official video modes, source https://www.c64-wiki.com/wiki/Graphics_Modes
 `define MODE_STANDARD_CHAR       3'b000
 `define MODE_MULTICOLOR_CHAR     3'b001

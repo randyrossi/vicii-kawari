@@ -17,7 +17,6 @@ module linebuf_RAM
     output reg [data_width-1:0] dout
 );
 
-// Tell IDE to use block ram resources.
 (* ram_style = "block" *) reg [data_width-1:0] ram_single_port[2**addr_width-1:0];
 
 always @(posedge clk)
@@ -34,8 +33,8 @@ endmodule
 // pixels from the other buffer using h_count as the address.  h_count increments
 // at 2x the rate of raster_x but each line is 'drawn' twice.  So v_count also
 // increments at 2x the rate as raster_y.  We are always one raster line behind.
-// The buffers are swapped after drawing a single input raster line so that we are
-// always filling one buffer while reading from the other.
+// The buffers are swapped after drawing a single input raster line so that we
+// are always filling one buffer while reading from the other.
 module vga_sync(
            input wire clk_dot4x,
            input wire rst,
@@ -190,7 +189,7 @@ always @(posedge clk_dot4x)
 always @(posedge clk_dot4x)
 begin
     if (!rst) begin
-        if (dot_rising[0]) begin
+        if (dot_rising[1]) begin
             if (raster_x == 0)
                 active_buf = ~active_buf;
         end

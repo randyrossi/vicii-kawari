@@ -1,4 +1,8 @@
-Extra registers will not be enabled unless the activation port (0x3f)
+# Extra Registers & Video RAM
+
+## Extra Registers
+
+Extra registers will not be enabled unless the activation port (0xd03f)
 is poked with the PETSCII bytes "VIC2".  This prevents existing software
 from unintentionally triggering extra registers.
 
@@ -7,186 +11,245 @@ from unintentionally triggering extra registers.
     POKE 54271,ASC("C")
     POKE 54271,ASC("2")
 
-Once exra registers are enabled, registers 0x2f - 0x3b are available for
-variants to use for direct CPU access.  The meaning of these will be variant
-dependent.
+Once exra registers are enabled, registers 0xd030 - 0xd03f become
+available for access to VICII-Kawari video ram.  These registers
+should remain functional across all variants.  Extra registers can be
+deactivated again by setting bit 5 of 0xd03f to 1.
 
-REG | Notes
-----|----------------------
-0x2f|AVAILABLE FOR VARIANTS
-0x30|AVAILABLE FOR VARIANTS
-0x31|AVAILABLE FOR VARIANTS
-0x32|AVAILABLE FOR VARIANTS
-0x33|AVAILABLE FOR VARIANTS
-0x34|AVAILABLE FOR VARIANTS
-0x35|AVAILABLE FOR VARIANTS
-0x36|AVAILABLE FOR VARIANTS
-0x37|AVAILABLE FOR VARIANTS
-0x38|AVAILABLE FOR VARIANTS
-0x39|AVAILABLE FOR VARIANTS
-0x3a|AVAILABLE FOR VARIANTS
-0x3b|AVAILABLE FOR VARIANTS
+### Extra Registers Table
 
-Registers 0x3c - 0x3f are reserved across all variants for extra memory
-access. This mechanism allows addressing up to 16 banks of 64k each. It
-can also be used to access a bank of additional registers as well as
-some ROM that identifies the variant and its capabilities.
+REG    | Name | Description
+-------|------|-------------
+0xd038 | VIDEO_FLAGS | See below
+0xd039 | VIDEO_MEM_A_HI | Video Memory Addr Hi Port A
+0xd03a | VIDEO_MEM_A_LO | Video Memory Addr Lo Port A
+0xd03b | VIDEO_MEM_A_VAL | Video Memory Port A Read/Write Value
+0xd03c | VIDEO_MEM_B_HI | Video Memory Addr Hi Port B
+0xd03d | VIDEO_MEM_B_LO | Video Memory Addr Lo Port B
+0xd03e | VIDEO_MEM_B_VAL | Video Memory Port B Read/Write Value
+0xd03f | VIDEO_MEM_FLAGS | Video Memory Op Flags (see below)
 
-REG | Notes
-----|----------------------
-0x3c|EXTRA_MEM_ADDR_HI
-0x3d|EXTRA_MEM_ADDR_LO
-0x3e|EXTRA_MEM_VALUE
-0x3f|EXTENSION_ACTIVATION or EXTRA_MEM_OP (see below)
 
-EXTRA_MEM_OP            | Notes
+## Video Memory
+
+VICII-Kawari adds an extra 32k of video memory. This memory can be directly
+accessed by VICII-Kawari for new graphics modes but also provides a mechanism
+for the 6510 CPU to access it as well. The registers 0xd039-0xd03f are used to
+read/write from/to video memory. (This space can also be used to store code
+but it would have to be copied back to main memory to be executed by the CPU.)
+
+VIDEO_MEM_FLAGS | Description
 ------------------------|------
-BIT 1&2                 | 0 = NO INCREMENT<br>1 = AUTO INCREMENT ADDR<br>2 = AUTO DECREMENT ADDR<br>3 = RESERVED
-BIT 3                   | 1 = REG/ROM OVERLAY, 0 = NO REG/ROM OVERLAY (Bank 0)
-BIT 4-7                 | BANK (0-15)
-BIT 8                   | RESERVED
+BIT 1,2  | PORT 1 AUTO INCREMENT FLAGS<br>0=NONE<br>1=INC<br>2=DEC<br>3=UNUSED
+BIT 3,4  | PORT 2 AUTO INCREMENT FLAGS<br>0=NONE<br>1=INC<br>2=DEC<br>3=UNUSED
+BIT 5    | Deactivate Extra Registers
+BIT 6    | Extra Registers Overlay at 0x0000 Enable/Disable
+BIT 7    | UNUSED
+BIT 8    | UNUSED
 
-### Writing to extra memory
+VIDEO_FLAGS | Description
+------------|------------
+BIT 1       | Palette Select
+BIT 2-8     | Unused
+
+### Writing to video memory from main DRAM
     LDA <ADDR
-    STA $d33c  ; addr hi
+    STA VIDEO_MEM_A_HI
     LDA >ADDR
-    STA $d33d  ; addr lo
-    LDA #1     ; auto increment, bank 0 no overlay
-    STA $d33f  ; set op
+    STA VIDEO_MEM_A_LO
+    LDA #1               ; Auto increment port 1
+    STA VIDEO_MEM_FLAGS
     LDA #$55
-    STA $d33e  ; write $55 to ADDR
+    STA VIDEO_MEM_A_VAL  ; write $55 to video mem ADDR
 
     Suquential writes will auto increment the address:
 
     LDA #$56
-    STA $d33e  ; write $56 to ADDR+1
+    STA VIDEO_MEM_A_VAL  ; write $56 to ADDR+1
     LDA #$57
-    STA $d33e  ; write $57 to ADDR+2
+    STA VIDEO_MEM_A_VAL  ; write $57 to ADDR+2
     (...etc)
 
-### Reading from extra memory
+### Reading from video memory into main DRAM
     LDA <ADDR
-    STA $d33c  ; addr hi
+    STA VIDEO_MEM_A_HI
     LDA >ADDR
-    STA $d33d  ; addr lo
-    LDA #1     ; auto increment, bank 0 no overlay
-    STA $d33f  ; set op
-    LDA $d33e  ; read the value
+    STA VIDEO_MEM_A_LO
+    LDA #1               ; Auto increment port 1
+    STA VIDEO_MEM_FLAGS
+    LDA VIDEO_MEM_A_VAL  ; read the value
 
     Sequential reads will auto increment the address:
 
-    LDA $d33e  ; read from ADDR+1
-    LDA $d33e  ; read from ADDR+2
+    LDA VIDEO_MEM_A_VAL ; read from ADDR+1
+    LDA VIDEO_MEM_A_VAL ; read from ADDR+2
     (...etc)
-   
-When BIT 4 of register EXTRA_MEM_OP is set, the first 256 bytes
-of extra mem BANK 0 is mapped to extra registers and the next 768 bytes
-is mapped to ROM. These registers and ROM should remain consistent between
-VICII-Kawari variants for two reasons: 
 
-1) the official configuration utility will be able to at
-least query the variant and capability strings on any
-variant (as well as set palette colors, change video
-standard, or other common features between variants).
-Users will be able to at least find out what variant
-they are running even if they use the official config
-utiliy.
+### Performing a move within video memory
 
-2) programs can query what the variant is on the system
-they are running on in a consistent way. This will allow
-for a simple check routine that will run on all variants
-and can product a friendly user message indicating the
-wrong variant is installed.
+Moving memory still requires CPU but uses two ports; one for
+a source and the other for a destination.
 
-### Bank 0 REG/ROM Overlay
+    LDA <SRC_ADDR
+    STA VIDEO_MEM_A_HI
+    LDA >SRC_ADDR
+    STA VIDEO_MEM_A_LO
 
-NOTE: 0x0000 - 0x03FF overlay is enabled by BIT 4 of EXTRA_MEM_OP. Otherwise, the full 64k in the bank is available for R/W.
+    LDA <DEST_ADDR
+    STA VIDEO_MEM_B_HI
+    LDA >DEST_ADDR
+    STA VIDEO_MEM_B_LO
 
-Location  | Description
-----------|------------------------------
-0x0000    | Video Standard Select (0=PAL, 1=NTSC) (RW)
-0x0001    | Video Standard Select (0=15.7, 1=34.1 khz) (RW)
-0x0002    | Chip Model Select (0=6567R56A, 1=6567R8, 2=6569, (3-7) reserved (RW)
-0x0003    | Version (high nibble = major, low nibble = minor) (RO)
-0x0004    | Config Operation (see below)
-0x0005    | Bits 0-3 = Num extra memory banks available (RO)
-0x0006    | Bit 0 = Raster Effect, Bit 1 = Video Extensions Enable, 2-6 Reserved
-0x0007    | Color 0-7 HI/LO Nibble Select
-0x0008    | Color 8-f HI/LO Nibble Select
-0x0009<br>to<br>0x000f | Reserved for future use
+    LDA #5               ; Auto increment port 1 and 2
+    STA VIDEO_MEM_FLAGS
 
-Location  | Description
-----------|------------------------------
-0x0010    | Color0_R_HI_Nibble + Color0_R_LO_Nibble
-0x0011    | Color0_G_HI_Nibble + Color0_G_LO_Nibble
-0x0012    | Color0_B_HI_Nibble + Color0_B_LO_Nibble
-0x0013    | Color1_R_HI_Nibble + Color1_R_LO_Nibble
-0x0014    | Color1_G_HI_Nibble + Color1_G_LO_Nibble
-0x0015    | Color1_B_HI_Nibble + Color1_B_LO_Nibble
-0x0016    | Color2_R_HI_Nibble + Color2_R_LO_Nibble
-0x0017    | Color2_G_HI_Nibble + Color2_G_LO_Nibble
-0x0018    | Color2_B_HI_Nibble + Color2_B_LO_Nibble
-0x0019    | Color3_R_HI_Nibble + Color3_R_LO_Nibble
-0x001a    | Color3_G_HI_Nibble + Color3_G_LO_Nibble
-0x001b    | Color3_B_HI_Nibble + Color3_B_LO_Nibble
-0x001c    | Color4_R_HI_Nibble + Color4_R_LO_Nibble
-0x001d    | Color4_G_HI_Nibble + Color4_G_LO_Nibble
-0x001e    | Color4_B_HI_Nibble + Color4_B_LO_Nibble
-0x001f    | Color5_R_HI_Nibble + Color5_R_LO_Nibble
-0x0020    | Color5_G_HI_Nibble + Color5_G_LO_Nibble
-0x0021    | Color5_B_HI_Nibble + Color5_B_LO_Nibble
-0x0022    | Color6_R_HI_Nibble + Color6_R_LO_Nibble
-0x0023    | Color6_G_HI_Nibble + Color6_G_LO_Nibble
-0x0024    | Color6_B_HI_Nibble + Color6_B_LO_Nibble
-0x0025    | Color7_R_HI_Nibble + Color7_R_LO_Nibble
-0x0026    | Color7_G_HI_Nibble + Color7_G_LO_Nibble
-0x0027    | Color7_B_HI_Nibble + Color7_B_LO_Nibble
-0x0028    | Color8_R_HI_Nibble + Color8_R_LO_Nibble
-0x0029    | Color8_G_HI_Nibble + Color8_G_LO_Nibble
-0x002a    | Color8_B_HI_Nibble + Color8_B_LO_Nibble
-0x002b    | Color9_R_HI_Nibble + Color9_R_LO_Nibble
-0x002c    | Color9_G_HI_Nibble + Color9_G_LO_Nibble
-0x002d    | Color9_B_HI_Nibble + Color9_B_LO_Nibble
-0x002e    | ColorA_R_HI_Nibble + ColorA_R_LO_Nibble
-0x002f    | ColorA_G_HI_Nibble + ColorA_G_LO_Nibble
-0x0030    | ColorA_B_HI_Nibble + ColorA_B_LO_Nibble
-0x0031    | ColorB_R_HI_Nibble + ColorB_R_LO_Nibble
-0x0032    | ColorB_G_HI_Nibble + ColorB_G_LO_Nibble
-0x0033    | ColorB_B_HI_Nibble + ColorB_B_LO_Nibble
-0x0034    | ColorC_R_HI_Nibble + ColorC_R_LO_Nibble
-0x0035    | ColorC_G_HI_Nibble + ColorC_G_LO_Nibble
-0x0036    | ColorC_B_HI_Nibble + ColorC_B_LO_Nibble
-0x0037    | ColorD_R_HI_Nibble + ColorD_R_LO_Nibble
-0x0038    | ColorD_G_HI_Nibble + ColorD_G_LO_Nibble
-0x0039    | ColorD_B_HI_Nibble + ColorD_B_LO_Nibble
-0x003a    | ColorE_R_HI_Nibble + ColorE_R_LO_Nibble
-0x003b    | ColorE_G_HI_Nibble + ColorE_G_LO_Nibble
-0x003c    | ColorE_B_HI_Nibble + ColorE_B_LO_Nibble
-0x003d    | ColorF_R_HI_Nibble + ColorF_R_LO_Nibble
-0x003e    | ColorF_G_HI_Nibble + ColorF_G_LO_Nibble
-0x003f    | ColorF_B_HI_Nibble + ColorF_B_LO_Nibble
+    LDA VIDEO_MEM_A_VAL  ; read from src
+    STA VIDEO_MEM_B_VAL  ; write to dest
 
-* 0x0007 and 0x0008 regs allow the instantaneous switching of colors by
-defining two color palettes. The CPU can set RGB values then swap the nibble
-select bit(s).  Otherwise, several pixels would render with unwanted
-intermediate RGB color combinations.
+    Sequential read/writes will auto increment/decrement the address as above.
 
+### Extra Registers Overlay
 
-Location  | Description
-----------|------------------------------
-0x0040<br>to<br>0x00ff | Available for variants
+When BIT 6 of the VIDEO_MEM_FLAGS register is set, the first 256 bytes
+of video RAM is mapped to extra registers for special VICII-Kawari
+functions.
 
+Location | Name | Description
+---------|------|------------
+0x0000 | VIDEO_STD | Video Standard Select (0=PAL, 1=NTSC)
+0x0001 | VIDEO_FREQ | Video Frequency Select (0=15.7 khz, 1=34.1 khz)
+0x0002 | CHIP_MODEL | Chip Model Select (0=6567R56A, 1=6567R8, 2=6569, 3-7 Reserved)
+0x0003 | VERSION | Version (high nibble major, low nibble minor) - Read Only
+0x0004 | DISPLAY_FLAGS | Bit 0 = Rasterlines Select
+0x0005 - 0x000f | Reserved
+0x0010 - 0xd01f | VARIANT_NAME | Variant Name
 
-Location               | Description
------------------------|------------------------------
-0x0100<br>to<br>0x010f | Variant String (null terminated, max 16 bytes)
-0x0110<br>to<br>0x03ff | Capability Strings (double null terminated, max 512 bytes)
-0x0400<br>to<br>0xffff | RAM
+### Variant Name
 
+The extra register overlay area 0x0010 - 0xd01f is used to identify the
+variant name. This is a max 16 byte null terminated PETSCII string.  All
+forks should change this to something other than 'official' if they plan
+on releasing a bitstream. See [FORKING.md](FORKING.md)
 
-Config Operation        | Description
-------------------------|------
-0                       | Save
-1                       | Reset VIC and Computer
-2                       | Restore Default Palette
-3                       | Disable extra registers
+### Color Registers
+
+VICII-Kawari has a configurable color palette. The 16 colors can be selected
+from a palette of 4096 colors by specifying three 4-bit RGB values. (The
+upper 4 bits are ignored).  The palette is also double buffered to allow
+changing all colors instantaneously with the palette select bit in register
+VIDEO_FLAGS. Palette 0 is located at 0x0020. Palette 1 is located at 0x0050.
+
+Register | Description
+-------|-------------------
+0x0020 | Palette 0 Color0_R
+0x0021 | Palette 0 Color0_G
+0x0022 | Palette 0 Color0_B
+0x0023 | Palette 0 Color1_R
+0x0024 | Palette 0 Color1_G
+0x0025 | Palette 0 Color1_B
+0x0026 | Palette 0 Color2_R
+0x0027 | Palette 0 Color2_G
+0x0028 | Palette 0 Color2_B
+0x0029 | Palette 0 Color3_R
+0x002a | Palette 0 Color3_G
+0x002b | Palette 0 Color3_B
+0x002c | Palette 0 Color4_R
+0x002d | Palette 0 Color4_G
+0x002e | Palette 0 Color4_B
+0x002f | Palette 0 Color5_R
+0x0030 | Palette 0 Color5_G
+0x0031 | Palette 0 Color5_B
+0x0032 | Palette 0 Color6_R
+0x0033 | Palette 0 Color6_G
+0x0034 | Palette 0 Color6_B
+0x0035 | Palette 0 Color7_R
+0x0036 | Palette 0 Color7_G
+0x0037 | Palette 0 Color7_B
+0x0038 | Palette 0 Color8_R
+0x0039 | Palette 0 Color8_G
+0x003a | Palette 0 Color8_B
+0x003b | Palette 0 Color9_R
+0x003c | Palette 0 Color9_G
+0x003d | Palette 0 Color9_B
+0x003e | Palette 0 ColorA_R
+0x003f | Palette 0 ColorA_G
+0x0040 | Palette 0 ColorA_B
+0x0041 | Palette 0 ColorB_R
+0x0042 | Palette 0 ColorB_G
+0x0043 | Palette 0 ColorB_B
+0x0044 | Palette 0 ColorC_R
+0x0045 | Palette 0 ColorC_G
+0x0046 | Palette 0 ColorC_B
+0x0047 | Palette 0 ColorD_R
+0x0048 | Palette 0 ColorD_G
+0x0049 | Palette 0 ColorD_B
+0x004a | Palette 0 ColorE_R
+0x004b | Palette 0 ColorE_G
+0x004c | Palette 0 ColorE_B
+0x004d | Palette 0 ColorF_R
+0x004e | Palette 0 ColorF_G
+0x004f | Palette 0 ColorF_B
+
+Register | Description
+-------|-------------------
+0x0050 | Palette 1 Color0_R
+0x0051 | Palette 1 Color0_G
+0x0052 | Palette 1 Color0_B
+0x0053 | Palette 1 Color1_R
+0x0054 | Palette 1 Color1_G
+0x0055 | Palette 1 Color1_B
+0x0056 | Palette 1 Color2_R
+0x0057 | Palette 1 Color2_G
+0x0058 | Palette 1 Color2_B
+0x0059 | Palette 1 Color3_R
+0x005a | Palette 1 Color3_G
+0x005b | Palette 1 Color3_B
+0x005c | Palette 1 Color4_R
+0x005d | Palette 1 Color4_G
+0x005e | Palette 1 Color4_B
+0x005f | Palette 1 Color5_R
+0x0060 | Palette 1 Color5_G
+0x0061 | Palette 1 Color5_B
+0x0062 | Palette 1 Color6_R
+0x0063 | Palette 1 Color6_G
+0x0064 | Palette 1 Color6_B
+0x0065 | Palette 1 Color7_R
+0x0066 | Palette 1 Color7_G
+0x0067 | Palette 1 Color7_B
+0x0068 | Palette 1 Color8_R
+0x0069 | Palette 1 Color8_G
+0x006a | Palette 1 Color8_B
+0x006b | Palette 1 Color9_R
+0x006c | Palette 1 Color9_G
+0x006d | Palette 1 Color9_B
+0x006e | Palette 1 ColorA_R
+0x006f | Palette 1 ColorA_G
+0x0070 | Palette 1 ColorA_B
+0x0071 | Palette 1 ColorB_R
+0x0072 | Palette 1 ColorB_G
+0x0073 | Palette 1 ColorB_B
+0x0074 | Palette 1 ColorC_R
+0x0075 | Palette 1 ColorC_G
+0x0076 | Palette 1 ColorC_B
+0x0077 | Palette 1 ColorD_R
+0x0078 | Palette 1 ColorD_G
+0x0079 | Palette 1 ColorD_B
+0x007a | Palette 1 ColorE_R
+0x007b | Palette 1 ColorE_G
+0x007c | Palette 1 ColorE_B
+0x007d | Palette 1 ColorF_R
+0x007e | Palette 1 ColorF_G
+0x007f | Palette 1 ColorF_B
+
+## Notes
+
+As stated above, the extra registers described here should remain
+functional across all VICII-Kawari variants. This way, the
+official configuration utility will be able to at least query the variant
+name and version on any variant (as well as set palette colors,
+change video standard, or other common features between variants).
+Users will be able to at least identify what variant they are running
+even if they use the official config utility.  Also, programs can
+run a simple check routine that will run on all variants and can
+display a user friendly message indicating the wrong variant is installed.
+
