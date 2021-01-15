@@ -20,6 +20,7 @@
 
 `define DATA_DAV 0
 `define DATA_DAV_PLUS_1 1
+`define DATA_DAV_PLUS_2 2
 `define M2CLR_CHECK 1
 `define M2CLR_PHASE !clk_phi
 `define SPRITE_CRUNCH_CYCLE_CHECK 15
@@ -150,11 +151,11 @@
 
 // --- BEGIN EXTENSIONS ---
 `define VIDEO_FLAGS                   6'h38
-`define VIDEO_MEM_1_HI                6'h39
-`define VIDEO_MEM_1_LO                6'h3A
+`define VIDEO_MEM_1_LO                6'h39
+`define VIDEO_MEM_1_HI                6'h3A
 `define VIDEO_MEM_1_VAL               6'h3B
-`define VIDEO_MEM_2_HI                6'h3C
-`define VIDEO_MEM_2_LO                6'h3D
+`define VIDEO_MEM_2_LO                6'h3C
+`define VIDEO_MEM_2_HI                6'h3D
 `define VIDEO_MEM_2_VAL               6'h3E
 `define VIDEO_MEM_FLAGS               6'h3F  // Extra Reg Activation Port
 // --- END EXTENSIONS ---

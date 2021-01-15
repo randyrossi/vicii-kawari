@@ -1,0 +1,29 @@
+5 hi=53305
+6 lo=53306
+7 da=53307
+10 poke 53311,asc("v")
+20 poke 53311,asc("i")
+30 poke 53311,asc("c")
+40 poke 53311,asc("2")
+50 rem start at $0040
+60 poke hi,40
+70 poke lo,0
+80 poke 53311,2 : rem auto inc
+85 rem fill 1000 bytes
+90 for t=0to999
+100 poke da,t-int(t/256)*256
+110 next
+120 rem expect to land on 03c0
+130 if (peek(hi) <> 64) then print "fail: lo not 64":stop
+140 if (peek(lo) <> 252) then print "fail: hi not 252":stop
+155 rem back to start
+150 poke hi,40
+160 poke lo,0
+170 for t=0to999
+175 a = peek(da):b=t-int(t/256)*256
+180 if (a <> b) then print "fail: not = ";b:stop
+190 poke 1024+t, a
+200 next
+210 if (peek(hi) <> 64) then print "fail: lo not 64":stop
+220 if (peek(lo) <> 252) then print "fail: hi not 252":stop
+230 print "pass"

@@ -6,6 +6,7 @@ module registers(
            input rst,
            input clk_dot4x,
            input clk_phi,
+           input phi_phase_start_dav_plus_2,
            input phi_phase_start_dav_plus_1,
            input phi_phase_start_dav,
            input ras,
@@ -62,7 +63,16 @@ module registers(
            output reg elp,
            output reg emmc,
            output reg embc,
-           output reg erst
+           output reg erst,
+	   // pixel_color4, which is the final pixel color index, is used
+	   // to address color register ram prefixed with the palette select
+	   // bit, so 5 bit address
+	   input [3:0] pixel_color4,
+	   input half_bright,
+	   input active,
+	   output reg[3:0] red,
+	   output reg[3:0] green,
+	   output reg[3:0] blue
        );
 
 // 2D arrays that need to be flattened for output
@@ -92,8 +102,13 @@ reg extra_regs_activated;
 // Flags to govern read accesses causing auto inc/dec
 reg video_ram_r;
 reg video_ram_r2;
-reg video_ram_sel;
+reg auto_ram_sel;
+reg color_regs_r;
+reg color_regs_r2;
+reg [1:0] color_regs_r_nibble;
+reg [1:0] color_regs_wr_nibble;
 
+reg palette_select;
 reg [7:0] video_ram_flags;
 
 // Port A used for CPU access
@@ -111,6 +126,15 @@ reg [14:0] video_ram_addr_b;
 reg video_ram_wr_b;
 reg [7:0] video_ram_data_in_b;
 wire [7:0] video_ram_data_out_b;
+
+// For CPU register read/write to color regs
+reg [4:0] color_regs_addr_a;
+reg color_regs_wr_a;
+reg color_regs_pre_wr_a;
+reg [3:0] color_regs_wr_value;
+reg [15:0] color_regs_data_in_a;
+wire [15:0] color_regs_data_out_a;
+wire [15:0] color_regs_data_out_b;
 
 // Auto increment/decrement of extra reg addr should happen on reads/writes
 // to the extra reg data port.  Some CPU instructions result in a single
@@ -133,6 +157,17 @@ VIDEO_RAM video_ram(clk_dot4x,
                     video_ram_addr_b,
                     video_ram_data_in_b,
                     video_ram_data_out_b
+                    );
+
+COLOR_REGS color_regs(clk_dot4x,
+                    color_regs_wr_a,
+                    color_regs_addr_a,
+                    color_regs_data_in_a,
+                    color_regs_data_out_a,
+                    1'b0,
+                    { palette_select, pixel_color4},
+                    16'b0,
+                    color_regs_data_out_b
                     );
 
 // --- END EXTENSIONS ----
@@ -347,28 +382,48 @@ always @(posedge clk_dot4x)
 
                     // --- BEGIN EXTENSIONS ----
 
+                    `VIDEO_FLAGS:
+                        dbo[7:0] <= { 7'b0, palette_select };
                     `VIDEO_MEM_1_HI:
                         dbo[7:0] <= video_ram_hi_1;
                     `VIDEO_MEM_1_LO:
                         dbo[7:0] <= video_ram_lo_1;
                     `VIDEO_MEM_1_VAL:
-                        begin
+                     begin
+                        // reg overlay or video mem
+                        auto_ram_sel <= 0;
+                        if (video_ram_flags[5] && video_ram_lo_1 < 8'h80) begin
+                           // _r stores which byte within the 16 bit
+			   // lookup value we want
+                           color_regs_r <= 1'b1;
+                           color_regs_r_nibble <= video_ram_lo_1[1:0];
+                           color_regs_addr_a <= video_ram_lo_1[6:2];
+                        end else begin
                            video_ram_r <= 1;
-                           video_ram_sel <= 0;
                            video_ram_addr_a <= {video_ram_hi_1[6:0],
                                                 video_ram_lo_1};
                         end
+                    end
                     `VIDEO_MEM_2_HI:
                         dbo[7:0] <= video_ram_hi_2;
                     `VIDEO_MEM_2_LO:
                         dbo[7:0] <= video_ram_lo_2;
                     `VIDEO_MEM_2_VAL:
-                        begin
+                     begin
+                        // reg overlay or video mem
+                        auto_ram_sel <= 1;
+                        if (video_ram_flags[5] && video_ram_lo_2 < 8'h80) begin
+                           // _r stores which byte within the 16 bit
+			   // lookup value we want
+                           color_regs_r <= 1'b1;
+                           color_regs_r_nibble <= video_ram_lo_2[1:0];
+                           color_regs_addr_a <= video_ram_lo_2[6:2];
+                        end else begin
                            video_ram_r <= 1;
-                           video_ram_sel <= 1;
                            video_ram_addr_a <= {video_ram_hi_2[6:0],
                                                 video_ram_lo_2};
                         end
+                    end
                     /* 0x3F */ `VIDEO_MEM_FLAGS:
                         dbo[7:0] <= video_ram_flags;
 
@@ -499,6 +554,8 @@ always @(posedge clk_dot4x)
 
                     // --- BEGIN EXTENSIONS ----
 
+                    `VIDEO_FLAGS:
+                        palette_select <= dbi[0];
                     /* 0x3f */ `VIDEO_MEM_FLAGS:
                         if (~extra_regs_activated) begin
                         case (dbi[7:0])
@@ -534,25 +591,47 @@ always @(posedge clk_dot4x)
                     `VIDEO_MEM_1_LO:
                         video_ram_lo_1 <= dbi[7:0];
                     `VIDEO_MEM_1_VAL:
-                        begin
+                     begin
+                        // reg overlay or video mem
+                        auto_ram_sel <= 0;
+                        if (video_ram_flags[5] && video_ram_lo_1 < 8'h80) begin
+                           // In order to write to individual 4 bit
+			   // values within the 16 bit register, we
+			   // have to read it first, then write.
+                           color_regs_pre_wr_a <= 1;
+                           color_regs_wr_value <= dbi[3:0];
+			   color_regs_wr_nibble <= video_ram_lo_1[1:0];
+                           color_regs_addr_a <= video_ram_lo_1[6:2];
+                        end else begin
                            video_ram_wr_a <= 1;
-                           video_ram_sel <= 0;
                            video_ram_data_in_a <= dbi[7:0];
                            video_ram_addr_a <= {video_ram_hi_1[6:0],
                                                 video_ram_lo_1};
                         end
+                    end
                     `VIDEO_MEM_2_HI:
                         video_ram_hi_2 <= dbi[7:0];
                     `VIDEO_MEM_2_LO:
                         video_ram_lo_2 <= dbi[7:0];
                     `VIDEO_MEM_2_VAL:
-                        begin
+                     begin
+                        // reg overlay or video mem
+                        auto_ram_sel <= 1;
+                        if (video_ram_flags[5] && video_ram_lo_2 < 8'h80) begin
+                           // In order to write to individual 4 bit
+			   // values within the 16 bit register, we
+			   // have to read it first, then write.
+                           color_regs_pre_wr_a <= 1;
+                           color_regs_wr_value <= dbi[3:0];
+			   color_regs_wr_nibble <= video_ram_lo_2[1:0];
+                           color_regs_addr_a <= video_ram_lo_2[6:2];
+                        end else begin
                            video_ram_wr_a <= 1;
-                           video_ram_sel <= 1;
                            video_ram_data_in_a <= dbi[7:0];
                            video_ram_addr_a <= {video_ram_hi_2[6:0],
                                                 video_ram_lo_2};
                         end
+                    end
 
                     // --- END EXTENSIONS ----
 
@@ -561,22 +640,56 @@ always @(posedge clk_dot4x)
             end
         end
 
-        // CPU access to port a of video mem
+        // --- BEGIN EXTENSIONS ----
+
+        // CPU read from video mem
         if (video_ram_r)
             dbo[7:0] <= video_ram_data_out_a;
+    
+        // CPU write to color register ram
+        if (color_regs_pre_wr_a) begin
+            // Now we can do the write
+            color_regs_pre_wr_a <= 0;
+            color_regs_wr_a <= 1;
+	    case (color_regs_wr_nibble)
+               2'b00:
+		   color_regs_data_in_a <= {color_regs_wr_value, color_regs_data_out_a[11:0]};
+               2'b01:
+                   color_regs_data_in_a <= {color_regs_data_out_a[15:12] , color_regs_wr_value, color_regs_data_out_a[7:0]};
+               2'b10:
+                   color_regs_data_in_a <= {color_regs_data_out_a[15:8], color_regs_wr_value, color_regs_data_out_a[3:0]};
+               2'b11:
+                   color_regs_data_in_a <= {color_regs_data_out_a[15:4], color_regs_wr_value};
+            endcase
+        end
 
-        // --- BEGIN EXTENSIONS ----
-        if (~clk_phi && phi_phase_start_dav_plus_1) begin
+        // CPU read from color regs
+        if (color_regs_r) begin
+	    case (color_regs_r_nibble)
+               2'b00: dbo[7:0] <= { 4'b0, color_regs_data_out_a[15:12] };
+               2'b01: dbo[7:0] <= { 4'b0, color_regs_data_out_a[11:8] };
+               2'b10: dbo[7:0] <= { 4'b0, color_regs_data_out_a[7:4] };
+               2'b11: dbo[7:0] <= { 4'b0, color_regs_data_out_a[3:0] };
+            endcase
+        end
+
+	// NOTE: This location means video_ram_wr_a will be high for two
+	// cycles.  color_regs_wr_a is only high for one.  But we needed
+	// an extra cycle to read color regs before we could update the
+	// 12 bit value properly.
+        if (~clk_phi && phi_phase_start_dav_plus_2) begin
             // Always clear both flags and propagate r to r2 here.
             video_ram_r <= 0;
             video_ram_r2 <= video_ram_r;
-
             video_ram_wr_a <= 0;
-            video_ram_wr_b <= 0;
 
-            if (video_ram_r2 || video_ram_wr_a) begin
+	    color_regs_r <= 0;
+	    color_regs_r2 <= color_regs_r;
+	    color_regs_wr_a <= 0;
+
+            if (video_ram_r2 || video_ram_wr_a || color_regs_r2 || color_regs_wr_a) begin
                 // Handle auto increment /decrement after port access
-                if (video_ram_sel == 0) begin // loc 1 of port a
+                if (auto_ram_sel == 0) begin // loc 1 of port a
                     case(video_ram_flags[1:0])
                     2'd1: begin
                         if (video_ram_lo_1 < 8'hff)
@@ -600,12 +713,12 @@ always @(posedge clk_dot4x)
                 end else begin // loc 2 of port a
                     case(video_ram_flags[3:2])
                     2'd1: begin
-                        if (video_ram_lo_2 < 8'hff)
-                            video_ram_lo_2 <= video_ram_lo_2 + 8'b1;
-                        else begin
-                             video_ram_lo_2 <= 8'h00;
-                             video_ram_hi_2 <= video_ram_hi_2 + 8'b1;
-                         end
+                       if (video_ram_lo_2 < 8'hff)
+                           video_ram_lo_2 <= video_ram_lo_2 + 8'b1;
+                       else begin
+                            video_ram_lo_2 <= 8'h00;
+                            video_ram_hi_2 <= video_ram_hi_2 + 8'b1;
+                        end
                     end
                     2'd2: begin
                        if (video_ram_lo_2 > 8'h00)
@@ -624,5 +737,30 @@ always @(posedge clk_dot4x)
         end
         // --- END EXTENSIONS ----
     end
-endmodule
 
+// At every pixel clock tick, set red,green,blue from color
+// register ram according to the pixel_color4 address.
+always @(posedge clk_dot4x)
+begin
+`ifndef IS_SIMULATOR
+    if (active) begin
+`endif
+       if (half_bright) begin
+          red <= {1'b0, color_regs_data_out_b[15:13]};
+          green <= {1'b0, color_regs_data_out_b[11:9]};
+          blue <= {1'b0, color_regs_data_out_b[7:5]};
+       end else begin
+          red <= color_regs_data_out_b[15:12];
+          green <= color_regs_data_out_b[11:8];
+          blue <= color_regs_data_out_b[7:4];
+       end
+`ifndef IS_SIMULATOR
+    end else begin
+          red <= 4'b0;
+          green <= 4'b0;
+          blue <= 4'b0;
+    end
+`endif
+end
+
+endmodule

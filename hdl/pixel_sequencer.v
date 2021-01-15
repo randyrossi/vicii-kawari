@@ -315,14 +315,9 @@ reg [3:0] pixel_color2;
 always @(posedge clk_dot4x)
 begin
     if (stage1) begin
-        // illegal modes should have black pixels
-        case (pixel_value[4:2])
-            `MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR,
-            `MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP,
-            `MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
-                pixel_color2 = `BLACK;
-            default: pixel_color2 = pixel_color1;
-        endcase
+	// Start with color from prev stage
+        pixel_color2 = pixel_color1;
+
         // sprites overwrite pixels
         // The comparisons of background pixel and sprite pixels must be
         // on the same delay 'schedule' here.  Also, the pri, mmc and colors

@@ -62,12 +62,12 @@
 #define V_DBI top__DOT____Vcellinp__vic_inst__dbi
 #define V_ADO ado_sim
 #define V_PPS top__DOT__vic_inst__DOT__phi_phase_start
-#define V_XPOS top__DOT__xpos
+#define V_XPOS top__DOT__vic_inst__DOT__xpos
 #define V_CYCLE_NUM top__DOT__vic_inst__DOT__cycle_num
 #define V_CLK_DOT top__DOT__vic_inst__DOT__dot_rising
 #define V_CYCLE_BIT top__DOT__vic_inst__DOT__vic_raster__DOT__cycle_bit
-#define V_RASTER_X top__DOT__raster_x
-#define V_RASTER_LINE top__DOT__raster_line
+#define V_RASTER_X top__DOT__vic_inst__DOT__raster_x
+#define V_RASTER_LINE top__DOT__vic_inst__DOT__raster_line
 #define V_RASTER_LINE_D top__DOT__vic_inst__DOT__raster_line_d
 #define V_NEXT_RASTER_LINE top__DOT__next_raster_line
 #define V_B0C top__DOT__vic_inst__DOT__b0c

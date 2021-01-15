@@ -9,11 +9,10 @@ module comp_sync(
            input wire clk_dot4x,
            input wire clk_col4x,
            input [1:0] chip,
-           input [3:0] pixel_color3,
            input wire [9:0] raster_x,
            input wire [8:0] raster_y,
            output reg csync,
-           output reg [3:0] pixel_color4,
+	   output reg composite_active,
            output clk_colref);
 
 reg [9:0] hsync_start;
@@ -21,7 +20,6 @@ reg [9:0] hsync_end;
 reg [9:0] hvisible_start;
 reg [8:0] vblank_start;
 reg [8:0] vblank_end;
-reg composite_active;
 reg hSync;
 
 // Divides the color4x clock by 4 to get color reference clock
@@ -37,13 +35,6 @@ begin
         composite_active = 1'b1;
     else
         composite_active = 1'b0;
-
-`ifdef IS_SIMULATOR
-    // We don't want blanking intervals on simulator output
-    pixel_color4 = pixel_color3;
-`else
-    pixel_color4 = composite_active ? pixel_color3 : `BLACK;
-`endif
 end
 
 always @(chip)

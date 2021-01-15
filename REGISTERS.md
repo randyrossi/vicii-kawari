@@ -1,9 +1,13 @@
-# Extra Registers & Video RAM
+# Extra Features
+
+In addition to being compatible with a genuine VICII, VICII-Kawari
+adds a number of new features for C64 and 8-bit hobbyests to experiment
+with.
 
 ## Extra Registers
 
-Extra registers will not be enabled unless the activation port (0xd03f)
-is poked with the PETSCII bytes "VIC2".  This prevents existing software
+Extra registers are enabled through the activation port (0xd03f)
+by poking it with the PETSCII bytes "VIC2".  This prevents existing software
 from unintentionally triggering extra registers.
 
     POKE 54271,ASC("V")
@@ -11,32 +15,39 @@ from unintentionally triggering extra registers.
     POKE 54271,ASC("C")
     POKE 54271,ASC("2")
 
-Once exra registers are enabled, registers 0xd030 - 0xd03f become
-available for access to VICII-Kawari video ram.  These registers
-should remain functional across all variants.  Extra registers can be
-deactivated again by setting bit 5 of 0xd03f to 1.
+Once activated, registers 0xd02f - 0xd03f are available to access
+VICII-Kawari extra features. Extra regsters can be deactivated again
+by setting bit 5 of 0xd03f to 1.
 
 ### Extra Registers Table
 
 REG    | Name | Description
 -------|------|-------------
+0xd02f |      | Unused
+0xd030 |      | Unused
+0xd031 |      | Unused
+0xd032 |      | Unused
+0xd033 |      | Unused
+0xd034 |      | Unused
+0xd035 |      | Unused
+0xd036 |      | Unused
+0xd037 |      | Unused
 0xd038 | VIDEO_FLAGS | See below
-0xd039 | VIDEO_MEM_A_HI | Video Memory Addr Hi Port A
-0xd03a | VIDEO_MEM_A_LO | Video Memory Addr Lo Port A
+0xd039 | VIDEO_MEM_A_LO | Video Memory Addr Lo Port A
+0xd03a | VIDEO_MEM_A_HI | Video Memory Addr Hi Port A
 0xd03b | VIDEO_MEM_A_VAL | Video Memory Port A Read/Write Value
-0xd03c | VIDEO_MEM_B_HI | Video Memory Addr Hi Port B
-0xd03d | VIDEO_MEM_B_LO | Video Memory Addr Lo Port B
+0xd03c | VIDEO_MEM_B_LO | Video Memory Addr Lo Port B
+0xd03d | VIDEO_MEM_B_HI | Video Memory Addr Hi Port B
 0xd03e | VIDEO_MEM_B_VAL | Video Memory Port B Read/Write Value
 0xd03f | VIDEO_MEM_FLAGS | Video Memory Op Flags (see below)
-
 
 ## Video Memory
 
 VICII-Kawari adds an extra 32k of video memory. This memory can be directly
-accessed by VICII-Kawari for new graphics modes but also provides a mechanism
-for the 6510 CPU to access it as well. The registers 0xd039-0xd03f are used to
-read/write from/to video memory. (This space can also be used to store code
-but it would have to be copied back to main memory to be executed by the CPU.)
+accessed by VICII-Kawari for new graphics modes.  The registers 0xd039-0xd03f
+are used to read/write from/to video memory. (This space can also be used to
+store code but it would have to be copied back to main memory to be executed
+by the CPU.)
 
 VIDEO_MEM_FLAGS | Description
 ------------------------|------
@@ -114,132 +125,169 @@ When BIT 6 of the VIDEO_MEM_FLAGS register is set, the first 256 bytes
 of video RAM is mapped to extra registers for special VICII-Kawari
 functions.
 
-Location | Name | Description
----------|------|------------
-0x0000 | VIDEO_STD | Video Standard Select (0=PAL, 1=NTSC)
-0x0001 | VIDEO_FREQ | Video Frequency Select (0=15.7 khz, 1=34.1 khz)
-0x0002 | CHIP_MODEL | Chip Model Select (0=6567R56A, 1=6567R8, 2=6569, 3-7 Reserved)
-0x0003 | VERSION | Version (high nibble major, low nibble minor) - Read Only
-0x0004 | DISPLAY_FLAGS | Bit 0 = Rasterlines Select
-0x0005 - 0x000f | Reserved
-0x0010 - 0xd01f | VARIANT_NAME | Variant Name
-
-### Variant Name
-
-The extra register overlay area 0x0010 - 0xd01f is used to identify the
-variant name. This is a max 16 byte null terminated PETSCII string.  All
-forks should change this to something other than 'official' if they plan
-on releasing a bitstream. See [FORKING.md](FORKING.md)
 
 ### Color Registers
 
 VICII-Kawari has a configurable color palette. The 16 colors can be selected
 from a palette of 4096 colors by specifying three 4-bit RGB values. (The
-upper 4 bits are ignored).  The palette is also double buffered to allow
-changing all colors instantaneously with the palette select bit in register
-VIDEO_FLAGS. Palette 0 is located at 0x0020. Palette 1 is located at 0x0050.
+upper 4 bits in each byte are ignored).  The palette is also double buffered
+to allow changing all colors instantaneously with the palette select bit in
+register VIDEO_FLAGS. Palette 0 is located at 0x0000. Palette 1 is located at
+0x0040.
 
 Register | Description
 -------|-------------------
-0x0020 | Palette 0 Color0_R
-0x0021 | Palette 0 Color0_G
-0x0022 | Palette 0 Color0_B
-0x0023 | Palette 0 Color1_R
-0x0024 | Palette 0 Color1_G
-0x0025 | Palette 0 Color1_B
-0x0026 | Palette 0 Color2_R
-0x0027 | Palette 0 Color2_G
-0x0028 | Palette 0 Color2_B
-0x0029 | Palette 0 Color3_R
-0x002a | Palette 0 Color3_G
-0x002b | Palette 0 Color3_B
-0x002c | Palette 0 Color4_R
-0x002d | Palette 0 Color4_G
-0x002e | Palette 0 Color4_B
-0x002f | Palette 0 Color5_R
-0x0030 | Palette 0 Color5_G
-0x0031 | Palette 0 Color5_B
-0x0032 | Palette 0 Color6_R
-0x0033 | Palette 0 Color6_G
-0x0034 | Palette 0 Color6_B
-0x0035 | Palette 0 Color7_R
-0x0036 | Palette 0 Color7_G
-0x0037 | Palette 0 Color7_B
-0x0038 | Palette 0 Color8_R
-0x0039 | Palette 0 Color8_G
-0x003a | Palette 0 Color8_B
-0x003b | Palette 0 Color9_R
-0x003c | Palette 0 Color9_G
-0x003d | Palette 0 Color9_B
-0x003e | Palette 0 ColorA_R
-0x003f | Palette 0 ColorA_G
-0x0040 | Palette 0 ColorA_B
-0x0041 | Palette 0 ColorB_R
-0x0042 | Palette 0 ColorB_G
-0x0043 | Palette 0 ColorB_B
-0x0044 | Palette 0 ColorC_R
-0x0045 | Palette 0 ColorC_G
-0x0046 | Palette 0 ColorC_B
-0x0047 | Palette 0 ColorD_R
-0x0048 | Palette 0 ColorD_G
-0x0049 | Palette 0 ColorD_B
-0x004a | Palette 0 ColorE_R
-0x004b | Palette 0 ColorE_G
-0x004c | Palette 0 ColorE_B
-0x004d | Palette 0 ColorF_R
-0x004e | Palette 0 ColorF_G
-0x004f | Palette 0 ColorF_B
+0x0000 | Palette 0 Color0_R
+0x0001 | Palette 0 Color0_G
+0x0002 | Palette 0 Color0_B
+0x0003 | Unused
+0x0004 | Palette 0 Color1_R
+0x0005 | Palette 0 Color1_G
+0x0006 | Palette 0 Color1_B
+0x0007 | Unused
+0x0008 | Palette 0 Color2_R
+0x0009 | Palette 0 Color2_G
+0x000a | Palette 0 Color2_B
+0x000b | Unused
+0x000c | Palette 0 Color3_R
+0x000d | Palette 0 Color3_G
+0x000e | Palette 0 Color3_B
+0x000f | Unused
+0x0010 | Palette 0 Color4_R
+0x0011 | Palette 0 Color4_G
+0x0012 | Palette 0 Color4_B
+0x0013 | Unused
+0x0014 | Palette 0 Color5_R
+0x0015 | Palette 0 Color5_G
+0x0016 | Palette 0 Color5_B
+0x0017 | Unused
+0x0018 | Palette 0 Color6_R
+0x0019 | Palette 0 Color6_G
+0x001a | Palette 0 Color6_B
+0x001b | Unused
+0x001c | Palette 0 Color7_R
+0x001d | Palette 0 Color7_G
+0x001e | Palette 0 Color7_B
+0x001f | Unused
+0x0020 | Palette 0 Color8_R
+0x0021 | Palette 0 Color8_G
+0x0022 | Palette 0 Color8_B
+0x0023 | Unused
+0x0024 | Palette 0 Color9_R
+0x0025 | Palette 0 Color9_G
+0x0026 | Palette 0 Color9_B
+0x0027 | Unused
+0x0028 | Palette 0 ColorA_R
+0x0029 | Palette 0 ColorA_G
+0x002a | Palette 0 ColorA_B
+0x002b | Unused
+0x002c | Palette 0 ColorB_R
+0x002d | Palette 0 ColorB_G
+0x002e | Palette 0 ColorB_B
+0x002f | Unused
+0x0030 | Palette 0 ColorC_R
+0x0031 | Palette 0 ColorC_G
+0x0032 | Palette 0 ColorC_B
+0x0033 | Unused
+0x0034 | Palette 0 ColorD_R
+0x0035 | Palette 0 ColorD_G
+0x0036 | Palette 0 ColorD_B
+0x0037 | Unused
+0x0038 | Palette 0 ColorE_R
+0x0039 | Palette 0 ColorE_G
+0x003a | Palette 0 ColorE_B
+0x003b | Unused
+0x003c | Palette 0 ColorF_R
+0x003d | Palette 0 ColorF_G
+0x003e | Palette 0 ColorF_B
+0x003f | Unused
 
 Register | Description
 -------|-------------------
-0x0050 | Palette 1 Color0_R
-0x0051 | Palette 1 Color0_G
-0x0052 | Palette 1 Color0_B
-0x0053 | Palette 1 Color1_R
-0x0054 | Palette 1 Color1_G
-0x0055 | Palette 1 Color1_B
-0x0056 | Palette 1 Color2_R
-0x0057 | Palette 1 Color2_G
-0x0058 | Palette 1 Color2_B
-0x0059 | Palette 1 Color3_R
-0x005a | Palette 1 Color3_G
-0x005b | Palette 1 Color3_B
-0x005c | Palette 1 Color4_R
-0x005d | Palette 1 Color4_G
-0x005e | Palette 1 Color4_B
-0x005f | Palette 1 Color5_R
-0x0060 | Palette 1 Color5_G
-0x0061 | Palette 1 Color5_B
-0x0062 | Palette 1 Color6_R
-0x0063 | Palette 1 Color6_G
-0x0064 | Palette 1 Color6_B
-0x0065 | Palette 1 Color7_R
-0x0066 | Palette 1 Color7_G
-0x0067 | Palette 1 Color7_B
-0x0068 | Palette 1 Color8_R
-0x0069 | Palette 1 Color8_G
-0x006a | Palette 1 Color8_B
-0x006b | Palette 1 Color9_R
-0x006c | Palette 1 Color9_G
-0x006d | Palette 1 Color9_B
-0x006e | Palette 1 ColorA_R
-0x006f | Palette 1 ColorA_G
-0x0070 | Palette 1 ColorA_B
-0x0071 | Palette 1 ColorB_R
-0x0072 | Palette 1 ColorB_G
-0x0073 | Palette 1 ColorB_B
-0x0074 | Palette 1 ColorC_R
-0x0075 | Palette 1 ColorC_G
-0x0076 | Palette 1 ColorC_B
-0x0077 | Palette 1 ColorD_R
-0x0078 | Palette 1 ColorD_G
-0x0079 | Palette 1 ColorD_B
-0x007a | Palette 1 ColorE_R
-0x007b | Palette 1 ColorE_G
-0x007c | Palette 1 ColorE_B
-0x007d | Palette 1 ColorF_R
-0x007e | Palette 1 ColorF_G
-0x007f | Palette 1 ColorF_B
+0x0040 | Palette 1 Color0_R
+0x0041 | Palette 1 Color0_G
+0x0042 | Palette 1 Color0_B
+0x0043 | Unused
+0x0044 | Palette 1 Color1_R
+0x0045 | Palette 1 Color1_G
+0x0046 | Palette 1 Color1_B
+0x0047 | Unused
+0x0048 | Palette 1 Color2_R
+0x0049 | Palette 1 Color2_G
+0x004a | Palette 1 Color2_B
+0x004b | Unused
+0x004c | Palette 1 Color3_R
+0x004d | Palette 1 Color3_G
+0x004e | Palette 1 Color3_B
+0x004f | Unused
+0x0050 | Palette 1 Color4_R
+0x0051 | Palette 1 Color4_G
+0x0052 | Palette 1 Color4_B
+0x0053 | Unused
+0x0054 | Palette 1 Color5_R
+0x0055 | Palette 1 Color5_G
+0x0056 | Palette 1 Color5_B
+0x0057 | Unused
+0x0058 | Palette 1 Color6_R
+0x0059 | Palette 1 Color6_G
+0x005a | Palette 1 Color6_B
+0x005b | Unused
+0x005c | Palette 1 Color7_R
+0x005d | Palette 1 Color7_G
+0x005e | Palette 1 Color7_B
+0x005f | Unused
+0x0060 | Palette 1 Color8_R
+0x0061 | Palette 1 Color8_G
+0x0062 | Palette 1 Color8_B
+0x0063 | Unused
+0x0064 | Palette 1 Color9_R
+0x0065 | Palette 1 Color9_G
+0x0066 | Palette 1 Color9_B
+0x0067 | Unused
+0x0068 | Palette 1 ColorA_R
+0x0069 | Palette 1 ColorA_G
+0x006a | Palette 1 ColorA_B
+0x006b | Unused
+0x006c | Palette 1 ColorB_R
+0x006d | Palette 1 ColorB_G
+0x006e | Palette 1 ColorB_B
+0x006f | Unused
+0x0070 | Palette 1 ColorC_R
+0x0031 | Palette 1 ColorC_G
+0x0072 | Palette 1 ColorC_B
+0x0073 | Unused
+0x0074 | Palette 1 ColorD_R
+0x0075 | Palette 1 ColorD_G
+0x0076 | Palette 1 ColorD_B
+0x0077 | Unused
+0x0078 | Palette 1 ColorE_R
+0x0079 | Palette 1 ColorE_G
+0x007a | Palette 1 ColorE_B
+0x007b | Unused
+0x007c | Palette 1 ColorF_R
+0x007d | Palette 1 ColorF_G
+0x007e | Palette 1 ColorF_B
+0x007f | Unused
+
+## Other registers
+
+Location | Name | Description
+---------|------|------------
+0x0080 | VIDEO_STD | Video Standard Select (0=PAL, 1=NTSC)
+0x0081 | VIDEO_FREQ | Video Frequency Select (0=15.7 khz, 1=34.1 khz)
+0x0082 | CHIP_MODEL | Chip Model Select (0=6567R56A, 1=6567R8, 2=6569, 3-7 Reserved)
+0x0083 | VERSION | Version (high nibble major, low nibble minor) - Read Only
+0x0084 | DISPLAY_FLAGS | Bit 0 = Rasterlines Select
+0x0085 - 0x008f | Reserved
+0x0090 - 0xd09f | VARIANT_NAME | Variant Name
+0x00a0 - 0xd0ff | Unused
+
+### Variant Name
+
+The extra register overlay area 0x0090 - 0xd09f is used to identify the
+variant name. This is a max 16 byte null terminated PETSCII string.  All
+forks should change this to something other than 'official' if they plan
+on releasing a bitstream. See [FORKING.md](FORKING.md)
 
 ## Notes
 

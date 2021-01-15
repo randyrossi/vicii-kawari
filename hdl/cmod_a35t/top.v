@@ -32,7 +32,6 @@
 
 module top(
            input sys_clock,
-           input is_composite,  // HIGH=composite, LOW=vga/hdmi
            output cpu_reset,    // reset for 6510 CPU
            output clk_colref,   // output color ref clock for CXA1545P
            output clk_phi,      // output phi clock for CPU
@@ -108,21 +107,18 @@ wire [11:0] ado;
 wire vic_write_ab;
 wire vic_write_db;
 
-wire [9:0] xpos;
-wire [9:0] raster_x;
-wire [8:0] raster_line;
-wire [3:0] pixel_color3;
-
 // Instantiate the vicii with our clocks and pins.
 vicii vic_inst(
           .rst(rst),
           .chip(chip),
           .clk_dot4x(clk_dot4x),
+          .clk_col4x(clk_col4x),
+          .clk_colref(clk_colref),
           .clk_phi(clk_phi),
-          .raster_x(raster_x),
-          .xpos(xpos),
-          .raster_line(raster_line),
-          .pixel_color3(pixel_color3),
+	  .active(active),
+	  .hsync(hsync),
+	  .vsync(vsync),
+	  .csync(csync),
           .adi(adl[5:0]),
           .ado(ado),
           .dbi({dbh,dbl}),
@@ -140,7 +136,10 @@ vicii vic_inst(
           .ls245_addr_dir(ls245_addr_dir),
           .ls245_addr_oe(ls245_addr_oe),
           .vic_write_db(vic_write_db),
-          .vic_write_ab(vic_write_ab)
+          .vic_write_ab(vic_write_ab),
+	  .red(red),
+	  .green(green),
+	  .blue(blue)
       );
 
 `ifndef IS_SIMULATOR
@@ -152,57 +151,5 @@ assign adh = vic_write_ab ? ado[11:6] : 6'bz;
 assign ado_sim = ado;
 assign dbo_sim = dbo;
 `endif
-
-// ----------------------------------------------------
-// Composite output - csync and color_ref
-// ----------------------------------------------------
-wire [3:0] pixel_color4_composite;
-comp_sync vic_comp_sync(
-              .rst(rst),
-              .clk_dot4x(clk_dot4x),
-              .clk_col4x(clk_col4x),
-              .chip(chip),
-              .raster_x(xpos),
-              .raster_y(raster_line),
-              .pixel_color3(pixel_color3),
-              .csync(csync),
-              .clk_colref(clk_colref),
-              .pixel_color4(pixel_color4_composite)
-          );
-
-// ----------------------------------------------------
-// VGA/HDMI output - hsync/vsync
-// ----------------------------------------------------
-wire [3:0] pixel_color4_vga;
-wire half_bright;
-vga_sync vic_vga_sync(
-             .rst(rst),
-             .clk_dot4x(clk_dot4x),
-             .raster_x(raster_x),
-             .raster_y(raster_line),
-             .chip(chip),
-             .pixel_color3(pixel_color3),
-             .hsync(hsync),
-             .vsync(vsync),
-             .active(active),
-             .pixel_color4(pixel_color4_vga),
-	     .half_bright(half_bright)
-         );
-
-// FINAL OUTPUT RGB values from stage 4 indexed value.
-// The source pixel depends on video type (composite/vga)
-
-// NOTE: It would be possible to output both HDMI/VGA and
-// Composite simultaneously if we had dedicated rgb lines for
-// each.
-
-// Translate pixel_color3 (indexed) to RGB values
-color4 vic_colors(
-           .out_pixel(is_composite ? pixel_color4_composite : pixel_color4_vga),
-	   .half_bright(is_composite ? 1'b1 : half_bright),
-           .red(red),
-           .green(green),
-           .blue(blue)
-       );
 
 endmodule : top

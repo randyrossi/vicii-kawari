@@ -26,11 +26,13 @@ module vicii(
            input [1:0] chip,
            input rst,
            input clk_dot4x,
+           input clk_col4x,
            output clk_phi,
-           output [9:0] xpos,
-           output [9:0] raster_x,
-           output [8:0] raster_line,
-           output [3:0] pixel_color3,
+           output clk_colref,
+	   output active,
+	   output hsync,
+	   output vsync,
+	   output csync,
            output [11:0] ado,
            input [5:0] adi,
            output [7:0] dbo,
@@ -48,8 +50,16 @@ module vicii(
            output ls245_addr_dir,
            output ls245_addr_oe,
            output vic_write_db,
-           output vic_write_ab
+           output vic_write_ab,
+	   output [3:0] red,
+	   output [3:0] green,
+	   output [3:0] blue
        );
+
+wire [9:0] xpos;
+wire [9:0] raster_x;
+wire [8:0] raster_line;
+wire [3:0] pixel_color3;
 
 // BA must go low 3 cycles before any dma access on a PHI
 // HIGH phase.
@@ -699,10 +709,26 @@ addressgen vic_addressgen(
                .ado(ado));
 
 // Handle set/get registers
+//
+// Since color registers are owned by registers, we pass in the
+// final stage 4 output pixel index to get rgb values
+wire[3:0] pixel_color4_composite;
+wire[3:0] pixel_color4_vga;
+wire half_bright;
+
+wire composite_active;
+wire is_composite;
+`ifdef IS_SIMULATOR
+assign is_composite = 1'b1;
+`else
+assign is_composite = 1'b0;
+`endif
+
 registers vic_registers(
               .rst(rst),
               .clk_dot4x(clk_dot4x),
               .clk_phi(clk_phi),
+              .phi_phase_start_dav_plus_2(phi_phase_start[`DATA_DAV_PLUS_2]),
               .phi_phase_start_dav_plus_1(phi_phase_start[`DATA_DAV_PLUS_1]),
               .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
               .ce(ce),
@@ -758,7 +784,13 @@ registers vic_registers(
               .elp(elp),
               .emmc(emmc),
               .embc(embc),
-              .erst(erst)
+              .erst(erst),
+              .pixel_color4(is_composite ? pixel_color3 : pixel_color4_vga), 
+              .half_bright(is_composite ? 1'b0 : half_bright),
+	      .active(is_composite ? composite_active : active),
+	      .red(red),
+	      .green(green),
+	      .blue(blue)
           );
 
 // at the start of every high phase, store current reg11 for delayed fetch
@@ -817,5 +849,37 @@ pixel_sequencer vic_pixel_sequencer(
                     .pixel_color3(pixel_color3),
                     .active_sprite_d(active_sprite_d)
                 );
+
+// -------------------------------------------------------------
+// Composite output - csync/pixel_color4
+// -------------------------------------------------------------
+comp_sync vic_comp_sync(
+              .rst(rst),
+              .clk_dot4x(clk_dot4x),
+              .clk_col4x(clk_col4x),
+              .chip(chip),
+              .raster_x(xpos),
+              .raster_y(raster_line),
+              .csync(csync),
+              .clk_colref(clk_colref),
+              .composite_active(composite_active)
+);
+
+// -------------------------------------------------------------
+// VGA/HDMI output - hsync/vsync/active/half_bright/pixel_color4
+// -------------------------------------------------------------
+vga_sync vic_vga_sync(
+             .rst(rst),
+             .clk_dot4x(clk_dot4x),
+             .raster_x(raster_x),
+             .raster_y(raster_line),
+             .chip(chip),
+             .pixel_color3(pixel_color3),
+             .hsync(hsync),
+             .vsync(vsync),
+             .active(active),
+             .pixel_color4(pixel_color4_vga),
+             .half_bright(half_bright)
+         );
 
 endmodule : vicii

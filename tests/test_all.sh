@@ -67,7 +67,7 @@ do
 	sleep 1
 
 	mv /shared/Vivado/vicii-vice-3.4/stderr $k/vice_$j.log
-	convert screenshot.bmp -scale 50% $k/fpga_$j.png
+	convert screenshot.bmp -interpolate Integer -filter point -scale 50% $k/fpga_$j.png
 	mv /shared/Vivado/vicii-vice-3.4/screenshot.png $k/vice_$j.png
    #fi
 
