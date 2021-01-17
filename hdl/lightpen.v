@@ -19,8 +19,6 @@ reg light_pen_triggered;
 always @(posedge clk_dot4x)
 begin
     if (rst) begin
-        //lpx <= 'h00;
-        //lpy <= 'h00;
         ilp <= `FALSE;
         light_pen_triggered <= `FALSE;
     end else begin
@@ -31,7 +29,11 @@ begin
         else if (!light_pen_triggered && lp == `FALSE) begin
             light_pen_triggered <= `TRUE;
             ilp <= `TRUE;
-            lpx <= xpos_div_2 + 2; // 6567/6569 offset
+`ifdef IS_SIMULATOR
+            lpx <= xpos_div_2 + 2; // 6567/6569 offset to keep VICE happy
+`else
+            lpx <= xpos_div_2; // passes lp-trigger/test1.prg & test2.prg
+`endif
             lpy <= raster_line[7:0];
         end
     end
