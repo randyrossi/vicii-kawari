@@ -24,6 +24,10 @@ module VIDEO_RAM
 
 (* ram_style = "block" *) reg [data_width-1:0] ram_dual_port[2**addr_width-1:0];
 
+`ifdef IS_SIMULATOR
+initial $readmemh ("mem.hex", ram_dual_port);
+`endif
+
 always @(posedge clk)
 begin
     if (we_a)

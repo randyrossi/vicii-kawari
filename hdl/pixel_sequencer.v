@@ -29,7 +29,7 @@ module pixel_sequencer(
            input [3:0] b3c,
            input [3:0] ec,
            input main_border,
-           output reg main_border_stage1,
+           output reg main_border_stage0,
            input [15:0] sprite_cur_pixel_o,
            input [7:0] sprite_pri_d,
            input [7:0] sprite_mmc_d,
@@ -37,11 +37,18 @@ module pixel_sequencer(
            input [3:0] sprite_mc0,  // delayed before use
            input [3:0] sprite_mc1,  // delayed before use
            input vborder,
-           output reg is_background_pixel1,
+           output reg is_background_pixel0,
            output reg stage0,
-           output reg stage1,
            output reg [3:0] pixel_color3,
-           input [3:0] active_sprite_d
+           input [3:0] active_sprite_d,
+
+	   // --- BEGIN EXTENSIONS ----
+	   input hires_enabled,
+           input phi_phase_start_10,
+           input [2:0] hires_cycle_bit,
+           input [7:0] hires_pixel_data,
+           input [7:0] hires_color_data
+	   // --- END EXTENSIONS ---
        );
 
 reg load_pixels;
@@ -83,6 +90,21 @@ reg [6:0] cycle_num_delayed0;
 reg [6:0] cycle_num_delayed1;
 reg [6:0] cycle_num_delayed;
 
+// --- BEGIN EXTENSIONS ---
+reg [7:0] hires_pixel_data_delayed0;
+reg [7:0] hires_pixel_data_delayed1;
+reg [7:0] hires_pixel_data_delayed2;
+reg [7:0] hires_pixel_data_delayed3;
+reg [7:0] hires_pixel_data_delayed4;
+reg [7:0] hires_pixel_data_delayed;
+reg [7:0] hires_color_data_delayed0;
+reg [7:0] hires_color_data_delayed1;
+reg [7:0] hires_color_data_delayed2;
+reg [7:0] hires_color_data_delayed3;
+reg [7:0] hires_color_data_delayed4;
+reg [7:0] hires_color_data_delayed;
+// --- END EXTENSIONS ---
+
 reg [3:0] sprite_col_d1 [`NUM_SPRITES-1:0];
 reg [3:0] sprite_col_d2 [`NUM_SPRITES-1:0];
 reg [3:0] sprite_mc0_d1;
@@ -105,11 +127,20 @@ wire visible_d;
 assign visible = cycle_num >= 15 && cycle_num <= 54;
 assign visible_d = cycle_num_delayed >= 15 && cycle_num_delayed <= 54;
 
+reg stage1;
+
+// --- BEGIN EXTENSIONS ---
+reg [7:0] hires_color_shifting; // really only 4 bits
+reg [7:0] hires_pixels_shifting;
+reg hires_stage0;
+// --- END EXTENSIONS ---
+
+
 // For color splits to work on sprites, we need to delay
-// register changes by 2 pixels and to become valid by stage1
+// register changes by 2 pixels and to become valid by stage0
 always @(posedge clk_dot4x)
 begin
-    if (stage0) begin
+    if (dot_rising_1) begin
         for (n = `NUM_SPRITES-1; n >= 0; n = n - 1) begin
             sprite_col_d1[n[2:0]] <= sprite_col[n[2:0]];
             sprite_col_d2[n[2:0]] <= sprite_col_d1[n[2:0]];
@@ -142,6 +173,26 @@ begin
         xscroll_delayed0 <= xscroll;
     end
 
+    // --- BEGIN EXTENSIONS ---
+    if (phi_phase_start_10) begin
+	hires_pixel_data_delayed0 <= hires_pixel_data;
+	hires_pixel_data_delayed1 <= hires_pixel_data_delayed0;
+	hires_pixel_data_delayed2 <= hires_pixel_data_delayed1;
+	hires_pixel_data_delayed3 <= hires_pixel_data_delayed2;
+	hires_pixel_data_delayed4 <= hires_pixel_data_delayed3;
+	hires_color_data_delayed0 <= hires_color_data;
+	hires_color_data_delayed1 <= hires_color_data_delayed0;
+	hires_color_data_delayed2 <= hires_color_data_delayed1;
+	hires_color_data_delayed3 <= hires_color_data_delayed2;
+	hires_color_data_delayed4 <= hires_color_data_delayed3;
+    end
+
+    if (phi_phase_start_pl) begin
+	hires_pixel_data_delayed <= hires_pixel_data_delayed4;
+	hires_color_data_delayed <= hires_color_data_delayed4;
+    end
+    // --- END EXTENSIONS ---
+
     if (!clk_phi && phi_phase_start_pl) begin
         pixels_read_delayed <= pixels_read_delayed1;
         char_read_delayed <= char_read_delayed1;
@@ -156,9 +207,6 @@ begin
         b1c_d2 <= b1c;
         b2c_d2 <= b2c;
         b3c_d2 <= b3c;
-    end
-
-    if (stage1) begin
         ec_d2 <= ec;
     end
 end
@@ -169,7 +217,6 @@ reg mcm_d_prev;
 reg bmm_d;
 reg ecm_d;
 
-reg is_background_pixel0;
 // pixel_value is not a color, it encodes
 // {bcm,bmm,mcm,px1,px0}
 reg [4:0] pixel_value;
@@ -183,6 +230,7 @@ begin
         // We 'work' on several stages of a pixel over the next 3 dot4x
         // ticks. It begins here when we set stage0 high.
         stage0 <= 1'b1;
+        main_border_stage0 <= main_border;
 
         if (cycle_bit == 4) begin
             mcm_d = mcm;
@@ -253,6 +301,34 @@ begin
     end
 end
 
+// --- BEGIN EXTENSIONS ---
+
+// Not much to encode here yet since we only have one mode
+reg hires_pixel_value;
+always @(posedge clk_dot4x)
+begin
+    if (hires_stage0)
+        hires_stage0 <= 1'b0;
+    if (dot_rising_1 || dot_rising_3) begin
+        hires_stage0 <= 1'b1;
+
+        // load pixels when xscroll matches pixel 0-7
+        if (xscroll_delayed == hires_cycle_bit) begin
+	    if (!vborder && visible_d) begin
+                hires_pixels_shifting = hires_pixel_data_delayed;
+                hires_color_shifting = hires_color_data_delayed;
+	    end else begin
+                hires_pixels_shifting = 8'b0;
+                hires_color_shifting = 8'b0;
+	    end
+	end
+	hires_pixel_value <= hires_pixels_shifting[7];
+        hires_pixels_shifting = {hires_pixels_shifting[6:0], 1'b0};
+    end
+end
+
+// --- END EXTENSIONS ---
+
 // Handle display modes in stage0
 reg [3:0] pixel_color1;
 always @(posedge clk_dot4x)
@@ -260,8 +336,6 @@ begin
     if (stage1)
         stage1 <= 1'b0;
     if (stage0) begin
-        is_background_pixel1 <= is_background_pixel0;
-        main_border_stage1 <= main_border;
         stage1 <= 1'b1;
         // Switch on pixel_value's vidmode and then use lower 2 bits for
         // color interpretation.
@@ -309,6 +383,24 @@ begin
     end
 end
 
+// --- BEGIN EXTENSIONS ---
+
+reg [3:0] hires_pixel_color1;
+always @(posedge clk_dot4x)
+begin
+    // This is the last stage of our hires mode. Unlike the non-hires
+    // version, which handles sprite overlay in a 3rd stage, we do ours
+    // here
+    if (hires_stage0) begin
+        // So far, only one mode
+        hires_pixel_color1 <= hires_pixel_value ? hires_color_shifting[3:0]:b0c_d2;
+
+	// TODO: Do sprites here on stage0_0 (then repeat for 1?)
+    end
+end
+
+// --- END EXTENSIONS ---
+
 // Handle sprite overlay in stage 1
 // NOTE: This is also when sprites.v will handle sprite to data collisions
 reg [3:0] pixel_color2;
@@ -323,7 +415,7 @@ begin
         // on the same delay 'schedule' here.  Also, the pri, mmc and colors
         // need to be delayed so they split this properly on reg changes.
         if (active_sprite_d[3]) begin
-            if (!sprite_pri_d[active_sprite_d[2:0]] || is_background_pixel1) begin
+            if (!sprite_pri_d[active_sprite_d[2:0]] || is_background_pixel0) begin
                 if (sprite_mmc_d[active_sprite_d[2:0]]) begin  // multi-color mode ?
                     case(sprite_cur_pixel[active_sprite_d[2:0]])
                         2'b00:  ;
@@ -339,10 +431,10 @@ begin
     end
 
     // Final stage 3. Border mask.
-    if (main_border_stage1)
+    if (main_border_stage0)
         pixel_color3 <= ec_d2;
     else
-        pixel_color3 <= pixel_color2;
+        pixel_color3 <= hires_enabled ? hires_pixel_color1 : pixel_color2;
 end
 
 endmodule

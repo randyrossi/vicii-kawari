@@ -31,8 +31,8 @@ REG    | Name | Description
 0xd034 |      | Unused
 0xd035 |      | Unused
 0xd036 |      | Unused
-0xd037 |      | Unused
-0xd038 | VIDEO_FLAGS | See below
+0xd037 | VIDEO_MODE1 | See below
+0xd038 | VIDEO_MODE2 | See below
 0xd039 | VIDEO_MEM_A_LO | Video Memory Addr Lo Port A
 0xd03a | VIDEO_MEM_A_HI | Video Memory Addr Hi Port A
 0xd03b | VIDEO_MEM_A_VAL | Video Memory Port A Read/Write Value
@@ -58,10 +58,20 @@ BIT 6    | Extra Registers Overlay at 0x0000 Enable/Disable
 BIT 7    | UNUSED
 BIT 8    | UNUSED
 
-VIDEO_FLAGS | Description
+VIDEO_MODE1 | Description
 ------------|------------
-BIT 1       | Palette Select
-BIT 2-8     | Unused
+BIT 1-3     | CHAR_PIXEL_BASE
+BIT 4       | PALETTE SELECT
+BIT 5       | 80 COLULMN ENABLE
+
+VIDEO_MODE2 | Description
+------------|------------
+BIT 1-3     | MATRIX_BASE
+BIT 4-8     | COLOR_BASE
+
+hires_control1  CHAR_PIXEL_BASE (3) | COLOR_BASE (4)
+hires_control2  MATRIX_BASE (4)
+
 
 ### Writing to video memory from main DRAM
     LDA <ADDR
@@ -132,7 +142,7 @@ VICII-Kawari has a configurable color palette. The 16 colors can be selected
 from a palette of 4096 colors by specifying three 4-bit RGB values. (The
 upper 4 bits in each byte are ignored).  The palette is also double buffered
 to allow changing all colors instantaneously with the palette select bit in
-register VIDEO_FLAGS. Palette 0 is located at 0x0000. Palette 1 is located at
+register VIDEO_MODE1. Palette 0 is located at 0x0000. Palette 1 is located at
 0x0040.
 
 Register | Description

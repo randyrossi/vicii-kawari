@@ -147,10 +147,10 @@
 `define REG_UNUSED6                   6'h34
 `define REG_UNUSED7                   6'h35
 `define REG_UNUSED8                   6'h36
-`define REG_UNUSED9                   6'h37
 
 // --- BEGIN EXTENSIONS ---
-`define VIDEO_FLAGS                   6'h38
+`define VIDEO_MODE1                   6'h37
+`define VIDEO_MODE2                   6'h38
 `define VIDEO_MEM_1_LO                6'h39
 `define VIDEO_MEM_1_HI                6'h3A
 `define VIDEO_MEM_1_VAL               6'h3B
@@ -158,6 +158,11 @@
 `define VIDEO_MEM_2_HI                6'h3D
 `define VIDEO_MEM_2_VAL               6'h3E
 `define VIDEO_MEM_FLAGS               6'h3F  // Extra Reg Activation Port
+
+// For VIDEO_MODE_1
+`define PALETTE_SELECT_BIT            3
+`define HIRES_ENABLE                  4
+
 // --- END EXTENSIONS ---
 
 // Official video modes, source https://www.c64-wiki.com/wiki/Graphics_Modes

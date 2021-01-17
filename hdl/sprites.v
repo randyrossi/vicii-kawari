@@ -55,7 +55,6 @@ module sprites(
            input aec,
            input is_background_pixel,
            input stage0,
-           input stage1,
            input main_border,
            input imbc_clr,
            input immc_clr,
@@ -128,7 +127,6 @@ reg [7:0] sprite_pri3;
 reg [7:0] sprite_pri4;
 reg [7:0] sprite_pri5;
 reg [7:0] sprite_pri6;
-reg [7:0] sprite_pri7;
 
 reg [3:0] active_sprite1;
 reg [3:0] active_sprite2;
@@ -136,7 +134,6 @@ reg [3:0] active_sprite3;
 reg [3:0] active_sprite4;
 reg [3:0] active_sprite5;
 reg [3:0] active_sprite6;
-reg [3:0] active_sprite7;
 
 
 // Handle un-flattening here
@@ -460,27 +457,23 @@ begin
             sprite_mmc6 <= sprite_mmc5;
             sprite_mmc_d <= sprite_mmc6;
         end
-    end
 
-    // For this delay, we align it to become valid by stage1
-    // in the pixel sequencer so any pri splits happens when
-    // the cur pixel is actually overlayed in the gfx pipeline.
-    if (stage0) begin
+        // For this delay, we align it to become valid by stage0
+        // in the pixel sequencer so any pri splits happens when
+        // the cur pixel is actually overlayed in the gfx pipeline.
         sprite_pri2 <= sprite_pri1;
         sprite_pri3 <= sprite_pri2;
         sprite_pri4 <= sprite_pri3;
         sprite_pri5 <= sprite_pri4;
         sprite_pri6 <= sprite_pri5;
-        sprite_pri7 <= sprite_pri6;
-        sprite_pri_d <= sprite_pri7;
+        sprite_pri_d <= sprite_pri6;
 
         active_sprite2 <= active_sprite1;
         active_sprite3 <= active_sprite2;
         active_sprite4 <= active_sprite3;
         active_sprite5 <= active_sprite4;
         active_sprite6 <= active_sprite5;
-        active_sprite7 <= active_sprite6;
-        active_sprite_d <= active_sprite7;
+        active_sprite_d <= active_sprite6;
     end
 
 end
@@ -555,7 +548,7 @@ always @(posedge clk_dot4x)
         // This triggers at the same time the sprite stage of the pixel
         // sequencer works.  So sprite to data collisions happen on the
         // delayed sprite pixels that overwrite any gfx pixels.
-        if (stage1) begin
+        if (stage0) begin
             for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
                 if (((sprite_mmc_d[n] && sprite_cur_pixel[n] != 0) || // multicolor
                         (!sprite_mmc_d[n] && sprite_cur_pixel[n][1] != 0)) & // non multicolor
