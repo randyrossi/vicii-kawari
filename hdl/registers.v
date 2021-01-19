@@ -124,8 +124,10 @@ reg [14:0] video_ram_addr_a;
 reg video_ram_wr_a;
 reg [7:0] video_ram_hi_1;
 reg [7:0] video_ram_lo_1;
+reg [7:0] video_ram_idx_1;
 reg [7:0] video_ram_hi_2;
 reg [7:0] video_ram_lo_2;
+reg [7:0] video_ram_idx_2;
 reg [7:0] video_ram_data_in_a;
 wire [7:0] video_ram_data_out_a;
 
@@ -389,6 +391,10 @@ always @(posedge clk_dot4x)
 
                     // --- BEGIN EXTENSIONS ----
 
+                    `VIDEO_MEM_1_IDX:
+                        dbo[7:0] <= video_ram_idx_1;
+                    `VIDEO_MEM_2_IDX:
+                        dbo[7:0] <= video_ram_idx_2;
                     `VIDEO_MODE1:
                         dbo[7:0] <= { 3'b0, hires_enabled, palette_select, hires_char_pixel_base };
                     `VIDEO_MODE2:
@@ -410,7 +416,8 @@ always @(posedge clk_dot4x)
                         end else begin
                            video_ram_r <= 1;
                            video_ram_addr_a <= {video_ram_hi_1[6:0],
-                                                video_ram_lo_1};
+                                                video_ram_lo_1} +
+						{7'b0, video_ram_idx_1};
                         end
                     end
                     `VIDEO_MEM_2_HI:
@@ -430,7 +437,8 @@ always @(posedge clk_dot4x)
                         end else begin
                            video_ram_r <= 1;
                            video_ram_addr_a <= {video_ram_hi_2[6:0],
-                                                video_ram_lo_2};
+                                                video_ram_lo_2} +
+						{7'b0, video_ram_idx_2};
                         end
                     end
                     /* 0x3F */ `VIDEO_MEM_FLAGS:
@@ -562,7 +570,10 @@ always @(posedge clk_dot4x)
                         sprite_col[7] <= dbi[3:0];
 
                     // --- BEGIN EXTENSIONS ----
-
+                    `VIDEO_MEM_1_IDX:
+                        video_ram_idx_1 <= dbi;
+                    `VIDEO_MEM_2_IDX:
+                        video_ram_idx_2 <= dbi;
 		    `VIDEO_MODE1: begin
                         hires_enabled <= dbi[`HIRES_ENABLE];
                         palette_select <= dbi[`PALETTE_SELECT_BIT];
@@ -623,7 +634,8 @@ always @(posedge clk_dot4x)
                            video_ram_wr_a <= 1;
                            video_ram_data_in_a <= dbi[7:0];
                            video_ram_addr_a <= {video_ram_hi_1[6:0],
-                                                video_ram_lo_1};
+                                                video_ram_lo_1} +
+						{7'b0, video_ram_idx_1};
                         end
                     end
                     `VIDEO_MEM_2_HI:
@@ -646,7 +658,8 @@ always @(posedge clk_dot4x)
                            video_ram_wr_a <= 1;
                            video_ram_data_in_a <= dbi[7:0];
                            video_ram_addr_a <= {video_ram_hi_2[6:0],
-                                                video_ram_lo_2};
+                                                video_ram_lo_2} +
+						{7'b0, video_ram_idx_2};
                         end
                     end
 

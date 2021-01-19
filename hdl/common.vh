@@ -149,6 +149,8 @@
 `define REG_UNUSED8                   6'h36
 
 // --- BEGIN EXTENSIONS ---
+`define VIDEO_MEM_1_IDX               6'h35
+`define VIDEO_MEM_2_IDX               6'h36
 `define VIDEO_MODE1                   6'h37
 `define VIDEO_MODE2                   6'h38
 `define VIDEO_MEM_1_LO                6'h39
