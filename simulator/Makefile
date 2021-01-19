@@ -38,7 +38,7 @@ VERILOG_SOURCES = ../hdl/cmod_a35t/top.v ../hdl/vicii.v ../hdl/common.vh \
                   ../hdl/registers.v  ../hdl/comp_sync.v ../hdl/border.v \
 	          ../hdl/lightpen.v ../hdl/raster.v \
 	          ../hdl/serration.v  ../hdl/bus_access.v ../hdl/cycles.v \
-                  ../hdl/matrix.v ../hdl/sprites.v  ../hdl/vga_sync.v \
+                  ../hdl/matrix.v ../hdl/sprites.v  ../hdl/hires_vga_sync.v \
 		  ../hdl/clockdivs.v ../hdl/videoram.v ../hdl/colorreg.v \
 		  ../hdl/hires_matrix.v ../hdl/hires_addressgen.v
 

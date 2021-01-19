@@ -26,6 +26,7 @@ module vicii(
            input [1:0] chip,
            input rst,
            input clk_dot4x,
+           input clk_dot8x,
            input clk_col4x,
            output clk_phi,
            output clk_colref,
@@ -136,7 +137,6 @@ endcase
 
 // Used to generate phi and dot clocks
 reg [31:0] phi_gen;
-reg [31:0] dot_gen;
 
 // Used to detect rising edge of dot clock inside a dot4x always block
 // Sequence goes 1 2 3 0:
@@ -922,6 +922,7 @@ pixel_sequencer vic_pixel_sequencer(
 
 // -------------------------------------------------------------
 // Composite output - csync/pixel_color4
+// Can't do 80 column mode.
 // -------------------------------------------------------------
 comp_sync vic_comp_sync(
               .rst(rst),
@@ -937,11 +938,35 @@ comp_sync vic_comp_sync(
 
 // -------------------------------------------------------------
 // VGA/HDMI output - hsync/vsync/active/half_bright/pixel_color4
+// Low resolution that can't do 80 columns.
 // -------------------------------------------------------------
+/*
 vga_sync vic_vga_sync(
              .rst(rst),
              .clk_dot4x(clk_dot4x),
              .raster_x(raster_x),
+             .raster_y(raster_line),
+             .chip(chip),
+             .pixel_color3(pixel_color3),
+             .hsync(hsync),
+             .vsync(vsync),
+             .active(active),
+             .pixel_color4(pixel_color4_vga),
+             .half_bright(half_bright)
+         );
+*/
+
+// -------------------------------------------------------------
+// VGA/HDMI output - hsync/vsync/active/half_bright/pixel_color4
+// Hu-res version that can show the 80 column mode as well as
+// 40.
+// -------------------------------------------------------------
+hires_vga_sync vic_vga_sync(
+             .rst(rst),
+             .clk_dot4x(clk_dot4x),
+             .clk_dot8x(clk_dot8x),
+             .raster_x(raster_x),
+             .hires_raster_x(hires_raster_x),
              .raster_y(raster_line),
              .chip(chip),
              .pixel_color3(pixel_color3),

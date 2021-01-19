@@ -15,7 +15,7 @@ module top(
            input sys_clock,
            output cpu_reset,    // reset for 6510 CPU
            output clk_phi,      // output phi clock for CPU
-           output clk_dot4x_ext,    // pixel clock for external HDMI encoder
+           output clk_dot8x_ext,    // pixel clock for external HDMI encoder
            output hsync,        // hsync signal for VGA/HDMI
            output vsync,        // vsync signal for VGA/HDMI
            output active,       // display active for HDMI
@@ -52,6 +52,7 @@ module top(
 wire rst;
 wire [1:0] chip;
 wire clk_dot4x;
+wire clk_dot8x;
 wire clk_col4x; // no gen for this on mojo
 
 `ifndef IS_SIMULATOR
@@ -59,6 +60,7 @@ wire clk_col4x; // no gen for this on mojo
 clockgen mojo_clockgen(
              .sys_clock(sys_clock),
              .clk_dot4x(clk_dot4x),
+				 .clk_dot8x(clk_dot8x),
              .rst(rst),
              .chip(chip));
 `endif
@@ -67,12 +69,12 @@ clockgen mojo_clockgen(
 ODDR2 oddr2(
           .D0(1'b1),
           .D1(1'b0),
-          .C0(clk_dot4x),
-          .C1(~clk_dot4x),
+          .C0(clk_dot8x),
+          .C1(~clk_dot8x),
           .CE(1'b1),
           .R(1'b0),
           .S(1'b0),
-          .Q(clk_dot4x_ext)
+          .Q(clk_dot8x_ext)
       );
 
 // This is a reset line for the CPU which would have to be
@@ -99,6 +101,7 @@ vicii vic_inst(
           .rst(rst),
           .chip(chip),
           .clk_dot4x(clk_dot4x),
+          .clk_dot8x(clk_dot8x),
           .clk_col4x(clk_col4x),
           .clk_colref(clk_colref),
           .clk_phi(clk_phi),

@@ -17,6 +17,7 @@
 module clockgen(
            input sys_clock,
            output clk_dot4x,
+           output clk_dot8x,
            output rst,
            output [1:0] chip
        );
@@ -44,6 +45,7 @@ dot4x_50_pal_clockgen dot4x_50_pal_clockgen(
                           .clk_in50mhz(sys_clock),    // board 50 Mhz clock
                           .reset(1'b0),
                           .clk_dot4x(clk_dot4x),      // generated 4x dot clock
+                          .clk_dot8x(clk_dot8x),      // generated 8x dot clock
                           .locked(locked)
                       );
 `endif
@@ -57,6 +59,7 @@ dot4x_50_ntsc_clockgen dot4x_50_ntsc_clockgen(
                            .clk_in50mhz(sys_clock),    // external 50 Mhz clock
                            .reset(1'b0),
                            .clk_dot4x(clk_dot4x),      // generated 4x dot clock
+                           .clk_dot8x(clk_dot8x),      // generated 8x dot clock
                            .locked(locked)
                        );
 `endif
