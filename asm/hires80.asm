@@ -1,17 +1,27 @@
 !to "hires80.prg",cbm
 
+; bytes to enable VICII-Kawari extensions
 CHAR_V = 86
 CHAR_I = 73
 CHAR_C = 67
 CHAR_2 = 50
 
+; some VICII-Kawari registers
 KAWARI_VMODE1 = $d037
 KAWARI_VMODE2 = $d038
 KAWARI_PORT = $d03f
 
+KAWARI_VICSCN = $1000 ; screen ram hi bytes, takes the place of $0400
+
+VMEM_A_IDX = $d035
 VMEM_A_HI = $d03a
 VMEM_A_LO = $d039
 VMEM_A_VAL = $d03b
+
+VMEM_B_IDX = $d036
+VMEM_B_HI = $d03d
+VMEM_B_LO = $d03c
+VMEM_B_VAL = $d03e
 
 R6510  = $01
 NWRAP  = $02
@@ -54,24 +64,23 @@ IBSOUT = $0326
 USRCMD = $032E
 HIBASE = $0288
 
-LP2=$E5B4
-RUNTB=$ECE7
-STUPT=$E56C
-NXTD=$E566
-LOWER=$EC44
-CLSR=$E544
-UPPER=$EC4F
-LDTB2=$ECF0
-COLM=$DC00
-ROWS=$DC01
-VICCOL=$D800
-CPATCH=$E4DA
-ORIG_BASOUT=$F1D5
-ORIG_BASIN=$F166
+CPATCH = $E4DA
+LP2    = $E5B4
+LOWER  = $EC44
+UPPER  = $EC4F
+RUNTB  = $ECE7
 
-MAXCHR=80             ;80 COLUMNS ON A LINE
-NLINES=25             ;25 ROWS ON SCREEN
-LLEN=$28              ;40 COLUMNS ON SCREEN
+; LDTB2=$ECF0         ; replaced by our new table
+COLM   =$DC00
+ROWS   =$DC01
+VICCOL =$1800          ; replaces $d800 ; !!! NEED ANOTHER LOC FOR THIS
+
+ORIG_BASOUT = $F1D5
+ORIG_BASIN  = $F173
+
+MAXCHR = 80             ;80 COLUMNS ON A LINE
+NLINES = 25             ;25 ROWS ON SCREEN
+LLEN   = 80             ;80 COLUMNS ON SCREEN
 
 *=$c800
 
@@ -84,6 +93,10 @@ LLEN=$28              ;40 COLUMNS ON SCREEN
         sta KAWARI_PORT
 	lda #CHAR_2
         sta KAWARI_PORT
+
+	LDA #0
+	STA VMEM_A_IDX
+	STA VMEM_B_IDX
 
 	; We need to first copy char rom from $d000 into
 	; $c000, then turn off ROM and copy from $c000 into
@@ -100,7 +113,7 @@ LLEN=$28              ;40 COLUMNS ON SCREEN
         ldy #$00    ; init counter with 0
         sty $fb     ; store it as low byte in the $FB/$FC vector
 
-        lda #$C0    ; we're going to copy it to $C000
+        lda #$90    ; we're going to copy it to $9000
         sta $fe
         lda #$00
         sta $fd
@@ -119,7 +132,7 @@ loop    lda ($fb),y ; read byte from src $fb/$fc
 
         ; now copy from $c000 into VICII-Kawari memory
 
-        lda #$c0    ; load high byte of $c000
+        lda #$90    ; load high byte of $9000
         sta $fc     ; store it in a free location we use as vector
         ldy #$00    ; init counter with 0
         sty $fb     ; store it as low byte in the $FB/$FC vector
@@ -135,7 +148,7 @@ loop    lda ($fb),y ; read byte from src $fb/$fc
         ldx #$10    ; we loop 16 times (16x256 = 4Kb)
 loop2   lda ($fb),y ; read byte from src $fb/$fc
         sta VMEM_A_VAL   ; write byte to dest video ram
-        iny         ; do this 255 times...
+        iny         ; do this 256 times...
         bne loop2   ; ..for low byte $00 to $FF
         inc $fc     ; when we passed $FF increase high byte...
         dex         ; ... and decrease X by one before restart
@@ -170,15 +183,6 @@ loop4   sta VMEM_A_VAL
         dex
         bne loop4
 
-        ; finally, turn on hires mode
-	; char rom is at $0000 (4k)
-	; screen ram is at $1000 (2k)
-	; color ram is at $1800 (2k)
-        lda #16            ; c:p:h:uuu  000:0:1:000 $0000
-	sta KAWARI_VMODE1
-        lda #35            ; m:c = 0010:0011 $1000:$1800
-	sta KAWARI_VMODE2
-
         ; set new cinv routine
 	lda #<new_cinv
 	sta CINV
@@ -196,6 +200,21 @@ loop4   sta VMEM_A_VAL
 	sta IBSOUT
 	lda #>new_bsout
 	sta IBSOUT + 1
+
+        ; our high byte for the screen is $10
+	lda #$10
+	sta HIBASE
+
+        ; finally, turn on hires mode
+	; char rom is at $0000 (4k)
+	; screen ram is at $1000 (2k)
+	; color ram is at $1800 (2k)
+        lda #16            ; uuu:h:p:cp  uuu:1:0:000 $0000
+	sta KAWARI_VMODE1
+        lda #50            ; col:mat = 0011:0010 $1800:$1000
+	sta KAWARI_VMODE2
+	LDA #0             ; no inc
+	STA KAWARI_PORT
 
         cli         ; turn off interrupt disable flag
 
@@ -223,6 +242,75 @@ new_bsout:
 	rts
 oldbso:	jmp ORIG_BASOUT ; original non-screen BSOUT
 
+; CLSR was e544
+CLSR
+	LDA HIBASE ;FILL HI BYTE PTR TABLE
+        ORA #$80
+        TAY
+        LDA #0
+        TAX
+LPS1    STY LDTB1,X
+        CLC
+        ADC #LLEN
+        BCC LPS2
+        INY             ;CARRY BUMP HI BYTE
+LPS2    INX
+        CPX #NLINES+1   ;DONE # OF LINES?
+        BNE LPS1        ;NO...
+        LDA #$FF        ;TAG END OF LINE TABLE
+        STA LDTB1,X
+        LDX #NLINES-1   ;CLEAR FROM THE BOTTOM LINE UP
+CLEAR1  JSR CLRLN       ;SEE SCROLL ROUTINES
+        DEX
+        BPL CLEAR1
+
+;NXTD HOME FUNCTION was E566
+
+NXTD   
+       LDY #0
+       STY    PNTR            ;LEFT COLUMN
+       STY    TBLX            ;TOP LINE
+
+                              ;MOVE CURSOR TO TBLX,PNTR
+
+; STUPT was e56c
+STUPT
+       LDX TBLX        ;GET CURENT LINE INDEX
+       LDA PNTR        ;GET CHARACTER POINTER
+FNDSTR
+       LDY LDTB1,X     ;FIND BEGINING OF LINE
+       BMI STOK        ;BRANCH IF START FOUND
+       CLC
+       ADC #LLEN       ;ADJUST POINTER
+       STA PNTR
+       DEX
+       BPL FNDSTR
+
+STOK
+       JSR SETPNT      ;SET UP PNT INDIRECT 901227-03**********
+ 
+       LDA #LLEN-1
+       INX
+FNDEND
+       LDY LDTB1,X
+       BMI STDONE
+       CLC
+       ADC #LLEN
+       INX
+       BPL FNDEND
+STDONE
+       STA LNMX
+       JMP SCOLOR      ;MAKE COLOR POINTER FOLLOW 901227-03**********
+                       ; THIS IS A PATCH FOR INPUT LOGIC 901227-03**********
+                       ;   FIXES INPUT"XXXXXXX-40-XXXXX";A$ PROBLEM
+                       ;
+FINPUT
+       CPX LSXP        ;CHECK IF ON SAME LINE
+       BEQ FINPUX      ;YES..RETURN TO SEND
+       JMP FINDST      ;CHECK IF WE WRAPPED DOWN...
+FINPUX
+       RTS
+
 new_bsin:
 	LDA DFLTN       ;CHECK DEVICE
 	BNE    BN10            ;IS NOT KEYBOARD...
@@ -232,6 +320,14 @@ new_bsin:
 	STA    LSXP            ;... LINE NUMBER
 	JMP    LOOP5           ;BLINK CURSOR UNTIL RETURN
 BN10
+	CMP    #3              ; IS INPUT FROM SCREEN?
+        BNE    BN20            ; NO
+
+        STA CRSW               ;FAKE A CARRIAGE RETURN
+        LDA LNMX               ; SAY WE ENDED...
+        STA INDX               ;... UP ON THIS LINE
+        JMP    LOOP5           ;PICK UP CHARACTERS
+BN20
 	JMP    ORIG_BASIN      ;Continue to original basin
 
 ; Originally at $e5ca
@@ -270,8 +366,13 @@ LP22
 	BNE    LOOP4
 	LDY    LNMX
 	STY    CRSW
+
+	JSR PNT_TO_VMEM_A
 CLP5
-	LDA (PNT),Y
+	;LDA (PNT),Y
+	STY VMEM_A_IDX 
+	LDA VMEM_A_VAL
+
 	CMP    #$20
 	BNE    CLP6
 	DEY
@@ -305,9 +406,13 @@ LOOP5
 	PHA
 	LDA    CRSW
 	BEQ    LOOP3
+
+	JSR PNT_TO_VMEM_A
 LOP5  
 	LDY PNTR
-	LDA    (PNT),Y
+	;LDA    (PNT),Y
+	STY VMEM_A_IDX
+	LDA VMEM_A_VAL
 NOTONE
 	STA    DATA
 LOP51 
@@ -498,23 +603,41 @@ BAK1UP
 	STY    PNTR
 BK1   
 	JSR SCOLOR      ;FIX COLOR PTRS
+
+	JSR PNT_TO_VMEM_A
+	JSR USER_TO_VMEM_B
 BK15  
 	INY
-	LDA    (PNT),Y
+	;LDA    (PNT),Y
+	STY VMEM_A_IDX
+	LDA VMEM_A_VAL
 	DEY
-	STA    (PNT),Y
+	;STA    (PNT),Y
+	STY VMEM_A_IDX
+	STA VMEM_A_VAL
 	INY
-	LDA    (USER),Y
+	;LDA    (USER),Y
+	STY VMEM_B_IDX
+	LDA VMEM_B_VAL
 	DEY
-	STA    (USER),Y
+	;STA    (USER),Y
+	STY VMEM_B_IDX
+	STA VMEM_B_VAL
 	INY
 	CPY    LNMX
 	BNE    BK15
 BK2   
+	JSR PNT_TO_VMEM_A
+	JSR USER_TO_VMEM_B
+
 	LDA #$20
-	STA    (PNT),Y
+	;STA    (PNT),Y
+	STY VMEM_A_IDX
+	STA VMEM_A_VAL
 	LDA    COLOR
-	STA    (USER),Y
+	;STA    (USER),Y
+	STY VMEM_B_IDX
+	STA VMEM_B_VAL
 	BPL    JPL3
 NTCN1  
 	LDX QTSW
@@ -594,7 +717,10 @@ UP5
 	CMP    #$14
 	BNE    UP9
 	LDY    LNMX
-	LDA    (PNT),Y
+	JSR PNT_TO_VMEM_A
+	;LDA    (PNT),Y
+	STY VMEM_A_IDX
+	LDA VMEM_A_VAL
 	CMP    #$20
 	BNE    INS3
 	CPY    PNTR
@@ -606,22 +732,36 @@ INS3
 INS1   
 	LDY LNMX
 	JSR    SCOLOR
+	JSR PNT_TO_VMEM_A
+	JSR USER_TO_VMEM_B
 INS2   
 	DEY
-	LDA    (PNT),Y
+	;LDA    (PNT),Y
+	STY VMEM_A_IDX
+	LDA VMEM_A_VAL
 	INY
-	STA    (PNT),Y
+	;STA    (PNT),Y
+	STY VMEM_A_IDX
+	STA VMEM_A_VAL
 	DEY
-	LDA    (USER),Y
+	;LDA    (USER),Y
+	STY VMEM_B_IDX
+	LDA VMEM_B_VAL
 	INY
-	STA    (USER),Y
+	;STA    (USER),Y
+	STY VMEM_B_IDX
+	STA VMEM_B_VAL
 	DEY
 	CPY    PNTR
 	BNE    INS2
 	LDA    #$20
-	STA    (PNT),Y
+	;STA    (PNT),Y
+	STY VMEM_A_IDX
+	STA VMEM_A_VAL
 	LDA    COLOR
-	STA    (USER),Y
+	;STA    (USER),Y
+	STY VMEM_B_IDX
+	STA VMEM_B_VAL
 	INC    INSRT
 INSEXT 
 	JMP LOOP2
@@ -906,18 +1046,43 @@ SCRD22
 	; AND COLORS FROM EAL TO USER
 	;
 SCRLIN
-	       AND #$03        ;CLEAR ANY GARBAGE STUFF
+               ; we AND with $07 instead of $03 because we have 8
+               ; pages instead of the usual 4
+	       AND #$07        ;CLEAR ANY GARBAGE STUFF
 	       ORA HIBASE      ;PUT IN HIORDER BITS
 	       STA SAL+1
 	       JSR TOFROM      ;COLOR TO & FROM ADDRS
+
+	; it's more efficient to scroll screen and color
+	; separately for kawari since we can use two
+	; mem ptrs
+
 	       LDY #LLEN-1
-SCD20
-	       LDA (SAL),Y
-	       STA (PNT),Y
-	       LDA (EAL),Y
-	       STA (USER),Y
+	       JSR PNT_TO_VMEM_A
+	       JSR SAL_TO_VMEM_B
+SCD20_PNT
+	       ;LDA (SAL),Y
+               STY VMEM_B_IDX
+               LDA VMEM_B_VAL
+	       ;STA (PNT),Y
+               STY VMEM_A_IDX
+               STA VMEM_A_VAL
 	       DEY
-	       BPL SCD20
+	       BPL SCD20_PNT
+
+	       LDY #LLEN-1
+	       JSR USER_TO_VMEM_A
+	       JSR EAL_TO_VMEM_B
+SCD20_USER
+	       ;LDA (EAL),Y
+               STY VMEM_B_IDX
+               LDA VMEM_B_VAL
+	       ;STA (USER),Y
+               STY VMEM_A_IDX
+               STA VMEM_A_VAL
+	       DEY
+	       BPL SCD20_USER
+
 	       RTS
 	;
 	; DO COLOR TO AND FROM ADDRESSES
@@ -928,7 +1093,9 @@ TOFROM
 	       LDA SAL         ;CHARACTER FROM
 	       STA EAL         ;MAKE COLOR FROM
 	       LDA SAL+1
-	       AND #$03
+               ; we AND with $07 instead of $03 because we have 8
+               ; pages instead of the usual 4
+	       AND #$07
 	       ORA #>VICCOL
 	       STA EAL+1
 	       RTS
@@ -940,7 +1107,9 @@ SETPNT
 	LDA LDTB2,X
 	       STA PNT
 	       LDA LDTB1,X
-	       AND #$03
+               ; we AND with $07 instead of $03 because we have 8
+               ; pages instead of the usual 4
+	       AND #$07
 	       ORA HIBASE
 	       STA PNT+1
 	       RTS
@@ -953,8 +1122,11 @@ CLRLN
 	       JSR SCOLOR
 CLR10 
 	JSR CPATCH      ;REVERSED ORDER FROM 901227-02
+		JSR PNT_TO_VMEM_A
 	       LDA #$20        ;STORE A SPACE
-	       STA (PNT),Y     ;TO DISPLAY
+	       ;STA (PNT),Y     ;TO DISPLAY
+		STY VMEM_A_IDX
+		STA VMEM_A_VAL
 	       DEY
 	       BPL CLR10
 	       RTS
@@ -967,18 +1139,26 @@ DSPP
 	LDA    #2
 	STA    BLNCT           ;BLINK CURSOR
 	JSR    SCOLOR          ;SET COLOR PTR
-	TYA                    ;RESTORE COLOR
+	JSR PNT_TO_VMEM_A      ;set before char put in a
+	TYA                    ;RESTORE CHAR
 DSPP2 
 	LDY PNTR        ;GET COLUMN
-	STA    (PNT),Y          ;CHAR TO SCREEN
+	;STA    (PNT),Y          ;CHAR TO SCREEN
+	STY VMEM_A_IDX
+	STA VMEM_A_VAL
+	JSR USER_TO_VMEM_A
 	TXA
-	STA    (USER),Y         ;COLOR TO SCREEN
+	;STA    (USER),Y         ;COLOR TO SCREEN
+	STY VMEM_A_IDX
+	STA VMEM_A_VAL
 	RTS
 SCOLOR
 	LDA PNT         ;GENERATE COLOR PTR
 	STA    USER
 	LDA    PNT+1
-	AND    #$03
+               ; we AND with $07 instead of $03 because we have 8
+               ; pages instead of the usual 4
+	AND    #$07
 	ORA    #>VICCOL        ;VIC COLOR RAM
 	STA    USER+1
 	RTS
@@ -995,21 +1175,118 @@ REPDO  STA BLNCT
        LDY PNTR        ;CURSOR POSITION
        LSR BLNON       ;CARRY SET IF ORIGINAL CHAR
        LDX GDCOL       ;GET CHAR ORIGINAL COLOR
-       LDA (PNT),Y      ;GET CHARACTER
+       JSR PNT_TO_VMEM_A
+       ;LDA (PNT),Y      ;GET CHARACTER
+       STY VMEM_A_IDX
+       LDA VMEM_A_VAL
        BCS KEY5        ;BRANCH IF NOT NEEDED
  
        INC BLNON       ;SET TO 1
        STA GDBLN       ;SAVE ORIGINAL CHAR
        JSR SCOLOR
  
-       LDA (USER),Y     ;GET ORIGINAL COLOR
+       ;LDA (USER),Y     ;GET ORIGINAL COLOR
+       JSR USER_TO_VMEM_A
+       STY VMEM_A_IDX
+       LDA VMEM_A_VAL
        STA GDCOL       ;SAVE IT
  
        LDX COLOR       ;BLINK IN THIS COLOR
+       JSR PNT_TO_VMEM_A ; set ptr before setting a for dspp2
        LDA GDBLN       ;WITH ORIGINAL CHARACTER
- 
 KEY5   EOR #$80        ;BLINK IT
- 
        JSR DSPP2       ;DISPLAY IT
 
 KEY4   JMP $EA61
+
+
+PNT_TO_VMEM_A
+        LDA PNT
+        STA VMEM_A_LO
+	LDA PNT+1
+        STA VMEM_A_HI
+	RTS
+
+SAL_TO_VMEM_B
+        LDA SAL
+        STA VMEM_B_LO
+	LDA SAL+1
+        STA VMEM_B_HI
+	RTS
+
+USER_TO_VMEM_A
+        LDA USER
+        STA VMEM_A_LO
+	LDA USER+1
+        STA VMEM_A_HI
+	RTS
+
+USER_TO_VMEM_B
+        LDA USER
+        STA VMEM_B_LO
+	LDA USER+1
+        STA VMEM_B_HI
+	RTS
+
+EAL_TO_VMEM_B
+        LDA EAL
+        STA VMEM_B_LO
+	LDA EAL+1
+        STA VMEM_B_HI
+	RTS
+
+
+LINZ0  = KAWARI_VICSCN
+LINZ1  = LINZ0+LLEN
+LINZ2  = LINZ1+LLEN
+LINZ3  = LINZ2+LLEN
+LINZ4  = LINZ3+LLEN
+LINZ5  = LINZ4+LLEN
+LINZ6  = LINZ5+LLEN
+LINZ7  = LINZ6+LLEN
+LINZ8  = LINZ7+LLEN
+LINZ9  = LINZ8+LLEN
+LINZ10 = LINZ9+LLEN
+LINZ11 = LINZ10+LLEN
+LINZ12 = LINZ11+LLEN
+LINZ13 = LINZ12+LLEN
+LINZ14 = LINZ13+LLEN
+LINZ15 = LINZ14+LLEN
+LINZ16 = LINZ15+LLEN
+LINZ17 = LINZ16+LLEN
+LINZ18 = LINZ17+LLEN
+LINZ19 = LINZ18+LLEN
+LINZ20 = LINZ19+LLEN
+LINZ21 = LINZ20+LLEN
+LINZ22 = LINZ21+LLEN
+LINZ23 = LINZ22+LLEN
+LINZ24 = LINZ23+LLEN
+
+;****** SCREEN LINES LO BYTE TABLE ******
+;
+LDTB2
+       !BYTE <LINZ0
+       !BYTE <LINZ1
+       !BYTE <LINZ2
+       !BYTE <LINZ3
+       !BYTE <LINZ4
+       !BYTE <LINZ5
+       !BYTE <LINZ6
+       !BYTE <LINZ7
+       !BYTE <LINZ8
+       !BYTE <LINZ9
+       !BYTE <LINZ10
+       !BYTE <LINZ11
+       !BYTE <LINZ12
+       !BYTE <LINZ13
+       !BYTE <LINZ14
+       !BYTE <LINZ15
+       !BYTE <LINZ16
+       !BYTE <LINZ17
+       !BYTE <LINZ18
+       !BYTE <LINZ19
+       !BYTE <LINZ20
+       !BYTE <LINZ21
+       !BYTE <LINZ22
+       !BYTE <LINZ23
+       !BYTE <LINZ24
