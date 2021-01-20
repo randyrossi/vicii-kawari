@@ -62,18 +62,47 @@ VIDEO_MODE1 | Description
 ------------|------------
 BIT 1-3     | CHAR_PIXEL_BASE
 BIT 4       | PALETTE SELECT
-BIT 5       | 80 COLULMN ENABLE
+BIT 5       | HIRES ENABLE (640x200 mode)
+BIT 6       | HIRES TEXT/BITMAP
 
 VIDEO_MODE2 | Description
 ------------|------------
 BIT 1-4     | MATRIX_BASE
 BIT 4-8     | COLOR_BASE
 
-hires_control1  CHAR_PIXEL_BASE (3) | COLOR_BASE (4)
-hires_control2  MATRIX_BASE (4)
+## Matrix Base
 
+For hires text mode, matrix base controls which of the 16 2k pages inside the 32k video memory the video matrix resides.
 
-### Writing to video memory from main DRAM
+    matrix start address = matrix_base * 2048
+
+For hires bitmap mode, the lower bit of matrix base controls which of the 2 16k pages inside the 32k video memory the pixel data resides.
+
+    bitmap data start address = matrix_base[0] * 16384
+
+## Color Base
+
+For hires text mode, color base controls which of the 16 2k pages inside the 32k video memory the color memory resides.
+
+    color start address = color_base * 2048
+
+For hires bitmap mode, the least significant bit of color base controls which of the 2 16k pages inside the 32k video memory the color data resides.
+
+    bitmap color start address = color_base[0] * 16384
+
+## Char Pixel Base
+
+For hires text mode, char pixel base controls which of the 8 4k pages inside the 32k video memory the character pixel data resides.
+
+    char pixel start address = color_base * 4096
+
+## Hires Enable
+This bit controls whether the horizontal resolution is doubled or not.  It must be enabled for 80 column text or 640x200 bitmap modes.
+
+## Hires Text/Bitmap
+This bit controls the hires video mode. When off, a text mode will be used.  When on, a 16 color hires bitmap mode is used.
+
+### Writing to video memory from main DRAM using auto increment
     LDA <ADDR
     STA VIDEO_MEM_A_HI
     LDA >ADDR
@@ -91,7 +120,9 @@ hires_control2  MATRIX_BASE (4)
     STA VIDEO_MEM_A_VAL  ; write $57 to ADDR+2
     (...etc)
 
-### Reading from video memory into main DRAM
+    * video mem hi/lo pairs will wrap as expected
+
+### Reading from video memory into main DRAM using auto increment
     LDA <ADDR
     STA VIDEO_MEM_A_HI
     LDA >ADDR
@@ -105,6 +136,8 @@ hires_control2  MATRIX_BASE (4)
     LDA VIDEO_MEM_A_VAL ; read from ADDR+1
     LDA VIDEO_MEM_A_VAL ; read from ADDR+2
     (...etc)
+
+    * video mem hi/lo pairs will wrap as expected
 
 ### Performing a move within video memory
 
@@ -129,12 +162,34 @@ a source and the other for a destination.
 
     Sequential read/writes will auto increment/decrement the address as above.
 
+### Using video mem pointers with an index
+
+Sometimes, it may be more convenient to use an index when porting existing code to use VICII-Kawari extended video memory.  This is useful if replacing indirect indexed addressing.
+
+For example, the code:
+
+    LDY #20
+    LDA #00
+    STA $fc
+    LDA #04
+    STA $fd
+    LDA ($fc),y
+
+Can be replaced with:
+
+    LDY #20
+    LDA #00
+    STA VIDEO_MEM_A_LO
+    LDA #04
+    STA VIDEO_MEM_A_HI
+    STY VIDEO_MEM_A_IDX
+    LDA VIDEO_MEM_A_VAL
+
 ### Extra Registers Overlay
 
 When BIT 6 of the VIDEO_MEM_FLAGS register is set, the first 256 bytes
 of video RAM is mapped to extra registers for special VICII-Kawari
 functions.
-
 
 ### Color Registers
 
