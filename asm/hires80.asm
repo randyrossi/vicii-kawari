@@ -133,7 +133,7 @@ init
         ; Kawari video memory.
 
         ; first $d000 to $9000
-        sei         ; disable interrupts while we copy
+        sei         ; disable interrupts
         ldx #$10    ; we loop 16 times (16x256 = 4Kb)
         lda #$33    ; make the CPU see the Character Generator ROM...
         sta $01     ; ...at $D000 by storing %00110011 into location $01
@@ -159,8 +159,6 @@ loop    lda ($fb),y ; read byte from src $fb/$fc
         lda #$37    ; switch in I/O mapped registers again...
         sta $01     ; ... with %00110111 so CPU can see them
 
-        cli         ; enable interrupts
-
         ; now copy from $9000 into VICII-Kawari memory
 
         lda #$90    ; load high byte of $9000
@@ -169,6 +167,8 @@ loop    lda ($fb),y ; read byte from src $fb/$fc
         sty $fb     ; store it as low byte in the $FB/$FC vector
 
         lda #$00    ; we're going to copy it to video ram $0000
+        sta VMEM_A_IDX
+        sta VMEM_B_IDX
         sta VMEM_A_HI
         sta VMEM_A_LO
         lda #1      ; use auto increment
@@ -184,8 +184,8 @@ loop2   lda ($fb),y ; read byte from src $fb/$fc
         dex         ; ... and decrease X by one before restart
         bne loop2   ; We repeat this until X becomes Zero
 
-        sei         ; disable interrupts
         jsr install_routines
+
         cli         ; turn off interrupt disable flag
 
         ; finally, turn on hires mode
@@ -197,15 +197,7 @@ loop2   lda ($fb),y ; read byte from src $fb/$fc
         sta KAWARI_VMODE1
         lda #50            ; col:mat = 0011:0010 $1800:$1000
         sta KAWARI_VMODE2
-        jsr reset_kawari_regs
         jmp ($A000) ; BASIC cold start
-
-reset_kawari_regs
-        LDA #0             ; no inc
-        sta VMEM_A_IDX
-        sta VMEM_B_IDX
-        sta KAWARI_PORT
-        rts
 
 install_routines
         ; install our kernel routine replacements
@@ -373,18 +365,14 @@ NNMI20 JMP $FE72       ; continue to usual NMI routine
 
 ; disable print routines
 allow_vmem
-       sei
-       JSR RESTOR
-       jsr install_nmi ; always keep nmi and brk
-       cli
+       LDA #1
+       STA ALLOW_VMEM
        rts
 
 ; enable print routines
 disallow_vmem
-       sei
-       jsr install_routines
-       jsr reset_kawari_regs
-       cli
+       LDA #0
+       STA ALLOW_VMEM
        rts
 
 new_bsout:
@@ -574,6 +562,8 @@ LOOP5
         LDA    CRSW
         BEQ    LOOP3
 
+        LDA #0             ; no inc
+        sta KAWARI_PORT
         JSR PNT_TO_VMEM_A
 LOP5
         LDY PNTR
@@ -772,6 +762,8 @@ BAK1UP
 BK1
         JSR SCOLOR      ;FIX COLOR PTRS
 
+        LDA #0          ;no inc
+        STA KAWARI_PORT
         JSR PNT_TO_VMEM_A
         JSR USER_TO_VMEM_B
 BK15
@@ -1339,12 +1331,16 @@ KEY     JSR $FFEA       ;UPDATE JIFFY CLOCK
         BNE KEY4        ;NO
         DEC BLNCT       ;TIME TO BLINK ?
         BNE KEY4        ;NO
+	LDA ALLOW_VMEM  ;CAN USE VMEM?
+	BEQ KEY4        ;NO
         LDA #20         ;RESET BLINK COUNTER
 
 REPDO   STA BLNCT
         LDY PNTR        ;CURSOR POSITION
         LSR BLNON       ;CARRY SET IF ORIGINAL CHAR
         LDX GDCOL       ;GET CHAR ORIGINAL COLOR
+        LDA #0
+        STA KAWARI_PORT
         JSR PNT_TO_VMEM_A
         ;LDA (PNT),Y      ;GET CHARACTER
         STY VMEM_A_IDX
@@ -1470,3 +1466,5 @@ LDTB1_40 !BYTE 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 PNT_40   !BYTE 0
 PNTR_40  !BYTE 0
 TBLX_40  !BYTE 0
+
+ALLOW_VMEM !BYTE 1
