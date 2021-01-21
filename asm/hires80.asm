@@ -69,6 +69,7 @@ MODE   = $0291 ; Flag: $00=Disable SHIFT Keys, $80 = Enable SHIFT Keys
 AUTODN = $0292 ; Auto Down
 LINTMP = $02a5
 CINV   = $0314 ; IRQ routine
+BRKV   = $0316 ; BRK routine
 NMIV   = $0318 ; NMI routine
 IBASIN = $0324 ; We replace the kernel screen input routine
 IBSOUT = $0326 ; We replace the kernel screen output routine
@@ -99,8 +100,22 @@ NLINES = 25             ;25 ROWS ON SCREEN
 LLEN   = 80             ;80 COLUMNS ON SCREEN
 
 *=$c800
+   JMP init           ; $c800 : full initialization
+   JMP toggle         ; $c803 : toggle between 40/80 columns
+   JMP disallow_vmem  ; $c806 : lets basic use vmem but disables input/print
+   JMP allow_vmem     ; $c809 : enables input/print but can't use vmem regs
 
-cold_init
+; disallow_vmem lets BASIC programs use the vmem registers but will disable
+; input/print hooks.  It's up to the program to turn vmem back on when
+; necessary using allow_vmem.
+;
+; There are 'holes' in this scheme. If you hit RUN/STOP during program
+; execution, this will leave the print/input routines pointing to the default
+; 40 column versions so you won't be able to see anything you type.  RUN/STOP
+; + RESTORE can get you out of this followed by SYS 51203 to get back to 80
+; columns.
+
+init
         ; Enable VICII-Kawari extensions
         lda #CHAR_V
         sta KAWARI_PORT
@@ -111,10 +126,7 @@ cold_init
         lda #CHAR_2
         sta KAWARI_PORT
 
-        ; Clear VMEM index values
-        lda #0
-        sta VMEM_A_IDX
-        sta VMEM_B_IDX
+        jsr save40
 
         ; We need to first copy char rom from $d000 into
         ; $9000, then turn off ROM and copy from $9000 into
@@ -158,7 +170,6 @@ loop    lda ($fb),y ; read byte from src $fb/$fc
 
         lda #$00    ; we're going to copy it to video ram $0000
         sta VMEM_A_HI
-        lda #$00
         sta VMEM_A_LO
         lda #1      ; use auto increment
         sta KAWARI_PORT
@@ -173,48 +184,31 @@ loop2   lda ($fb),y ; read byte from src $fb/$fc
         dex         ; ... and decrease X by one before restart
         bne loop2   ; We repeat this until X becomes Zero
 
-        ; clear 2k video matrix memory starting @ 0x1000 with spaces
-        ldx #8      ; loop 8 times (8x256 = 2Kb)
-        ldy #0
-        lda #$10    ; set address
-        sta VMEM_A_HI
-        lda #$00
-        sta VMEM_A_LO
-        lda #$20    ; space character
-loop3   sta VMEM_A_VAL
-        iny
-        bne loop3
-        dex
-        bne loop3
-
-        ; clear 2k color memory starting @ 0x1800
-        ldx #8      ; loop 8 times (8x256 = 2Kb)
-        ldy #0
-        lda #$18    ; set address
-        sta VMEM_A_HI
-        lda #$00
-        sta VMEM_A_LO
-        lda #$e      ; light blue
-loop4   sta VMEM_A_VAL
-        iny
-        bne loop4
-        dex
-        bne loop4
-
         sei         ; disable interrupts
         jsr install_routines
         cli         ; turn off interrupt disable flag
 
+        ; finally, turn on hires mode
+        ; char rom is at $0000 (4k)
+        ; screen ram is at $1000 (2k)
+        ; color ram is at $1800 (2k)
+
+        lda #16            ; uuu:hres:pal:cp  uuu:1:0:000 $0000
+        sta KAWARI_VMODE1
+        lda #50            ; col:mat = 0011:0010 $1800:$1000
+        sta KAWARI_VMODE2
+        jsr reset_kawari_regs
         jmp ($A000) ; BASIC cold start
+
+reset_kawari_regs
+        LDA #0             ; no inc
+        sta VMEM_A_IDX
+        sta VMEM_B_IDX
+        sta KAWARI_PORT
+        rts
 
 install_routines
         ; install our kernel routine replacements
-
-        ; set new nmi routine
-        lda #<new_nmiv
-        sta NMIV
-        lda #>new_nmiv
-        sta NMIV + 1
 
         ; set new cinv routine
         lda #<new_cinv
@@ -234,18 +228,108 @@ install_routines
         lda #>new_bsout
         sta IBSOUT + 1
 
-        ; finally, turn on hires mode
-        ; char rom is at $0000 (4k)
-        ; screen ram is at $1000 (2k)
-        ; color ram is at $1800 (2k)
+install_nmi
 
-        lda #16            ; uuu:hres:pal:cp  uuu:1:0:000 $0000
-        sta KAWARI_VMODE1
-        lda #50            ; col:mat = 0011:0010 $1800:$1000
-        sta KAWARI_VMODE2
-        LDA #0             ; no inc
-        STA KAWARI_PORT
+        ; set new brk routine
+        lda #<TIMB
+        sta BRKV
+        lda #>TIMB
+        sta BRKV + 1
+
+        ; set new nmi routine
+        lda #<new_nmiv
+        sta NMIV
+        lda #>new_nmiv
+        sta NMIV + 1
+
         rts
+
+; toggle between 40/80 column mode
+toggle
+       SEI
+       JSR RESTOR
+       LDA KAWARI_VMODE1
+       AND #16
+       BEQ to_80
+to_40
+       AND #239
+       STA KAWARI_VMODE1
+       JSR save80
+       JSR restore40
+       CLI
+       RTS
+to_80
+       ORA #16
+       STA KAWARI_VMODE1
+       JSR save40
+       JSR restore80
+       jsr install_routines
+       cli
+       RTS
+
+save40
+       ldx #0
+save40_loop
+       lda LDTB1,x
+       sta LDTB1_40,x
+       inx
+       cpx #25
+       bne save40_loop
+       LDA PNT
+       STA PNT_40
+       LDA PNTR
+       STA PNTR_40
+       LDA TBLX
+       STA TBLX_40
+       rts
+
+restore40
+       ldx #0
+restore40_loop
+       lda LDTB1_40,x
+       sta LDTB1,x
+       inx
+       cpx #25
+       bne restore40_loop
+       LDA PNT_40
+       STA PNT
+       LDA PNTR_40
+       STA PNTR
+       LDA TBLX_40
+       STA TBLX
+       rts
+
+save80
+       ldx #0
+save80_loop
+       lda LDTB1,x
+       sta LDTB1_80,x
+       inx
+       cpx #25
+       bne save80_loop
+       LDA PNT
+       STA PNT_80
+       LDA PNTR
+       STA PNTR_80
+       LDA TBLX
+       STA TBLX_80
+       rts
+
+restore80
+       ldx #0
+restore80_loop
+       lda LDTB1_80,x
+       sta LDTB1,x
+       inx
+       cpx #25
+       bne restore80_loop
+       LDA PNT_80
+       STA PNT
+       LDA PNTR_80
+       STA PNTR
+       LDA TBLX_80
+       STA TBLX
+       rts
 
 new_nmiv:
 
@@ -272,14 +356,36 @@ NNMI19
                        ;
                        ; TIMB - WHERE SYSTEM GOES ON A BRK INSTRUCTION
                        ;
-TIMB   JSR RESTOR      ; RESTORE SYSTEM INDIRECTS
+TIMB   
+       LDA KAWARI_VMODE1
+       AND #16
+       BEQ skip
+       JSR save80
+skip
+       AND #239
+       STA KAWARI_VMODE1
+       JSR RESTOR      ; RESTORE SYSTEM INDIRECTS
        JSR IOINIT      ; RESTORE I/O FOR BASIC
        JSR CINT        ; RESTORE SCREEN FOR BASIC
-       jsr install_routines
-       jsr CLSR
        JMP ($A002)     ; BASIC WARM START
-                       ;
+
 NNMI20 JMP $FE72       ; continue to usual NMI routine
+
+; disable print routines
+allow_vmem
+       sei
+       JSR RESTOR
+       jsr install_nmi ; always keep nmi and brk
+       cli
+       rts
+
+; enable print routines
+disallow_vmem
+       sei
+       jsr install_routines
+       jsr reset_kawari_regs
+       cli
+       rts
 
 new_bsout:
         sta DATA          ; save char data
@@ -291,10 +397,8 @@ new_bsout:
         pha
         tya
         pha
-        ; save_vmem?
         lda DATA
         jsr bsout_core
-        ; restore vmem?
         pla
         tay
         pla
@@ -463,7 +567,6 @@ CLP6
 
 bsin_core
 LOOP5
-        ; save_vmem?
         TYA
         PHA
         TXA
@@ -513,7 +616,6 @@ CLP21
         LDA #$D
 CLP1
         STA DATA
-        ; restore_vmem?
         PLA
         TAX
         PLA
@@ -1243,7 +1345,6 @@ REPDO   STA BLNCT
         LDY PNTR        ;CURSOR POSITION
         LSR BLNON       ;CARRY SET IF ORIGINAL CHAR
         LDX GDCOL       ;GET CHAR ORIGINAL COLOR
-        ; save_vmem?
         JSR PNT_TO_VMEM_A
         ;LDA (PNT),Y      ;GET CHARACTER
         STY VMEM_A_IDX
@@ -1265,7 +1366,6 @@ REPDO   STA BLNCT
         LDA GDBLN       ;WITH ORIGINAL CHARACTER
 KEY5    EOR #$80        ;BLINK IT
         JSR DSPP2       ;DISPLAY IT
-        ;restore_vmem?
 KEY4    JMP $EA61
 
 
@@ -1359,3 +1459,14 @@ LDTB2
        !BYTE <LINZ22
        !BYTE <LINZ23
        !BYTE <LINZ24
+
+; used to save state between 40/80 column switches
+LDTB1_80 !BYTE 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+PNT_80   !BYTE 0
+PNTR_80  !BYTE 0
+TBLX_80  !BYTE 0
+
+LDTB1_40 !BYTE 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+PNT_40   !BYTE 0
+PNTR_40  !BYTE 0
+TBLX_40  !BYTE 0
