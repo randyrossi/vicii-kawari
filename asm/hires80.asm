@@ -11,7 +11,14 @@ KAWARI_VMODE1 = $d037
 KAWARI_VMODE2 = $d038
 KAWARI_PORT = $d03f
 
-KAWARI_VICSCN = $1000 ; screen ram, takes the place of $0400
+SCN_HIBASE = $10      ; screen ram high byte, this is in $288 for 40 column
+                      ; mode but our mem config is fixed by this source so
+                      ; there's no point in making it configurable
+
+COL_HIBASE = $18      ; the high byte of color ram, this was never configurable
+                      ; for the VIC either since color was always at $d800
+
+KAWARI_VICSCN = $1000 ; screen ram in KAWARI space
 
 ; Kawari video memory port A regs
 VMEM_A_IDX = $d035
@@ -61,11 +68,10 @@ SHFLAG = $028D ; Flag: Keyb'rd SHIFT Key/CTRL Key/C= Key
 MODE   = $0291 ; Flag: $00=Disable SHIFT Keys, $80 = Enable SHIFT Keys
 AUTODN = $0292 ; Auto Down
 LINTMP = $02a5
-CINV   = $0314 ; NMI routine
+CINV   = $0314 ; IRQ routine
+NMIV   = $0318 ; NMI routine
 IBASIN = $0324 ; We replace the kernel screen input routine
 IBSOUT = $0326 ; We replace the kernel screen output routine
-HIBASE = $0288 ; Stores the HI byte for screen ram
-VICCOL = $1800 ; replaces $d800 ; !!! NEED ANOTHER LOC FOR THIS
 
 ; Some kernel routines we call into
 CPATCH = $E4DA
@@ -73,9 +79,16 @@ LP2    = $E5B4
 LOWER  = $EC44
 UPPER  = $EC4F
 RUNTB  = $ECE7
+A0INT  = $FD02
+UD60   = $F6BC
+STOP   = $FFE1
+RESTOR = $FD15
+IOINIT = $FDA3
+CINT   = $E518
 
 COLM   =$DC00          ; keyboard matrix column port
 ROWS   =$DC01          ; keyboard matrix row port
+D2ICR  =$DD0D
 
 ORIG_BASOUT = $F1D5
 ORIG_BASIN  = $F173
@@ -86,6 +99,8 @@ NLINES = 25             ;25 ROWS ON SCREEN
 LLEN   = 80             ;80 COLUMNS ON SCREEN
 
 *=$c800
+
+cold_init
         ; Enable VICII-Kawari extensions
         lda #CHAR_V
         sta KAWARI_PORT
@@ -106,7 +121,7 @@ LLEN   = 80             ;80 COLUMNS ON SCREEN
         ; Kawari video memory.
 
         ; first $d000 to $9000
-        sei         ; disable interrupts while we copy 
+        sei         ; disable interrupts while we copy
         ldx #$10    ; we loop 16 times (16x256 = 4Kb)
         lda #$33    ; make the CPU see the Character Generator ROM...
         sta $01     ; ...at $D000 by storing %00110011 into location $01
@@ -131,6 +146,8 @@ loop    lda ($fb),y ; read byte from src $fb/$fc
 
         lda #$37    ; switch in I/O mapped registers again...
         sta $01     ; ... with %00110111 so CPU can see them
+
+        cli         ; enable interrupts
 
         ; now copy from $9000 into VICII-Kawari memory
 
@@ -184,6 +201,21 @@ loop4   sta VMEM_A_VAL
         dex
         bne loop4
 
+        sei         ; disable interrupts
+        jsr install_routines
+        cli         ; turn off interrupt disable flag
+
+        jmp ($A000) ; BASIC cold start
+
+install_routines
+        ; install our kernel routine replacements
+
+        ; set new nmi routine
+        lda #<new_nmiv
+        sta NMIV
+        lda #>new_nmiv
+        sta NMIV + 1
+
         ; set new cinv routine
         lda #<new_cinv
         sta CINV
@@ -202,24 +234,52 @@ loop4   sta VMEM_A_VAL
         lda #>new_bsout
         sta IBSOUT + 1
 
-        ; our high byte for the screen is $10
-        lda #$10
-        sta HIBASE
-
         ; finally, turn on hires mode
         ; char rom is at $0000 (4k)
         ; screen ram is at $1000 (2k)
         ; color ram is at $1800 (2k)
-        lda #16            ; uuu:h:p:cp  uuu:1:0:000 $0000
+
+        lda #16            ; uuu:hres:pal:cp  uuu:1:0:000 $0000
         sta KAWARI_VMODE1
         lda #50            ; col:mat = 0011:0010 $1800:$1000
         sta KAWARI_VMODE2
         LDA #0             ; no inc
         STA KAWARI_PORT
+        rts
 
-        cli         ; turn off interrupt disable flag
+new_nmiv:
 
-        jmp ($A000) ; BASIC cold start
+NNMI   PHA
+       TXA
+       PHA
+       TYA
+       PHA
+NNMI10 LDA #$7F        ;DISABLE ALL NMI'S
+       STA D2ICR
+       LDY D2ICR       ;CHECK IF REAL NMI...
+       BMI NNMI20      ;NO...RS232/OTHER
+
+NNMI18 JSR A0INT       ;CHECK IF $A0 IN...NO .Y
+       BNE NNMI19      ;...NO
+       JMP ($8002)     ;...YES
+                       ;
+                       ; CHECK FOR STOP KEY DOWN
+                       ;
+NNMI19
+       JSR UD60        ;NO .Y
+       JSR STOP        ;NO .Y
+       BNE NNMI20      ;NO STOP KEY...TEST FOR RS232
+                       ;
+                       ; TIMB - WHERE SYSTEM GOES ON A BRK INSTRUCTION
+                       ;
+TIMB   JSR RESTOR      ; RESTORE SYSTEM INDIRECTS
+       JSR IOINIT      ; RESTORE I/O FOR BASIC
+       JSR CINT        ; RESTORE SCREEN FOR BASIC
+       jsr install_routines
+       jsr CLSR
+       JMP ($A002)     ; BASIC WARM START
+                       ;
+NNMI20 JMP $FE72       ; continue to usual NMI routine
 
 new_bsout:
         sta DATA          ; save char data
@@ -231,8 +291,10 @@ new_bsout:
         pha
         tya
         pha
+        ; save_vmem?
         lda DATA
         jsr bsout_core
+        ; restore vmem?
         pla
         tay
         pla
@@ -245,7 +307,7 @@ oldbso:        jmp ORIG_BASOUT ; original non-screen BSOUT
 
 ; CLSR was e544
 CLSR
-        LDA HIBASE ;FILL HI BYTE PTR TABLE
+        LDA #SCN_HIBASE ;FILL HI BYTE PTR TABLE
         ORA #$80
         TAY
         LDA #0
@@ -267,7 +329,7 @@ CLEAR1  JSR CLRLN       ;SEE SCROLL ROUTINES
 
 ;NXTD HOME FUNCTION was E566
 
-NXTD   
+NXTD
         LDY #0
         STY    PNTR            ;LEFT COLUMN
         STY    TBLX            ;TOP LINE
@@ -289,7 +351,7 @@ FNDSTR
 
 STOK
         JSR SETPNT      ;SET UP PNT INDIRECT 901227-03**********
- 
+
         LDA #LLEN-1
         INX
 FNDEND
@@ -313,7 +375,7 @@ FINPUX
         RTS
 
 new_bsin:
-        LDA    DFLTN       ;CHECK DEVICE
+        LDA    DFLTN           ;CHECK DEVICE
         BNE    BN10            ;IS NOT KEYBOARD...
         LDA    PNTR            ;SAVE CURRENT...
         STA    LSTP            ;... CURSOR COLUMN
@@ -349,20 +411,20 @@ LOOP3
         LDY    #0
         STY    BLNON
         JSR    DSPP
-LP21  
+LP21
         JSR LP2
         CMP    #$83            ;RUN KEY?
         BNE LP22
         LDX #9
         SEI
         STX NDX
-LP23  
+LP23
         LDA RUNTB-1,X
         STA KEYD-1,X
         DEX
         BNE LP23
         BEQ LOOP3
-LP22  
+LP22
         CMP #$D
         BNE    LOOP4
         LDY    LNMX
@@ -371,14 +433,14 @@ LP22
         JSR PNT_TO_VMEM_A
 CLP5
         ;LDA (PNT),Y
-        STY VMEM_A_IDX 
+        STY VMEM_A_IDX
         LDA VMEM_A_VAL
 
         CMP    #$20
         BNE    CLP6
         DEY
         BNE    CLP5
-CLP6  
+CLP6
         INY
         STY    INDX
         LDY    #0
@@ -400,7 +462,8 @@ CLP6
 ;INPUT A LINE UNTIL CARRIAGE RETURN
 
 bsin_core
-LOOP5 
+LOOP5
+        ; save_vmem?
         TYA
         PHA
         TXA
@@ -409,32 +472,32 @@ LOOP5
         BEQ    LOOP3
 
         JSR PNT_TO_VMEM_A
-LOP5  
+LOP5
         LDY PNTR
         ;LDA    (PNT),Y
         STY VMEM_A_IDX
         LDA VMEM_A_VAL
 NOTONE
         STA    DATA
-LOP51 
+LOP51
         AND #$3F
         ASL    DATA
         BIT    DATA
         BPL    LOP54
         ORA    #$80
-LOP54 
+LOP54
         BCC LOP52
         LDX    QTSW
         BNE    LOP53
-LOP52 
+LOP52
         BVS LOP53
         ORA    #$40
-LOP53 
+LOP53
         INC PNTR
         JSR    QTSWC
         CPY    INDX
         BNE    CLP1
-CLP2  
+CLP2
         LDA #0
         STA    CRSW
         LDA    #$D
@@ -444,12 +507,13 @@ CLP2
         LDX    DFLTO
         CPX    #3
         BEQ    CLP21
-CLP2A 
+CLP2A
         JSR PRT
-CLP21 
+CLP21
         LDA #$D
-CLP1  
+CLP1
         STA DATA
+        ; restore_vmem?
         PLA
         TAX
         PLA
@@ -458,34 +522,35 @@ CLP1
         CMP    #$DE            ;IS IT <PI> ?
         BNE    CLP7
         LDA    #$FF
-CLP7  
+CLP7
         CLC
         RTS
-QTSWC 
+
+QTSWC
         CMP #$22
         BNE    QTSWL
         LDA    QTSW
         EOR    #$1
         STA    QTSW
         LDA    #$22
-QTSWL 
+QTSWL
         RTS
-NXT33 
+NXT33
         ORA #$40
-NXT3  
+NXT3
         LDX RVS
         BEQ    NVS
-NC3   
+NC3
         ORA #$80
-NVS   
+NVS
         LDX INSRT
         BEQ    NVS1
         DEC    INSRT
-NVS1  
+NVS1
         LDX COLOR ; PUT COLOR ON SCREEN
         JSR    DSPP
         JSR WLOGIC      ;CHECK FOR WRAPAROUND
-LOOP2 
+LOOP2
         PLA
         TAY
         LDA    INSRT
@@ -541,7 +606,7 @@ WLOG10
         STA PNTR        ;POINT TO FIRST BYTE
 WLGRTS
         RTS
-BKLN  
+BKLN
         LDX TBLX
         BNE BKLN1
         STX PNTR
@@ -549,7 +614,7 @@ BKLN
         PLA
         BNE LOOP2
 ;
-BKLN1 
+BKLN1
         DEX
         STX TBLX
         JSR STUPT
@@ -559,7 +624,7 @@ BKLN1
 
 ; Originally found found @ $e716
 bsout_core
-PRT   
+PRT
         PHA
         STA    DATA
         TXA
@@ -575,39 +640,39 @@ PRT
         CMP    #$D
         BNE    NJT1
         JMP    NXT1
-NJT1   
+NJT1
         CMP #$20
         BCC    NTCN
         CMP    #$60            ;LOWER CASE?
         BCC    NJT8            ;NO...
         AND    #$DF            ;YES...MAKE SCREEN LOWER
         BNE    NJT9            ;ALWAYS
-NJT8   
+NJT8
         AND #$3F
-NJT9   
+NJT9
         JSR QTSWC
         JMP    NXT3
-NTCN   
+NTCN
         LDX INSRT
         BEQ    CNC3X
         JMP    NC3
-CNC3X  
+CNC3X
         CMP #$14
         BNE    NTCN1
         TYA
         BNE    BAK1UP
         JSR BKLN
         JMP BK2
-BAK1UP        
+BAK1UP
         JSR CHKBAK      ;SHOULD WE DEC TBLX
                DEY
         STY    PNTR
-BK1   
+BK1
         JSR SCOLOR      ;FIX COLOR PTRS
 
         JSR PNT_TO_VMEM_A
         JSR USER_TO_VMEM_B
-BK15  
+BK15
         INY
         ;LDA    (PNT),Y
         STY VMEM_A_IDX
@@ -627,7 +692,7 @@ BK15
         INY
         CPY    LNMX
         BNE    BK15
-BK2   
+BK2
         JSR PNT_TO_VMEM_A
         JSR USER_TO_VMEM_B
 
@@ -640,20 +705,20 @@ BK2
         STY VMEM_B_IDX
         STA VMEM_B_VAL
         BPL    JPL3
-NTCN1  
+NTCN1
         LDX QTSW
         BEQ    NC3W
-CNC3  
+CNC3
         JMP NC3
-NC3W   
+NC3W
         CMP #$12
         BNE    NC1
         STA    RVS
-NC1    
+NC1
         CMP #$13
         BNE    NC2
         JSR    NXTD
-NC2   
+NC2
         CMP #$1D
         BNE    NCX2
         INY
@@ -665,11 +730,11 @@ NC2
                DEC TBLX
         JSR    NXLN
         LDY    #0
-JPL4  
+JPL4
         STY PNTR
-NCZ2   
+NCZ2
         JMP LOOP2
-NCX2   
+NCX2
         CMP #$11
         BNE    COLR1
         CLC
@@ -681,16 +746,16 @@ NCX2
         BCC    JPL4
         BEQ    JPL4
                DEC TBLX
-CURS10 
+CURS10
         SBC #LLEN
                BCC GOTDWN
                STA PNTR
                BNE CURS10
-GOTDWN 
+GOTDWN
         JSR NXLN
-JPL3  
+JPL3
         JMP LOOP2
-COLR1  
+COLR1
         JSR CHKCOL      ;CHECK FOR A COLOR
                JMP LOWER       ;WAS JMP LOOP2
         ;CHECK COLOR
@@ -712,7 +777,7 @@ UHUH
         CMP    #$D
         BNE    UP5
         JMP    NXT1
-UP5   
+UP5
         LDX  QTSW
         BNE    UP6
         CMP    #$14
@@ -726,16 +791,16 @@ UP5
         BNE    INS3
         CPY    PNTR
         BNE    INS1
-INS3   
+INS3
         CPY #MAXCHR-1
         BEQ    INSEXT          ;EXIT IF LINE TOO LONG
         JSR    NEWLIN          ;SCROLL DOWN 1
-INS1   
+INS1
         LDY LNMX
         JSR    SCOLOR
         JSR PNT_TO_VMEM_A
         JSR USER_TO_VMEM_B
-INS2   
+INS2
         DEY
         ;LDA    (PNT),Y
         STY VMEM_A_IDX
@@ -764,15 +829,15 @@ INS2
         STY VMEM_B_IDX
         STA VMEM_B_VAL
         INC    INSRT
-INSEXT 
+INSEXT
         JMP LOOP2
-UP9    
+UP9
         LDX INSRT
         BEQ    UP2
-UP6    
+UP6
         ORA #$40
         JMP    NC3
-UP2    
+UP2
         CMP #$11
         BNE    NXT2
         LDX    TBLX
@@ -784,15 +849,15 @@ UP2
                BCC UPALIN
                STA PNTR
                BPL JPL2
-UPALIN 
+UPALIN
         JSR STUPT
         BNE    JPL2
-NXT2   
+NXT2
         CMP #$12
         BNE    NXT6
         LDA    #0
         STA    RVS
-NXT6   
+NXT6
         CMP #$1D
         BNE    NXT61
                TYA
@@ -801,29 +866,29 @@ NXT6
         DEY
         STY    PNTR
                JMP LOOP2
-BAKBAK 
+BAKBAK
         JSR BKLN
         JMP    LOOP2
-NXT61  
+NXT61
         CMP #$13
         BNE    SCCL
         JSR    CLSR
-JPL2   
+JPL2
         JMP LOOP2
 SCCL
         ORA    #$80            ;MAKE IT UPPER CASE
         JSR    CHKCOL          ;TRY FOR COLOR
                JMP UPPER       ;WAS JMP LOOP2
         ;
-NXLN   
+NXLN
         LSR LSXP
         LDX    TBLX
-NXLN2  
+NXLN2
         INX
         CPX    #NLINES         ;OFF BOTTOM?
         BNE    NXLN1           ;NO...
         JSR    SCROL           ;YES...SCROLL
-NXLN1  
+NXLN1
         LDA LDTB1,X     ;DOUBLE LINE?
         BPL    NXLN2           ;YES...SCROLL AGAIN
         STX    TBLX
@@ -835,16 +900,16 @@ NXT1
         STX    QTSW
         STX    PNTR
         JSR    NXLN
-JPL5   
+JPL5
         JMP LOOP2
         ;
         ;
         ; CHECK FOR A DECREMENT TBLX
         ;
-CHKBAK 
+CHKBAK
         LDX #NWRAP
                LDA #0
-CHKLUP 
+CHKLUP
         CMP PNTR
                BEQ BACK
                CLC
@@ -853,16 +918,16 @@ CHKLUP
                BNE CHKLUP
                RTS
         ;
-BACK   
+BACK
         DEC TBLX
                RTS
         ;
         ; CHECK FOR INCREMENT TBLX
         ;
-CHKDWN 
+CHKDWN
         LDX #NWRAP
                LDA #LLEN-1
-DWNCHK 
+DWNCHK
         CMP PNTR
                BEQ DNLINE
                CLC
@@ -871,13 +936,13 @@ DWNCHK
                BNE DWNCHK
                RTS
         ;
-DNLINE 
+DNLINE
         LDX TBLX
                CPX #NLINES
                BEQ DWNBYE
                INC TBLX
         ;
-DWNBYE 
+DWNBYE
         RTS
 CHKCOL
                LDX #15         ;THERE'S 15 COLORS
@@ -897,7 +962,7 @@ COLTAB
 
         ;SCREEN SCROLL ROUTINE
         ;
-SCROL 
+SCROL
         LDA SAL
         PHA
         LDA    SAH
@@ -909,12 +974,12 @@ SCROL
         ;
         ;   S C R O L L   U P
         ;
-SCRO0 
+SCRO0
         LDX #$FF
         DEC TBLX
         DEC LSXP
         DEC LINTMP
-SCR10 
+SCR10
         INX             ;GOTO NEXT LINE
         JSR SETPNT      ;POINT TO 'TO' LINE
         CPX #NLINES-1   ;DONE?
@@ -930,13 +995,13 @@ SCR41
         JSR CLRLN
         ;
         LDX    #0              ;SCROLL HI BYTE POINTERS
-SCRL5 
+SCRL5
         LDA LDTB1,X
         AND    #$7F
         LDY    LDTB1+1,X
         BPL    SCRL3
         ORA    #$80
-SCRL3 
+SCRL3
         STA LDTB1,X
         INX
         CPX    #NLINES-1
@@ -961,7 +1026,7 @@ SCRL3
         BNE    MLP42
         ;
         LDY    #0
-MLP4  
+MLP4
         NOP             ;DELAY
         DEX
         BNE    MLP4
@@ -969,7 +1034,7 @@ MLP4
         BNE    MLP4
         STY    NDX             ;CLEAR KEY QUEUE BUFFER
         ;
-MLP42 
+MLP42
         LDX TBLX
         ;
 PULIND
@@ -984,13 +1049,13 @@ PULIND
         RTS
 NEWLIN
         LDX TBLX
-BMT1  
+BMT1
         INX
         ; CPX #NLINES ;EXCEDED THE NUMBER OF LINES ???
         ; BEQ BMT2 ;VIC-40 CODE
         LDA LDTB1,X     ;FIND LAST DISPLAY LINE OF THIS LINE
         BPL BMT1        ;TABLE END MARK=>$FF WILL ABORT...ALSO
-BMT2  
+BMT2
         STX LINTMP      ;FOUND IT
         ;GENERATE A NEW LINE
         CPX    #NLINES-1       ;IS ONE LINE FROM BOTTOM?
@@ -1001,7 +1066,7 @@ BMT2
         DEX
         DEC TBLX
         JMP WLOG30
-NEWLX 
+NEWLX
         LDA SAL
         PHA
         LDA    SAH
@@ -1011,7 +1076,7 @@ NEWLX
         LDA    EAH
         PHA
                LDX #NLINES
-SCD10 
+SCD10
         DEX
         JSR SETPNT      ;SET UP TO ADDR
         CPX LINTMP
@@ -1050,7 +1115,7 @@ SCRLIN
         ; we AND with $07 instead of $03 because we have 8
         ; pages instead of the usual 4
         AND #$07        ;CLEAR ANY GARBAGE STUFF
-        ORA HIBASE      ;PUT IN HIORDER BITS
+        ORA #SCN_HIBASE      ;PUT IN HIORDER BITS
         STA SAL+1
         JSR TOFROM      ;COLOR TO & FROM ADDRS
 
@@ -1099,7 +1164,7 @@ TOFROM
         ; we AND with $07 instead of $03 because we have 8
         ; pages instead of the usual 4
         AND #$07
-        ORA #>VICCOL
+        ORA #COL_HIBASE    ;COLOR RAM HI BYTE
         STA EAL+1
         RTS
         ;
@@ -1113,17 +1178,17 @@ SETPNT
         ; we AND with $07 instead of $03 because we have 8
         ; pages instead of the usual 4
         AND #$07
-        ORA HIBASE
+        ORA #SCN_HIBASE
         STA PNT+1
         RTS
         ;
         ; CLEAR THE LINE POINTED TO BY .X
         ;
-CLRLN 
+CLRLN
         LDY #LLEN-1
         JSR SETPNT
         JSR SCOLOR
-CLR10 
+CLR10
         JSR CPATCH      ;REVERSED ORDER FROM 901227-02
         JSR PNT_TO_VMEM_A
         LDA #$20        ;STORE A SPACE
@@ -1137,14 +1202,14 @@ CLR10
         ;
         ;PUT A CHAR ON THE SCREEN
         ;
-DSPP  
+DSPP
         TAY             ;SAVE CHAR
         LDA    #2
         STA    BLNCT           ;BLINK CURSOR
         JSR    SCOLOR          ;SET COLOR PTR
         JSR PNT_TO_VMEM_A      ;set before char put in a
         TYA                    ;RESTORE CHAR
-DSPP2 
+DSPP2
         LDY PNTR        ;GET COLUMN
         ;STA    (PNT),Y          ;CHAR TO SCREEN
         STY VMEM_A_IDX
@@ -1162,7 +1227,7 @@ SCOLOR
                ; we AND with $07 instead of $03 because we have 8
                ; pages instead of the usual 4
         AND    #$07
-        ORA    #>VICCOL        ;VIC COLOR RAM
+        ORA    #COL_HIBASE        ;VIC COLOR RAM HI BYTE
         STA    USER+1
         RTS
 
@@ -1173,33 +1238,34 @@ KEY     JSR $FFEA       ;UPDATE JIFFY CLOCK
         DEC BLNCT       ;TIME TO BLINK ?
         BNE KEY4        ;NO
         LDA #20         ;RESET BLINK COUNTER
- 
+
 REPDO   STA BLNCT
         LDY PNTR        ;CURSOR POSITION
         LSR BLNON       ;CARRY SET IF ORIGINAL CHAR
         LDX GDCOL       ;GET CHAR ORIGINAL COLOR
+        ; save_vmem?
         JSR PNT_TO_VMEM_A
         ;LDA (PNT),Y      ;GET CHARACTER
         STY VMEM_A_IDX
         LDA VMEM_A_VAL
         BCS KEY5        ;BRANCH IF NOT NEEDED
- 
+
         INC BLNON       ;SET TO 1
         STA GDBLN       ;SAVE ORIGINAL CHAR
         JSR SCOLOR
- 
+
         ;LDA (USER),Y     ;GET ORIGINAL COLOR
         JSR USER_TO_VMEM_A
         STY VMEM_A_IDX
         LDA VMEM_A_VAL
         STA GDCOL       ;SAVE IT
- 
+
         LDX COLOR       ;BLINK IN THIS COLOR
         JSR PNT_TO_VMEM_A ; set ptr before setting a for dspp2
         LDA GDBLN       ;WITH ORIGINAL CHARACTER
 KEY5    EOR #$80        ;BLINK IT
         JSR DSPP2       ;DISPLAY IT
-
+        ;restore_vmem?
 KEY4    JMP $EA61
 
 
