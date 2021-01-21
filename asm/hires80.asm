@@ -102,18 +102,6 @@ LLEN   = 80             ;80 COLUMNS ON SCREEN
 *=$c800
    JMP init           ; $c800 : full initialization
    JMP toggle         ; $c803 : toggle between 40/80 columns
-   JMP disallow_vmem  ; $c806 : lets basic use vmem but disables input/print
-   JMP allow_vmem     ; $c809 : enables input/print but can't use vmem regs
-
-; disallow_vmem lets BASIC programs use the vmem registers but will disable
-; input/print hooks.  It's up to the program to turn vmem back on when
-; necessary using allow_vmem.
-;
-; There are 'holes' in this scheme. If you hit RUN/STOP during program
-; execution, this will leave the print/input routines pointing to the default
-; 40 column versions so you won't be able to see anything you type.  RUN/STOP
-; + RESTORE can get you out of this followed by SYS 51203 to get back to 80
-; columns.
 
 init
         ; Enable VICII-Kawari extensions
@@ -362,18 +350,6 @@ skip
        JMP ($A002)     ; BASIC WARM START
 
 NNMI20 JMP $FE72       ; continue to usual NMI routine
-
-; disable print routines
-allow_vmem
-       LDA #1
-       STA ALLOW_VMEM
-       rts
-
-; enable print routines
-disallow_vmem
-       LDA #0
-       STA ALLOW_VMEM
-       rts
 
 new_bsout:
         sta DATA          ; save char data
@@ -1331,8 +1307,6 @@ KEY     JSR $FFEA       ;UPDATE JIFFY CLOCK
         BNE KEY4        ;NO
         DEC BLNCT       ;TIME TO BLINK ?
         BNE KEY4        ;NO
-	LDA ALLOW_VMEM  ;CAN USE VMEM?
-	BEQ KEY4        ;NO
         LDA #20         ;RESET BLINK COUNTER
 
 REPDO   STA BLNCT
@@ -1466,5 +1440,3 @@ LDTB1_40 !BYTE 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 PNT_40   !BYTE 0
 PNTR_40  !BYTE 0
 TBLX_40  !BYTE 0
-
-ALLOW_VMEM !BYTE 1
