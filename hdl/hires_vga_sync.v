@@ -84,16 +84,16 @@ begin
         h_count <= 0;
         case (chip)
             `CHIP6569, `CHIPUNUSED: begin
-                hs_sta <= 20;   //  h front porch 10
-                hs_end <= 140;   // +h sync pulse  10 + 60
-                ha_sta <= 200;  // +h back porch  10 + 60 + 30
-                // v front porch 11 22
-                // v sync pulse 3  6
-                // v back porch 41 82
+                hs_sta <= 20;   //  h front porch 20
+                hs_end <= 140;  // +h sync pulse  20 + 120
+                ha_sta <= 200;  // +h back porch  20 + 120 + 60
+                // v front porch 11
+                // v sync pulse 3
+                // v back porch 41
                 // HEIGHT = 624
-                vs_sta <= 536;  // HEIGHT - v back porch - v sync pulse
-                vs_end <= 542;  // HEIGHT - v back porch
-                va_end <= 514;  // HEIGHT - v back porch - v sync pulse - v front porch
+                vs_sta <= 580;  // HEIGHT - v back porch - v sync pulse
+                vs_end <= 583;  // HEIGHT - v back porch
+                va_end <= 569;  // HEIGHT - v back porch - v sync pulse - v front porch
                 hoffset <= 10;
                 voffset = 20;
                 max_width = 1007; //503;
@@ -101,9 +101,9 @@ begin
                 v_count <= 623 - voffset;
             end
             `CHIP6567R8: begin
-                hs_sta <= 10;   //  h front porch 10
-                hs_end <= 72;   // +h sync pulse  10 + 62
-                ha_sta <= 103;  // +h back porch  10 + 62 + 31
+                hs_sta <= 20;   //  h front porch 20
+                hs_end <= 144;  // +h sync pulse  20 + 124
+                ha_sta <= 206;  // +h back porch  20 + 124 + 62
                 // v front porch 10
                 // v sync pulse 3
                 // v back porch 11
@@ -118,9 +118,9 @@ begin
                 v_count <= 525 - voffset;
             end
             `CHIP6567R56A: begin
-                hs_sta <= 10;   //  h front porch 10
-                hs_end <= 71;   // +h sync pulse  10 + 61
-                ha_sta <= 102;  // +h back porch  10 + 61 + 31
+                hs_sta <= 20;   //  h front porch 20
+                hs_end <= 142;  // +h sync pulse  20 + 122
+                ha_sta <= 204;  // +h back porch  20 + 122 +62
                 // v front porch 10
                 // v sync pulse 3
                 // v back porch 9
