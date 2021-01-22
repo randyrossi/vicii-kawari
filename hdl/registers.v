@@ -80,7 +80,8 @@ module registers(
            output reg [2:0] hires_char_pixel_base,
            output reg [3:0] hires_matrix_base,
            output reg [3:0] hires_color_base,
-           output reg hires_enabled
+           output reg hires_enabled,
+           output reg [1:0] hires_mode
 	   // --- END EXTENSIONS ---
        );
 
@@ -223,11 +224,43 @@ always @(posedge clk_dot4x)
         // --- BEGIN EXTENSIONS ----
         extra_regs_activation_ctr <= 2'b0;
 `ifdef IS_SIMULATOR
-        extra_regs_activated <= 1'b1;
-        video_ram_flags <= 8'b1;
+        extra_regs_activated <= 0'b1;
+        video_ram_flags <= 8'b0;
+
+	`ifdef HIRES_TEXT
+	// Test mode 0 : Text
+        hires_enabled <= 1'b1;
+	hires_mode <= 2'b00;
+	// char pixels @0000(4K)
         hires_char_pixel_base <= 3'b0;
+	// color table @1000(2K)
         hires_color_base <= 4'b10;
+	// matrix @1800(2K)
         hires_matrix_base <= 4'b11;
+	`endif
+	`ifdef HIRES_BITMAP1
+        hires_enabled <= 1'b1;
+	hires_mode <= 2'b01;
+        hires_char_pixel_base <= 3'b0; // ignored
+	// pixels @0000(16k)
+        hires_matrix_base <= 4'b0000;
+	// color table @8000(2K)
+        hires_color_base <= 4'b1000;
+	`endif
+	`ifdef HIRES_BITMAP2
+        hires_enabled <= 1'b1;
+	hires_mode <= 2'b10;
+        hires_char_pixel_base <= 3'b0; // ignored
+        hires_matrix_base <= 4'b0000; // ignored
+        hires_color_base <= 4'b0000; // ignored
+	`endif
+	`ifdef HIRES_BITMAP3
+        hires_enabled <= 1'b1;
+	hires_mode <= 2'b11;
+        hires_char_pixel_base <= 3'b0; // ignored
+        hires_matrix_base <= 4'b0000; // ignored
+        hires_color_base <= 4'b0000; // ignored
+	`endif
 `else
         extra_regs_activated <= 1'b0;
 `endif
@@ -396,7 +429,11 @@ always @(posedge clk_dot4x)
                     `VIDEO_MEM_2_IDX:
                         dbo[7:0] <= video_ram_idx_2;
                     `VIDEO_MODE1:
-                        dbo[7:0] <= { 3'b0, hires_enabled, palette_select, hires_char_pixel_base };
+                        dbo[7:0] <= { 1'b0,
+			              hires_mode,
+				      hires_enabled,
+				      palette_select,
+				      hires_char_pixel_base };
                     `VIDEO_MODE2:
                         dbo[7:0] <= { hires_color_base, hires_matrix_base };
                     `VIDEO_MEM_1_HI:
@@ -575,6 +612,7 @@ always @(posedge clk_dot4x)
                     `VIDEO_MEM_2_IDX:
                         video_ram_idx_2 <= dbi;
 		    `VIDEO_MODE1: begin
+                        hires_mode <= dbi[6:5];
                         hires_enabled <= dbi[`HIRES_ENABLE];
                         palette_select <= dbi[`PALETTE_SELECT_BIT];
                         hires_char_pixel_base <= dbi[2:0];

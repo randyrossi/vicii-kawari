@@ -25,9 +25,11 @@ module hires_addressgen(
            input [3:0] color_base,
            input [2:0] rc,
            input [10:0] vc,
+           input [13:0] fvc,
            input char_case, // this comes from the existing cb[0]
            output reg [14:0] video_mem_addr, // extended video ram address
 	   input [7:0] video_mem_data,
+	   input [1:0] hires_mode,
 	   output reg [7:0] hires_pixel_data,
 	   output reg [7:0] hires_color_data
        );
@@ -45,12 +47,32 @@ begin
 	    if (phi_phase_start[2])
                 video_mem_addr <= {matrix_base, vc};
 	    else if (phi_phase_start[4]) begin
-                // We don't need to store the char ptr
-                video_mem_addr <=
-                    {char_pixel_base, char_case, video_mem_data, rc};
+		case (hires_mode)
+		2'b00:
+		   // TEXT mode pixel fetch
+                   // No need to store the char ptr. We fetch it every
+		   // time anyway.
+                   video_mem_addr <=
+                       {char_pixel_base, char_case, video_mem_data, rc};
+                2'b01:
+                   // BITMAP mode pixel fetch
+                   video_mem_addr <= {matrix_base[0], fvc};
+                2'b10, 2'b11:
+                   video_mem_addr <= {1'b0, fvc}; // 1st plane
+                endcase
             end else if (phi_phase_start[6]) begin
 		hires_pixel_data <= video_mem_data;
-                video_mem_addr <= {color_base, vc};
+
+                case (hires_mode)
+		2'b00:
+		   // TEXT mode
+                   video_mem_addr <= {color_base, vc};
+                2'b01:
+                   // Bitmap 2k color
+                   video_mem_addr <= {color_base, vc};
+                2'b10, 2'b11:
+                   video_mem_addr <= {1'b1, fvc}; // 2nd plane
+                endcase
 	    end else if (phi_phase_start[8])
 		hires_color_data <= video_mem_data; // ready by 10
         end

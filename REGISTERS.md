@@ -63,44 +63,26 @@ VIDEO_MODE1 | Description
 BIT 1-3     | CHAR_PIXEL_BASE
 BIT 4       | PALETTE SELECT
 BIT 5       | HIRES ENABLE (640x200 mode)
-BIT 6       | HIRES TEXT/BITMAP
+BIT 6-7     | HIRES MODE (0=TEXT, 1=640x200, 2=320x200, 3=640x200)
+BIT 8       | UNUSED
 
 VIDEO_MODE2 | Description
 ------------|------------
 BIT 1-4     | MATRIX_BASE
 BIT 4-8     | COLOR_BASE
 
-## Matrix Base
-
-For hires text mode, matrix base controls which of the 16 2k pages inside the 32k video memory the video matrix resides.
-
-    matrix start address = matrix_base * 2048
-
-For hires bitmap mode, the lower bit of matrix base controls which of the 2 16k pages inside the 32k video memory the pixel data resides.
-
-    bitmap data start address = matrix_base[0] * 16384
-
-## Color Base
-
-For hires text mode, color base controls which of the 16 2k pages inside the 32k video memory the color memory resides.
-
-    color start address = color_base * 2048
-
-For hires bitmap mode, the least significant bit of color base controls which of the 2 16k pages inside the 32k video memory the color data resides.
-
-    bitmap color start address = color_base[0] * 16384
-
-## Char Pixel Base
-
-For hires text mode, char pixel base controls which of the 8 4k pages inside the 32k video memory the character pixel data resides.
-
-    char pixel start address = color_base * 4096
-
 ## Hires Enable
-This bit controls whether the horizontal resolution is doubled or not.  It must be enabled for 80 column text or 640x200 bitmap modes.
+This bit controls whether the horizontal resolution is doubled or not.  It must be enabled for 80 column text or the bitmap modes.
 
-## Hires Text/Bitmap
-This bit controls the hires video mode. When off, a text mode will be used.  When on, a 16 color hires bitmap mode is used.
+## Hires Mode
+These bit controls the hires video mode.
+
+HIRES MODE | Description
+-----------|-------------
+0          | 80 Column Text 16 Colors (4K CharDef, 2K Matrix, 2K Color)
+1          | 640x200 Bitmap 16 Colors (16K Bitmap, 2K Color)
+2          | 320x200 Bitmap 16 Color 2 Planes (32K Bitmap)
+3          | 640x200 Bitmap 4 Color 2 Planes (32K Bitmap)
 
 ### Writing to video memory from main DRAM using auto increment
     LDA <ADDR

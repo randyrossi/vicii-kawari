@@ -25,7 +25,20 @@ module COLOR_REGS
 
 (* ram_style = "block" *) reg [data_width-1:0] ram_dual_port[2**addr_width-1:0];
 
+`ifndef IS_SIMULATOR
 initial $readmemb ("colors.bin", ram_dual_port);
+`else
+`ifdef HIRES_BITMAP3
+initial $readmemb ("640colors.bin", ram_dual_port);
+`else
+`ifdef HIRES_BITMAP2
+initial $readmemb ("320colors.bin", ram_dual_port);
+`else
+initial $readmemb ("colors.bin", ram_dual_port);
+`endif
+`endif
+`endif
+
 
 always @(posedge clk)
 begin

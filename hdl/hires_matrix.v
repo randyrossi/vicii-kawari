@@ -19,11 +19,13 @@ module hires_matrix(
            input [8:0] raster_line,
            input badline,
            output reg [10:0] hires_vc,
-           output reg [2:0] hires_rc
+           output reg [2:0] hires_rc,
+           output reg [13:0] hires_fvc // a fast counter for 16k bitmap mode
        );
 
 reg [10:0] hires_vc_base;
 reg idle; // I don't know if we ever need to advertise this
+reg [7:0] badline_hist;
 always @(posedge clk_dot4x)
     if (rst)
     begin
@@ -41,16 +43,26 @@ always @(posedge clk_dot4x)
             if (clk_phi && cycle_num == 1 && raster_line == 9'd0) begin
                 hires_vc_base <= 11'd0;
                 hires_vc <= 11'd0;
+                hires_fvc <= 14'd0;
             end
 
             // Increment within the same range (but this happens at 2x)
-            if (cycle_num > 14 && cycle_num < 55 && idle == `FALSE)
-                hires_vc <= hires_vc + 1'b1;
+	    // So hires_vc only increments by 80 every 8 rows (within the
+	    // visible region) while fvc increments by 80 per raster line
+	    // (within the visible region)
+	    if (cycle_num > 14 && cycle_num < 55) begin
+                if (!idle)
+                   hires_vc <= hires_vc + 1'b1;
+                if (badline_hist != 0)
+                   hires_fvc <= hires_fvc + 1'b1;
+            end
 
 	    if (clk_phi && cycle_num == 13) begin
                 hires_vc <= hires_vc_base;
-                if (badline)
+		if (badline) begin
                     hires_rc <= 3'd0;
+	        end
+		badline_hist <= {badline_hist[6:0], badline};
             end
 
             // Go to next row at the usual time (only on high phase tho)

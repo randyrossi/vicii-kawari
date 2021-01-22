@@ -5,8 +5,7 @@
 module pixel_sequencer(
            input clk_dot4x,
            input clk_phi,
-           input dot_rising_1,
-           input dot_rising_3,
+           input [3:0] dot_rising,
            // chosen to make pixels/chars delayed valid when load_pixels rises
            // (when cycle_bit == 0)
            input phi_phase_start_pl,
@@ -44,6 +43,7 @@ module pixel_sequencer(
 
 	   // --- BEGIN EXTENSIONS ----
 	   input hires_enabled,
+	   input [1:0] hires_mode,
            input phi_phase_start_10,
            input [2:0] hires_cycle_bit,
            input [7:0] hires_pixel_data,
@@ -140,7 +140,7 @@ reg hires_stage0;
 // register changes by 2 pixels and to become valid by stage0
 always @(posedge clk_dot4x)
 begin
-    if (dot_rising_1) begin
+    if (dot_rising[1]) begin
         for (n = `NUM_SPRITES-1; n >= 0; n = n - 1) begin
             sprite_col_d1[n[2:0]] <= sprite_col[n[2:0]];
             sprite_col_d2[n[2:0]] <= sprite_col_d1[n[2:0]];
@@ -226,7 +226,7 @@ begin
         stage0 <= 1'b0;
 
     // First tick of a pixel
-    if (dot_rising_1) begin
+    if (dot_rising[1]) begin
         // We 'work' on several stages of a pixel over the next 3 dot4x
         // ticks. It begins here when we set stage0 high.
         stage0 <= 1'b1;
@@ -296,24 +296,26 @@ begin
         pixels_shifting = {pixels_shifting[6:0], 1'b0};
     end
 
-    if (dot_rising_3) begin
+    if (dot_rising[3]) begin
         g_mc_ff = ~g_mc_ff;
     end
 end
 
 // --- BEGIN EXTENSIONS ---
 
-// Not much to encode here yet since we only have one mode
-reg hires_pixel_value;
+reg[1:0] hires_pixel_value;
+reg[1:0] hires_pixel_value2;
+reg hires_ff;
 always @(posedge clk_dot4x)
 begin
     if (hires_stage0)
         hires_stage0 <= 1'b0;
-    if (dot_rising_1 || dot_rising_3) begin
+    if (dot_rising[1] || dot_rising[3]) begin
         hires_stage0 <= 1'b1;
 
         // load pixels when xscroll matches pixel 0-7
         if (xscroll_delayed == hires_cycle_bit) begin
+            hires_ff <= 1'b1;
 	    if (!vborder && visible_d) begin
                 hires_pixels_shifting = hires_pixel_data_delayed;
                 hires_color_shifting = hires_color_data_delayed;
@@ -322,9 +324,17 @@ begin
                 hires_color_shifting = 8'b0;
 	    end
 	end
-	hires_pixel_value <= hires_pixels_shifting[7];
+	hires_pixel_value <= hires_pixels_shifting[7:6];
         hires_pixels_shifting = {hires_pixels_shifting[6:0], 1'b0};
+	// For planar bitmap modes, we shift the 2nd plane
+	if (hires_mode[1] == 1'b1) begin
+	   hires_pixel_value2 <= hires_color_shifting[7:6];
+           hires_color_shifting = {hires_color_shifting[6:0], 1'b0};
+	end
     end
+
+    if (dot_rising[0] || dot_rising[2])
+        hires_ff <= ~hires_ff;
 end
 
 // --- END EXTENSIONS ---
@@ -392,8 +402,25 @@ begin
     // version, which handles sprite overlay in a 3rd stage, we do ours
     // here
     if (hires_stage0) begin
-        // So far, only one mode
-        hires_pixel_color1 <= hires_pixel_value ? hires_color_shifting[3:0]:b0c_d2;
+	case (hires_mode)
+	2'b00:
+           // Text mode. We don't use the upper 4 bits of color...
+           hires_pixel_color1 <= hires_pixel_value[1] ?
+		hires_color_shifting[3:0] : b0c_d2;
+        2'b01:
+           // 640x200 16 color bitmap. Uses only lower 4 bits of color...
+           hires_pixel_color1 <=
+	       hires_pixel_value[1] ? hires_color_shifting[3:0] : b0c_d2;
+        2'b10:
+           // 320x200 16 color planar
+	   if (hires_ff)
+               hires_pixel_color1 <= { hires_pixel_value2[1:0],
+                                       hires_pixel_value[1:0] };
+        2'b11:
+           // 640x200 4 color planar
+           hires_pixel_color1 <= { 2'b0, hires_pixel_value2[1],
+                                   hires_pixel_value[1] };
+        endcase
 
 	// TODO: Do sprites here on stage0_0 (then repeat for 1?)
     end

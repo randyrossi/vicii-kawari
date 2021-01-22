@@ -224,11 +224,13 @@ wire [2:0] rc; // row counter
 wire [14:0] video_ram_addr_b;
 wire [7:0] video_ram_data_out_b;
 wire [10:0] hires_vc; // hires video counter
+wire [13:0] hires_fvc; // hires video counter (for 16k bitmap)
 wire [2:0] hires_rc; // hires row counter
 wire [2:0] hires_char_pixel_base;
 wire [3:0] hires_matrix_base;
 wire [3:0] hires_color_base;
 wire hires_enabled;
+wire [1:0] hires_mode;
 wire [7:0] hires_pixel_data;
 wire [7:0] hires_color_data;
 
@@ -537,6 +539,7 @@ hires_matrix vic_hires_matrix(
            .raster_line(raster_line),
            .badline(badline),
            .hires_vc(hires_vc),
+           .hires_fvc(hires_fvc),
            .hires_rc(hires_rc)
        );
 
@@ -546,8 +549,6 @@ always @(*)
     if (rst)
         ba_chars = 1'b0;
     else begin
-        // TODO: Don't steal cpu cycles for hires mode since we don't
-	// use dram.
         if ((xpos >= chars_ba_start || xpos < chars_ba_end) && badline)
             ba_chars = 1'b0;
         else
@@ -749,11 +750,13 @@ hires_addressgen vic_hires_addressgen(
            .phi_phase_start(phi_phase_start),
            .cycle_type(cycle_type),
            .cycle_num(cycle_num),
+	   .hires_mode(hires_mode),
            .matrix_base(hires_matrix_base),
            .char_pixel_base(hires_char_pixel_base),
            .color_base(hires_color_base),
            .rc(hires_rc),
            .vc(hires_vc),
+           .fvc(hires_fvc),
            .char_case(cb[0]),
            .video_mem_addr(video_ram_addr_b),
 	   .video_mem_data(video_ram_data_out_b),
@@ -852,7 +855,8 @@ registers vic_registers(
 	      .hires_char_pixel_base(hires_char_pixel_base),
               .hires_matrix_base(hires_matrix_base),
               .hires_color_base(hires_color_base),
-	      .hires_enabled(hires_enabled)
+	      .hires_enabled(hires_enabled),
+	      .hires_mode(hires_mode)
 	      // --- END EXTENSIONS --
 
           );
@@ -877,8 +881,7 @@ end
 pixel_sequencer vic_pixel_sequencer(
                     .clk_dot4x(clk_dot4x),
                     .clk_phi(clk_phi),
-                    .dot_rising_1(dot_rising[1]),
-                    .dot_rising_3(dot_rising[3]),
+                    .dot_rising(dot_rising),
                     .phi_phase_start_pl(phi_phase_start[`PIXEL_LATCH]),
                     .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
                     .mcm(mcm_delayed), // delayed
@@ -913,6 +916,7 @@ pixel_sequencer vic_pixel_sequencer(
                     .active_sprite_d(active_sprite_d),
 		    // --- BEGIN EXTENSIONS ---
 		    .hires_enabled(hires_enabled),
+		    .hires_mode(hires_mode),
 		    .hires_cycle_bit(hires_raster_x[2:0]),
 		    .phi_phase_start_10(phi_phase_start[10]),
 		    .hires_pixel_data(hires_pixel_data),
