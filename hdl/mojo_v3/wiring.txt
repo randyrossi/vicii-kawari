@@ -62,7 +62,7 @@ SV1    32       L32N_1    P101    PMOD5    green[2]        O   QUIETIO 2
 
 SV2    39       L3P_0     P140    PMOD11   blue[3]         O   QUIETIO 2
 SV2    41       L4P_0     P138    PMOD12   blue[2]         O   QUIETIO 2
-SV2    43       L34P_0    P24     PMOD9    clk_dot4x_ext   O   SLOW 4
+SV2    43       L34P_0    P24     PMOD9    clk_dot8x_ext   O   SLOW 4
 SV2    45       L35P_0    P132    PMOD10   blue[1]         O   QUIETIO 2
 
 # Force LOW at high drive and tie to GND to help reduce SSN

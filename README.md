@@ -77,15 +77,26 @@ Also, since the core is open source, hobbyests can add their own interesting new
 
 Each of the Commodore 64's 16 colors can be set with RGB values inside a 12 bit color space (4096 colors).
 
+### Switchable palettes
+
+There are two independent 16 color palettes available. Palette 1 or 2 is selected by a kawari register.
+
 ### An 80 column text mode
 
-A true 16 color 80 column text mode is now available.  This is NOT a soft-80 mode that uses bitmap graphics but rather a true text mode.  A small kernal patch can also enable this for basic programming.
+A true 16 color 80 column text mode is available. This is NOT a soft-80 mode that uses bitmap graphics but rather a true text mode. Each character cell is a full 8x8 pixels. An 80 colum text screen occupies 4k of kawari video memory space (+4k character definition data). A small kernal patch (2k resident at $c800) can enable this for the basic programming environment.
 
 ### New graphics modes
 
-Some new graphics modes are also added.
+In addition to the 80 column text mode, three bitmap modes have been
+added:
+
+    640x200 16 color - Every 8x8 cell can be one of 16 colors or the backgroudn color.
+    320x200 16 color - Every pixel can be set to one of 16 colors.
+    640x200 4 colors - Every pixel can be set to one of 4 colors.
 
 ### Software switch between PAL and NTSC
+
+TBD
 
 ## What are the installation options?
 

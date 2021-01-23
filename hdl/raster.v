@@ -17,7 +17,11 @@ module raster(
            output reg [9:0] raster_x,
            output reg [9:0] sprite_raster_x,
            output reg [8:0] raster_line,
-           output reg [8:0] raster_line_d
+           output reg [8:0] raster_line_d,
+	   // --- BEGIN EXTENSIONS ---
+           output reg [10:0] hires_raster_x,
+           input dot_rising_2
+	   // --- END EXTENSIONS ---
        );
 
 // sprite_raster_x is positioned such that the first cycle for
@@ -39,6 +43,9 @@ always @(posedge clk_dot4x)
     if (rst)
     begin
         raster_x <= 10'b0;
+	// --- BEGIN EXTENSIONS ---
+        hires_raster_x <= 11'b0;
+	// --- END EXTENSIONS ---
         raster_line <= 9'b0;
         raster_line_d <= 9'b0;
         start_of_line = 0;
@@ -73,6 +80,9 @@ always @(posedge clk_dot4x)
             begin
                 // Can advance to next pixel
                 raster_x <= raster_x + 10'd1;
+	        // --- BEGIN EXTENSIONS ---
+                hires_raster_x <= hires_raster_x + 10'd1;
+		// --- END EXTENSIONS ---
 
                 // Handle xpos move but deal with special cases
                 case(chip)
@@ -106,6 +116,9 @@ always @(posedge clk_dot4x)
             begin
                 // Time to go back to x coord 0
                 raster_x <= 10'd0;
+	        // --- BEGIN EXTENSIONS ---
+                hires_raster_x <= 11'd0;
+		// --- END EXTENSIONS ---
 
                 // xpos also goes back to start value
                 case(chip)
@@ -129,6 +142,12 @@ always @(posedge clk_dot4x)
             else
                 sprite_raster_x <= 10'd0;
         end
+
+	// --- BEGIN EXTENSIONS ---
+        if (dot_rising_2) begin
+            hires_raster_x <= hires_raster_x + 1;
+        end
+	// --- END EXTENSIONS ---
     end
 
 endmodule: raster

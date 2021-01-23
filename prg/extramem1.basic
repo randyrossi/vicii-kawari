@@ -1,29 +1,29 @@
-5 hi=53305
-6 lo=53306
+5 hi=53306
+6 lo=53305
 7 da=53307
 10 poke 53311,asc("v")
 20 poke 53311,asc("i")
 30 poke 53311,asc("c")
 40 poke 53311,asc("2")
 50 rem start at $ffd8
-60 poke hi,216
-70 poke lo,255
+60 poke lo,216
+70 poke hi,255
 80 poke 53311,1 : rem auto inc
 85 rem fill 1000 bytes
 90 for t=0to999
 100 poke da,t-int(t/256)*256
 110 next
 120 rem expect to land on 03c0
-130 if (peek(lo) <> 192) then print "fail: lo not c0":stop
-140 if (peek(lo) <> 3) then print "fail: hi not 03":stop
+130 if (peek(lo) <> 192) then print "fail: lo not 192":stop
+140 if (peek(hi) <> 3) then print "fail: hi not 3":stop
 155 rem back to start
-150 poke hi,216
-160 poke lo,255
+150 poke lo,216
+160 poke hi,255
 170 for t=0to999
 175 a = peek(da):b=t-int(t/256)*256
 180 if (a <> b) then print "fail: not = ";b:stop
 190 poke 1024+t, a
 200 next
-210 if (peek(hi) <> 192) then print "fail: lo not c0":stop
-220 if (peek(lo) <> 3) then print "fail: hi not 03":stop
+210 if (peek(lo) <> 192) then print "fail: lo not 192":stop
+220 if (peek(hi) <> 3) then print "fail: hi not 3":stop
 230 print "pass"

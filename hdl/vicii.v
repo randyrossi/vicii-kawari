@@ -26,6 +26,7 @@ module vicii(
            input [1:0] chip,
            input rst,
            input clk_dot4x,
+           input clk_dot8x,
            input clk_col4x,
            output clk_phi,
            output clk_colref,
@@ -58,6 +59,9 @@ module vicii(
 
 wire [9:0] xpos;
 wire [9:0] raster_x;
+// --- BEGIN EXTENSIONS ---
+wire [10:0] hires_raster_x;
+// --- END EXTENSIONS ---
 wire [8:0] raster_line;
 wire [3:0] pixel_color3;
 
@@ -133,7 +137,6 @@ endcase
 
 // Used to generate phi and dot clocks
 reg [31:0] phi_gen;
-reg [31:0] dot_gen;
 
 // Used to detect rising edge of dot clock inside a dot4x always block
 // Sequence goes 1 2 3 0:
@@ -216,6 +219,23 @@ reg raster_irq_triggered;
 
 wire [9:0] vc; // video counter
 wire [2:0] rc; // row counter
+
+// --- ADDED FOR HIRES MODE ---
+wire [14:0] video_ram_addr_b;
+wire [7:0] video_ram_data_out_b;
+wire [10:0] hires_vc; // hires video counter
+wire [13:0] hires_fvc; // hires video counter (for 16k bitmap)
+wire [2:0] hires_rc; // hires row counter
+wire [2:0] hires_char_pixel_base;
+wire [3:0] hires_matrix_base;
+wire [3:0] hires_color_base;
+wire hires_enabled;
+wire [1:0] hires_mode;
+wire [7:0] hires_pixel_data;
+wire [7:0] hires_color_data;
+
+// --- END ADDED FOR HIRES MODE ---
+
 wire idle;
 
 wire den; // display enable
@@ -230,8 +250,7 @@ wire csel; // border column select
 wire mcm; // multi color mode
 
 wire stage0;
-wire stage1;
-wire is_background_pixel1;
+wire is_background_pixel0;
 
 // mostly used for iterating over sprites
 integer n;
@@ -489,7 +508,11 @@ raster vic_raster(
            .raster_x(raster_x),
            .sprite_raster_x(sprite_raster_x),
            .raster_line(raster_line),
-           .raster_line_d(raster_line_d)
+           .raster_line_d(raster_line_d),
+	   // --- BEGIN EXTENSIONS ---
+           .dot_rising_2(dot_rising[2]),
+           .hires_raster_x(hires_raster_x)
+	   // --- END EXTENSIONS ---
        );
 
 matrix vic_matrix(
@@ -506,16 +529,30 @@ matrix vic_matrix(
            .rc(rc)
        );
 
+hires_matrix vic_hires_matrix(
+           .rst(rst),
+           .clk_phi(clk_phi),
+           .clk_dot4x(clk_dot4x),
+           .phi_phase_start_1(phi_phase_start[1]),
+           .phi_phase_start_14(phi_phase_start[14]),
+           .cycle_num(cycle_num),
+           .raster_line(raster_line),
+           .badline(badline),
+           .hires_vc(hires_vc),
+           .hires_fvc(hires_fvc),
+           .hires_rc(hires_rc)
+       );
+
 // Handle when ba should go low due to c-access. We can use xpos
 // here since there are no repeats within this range.
 always @(*)
     if (rst)
-        ba_chars = `FALSE;
+        ba_chars = 1'b0;
     else begin
         if ((xpos >= chars_ba_start || xpos < chars_ba_end) && badline)
-            ba_chars = `FALSE;
+            ba_chars = 1'b0;
         else
-            ba_chars = `TRUE;
+            ba_chars = 1'b1;
     end
 
 // Handle when ba should go low due to s-access. These ranges are
@@ -565,7 +602,7 @@ wire m2m_clr;
 wire m2d_clr;
 wire [7:0] sprite_m2m;
 wire [7:0] sprite_m2d;
-wire main_border_stage1;
+wire main_border_stage0;
 
 wire [7:0] sprite_mmc_d;
 wire [7:0] sprite_pri_d;
@@ -596,10 +633,9 @@ sprites vic_sprites(
             .sprite_pri_d(sprite_pri_d),
             .sprite_cnt(sprite_cnt),
             .aec(aec),
-            .is_background_pixel(is_background_pixel1),
+            .is_background_pixel(is_background_pixel0),
             .stage0(stage0),
-            .stage1(stage1),
-            .main_border(main_border_stage1),
+            .main_border(main_border_stage0),
             .imbc_clr(imbc_clr),
             .immc_clr(immc_clr),
             .sprite_dmachk1(sprite_dmachk1),
@@ -708,6 +744,27 @@ addressgen vic_addressgen(
                .phi_phase_start_col(phi_phase_start[6]), // mux between rhl and chl
                .ado(ado));
 
+hires_addressgen vic_hires_addressgen(
+           .clk_dot4x(clk_dot4x),
+           .clk_phi(clk_phi),
+           .phi_phase_start(phi_phase_start),
+           .cycle_type(cycle_type),
+           .cycle_num(cycle_num),
+	   .hires_mode(hires_mode),
+           .matrix_base(hires_matrix_base),
+           .char_pixel_base(hires_char_pixel_base),
+           .color_base(hires_color_base),
+           .rc(hires_rc),
+           .vc(hires_vc),
+           .fvc(hires_fvc),
+           .char_case(cb[0]),
+           .video_mem_addr(video_ram_addr_b),
+	   .video_mem_data(video_ram_data_out_b),
+	   .hires_pixel_data(hires_pixel_data),
+	   .hires_color_data(hires_color_data)
+       );
+
+
 // Handle set/get registers
 //
 // Since color registers are owned by registers, we pass in the
@@ -790,7 +847,18 @@ registers vic_registers(
 	      .active(is_composite ? composite_active : active),
 	      .red(red),
 	      .green(green),
-	      .blue(blue)
+	      .blue(blue),
+
+	      // --- BEGIN EXTENSIONS --
+              .video_ram_addr_b(video_ram_addr_b),
+	      .video_ram_data_out_b(video_ram_data_out_b),
+	      .hires_char_pixel_base(hires_char_pixel_base),
+              .hires_matrix_base(hires_matrix_base),
+              .hires_color_base(hires_color_base),
+	      .hires_enabled(hires_enabled),
+	      .hires_mode(hires_mode)
+	      // --- END EXTENSIONS --
+
           );
 
 // at the start of every high phase, store current reg11 for delayed fetch
@@ -813,8 +881,7 @@ end
 pixel_sequencer vic_pixel_sequencer(
                     .clk_dot4x(clk_dot4x),
                     .clk_phi(clk_phi),
-                    .dot_rising_1(dot_rising[1]),
-                    .dot_rising_3(dot_rising[3]),
+                    .dot_rising(dot_rising),
                     .phi_phase_start_pl(phi_phase_start[`PIXEL_LATCH]),
                     .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
                     .mcm(mcm_delayed), // delayed
@@ -836,22 +903,30 @@ pixel_sequencer vic_pixel_sequencer(
                     .ec(ec),
                     .main_border(main_border_d5), // in
                     .vborder(top_bot_border_d5), // in
-                    .main_border_stage1(main_border_stage1), // out for sprite
+                    .main_border_stage0(main_border_stage0), // out for sprite
                     .sprite_cur_pixel_o(sprite_cur_pixel_o),
                     .sprite_pri_d(sprite_pri_d),  // delayed
                     .sprite_mmc_d(sprite_mmc_d),  // delayed
                     .sprite_col_o(sprite_col_o),
                     .sprite_mc0(sprite_mc0),
                     .sprite_mc1(sprite_mc1),
-                    .is_background_pixel1(is_background_pixel1),
+                    .is_background_pixel0(is_background_pixel0),
                     .stage0(stage0),
-                    .stage1(stage1),
                     .pixel_color3(pixel_color3),
-                    .active_sprite_d(active_sprite_d)
+                    .active_sprite_d(active_sprite_d),
+		    // --- BEGIN EXTENSIONS ---
+		    .hires_enabled(hires_enabled),
+		    .hires_mode(hires_mode),
+		    .hires_cycle_bit(hires_raster_x[2:0]),
+		    .phi_phase_start_10(phi_phase_start[10]),
+		    .hires_pixel_data(hires_pixel_data),
+		    .hires_color_data(hires_color_data)
+		    // --- END EXTENSIONS ---
                 );
 
 // -------------------------------------------------------------
 // Composite output - csync/pixel_color4
+// Can't do 80 column mode.
 // -------------------------------------------------------------
 comp_sync vic_comp_sync(
               .rst(rst),
@@ -867,11 +942,35 @@ comp_sync vic_comp_sync(
 
 // -------------------------------------------------------------
 // VGA/HDMI output - hsync/vsync/active/half_bright/pixel_color4
+// Low resolution that can't do 80 columns.
 // -------------------------------------------------------------
+/*
 vga_sync vic_vga_sync(
              .rst(rst),
              .clk_dot4x(clk_dot4x),
              .raster_x(raster_x),
+             .raster_y(raster_line),
+             .chip(chip),
+             .pixel_color3(pixel_color3),
+             .hsync(hsync),
+             .vsync(vsync),
+             .active(active),
+             .pixel_color4(pixel_color4_vga),
+             .half_bright(half_bright)
+         );
+*/
+
+// -------------------------------------------------------------
+// VGA/HDMI output - hsync/vsync/active/half_bright/pixel_color4
+// Hu-res version that can show the 80 column mode as well as
+// 40.
+// -------------------------------------------------------------
+hires_vga_sync vic_vga_sync(
+             .rst(rst),
+             .clk_dot4x(clk_dot4x),
+             .clk_dot8x(clk_dot8x),
+             .raster_x(raster_x),
+             .hires_raster_x(hires_raster_x),
              .raster_y(raster_line),
              .chip(chip),
              .pixel_color3(pixel_color3),

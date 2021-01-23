@@ -1,3 +1,6 @@
 obj_dir/*
 *.o
 *.so
+screenshot.bmp
+screenshot.png
+session.vcd

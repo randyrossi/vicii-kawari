@@ -38,11 +38,13 @@ VERILOG_SOURCES = ../hdl/cmod_a35t/top.v ../hdl/vicii.v ../hdl/common.vh \
                   ../hdl/registers.v  ../hdl/comp_sync.v ../hdl/border.v \
 	          ../hdl/lightpen.v ../hdl/raster.v \
 	          ../hdl/serration.v  ../hdl/bus_access.v ../hdl/cycles.v \
-                  ../hdl/matrix.v ../hdl/sprites.v  ../hdl/vga_sync.v \
-		  ../hdl/clockdivs.v ../hdl/videoram.v ../hdl/colorreg.v
+                  ../hdl/matrix.v ../hdl/sprites.v  ../hdl/hires_vga_sync.v \
+		  ../hdl/clockdivs.v ../hdl/videoram.v ../hdl/colorreg.v \
+		  ../hdl/hires_matrix.v ../hdl/hires_addressgen.v
 
 VTOP_DEPS = vicii_ipc.o libvicii_ipc.so $(VERILOG_SOURCES) sim_main.cpp vicii_ipc.c vicii_ipc.h 
 
+# Use -DHIRES_TEXT -DHIRES_BITMAP1 -DHIRES_BITMAP2 for other modes
 obj_dir/Vtop: $(VTOP_DEPS)
 	$(VERILATOR) -DIS_SIMULATOR --trace -cc  --exe \
 		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \

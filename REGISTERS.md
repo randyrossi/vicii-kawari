@@ -29,16 +29,16 @@ REG    | Name | Description
 0xd032 |      | Unused
 0xd033 |      | Unused
 0xd034 |      | Unused
-0xd035 |      | Unused
-0xd036 |      | Unused
-0xd037 |      | Unused
-0xd038 | VIDEO_FLAGS | See below
-0xd039 | VIDEO_MEM_A_LO | Video Memory Addr Lo Port A
-0xd03a | VIDEO_MEM_A_HI | Video Memory Addr Hi Port A
-0xd03b | VIDEO_MEM_A_VAL | Video Memory Port A Read/Write Value
-0xd03c | VIDEO_MEM_B_LO | Video Memory Addr Lo Port B
-0xd03d | VIDEO_MEM_B_HI | Video Memory Addr Hi Port B
-0xd03e | VIDEO_MEM_B_VAL | Video Memory Port B Read/Write Value
+0xd035 | VIDEO_MEM_1_IDX | Video Memory Port 1 Index
+0xd036 | VIDEO_MEM_2_IDX | Video Memory Port 2 Index
+0xd037 | VIDEO_MODE1 | See below
+0xd038 | VIDEO_MODE2 | See below
+0xd039 | VIDEO_MEM_1_LO | Video Memory Addr Lo Port 1
+0xd03a | VIDEO_MEM_1_HI | Video Memory Addr Hi Port 1
+0xd03b | VIDEO_MEM_1_VAL | Video Memory Port A Read/Write Value
+0xd03c | VIDEO_MEM_2_LO | Video Memory Addr Lo Port 2
+0xd03d | VIDEO_MEM_2_HI | Video Memory Addr Hi Port 2
+0xd03e | VIDEO_MEM_2_VAL | Video Memory Port B Read/Write Value
 0xd03f | VIDEO_MEM_FLAGS | Video Memory Op Flags (see below)
 
 ## Video Memory
@@ -58,12 +58,33 @@ BIT 6    | Extra Registers Overlay at 0x0000 Enable/Disable
 BIT 7    | UNUSED
 BIT 8    | UNUSED
 
-VIDEO_FLAGS | Description
+VIDEO_MODE1 | Description
 ------------|------------
-BIT 1       | Palette Select
-BIT 2-8     | Unused
+BIT 1-3     | CHAR_PIXEL_BASE
+BIT 4       | PALETTE SELECT
+BIT 5       | HIRES ENABLE (640x200 mode)
+BIT 6-7     | HIRES MODE (0=TEXT, 1=640x200, 2=320x200, 3=640x200)
+BIT 8       | UNUSED
 
-### Writing to video memory from main DRAM
+VIDEO_MODE2 | Description
+------------|------------
+BIT 1-4     | MATRIX_BASE
+BIT 4-8     | COLOR_BASE
+
+## Hires Enable
+This bit controls whether the horizontal resolution is doubled or not.  It must be enabled for 80 column text or the bitmap modes.
+
+## Hires Mode
+These bit controls the hires video mode.
+
+HIRES MODE | Description
+-----------|-------------
+0          | 80 Column Text 16 Colors (4K CharDef, 2K Matrix, 2K Color)
+1          | 640x200 Bitmap 16 Colors (16K Bitmap, 2K Color)
+2          | 320x200 Bitmap 16 Color 2 Planes (32K Bitmap)
+3          | 640x200 Bitmap 4 Color 2 Planes (32K Bitmap)
+
+### Writing to video memory from main DRAM using auto increment
     LDA <ADDR
     STA VIDEO_MEM_A_HI
     LDA >ADDR
@@ -81,7 +102,9 @@ BIT 2-8     | Unused
     STA VIDEO_MEM_A_VAL  ; write $57 to ADDR+2
     (...etc)
 
-### Reading from video memory into main DRAM
+    * video mem hi/lo pairs will wrap as expected
+
+### Reading from video memory into main DRAM using auto increment
     LDA <ADDR
     STA VIDEO_MEM_A_HI
     LDA >ADDR
@@ -95,6 +118,8 @@ BIT 2-8     | Unused
     LDA VIDEO_MEM_A_VAL ; read from ADDR+1
     LDA VIDEO_MEM_A_VAL ; read from ADDR+2
     (...etc)
+
+    * video mem hi/lo pairs will wrap as expected
 
 ### Performing a move within video memory
 
@@ -119,12 +144,34 @@ a source and the other for a destination.
 
     Sequential read/writes will auto increment/decrement the address as above.
 
+### Using video mem pointers with an index
+
+Sometimes, it may be more convenient to use an index when porting existing code to use VICII-Kawari extended video memory.  This is useful if replacing indirect indexed addressing.
+
+For example, the code:
+
+    LDY #20
+    LDA #00
+    STA $fc
+    LDA #04
+    STA $fd
+    LDA ($fc),y
+
+Can be replaced with:
+
+    LDY #20
+    LDA #00
+    STA VIDEO_MEM_A_LO
+    LDA #04
+    STA VIDEO_MEM_A_HI
+    STY VIDEO_MEM_A_IDX
+    LDA VIDEO_MEM_A_VAL
+
 ### Extra Registers Overlay
 
 When BIT 6 of the VIDEO_MEM_FLAGS register is set, the first 256 bytes
 of video RAM is mapped to extra registers for special VICII-Kawari
 functions.
-
 
 ### Color Registers
 
@@ -132,7 +179,7 @@ VICII-Kawari has a configurable color palette. The 16 colors can be selected
 from a palette of 4096 colors by specifying three 4-bit RGB values. (The
 upper 4 bits in each byte are ignored).  The palette is also double buffered
 to allow changing all colors instantaneously with the palette select bit in
-register VIDEO_FLAGS. Palette 0 is located at 0x0000. Palette 1 is located at
+register VIDEO_MODE1. Palette 0 is located at 0x0000. Palette 1 is located at
 0x0040.
 
 Register | Description

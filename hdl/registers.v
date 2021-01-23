@@ -72,7 +72,17 @@ module registers(
 	   input active,
 	   output reg[3:0] red,
 	   output reg[3:0] green,
-	   output reg[3:0] blue
+	   output reg[3:0] blue,
+
+	   // --- BEGIN EXTENSIONS ---
+           input [14:0] video_ram_addr_b,
+           output [7:0] video_ram_data_out_b,
+           output reg [2:0] hires_char_pixel_base,
+           output reg [3:0] hires_matrix_base,
+           output reg [3:0] hires_color_base,
+           output reg hires_enabled,
+           output reg [1:0] hires_mode
+	   // --- END EXTENSIONS ---
        );
 
 // 2D arrays that need to be flattened for output
@@ -95,7 +105,6 @@ reg addr_latch_done;
 reg read_done;
 
 // --- BEGIN EXTENSIONS ----
-
 reg [1:0] extra_regs_activation_ctr;
 reg extra_regs_activated;
 
@@ -116,16 +125,14 @@ reg [14:0] video_ram_addr_a;
 reg video_ram_wr_a;
 reg [7:0] video_ram_hi_1;
 reg [7:0] video_ram_lo_1;
+reg [7:0] video_ram_idx_1;
 reg [7:0] video_ram_hi_2;
 reg [7:0] video_ram_lo_2;
+reg [7:0] video_ram_idx_2;
 reg [7:0] video_ram_data_in_a;
 wire [7:0] video_ram_data_out_a;
 
 // TODO : Port B will be used for video access
-reg [14:0] video_ram_addr_b;
-reg video_ram_wr_b;
-reg [7:0] video_ram_data_in_b;
-wire [7:0] video_ram_data_out_b;
 
 // For CPU register read/write to color regs
 reg [4:0] color_regs_addr_a;
@@ -149,13 +156,13 @@ wire [15:0] color_regs_data_out_b;
 // for other purposes. If using a different FPGA, the address constructed here
 // could add bank select lines here.
 VIDEO_RAM video_ram(clk_dot4x,
-                    video_ram_wr_a,
+                    video_ram_wr_a, // CPU can read/write
                     video_ram_addr_a,
                     video_ram_data_in_a,
                     video_ram_data_out_a,
-                    video_ram_wr_b,
+                    1'b0,          // Video can only read
                     video_ram_addr_b,
-                    video_ram_data_in_b,
+                    8'b0,          // VIdeo can only read
                     video_ram_data_out_b
                     );
 
@@ -217,8 +224,43 @@ always @(posedge clk_dot4x)
         // --- BEGIN EXTENSIONS ----
         extra_regs_activation_ctr <= 2'b0;
 `ifdef IS_SIMULATOR
-        extra_regs_activated <= 1'b1;
-        video_ram_flags <= 8'b1;
+        extra_regs_activated <= 0'b1;
+        video_ram_flags <= 8'b0;
+
+	`ifdef HIRES_TEXT
+	// Test mode 0 : Text
+        hires_enabled <= 1'b1;
+	hires_mode <= 2'b00;
+	// char pixels @0000(4K)
+        hires_char_pixel_base <= 3'b0;
+	// color table @1000(2K)
+        hires_color_base <= 4'b10;
+	// matrix @1800(2K)
+        hires_matrix_base <= 4'b11;
+	`endif
+	`ifdef HIRES_BITMAP1
+        hires_enabled <= 1'b1;
+	hires_mode <= 2'b01;
+        hires_char_pixel_base <= 3'b0; // ignored
+	// pixels @0000(16k)
+        hires_matrix_base <= 4'b0000;
+	// color table @8000(2K)
+        hires_color_base <= 4'b1000;
+	`endif
+	`ifdef HIRES_BITMAP2
+        hires_enabled <= 1'b1;
+	hires_mode <= 2'b10;
+        hires_char_pixel_base <= 3'b0; // ignored
+        hires_matrix_base <= 4'b0000; // ignored
+        hires_color_base <= 4'b0000; // ignored
+	`endif
+	`ifdef HIRES_BITMAP3
+        hires_enabled <= 1'b1;
+	hires_mode <= 2'b11;
+        hires_char_pixel_base <= 3'b0; // ignored
+        hires_matrix_base <= 4'b0000; // ignored
+        hires_color_base <= 4'b0000; // ignored
+	`endif
 `else
         extra_regs_activated <= 1'b0;
 `endif
@@ -382,8 +424,18 @@ always @(posedge clk_dot4x)
 
                     // --- BEGIN EXTENSIONS ----
 
-                    `VIDEO_FLAGS:
-                        dbo[7:0] <= { 7'b0, palette_select };
+                    `VIDEO_MEM_1_IDX:
+                        dbo[7:0] <= video_ram_idx_1;
+                    `VIDEO_MEM_2_IDX:
+                        dbo[7:0] <= video_ram_idx_2;
+                    `VIDEO_MODE1:
+                        dbo[7:0] <= { 1'b0,
+			              hires_mode,
+				      hires_enabled,
+				      palette_select,
+				      hires_char_pixel_base };
+                    `VIDEO_MODE2:
+                        dbo[7:0] <= { hires_color_base, hires_matrix_base };
                     `VIDEO_MEM_1_HI:
                         dbo[7:0] <= video_ram_hi_1;
                     `VIDEO_MEM_1_LO:
@@ -401,7 +453,8 @@ always @(posedge clk_dot4x)
                         end else begin
                            video_ram_r <= 1;
                            video_ram_addr_a <= {video_ram_hi_1[6:0],
-                                                video_ram_lo_1};
+                                                video_ram_lo_1} +
+						{7'b0, video_ram_idx_1};
                         end
                     end
                     `VIDEO_MEM_2_HI:
@@ -421,7 +474,8 @@ always @(posedge clk_dot4x)
                         end else begin
                            video_ram_r <= 1;
                            video_ram_addr_a <= {video_ram_hi_2[6:0],
-                                                video_ram_lo_2};
+                                                video_ram_lo_2} +
+						{7'b0, video_ram_idx_2};
                         end
                     end
                     /* 0x3F */ `VIDEO_MEM_FLAGS:
@@ -553,9 +607,21 @@ always @(posedge clk_dot4x)
                         sprite_col[7] <= dbi[3:0];
 
                     // --- BEGIN EXTENSIONS ----
+                    `VIDEO_MEM_1_IDX:
+                        video_ram_idx_1 <= dbi;
+                    `VIDEO_MEM_2_IDX:
+                        video_ram_idx_2 <= dbi;
+		    `VIDEO_MODE1: begin
+                        hires_mode <= dbi[6:5];
+                        hires_enabled <= dbi[`HIRES_ENABLE];
+                        palette_select <= dbi[`PALETTE_SELECT_BIT];
+                        hires_char_pixel_base <= dbi[2:0];
+		    end
+		    `VIDEO_MODE2: begin
+			hires_matrix_base <= dbi[3:0];
+			hires_color_base <= dbi[7:4];
+		    end
 
-                    `VIDEO_FLAGS:
-                        palette_select <= dbi[0];
                     /* 0x3f */ `VIDEO_MEM_FLAGS:
                         if (~extra_regs_activated) begin
                         case (dbi[7:0])
@@ -606,7 +672,8 @@ always @(posedge clk_dot4x)
                            video_ram_wr_a <= 1;
                            video_ram_data_in_a <= dbi[7:0];
                            video_ram_addr_a <= {video_ram_hi_1[6:0],
-                                                video_ram_lo_1};
+                                                video_ram_lo_1} +
+						{7'b0, video_ram_idx_1};
                         end
                     end
                     `VIDEO_MEM_2_HI:
@@ -629,7 +696,8 @@ always @(posedge clk_dot4x)
                            video_ram_wr_a <= 1;
                            video_ram_data_in_a <= dbi[7:0];
                            video_ram_addr_a <= {video_ram_hi_2[6:0],
-                                                video_ram_lo_2};
+                                                video_ram_lo_2} +
+						{7'b0, video_ram_idx_2};
                         end
                     end
 
