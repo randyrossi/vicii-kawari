@@ -1,6 +1,6 @@
 `timescale 1ps/1ps
 
-module dot4x_50_pal_clockgen
+module dot4x_50_ntsc_clockgen
  (input         clk_in50mhz,
   output        clk_dot4x,
   output        clk_dot8x,
@@ -35,9 +35,9 @@ module dot4x_50_pal_clockgen
     .CLK_FEEDBACK           ("CLKFBOUT"),
     .COMPENSATION           ("SYSTEM_SYNCHRONOUS"),
     .DIVCLK_DIVIDE          (1),
-    .CLKFBOUT_MULT          (19),
+    .CLKFBOUT_MULT          (17),
     .CLKFBOUT_PHASE         (0.000),
-    .CLKOUT0_DIVIDE         (30),
+    .CLKOUT0_DIVIDE         (26),
     .CLKOUT0_PHASE          (0.000),
     .CLKOUT0_DUTY_CYCLE     (0.500),
     .CLKOUT1_DIVIDE         (13),
