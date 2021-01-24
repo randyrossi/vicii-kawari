@@ -908,6 +908,7 @@ int main(int argc, char** argv, char** env) {
           // If rendering, draw current color on dot clock
 	  // Our simulator resolution is twice that of native so we can
 	  // update every other dot clock tick.
+	  // dot_rising[1] || dot_rising[3]
           if (showWindow && HASCHANGED(OUT_DOT_RISING) &&
 			  (top->V_CLK_DOT == 2 || top->V_CLK_DOT == 8)) {
              SDL_SetRenderDrawColor(ren,

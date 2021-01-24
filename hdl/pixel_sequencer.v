@@ -431,11 +431,13 @@ end
 // Handle sprite overlay in stage 1
 // NOTE: This is also when sprites.v will handle sprite to data collisions
 reg [3:0] pixel_color2;
+reg main_border_stage1;
 always @(posedge clk_dot4x)
 begin
     if (stage1) begin
 	// Start with color from prev stage
         pixel_color2 = pixel_color1;
+	main_border_stage1 <= main_border_stage0;
 
         // sprites overwrite pixels
         // The comparisons of background pixel and sprite pixels must be
@@ -458,7 +460,7 @@ begin
     end
 
     // Final stage 3. Border mask.
-    if (main_border_stage0)
+    if (main_border_stage1)
         pixel_color3 <= ec_d2;
     else
         pixel_color3 <= hires_enabled ? hires_pixel_color1 : pixel_color2;
