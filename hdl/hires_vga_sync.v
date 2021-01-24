@@ -37,7 +37,6 @@ endmodule
 // are always filling one buffer while reading from the other.
 module hires_vga_sync(
            input wire clk_dot8x,
-           input wire clk_dot4x,
            input wire rst,
            input [1:0] chip,
            input [9:0] raster_x,

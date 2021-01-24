@@ -3,7 +3,6 @@
 module dot4x_50_pal_clockgen
  (input         clk_in50mhz,
   output        clk_dot4x,
-  output        clk_dot8x,
   input         reset,
   output        locked
  );
@@ -34,22 +33,19 @@ module dot4x_50_pal_clockgen
   #(.BANDWIDTH              ("OPTIMIZED"),
     .CLK_FEEDBACK           ("CLKFBOUT"),
     .COMPENSATION           ("SYSTEM_SYNCHRONOUS"),
-    .DIVCLK_DIVIDE          (1),
-    .CLKFBOUT_MULT          (19),
+    .DIVCLK_DIVIDE          (2),
+    .CLKFBOUT_MULT          (29),
     .CLKFBOUT_PHASE         (0.000),
-    .CLKOUT0_DIVIDE         (30),
+    .CLKOUT0_DIVIDE         (23),
     .CLKOUT0_PHASE          (0.000),
     .CLKOUT0_DUTY_CYCLE     (0.500),
-    .CLKOUT1_DIVIDE         (15),
-    .CLKOUT1_PHASE          (0.000),
-    .CLKOUT1_DUTY_CYCLE     (0.500),
     .CLKIN_PERIOD           (20.000),
     .REF_JITTER             (0.010))
   pll_base_inst
     // Output clocks
    (.CLKFBOUT              (clkfbout),
     .CLKOUT0               (clkout0),
-    .CLKOUT1               (clkout1),
+    .CLKOUT1               (clkout1_unused),
     .CLKOUT2               (clkout2_unused),
     .CLKOUT3               (clkout3_unused),
     .CLKOUT4               (clkout4_unused),
@@ -71,9 +67,5 @@ module dot4x_50_pal_clockgen
   BUFG clkout1_buf
    (.O   (clk_dot4x),
     .I   (clkout0));
-
-  BUFG clkout2_buf
-   (.O   (clk_dot8x),
-    .I   (clkout1));
 
 endmodule

@@ -41,11 +41,10 @@ always @(posedge clk_dot4x)
 assign chip = `CHIP6569;
 
 // Generate the 4x dot clock. See vicii.v for values.
-dot4x_50_pal_clockgen dot4x_50_pal_clockgen(
+dot4x_50_pal_clockgen dot4x_50_clockgen(
                           .clk_in50mhz(sys_clock),    // board 50 Mhz clock
                           .reset(1'b0),
                           .clk_dot4x(clk_dot4x),      // generated 4x dot clock
-                          .clk_dot8x(clk_dot8x),      // generated 8x dot clock
                           .locked(locked)
                       );
 `endif
@@ -55,14 +54,22 @@ dot4x_50_pal_clockgen dot4x_50_pal_clockgen(
 assign chip = `CHIP6567R8;
 
 // Generate the 4x dot clock. See vicii.v for values.
-dot4x_50_ntsc_clockgen dot4x_50_ntsc_clockgen(
+dot4x_50_ntsc_clockgen dot4x_50_clockgen(
                            .clk_in50mhz(sys_clock),    // external 50 Mhz clock
                            .reset(1'b0),
                            .clk_dot4x(clk_dot4x),      // generated 4x dot clock
-                           .clk_dot8x(clk_dot8x),      // generated 8x dot clock
                            .locked(locked)
                        );
 `endif
+
+// Hacky way to get dot8x.  This requires a constraint entry to allow
+// this.  Just prototype hardware, so this is okay:
+// IN "mojo_clockgen/dot4x_50_pal_clockgen/clkout1_buf.O" CLOCK_DEDICATED_ROUTE = FALSE;
+x2_clockgen dot8x_x2_clockgen(
+                          .clk_in(clk_dot4x),    // board 50 Mhz clock
+                          .reset(1'b0),
+                          .clk_dot8x(clk_dot8x)      // generated 8x dot clock
+                      );
 
 wire running;
 

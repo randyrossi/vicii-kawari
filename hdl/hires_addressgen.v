@@ -18,7 +18,6 @@ module hires_addressgen(
            input clk_dot4x,
            input clk_phi,
 	   input [15:0] phi_phase_start,
-           input [3:0] cycle_type,
            input [6:0] cycle_num,
            input [2:0] char_pixel_base,
            input [3:0] matrix_base,

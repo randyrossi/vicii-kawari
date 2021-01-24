@@ -7,7 +7,6 @@ module raster(
            input clk_phi,
            input clk_dot4x,
            input rst,
-           input phi_phase_start_0,
            input dot_rising_0,
            input [1:0] chip,
            input [6:0] cycle_num,
@@ -145,7 +144,7 @@ always @(posedge clk_dot4x)
 
 	// --- BEGIN EXTENSIONS ---
         if (dot_rising_2) begin
-            hires_raster_x <= hires_raster_x + 1;
+            hires_raster_x <= hires_raster_x + 11'b1;
         end
 	// --- END EXTENSIONS ---
     end

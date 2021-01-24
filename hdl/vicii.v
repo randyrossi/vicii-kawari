@@ -498,7 +498,6 @@ raster vic_raster(
            .clk_phi(clk_phi),
            .clk_dot4x(clk_dot4x),
            .rst(rst),
-           .phi_phase_start_0(phi_phase_start[0]),
            .dot_rising_0(dot_rising[0]),
            .chip(chip),
            .cycle_num(cycle_num),
@@ -748,7 +747,6 @@ hires_addressgen vic_hires_addressgen(
            .clk_dot4x(clk_dot4x),
            .clk_phi(clk_phi),
            .phi_phase_start(phi_phase_start),
-           .cycle_type(cycle_type),
            .cycle_num(cycle_num),
 	   .hires_mode(hires_mode),
            .matrix_base(hires_matrix_base),
@@ -967,9 +965,8 @@ vga_sync vic_vga_sync(
 // -------------------------------------------------------------
 hires_vga_sync vic_vga_sync(
              .rst(rst),
-             .clk_dot4x(clk_dot4x),
              .clk_dot8x(clk_dot8x),
-             .raster_x(raster_x),
+				 .raster_x(raster_x),
              .hires_raster_x(hires_raster_x),
              .raster_y(raster_line),
              .chip(chip),
