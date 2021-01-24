@@ -355,91 +355,43 @@ begin
 `endif
         case (pixel_value[4:2])
             `MODE_STANDARD_CHAR:
-                pixel_color1 <= pixel_value[1] ? char_shifting[11:8]:b0c_d2;
+                pixel_color1 = pixel_value[1] ? char_shifting[11:8]:b0c_d2;
             `MODE_MULTICOLOR_CHAR:
                 if (char_shifting[11])
                 case (pixel_value[1:0])
-                    2'b00: pixel_color1 <= b0c_d2;
-                    2'b01: pixel_color1 <= b1c_d2;
-                    2'b10: pixel_color1 <= b2c_d2;
-                    2'b11: pixel_color1 <= {1'b0, char_shifting[10:8]};
+                    2'b00: pixel_color1 = b0c_d2;
+                    2'b01: pixel_color1 = b1c_d2;
+                    2'b10: pixel_color1 = b2c_d2;
+                    2'b11: pixel_color1 = {1'b0, char_shifting[10:8]};
                 endcase
                 else
-                    pixel_color1 <= pixel_value[1] ? {1'b0,char_shifting[10:8]}:b0c_d2;
+                    pixel_color1 = pixel_value[1] ? {1'b0,char_shifting[10:8]}:b0c_d2;
             `MODE_STANDARD_BITMAP:
-                pixel_color1 <= pixel_value[1] ? char_shifting[7:4]:char_shifting[3:0];
+                pixel_color1 = pixel_value[1] ? char_shifting[7:4]:char_shifting[3:0];
             `MODE_MULTICOLOR_BITMAP:
             case (pixel_value[1:0])
-                2'b00: pixel_color1 <= b0c_d2;
-                2'b01: pixel_color1 <= char_shifting[7:4];
-                2'b10: pixel_color1 <= char_shifting[3:0];
-                2'b11: pixel_color1 <= char_shifting[11:8];
+                2'b00: pixel_color1 = b0c_d2;
+                2'b01: pixel_color1 = char_shifting[7:4];
+                2'b10: pixel_color1 = char_shifting[3:0];
+                2'b11: pixel_color1 = char_shifting[11:8];
             endcase
             `MODE_EXTENDED_BG_COLOR:
             case ({pixel_value[1], char_shifting[7:6]})
-                3'b000: pixel_color1 <= b0c_d2;
-                3'b001: pixel_color1 <= b1c_d2;
-                3'b010: pixel_color1 <= b2c_d2;
-                3'b011: pixel_color1 <= b3c_d2;
-                default: pixel_color1 <= char_shifting[11:8];
+                3'b000: pixel_color1 = b0c_d2;
+                3'b001: pixel_color1 = b1c_d2;
+                3'b010: pixel_color1 = b2c_d2;
+                3'b011: pixel_color1 = b3c_d2;
+                default: pixel_color1 = char_shifting[11:8];
             endcase
             `MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR:
-                pixel_color1 <= `BLACK;
+                pixel_color1 = `BLACK;
             `MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
-                pixel_color1 <= `BLACK;
+                pixel_color1 = `BLACK;
             `MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP:
-                pixel_color1 <= `BLACK;
+                pixel_color1 = `BLACK;
         endcase
-    end
-end
-
-// --- BEGIN EXTENSIONS ---
-
-reg [3:0] hires_pixel_color1;
-always @(posedge clk_dot4x)
-begin
-    // This is the last stage of our hires mode. Unlike the non-hires
-    // version, which handles sprite overlay in a 3rd stage, we do ours
-    // here
-    if (hires_stage0) begin
-	case (hires_mode)
-	2'b00:
-           // Text mode. We don't use the upper 4 bits of color...
-           hires_pixel_color1 <= hires_pixel_value[1] ?
-		hires_color_shifting[3:0] : b0c_d2;
-        2'b01:
-           // 640x200 16 color bitmap. Uses only lower 4 bits of color...
-           hires_pixel_color1 <=
-	       hires_pixel_value[1] ? hires_color_shifting[3:0] : b0c_d2;
-        2'b10:
-           // 320x200 16 color planar
-	   if (hires_ff)
-               hires_pixel_color1 <= { hires_pixel_value2[1:0],
-                                       hires_pixel_value[1:0] };
-        2'b11:
-           // 640x200 4 color planar
-           hires_pixel_color1 <= { 2'b0, hires_pixel_value2[1],
-                                   hires_pixel_value[1] };
-        endcase
-
-	// TODO: Do sprites here on stage0_0 (then repeat for 1?)
-    end
-end
-
-// --- END EXTENSIONS ---
-
-// Handle sprite overlay in stage 1
-// NOTE: This is also when sprites.v will handle sprite to data collisions
-reg [3:0] pixel_color2;
-reg main_border_stage1;
-always @(posedge clk_dot4x)
-begin
-    if (stage1) begin
-	// Start with color from prev stage
-        pixel_color2 = pixel_color1;
-	main_border_stage1 <= main_border_stage0;
-
-        // sprites overwrite pixels
+		  
+		  // sprites overwrite pixels
         // The comparisons of background pixel and sprite pixels must be
         // on the same delay 'schedule' here.  Also, the pri, mmc and colors
         // need to be delayed so they split this properly on reg changes.
@@ -448,22 +400,71 @@ begin
                 if (sprite_mmc_d[active_sprite_d[2:0]]) begin  // multi-color mode ?
                     case(sprite_cur_pixel[active_sprite_d[2:0]])
                         2'b00:  ;
-                        2'b01:  pixel_color2 = sprite_mc0_d2;
-                        2'b10:  pixel_color2 = sprite_col_d2[active_sprite_d[2:0]];
-                        2'b11:  pixel_color2 = sprite_mc1_d2;
+                        2'b01:  pixel_color1 = sprite_mc0_d2;
+                        2'b10:  pixel_color1 = sprite_col_d2[active_sprite_d[2:0]];
+                        2'b11:  pixel_color1 = sprite_mc1_d2;
                     endcase
                 end else if (sprite_cur_pixel[active_sprite_d[2:0]][1]) begin
-                    pixel_color2 = sprite_col_d2[active_sprite_d[2:0]];
+                    pixel_color1 = sprite_col_d2[active_sprite_d[2:0]];
                 end
             end
         end
-    end
 
-    // Final stage 3. Border mask.
-    if (main_border_stage1)
-        pixel_color3 <= ec_d2;
-    else
-        pixel_color3 <= hires_enabled ? hires_pixel_color1 : pixel_color2;
+       // Final stage : border mask.
+       if (main_border_stage0)
+          pixel_color1 = ec_d2;
+
+    end
+end
+
+// --- BEGIN EXTENSIONS ---
+
+reg [3:0] hires_pixel_color1;
+reg hires_stage1;
+always @(posedge clk_dot4x)
+begin
+    // This is the last stage of our hires mode.
+    if (hires_stage1)
+      hires_stage1 <= 1'b0;
+    if (hires_stage0) begin
+	   hires_stage1 <= 1'b1;
+      case (hires_mode)
+	   2'b00:
+           // Text mode. We don't use the upper 4 bits of color...
+           hires_pixel_color1 = hires_pixel_value[1] ?
+		         hires_color_shifting[3:0] : b0c_d2;
+        2'b01:
+           // 640x200 16 color bitmap. Uses only lower 4 bits of color...
+           hires_pixel_color1 =
+               hires_pixel_value[1] ? hires_color_shifting[3:0] : b0c_d2;
+        2'b10:
+           // 320x200 16 color planar
+           if (hires_ff)
+               hires_pixel_color1 = { hires_pixel_value2[1:0],
+                                       hires_pixel_value[1:0] };
+        2'b11:
+           // 640x200 4 color planar
+           hires_pixel_color1 = { 2'b0, hires_pixel_value2[1],
+                                   hires_pixel_value[1] };
+        endcase
+
+	    // TODO: Do sprites here on stage0_0 (then repeat for 1?)
+	
+	    // Final stage : border mask.
+       if (main_border_stage0)
+          hires_pixel_color1 = ec_d2;
+			 
+    end
+end
+
+// --- END EXTENSIONS ---
+
+always @(posedge clk_dot4x)
+begin
+    if (hires_enabled && hires_stage1)        // --- BEGIN EXTENSIONS ---
+        pixel_color3 <= hires_pixel_color1;   // --- END EXTENSIONS ---
+    else if (stage1)
+	     pixel_color3 <= pixel_color1;
 end
 
 endmodule
