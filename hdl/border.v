@@ -29,7 +29,7 @@ begin
         // Do this on rising edge of a pixel
     end else if (dot_rising) begin
         // check hborder - lands on 16 & 17 at the right pixels
-        if ((xpos == 39 && csel == `FALSE) ||
+        if ((xpos == 38 && csel == `FALSE) ||
                 (xpos == 31 && csel == `TRUE)) begin
             // check vborder bottom
             if ((raster_line == 247 && rsel == `FALSE) ||
@@ -42,7 +42,7 @@ begin
         end
         // check hborder - lands on 56 & 57 at the right pixels
         else if ((xpos == 351 && csel == `TRUE) ||
-                 (xpos == 343 && csel == `FALSE)) begin
+                 (xpos == 342 && csel == `FALSE)) begin
             main_border = 1;
         end
 
