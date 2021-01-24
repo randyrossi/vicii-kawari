@@ -22,15 +22,18 @@ do
 		standard="-ntsc"
 		model="6567"
 		chip="0"
+		resolution="520x263"
 	elif [ "${stringarray[1]}" == "NTSCOLD" ]
 	then
 		standard="-ntsc"
 		model="6567r56a"
 		chip="2"
+		resolution="512x262"
 	else
 		standard="-pal"
 		model="6569"
 		chip="1"
+		resolution="512x312"
 	fi
 
 	delay="6"
@@ -67,7 +70,7 @@ do
 	sleep 1
 
 	mv /shared/Vivado/vicii-vice-3.4/stderr $k/vice_$j.log
-	convert screenshot.bmp -interpolate Integer -filter point -scale 50% $k/fpga_$j.png
+	convert screenshot.bmp -interpolate Integer -filter point -resize $resolution $k/fpga_$j.png
 	mv /shared/Vivado/vicii-vice-3.4/screenshot.png $k/vice_$j.png
    #fi
 
