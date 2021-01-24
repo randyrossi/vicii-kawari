@@ -28,7 +28,6 @@ module pixel_sequencer(
            input [3:0] b3c,
            input [3:0] ec,
            input main_border,
-           output reg main_border_stage0,
            input [15:0] sprite_cur_pixel_o,
            input [7:0] sprite_pri_d,
            input [7:0] sprite_mmc_d,
@@ -220,6 +219,7 @@ reg ecm_d;
 // pixel_value is not a color, it encodes
 // {bcm,bmm,mcm,px1,px0}
 reg [4:0] pixel_value;
+reg main_border_stage0;
 always @(posedge clk_dot4x)
 begin
     if (stage0)

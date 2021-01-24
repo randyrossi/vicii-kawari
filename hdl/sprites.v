@@ -55,7 +55,6 @@ module sprites(
            input aec,
            input is_background_pixel,
            input stage0,
-           input main_border,
            input imbc_clr,
            input immc_clr,
            input [6:0] sprite_dmachk1,
@@ -552,7 +551,7 @@ always @(posedge clk_dot4x)
             for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
                 if (((sprite_mmc_d[n] && sprite_cur_pixel[n] != 0) || // multicolor
                         (!sprite_mmc_d[n] && sprite_cur_pixel[n][1] != 0)) & // non multicolor
-                        !is_background_pixel & !main_border) begin
+                        !is_background_pixel) begin
                     sprite_m2d[n] <= `TRUE;
                     if (!m2d_triggered) begin
                         m2d_triggered <= `TRUE;

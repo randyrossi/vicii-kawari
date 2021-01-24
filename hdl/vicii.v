@@ -601,7 +601,6 @@ wire m2m_clr;
 wire m2d_clr;
 wire [7:0] sprite_m2m;
 wire [7:0] sprite_m2d;
-wire main_border_stage0;
 
 wire [7:0] sprite_mmc_d;
 wire [7:0] sprite_pri_d;
@@ -634,7 +633,6 @@ sprites vic_sprites(
             .aec(aec),
             .is_background_pixel(is_background_pixel0),
             .stage0(stage0),
-            .main_border(main_border_stage0),
             .imbc_clr(imbc_clr),
             .immc_clr(immc_clr),
             .sprite_dmachk1(sprite_dmachk1),
@@ -901,7 +899,6 @@ pixel_sequencer vic_pixel_sequencer(
                     .ec(ec),
                     .main_border(main_border_d5), // in
                     .vborder(top_bot_border_d5), // in
-                    .main_border_stage0(main_border_stage0), // out for sprite
                     .sprite_cur_pixel_o(sprite_cur_pixel_o),
                     .sprite_pri_d(sprite_pri_d),  // delayed
                     .sprite_mmc_d(sprite_mmc_d),  // delayed
