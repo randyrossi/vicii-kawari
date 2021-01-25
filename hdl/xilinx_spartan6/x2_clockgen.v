@@ -9,11 +9,6 @@ module x2_clockgen
   input         reset
  );
 
-  // Input buffering
-  //------------------------------------
-  BUFG clkin1_buf
-   (.O (clkin1),
-    .I (clk_in));
 
 
   // Clocking primitive
@@ -40,7 +35,7 @@ module x2_clockgen
     .STARTUP_WAIT          ("FALSE"))
   dcm_sp_inst
     // Input clock
-   (.CLKIN                 (clkin1),
+   (.CLKIN                 (clk_in),
     .CLKFB                 (clkfb),
     // Output clocks
     .CLK0                  (),

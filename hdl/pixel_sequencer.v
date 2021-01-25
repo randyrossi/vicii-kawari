@@ -353,6 +353,9 @@ begin
 `ifdef PIXEL_LOG
         $display("PV:%02x FROM %02x", pixel_value, pixels_shifting);
 `endif
+       if (main_border_stage0)
+          pixel_color1 = ec_d2;
+	    else begin
         case (pixel_value[4:2])
             `MODE_STANDARD_CHAR:
                 pixel_color1 = pixel_value[1] ? char_shifting[11:8]:b0c_d2;
@@ -409,10 +412,7 @@ begin
                 end
             end
         end
-
-       // Final stage : border mask.
-       if (main_border_stage0)
-          pixel_color1 = ec_d2;
+		 end
 
     end
 end
@@ -428,8 +428,12 @@ begin
       hires_stage1 <= 1'b0;
     if (hires_stage0) begin
 	   hires_stage1 <= 1'b1;
-      case (hires_mode)
-	   2'b00:
+		
+      if (main_border_stage0)
+          hires_pixel_color1 = ec_d2;
+	   else begin
+        case (hires_mode)
+	     2'b00:
            // Text mode. We don't use the upper 4 bits of color...
            hires_pixel_color1 = hires_pixel_value[1] ?
 		         hires_color_shifting[3:0] : b0c_d2;
@@ -447,13 +451,8 @@ begin
            hires_pixel_color1 = { 2'b0, hires_pixel_value2[1],
                                    hires_pixel_value[1] };
         endcase
-
 	    // TODO: Do sprites here on stage0_0 (then repeat for 1?)
-	
-	    // Final stage : border mask.
-       if (main_border_stage0)
-          hires_pixel_color1 = ec_d2;
-			 
+       end 
     end
 end
 

@@ -148,4 +148,3 @@ NET "vsync" DRIVE=4;
 NET "vsync" SLEW=SLOW;
 NET "sys_clock" LOC=P56;
 
-PIN "mojo_clockgen/dot4x_50_clockgen/clkout1_buf.O" CLOCK_DEDICATED_ROUTE = FALSE;

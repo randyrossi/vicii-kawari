@@ -7,12 +7,6 @@ module dot4x_50_pal_clockgen
   output        locked
  );
 
-  // Input buffering
-  //------------------------------------
-  IBUFG clkin1_buf
-   (.O (clkin1),
-    .I (clk_in50mhz));
-
 
   // Clocking primitive
   //------------------------------------
@@ -55,7 +49,7 @@ module dot4x_50_pal_clockgen
     .RST                   (reset),
      // Input clock control
     .CLKFBIN               (clkfbout_buf),
-    .CLKIN                 (clkin1));
+    .CLKIN                 (clk_in50mhz));
 
 
   // Output buffering
