@@ -265,6 +265,9 @@ wire [7:0] pixels_read;
 
 // badline condition
 reg badline;
+// --- BEGIN EXTENSIONS ---
+reg hires_badline;
+// --- END EXTENSIONS ---
 
 // determines when ba should drop due to chars and sprites
 reg ba_chars;
@@ -371,13 +374,19 @@ begin
                     raster_line_d == 48))
             allow_bad_lines = `TRUE;
 
-        if (raster_line == 248)
+        if (raster_line == 248 || hires_enabled) // hires condition added for EXTENSIONS
             allow_bad_lines = `FALSE;
 
         badline = `FALSE;
         if (raster_line[2:0] == yscroll && allow_bad_lines == `TRUE &&
                 raster_line >= 48 && raster_line < 248)
             badline = `TRUE;
+
+        // --- BEGIN EXTENSIONS ---
+		  hires_badline = `FALSE;
+        if (raster_line[2:0] == yscroll && raster_line >= 48 && raster_line < 248)
+				hires_badline = `TRUE;
+        // --- END EXTENSIONS ---
     end
 end
 
@@ -536,7 +545,7 @@ hires_matrix vic_hires_matrix(
            .phi_phase_start_14(phi_phase_start[14]),
            .cycle_num(cycle_num),
            .raster_line(raster_line),
-           .badline(badline),
+           .hires_badline(hires_badline),
            .hires_vc(hires_vc),
            .hires_fvc(hires_fvc),
            .hires_rc(hires_rc)
