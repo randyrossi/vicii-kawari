@@ -167,7 +167,7 @@ Can be replaced with:
     STY VIDEO_MEM_A_IDX
     LDA VIDEO_MEM_A_VAL
 
-NOTE: VIDEO_MEM_?_IDX only works for RAM access, not the extended register
+NOTE: VIDEO_MEM_?_IDX only applies to RAM access, not the extended register
       overlay area between 0x00 - 0xff described below.
 
 ### Extra Registers Overlay

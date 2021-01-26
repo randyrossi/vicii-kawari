@@ -52,21 +52,22 @@ I can't test every program but it supports all the graphics tricks programmers u
 This is a matter of opinion. Some people consider FPGA hardware that 'mimicks' real hardware simply another form of emulation.
 
 ## Will HDMI make my C64 look like an emulator?
-Yes. The pixel perfect look of HDMI output will resemble an emulator. This may not be desirable by some. There is no attempt to add any video processing to make HDMI look like a CRT (scanlines, curve, etc.)  If you want the look of a CRT, you should chose the Composite/VGA options and use a real CRT.  Also, the resolution will not match an HDMI monitor's native resolution so there will always be some scaling taking place.
+Yes. The pixel perfect look of HDMI output will resemble an emulator.  However, the default display mode applies half brightness to alternating lines, yeilding a raster line effect.  Other than that, there is no effort to make HDMI look like a CRT. If you want the look of a CRT, you should chose the Composite/VGA options and use a real CRT (and turn off rasterline effect). Also, the resolution will not match an HDMI monitor's native resolution so there will always be some scaling taking place.
 
 ## Will HDMI/VGA add delay to the video output?
-There is no frame buffer for video output. However, there is a single raster line buffer necessary to double the 15khz horizontal frequency. Although this adds a very small delay, it is a tiny fraction of the frame rate and is imperceivable by a human. For HDMI, any additional latency will be from the monitor you use. Most TVs have a 'game mode' that turns off extra processing that can introduce latency and it is recommended you use that feature.
+There is no frame buffer for video output. However, there is a single raster line buffer necessary to double the 15khz horizontal frequency. Although this adds a very small delay, it is a tiny fraction of the frame rate and is imperceivable by a human. For HDMI, any additional latency will be from the monitor you use. Most TVs have a 'game mode' that turns off extra processing that can introduce latency and it is highly recommended you use that feature.
 
 ## Do light pens work?
 Yes. However, light pens only work using analog modes (Composite/VGA) and only on a real CRT. (LCD or HDMI monitors will not work with light pens.)
 
 ## This is more expensive. Why not just buy a real one?
-If you need a VIC-II to replace a broken one, you should just buy one off eBay. This project is for fun/interest and would certainly cost more than just buying the real thing.  However, there are some advantages to using VICII-Kawari:
+If you need a VIC-II to replace a broken one, you should just buy one off eBay. This project is for fun/interest and would certainly cost more than just buying the real thing. However, there are some advantages to using VICII-Kawari:
 
 * No 'VSP' bug
-* Configurable color palette
+* Configurable color palette (4096 color space, two 16 palettes available)
 * No need for a working clock circuit
 * Can software switch between NTSC and PAL
+* An 80 column mode and new graphics modes
 * It's not an almost 40 year old device that may fail at any time
 
 Also, since the core is open source, hobbyests can add their own interesting new features (i.e. a math co-processor, more sprites, more colors, a new graphics mode, a display address translator, etc) See [FORKING.md](FORKING.md) for some a list of possible add-ons.
@@ -75,22 +76,18 @@ Also, since the core is open source, hobbyests can add their own interesting new
 
 ### A configurable color palette
 
-Each of the Commodore 64's 16 colors can be set with RGB values inside a 12 bit color space (4096 colors).
-
-### Switchable palettes
-
-There are two independent 16 color palettes available. Palette 1 or 2 is selected by a kawari register.
+Each of the Commodore 64's 16 colors can be set with RGB values inside a 12 bit color space (4096 colors).  There are two 16 color palettes available. Palette 1 or 2 is selected by a register.
 
 ### An 80 column text mode
 
-A true 16 color 80 column text mode is available. This is NOT a soft-80 mode that uses bitmap graphics but rather a true text mode. Each character cell is a full 8x8 pixels. An 80 colum text screen occupies 4k of kawari video memory space (+4k character definition data). A small kernal patch (2k resident at $c800) can enable this for the basic programming environment.
+A true 16 color 80 column text mode is available. This is NOT a soft-80 mode that uses bitmap graphics but rather a true text mode. Each character cell is a full 8x8 pixels. An 80 colum text screen occupies 4k of kawari video memory space (+4k character definition data). A small program (2k resident at $c800) can enable this for the basic programming environment.  The basic text editor operates exactly as the 40 column mode does since the input/output routines are simply copies of the normal kernel routines compiled with new limits.
 
 ### New graphics modes
 
 In addition to the 80 column text mode, three bitmap modes have been
-added:
+added for you to experiment with:
 
-    640x200 16 color - Every 8x8 cell can be one of 16 colors or the backgroudn color.
+    640x200 16 color - Every 8x8 cell can be one of 16 foreground colors or the backgroudn color.
     320x200 16 color - Every pixel can be set to one of 16 colors.
     640x200 4 colors - Every pixel can be set to one of 4 colors.
 
@@ -100,19 +97,25 @@ TBD
 
 ## What are the installation options?
 
-### Mod-less Composite
-
-In this configuration, a composite encoder board is plugged into the video output port of the VICII-Kawari.  This feeds LUMA and CHROMA signals back into the motherboard.  No modifications to the machine are necessary in this configuration.  Video out is taken from the normal output jack and the RF modulator is still necessary.
-
 ### Simple mod Composite
 
-In this configuration, the same composite encoder is plugged into the video output port.  The wire leading to the RF output jack is disconnected from the modulator.  A wire carrying the composite signal from the composite encoder board is then soldered to what used to be the RF output jack.  In this configuration, no video signals will reach the C64's video port.
+In this configuration, a composite encoder board is plugged into the video output port.  The wire leading to the RF output jack is disconnected from the modulator.  A wire carrying the composite signal from the composite encoder board is then soldered to what used to be the RF output jack.  In this configuration, no video signals will reach the C64's video port.
 
 ### VGA + RF Modulator Removal
 
 In this configuration, the RF modulator is removed.  A VGA adapter board is plugged into the VICII-Kawari's video output port.  The hole previously used for RF out is used for a VGA cable connected to the VGA board.  No video signals will be present at the C64's video port.
 
+NOTE: You can get away without removing the RF modulator but then you will have the challenge of getting the VGA cable out of a closed machine.  I don't recommend drilling holes but this is an option.  Another option is to fish the cable out the user port opening, if you don't plan on using any user port cartridges.
+
 ### HDMI + RF Modulator Removal
 
 In this configuration, the RF modulator is removed.  An HDMI adapter board is plugged into the VICII-Kawari's video output port.  The hole previously used for RF out is used for a HDMI cable connected to the HDMI board.  No video signals will be present at the C64's video port.
+
+NOTE: You can get away without removing the RF modulator but then you will have the challenge of getting the HDMI cable out of a closed machine.  I don't recommend drilling holes but this is an option.  Another option is to fish the cable out the user port opening, if you don't plan on using any user port cartridges.
+
+### Is there a mod-less option?
+
+A mod-less composite option is thoeretically possible but has not yet been attempted.  In this configuration, a composite encoder board is plugged into the video output port of the VICII-Kawari.  This board would generate the required LUMA/CHROMA signals to be fed back into the motherboard.  No modifications to the machine would be necessary in this configuration.  Video out would be taken from the normal output jack and the RF modulator would still be necessary.
+
+As stated above, this option is theoretically possible but no such adapter board has been created.  There are some technical challenges to overcome.  The voltage levels for LUMA/CHROMA signals going back into the motherboard would have to match what the RF modulator circuits are expecting. Also, it's not clear whether NTSC / PAL signals would be compatible with one or the other type of RF modulator.
 
