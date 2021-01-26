@@ -444,18 +444,11 @@ always @(posedge clk_dot4x)
                      begin
                         // reg overlay or video mem
                         auto_ram_sel <= 0;
-                        if (video_ram_flags[5] && video_ram_lo_1 < 8'h80) begin
-                           // _r stores which byte within the 16 bit
-			   // lookup value we want
-                           color_regs_r <= 1'b1;
-                           color_regs_r_nibble <= video_ram_lo_1[1:0];
-                           color_regs_addr_a <= video_ram_lo_1[6:2];
-                        end else begin
-                           video_ram_r <= 1;
-                           video_ram_addr_a <= {video_ram_hi_1[6:0],
-                                                video_ram_lo_1} +
-						{7'b0, video_ram_idx_1};
-                        end
+                        read_ram(
+                           .overlay(video_ram_flags[5]),
+                           .ram_lo(video_ram_lo_1),
+                           .ram_hi(video_ram_hi_1),
+                           .ram_idx(video_ram_idx_1));
                     end
                     `VIDEO_MEM_2_HI:
                         dbo[7:0] <= video_ram_hi_2;
@@ -465,18 +458,11 @@ always @(posedge clk_dot4x)
                      begin
                         // reg overlay or video mem
                         auto_ram_sel <= 1;
-                        if (video_ram_flags[5] && video_ram_lo_2 < 8'h80) begin
-                           // _r stores which byte within the 16 bit
-			   // lookup value we want
-                           color_regs_r <= 1'b1;
-                           color_regs_r_nibble <= video_ram_lo_2[1:0];
-                           color_regs_addr_a <= video_ram_lo_2[6:2];
-                        end else begin
-                           video_ram_r <= 1;
-                           video_ram_addr_a <= {video_ram_hi_2[6:0],
-                                                video_ram_lo_2} +
-						{7'b0, video_ram_idx_2};
-                        end
+                        read_ram(
+                           .overlay(video_ram_flags[5]),
+                           .ram_lo(video_ram_lo_2),
+                           .ram_hi(video_ram_hi_2),
+                           .ram_idx(video_ram_idx_2));
                     end
                     /* 0x3F */ `VIDEO_MEM_FLAGS:
                         dbo[7:0] <= video_ram_flags;
@@ -660,22 +646,12 @@ always @(posedge clk_dot4x)
                      begin
                         // reg overlay or video mem
                         auto_ram_sel <= 0;
-                        if (video_ram_flags[5] && video_ram_lo_1 < 8'h80) begin
-                           // In order to write to individual 4 bit
-			   // values within the 16 bit register, we
-			   // have to read it first, then write.
-                           color_regs_pre_wr_a <= 1;
-                           color_regs_wr_value <= dbi[3:0];
-			   color_regs_wr_nibble <= video_ram_lo_1[1:0];
-                           color_regs_addr_a <= video_ram_lo_1[6:2];
-                        end else begin
-                           video_ram_wr_a <= 1;
-                           video_ram_data_in_a <= dbi[7:0];
-                           video_ram_addr_a <= {video_ram_hi_1[6:0],
-                                                video_ram_lo_1} +
-						{7'b0, video_ram_idx_1};
-                        end
-                    end
+                        write_ram(
+                           .overlay(video_ram_flags[5]),
+                           .ram_lo(video_ram_lo_1),
+                           .ram_hi(video_ram_hi_1),
+                           .ram_idx(video_ram_idx_1));
+                     end
                     `VIDEO_MEM_2_HI:
                         video_ram_hi_2 <= dbi[7:0];
                     `VIDEO_MEM_2_LO:
@@ -684,21 +660,11 @@ always @(posedge clk_dot4x)
                      begin
                         // reg overlay or video mem
                         auto_ram_sel <= 1;
-                        if (video_ram_flags[5] && video_ram_lo_2 < 8'h80) begin
-                           // In order to write to individual 4 bit
-			   // values within the 16 bit register, we
-			   // have to read it first, then write.
-                           color_regs_pre_wr_a <= 1;
-                           color_regs_wr_value <= dbi[3:0];
-			   color_regs_wr_nibble <= video_ram_lo_2[1:0];
-                           color_regs_addr_a <= video_ram_lo_2[6:2];
-                        end else begin
-                           video_ram_wr_a <= 1;
-                           video_ram_data_in_a <= dbi[7:0];
-                           video_ram_addr_a <= {video_ram_hi_2[6:0],
-                                                video_ram_lo_2} +
-						{7'b0, video_ram_idx_2};
-                        end
+                        write_ram(
+                           .overlay(video_ram_flags[5]),
+                           .ram_lo(video_ram_lo_2),
+                           .ram_hi(video_ram_hi_2),
+                           .ram_idx(video_ram_idx_2));
                     end
 
                     // --- END EXTENSIONS ----
@@ -758,7 +724,7 @@ always @(posedge clk_dot4x)
             if (video_ram_r2 || video_ram_wr_a || color_regs_r2 || color_regs_wr_a) begin
                 // Handle auto increment /decrement after port access
                 if (auto_ram_sel == 0) begin // loc 1 of port a
-                    case(video_ram_flags[1:0])
+                    case(video_ram_flags[1:0]) // auto inc port a
                     2'd1: begin
                         if (video_ram_lo_1 < 8'hff)
                             video_ram_lo_1 <= video_ram_lo_1 + 8'b1;
@@ -779,7 +745,7 @@ always @(posedge clk_dot4x)
                        ;
                     endcase
                 end else begin // loc 2 of port a
-                    case(video_ram_flags[3:2])
+                    case(video_ram_flags[3:2]) // auto inc port b
                     2'd1: begin
                        if (video_ram_lo_2 < 8'hff)
                            video_ram_lo_2 <= video_ram_lo_2 + 8'b1;
@@ -830,5 +796,112 @@ begin
     end
 `endif
 end
+
+// For color ram:
+//     flip read bit on and set address and which nibble (out of 4)
+//     is to be read, dbo will be set by the 'CPU read from color regs' block
+//     above.
+// For video ram:
+//     flip read bit on and set address. dbo will be set by the
+//     'CPU read from video ram' block above.
+//
+// In both cases, read happens next cycle and r flags turned off.
+task read_ram(
+    input overlay,
+    input [7:0] ram_lo,
+    input [7:0] ram_hi,
+    input [7:0] ram_idx);
+    begin
+       if (overlay) begin
+          if (ram_lo < 8'h80) begin
+              // _r stores which byte within the 16 bit
+              // lookup value we want
+              color_regs_r <= 1'b1;
+              color_regs_r_nibble <= ram_lo[1:0];
+              color_regs_addr_a <= ram_lo[6:2];
+          end else begin
+              case (ram_lo)
+                 `EXT_REG_VIDEO_STANDARD: ;
+                 `EXT_REG_VIDEO_FREQ: ;
+                 `EXT_REG_CHIP_MODEL: ;
+                 `EXT_REG_DISPLAY_FLAGS: ;
+                 `EXT_REG_VERSION:
+			 dbo <= {`VERSION_MAJOR, `VERSION_MINOR};
+                 `EXT_REG_VARIANT_NAME1:
+			 dbo <= `VARIANT_NAME1;
+                 `EXT_REG_VARIANT_NAME2:
+			 dbo <= `VARIANT_NAME2;
+                 `EXT_REG_VARIANT_NAME3:
+			 dbo <= `VARIANT_NAME3;
+                 `EXT_REG_VARIANT_NAME4:
+			 dbo <= `VARIANT_NAME4;
+                 `EXT_REG_VARIANT_NAME5:
+			 dbo <= `VARIANT_NAME5;
+                 `EXT_REG_VARIANT_NAME6:
+			 dbo <= `VARIANT_NAME6;
+                 `EXT_REG_VARIANT_NAME7:
+			 dbo <= `VARIANT_NAME7;
+                 `EXT_REG_VARIANT_NAME8:
+			 dbo <= `VARIANT_NAME8;
+                 `EXT_REG_VARIANT_NAME9:
+			 dbo <= 8'd0;
+                 default: begin
+                     video_ram_r <= 1;
+                     video_ram_addr_a <= {ram_hi[6:0], ram_lo} + {7'b0, ram_idx};
+                 end
+              endcase
+          end
+       end else begin
+           video_ram_r <= 1;
+           video_ram_addr_a <= {ram_hi[6:0], ram_lo} + {7'b0, ram_idx};
+           end
+       end
+endtask
+
+// For color ram:
+//     Write happens in two stages. First pre_wr flag is set along with
+//     value and which nibble (of 4) and the adddress.  When stage 1 is
+//     handled above, the value is read out first, the nibble updated
+//     and then the write op is done.
+// For video ram:
+//     Write happens in one stage. We set the wr flag, address and value
+//     here.
+//
+// In both cases, wr flags are turned off by dav_plus2
+task write_ram(
+    input overlay,
+    input [7:0] ram_lo,
+    input [7:0] ram_hi,
+    input [7:0] ram_idx);
+    begin
+       if (overlay) begin
+           if (ram_lo < 8'h80) begin
+              // In order to write to individual 4 bit
+              // values within the 16 bit register, we
+              // have to read it first, then write.
+              color_regs_pre_wr_a <= 1;
+              color_regs_wr_value <= dbi[3:0];
+              color_regs_wr_nibble <= ram_lo[1:0];
+              color_regs_addr_a <= ram_lo[6:2];
+           end else begin
+              case (ram_lo)
+                 `EXT_REG_VIDEO_STANDARD: ;
+                 `EXT_REG_VIDEO_FREQ: ;
+                 `EXT_REG_CHIP_MODEL: ;
+                 `EXT_REG_DISPLAY_FLAGS: ;
+                 default: begin
+                    video_ram_wr_a <= 1;
+                    video_ram_data_in_a <= dbi[7:0];
+                    video_ram_addr_a <= {ram_hi[6:0], ram_lo} + {7'b0, ram_idx};
+                 end
+              endcase
+           end
+        end else begin
+           video_ram_wr_a <= 1;
+           video_ram_data_in_a <= dbi[7:0];
+           video_ram_addr_a <= {ram_hi[6:0], ram_lo} + {7'b0, ram_idx};
+        end
+    end
+endtask
 
 endmodule

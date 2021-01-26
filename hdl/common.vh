@@ -1,6 +1,9 @@
 `ifndef common_vh_
 `define common_vh_
 
+`define VERSION_MAJOR 4'd1
+`define VERSION_MINOR 4'd0
+
 // DATA_DAV
 //
 // When to read from the data bus for both char/pixel and sprite dma
@@ -166,6 +169,38 @@
 `define HIRES_ENABLE                  4
 `define HIRES_TEXT_BITMAP             5
 `define HIRES_COLOR_2K_16K            6
+
+`define EXT_REG_VIDEO_STANDARD       8'h80
+`define EXT_REG_VIDEO_FREQ           8'h81
+`define EXT_REG_CHIP_MODEL           8'h82
+`define EXT_REG_VERSION              8'h83
+`define EXT_REG_DISPLAY_FLAGS        8'h84
+
+`define EXT_REG_VARIANT_NAME1        8'h90
+`define EXT_REG_VARIANT_NAME2        8'h91
+`define EXT_REG_VARIANT_NAME3        8'h92
+`define EXT_REG_VARIANT_NAME4        8'h93
+`define EXT_REG_VARIANT_NAME5        8'h94
+`define EXT_REG_VARIANT_NAME6        8'h95
+`define EXT_REG_VARIANT_NAME7        8'h96
+`define EXT_REG_VARIANT_NAME8        8'h97
+`define EXT_REG_VARIANT_NAME9        8'h98
+`define EXT_REG_VARIANT_NAME10       8'h99
+`define EXT_REG_VARIANT_NAME11       8'h9a
+`define EXT_REG_VARIANT_NAME12       8'h9b
+`define EXT_REG_VARIANT_NAME13       8'h9c
+`define EXT_REG_VARIANT_NAME14       8'h9d
+`define EXT_REG_VARIANT_NAME15       8'h9e
+`define EXT_REG_VARIANT_NAME16       8'h9f
+
+`define VARIANT_NAME1   8'h4F  // O
+`define VARIANT_NAME2   8'h46  // F
+`define VARIANT_NAME3   8'h46  // F
+`define VARIANT_NAME4   8'h49  // I
+`define VARIANT_NAME5   8'h43  // C
+`define VARIANT_NAME6   8'h49  // I
+`define VARIANT_NAME7   8'h41  // A
+`define VARIANT_NAME8   8'h4C  // L
 
 // --- END EXTENSIONS ---
 
