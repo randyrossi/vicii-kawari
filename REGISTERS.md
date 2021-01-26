@@ -29,16 +29,16 @@ REG    | Name | Description
 0xd032 |      | Unused
 0xd033 |      | Unused
 0xd034 |      | Unused
-0xd035 | VIDEO_MEM_1_IDX | Video Memory Port 1 Index
-0xd036 | VIDEO_MEM_2_IDX | Video Memory Port 2 Index
+0xd035 | VIDEO_MEM_1_IDX | Video Memory Index Port A (RAM only)
+0xd036 | VIDEO_MEM_2_IDX | Video Memory Index Port B (RAM only)
 0xd037 | VIDEO_MODE1 | See below
 0xd038 | VIDEO_MODE2 | See below
-0xd039 | VIDEO_MEM_1_LO | Video Memory Addr Lo Port 1
-0xd03a | VIDEO_MEM_1_HI | Video Memory Addr Hi Port 1
-0xd03b | VIDEO_MEM_1_VAL | Video Memory Port A Read/Write Value
-0xd03c | VIDEO_MEM_2_LO | Video Memory Addr Lo Port 2
-0xd03d | VIDEO_MEM_2_HI | Video Memory Addr Hi Port 2
-0xd03e | VIDEO_MEM_2_VAL | Video Memory Port B Read/Write Value
+0xd039 | VIDEO_MEM_1_LO | Video Memory Addr Lo Port A
+0xd03a | VIDEO_MEM_1_HI | Video Memory Addr Hi Port A
+0xd03b | VIDEO_MEM_1_VAL | Video Memory Read/Write Value Port A
+0xd03c | VIDEO_MEM_2_LO | Video Memory Addr Lo Port B
+0xd03d | VIDEO_MEM_2_HI | Video Memory Addr Hi Port B
+0xd03e | VIDEO_MEM_2_VAL | Video Memory Read/Write Value Port B
 0xd03f | VIDEO_MEM_FLAGS | Video Memory Op Flags (see below)
 
 ## Video Memory
@@ -166,6 +166,9 @@ Can be replaced with:
     STA VIDEO_MEM_A_HI
     STY VIDEO_MEM_A_IDX
     LDA VIDEO_MEM_A_VAL
+
+NOTE: VIDEO_MEM_?_IDX only works for RAM access, not the extended register
+      overlay area between 0x00 - 0xff described below.
 
 ### Extra Registers Overlay
 
