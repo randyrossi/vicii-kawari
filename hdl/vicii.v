@@ -63,7 +63,7 @@ wire [9:0] raster_x;
 wire [10:0] hires_raster_x;
 // --- END EXTENSIONS ---
 wire [8:0] raster_line;
-wire [3:0] pixel_color3;
+reg [3:0] pixel_color3;
 
 // BA must go low 3 cycles before any dma access on a PHI
 // HIGH phase.
@@ -881,6 +881,18 @@ begin
     end
 end
 
+// Select between hires and lores
+wire [3:0] pixel_color1;
+wire [3:0] hires_pixel_color1;
+wire stage1;
+wire hires_stage1;
+always @(posedge clk_dot4x)
+begin
+    if (hires_enabled && hires_stage1)
+        pixel_color3 <= hires_pixel_color1;
+    else if (stage1)
+        pixel_color3 <= pixel_color1;
+end
 
 // Pixel sequencer - outputs stage 3 pixel_color3
 pixel_sequencer vic_pixel_sequencer(
@@ -916,17 +928,35 @@ pixel_sequencer vic_pixel_sequencer(
                     .sprite_mc1(sprite_mc1),
                     .is_background_pixel0(is_background_pixel0),
                     .stage0(stage0),
-                    .pixel_color3(pixel_color3),
-                    .active_sprite_d(active_sprite_d),
-		    // --- BEGIN EXTENSIONS ---
+                    .stage1(stage1),
+                    .pixel_color1(pixel_color1),
+                    .active_sprite_d(active_sprite_d)
+                );
+
+// --- BEGIN EXTENSIONS ---
+hires_pixel_sequencer vic_hires_pixel_sequencer(
+                    .clk_dot4x(clk_dot4x),
+                    .clk_phi(clk_phi),
+                    .dot_rising(dot_rising),
+                    .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
+                    .phi_phase_start_pl(phi_phase_start[`PIXEL_LATCH]),
+                    .phi_phase_start_10(phi_phase_start[10]),
+                    .cycle_bit(raster_x[2:0]),
+                    .hires_cycle_bit(hires_raster_x[2:0]),
+                    .cycle_num(cycle_num),
+                    .xscroll(xscroll),
+                    .b0c(b0c),
+                    .ec(ec),
+                    .main_border(main_border_d5),
+                    .vborder(top_bot_border_d5),
+                    .hires_pixel_color1(hires_pixel_color1),
+                    .hires_stage1(hires_stage1),
 		    .hires_enabled(hires_enabled),
 		    .hires_mode(hires_mode),
-		    .hires_cycle_bit(hires_raster_x[2:0]),
-		    .phi_phase_start_10(phi_phase_start[10]),
 		    .hires_pixel_data(hires_pixel_data),
 		    .hires_color_data(hires_color_data)
-		    // --- END EXTENSIONS ---
                 );
+// --- END EXTENSIONS ---
 
 // -------------------------------------------------------------
 // Composite output - csync/pixel_color4
