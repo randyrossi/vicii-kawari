@@ -73,6 +73,7 @@ module registers(
 	   output reg[3:0] red,
 	   output reg[3:0] green,
 	   output reg[3:0] blue,
+	   output reg show_raster_lines,
 
 	   // --- BEGIN EXTENSIONS ---
            input [14:0] video_ram_addr_b,
@@ -824,7 +825,8 @@ task read_ram(
                  `EXT_REG_VIDEO_STANDARD: ;
                  `EXT_REG_VIDEO_FREQ: ;
                  `EXT_REG_CHIP_MODEL: ;
-                 `EXT_REG_DISPLAY_FLAGS: ;
+                 `EXT_REG_DISPLAY_FLAGS:
+		         dbo <= {7'b0, show_raster_lines};
                  `EXT_REG_VERSION:
 			 dbo <= {`VERSION_MAJOR, `VERSION_MINOR};
                  `EXT_REG_VARIANT_NAME1:
@@ -888,7 +890,8 @@ task write_ram(
                  `EXT_REG_VIDEO_STANDARD: ;
                  `EXT_REG_VIDEO_FREQ: ;
                  `EXT_REG_CHIP_MODEL: ;
-                 `EXT_REG_DISPLAY_FLAGS: ;
+                 `EXT_REG_DISPLAY_FLAGS:
+		    show_raster_lines <= dbi[`DISPLAY_FLAGS_SHOW_RASTER_LINES];
                  default: begin
                     video_ram_wr_a <= 1;
                     video_ram_data_in_a <= dbi[7:0];
