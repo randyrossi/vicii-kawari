@@ -1,8 +1,8 @@
 `ifndef common_vh_
 `define common_vh_
 
-`define VERSION_MAJOR 4'd1
-`define VERSION_MINOR 4'd0
+`define VERSION_MAJOR 4'd0
+`define VERSION_MINOR 4'd1
 
 // DATA_DAV
 //
@@ -175,6 +175,8 @@
 `define EXT_REG_CHIP_MODEL           8'h82
 `define EXT_REG_VERSION              8'h83
 `define EXT_REG_DISPLAY_FLAGS        8'h84
+
+`define DISPLAY_FLAGS_SHOW_RASTER_LINES    0
 
 `define EXT_REG_VARIANT_NAME1        8'h90
 `define EXT_REG_VARIANT_NAME2        8'h91

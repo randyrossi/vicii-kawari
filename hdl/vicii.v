@@ -777,6 +777,7 @@ hires_addressgen vic_hires_addressgen(
 wire[3:0] pixel_color4_composite;
 wire[3:0] pixel_color4_vga;
 wire half_bright;
+wire show_raster_lines;
 
 wire composite_active;
 wire is_composite;
@@ -848,11 +849,12 @@ registers vic_registers(
               .embc(embc),
               .erst(erst),
               .pixel_color4(is_composite ? pixel_color3 : pixel_color4_vga), 
-              .half_bright(is_composite ? 1'b0 : half_bright),
+              .half_bright(is_composite ? 1'b0 : (show_raster_lines & half_bright)),
 	      .active(is_composite ? composite_active : active),
 	      .red(red),
 	      .green(green),
 	      .blue(blue),
+	      .show_raster_lines(show_raster_lines),
 
 	      // --- BEGIN EXTENSIONS --
               .video_ram_addr_b(video_ram_addr_b),
