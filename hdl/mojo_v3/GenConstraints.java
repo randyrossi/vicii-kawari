@@ -15,9 +15,6 @@ public class GenConstraints
                 if (l.length() == 0 || l.startsWith("#")) continue;
 
 		StringTokenizer st = new StringTokenizer(l," ");
-		String t1 = st.nextToken();
-		String t2 = st.nextToken();
-		String t3 = st.nextToken();
 		String t4 = st.nextToken();
 		String t5 = st.nextToken();
 		String t6 = st.nextToken();
@@ -35,6 +32,6 @@ public class GenConstraints
         }
 
 	// For our hacky dot8x generation...
-	System.out.println("\"PIN \"mojo_clockgen/dot4x_50_clockgen/clkout1_buf.O\" CLOCK_DEDICATED_ROUTE = FALSE;");
+	//System.out.println("\"PIN \"mojo_clockgen/dot4x_50_clockgen/clkout1_buf.O\" CLOCK_DEDICATED_ROUTE = FALSE;");
      }
 }

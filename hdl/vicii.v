@@ -49,7 +49,7 @@ module vicii(
            output ls245_data_dir,
            output ls245_data_oe,
            output ls245_addr_dir,
-           output ls245_addr_oe,
+           //output ls245_addr_oe,
            output vic_write_db,
            output vic_write_ab,
 	   output [3:0] red,
@@ -699,7 +699,7 @@ assign vic_write_ab = ~(aec | aec3);
 assign ls245_data_dir = ~vic_write_db;
 assign ls245_data_oe = 1'b0; // aec & ce;  for now, always enable
 assign ls245_addr_dir = aec;
-assign ls245_addr_oe = 1'b0; // aec & ce;  for now, always enable
+//assign ls245_addr_oe = 1'b0; // aec & ce;  for now, always enable
 
 
 // Handle cycles that perform data bus accesses
