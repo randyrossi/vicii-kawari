@@ -77,7 +77,7 @@ wire clk_dot4x;
 
 wire ls245_data_oe; // not enough pins on cmod_a7, just ground it
 wire ls245_addr_dir;  // not enough pins on cmod_a7, use aec
-wire ls245_addr_oe;  // not enough pins on cmod_a7, just ground it
+//wire ls245_addr_oe;  // not enough pins on cmod_a7, just ground it
 
 `ifndef IS_SIMULATOR
 // Clock generators and chip selection
@@ -137,7 +137,7 @@ vicii vic_inst(
           .ls245_data_dir(ls245_data_dir),
           .ls245_data_oe(ls245_data_oe),
           .ls245_addr_dir(ls245_addr_dir),
-          .ls245_addr_oe(ls245_addr_oe),
+          //.ls245_addr_oe(ls245_addr_oe),
           .vic_write_db(vic_write_db),
           .vic_write_ab(vic_write_ab),
 	  .red(red),
