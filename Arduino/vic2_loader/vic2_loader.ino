@@ -446,7 +446,8 @@ void uartTask() {
 
          cmd_buf[cmd_buf_ptr] = '\0';
          cmd_buf_ptr = 0;
-         if (strcmp(cmd_buf, "reset") == 0) {
+         int ok = 0;
+         if (strcmp(cmd_buf, "re") == 0) {
              if (last_chip_model != 0) {
                 last_chip_model = 0;
                 EEPROM.write(CHIP_MODEL_ADDR, last_chip_model);
@@ -459,10 +460,36 @@ void uartTask() {
                 last_is_hide_raster_lines = 0;
                 EEPROM.write(IS_HIDE_RASTER_LINES_ADDR, last_is_hide_raster_lines);
              }
-
-             Serial.write('K');
-             Serial.write('\n');
+             ok = 1;
          }
+         else if (strcmp(cmd_buf, "15") == 0) {
+             if (last_is_15khz != 1) {
+                last_is_15khz = 1;
+                EEPROM.write(IS_15KHZ_ADDR, last_is_15khz);
+             }
+             ok = 1;
+         }
+         else if (strcmp(cmd_buf, "31") == 0) {
+             if (last_is_15khz != 0) {
+                last_is_15khz = 0;
+                EEPROM.write(IS_15KHZ_ADDR, last_is_15khz);
+             }
+             ok = 1;
+         }
+         else if (strcmp(cmd_buf, "0") == 0 || strcmp(cmd_buf, "1") == 0 || strcmp(cmd_buf, "2") == 0) {
+             int m = atoi(cmd_buf);
+             if (last_chip_model != m) {
+                last_chip_model = m;
+                EEPROM.write(CHIP_MODEL_ADDR, last_chip_model);
+             }
+             ok = 1;
+         }
+         if (ok) {
+             Serial.write('O'); Serial.write('K');
+         } else {
+             Serial.write('?');
+         }
+         Serial.write('\n');
        } else {
          cmd_buf_ptr++;
        }
