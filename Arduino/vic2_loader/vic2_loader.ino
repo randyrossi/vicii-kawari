@@ -54,10 +54,15 @@ int is_hide_raster_lines = 0;
 #define IS_15KHZ_ADDR 0x01
 #define IS_HIDE_RASTER_LINES_ADDR 0x02
 
-#define CHIP_MODEL_BIT1 4
-#define CHIP_MODEL_BIT2 5
+#define CHIP_MODEL_BIT_0 4
+#define CHIP_MODEL_BIT_1 5
 #define IS_15KHZ_BIT 6
 #define IS_HIDE_RASTER_LINES_BIT 7
+
+// P46 CHIP_MODEL_BIT_0
+// P61 CHIP_MODEL_BIT_1
+// P62 IS_15KHZ
+// P65 IS_HIDE_RASTER_LINES
 
 // Last known saved settings. Used to compare
 // against what the FPGA is telling us it
@@ -101,23 +106,23 @@ void initPostLoad() {
   // Set two chip lines according to selected model
   switch (chip_model) {
       // 00 - 6569
-      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT1); 
-      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT2); 
+      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT_0); 
+      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT_1); 
       break;
     case 1:
       // 01 - 6567 R8
-      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT1); 
-      ADC_BUS_PORT |= (1 << CHIP_MODEL_BIT2);
+      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT_0); 
+      ADC_BUS_PORT |= (1 << CHIP_MODEL_BIT_1);
       break;
     case 2:
       // 10 - 6567 R56A
-      ADC_BUS_PORT |= (1 << CHIP_MODEL_BIT1);
-      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT2); 
+      ADC_BUS_PORT |= (1 << CHIP_MODEL_BIT_0);
+      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT_1); 
       break;
     default:
       // 00 - 6569
-      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT1); 
-      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT2); 
+      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT_0); 
+      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT_1); 
       break;
   }
 
@@ -439,7 +444,7 @@ void uartTask() {
     int16_t w;
     while ((w = Serial.read()) >= 0) {
       cmd_buf[cmd_buf_ptr] = (char)w;
-      if (cmd_buf[cmd_buf_ptr] == '\n' || cmd_buf[cmd_buf_ptr] == '\r') {
+      if (cmd_buf[cmd_buf_ptr] == '\n') {
          
          if (cmd_buf_ptr > 0 && cmd_buf[cmd_buf_ptr-1] == '\r' && cmd_buf[cmd_buf_ptr] == '\n')
             cmd_buf[cmd_buf_ptr-1] = '\0';
@@ -476,6 +481,20 @@ void uartTask() {
              }
              ok = 1;
          }
+         else if (strcmp(cmd_buf, "r0") == 0) {
+             if (last_is_hide_raster_lines != 1) {
+                last_is_hide_raster_lines = 1;
+                EEPROM.write(IS_HIDE_RASTER_LINES_ADDR, last_is_hide_raster_lines);
+             }
+             ok = 1;
+         }
+         else if (strcmp(cmd_buf, "r1") == 0) {
+             if (last_is_hide_raster_lines != 0) {
+                last_is_hide_raster_lines = 0;
+                EEPROM.write(IS_HIDE_RASTER_LINES_ADDR, last_is_hide_raster_lines);
+             }
+             ok = 1;
+         }
          else if (strcmp(cmd_buf, "0") == 0 || strcmp(cmd_buf, "1") == 0 || strcmp(cmd_buf, "2") == 0) {
              int m = atoi(cmd_buf);
              if (last_chip_model != m) {
@@ -483,6 +502,12 @@ void uartTask() {
                 EEPROM.write(CHIP_MODEL_ADDR, last_chip_model);
              }
              ok = 1;
+         }
+         else if (strcmp(cmd_buf, "?") == 0) {
+             Serial.write('R'); Serial.write(last_is_hide_raster_lines ? '0' : '1');
+             Serial.write('C'); Serial.write('0'+last_chip_model);
+             Serial.write('K'); Serial.write('0'+last_is_15khz);
+             Serial.write('\n');
          }
          if (ok) {
              Serial.write('O'); Serial.write('K');
