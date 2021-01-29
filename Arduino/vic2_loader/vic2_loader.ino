@@ -46,22 +46,23 @@ volatile taskState_t taskState = SERVICE;
 // Current VIC2 settings we are holding on
 // PB4-7 data lines (and maybe in the future
 // what we are transmitting via Serial tx.)
-int is_ntsc = 0;
+int chip_model = 0;
 int is_15khz = 0;
 int is_hide_raster_lines = 0;
 
-#define IS_NTSC_ADDR 0x00
+#define CHIP_MODEL_ADDR 0x00
 #define IS_15KHZ_ADDR 0x01
 #define IS_HIDE_RASTER_LINES_ADDR 0x02
 
-#define IS_NTSC_BIT 4
-#define IS_15KHZ_BIT 5
-#define IS_HIDE_RASTER_LINES_BIT 6
+#define CHIP_MODEL_BIT1 4
+#define CHIP_MODEL_BIT2 5
+#define IS_15KHZ_BIT 6
+#define IS_HIDE_RASTER_LINES_BIT 7
 
 // Last known saved settings. Used to compare
 // against what the FPGA is telling us it
 // thinks the settings ought to be.
-int last_is_ntsc;
+int last_chip_model;
 int last_is_15khz;
 int last_is_hide_raster_lines;
 
@@ -86,21 +87,39 @@ void initPostLoad() {
   //Serial.flush();
 
   // Restore VIC settings
-  is_ntsc = EEPROM.read(IS_NTSC_ADDR);
+  chip_model = EEPROM.read(CHIP_MODEL_ADDR);
   is_15khz = EEPROM.read(IS_15KHZ_ADDR);
   is_hide_raster_lines = EEPROM.read(IS_HIDE_RASTER_LINES_ADDR);
 
-  last_is_ntsc = is_ntsc;
+  last_chip_model = chip_model;
   last_is_15khz = is_15khz;
   last_is_hide_raster_lines = is_hide_raster_lines;
 
   // Set PB4-PB7 as outputs. These are our configuration pins.
   ADC_BUS_DDR |= ADC_BUS_MASK; // make outputs
 
-  if (is_ntsc)
-      ADC_BUS_PORT |= 1 << IS_NTSC_BIT;
-  else
-      ADC_BUS_PORT &= ~(1 << IS_NTSC_BIT); 
+  // Set two chip lines according to selected model
+  switch (chip_model) {
+      // 00 - 6569
+      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT1); 
+      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT2); 
+      break;
+    case 1:
+      // 01 - 6567 R8
+      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT1); 
+      ADC_BUS_PORT |= (1 << CHIP_MODEL_BIT2);
+      break;
+    case 2:
+      // 10 - 6567 R56A
+      ADC_BUS_PORT |= (1 << CHIP_MODEL_BIT1);
+      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT2); 
+      break;
+    default:
+      // 00 - 6569
+      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT1); 
+      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT2); 
+      break;
+  }
 
   if (is_15khz)
       ADC_BUS_PORT |= 1 << IS_15KHZ_BIT;
@@ -380,29 +399,29 @@ void uartTask() {
 
   // Something to read?
   if (config_buf_read_ptr != config_buf_write_ptr) {
-       // So far we have just 3 bits of config from the fpga
+       // So far we have just 4 bits of config from the fpga
        // so this doesn't have to be complicated.  Just read
-       // a byte and use the lower 3 bits to make the config
+       // a byte and use the lower 4 bits to make the config
        // change if necessary.
        char bits = config_buf[config_buf_read_ptr];
-       int fpga_is_ntsc = (bits & 1) ? 1 : 0;
-       int fpga_is_15khz = (bits & 2) ? 1 : 0;
-       int fpga_is_hide_raster_lines = (bits & 4) ? 1 : 0;
+       int fpga_chip_model = (bits & 3);
+       int fpga_is_15khz = (bits & 4) ? 1 : 0;
+       int fpga_is_hide_raster_lines = (bits & 8) ? 1 : 0;
        
-       if (fpga_is_ntsc != last_is_ntsc) {
-          EEPROM.write(IS_NTSC_ADDR, fpga_is_ntsc);
-          last_is_ntsc = fpga_is_ntsc;
-          Serial.write(fpga_is_ntsc ? 'N' : 'P');
+       if (fpga_chip_model != last_chip_model) {
+          EEPROM.write(CHIP_MODEL_ADDR, fpga_chip_model);
+          last_chip_model = fpga_chip_model;
+          Serial.write((fpga_chip_model & 1) ? 'N' : 'P');
           Serial.write('\n');
        }
        if (fpga_is_15khz != last_is_15khz) {
-          EEPROM.write(IS_NTSC_ADDR, fpga_is_15khz);
+          EEPROM.write(IS_15KHZ_ADDR, fpga_is_15khz);
           last_is_15khz = fpga_is_15khz;
           Serial.write(fpga_is_15khz ? 'L' : 'H');
           Serial.write('\n');
        }
        if (fpga_is_hide_raster_lines != last_is_hide_raster_lines) {
-          EEPROM.write(IS_NTSC_ADDR, fpga_is_hide_raster_lines);
+          EEPROM.write(IS_HIDE_RASTER_LINES_ADDR, fpga_is_hide_raster_lines);
           last_is_hide_raster_lines = fpga_is_hide_raster_lines;
           Serial.write(fpga_is_hide_raster_lines ? 'X' : 'R');
           Serial.write('\n');
@@ -428,17 +447,17 @@ void uartTask() {
          cmd_buf[cmd_buf_ptr] = '\0';
          cmd_buf_ptr = 0;
          if (strcmp(cmd_buf, "reset") == 0) {
-             if (last_is_ntsc != 0) {
-                last_is_ntsc = 0;
-                EEPROM.write(IS_NTSC_ADDR, last_is_ntsc);
+             if (last_chip_model != 0) {
+                last_chip_model = 0;
+                EEPROM.write(CHIP_MODEL_ADDR, last_chip_model);
              }
              if (last_is_15khz != 0) {
                 last_is_15khz = 0;
-                EEPROM.write(IS_NTSC_ADDR, last_is_15khz);
+                EEPROM.write(IS_15KHZ_ADDR, last_is_15khz);
              }
              if (last_is_hide_raster_lines != 0) {
                 last_is_hide_raster_lines = 0;
-                EEPROM.write(IS_NTSC_ADDR, last_is_hide_raster_lines);
+                EEPROM.write(IS_HIDE_RASTER_LINES_ADDR, last_is_hide_raster_lines);
              }
 
              Serial.write('K');
