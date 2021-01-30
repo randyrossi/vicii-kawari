@@ -31,7 +31,7 @@ public class GenConstraints
 		map.put(t4,1);
         }
 
-	// For our hacky dot8x generation...
-	//System.out.println("\"PIN \"mojo_clockgen/dot4x_50_clockgen/clkout1_buf.O\" CLOCK_DEDICATED_ROUTE = FALSE;");
+	// Need to investigate this
+	System.out.println("NET \"sys_clock\" CLOCK_DEDICATED_ROUTE = FALSE;");
      }
 }

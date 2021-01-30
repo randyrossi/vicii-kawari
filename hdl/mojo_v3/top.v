@@ -16,6 +16,9 @@ module top(
            input [1:0] chip,    // chip config from MCU
            input is_15khz,      // freq config pin from MCU
            input is_hide_raster_lines, // config pin from MCU
+	   output tx,
+	   input rx,
+	   input cclk,
            output cpu_reset,    // reset for 6510 CPU
            output clk_phi,      // output phi clock for CPU
            output clk_dot8x_ext,    // pixel clock for external HDMI encoder
@@ -112,10 +115,14 @@ wire [11:0] ado;
 wire vic_write_ab;
 wire vic_write_db;
 
+wire[7:0] tx_data_4x;
+wire tx_new_data_4x;
 // Instantiate the vicii with our clocks and pins.
 vicii vic_inst(
           .rst(rst),
           .chip(chip),
+	  .tx_data_4x(tx_data_4x),
+	  .tx_new_data_4x(tx_new_data_4x),
           .is_15khz(is_15khz),
           .is_hide_raster_lines(is_hide_raster_lines),
           .clk_dot4x(clk_dot4x),
@@ -157,5 +164,32 @@ assign adh = vic_write_ab ? ado[11:6] : 6'bz;
 assign ado_sim = ado;
 assign dbo_sim = dbo;
 `endif
+
+// Propagate tx from 4x domain to sys_clock domain
+// When tx_new_data goes high, avr_interface will transmit
+// the config byte to the MCU.
+reg[7:0] tx_data_sys_pre;
+reg tx_new_data_sys_pre;
+reg[7:0] tx_data_sys;
+reg tx_new_data_sys;
+
+always @(posedge sys_clock) tx_data_sys_pre <= tx_data_4x;
+always @(posedge sys_clock) tx_data_sys <= tx_data_sys_pre;
+
+always @(posedge sys_clock) tx_new_data_sys_pre <= tx_new_data_4x;
+always @(posedge sys_clock) tx_new_data_sys <= tx_new_data_sys_pre;
+
+avr_interface mojo_avr_interface(
+    .clk(sys_clock),
+    .rst(rst),
+    .cclk(cclk),
+    .tx(tx),
+    .rx(rx),
+    .tx_data(tx_data_sys),
+    .new_tx_data(tx_new_data_sys)
+    // We don't ever receive from the MCU over serial (yet)
+    //output [7:0] rx_data,
+    //output new_rx_data
+  );
 
 endmodule : top

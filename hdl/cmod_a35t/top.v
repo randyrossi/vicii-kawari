@@ -35,6 +35,9 @@ module top(
 	   input [1:0] chip,    // chip config pin from MCU
 	   input is_15khz,      // freq config pin from MCU
 	   input is_hide_raster_lines, // config pin from MCU
+	   output tx,
+	   input rx,
+	   input cclk,
            output cpu_reset,    // reset for 6510 CPU
            output clk_colref,   // output color ref clock for CXA1545P
            output clk_phi,      // output phi clock for CPU
@@ -96,11 +99,14 @@ wire ls245_addr_dir;  // not enough pins on cmod_a7, use aec
 //             .clk_out(clk_colref));  // create color ref clock
 
 `ifndef IS_SIMULATOR
-// Clock generators and chip selection
+// Clock generators
+// TODO: CMOD code has not been updated to follow mojo. Just
+// remove this whole dir and switch simulator build to the mojo
+// top.
 clockgen cmod_clockgen(
              .sys_clock(sys_clock),
              .clk_dot4x(clk_dot4x),
-             .clk_dot8x(clk_dot8x), // THIS IS NOT GENERATED! NEED TO FIX GEN!
+             .clk_dot8x(clk_dot8x),
              .clk_col4x(clk_col4x),
              .rst(rst),
              .chip(chip));
@@ -125,10 +131,15 @@ wire [11:0] ado;
 wire vic_write_ab;
 wire vic_write_db;
 
+wire[7:0] tx_data_4x;
+wire tx_new_data_4x;
+
 // Instantiate the vicii with our clocks and pins.
 vicii vic_inst(
           .rst(rst),
           .chip(chip),
+	  .tx_data_4x(tx_data_4x),
+	  .tx_new_data_4x(tx_new_data_4x),
 	  .is_15khz(is_15khz),
 	  .is_hide_raster_lines(is_hide_raster_lines),
           .clk_dot4x(clk_dot4x),
@@ -170,5 +181,32 @@ assign adh = vic_write_ab ? ado[11:6] : 6'bz;
 assign ado_sim = ado;
 assign dbo_sim = dbo;
 `endif
+
+// NOTE: For the simulator, sys_clock is actually the same as
+// our dot4x clock.  But it's just for simulaion purposes to
+// check tx is working.
+// Propagate tx from 4x domain to sys_clock domain
+reg[7:0] tx_data_sys_pre;
+reg tx_new_data_sys_pre;
+reg[7:0] tx_data_sys;
+reg tx_new_data_sys;
+
+always @(posedge sys_clock) tx_data_sys_pre <= tx_data_4x;
+always @(posedge sys_clock) tx_data_sys<= tx_data_sys_pre;
+
+always @(posedge sys_clock) tx_new_data_sys_pre <= tx_new_data_4x;
+always @(posedge sys_clock) tx_new_data_sys <= tx_new_data_sys_pre;
+
+avr_interface mojo_avr_interface(
+    .clk(sys_clock),
+    .rst(rst),
+    .cclk(cclk),
+    .tx(tx),
+    .rx(rx),
+    .tx_data(tx_data_sys),
+    .new_tx_data(tx_new_data_sys)
+    //output [7:0] rx_data,
+    //output new_rx_data
+  );
 
 endmodule : top

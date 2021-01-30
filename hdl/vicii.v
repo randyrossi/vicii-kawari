@@ -29,6 +29,8 @@ module vicii(
            input rst,
            input clk_dot4x,
            input clk_dot8x,
+	   output[7:0] tx_data_4x,         // from regs module
+	   output tx_new_data_4x,          // from regs module
            output clk_phi,
 	   output active,
 	   output hsync,
@@ -849,8 +851,12 @@ registers vic_registers(
 	      .red(red),
 	      .green(green),
 	      .blue(blue),
+	      .chip(chip),
+	      .is_15khz(is_15khz),
 	      .is_hide_raster_lines(is_hide_raster_lines), // config in
 	      .show_raster_lines(show_raster_lines), // current setting out
+	      .tx_data_4x(tx_data_4x),
+	      .tx_new_data_4x(tx_new_data_4x),
 
 	      // --- BEGIN EXTENSIONS --
               .video_ram_addr_b(video_ram_addr_b),

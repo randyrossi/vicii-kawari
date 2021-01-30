@@ -73,7 +73,22 @@ module registers(
 	   output reg[3:0] red,
 	   output reg[3:0] green,
 	   output reg[3:0] blue,
-	   input is_hide_raster_lines,    // latched into show on reset
+
+	   // When we poke our custom regs that change config,
+	   // we set the new config byte and raise new data flag
+	   // for the MCU to pick up over serial.
+	   output reg [7:0] tx_data_4x,
+	   output reg tx_new_data_4x,
+
+	   // These are the config bits coming from the MCU. They
+	   // represent what the MCU wants things to be, not what
+	   // they are presently in the FPGA.  They are latched
+	   // into 'current' regs into reset block.
+	   input [1:0] chip,
+	   input is_15khz,
+	   input is_hide_raster_lines,
+
+	   // We export this so it can take effect immediately
 	   output reg show_raster_lines,
 
 	   // --- BEGIN EXTENSIONS ---
@@ -181,6 +196,16 @@ COLOR_REGS color_regs(clk_dot4x,
 
 // --- END EXTENSIONS ----
 
+reg [1:0] last_chip;
+reg last_is_15khz;
+reg [1:0] tx_new_data_sr;
+
+// Keep tx new data flag high for 2 ticks
+always @(posedge clk_dot4x)
+begin
+   tx_new_data_4x <= tx_new_data_sr[1];
+end
+
 always @(posedge clk_dot4x)
     if (rst) begin
         //ec <= BLACK;
@@ -225,7 +250,11 @@ always @(posedge clk_dot4x)
 
         // --- BEGIN EXTENSIONS ----
         extra_regs_activation_ctr <= 2'b0;
+
+	// Latch these config bits during reset
 	show_raster_lines <= ~is_hide_raster_lines;
+	last_chip <= chip;
+	last_is_15khz <= is_15khz;
 `ifdef IS_SIMULATOR
         extra_regs_activated <= 0'b1;
         video_ram_flags <= 8'b0;
@@ -271,6 +300,8 @@ always @(posedge clk_dot4x)
 
     end else
     begin
+        tx_new_data_sr <= {tx_new_data_sr[0], 1'b0};
+
         if (phi_phase_start_dav_plus_1) begin
             if (!clk_phi) begin
                 // always clear these immediately after they may
@@ -824,9 +855,10 @@ task read_ram(
               color_regs_addr_a <= ram_lo[6:2];
           end else begin
               case (ram_lo)
-                 `EXT_REG_VIDEO_STANDARD: ;
-                 `EXT_REG_VIDEO_FREQ: ;
-                 `EXT_REG_CHIP_MODEL: ;
+                 `EXT_REG_VIDEO_FREQ:
+		         dbo <= {7'b0, is_15khz};
+                 `EXT_REG_CHIP_MODEL:
+		         dbo <= {6'b0, chip};
                  `EXT_REG_DISPLAY_FLAGS:
 		         dbo <= {7'b0, show_raster_lines};
                  `EXT_REG_VERSION:
@@ -850,6 +882,7 @@ task read_ram(
                  `EXT_REG_VARIANT_NAME9:
 			 dbo <= 8'd0;
                  default: begin
+                     // We fallback to RAM if not peeking a register.
                      video_ram_r <= 1;
                      video_ram_addr_a <= {ram_hi[6:0], ram_lo} + {7'b0, ram_idx};
                  end
@@ -888,13 +921,42 @@ task write_ram(
               color_regs_wr_nibble <= ram_lo[1:0];
               color_regs_addr_a <= ram_lo[6:2];
            end else begin
+              // When we poke certain config registers, we
+	      // reconstruct a new configuration byte and
+	      // pass it to the MCU over serial.  Then, it
+	      // will save the values and the new config
+	      // bits will be reflected after the next
+	      // cold boot.
               case (ram_lo)
-                 `EXT_REG_VIDEO_STANDARD: ;
-                 `EXT_REG_VIDEO_FREQ: ;
-                 `EXT_REG_CHIP_MODEL: ;
+                 `EXT_REG_VIDEO_FREQ:
+                  begin
+                    last_is_15khz <= dbi[0];
+                    tx_data_4x <= {4'b0,
+			           ~show_raster_lines,
+				   dbi[0],
+				   last_chip};
+                    tx_new_data_sr <= 2'b11;
+                 end
+                 `EXT_REG_CHIP_MODEL:
+                  begin
+                    last_chip <= dbi[1:0];
+                    tx_data_4x <= {4'b0,
+			           ~show_raster_lines,
+				   last_is_15khz,
+				   dbi[1:0]};
+                    tx_new_data_sr <= 2'b11;
+                 end
                  `EXT_REG_DISPLAY_FLAGS:
-		    show_raster_lines <= dbi[`DISPLAY_FLAGS_SHOW_RASTER_LINES];
+                  begin
+		    show_raster_lines <= dbi[`SHOW_RASTER_LINES];
+                    tx_data_4x <= {4'b0,
+			           ~dbi[`SHOW_RASTER_LINES],
+				   last_is_15khz,
+				   last_chip};
+                    tx_new_data_sr <= 2'b11;
+                 end
                  default: begin
+                    // We fallback to RAM if not poking a register.
                     video_ram_wr_a <= 1;
                     video_ram_data_in_a <= dbi[7:0];
                     video_ram_addr_a <= {ram_hi[6:0], ram_lo} + {7'b0, ram_idx};

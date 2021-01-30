@@ -71,5 +71,10 @@ P65     IS_HIDE  is_hide_raster_lines  I  NA  NA
 P46     CHIP_0   chip[0]               I  NA  NA
 P61     CHIP_1   chip[1]               I  NA  NA
 
+# Serial link between MCU and FPGA
+P59     FPGA_TX  tx                    O  FAST 8
+P55     FPGA_RX  rx                    I  NA  NA
+P70     CCLK     cclk                  I  NA  NA
+
 # Clock
 P56     CLK      sys_clock       I     NA NA

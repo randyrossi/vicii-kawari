@@ -241,6 +241,7 @@ static vluint64_t nextTick(Vtop* top) {
 
    nextClk += half4XDotPS;
    top->V_DOT4X = ~top->V_DOT4X;
+   top->sys_clock = ~top->sys_clock;
    nextClkCnt = (nextClkCnt + 1) % 32;
    return ticks + diff1;
 }
@@ -717,6 +718,7 @@ int main(int argc, char** argv, char** env) {
     printf ("(RESET)\n");
     top->V_RST = 1;
     top->is_15khz = 1;
+    top->cclk = 1; // hold high to simulate MCU ready
     top->lp = 1;
     for (int i=0;i<32;i++) {
        top->eval();
