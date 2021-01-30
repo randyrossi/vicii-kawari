@@ -1,23 +1,22 @@
 # Extra Features
 
 In addition to being compatible with a genuine VICII, VICII-Kawari
-adds a number of new features for C64 and 8-bit hobbyests to experiment
-with.
+adds a number of new features for C64 and 8-bit hobbyests to experiment with.
 
 ## Extra Registers
 
 Extra registers are enabled through the activation port (0xd03f)
-by poking it with the PETSCII bytes "VIC2".  This prevents existing software
-from unintentionally triggering extra registers.
+by poking it with the PETSCII bytes "VIC2".  This prevents existing
+software from unintentionally triggering extra registers.
 
     POKE 54271,ASC("V")
     POKE 54271,ASC("I")
     POKE 54271,ASC("C")
     POKE 54271,ASC("2")
 
-Once activated, registers 0xd02f - 0xd03f are available to access
-VICII-Kawari extra features. Extra regsters can be deactivated again
-by setting bit 5 of 0xd03f to 1.
+Once activated, registers 0xd02f - 0xd03f become available and
+may be used to access VICII-Kawari extra features. Extra regsters
+can be deactivated again by setting bit 5 of 0xd03f to 1.
 
 ### Extra Registers Table
 
@@ -50,7 +49,7 @@ store code but it would have to be copied back to main memory to be executed
 by the CPU.)
 
 VIDEO_MEM_FLAGS | Description
-------------------------|------
+----------------|-------------
 BIT 1,2  | PORT 1 AUTO INCREMENT FLAGS<br>0=NONE<br>1=INC<br>2=DEC<br>3=UNUSED
 BIT 3,4  | PORT 2 AUTO INCREMENT FLAGS<br>0=NONE<br>1=INC<br>2=DEC<br>3=UNUSED
 BIT 5    | Deactivate Extra Registers
@@ -123,7 +122,7 @@ HIRES MODE | Description
 
 ### Performing a move within video memory
 
-Moving memory still requires CPU but uses two ports; one for
+Moving memory still requires the CPU but uses two ports; one for
 a source and the other for a destination.
 
     LDA <SRC_ADDR
@@ -146,7 +145,7 @@ a source and the other for a destination.
 
 ### Using video mem pointers with an index
 
-Sometimes, it may be more convenient to use an index when porting existing code to use VICII-Kawari extended video memory.  This is useful if replacing indirect indexed addressing.
+Sometimes, it may be more convenient to use an index when porting code to use VICII-Kawari extended video memory.  This is useful if replacing indirect indexed addressing.
 
 For example, the code:
 
@@ -340,13 +339,12 @@ on releasing a bitstream. See [FORKING.md](FORKING.md)
 
 ## Notes
 
-As stated above, the extra registers described here should remain
-functional across all VICII-Kawari variants. This way, the
-official configuration utility will be able to at least query the variant
-name and version on any variant (as well as set palette colors,
-change video standard, or other common features between variants).
-Users will be able to at least identify what variant they are running
-even if they use the official config utility.  Also, programs can
-run a simple check routine that will run on all variants and can
-display a user friendly message indicating the wrong variant is installed.
-
+The extra registers described here should remain functional across all
+VICII-Kawari variants. This way, the official configuration utility will
+be able to at least query the variant name and version on any variant
+(as well as set palette colors, change video standard, or other common
+features between variants).  Users will be able to at least identify what
+variant they are running even if they use the official config utility.
+Also, programs can run a simple check routine that will run on all variants
+and can display a user friendly message indicating the wrong variant is
+installed.

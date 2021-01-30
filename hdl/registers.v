@@ -459,47 +459,76 @@ always @(posedge clk_dot4x)
                     // --- BEGIN EXTENSIONS ----
 
                     `VIDEO_MEM_1_IDX:
-                        dbo[7:0] <= video_ram_idx_1;
+                        if (extra_regs_activated)
+                           dbo[7:0] <= video_ram_idx_1;
+                        else
+                           dbo[7:0] <= 8'hFF;
                     `VIDEO_MEM_2_IDX:
-                        dbo[7:0] <= video_ram_idx_2;
+                        if (extra_regs_activated)
+                           dbo[7:0] <= video_ram_idx_2;
+                        else
+                           dbo[7:0] <= 8'hFF;
                     `VIDEO_MODE1:
-                        dbo[7:0] <= { 1'b0,
+                        if (extra_regs_activated)
+                           dbo[7:0] <= { 1'b0,
 			              hires_mode,
 				      hires_enabled,
 				      palette_select,
 				      hires_char_pixel_base };
+                        else
+                           dbo[7:0] <= 8'hFF;
                     `VIDEO_MODE2:
-                        dbo[7:0] <= { hires_color_base, hires_matrix_base };
+                        if (extra_regs_activated)
+                           dbo[7:0] <= { hires_color_base, hires_matrix_base };
+                        else
+                           dbo[7:0] <= 8'hFF;
                     `VIDEO_MEM_1_HI:
-                        dbo[7:0] <= video_ram_hi_1;
+                        if (extra_regs_activated)
+                           dbo[7:0] <= video_ram_hi_1;
+                        else
+                           dbo[7:0] <= 8'hFF;
                     `VIDEO_MEM_1_LO:
-                        dbo[7:0] <= video_ram_lo_1;
+                        if (extra_regs_activated)
+                           dbo[7:0] <= video_ram_lo_1;
+                        else
+                           dbo[7:0] <= 8'hFF;
                     `VIDEO_MEM_1_VAL:
-                     begin
-                        // reg overlay or video mem
-                        auto_ram_sel <= 0;
-                        read_ram(
+                        if (extra_regs_activated) begin
+                          // reg overlay or video mem
+                          auto_ram_sel <= 0;
+                          read_ram(
                            .overlay(video_ram_flags[5]),
                            .ram_lo(video_ram_lo_1),
                            .ram_hi(video_ram_hi_1),
                            .ram_idx(video_ram_idx_1));
-                    end
+                        end else
+                          dbo[7:0] <= 8'hFF;
                     `VIDEO_MEM_2_HI:
-                        dbo[7:0] <= video_ram_hi_2;
+                        if (extra_regs_activated)
+                          dbo[7:0] <= video_ram_hi_2;
+                        else
+                           dbo[7:0] <= 8'hFF;
                     `VIDEO_MEM_2_LO:
-                        dbo[7:0] <= video_ram_lo_2;
+                        if (extra_regs_activated)
+                          dbo[7:0] <= video_ram_lo_2;
+                        else
+                           dbo[7:0] <= 8'hFF;
                     `VIDEO_MEM_2_VAL:
-                     begin
-                        // reg overlay or video mem
-                        auto_ram_sel <= 1;
-                        read_ram(
+                        if (extra_regs_activated) begin
+                          // reg overlay or video mem
+                          auto_ram_sel <= 1;
+                          read_ram(
                            .overlay(video_ram_flags[5]),
                            .ram_lo(video_ram_lo_2),
                            .ram_hi(video_ram_hi_2),
                            .ram_idx(video_ram_idx_2));
-                    end
+                        end else
+                          dbo[7:0] <= 8'hFF;
                     /* 0x3F */ `VIDEO_MEM_FLAGS:
-                        dbo[7:0] <= video_ram_flags;
+                        if (extra_regs_activated)
+                           dbo[7:0] <= video_ram_flags;
+                        else
+                           dbo[7:0] <= 8'hFF;
 
                     // --- END EXTENSIONS ----
 
@@ -628,19 +657,23 @@ always @(posedge clk_dot4x)
 
                     // --- BEGIN EXTENSIONS ----
                     `VIDEO_MEM_1_IDX:
-                        video_ram_idx_1 <= dbi;
+                        if (extra_regs_activated)
+                           video_ram_idx_1 <= dbi;
                     `VIDEO_MEM_2_IDX:
-                        video_ram_idx_2 <= dbi;
-		    `VIDEO_MODE1: begin
-                        hires_mode <= dbi[6:5];
-                        hires_enabled <= dbi[`HIRES_ENABLE];
-                        palette_select <= dbi[`PALETTE_SELECT_BIT];
-                        hires_char_pixel_base <= dbi[2:0];
-		    end
-		    `VIDEO_MODE2: begin
-			hires_matrix_base <= dbi[3:0];
-			hires_color_base <= dbi[7:4];
-		    end
+                        if (extra_regs_activated)
+                           video_ram_idx_2 <= dbi;
+		    `VIDEO_MODE1:
+                        if (extra_regs_activated) begin
+                          hires_mode <= dbi[6:5];
+                          hires_enabled <= dbi[`HIRES_ENABLE];
+                          palette_select <= dbi[`PALETTE_SELECT_BIT];
+                          hires_char_pixel_base <= dbi[2:0];
+		        end
+		    `VIDEO_MODE2:
+                        if (extra_regs_activated) begin
+			  hires_matrix_base <= dbi[3:0];
+			  hires_color_base <= dbi[7:4];
+		        end
 
                     /* 0x3f */ `VIDEO_MEM_FLAGS:
                         if (~extra_regs_activated) begin
@@ -670,36 +703,42 @@ always @(posedge clk_dot4x)
                         endcase
                         end else begin
                             video_ram_flags <= dbi[7:0];
+                            if (video_ram_flags[4])
+                               extra_regs_activated <= 1'b0;
                         end
 
                     `VIDEO_MEM_1_HI:
-                        video_ram_hi_1 <= dbi[7:0];
+                        if (extra_regs_activated)
+                           video_ram_hi_1 <= dbi[7:0];
                     `VIDEO_MEM_1_LO:
-                        video_ram_lo_1 <= dbi[7:0];
+                        if (extra_regs_activated)
+                           video_ram_lo_1 <= dbi[7:0];
                     `VIDEO_MEM_1_VAL:
-                     begin
-                        // reg overlay or video mem
-                        auto_ram_sel <= 0;
-                        write_ram(
+                        if (extra_regs_activated) begin
+                          // reg overlay or video mem
+                          auto_ram_sel <= 0;
+                          write_ram(
                            .overlay(video_ram_flags[5]),
                            .ram_lo(video_ram_lo_1),
                            .ram_hi(video_ram_hi_1),
                            .ram_idx(video_ram_idx_1));
-                     end
+                        end
                     `VIDEO_MEM_2_HI:
-                        video_ram_hi_2 <= dbi[7:0];
+                        if (extra_regs_activated)
+                           video_ram_hi_2 <= dbi[7:0];
                     `VIDEO_MEM_2_LO:
-                        video_ram_lo_2 <= dbi[7:0];
+                        if (extra_regs_activated)
+                           video_ram_lo_2 <= dbi[7:0];
                     `VIDEO_MEM_2_VAL:
-                     begin
-                        // reg overlay or video mem
-                        auto_ram_sel <= 1;
-                        write_ram(
+                        if (extra_regs_activated) begin
+                          // reg overlay or video mem
+                          auto_ram_sel <= 1;
+                          write_ram(
                            .overlay(video_ram_flags[5]),
                            .ram_lo(video_ram_lo_2),
                            .ram_hi(video_ram_hi_2),
                            .ram_idx(video_ram_idx_2));
-                    end
+                        end
 
                     // --- END EXTENSIONS ----
 
