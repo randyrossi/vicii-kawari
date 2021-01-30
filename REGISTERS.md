@@ -323,9 +323,8 @@ Register | Description
 
 Location | Name | Description
 ---------|------|------------
-0x0080 | VIDEO_STD | Video Standard Select (0=PAL, 1=NTSC)
 0x0081 | VIDEO_FREQ | Video Frequency Select (0=15.7 khz, 1=34.1 khz)
-0x0082 | CHIP_MODEL | Chip Model Select (0=6567R56A, 1=6567R8, 2=6569, 3-7 Reserved)
+0x0082 | CHIP_MODEL | Chip Model Select (0=6567R8, 1=6569, 2=6567R56A)
 0x0083 | VERSION | Version (high nibble major, low nibble minor) - Read Only
 0x0084 | DISPLAY_FLAGS | Bit 0 = Rasterlines Select
 0x0085 - 0x008f | Reserved

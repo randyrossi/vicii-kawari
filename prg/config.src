@@ -4,6 +4,9 @@ poke 53311,asc("c"):poke 53311,asc("2")
 poke53311,0
 t=peek(53311)
 if (t<>0) then print "vicii-kawari not detected":end
+t=peek(53303)
+c=t and 16
+if (c = 16) then poke 53303,t and not 16
 rem fancy intro by transitioning colors
 rem todo
 ec=peek(53280)
@@ -57,8 +60,8 @@ gosub l_showmodel
 goto l_wait
 rem l_changeraster
 poke 53305,8*16+4:ch=peek(53307)
-if (chand1) = 1 then ch=chandnot1:goto l_ch2
-ch=chor1
+if (ch and 1) = 1 then ch=ch and not 1:goto l_ch2
+ch=ch or 1
 rem l_ch2
 poke 53307,ch
 gosub l_showraster
@@ -66,23 +69,29 @@ goto l_wait
 rem l_showvideo
 print chr$(19);:fort=1to5:print chr$(17);:next
 print "video standard: ";
+print chr$(18);:poke 646,1
 if (cm and 1) = 1 then print "pal "
 if (cm and 1) = 0 then print "ntsc"
+print chr$(146);:poke 646,ec
 return
 rem l_showmodel
 print chr$(19);:fort=1to6:print chr$(17);:next
 print "chip model: ";
 cm=cm and 15
-if (cm = 0) then print "6567 r8  ":goto l_endif
-if (cm = 1) then print "6569     ":goto l_endif
-if (cm = 2) then print "6567 r56a":goto l_endif
+print chr$(18);:poke 646,1
+if (cm = 0) then print "6567 r8";:goto l_endif
+if (cm = 1) then print "6569";:goto l_endif
+if (cm = 2) then print "6567 r56a";:goto l_endif
 print "error";
 rem l_endif
+print chr$(146);:poke 646,ec:print "     "
 return
 rem l_showraster
 print chr$(19);:fort=1to7:print chr$(17);:next
 print "raster lines: ";
 poke 53305,8*16+4:ch=peek(53307)
+print chr$(18);:poke 646,1
 if (ch and 1) = 0 then print "off"
 if (ch and 1) = 1 then print "on "
+print chr$(146);:poke 646,ec
 return
