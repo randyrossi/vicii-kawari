@@ -1,0 +1,88 @@
+rem try and detect vicii-kawari
+poke 53311,asc("v"):poke 53311,asc("i")
+poke 53311,asc("c"):poke 53311,asc("2")
+poke53311,0
+t=peek(53311)
+if (t<>0) then print "vicii-kawari not detected":end
+rem fancy intro by transitioning colors
+rem todo
+ec=peek(53280)
+bc=peek(53281)
+print chr$(19+128);
+rem detect version
+poke 53311,32:rem regs vis
+poke 53305,8*16+3:poke53306,0
+v=peek(53307)
+poke 646,ec
+print "vicii-kawari config utility"
+print
+print "utility version: 1.0"
+print "kawari version: ";
+vl=v and 15
+vh=(v / 16) and 15
+print vh "." vl
+print "kawari variant: ";
+t=0
+rem l_loop
+poke 53305,9*16+t:ch=peek(53307)
+if (ch <> 0) then print chr$(ch);:t=t+1:goto l_loop
+poke 53305,8*16+2:cm=peek(53307)
+gosub l_showvideo
+gosub l_showmodel
+gosub l_showraster
+print chr$(19);:fort=1to9:print chr$(17);:next
+print "note: any changes to chip model will"
+print "take effect on next cold boot."
+print
+print "press ";
+poke 646,1:print chr$(18)"c"chr$(146);:poke 646,ec
+print " to change chip model"
+print "press ";
+poke 646,1:print chr$(18)"r"chr$(146);:poke 646,ec
+print " to toggle raster lines"
+print "press ";
+poke 646,1:print chr$(18)"q"chr$(146);:poke 646,ec
+print " to quit"
+rem l_wait
+get k$:if (k$ ="") then goto l_wait
+if (k$="q") then print chr$(19+128);:end
+if (k$="c") then goto l_changechip
+if (k$="r") then goto l_changeraster
+goto l_wait
+rem l_changechip
+cm=cm+1:if (cm > 2) then cm = 0
+poke53305,8*16+2:poke53307,cm
+gosub l_showvideo
+gosub l_showmodel
+goto l_wait
+rem l_changeraster
+poke 53305,8*16+4:ch=peek(53307)
+if (chand1) = 1 then ch=chandnot1:goto l_ch2
+ch=chor1
+rem l_ch2
+poke 53307,ch
+gosub l_showraster
+goto l_wait
+rem l_showvideo
+print chr$(19);:fort=1to5:print chr$(17);:next
+print "video standard: ";
+if (cm and 1) = 1 then print "pal "
+if (cm and 1) = 0 then print "ntsc"
+return
+rem l_showmodel
+print chr$(19);:fort=1to6:print chr$(17);:next
+print "chip model: ";
+cm=cm and 15
+if (cm = 0) then print "6567 r8  ":goto l_endif
+if (cm = 1) then print "6569     ":goto l_endif
+if (cm = 2) then print "6567 r56a":goto l_endif
+print "error";
+rem l_endif
+return
+rem l_showraster
+print chr$(19);:fort=1to7:print chr$(17);:next
+print "raster lines: ";
+poke 53305,8*16+4:ch=peek(53307)
+if (ch and 1) = 0 then print "off"
+if (ch and 1) = 1 then print "on "
+return
