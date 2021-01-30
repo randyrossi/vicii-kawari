@@ -2,24 +2,18 @@
 
 `include "../common.vh"
 
-// NOTE: Clock pins must be declared in constr.xdc to match
-// selected configuration here.
-
-// Chose one:
-`define USE_INTCLOCK_PAL      // use on-board clock
-//`define USE_INTCLOCK_NTSC     // use on-board clock
-
 // For the MojoV3 board.
 // This module:
 //     1) generates a 4x dot clock
-//     2) selects the chip
-//     3) generates the reset signal and holds for approx 150ms at startup
+//     2) uses the lower bit of chip to select ntsc/pal clocks
+//     3) creates a 8x dot clock with a 2x multiplier on the 4x
+//     4) generates the reset signal and holds for approx 150ms at startup
 module clockgen(
            input sys_clock,
+	   input [1:0] chip,
            output clk_dot4x,
            output clk_dot8x,
-           output rst,
-           output [1:0] chip
+           output rst
        );
 
 // 22 = ~150ms
@@ -31,54 +25,53 @@ always @(posedge clk_dot4x)
     if (internal_rst)
         rstcntr <= rstcntr + 4'd1;
 
-// TODO: Use dynamic clock config module to select the clock
-// mult/divide params based on an 'is_pal' input. Also set
-// chip based on that.  At the moment, the type still has to
-// be hard coded in the bitstream..
+wire clk_dot4x_pal;
+wire clk_dot4x_ntsc;
 
-`ifdef USE_INTCLOCK_PAL
-
-assign chip = `CHIP6569;
-
-// Generate the 4x dot clock. See vicii.v for values.
-dot4x_50_pal_clockgen dot4x_50_clockgen(
-                          .clk_in50mhz(sys_clock),    // board 50 Mhz clock
+// Generate the PAL 4x dot clock. See vicii.v for values.
+BUFG clkout1_buf
+   (.O   (sys_clock_a),
+    .I   (sys_clock));
+dot4x_50_pal_clockgen dot4x_50_pal_clockgen(
+                          .clk_in50mhz(sys_clock_a),    // board 50 Mhz clock
                           .reset(1'b0),
-                          .clk_dot4x(clk_dot4x),      // generated 4x dot clock
-                          .locked(locked)
+                          .clk_dot4x(clk_dot4x_pal),      // generated 4x dot clock
+                          .locked(locked1)
                       );
-`endif
 
-`ifdef USE_INTCLOCK_NTSC
-
-assign chip = `CHIP6567R8;
-
-// Generate the 4x dot clock. See vicii.v for values.
-dot4x_50_ntsc_clockgen dot4x_50_clockgen(
+// Generate the NTSC 4x dot clock. See vicii.v for values.
+dot4x_50_ntsc_clockgen dot4x_50_ntsc_clockgen(
                            .clk_in50mhz(sys_clock),    // external 50 Mhz clock
                            .reset(1'b0),
-                           .clk_dot4x(clk_dot4x),      // generated 4x dot clock
-                           .locked(locked)
+                           .clk_dot4x(clk_dot4x_ntsc),      // generated 4x dot clock
+                           .locked(locked2)
                        );
-`endif
 
-// Hacky way to get dot8x.  This requires a constraint entry to allow
-// this.  Just prototype hardware, so this is okay:
-// IN "mojo_clockgen/dot4x_50_pal_clockgen/clkout1_buf.O" CLOCK_DEDICATED_ROUTE = FALSE;
+// Use a BUGFMUX to select either pal or ntsc clocks.  It might
+// be possible to switch this on the fly and although that would
+// be interesting, it might mess up the cycle state machine so let's
+// not do it.
+BUFGMUX clkmux(.S(chip[0]),
+	       .I0(clk_dot4x_pal),
+	       .I1(clk_dot4x_ntsc),
+	       .O(clk_dot4x));
+
+// Hacky way to get dot8x.
 x2_clockgen dot8x_x2_clockgen(
-                          .clk_in(clk_dot4x),    // board 50 Mhz clock
-                          .reset(1'b0),
-                          .clk_dot8x(clk_dot8x)      // generated 8x dot clock
-                      );
+                .clk_in(clk_dot4x),    // board 50 Mhz clock
+                .reset(1'b0),
+                .clk_dot8x(clk_dot8x)      // generated 8x dot clock
+                );
 
 wire running;
 
 // If we are locked and internal reset timer has been reached, then
 // we are running.
-assign running = locked & internal_rst;
+assign running = (locked1 && locked2) & internal_rst;
 
 // Synchronize reset to clock
 RisingEdge_DFlipFlop_SyncReset ff1(1'b0, clk_dot4x, running, ff1_q);
 RisingEdge_DFlipFlop_SyncReset ff2(ff1_q, clk_dot4x, running, rst);
 
 endmodule : clockgen
+

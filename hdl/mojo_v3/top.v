@@ -13,6 +13,9 @@
 
 module top(
            input sys_clock,
+           input [1:0] chip,    // chip config from MCU
+           input is_15khz,      // freq config pin from MCU
+           input is_hide_raster_lines, // config pin from MCU
            output cpu_reset,    // reset for 6510 CPU
            output clk_phi,      // output phi clock for CPU
            output clk_dot8x_ext,    // pixel clock for external HDMI encoder
@@ -49,18 +52,31 @@ module top(
            output ls245_data_dir   // DIR for data bus transceiver
        );
 
+// Should become an output if we ever support composite
+wire csync;
+
 wire rst;
-wire [1:0] chip;
 wire clk_dot4x;
 wire clk_dot8x;
-wire clk_col4x; // no gen for this on mojo
+
+// TODO : If we ever support composite, we need clk_col4x to
+// be an input on a clock capable pin.  We then will divide it
+// by 4 to get the color carrier.  Also, this would be the input
+// to our clock gen that would produce clk_dot4x.  For now, we
+// are using the dev board's 50Mhz clock as the source and we
+// don't need a color clock for HDMI.
+// Divides the color4x clock by 4 to get color reference clock
+//clk_div4 clk_colorgen (
+//             .clk_in(clk_col4x),     // from 4x color clock
+//             .reset(rst),
+//             .clk_out(clk_colref));  // create color ref clock
 
 `ifndef IS_SIMULATOR
 // Clock generators and chip selection
 clockgen mojo_clockgen(
              .sys_clock(sys_clock),
              .clk_dot4x(clk_dot4x),
-				 .clk_dot8x(clk_dot8x),
+             .clk_dot8x(clk_dot8x),
              .rst(rst),
              .chip(chip));
 `endif
@@ -100,10 +116,10 @@ wire vic_write_db;
 vicii vic_inst(
           .rst(rst),
           .chip(chip),
+          .is_15khz(is_15khz),
+          .is_hide_raster_lines(is_hide_raster_lines),
           .clk_dot4x(clk_dot4x),
           .clk_dot8x(clk_dot8x),
-          .clk_col4x(clk_col4x),
-          .clk_colref(clk_colref),
           .clk_phi(clk_phi),
 	  .active(active),
           .hsync(hsync),

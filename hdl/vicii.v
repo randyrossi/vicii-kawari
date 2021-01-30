@@ -23,13 +23,13 @@
 // clk_phi        1.02272 Mhz NTSC, .985248 Mhz PAL
 
 module vicii(
-           input [1:0] chip,
+           input [1:0] chip,               // config from MC
+	   input is_15khz,                 // config from mC
+	   input is_hide_raster_lines,     // config from mC
            input rst,
            input clk_dot4x,
            input clk_dot8x,
-           input clk_col4x,
            output clk_phi,
-           output clk_colref,
 	   output active,
 	   output hsync,
 	   output vsync,
@@ -780,12 +780,6 @@ wire half_bright;
 wire show_raster_lines;
 
 wire composite_active;
-wire is_composite;
-`ifdef IS_SIMULATOR
-assign is_composite = 1'b1;
-`else
-assign is_composite = 1'b0;
-`endif
 
 registers vic_registers(
               .rst(rst),
@@ -848,13 +842,15 @@ registers vic_registers(
               .emmc(emmc),
               .embc(embc),
               .erst(erst),
-              .pixel_color4(is_composite ? pixel_color3 : pixel_color4_vga), 
-              .half_bright(is_composite ? 1'b0 : (show_raster_lines & half_bright)),
-	      .active(is_composite ? composite_active : active),
+              .pixel_color4(is_15khz ? pixel_color3 : pixel_color4_vga), 
+              .half_bright(is_15khz ? 1'b0 : (show_raster_lines & half_bright)),
+	      // Used to set RGB to 0 during blanking
+	      .active(is_15khz ? composite_active : active),
 	      .red(red),
 	      .green(green),
 	      .blue(blue),
-	      .show_raster_lines(show_raster_lines),
+	      .is_hide_raster_lines(is_hide_raster_lines), // config in
+	      .show_raster_lines(show_raster_lines), // current setting out
 
 	      // --- BEGIN EXTENSIONS --
               .video_ram_addr_b(video_ram_addr_b),
@@ -967,12 +963,10 @@ hires_pixel_sequencer vic_hires_pixel_sequencer(
 comp_sync vic_comp_sync(
               .rst(rst),
               .clk_dot4x(clk_dot4x),
-              .clk_col4x(clk_col4x),
               .chip(chip),
               .raster_x(xpos),
               .raster_y(raster_line),
               .csync(csync),
-              .clk_colref(clk_colref),
               .composite_active(composite_active)
 );
 
@@ -1004,7 +998,7 @@ vga_sync vic_vga_sync(
 hires_vga_sync vic_vga_sync(
              .rst(rst),
              .clk_dot8x(clk_dot8x),
-				 .raster_x(raster_x),
+             .raster_x(raster_x),
              .hires_raster_x(hires_raster_x),
              .raster_y(raster_line),
              .chip(chip),

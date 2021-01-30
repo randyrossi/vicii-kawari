@@ -144,7 +144,7 @@
 #define V_M2M_TRIGGERED top__DOT__vic_inst__DOT__vic_sprites__DOT__m2m_triggered
 #define V_LPX top__DOT__vic_inst__DOT__lpx
 #define V_LPY top__DOT__vic_inst__DOT__lpy
-#define V_CHIP top__DOT__chip
+#define V_CHIP chip
 #define V_LOAD_PIXELS top__DOT__vic_inst__DOT__vic_pixel_sequencer__DOT__load_pixels
 #define V_IRQ irq
 #define V_DOT4X top__DOT__clk_dot4x

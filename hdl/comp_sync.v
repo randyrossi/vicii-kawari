@@ -7,13 +7,11 @@
 module comp_sync(
            input wire rst,
            input wire clk_dot4x,
-           input wire clk_col4x,
            input [1:0] chip,
            input wire [9:0] raster_x,
            input wire [8:0] raster_y,
            output reg csync,
-	   output reg composite_active,
-           output clk_colref);
+	   output reg composite_active);
 
 reg [9:0] hsync_start;
 reg [9:0] hsync_end;
@@ -21,12 +19,6 @@ reg [9:0] hvisible_start;
 reg [8:0] vblank_start;
 reg [8:0] vblank_end;
 reg hSync;
-
-// Divides the color4x clock by 4 to get color reference clock
-clk_div4 clk_colorgen (
-             .clk_in(clk_col4x),     // from 4x color clock
-             .reset(rst),
-             .clk_out(clk_colref));  // create color ref clock
 
 always @(*)
 begin

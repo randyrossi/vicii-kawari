@@ -73,6 +73,7 @@ module registers(
 	   output reg[3:0] red,
 	   output reg[3:0] green,
 	   output reg[3:0] blue,
+	   input is_hide_raster_lines,    // latched into show on reset
 	   output reg show_raster_lines,
 
 	   // --- BEGIN EXTENSIONS ---
@@ -224,7 +225,7 @@ always @(posedge clk_dot4x)
 
         // --- BEGIN EXTENSIONS ----
         extra_regs_activation_ctr <= 2'b0;
-	show_raster_lines <= 1'b1;
+	show_raster_lines <= ~is_hide_raster_lines;
 `ifdef IS_SIMULATOR
         extra_regs_activated <= 0'b1;
         video_ram_flags <= 8'b0;

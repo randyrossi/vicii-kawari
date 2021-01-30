@@ -105,24 +105,25 @@ void initPostLoad() {
 
   // Set two chip lines according to selected model
   switch (chip_model) {
-      // 00 - 6569
+    case 0:
+      // 00 - 6567 R8
       ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT_0); 
       ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT_1); 
       break;
     case 1:
-      // 01 - 6567 R8
-      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT_0); 
-      ADC_BUS_PORT |= (1 << CHIP_MODEL_BIT_1);
+      // 01 - 6569
+      ADC_BUS_PORT |= (1 << CHIP_MODEL_BIT_0);
+      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT_1);
       break;
     case 2:
       // 10 - 6567 R56A
-      ADC_BUS_PORT |= (1 << CHIP_MODEL_BIT_0);
-      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT_1); 
+      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT_0); 
+      ADC_BUS_PORT |= (1 << CHIP_MODEL_BIT_1);
       break;
     default:
       // 00 - 6569
-      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT_0); 
-      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT_1); 
+      ADC_BUS_PORT |= (1 << CHIP_MODEL_BIT_0);
+      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT_1);
       break;
   }
 

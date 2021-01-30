@@ -66,5 +66,10 @@ P127    PMOD8    active          O   SLOW 4
 P123    PMOD5    hsync           O   SLOW 4
 P124    PMOD6    vsync           O   SLOW 4
 
+P62     IS_15KHZ is_15khz              I  NA  NA
+P65     IS_HIDE  is_hide_raster_lines  I  NA  NA
+P46     CHIP_0   chip[0]               I  NA  NA
+P61     CHIP_1   chip[1]               I  NA  NA
+
 # Clock
 P56     CLK      sys_clock       I     NA NA

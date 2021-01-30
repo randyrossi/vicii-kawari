@@ -46,7 +46,7 @@ VTOP_DEPS = vicii_ipc.o libvicii_ipc.so $(VERILOG_SOURCES) sim_main.cpp vicii_ip
 
 # Use -DHIRES_TEXT -DHIRES_BITMAP1 -DHIRES_BITMAP2 for other modes
 obj_dir/Vtop: $(VTOP_DEPS)
-	$(VERILATOR) -DIS_SIMULATOR --trace -cc  --exe \
+	$(VERILATOR) --top-module top -DIS_SIMULATOR --trace -cc  --exe \
 		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
 	               -CFLAGS -g -LDFLAGS '../vicii_ipc.o -lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
