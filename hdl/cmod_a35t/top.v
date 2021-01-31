@@ -75,8 +75,12 @@ module top(
            //output ls245_addr_oe    // OE for addr bus transceiver
        );
 
+`ifdef COMPOSITE_SUPPORT
 // Should become an output if we ever support composite.
 wire csync;
+// Should become an input if we ever support composite.
+wire is_composite
+`endif
 
 wire rst;
 wire clk_col4x;
@@ -145,7 +149,10 @@ vicii vic_inst(
 	  .active(active),
 	  .hsync(hsync),
 	  .vsync(vsync),
+`ifdef COMPOSITE_SUPPORT
 	  .csync(csync),
+	  .is_composite(is_composite),
+`endif
           .adi(adl[5:0]),
           .ado(ado),
           .dbi({dbh,dbl}),

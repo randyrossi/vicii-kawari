@@ -34,7 +34,10 @@ module vicii(
 	   output active,
 	   output hsync,
 	   output vsync,
+`ifdef COMPOSITE_SUPPORT
+           input is_composite,
 	   output csync,
+`endif
            output [11:0] ado,
            input [5:0] adi,
            output [7:0] dbo,
@@ -775,12 +778,13 @@ hires_addressgen vic_hires_addressgen(
 //
 // Since color registers are owned by registers, we pass in the
 // final stage 4 output pixel index to get rgb values
-wire[3:0] pixel_color4_composite;
 wire[3:0] pixel_color4_vga;
 wire half_bright;
 wire show_raster_lines;
 
+`ifdef COMPOSITE_SUPPORT
 wire composite_active;
+`endif
 
 registers vic_registers(
               .rst(rst),
@@ -843,10 +847,22 @@ registers vic_registers(
               .emmc(emmc),
               .embc(embc),
               .erst(erst),
-              .pixel_color4(is_15khz ? pixel_color3 : pixel_color4_vga), 
-              .half_bright(is_15khz ? 1'b0 : (show_raster_lines & half_bright)),
-	      // Used to set RGB to 0 during blanking
-	      .active(is_15khz ? composite_active : active),
+	      // This is not active for a pin, it is used to set RGB to 0
+	      // during blanking intervals and we need it to line up with
+	      // the active period for whatever video standard we are
+	      // producing
+`ifdef COMPOSITE_SUPPORT
+              .pixel_color4(is_composite ? pixel_color3 : pixel_color4_vga),
+	      .active(is_composite ? composite_active : active),
+              .half_bright(
+	          is_15khz | is_composite) ? 1'b0 :
+		      (show_raster_lines & half_bright)),
+`else
+              .half_bright(is_15khz ? 1'b0 :
+		          (show_raster_lines & half_bright)),
+              .pixel_color4(pixel_color4_vga),
+	      .active(active),
+`endif
 	      .red(red),
 	      .green(green),
 	      .blue(blue),
@@ -962,9 +978,10 @@ hires_pixel_sequencer vic_hires_pixel_sequencer(
 // --- END EXTENSIONS ---
 
 // -------------------------------------------------------------
-// Composite output - csync/pixel_color4
+// Composite output - csync/composite_active
 // Can't do 80 column mode.
 // -------------------------------------------------------------
+`ifdef COMPOSITE_SUPPORT
 comp_sync vic_comp_sync(
               .rst(rst),
               .clk_dot4x(clk_dot4x),
@@ -974,6 +991,7 @@ comp_sync vic_comp_sync(
               .csync(csync),
               .composite_active(composite_active)
 );
+`endif
 
 // -------------------------------------------------------------
 // VGA/HDMI output - hsync/vsync/active/half_bright/pixel_color4
@@ -1003,6 +1021,7 @@ vga_sync vic_vga_sync(
 hires_vga_sync vic_vga_sync(
              .rst(rst),
              .clk_dot4x(clk_dot4x),
+	     .is_15khz(is_15khz),
              .raster_x(raster_x),
              .hires_raster_x(hires_raster_x),
              .raster_y(raster_line),
