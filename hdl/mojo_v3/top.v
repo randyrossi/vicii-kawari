@@ -21,7 +21,7 @@ module top(
 	   input cclk,
            output cpu_reset,    // reset for 6510 CPU
            output clk_phi,      // output phi clock for CPU
-           output clk_dot8x_ext,    // pixel clock for external HDMI encoder
+           output clk_dot4x_ext,    // pixel clock for external HDMI encoder
            output hsync,        // hsync signal for VGA/HDMI
            output vsync,        // vsync signal for VGA/HDMI
            output active,       // display active for HDMI
@@ -60,7 +60,6 @@ wire csync;
 
 wire rst;
 wire clk_dot4x;
-wire clk_dot8x;
 
 // TODO : If we ever support composite, we need clk_col4x to
 // be an input on a clock capable pin.  We then will divide it
@@ -79,7 +78,6 @@ wire clk_dot8x;
 clockgen mojo_clockgen(
              .sys_clock(sys_clock),
              .clk_dot4x(clk_dot4x),
-             .clk_dot8x(clk_dot8x),
              .rst(rst),
              .chip(chip));
 `endif
@@ -88,12 +86,12 @@ clockgen mojo_clockgen(
 ODDR2 oddr2(
           .D0(1'b1),
           .D1(1'b0),
-          .C0(clk_dot8x),
-          .C1(~clk_dot8x),
+          .C0(clk_dot4x),
+          .C1(~clk_dot4x),
           .CE(1'b1),
           .R(1'b0),
           .S(1'b0),
-          .Q(clk_dot8x_ext)
+          .Q(clk_dot4x_ext)
       );
 
 // This is a reset line for the CPU which would have to be
@@ -126,7 +124,6 @@ vicii vic_inst(
           .is_15khz(is_15khz),
           .is_hide_raster_lines(is_hide_raster_lines),
           .clk_dot4x(clk_dot4x),
-          .clk_dot8x(clk_dot8x),
           .clk_phi(clk_phi),
 	  .active(active),
           .hsync(hsync),

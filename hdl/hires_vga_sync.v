@@ -36,7 +36,7 @@ endmodule
 // The buffers are swapped after drawing a single input raster line so that we
 // are always filling one buffer while reading from the other.
 module hires_vga_sync(
-           input wire clk_dot8x,
+           input wire clk_dot4x,
            input wire rst,
            input [1:0] chip,
            input [9:0] raster_x,
@@ -76,7 +76,7 @@ assign active = ~((h_count < ha_sta) | (v_count > va_end - 1));
 assign pixel_color4 = active ? vga_color : `BLACK;
 
 // TODO: Try "8 64 32" for alternative horiz sync params
-always @ (posedge clk_dot8x)
+always @ (posedge clk_dot4x)
 begin
     if (rst)
     begin
@@ -95,7 +95,7 @@ begin
                 va_end <= 569;  // HEIGHT - v back porch - v sync pulse - v front porch
                 hoffset <= 10;
                 voffset = 20;
-                max_width = 1007; //503;
+                max_width = 1007; //503x2;
                 max_height = 623;
                 v_count <= 623 - voffset;
             end
@@ -112,7 +112,7 @@ begin
                 va_end <= 502;  // HEIGHT - v back porch - v sync pulse - v front porch
                 hoffset <= 20;
                 voffset = 52;
-                max_width = 1039; //519;
+                max_width = 1039; //519x2;
                 max_height = 525;
                 v_count <= 525 - voffset;
             end
@@ -129,17 +129,15 @@ begin
                 va_end <= 502; // HEIGHT - v back porch - v sync pulse - v front porch
                 hoffset <= 20;
                 voffset = 52;
-                max_width = 1023; //511;
+                max_width = 1023; //511x2;
                 max_height = 523;
                 v_count <= 523 - voffset;
             end
         endcase
     end else begin
-        ff = ~ff;
-        // Increment x/y every other clock for a 2x dot clock in which
-        // only our Y dimension is doubled.  Each line from the line
-        // buffer is 'drawn' twice.
-        if (ff) begin
+        // This is nearly identical to the lores version of vga_sync
+        // except the x dimension is also doubled so we need a 4x dot
+        // clock instead of 2x.
             if (h_count < max_width) begin
                 h_count <= h_count + 10'b1;
             end else begin
@@ -153,7 +151,6 @@ begin
                     half_bright <= 0;
                 end
             end
-        end
         if (raster_x == 0 && raster_y == 0) begin
             v_count <= max_height - voffset;
         end
@@ -176,18 +173,18 @@ assign output_x = h_count - hoffset;
 // resolution x) as the address.
 // When the line buffer is being read from, we used h_count (this scan
 // doubler's x adjusted by hoffset) as the address.
-linebuf_RAM line_buf_0(clk_dot8x, active_buf, active_buf ? hires_raster_x : output_x, pixel_color3, dout0);
-linebuf_RAM line_buf_1(clk_dot8x, !active_buf, !active_buf ? hires_raster_x : output_x, pixel_color3, dout1);
+linebuf_RAM line_buf_0(clk_dot4x, active_buf, active_buf ? hires_raster_x : output_x, pixel_color3, dout0);
+linebuf_RAM line_buf_1(clk_dot4x, !active_buf, !active_buf ? hires_raster_x : output_x, pixel_color3, dout1);
 
-reg [7:0] dot_rising;
-always @(posedge clk_dot8x)
+reg [3:0] dot_rising;
+always @(posedge clk_dot4x)
     if (rst)
-        dot_rising <= 8'b10000000;
+        dot_rising <= 4'b1000;
     else
-        dot_rising <= {dot_rising[6:0], dot_rising[7]};
+        dot_rising <= {dot_rising[2:0], dot_rising[3]};
 
 // Whenever we reach the beginning of a raster line, swap buffers.
-always @(posedge clk_dot8x)
+always @(posedge clk_dot4x)
 begin
     if (!rst) begin
         if (dot_rising[1]) begin

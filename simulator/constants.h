@@ -147,6 +147,6 @@
 #define V_CHIP chip
 #define V_LOAD_PIXELS top__DOT__vic_inst__DOT__vic_pixel_sequencer__DOT__load_pixels
 #define V_IRQ irq
-#define V_DOT4X top__DOT__clk_dot4x
+#define V_DOT4X clk_dot4x
 #define V_REG11_DELAYED top__DOT__vic_inst__DOT__reg11_delayed
 #define V_LIGHTPEN_TRIGGERED top__DOT__vic_inst__DOT__vic_lightpen__DOT__light_pen_triggered

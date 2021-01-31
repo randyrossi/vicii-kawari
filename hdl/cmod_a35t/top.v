@@ -41,7 +41,7 @@ module top(
            output cpu_reset,    // reset for 6510 CPU
            output clk_colref,   // output color ref clock for CXA1545P
            output clk_phi,      // output phi clock for CPU
-           output clk_dot8x,    // pixel clock for external HDMI encoder
+           output clk_dot4x,    // pixel clock for external HDMI encoder
            output active,       // display active for HDMI
            output hsync,        // hsync signal for VGA/HDMI
            output vsync,        // vsync signal for VGA/HDMI
@@ -80,7 +80,6 @@ wire csync;
 
 wire rst;
 wire clk_col4x;
-wire clk_dot4x;
 
 wire ls245_data_oe; // not enough pins on cmod_a7, just ground it
 wire ls245_addr_dir;  // not enough pins on cmod_a7, use aec
@@ -106,7 +105,6 @@ wire ls245_addr_dir;  // not enough pins on cmod_a7, use aec
 clockgen cmod_clockgen(
              .sys_clock(sys_clock),
              .clk_dot4x(clk_dot4x),
-             .clk_dot8x(clk_dot8x),
              .clk_col4x(clk_col4x),
              .rst(rst),
              .chip(chip));
@@ -143,7 +141,6 @@ vicii vic_inst(
 	  .is_15khz(is_15khz),
 	  .is_hide_raster_lines(is_hide_raster_lines),
           .clk_dot4x(clk_dot4x),
-          .clk_dot8x(clk_dot8x),
           .clk_phi(clk_phi),
 	  .active(active),
 	  .hsync(hsync),

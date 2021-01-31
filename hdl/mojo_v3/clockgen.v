@@ -6,13 +6,11 @@
 // This module:
 //     1) generates a 4x dot clock
 //     2) uses the lower bit of chip to select ntsc/pal clocks
-//     3) creates a 8x dot clock with a 2x multiplier on the 4x
-//     4) generates the reset signal and holds for approx 150ms at startup
+//     3) generates the reset signal and holds for approx 150ms at startup
 module clockgen(
            input sys_clock,
 	   input [1:0] chip,
            output clk_dot4x,
-           output clk_dot8x,
            output rst
        );
 
@@ -55,13 +53,6 @@ BUFGMUX clkmux(.S(chip[0]),
 	       .I0(clk_dot4x_pal),
 	       .I1(clk_dot4x_ntsc),
 	       .O(clk_dot4x));
-
-// Hacky way to get dot8x.
-x2_clockgen dot8x_x2_clockgen(
-                .clk_in(clk_dot4x),    // board 50 Mhz clock
-                .reset(1'b0),
-                .clk_dot8x(clk_dot8x)      // generated 8x dot clock
-                );
 
 wire running;
 

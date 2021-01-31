@@ -61,7 +61,7 @@ P131    PMOD10   blue[1]         O   QUIETIO 2
 P138    PMOD12   blue[2]         O   QUIETIO 2
 P140    PMOD11   blue[3]         O   QUIETIO 2
 
-P134    PMOD9    clk_dot8x_ext   O   SLOW 4
+P134    PMOD9    clk_dot4x_ext   O   SLOW 4
 P127    PMOD8    active          O   SLOW 4
 P123    PMOD5    hsync           O   SLOW 4
 P124    PMOD6    vsync           O   SLOW 4

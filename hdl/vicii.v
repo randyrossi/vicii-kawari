@@ -28,7 +28,6 @@ module vicii(
 	   input is_hide_raster_lines,     // config from mC
            input rst,
            input clk_dot4x,
-           input clk_dot8x,
 	   output[7:0] tx_data_4x,         // from regs module
 	   output tx_new_data_4x,          // from regs module
            output clk_phi,
@@ -1003,7 +1002,7 @@ vga_sync vic_vga_sync(
 // -------------------------------------------------------------
 hires_vga_sync vic_vga_sync(
              .rst(rst),
-             .clk_dot8x(clk_dot8x),
+             .clk_dot4x(clk_dot4x),
              .raster_x(raster_x),
              .hires_raster_x(hires_raster_x),
              .raster_y(raster_line),
