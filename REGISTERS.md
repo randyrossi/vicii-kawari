@@ -9,14 +9,25 @@ Extra registers are enabled through the activation port (0xd03f)
 by poking it with the PETSCII bytes "VIC2".  This prevents existing
 software from unintentionally triggering extra registers.
 
+### BASIC
     POKE 54271,ASC("V")
     POKE 54271,ASC("I")
     POKE 54271,ASC("C")
     POKE 54271,ASC("2")
 
+### 6510 ASSEMBLY
+    LDA #86
+    STA $d03f
+    LDA #73
+    STA $d03f
+    LDA #67
+    STA $d03f
+    LDA #50
+    STA $d03f
+
 Once activated, registers 0xd02f - 0xd03f become available and
 may be used to access VICII-Kawari extra features. Extra regsters
-can be deactivated again by setting bit 5 of 0xd03f to 1.
+can be deactivated again by setting bit 8 of 0xd03f to 1.
 
 ### Extra Registers Table
 
@@ -42,7 +53,7 @@ REG    | Name | Description
 
 ## Video Memory
 
-VICII-Kawari adds an extra 32k of video memory. This memory can be directly
+VICII-Kawari adds 32k of video memory to the C64. This memory can be directly
 accessed by VICII-Kawari for new graphics modes.  The registers 0xd039-0xd03f
 are used to read/write from/to video memory. (This space can also be used to
 store code but it would have to be copied back to main memory to be executed
