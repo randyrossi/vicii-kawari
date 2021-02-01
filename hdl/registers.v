@@ -681,8 +681,6 @@ always @(posedge clk_dot4x)
                         /* "V" */ 8'd86:
                             if (extra_regs_activation_ctr == 2'd0)
                                  extra_regs_activation_ctr <= extra_regs_activation_ctr + 2'b1;
-                            else
-                                 extra_regs_activation_ctr <= 2'd0;
                         /* "I" */ 8'd73:
                             if (extra_regs_activation_ctr == 2'd1)
                                  extra_regs_activation_ctr <= extra_regs_activation_ctr + 2'b1;
@@ -703,7 +701,7 @@ always @(posedge clk_dot4x)
                         endcase
                         end else begin
                             video_ram_flags <= dbi[7:0];
-                            if (video_ram_flags[4])
+                            if (video_ram_flags[7])
                                extra_regs_activated <= 1'b0;
                         end
 

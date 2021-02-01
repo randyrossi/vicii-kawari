@@ -52,10 +52,10 @@ VIDEO_MEM_FLAGS | Description
 ----------------|-------------
 BIT 1,2  | PORT 1 AUTO INCREMENT FLAGS<br>0=NONE<br>1=INC<br>2=DEC<br>3=UNUSED
 BIT 3,4  | PORT 2 AUTO INCREMENT FLAGS<br>0=NONE<br>1=INC<br>2=DEC<br>3=UNUSED
-BIT 5    | Deactivate Extra Registers
+BIT 5    | UNUSED
 BIT 6    | Extra Registers Overlay at 0x0000 Enable/Disable
 BIT 7    | UNUSED
-BIT 8    | UNUSED
+BIT 8    | Deactivate Extra Registers
 
 VIDEO_MODE1 | Description
 ------------|------------
