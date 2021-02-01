@@ -11,6 +11,7 @@ rem fancy intro by transitioning colors
 rem todo
 ec=peek(53280)
 bc=peek(53281)
+rem l_begin
 print chr$(19+128);
 rem detect version
 poke 53311,32:rem regs vis
@@ -28,8 +29,12 @@ print "kawari variant: ";
 t=0
 rem l_loop
 poke 53305,9*16+t:ch=peek(53307)
-if (ch <> 0) then print chr$(ch);:t=t+1:goto l_loop
-poke 53305,8*16+2:cm=peek(53307)
+if (ch <> 0) then print chr$(ch);:t=t+1
+if (t > 15) then goto l_getcurrent_settings
+goto l_loop
+rem l_getcurrent_settings
+poke 53305,8*16+2:sm=peek(53307):cm=sm
+poke 53305,8*16+4:sr=peek(53307):cr=sr
 gosub l_showvideo
 gosub l_showmodel
 gosub l_showraster
@@ -44,28 +49,29 @@ print "press ";
 poke 646,1:print chr$(18)"r"chr$(146);:poke 646,ec
 print " to toggle raster lines"
 print "press ";
+poke 646,1:print chr$(18)"s"chr$(146);:poke 646,ec
+print " to save changes"
+print "press ";
 poke 646,1:print chr$(18)"q"chr$(146);:poke 646,ec
 print " to quit"
 rem l_wait
 get k$:if (k$ ="") then goto l_wait
 if (k$="q") then print chr$(19+128);:end
-if (k$="c") then goto l_changechip
-if (k$="r") then goto l_changeraster
+if (k$="c") then gosub l_changechip
+if (k$="r") then gosub l_changeraster
+if (k$="s") then gosub l_savechanges:goto l_begin
 goto l_wait
 rem l_changechip
 cm=cm+1:if (cm > 2) then cm = 0
-poke53305,8*16+2:poke53307,cm
 gosub l_showvideo
 gosub l_showmodel
-goto l_wait
+goto return
 rem l_changeraster
-poke 53305,8*16+4:ch=peek(53307)
-if (ch and 1) = 1 then ch=ch and not 1:goto l_ch2
-ch=ch or 1
+if (cr and 1) = 1 then cr=cr and not 1:goto l_ch2
+cr=cr or 1
 rem l_ch2
-poke 53307,ch
 gosub l_showraster
-goto l_wait
+return
 rem l_showvideo
 print chr$(19);:fort=1to5:print chr$(17);:next
 print "video standard: ";
@@ -84,14 +90,21 @@ if (cm = 1) then print "6569";:goto l_endif
 if (cm = 2) then print "6567 r56a";:goto l_endif
 print "error";
 rem l_endif
-print chr$(146);:poke 646,ec:print "     "
+print chr$(146);:poke 646,ec:print "     ";
+if (cm <> sm) then print " (changed)"
+if (cm = sm) then print "          "
 return
 rem l_showraster
 print chr$(19);:fort=1to7:print chr$(17);:next
 print "raster lines: ";
-poke 53305,8*16+4:ch=peek(53307)
 print chr$(18);:poke 646,1
-if (ch and 1) = 0 then print "off"
-if (ch and 1) = 1 then print "on "
+if (cr and 1) = 0 then print "off";
+if (cr and 1) = 1 then print "on ";
 print chr$(146);:poke 646,ec
+if (cr <> sr) then print " (changed)"
+if (cr = sr) then print "          "
+return
+rem l_savechanges
+if cm <> sm then poke53305,8*16+2:poke53307,cm:cm=sm
+if cr <> sr then poke53305,8*16+4:poke53307,cr:cr=sr
 return
