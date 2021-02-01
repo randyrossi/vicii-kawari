@@ -11,11 +11,14 @@ import java.util.ArrayList;
 
 // Convert grid.png to grid.bin 
 public class Conv640X200 {
+    static boolean binaryColors = true;
 
     public static void main(String[] args) throws Exception {
 
       BufferedImage img = null;
-      img = ImageIO.read(new File("640x200.png"));
+      img = ImageIO.read(new File(args[0]));
+      if (args.length > 1 && args[1].equals("-h"))
+              binaryColors = false;
 
       mapit(img);
     }
@@ -80,10 +83,21 @@ public class Conv640X200 {
                 int g2 = (g >> 4);
                 int b2 = (b >> 4);
                 int v = (r2 << 8) | (g2 << 4) | b2;
-                String s = Integer.toBinaryString(v);
-                while (s.length() < 12) s="0"+s;
-                System.out.println(s+"0000");
+
+		if (binaryColors) {
+                   String s = Integer.toBinaryString(v);
+                   while (s.length() < 12) s="0"+s;
+                   System.out.println(s+"0000");
+                } else {
+                   String s1 = Integer.toHexString(r2);
+                   if (s1.length() < 2) s1="0"+s1;
+                   String s2 = Integer.toHexString(g2);
+                   if (s2.length() < 2) s2="0"+s2;
+                   String s3 = Integer.toHexString(b2);
+                   if (s3.length() < 2) s3="0"+s3;
+                   System.out.println(s1+" "+s2+" "+s3+" 00");
                 }
+              }
             }
         }
         }
