@@ -29,9 +29,7 @@ print "kawari variant: ";
 t=0
 rem l_loop
 poke 53305,9*16+t:ch=peek(53307)
-if (ch <> 0) then print chr$(ch);:t=t+1
-if (t > 15) then goto l_getcurrent_settings
-goto l_loop
+if (ch <> 0) then print chr$(ch);:t=t+1:if (t<15) then goto l_loop
 rem l_getcurrent_settings
 poke 53305,8*16+2:sm=peek(53307):cm=sm
 poke 53305,8*16+4:sr=peek(53307):cr=sr
@@ -65,7 +63,7 @@ rem l_changechip
 cm=cm+1:if (cm > 2) then cm = 0
 gosub l_showvideo
 gosub l_showmodel
-goto return
+return
 rem l_changeraster
 if (cr and 1) = 1 then cr=cr and not 1:goto l_ch2
 cr=cr or 1
@@ -85,12 +83,12 @@ print chr$(19);:fort=1to6:print chr$(17);:next
 print "chip model: ";
 cm=cm and 15
 print chr$(18);:poke 646,1
-if (cm = 0) then print "6567 r8";:goto l_endif
-if (cm = 1) then print "6569";:goto l_endif
+if (cm = 0) then print "6567 r8  ";:goto l_endif
+if (cm = 1) then print "6569     ";:goto l_endif
 if (cm = 2) then print "6567 r56a";:goto l_endif
 print "error";
 rem l_endif
-print chr$(146);:poke 646,ec:print "     ";
+print chr$(146);:poke 646,ec
 if (cm <> sm) then print " (changed)"
 if (cm = sm) then print "          "
 return

@@ -25,9 +25,8 @@ char* bin(int n, int v) {
 // for colors.
 int main(int argc, char *argv[]) {
   int loc;
-  for (int j=0;j<16;j++) {
   for (int i=0;i<16;i++) {
-     printf ("%s%s%s0000\n",bin(0,pal[i*3]), bin(1,pal[i*3+1]), bin(2,pal[i*3+2]));
-  } 
+     //printf ("%s%s%s0000\n",bin(0,pal[i*3]), bin(1,pal[i*3+1]), bin(2,pal[i*3+2]));
+     printf ("%02x %02x %02x 00\n",pal[i*3]>>4, pal[i*3+1]>>4, pal[i*3+2]>>4);
   } 
 }

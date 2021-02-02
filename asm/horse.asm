@@ -92,8 +92,33 @@ loop3
         cmp #16
         bne loop3
 
+wait
+        jsr $ffe4
+        cmp #0
+        beq wait
+
+        lda #0
+        sta KAWARI_VMODE1
+
+        ; back to normal colors
+        lda #0
+        sta VMEM_A_LO
+        lda #>ncolor    ; load high byte of $9000
+        sta $fc
+        ldy #<ncolor    ; init counter with 0
+        sty $fb
+        ldy #0
 loop4
-        jmp loop4
+        lda ($fb),y
+        sta VMEM_A_VAL
+        inc VMEM_A_LO
+        iny
+        cmp #16
+        bne loop4
+        rts
+
+ncolor
+!binary "col.bin"
 
 color
 !binary "horse-col.bin"
