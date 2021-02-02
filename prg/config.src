@@ -36,7 +36,6 @@ poke 53311,32:rem regs vis
 poke 53305,8*16+2:sm=peek(53307):cm=sm
 poke 53305,8*16+4:sr=peek(53307):cr=sr
 poke 53311,0:rem no regs
-gosub l_showvideo
 gosub l_showmodel
 gosub l_showraster
 print chr$(19);:fort=1to9:print chr$(17);:next
@@ -64,7 +63,6 @@ if (k$="s") then gosub l_savechanges:goto l_begin
 goto l_wait
 rem l_changechip
 cm=cm+1:if (cm > 2) then cm = 0
-gosub l_showvideo
 gosub l_showmodel
 return
 rem l_changeraster
@@ -73,22 +71,14 @@ cr=cr or 1
 rem l_ch2
 gosub l_showraster
 return
-rem l_showvideo
-print chr$(19);:fort=1to5:print chr$(17);:next
-print "video standard: ";
-print chr$(18);:poke 646,1
-if (cm and 1) = 1 then print "pal "
-if (cm and 1) = 0 then print "ntsc"
-print chr$(146);:poke 646,ec
-return
 rem l_showmodel
 print chr$(19);:fort=1to6:print chr$(17);:next
 print "chip model: ";
 cm=cm and 15
 print chr$(18);:poke 646,1
-if (cm = 0) then print "6567 r8  ";:goto l_endif
-if (cm = 1) then print "6569     ";:goto l_endif
-if (cm = 2) then print "6567 r56a";:goto l_endif
+if (cm = 0) then print "6567r8   ntsc";:goto l_endif
+if (cm = 1) then print "6569     pal ";:goto l_endif
+if (cm = 2) then print "6567r56a ntsc";:goto l_endif
 print "error";
 rem l_endif
 print chr$(146);:poke 646,ec
