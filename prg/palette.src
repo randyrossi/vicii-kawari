@@ -1,0 +1,75 @@
+rem try and detect vicii-kawari
+data 0,0,0,0
+data 15,15,15,0
+data 6,3,2,0
+data 7,10,11,0
+data 6,3,8,0
+data 5,8,4,0
+data 3,2,7,0
+data 11,12,6,0
+data 6,4,2,0
+data 4,3,0,0
+data 9,6,5,0
+data 4,4,4,0
+data 6,6,6,0
+data 9,13,8,0
+data 6,5,11,0
+data 9,9,9,0
+poke 53311,asc("v"):poke 53311,asc("i")
+poke 53311,asc("c"):poke 53311,asc("2")
+poke53311,0
+t=peek(53311)
+if (t<>0) then print "vicii-kawari not detected":end
+t=peek(53303)
+c=t and 16
+if (c = 16) then poke 53303,t and not 16
+poke53311,32:poke53305,0:poke53306,0
+print chr$(19+128);
+for t=0to15
+poke 646,t
+print chr$(18);
+print"                               "
+print chr$(146);
+next
+print
+print "press space for next palette"
+print "press q to quit"
+pa=0
+rem l_wait
+get k$:if k$="q" then goto l_done
+if k$=" " then goto l_next
+goto l_wait
+rem l_next
+pa=pa+1:if pa > 4 then pa = 0
+for t=0to15
+gosub l_red
+gosub l_green
+gosub l_blue
+next
+goto l_wait
+rem l_red
+if pa = 0 then poke 53305,t*4:poke53307,t:return
+if pa = 1 then poke 53305,t*4:poke53307,t:return
+if pa = 2 then poke 53305,t*4:poke53307,0:return
+if pa = 3 then poke 53305,t*4:poke53307,0:return
+if pa = 4 then poke 53305,t*4:poke53307,15-t:return
+return
+rem l_green
+if pa = 0 then poke 53305,t*4+1:poke53307,t:return
+if pa = 1 then poke 53305,t*4+1:poke53307,0:return
+if pa = 2 then poke 53305,t*4+1:poke53307,t:return
+if pa = 3 then poke 53305,t*4+1:poke53307,0:return
+if pa = 4 then poke 53305,t*4+1:poke53307,t:return
+return
+rem l_blue
+if pa = 0 then poke 53305,t*4+2:poke53307,t:return
+if pa = 1 then poke 53305,t*4+2:poke53307,0:return
+if pa = 2 then poke 53305,t*4+2:poke53307,0:return
+if pa = 3 then poke 53305,t*4+2:poke53307,t:return
+if pa = 4 then poke 53305,t*4+2:poke53307,15-t:return
+return
+rem l_done
+for t=0to63
+read a
+poke 53305,t:poke53307,a
+next
