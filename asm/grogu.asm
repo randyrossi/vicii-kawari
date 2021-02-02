@@ -113,8 +113,12 @@ loop4
         sta VMEM_A_VAL
         inc VMEM_A_LO
         iny
+        tya
         cmp #64
         bne loop4
+
+        lda #0
+        sta KAWARI_PORT
         rts
 
 ncolor

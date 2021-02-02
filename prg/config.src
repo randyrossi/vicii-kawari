@@ -30,9 +30,12 @@ t=0
 rem l_loop
 poke 53305,9*16+t:ch=peek(53307)
 if (ch <> 0) then print chr$(ch);:t=t+1:if (t<15) then goto l_loop
+poke 53311,0:rem no regs
 rem l_getcurrent_settings
+poke 53311,32:rem regs vis
 poke 53305,8*16+2:sm=peek(53307):cm=sm
 poke 53305,8*16+4:sr=peek(53307):cr=sr
+poke 53311,0:rem no regs
 gosub l_showvideo
 gosub l_showmodel
 gosub l_showraster
@@ -54,7 +57,7 @@ poke 646,1:print chr$(18)"q"chr$(146);:poke 646,ec
 print " to quit"
 rem l_wait
 get k$:if (k$ ="") then goto l_wait
-if (k$="q") then print chr$(19+128);:end
+if (k$="q") then print chr$(19+128);:poke 53311,0:end
 if (k$="c") then gosub l_changechip
 if (k$="r") then gosub l_changeraster
 if (k$="s") then gosub l_savechanges:goto l_begin
@@ -103,6 +106,8 @@ if (cr <> sr) then print " (changed)"
 if (cr = sr) then print "          "
 return
 rem l_savechanges
+poke 53311,32:rem regs vis
 if cm <> sm then poke53305,8*16+2:poke53307,cm:cm=sm
 if cr <> sr then poke53305,8*16+4:poke53307,cr:cr=sr
+poke 53311,0:rem no regs
 return
