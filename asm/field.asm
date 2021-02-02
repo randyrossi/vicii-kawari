@@ -44,16 +44,16 @@ init
         ; Turn on hires 320x200 char_pixel_base doesn't matter
         lda #16+64
         sta KAWARI_VMODE1
-        ; Bitmap takes entire 32k so vmode2 doesnt' matter
+        ; Bitmap takes entire 32k so vmode2 doesn't matter
         lda #0
         STA KAWARI_VMODE2
 
         ; now copy from DRAM into VICII-Kawari memory
 
-        lda #>bitmap    ; load high byte of $9000
-        sta $fc     ; store it in a free location we use as vector
-        lda #<bitmap    ; init counter with 0
-        sta $fb     ; store it as low byte in the $FB/$FC vector
+        lda #>bitmap
+        sta $fc
+        lda #<bitmap
+        sta $fb
 
         lda #$00    ; we're going to copy it to video ram $0000
         sta VMEM_A_IDX
@@ -79,9 +79,9 @@ loop2   lda ($fb),y ; read byte from src $fb/$fc
         lda #32
         sta KAWARI_PORT  ; make regs visible
 
-        lda #>color    ; load high byte of $9000
+        lda #>color
         sta $fc
-        ldy #<color    ; init counter with 0
+        ldy #<color
         sty $fb
         ldy #0
 loop3
@@ -89,6 +89,7 @@ loop3
         sta VMEM_A_VAL
         inc VMEM_A_LO
         iny
+        tya
         cmp #64
         bne loop3
 
@@ -99,13 +100,15 @@ wait
 
         lda #0
         sta KAWARI_VMODE1
+        lda #32
+        sta KAWARI_PORT  ; make regs visible
 
         ; back to normal colors
         lda #0
         sta VMEM_A_LO
-        lda #>ncolor    ; load high byte of $9000
+        lda #>ncolor
         sta $fc
-        ldy #<ncolor    ; init counter with 0
+        ldy #<ncolor
         sty $fb
         ldy #0
 loop4
