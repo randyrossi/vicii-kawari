@@ -411,7 +411,7 @@ void uartTask() {
        // change if necessary.
        char bits = config_buf[config_buf_read_ptr];
        int fpga_chip_model = (bits & 3);
-       int fpga_is_15khz = (bits & 4) ? 1 : 0;
+       //int fpga_is_15khz = (bits & 4) ? 1 : 0;
        int fpga_is_hide_raster_lines = (bits & 8) ? 1 : 0;
        
        if (fpga_chip_model != last_chip_model) {
@@ -420,12 +420,12 @@ void uartTask() {
           Serial.write((fpga_chip_model & 1) ? 'P' : 'N');
           Serial.write('\n');
        }
-       if (fpga_is_15khz != last_is_15khz) {
-          EEPROM.write(IS_15KHZ_ADDR, fpga_is_15khz);
-          last_is_15khz = fpga_is_15khz;
-          Serial.write(fpga_is_15khz ? 'L' : 'H');
-          Serial.write('\n');
-       }
+       //if (fpga_is_15khz != last_is_15khz) {
+       //   EEPROM.write(IS_15KHZ_ADDR, fpga_is_15khz);
+       //   last_is_15khz = fpga_is_15khz;
+       //   Serial.write(fpga_is_15khz ? 'L' : 'H');
+       //  Serial.write('\n');
+       //}
        if (fpga_is_hide_raster_lines != last_is_hide_raster_lines) {
           EEPROM.write(IS_HIDE_RASTER_LINES_ADDR, fpga_is_hide_raster_lines);
           last_is_hide_raster_lines = fpga_is_hide_raster_lines;

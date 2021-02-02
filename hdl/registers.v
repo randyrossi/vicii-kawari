@@ -965,14 +965,19 @@ task write_ram(
 	      // bits will be reflected after the next
 	      // cold boot.
               case (ram_lo)
-                 `EXT_REG_VIDEO_FREQ:
-                  begin
-                    last_is_15khz <= dbi[0];
-                    tx_data_4x <= {4'b0,
-			           ~show_raster_lines,
-				   dbi[0],
-				   last_chip};
-                    tx_new_data_sr <= 2'b11;
+                 // Not safe to allow this to be changed from
+		 // CPU. Already burned by this with accidental
+		 // overwrite of this register. This can effectively
+		 // disable your display so leave this only to the
+		 // serial connection to change.
+                 //`EXT_REG_VIDEO_FREQ:
+                 // begin
+                 //   last_is_15khz <= dbi[0];
+                 //   tx_data_4x <= {4'b0,
+                 //                  ~show_raster_lines,
+                 //                  dbi[0],
+                 //                  last_chip};
+                 //   tx_new_data_sr <= 2'b11;
                  end
                  `EXT_REG_CHIP_MODEL:
                   begin
