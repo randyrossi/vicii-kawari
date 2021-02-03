@@ -64,6 +64,7 @@ wire is_composite;
 
 wire rst;
 wire clk_dot4x;
+wire clk_25mhz;
 
 // TODO : If we ever support composite, we need clk_col4x to
 // be an input on a clock capable pin.  We then will divide it
@@ -82,6 +83,7 @@ wire clk_dot4x;
 clockgen mojo_clockgen(
              .sys_clock(sys_clock),
              .clk_dot4x(clk_dot4x),
+				 .clk_25mhz(clk_25mhz),
              .rst(rst),
              .chip(chip));
 `endif
@@ -169,7 +171,7 @@ assign ado_sim = ado;
 assign dbo_sim = dbo;
 `endif
 
-// Propagate tx from 4x domain to sys_clock domain
+// Propagate tx from 4x domain to clk_25mhz domain
 // When tx_new_data goes high, avr_interface will transmit
 // the config byte to the MCU.
 reg[7:0] tx_data_sys_pre;
@@ -177,14 +179,14 @@ reg tx_new_data_sys_pre;
 reg[7:0] tx_data_sys;
 reg tx_new_data_sys;
 
-always @(posedge sys_clock) tx_data_sys_pre <= tx_data_4x;
-always @(posedge sys_clock) tx_data_sys <= tx_data_sys_pre;
+always @(posedge clk_25mhz) tx_data_sys_pre <= tx_data_4x;
+always @(posedge clk_25mhz) tx_data_sys <= tx_data_sys_pre;
 
-always @(posedge sys_clock) tx_new_data_sys_pre <= tx_new_data_4x;
-always @(posedge sys_clock) tx_new_data_sys <= tx_new_data_sys_pre;
+always @(posedge clk_25mhz) tx_new_data_sys_pre <= tx_new_data_4x;
+always @(posedge clk_25mhz) tx_new_data_sys <= tx_new_data_sys_pre;
 
 avr_interface mojo_avr_interface(
-    .clk(sys_clock),
+    .clk(clk_25mhz),
     .rst(rst),
     .cclk(cclk),
     .tx(tx),

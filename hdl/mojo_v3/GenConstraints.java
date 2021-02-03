@@ -30,8 +30,5 @@ public class GenConstraints
 		if (map.get(t4) != null) { System.out.println("PIN USED TWICE " + t4); System.exit(0);}
 		map.put(t4,1);
         }
-
-	// Need to investigate this
-	System.out.println("NET \"sys_clock\" CLOCK_DEDICATED_ROUTE = FALSE;");
      }
 }

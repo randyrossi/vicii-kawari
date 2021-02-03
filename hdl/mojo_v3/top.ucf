@@ -153,4 +153,3 @@ NET "tx" SLEW=FAST;
 NET "rx" LOC=P55;
 NET "cclk" LOC=P70;
 NET "sys_clock" LOC=P56;
-NET "sys_clock" CLOCK_DEDICATED_ROUTE = FALSE;

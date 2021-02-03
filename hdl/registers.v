@@ -978,7 +978,7 @@ task write_ram(
                  //                  dbi[0],
                  //                  last_chip};
                  //   tx_new_data_sr <= 2'b11;
-                 end
+                 // end
                  `EXT_REG_CHIP_MODEL:
                   begin
                     last_chip <= dbi[1:0];
