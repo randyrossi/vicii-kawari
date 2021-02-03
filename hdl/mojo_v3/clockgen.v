@@ -28,12 +28,12 @@ wire clk_dot4x_pal;
 wire clk_dot4x_ntsc;
 
 // Generate the 4x dot clock for both standards. See vicii.v for values.
-dot4x_50_pal_clockgen dot4x_50_pal_clockgen(
+dot4x_50_clockgen dot4x_50_clockgen(
                           .clk_in50mhz(sys_clock),    // board 50 Mhz clock
                           .reset(1'b0),
-                          .clk_dot4x_pal(clk_dot4x_pal),      // generated 4x dot clock
-								  .clk_dot4x_ntsc(clk_dot4x_ntsc),    // generated 4x dot clock
-								  .clk_25mhz(clk_25mhz),              // used as system clock for serial
+                          .clk_dot4x_pal(clk_dot4x_pal), // generated pal dot
+                          .clk_dot4x_ntsc(clk_dot4x_ntsc), // generated ntsc dot
+                          .clk_25mhz(clk_25mhz), // used for serial
                           .locked(locked)
                       );
 
