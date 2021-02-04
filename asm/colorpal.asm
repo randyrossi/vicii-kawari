@@ -30,7 +30,7 @@ SCREEN=$d021    ; Screen background colour
 BANDTOP=140     ; Raster line to start band
 BANDEND=160     ; Bottom raster line to switch back
 
-*=$c800
+*=$c000
    
         ; Enable VICII-Kawari extensions
         lda #CHAR_V
