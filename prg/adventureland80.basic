@@ -11,7 +11,7 @@
   200 print"{down}  THE{$a0}OBJECT{$a0}OF{$a0}YOUR{$a0}ADVENTURE{$a0}IS{$a0}TO ";
   210 print"FIND{$a0}TREASURES{$a0}AND{$a0}RETURN{$a0}THEM{$a0}TO{$a0}THEIR"
   220 print"PROPER{$a0}PLACE.
-  230 print"{down}  I'M YOUR{$a0}CLONE. GIVE ME{$a0}COMMANDS{$a0}THAT"
+  230 print"{down}  I'M YOUR{$a0}CLONE. GIVE ME{$a0}COMMANDS{$a0}THAT ";
   240 print"CONSIST{$a0}OF{$a0}A{$a0}VERB{$a0}AND{$a0}A{$a0}NOUN.
   250 print"{down}i.e., go east, take key, climb tree, ";
   260 print"save game, take inventory, find axe."

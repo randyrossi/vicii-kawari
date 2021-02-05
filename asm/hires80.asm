@@ -75,7 +75,7 @@ IBASIN = $0324 ; We replace the kernel screen input routine
 IBSOUT = $0326 ; We replace the kernel screen output routine
 
 ; Some kernel routines we call into
-CPATCH = $E4DA
+CPATCH = $E4DA ; We don't use this, have to go through vmem
 LP2    = $E5B4
 LOWER  = $EC44
 UPPER  = $EC4F
@@ -1259,11 +1259,13 @@ CLRLN
         JSR SETPNT
         JSR SCOLOR
 CLR10
-        JSR CPATCH      ;REVERSED ORDER FROM 901227-02
+        STY VMEM_A_IDX
+        JSR USER_TO_VMEM_A
+        LDA $d021
+        STA VMEM_A_VAL
         JSR PNT_TO_VMEM_A
         LDA #$20        ;STORE A SPACE
         ;STA (PNT),Y     ;TO DISPLAY
-        STY VMEM_A_IDX
         STA VMEM_A_VAL
         DEY
         BPL CLR10
