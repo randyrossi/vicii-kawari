@@ -20,6 +20,7 @@ P1      D11      dbh[3]  I     NA  NA
 P141    RW       rw      I     NA  NA
 P142    CE       ce      I     NA  NA
 P139    LP       lp      I     NA  NA
+P105    RWO      rwo     O     QUIETIO 2
 
 # Bi-directional databus
 P93     D7       dbl[7]  IO   QUIETIO  2

@@ -43,6 +43,7 @@ module top(
 `endif
            input ce,            // chip enable (LOW=enable, HIGH=disabled)
            input rw,            // read/write (LOW=write, HIGH=read)
+			  output rwo,
            output irq,          // irq
            input lp,            // light pen
            output aec,          // aec
@@ -61,6 +62,9 @@ wire csync;
 // Should become an input if we ever support composite
 wire is_composite;
 `endif
+
+// Never writing to DRAM (yet)
+assign rwo = 1'b0;
 
 wire rst;
 wire clk_dot4x;
