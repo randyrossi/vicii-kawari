@@ -1,5 +1,5 @@
 module cclk_detector #(
-    parameter CLK_RATE = 25000000
+    parameter CLK_RATE = 50000000
     )(
     input clk,
     input rst,

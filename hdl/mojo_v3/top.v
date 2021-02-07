@@ -64,7 +64,7 @@ wire is_composite;
 
 wire rst;
 wire clk_dot4x;
-wire clk_25mhz;
+wire clk_serial;
 
 // TODO : If we ever support composite, we need clk_col4x to
 // be an input on a clock capable pin.  We then will divide it
@@ -78,15 +78,17 @@ wire clk_25mhz;
 //             .reset(rst),
 //             .clk_out(clk_colref));  // create color ref clock
 
-`ifndef IS_SIMULATOR
 // Clock generators and chip selection
 clockgen mojo_clockgen(
              .sys_clock(sys_clock),
              .clk_dot4x(clk_dot4x),
-				 .clk_25mhz(clk_25mhz),
              .rst(rst),
              .chip(chip));
-`endif
+
+BUFG clkf_buf
+   (.O (clk_serial),
+    .I (sys_clock));
+
 
 // https://www.xilinx.com/support/answers/35032.html
 ODDR2 oddr2(
@@ -171,7 +173,7 @@ assign ado_sim = ado;
 assign dbo_sim = dbo;
 `endif
 
-// Propagate tx from 4x domain to clk_25mhz domain
+// Propagate tx from 4x domain to clk_serial domain
 // When tx_new_data goes high, avr_interface will transmit
 // the config byte to the MCU.
 reg[7:0] tx_data_sys_pre;
@@ -179,14 +181,14 @@ reg tx_new_data_sys_pre;
 reg[7:0] tx_data_sys;
 reg tx_new_data_sys;
 
-always @(posedge clk_25mhz) tx_data_sys_pre <= tx_data_4x;
-always @(posedge clk_25mhz) tx_data_sys <= tx_data_sys_pre;
+always @(posedge clk_serial) tx_data_sys_pre <= tx_data_4x;
+always @(posedge clk_serial) tx_data_sys <= tx_data_sys_pre;
 
-always @(posedge clk_25mhz) tx_new_data_sys_pre <= tx_new_data_4x;
-always @(posedge clk_25mhz) tx_new_data_sys <= tx_new_data_sys_pre;
+always @(posedge clk_serial) tx_new_data_sys_pre <= tx_new_data_4x;
+always @(posedge clk_serial) tx_new_data_sys <= tx_new_data_sys_pre;
 
 avr_interface mojo_avr_interface(
-    .clk(clk_25mhz),
+    .clk(clk_serial),
     .rst(rst),
     .cclk(cclk),
     .tx(tx),

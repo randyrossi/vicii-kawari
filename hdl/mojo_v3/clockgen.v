@@ -11,7 +11,6 @@ module clockgen(
            input sys_clock,
            input [1:0] chip,
            output clk_dot4x,
-           output clk_25mhz,
            output rst
        ); 
 
@@ -33,7 +32,6 @@ dot4x_50_clockgen dot4x_50_clockgen(
                           .reset(1'b0),
                           .clk_dot4x_pal(clk_dot4x_pal), // generated pal dot
                           .clk_dot4x_ntsc(clk_dot4x_ntsc), // generated ntsc dot
-                          .clk_25mhz(clk_25mhz), // used for serial
                           .locked(locked)
                       );
 

@@ -1,5 +1,5 @@
 module serial_tx #(
-        parameter CLK_PER_BIT = 25
+        parameter CLK_PER_BIT = 50
     )(
         input clk,
         input rst,
