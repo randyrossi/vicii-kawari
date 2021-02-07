@@ -1,0 +1,40 @@
+The MojoV3 bootloader you get may or may not be
+the right one that will work from Arduino IDE 1.6
+If you try to upload the 'loader' sketch and it
+never seems to find the device, then you will
+likely have to upload a new bootloader.
+
+If not, you have to upload the bootloader from
+Arduino IDE.  
+
+First compile ArduinoISP and flash that to an Uno
+
+Then solder wires to the underside of the MojoV3
+board 6 pins.
+
+When 6 pins are in top right corner of board,
+and pins are in a 3 accross and 2 down grid, 
+pins are as follows:
+
+GND MOSI VDD 
+RST CLK  MISO
+
+Wire these up to the Aruino Uno according to pins
+in the src file.
+
+Then switch project to the loader project.  Make sure
+the programmer is changed to ArduinoISP and select
+the right COM port.  Then chose upload bootloader.
+
+You should not need to power the MojoV3 separately.
+It will get powered by the Arduino when wired.
+
+After the bootloader is uploaded, unhook the
+ISP wires from the MojoV3.  You can then plug
+the MojoV3 in via USB and then upload the sketch
+for the loader program.  But remember to change
+the programmer back to ISPMarkII.  This step
+should also not require separate power supply.
+
+Now that both the boot loader and loader is installed,
+you can use the mojo loader to upload the bistream.
