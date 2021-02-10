@@ -417,7 +417,15 @@ void uartTask() {
        if (fpga_chip_model != last_chip_model) {
           EEPROM.write(CHIP_MODEL_ADDR, fpga_chip_model);
           last_chip_model = fpga_chip_model;
-          Serial.write((fpga_chip_model & 1) ? 'P' : 'N');
+          if (fpga_chip_model == 0) {
+              Serial.write('N'); Serial.write('8');
+          } else if (fpga_chip_model == 1) {
+              Serial.write('P');
+          } else if (fpga_chip_model == 2) {
+              Serial.write('N'); Serial.write('5'); Serial.write('6');
+          } else {
+              Serial.write('?');
+          }
           Serial.write('\n');
        }
        //if (fpga_is_15khz != last_is_15khz) {
