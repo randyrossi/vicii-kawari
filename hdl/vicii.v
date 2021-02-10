@@ -853,15 +853,15 @@ registers vic_registers(
 	      // producing
 `ifdef COMPOSITE_SUPPORT
               .pixel_color4(is_composite ? pixel_color3 : pixel_color4_vga),
-	      .active(is_composite ? composite_active : active),
+              .active(is_composite ? composite_active : active),
               .half_bright(
-	          is_15khz | is_composite) ? 1'b0 :
-		      (show_raster_lines & half_bright)),
+	               is_15khz | is_composite) ? 1'b0 :
+                     (show_raster_lines & half_bright)),
 `else
               .half_bright(is_15khz ? 1'b0 :
-		          (show_raster_lines & half_bright)),
+                  (show_raster_lines & half_bright)),
               .pixel_color4(pixel_color4_vga),
-	      .active(active),
+	           .active(active),
 `endif
 	      .red(red),
 	      .green(green),
@@ -869,7 +869,7 @@ registers vic_registers(
 	      .chip(chip),
 	      .is_15khz(is_15khz),
 	      .is_hide_raster_lines(is_hide_raster_lines), // config in
-	      .show_raster_lines(show_raster_lines), // current setting out
+	      .last_raster_lines(show_raster_lines), // current setting out
 	      .tx_data_4x(tx_data_4x),
 	      .tx_new_data_4x(tx_new_data_4x),
 

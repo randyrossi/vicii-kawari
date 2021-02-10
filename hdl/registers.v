@@ -89,7 +89,7 @@ module registers(
 	   input is_hide_raster_lines,
 
 	   // We export this so it can take effect immediately
-	   output reg show_raster_lines,
+	   output reg last_raster_lines,
 
 	   // --- BEGIN EXTENSIONS ---
            input [14:0] video_ram_addr_b,
@@ -252,7 +252,7 @@ always @(posedge clk_dot4x)
         extra_regs_activation_ctr <= 2'b0;
 
 	// Latch these config bits during reset
-	show_raster_lines <= ~is_hide_raster_lines;
+	last_raster_lines <= ~is_hide_raster_lines;
 	last_chip <= chip;
 	last_is_15khz <= is_15khz;
 `ifdef IS_SIMULATOR
@@ -893,11 +893,11 @@ task read_ram(
           end else begin
               case (ram_lo)
                  `EXT_REG_VIDEO_FREQ:
-		         dbo <= {7'b0, is_15khz};
+		         dbo <= {7'b0, last_is_15khz};
                  `EXT_REG_CHIP_MODEL:
-		         dbo <= {6'b0, chip};
+		         dbo <= {6'b0, last_chip};
                  `EXT_REG_DISPLAY_FLAGS:
-		         dbo <= {7'b0, show_raster_lines};
+		         dbo <= {7'b0, last_raster_lines};
                  `EXT_REG_VERSION:
 			 dbo <= {`VERSION_MAJOR, `VERSION_MINOR};
                  `EXT_REG_VARIANT_NAME1:
@@ -974,7 +974,7 @@ task write_ram(
                  // begin
                  //   last_is_15khz <= dbi[0];
                  //   tx_data_4x <= {4'b0,
-                 //                  ~show_raster_lines,
+                 //                  ~last_raster_lines,
                  //                  dbi[0],
                  //                  last_chip};
                  //   tx_new_data_sr <= 2'b11;
@@ -983,18 +983,18 @@ task write_ram(
                   begin
                     last_chip <= dbi[1:0];
                     tx_data_4x <= {4'b0,
-			           ~show_raster_lines,
-				   last_is_15khz,
-				   dbi[1:0]};
+			           ~last_raster_lines,
+                    last_is_15khz,
+                    dbi[1:0]};
                     tx_new_data_sr <= 2'b11;
                  end
                  `EXT_REG_DISPLAY_FLAGS:
                   begin
-		    show_raster_lines <= dbi[`SHOW_RASTER_LINES];
+                    last_raster_lines <= dbi[`SHOW_RASTER_LINES];
                     tx_data_4x <= {4'b0,
 			           ~dbi[`SHOW_RASTER_LINES],
-				   last_is_15khz,
-				   last_chip};
+                    last_is_15khz,
+                    last_chip};
                     tx_new_data_sr <= 2'b11;
                  end
                  default: begin
