@@ -30,5 +30,8 @@ public class GenConstraints
 		if (map.get(t4) != null) { System.out.println("PIN USED TWICE " + t4); System.exit(0);}
 		map.put(t4,1);
         }
+        System.out.println("NET \"sys_clock\" CLOCK_DEDICATED_ROUTE = FALSE;");
+        System.out.println("NET \"sys_clock\" TNM_NET = clk;");
+        System.out.println("TIMESPEC TS_sys_clock = PERIOD \"clk\" 50 MHz HIGH 50%;");
      }
 }

@@ -17,7 +17,7 @@ module top(
            input is_15khz,      // freq config pin from MCU
            input is_hide_raster_lines, // config pin from MCU
 	   output tx,
-	   input rx,
+	   //input rx,
 	   input cclk,
            output cpu_reset,    // reset for 6510 CPU
            output clk_phi,      // output phi clock for CPU
@@ -68,7 +68,6 @@ assign rwo = 1'b0;
 
 wire rst;
 wire clk_dot4x;
-wire clk_serial;
 
 // TODO : If we ever support composite, we need clk_col4x to
 // be an input on a clock capable pin.  We then will divide it
@@ -88,11 +87,6 @@ clockgen mojo_clockgen(
              .clk_dot4x(clk_dot4x),
              .rst(rst),
              .chip(chip));
-
-BUFG clkf_buf
-   (.O (clk_serial),
-    .I (sys_clock));
-
 
 // https://www.xilinx.com/support/answers/35032.html
 ODDR2 oddr2(
@@ -185,18 +179,18 @@ reg tx_new_data_sys_pre;
 reg[7:0] tx_data_sys;
 reg tx_new_data_sys;
 
-always @(posedge clk_serial) tx_data_sys_pre <= tx_data_4x;
-always @(posedge clk_serial) tx_data_sys <= tx_data_sys_pre;
+always @(posedge sys_clock) tx_data_sys_pre <= tx_data_4x;
+always @(posedge sys_clock) tx_data_sys <= tx_data_sys_pre;
 
-always @(posedge clk_serial) tx_new_data_sys_pre <= tx_new_data_4x;
-always @(posedge clk_serial) tx_new_data_sys <= tx_new_data_sys_pre;
+always @(posedge sys_clock) tx_new_data_sys_pre <= tx_new_data_4x;
+always @(posedge sys_clock) tx_new_data_sys <= tx_new_data_sys_pre;
 
 avr_interface mojo_avr_interface(
-    .clk(clk_serial),
+    .clk(sys_clock),
     .rst(rst),
     .cclk(cclk),
     .tx(tx),
-    .rx(rx),
+    //.rx(rx),
     .tx_data(tx_data_sys),
     .new_tx_data(tx_new_data_sys)
     // We don't ever receive from the MCU over serial (yet)

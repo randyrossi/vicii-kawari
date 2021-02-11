@@ -13,7 +13,7 @@ module avr_interface #(
     
     // AVR Serial Signals
     output tx,
-    input rx,
+    //input rx,
     
     // Serial TX User Interface
     input [7:0] tx_data,
