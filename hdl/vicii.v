@@ -233,10 +233,12 @@ wire [2:0] hires_rc; // hires row counter
 wire [2:0] hires_char_pixel_base;
 wire [3:0] hires_matrix_base;
 wire [3:0] hires_color_base;
-wire hires_enabled;
 wire [1:0] hires_mode;
 wire [7:0] hires_pixel_data;
 wire [7:0] hires_color_data;
+wire [7:0] hires_cursor_hi;
+wire [7:0] hires_cursor_lo;
+wire hires_enabled;
 
 // --- END ADDED FOR HIRES MODE ---
 
@@ -882,7 +884,9 @@ registers vic_registers(
               .hires_matrix_base(hires_matrix_base),
               .hires_color_base(hires_color_base),
 	      .hires_enabled(hires_enabled),
-	      .hires_mode(hires_mode)
+	      .hires_mode(hires_mode),
+	      .hires_cursor_hi(hires_cursor_hi),
+	      .hires_cursor_lo(hires_cursor_lo)
 	      // --- END EXTENSIONS --
 
           );
@@ -955,6 +959,10 @@ pixel_sequencer vic_pixel_sequencer(
                 );
 
 // --- BEGIN EXTENSIONS ---
+
+wire hires_cursor;
+assign hires_cursor = ({hires_matrix_base, hires_vc} == {hires_cursor_hi[6:0] , hires_cursor_lo});
+
 hires_pixel_sequencer vic_hires_pixel_sequencer(
                     .clk_dot4x(clk_dot4x),
                     .clk_phi(clk_phi),
@@ -977,7 +985,8 @@ hires_pixel_sequencer vic_hires_pixel_sequencer(
 		    .hires_mode(hires_mode),
 		    .hires_pixel_data(hires_pixel_data),
 		    .hires_color_data(hires_color_data),
-		    .hires_rc(hires_rc)
+		    .hires_rc(hires_rc),
+		    .hires_cursor(hires_cursor)
                 );
 // --- END EXTENSIONS ---
 

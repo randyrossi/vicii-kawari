@@ -98,7 +98,9 @@ module registers(
            output reg [3:0] hires_matrix_base,
            output reg [3:0] hires_color_base,
            output reg hires_enabled,
-           output reg [1:0] hires_mode
+           output reg [1:0] hires_mode,
+	   output reg [7:0] hires_cursor_hi,
+	   output reg [7:0] hires_cursor_lo
 	   // --- END EXTENSIONS ---
        );
 
@@ -269,6 +271,9 @@ always @(posedge clk_dot4x)
         hires_color_base <= 4'b10;
 	// matrix @1800(2K)
         hires_matrix_base <= 4'b11;
+	// Cursor top left
+	hires_cursor_hi <= 8'h18;
+	hires_cursor_lo <= 8'b00;
 	`endif
 	`ifdef HIRES_BITMAP1
         hires_enabled <= 1'b1;
@@ -295,6 +300,13 @@ always @(posedge clk_dot4x)
 	`endif
 `else
         extra_regs_activated <= 1'b0;
+	hires_mode <= 2'b00;
+	hires_enabled <= 1'b0;
+	hires_char_pixel_base <= 3'b0;
+        hires_matrix_base <= 4'b0000; // ignored
+        hires_color_base <= 4'b0000; // ignored
+	hires_cursor_hi <= 8'b0;
+	hires_cursor_lo <= 8'b0;
 `endif
         // --- END EXTENSIONS ----
 
@@ -898,6 +910,10 @@ task read_ram(
 		         dbo <= {6'b0, last_chip};
                  `EXT_REG_DISPLAY_FLAGS:
 		         dbo <= {7'b0, last_raster_lines};
+                 `EXT_REG_CURSOR_LO:
+		         dbo <= hires_cursor_lo;
+                 `EXT_REG_CURSOR_HI:
+		         dbo <= hires_cursor_hi;
                  `EXT_REG_VERSION:
 			 dbo <= {`VERSION_MAJOR, `VERSION_MINOR};
                  `EXT_REG_VARIANT_NAME1:
@@ -997,6 +1013,10 @@ task write_ram(
                     last_chip};
                     tx_new_data_sr <= 2'b11;
                  end
+                 `EXT_REG_CURSOR_LO:
+                    hires_cursor_lo <= dbi;
+                 `EXT_REG_CURSOR_HI:
+                    hires_cursor_hi <= dbi;
                  default: begin
                     // We fallback to RAM if not poking a register.
                     video_ram_wr_a <= 1;

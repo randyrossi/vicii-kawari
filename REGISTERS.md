@@ -337,7 +337,9 @@ Location | Name | Description
 0x0082 | CHIP_MODEL | Chip Model Select (0=6567R8, 1=6569, 2=6567R56A)
 0x0083 | VERSION | Version (high nibble major, low nibble minor) - Read Only
 0x0084 | DISPLAY_FLAGS | Bit 0 = Rasterlines Select
-0x0085 - 0x008f | Reserved
+0x0085 | CURSOR_LO | Cursor lo byte
+0x0086 | CURSOR_HI | Cursor hi byte
+0x0087 - 0x008f | Reserved
 0x0090 - 0xd09f | VARIANT_NAME | Variant Name
 0x00a0 - 0xd0ff | Unused
 

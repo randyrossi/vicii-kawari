@@ -174,6 +174,8 @@
 `define EXT_REG_CHIP_MODEL           8'h82
 `define EXT_REG_VERSION              8'h83
 `define EXT_REG_DISPLAY_FLAGS        8'h84
+`define EXT_REG_CURSOR_LO            8'h85
+`define EXT_REG_CURSOR_HI            8'h86
 
 // Bits in display flags
 `define SHOW_RASTER_LINES            0

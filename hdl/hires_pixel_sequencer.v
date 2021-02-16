@@ -24,7 +24,8 @@ module hires_pixel_sequencer(
            input [7:0] hires_pixel_data,
            input [7:0] hires_color_data,
 	   input [2:0] hires_rc,
-	   input [6:0] blink_ctr
+	   input [6:0] blink_ctr,
+	   input hires_cursor
        );
 
 integer n;
@@ -36,6 +37,12 @@ reg [6:0] cycle_num_delayed0;
 reg [6:0] cycle_num_delayed1;
 reg [6:0] cycle_num_delayed;
 
+reg hires_cursor_delayed0;
+reg hires_cursor_delayed1;
+reg hires_cursor_delayed2;
+reg hires_cursor_delayed3;
+reg hires_cursor_delayed4;
+reg hires_cursor_delayed;
 reg [7:0] hires_pixel_data_delayed0;
 reg [7:0] hires_pixel_data_delayed1;
 reg [7:0] hires_pixel_data_delayed2;
@@ -75,6 +82,11 @@ begin
     end
 
     if (phi_phase_start_10) begin
+        hires_cursor_delayed0 <= hires_cursor;
+        hires_cursor_delayed1 <= hires_cursor_delayed0;
+        hires_cursor_delayed2 <= hires_cursor_delayed1;
+        hires_cursor_delayed3 <= hires_cursor_delayed2;
+        hires_cursor_delayed4 <= hires_cursor_delayed3;
         hires_pixel_data_delayed0 <= hires_pixel_data;
         hires_pixel_data_delayed1 <= hires_pixel_data_delayed0;
         hires_pixel_data_delayed2 <= hires_pixel_data_delayed1;
@@ -88,6 +100,7 @@ begin
     end
 
     if (phi_phase_start_pl) begin
+        hires_cursor_delayed <= hires_cursor_delayed4;
         hires_pixel_data_delayed <= hires_pixel_data_delayed4;
         hires_color_data_delayed <= hires_color_data_delayed4;
     end
@@ -155,7 +168,7 @@ begin
             hires_pixel_color1 <= ec_d2;
         else begin
             case (hires_mode)
-                2'b00:
+                2'b00: begin
                     // Text mode.
                     // Lower 4 bits = color index
                     // Bit 6 = reverse video
@@ -166,8 +179,10 @@ begin
                        ~hires_color_shifting[`HIRES_BLNK_BIT]) ?
                          ((hires_color_shifting[`HIRES_UNDR_BIT] && hires_rc == 3'd7) ?
                            hires_color_shifting[3:0] :
-                             (hires_pixel_value[1] ^ hires_color_shifting[`HIRES_RVRS_BIT]) ?
-                               hires_color_shifting[3:0] : b0c_d2) : b0c_d2;
+                             (hires_pixel_value[1] ^
+                               (hires_color_shifting[`HIRES_RVRS_BIT] | hires_cursor_delayed)) ?
+                                     hires_color_shifting[3:0] : b0c_d2) : b0c_d2;
+                end
                 2'b01:
                     // 640x200 16 color bitmap. Uses only lower 4 bits of color...
                     hires_pixel_color1 <=
