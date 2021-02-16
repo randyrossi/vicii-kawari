@@ -204,6 +204,14 @@
 `define VARIANT_NAME7   8'h41  // A
 `define VARIANT_NAME8   8'h4C  // L
 
+`define HIRES_BLINK_FREQ 6  // roughly every 64 frames
+
+// These are the same as C128's VDC
+`define HIRES_BLNK_BIT 4   // color cell attr bit for blink
+`define HIRES_UNDR_BIT 5   // color cell attr bit for underline
+`define HIRES_RVRS_BIT 6   // color cell attr bit for reverse
+`define HIRES_ALTC_BIT 7   // color cell attr bit for alt char set
+
 // --- END EXTENSIONS ---
 
 // Official video modes, source https://www.c64-wiki.com/wiki/Graphics_Modes

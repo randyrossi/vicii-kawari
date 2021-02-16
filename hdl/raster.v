@@ -17,6 +17,7 @@ module raster(
            output reg [9:0] sprite_raster_x,
            output reg [8:0] raster_line,
            output reg [8:0] raster_line_d,
+	   output reg [6:0] blink_ctr,
 	   // --- BEGIN EXTENSIONS ---
            output reg [10:0] hires_raster_x,
            input dot_rising_2
@@ -115,6 +116,8 @@ always @(posedge clk_dot4x)
             begin
                 // Time to go back to x coord 0
                 raster_x <= 10'd0;
+
+
 	        // --- BEGIN EXTENSIONS ---
                 hires_raster_x <= 11'd0;
 		// --- END EXTENSIONS ---
@@ -133,6 +136,9 @@ always @(posedge clk_dot4x)
                 end else begin
                     raster_line <= 9'd0;
                     start_of_frame = 1;
+
+		    // Used for hires blinking attribute
+		    blink_ctr <= blink_ctr + 6'd1;
                 end
             end
 

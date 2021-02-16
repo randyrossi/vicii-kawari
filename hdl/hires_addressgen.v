@@ -40,28 +40,10 @@ begin
                     (cycle_num == 54 && ~clk_phi)) begin
             // Note, it takes 2 cycles from the time we set
 	    // an address for block ram to have set our data.
-	    // On [2] set char ptr addr for fetch on [4]
-            // On [4] set char pixel addr for fetch on [6]
-            // On [6] set color addr for fetch on [8]
+            // On [2] set color addr for fetch on [4]
+	    // On [4] set char ptr addr for fetch on [6]
+            // On [6] set char pixel addr for fetch on [8]
 	    if (phi_phase_start[2])
-                video_mem_addr <= {matrix_base, vc};
-	    else if (phi_phase_start[4]) begin
-		case (hires_mode)
-		2'b00:
-		   // TEXT mode pixel fetch
-                   // No need to store the char ptr. We fetch it every
-		   // time anyway.
-                   video_mem_addr <=
-                       {char_pixel_base, char_case, video_mem_data, rc};
-                2'b01:
-                   // BITMAP mode pixel fetch
-                   video_mem_addr <= {matrix_base[0], fvc};
-                2'b10, 2'b11:
-                   video_mem_addr <= {1'b0, fvc}; // 1st plane
-                endcase
-            end else if (phi_phase_start[6]) begin
-		hires_pixel_data <= video_mem_data;
-
                 case (hires_mode)
 		2'b00:
 		   // TEXT mode
@@ -72,8 +54,25 @@ begin
                 2'b10, 2'b11:
                    video_mem_addr <= {1'b1, fvc}; // 2nd plane
                 endcase
+	    else if (phi_phase_start[4]) begin
+                video_mem_addr <= {matrix_base, vc};
+		hires_color_data <= video_mem_data;
+            end else if (phi_phase_start[6]) begin
+		case (hires_mode)
+		2'b00:
+		   // TEXT mode pixel fetch
+                   // No need to store the char ptr. We fetch it every
+		   // time anyway.
+                   video_mem_addr <=
+                       {char_pixel_base, char_case | hires_color_data[`HIRES_ALTC_BIT], video_mem_data, rc};
+                2'b01:
+                   // BITMAP mode pixel fetch
+                   video_mem_addr <= {matrix_base[0], fvc};
+                2'b10, 2'b11:
+                   video_mem_addr <= {1'b0, fvc}; // 1st plane
+                endcase
 	    end else if (phi_phase_start[8])
-		hires_color_data <= video_mem_data; // ready by 10
+		hires_pixel_data <= video_mem_data;  // ready by 10
         end
 end
 

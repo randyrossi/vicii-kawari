@@ -507,6 +507,7 @@ lightpen vic_lightpen(
              .ilp(ilp)
          );
 
+wire[6:0] blink_ctr;
 raster vic_raster(
            .clk_phi(clk_phi),
            .clk_dot4x(clk_dot4x),
@@ -521,6 +522,7 @@ raster vic_raster(
            .sprite_raster_x(sprite_raster_x),
            .raster_line(raster_line),
            .raster_line_d(raster_line_d),
+	   .blink_ctr(blink_ctr),
 	   // --- BEGIN EXTENSIONS ---
            .dot_rising_2(dot_rising[2]),
            .hires_raster_x(hires_raster_x)
@@ -964,6 +966,7 @@ hires_pixel_sequencer vic_hires_pixel_sequencer(
                     .hires_cycle_bit(hires_raster_x[2:0]),
                     .cycle_num(cycle_num),
                     .xscroll(xscroll),
+		    .blink_ctr(blink_ctr),
                     .b0c(b0c),
                     .ec(ec),
                     .main_border(main_border_d5),
@@ -973,7 +976,8 @@ hires_pixel_sequencer vic_hires_pixel_sequencer(
 		    .hires_enabled(hires_enabled),
 		    .hires_mode(hires_mode),
 		    .hires_pixel_data(hires_pixel_data),
-		    .hires_color_data(hires_color_data)
+		    .hires_color_data(hires_color_data),
+		    .hires_rc(hires_rc)
                 );
 // --- END EXTENSIONS ---
 

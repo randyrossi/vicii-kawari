@@ -36,7 +36,7 @@ module top(
 	   input is_15khz,      // freq config pin from MCU
 	   input is_hide_raster_lines, // config pin from MCU
 	   output tx,
-	   input rx,
+	   //input rx,
 	   input cclk,
            output cpu_reset,    // reset for 6510 CPU
            output clk_colref,   // output color ref clock for CXA1545P
@@ -206,7 +206,7 @@ avr_interface mojo_avr_interface(
     .rst(rst),
     .cclk(cclk),
     .tx(tx),
-    .rx(rx),
+    //.rx(rx),
     .tx_data(tx_data_sys),
     .new_tx_data(tx_new_data_sys)
     //output [7:0] rx_data,

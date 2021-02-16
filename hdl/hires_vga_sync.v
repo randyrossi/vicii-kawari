@@ -243,8 +243,8 @@ assign output_x = h_count - hoffset;
 // resolution x) as the address.
 // When the line buffer is being read from, we used h_count (this scan
 // doubler's x adjusted by hoffset) as the address.
-linebuf_RAM line_buf_0(clk_dot4x, active_buf, active_buf ? is_native_x ? raster_x : hires_raster_x : output_x, pixel_color3, dout0);
-linebuf_RAM line_buf_1(clk_dot4x, !active_buf, !active_buf ? is_native_x ? raster_x : hires_raster_x : output_x, pixel_color3, dout1);
+linebuf_RAM line_buf_0(clk_dot4x, active_buf, active_buf ? is_native_x ? {1'b0, raster_x} : hires_raster_x : output_x, pixel_color3, dout0);
+linebuf_RAM line_buf_1(clk_dot4x, !active_buf, !active_buf ? is_native_x ? {1'b0, raster_x} : hires_raster_x : output_x, pixel_color3, dout1);
 
 reg [3:0] dot_rising;
 always @(posedge clk_dot4x)

@@ -13,8 +13,8 @@ module hires_matrix(
            input rst,
            input clk_phi,
            input clk_dot4x,
-	        input phi_phase_start_1,
-	        input phi_phase_start_14,
+	   input phi_phase_start_1,
+	   input phi_phase_start_14,
            input [6:0] cycle_num,
            input [8:0] raster_line,
            input hires_badline,
@@ -36,7 +36,7 @@ always @(posedge clk_dot4x)
     end
     else begin
         // In this hi res version, we move our vc counter at twice
-	     // the rate as normal.  So do this on either hi or lo phase.
+	// the rate as normal.  So do this on either hi or lo phase.
         // Must be on [1] for cycle_num to be valid.
         if (phi_phase_start_1) begin
             // Reset at start of frame
@@ -59,15 +59,14 @@ always @(posedge clk_dot4x)
 
 	      if (clk_phi && cycle_num == 13) begin
                 hires_vc <= hires_vc_base;
-		   if (hires_badline) begin
+		if (hires_badline) begin
                     hires_rc <= 3'd0;
 	      end
-			
 		   badline_hist <= {badline_hist[6:0], hires_badline};
-      end
+         end
 
-            // Go to next row at the usual time (only on high phase tho)
-      if (clk_phi && cycle_num == 57) begin
+         // Go to next row at the usual time (only on high phase tho)
+         if (clk_phi && cycle_num == 57) begin
      		if (hires_rc == 3'd7) begin
                     hires_vc_base <= hires_vc;
                     idle = `TRUE;
