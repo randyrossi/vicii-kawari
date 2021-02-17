@@ -17,7 +17,7 @@ module raster(
            output reg [9:0] sprite_raster_x,
            output reg [8:0] raster_line,
            output reg [8:0] raster_line_d,
-	   output reg [6:0] blink_ctr,
+	   output reg [5:0] blink_ctr,
 	   // --- BEGIN EXTENSIONS ---
            output reg [10:0] hires_raster_x,
            input dot_rising_2

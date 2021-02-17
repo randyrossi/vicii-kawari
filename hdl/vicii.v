@@ -509,7 +509,7 @@ lightpen vic_lightpen(
              .ilp(ilp)
          );
 
-wire[6:0] blink_ctr;
+wire[5:0] blink_ctr;
 raster vic_raster(
            .clk_phi(clk_phi),
            .clk_dot4x(clk_dot4x),

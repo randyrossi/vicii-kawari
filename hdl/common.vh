@@ -206,7 +206,7 @@
 `define VARIANT_NAME7   8'h41  // A
 `define VARIANT_NAME8   8'h4C  // L
 
-`define HIRES_BLINK_FREQ 6  // roughly every 64 frames
+`define HIRES_BLINK_FREQ 5  // every 32 frames
 
 // These are the same as C128's VDC
 `define HIRES_BLNK_BIT 4   // color cell attr bit for blink

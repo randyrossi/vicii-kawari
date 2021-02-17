@@ -24,7 +24,7 @@ module hires_pixel_sequencer(
            input [7:0] hires_pixel_data,
            input [7:0] hires_color_data,
 	   input [2:0] hires_rc,
-	   input [6:0] blink_ctr,
+	   input [5:0] blink_ctr,
 	   input hires_cursor
        );
 
