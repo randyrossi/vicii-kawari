@@ -11,23 +11,28 @@
 //
 // The 4x dot clock is divided by 32 to generate the CPU phi clock.
 
+// NOTE: WITH_DVI support here is only included to test the
+// dvi encoder is producing an image.  It's not possible to use
+// the development 'hat' with dvi.  If using WITH_DVI, the
+// pins selected by placement will not be compatible with the 'hat'.
+// It's meant to verify we can get an image over DVI only.
 module top(
            input sys_clock,
            input [1:0] chip,    // chip config from MCU
            input is_15khz,      // freq config pin from MCU
            input is_hide_raster_lines, // config pin from MCU
-	   output tx,
-	   //input rx,
-	   input cclk,
+           output tx,           // to mcm
+           input rx,            // from mcm (unused a.t.m)
+           input cclk,          // from mcm
            output cpu_reset,    // reset for 6510 CPU
-           output clk_phi,      // output phi clock for CPU
-           output clk_dot4x_ext,    // pixel clock for external HDMI encoder
+           output clk_phi,      // output phi clock for CPU		  
+           output clk_dot4x_ext,    // pixel clock for exaternal HDMI encoder
            output hsync,        // hsync signal for VGA/HDMI
            output vsync,        // vsync signal for VGA/HDMI
            output active,       // display active for HDMI
            output [3:0] red,    // red out for CXA1545P
            output [3:0] green,  // green out for CXA1545P
-           output [3:0] blue,   // blue out for CXA1545P
+           output [3:0] blue,   // blue out for CXA1545P		  
 `ifndef IS_SIMULATOR    
            inout tri [5:0] adl, // address (lower 6 bits)
            output tri [5:0] adh,// address (high 6 bits)
@@ -54,6 +59,11 @@ module top(
            output ls245_addr_dir,  // DIR for addr bus transceivers
            output ls245_data_oe,   // OE for data bus transcevier
            output ls245_data_dir   // DIR for data bus transceiver
+`ifdef WITH_DVI
+			  ,
+			  output wire [3:0] TX0_TMDS,
+           output wire [3:0] TX0_TMDSB
+`endif
        );
 
 `ifdef COMPOSITE_SUPPORT
@@ -81,12 +91,43 @@ wire clk_dot4x;
 //             .reset(rst),
 //             .clk_out(clk_colref));  // create color ref clock
 
+`ifdef WITH_DVI
+  wire   tx0_pclkx10;
+  wire   tx0_pclkx2;
+  wire   tx0_serdesstrobe;
+`endif
+
+
 // Clock generators and chip selection
 clockgen mojo_clockgen(
              .sys_clock(sys_clock),
              .clk_dot4x(clk_dot4x),
              .rst(rst),
-             .chip(chip));
+             .chip(chip)
+`ifdef WITH_DVI
+				 ,
+				 .tx0_pclkx10(tx0_pclkx10),
+				 .tx0_pclkx2(tx0_pclkx2),
+				 .tx0_serdesstrobe(tx0_serdesstrobe)
+`endif
+				 );
+
+`ifdef WITH_DVI
+dvi_encoder_top dvi_tx0 (
+    .pclk        (clk_dot4x),
+    .pclkx2      (tx0_pclkx2),
+    .pclkx10     (tx0_pclkx10),
+    .serdesstrobe(tx0_serdesstrobe),
+    .rstin       (1'b0),
+    .blue_din    ({red, 4'b0}),
+    .green_din   ({green, 4'b0}),
+    .red_din     ({blue, 4'b0}),
+    .hsync       (hsync),
+    .vsync       (vsync),
+    .de          (active),
+    .TMDS        (TX0_TMDS),
+    .TMDSB       (TX0_TMDSB));
+`endif
 
 // https://www.xilinx.com/support/answers/35032.html
 ODDR2 oddr2(
@@ -125,13 +166,13 @@ wire tx_new_data_4x;
 vicii vic_inst(
           .rst(rst),
           .chip(chip),
-	  .tx_data_4x(tx_data_4x),
-	  .tx_new_data_4x(tx_new_data_4x),
+          .tx_data_4x(tx_data_4x),
+          .tx_new_data_4x(tx_new_data_4x),
           .is_15khz(is_15khz),
           .is_hide_raster_lines(is_hide_raster_lines),
           .clk_dot4x(clk_dot4x),
           .clk_phi(clk_phi),
-	  .active(active),
+          .active(active),
           .hsync(hsync),
           .vsync(vsync),
 `ifdef COMPOSITE_SUPPORT
@@ -156,9 +197,9 @@ vicii vic_inst(
           //.ls245_addr_oe(ls245_addr_oe),
           .vic_write_db(vic_write_db),
           .vic_write_ab(vic_write_ab),
-	  .red(red),
-	  .green(green),
-	  .blue(blue)
+          .red(red),
+          .green(green),
+          .blue(blue)
       );
 
 `ifndef IS_SIMULATOR
@@ -173,11 +214,13 @@ assign dbo_sim = dbo;
 
 // Propagate tx from 4x domain to clk_serial domain
 // When tx_new_data goes high, avr_interface will transmit
-// the config byte to the MCU.
-reg[7:0] tx_data_sys_pre;
-reg tx_new_data_sys_pre;
-reg[7:0] tx_data_sys;
-reg tx_new_data_sys;
+// the config byte to the MCU.  There is a timing exception
+// in the constraints for dot4x -> sys_clock for what I
+// *think* is the right CDC solution.
+(* ASYNC_REG = "TRUE" *) reg[7:0] tx_data_sys_pre;
+(* ASYNC_REG = "TRUE" *) reg tx_new_data_sys_pre;
+(* ASYNC_REG = "TRUE" *) reg[7:0] tx_data_sys;
+(* ASYNC_REG = "TRUE" *) reg tx_new_data_sys;
 
 always @(posedge sys_clock) tx_data_sys_pre <= tx_data_4x;
 always @(posedge sys_clock) tx_data_sys <= tx_data_sys_pre;
@@ -187,7 +230,7 @@ always @(posedge sys_clock) tx_new_data_sys <= tx_new_data_sys_pre;
 
 avr_interface mojo_avr_interface(
     .clk(sys_clock),
-    .rst(rst),
+    .rst(1'b0),
     .cclk(cclk),
     .tx(tx),
     //.rx(rx),

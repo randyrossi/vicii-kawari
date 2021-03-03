@@ -11,7 +11,13 @@ module clockgen(
            input sys_clock,
            input [1:0] chip,
            output clk_dot4x,
-           output rst
+           output reg rst
+`ifdef WITH_DVI
+			  ,
+           output tx0_pclkx10,
+           output tx0_pclkx2,
+           output tx0_serdesstrobe
+`endif
        ); 
 
 // 22 = ~150ms
@@ -48,7 +54,9 @@ begin
 	 end
 end
 
-// Generate the 4x dot clock for both standards. See vicii.v for values.
+// Generate the 4x dot clock for the timing as set by the chip config
+// pins.  chip[0] determines PAL or NTSC standards. See vicii.v or
+// dot4x_50_clockgen.v for frequencies.
 dot4x_50_clockgen dot4x_50_clockgen(
                           .SSTEP(sstep),
                           .CLKIN(sys_clock),    // board 50 Mhz clock
@@ -58,14 +66,18 @@ dot4x_50_clockgen dot4x_50_clockgen(
                           .LOCKED(locked)
                       );
 
-wire running;
+`ifdef WITH_DVI
+// This is the clock gen for our DVI encoder.  It takes in the pixel clock
+// prodices 2x and 10x clocks as well as the ser/des strobe.
+dvi_clockgen dvi_clockgen(
+								  .clkin(clk_dot4x),
+								  .tx0_pclkx10(tx0_pclkx10),
+								  .tx0_pclkx2(tx0_pclkx2),
+								  .tx0_serdesstrobe(tx0_serdesstrobe)
+							 );
+`endif
 
-// If we are locked and internal reset timer has been reached, then
-// we are running.
-assign running = locked & internal_rst;
-
-// Synchronize reset to clock
-RisingEdge_DFlipFlop_SyncReset ff1(1'b0, clk_dot4x, running, ff1_q);
-RisingEdge_DFlipFlop_SyncReset ff2(ff1_q, clk_dot4x, running, rst);
+// Take design out of reset when internal_rst is high
+always @(posedge clk_dot4x) rst <= internal_rst;
 
 endmodule : clockgen

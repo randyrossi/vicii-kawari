@@ -2,7 +2,10 @@
 `define common_vh_
 
 `define VERSION_MAJOR 4'd0
-`define VERSION_MINOR 4'd1
+`define VERSION_MINOR 4'd2
+
+// Uncomment to include TMDS outputs and DVI encoder for video
+//`define WITH_DVI 1
 
 // DATA_DAV
 //

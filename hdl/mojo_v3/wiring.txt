@@ -1,81 +1,82 @@
 # Bi-directional address bus
-P23     A0       adl[0]  IO    QUIETIO  2
-P29     A1       adl[1]  IO    QUIETIO  2
-P30     A2       adl[2]  IO    QUIETIO  2
-P32     A3       adl[3]  IO    QUIETIO  2
-P33     A4       adl[4]  IO    QUIETIO  2
-P21     A5       adl[5]  IO    QUIETIO  2
-P16     A6       adh[0]  IO    QUIETIO  2
-P14     A7       adh[1]  IO    QUIETIO  2
-P11     A8       adh[2]  IO    QUIETIO  2
-P9      A9       adh[3]  IO    QUIETIO  2
-P7      A10      adh[4]  IO    QUIETIO  2
-P24     A11      adh[5]  IO    QUIETIO  2
+P23     A0       adl[0]  IO    QUIETIO 2 NA
+P29     A1       adl[1]  IO    QUIETIO 2 NA
+P30     A2       adl[2]  IO    QUIETIO 2 NA
+P32     A3       adl[3]  IO    QUIETIO 2 NA
+P33     A4       adl[4]  IO    QUIETIO 2 NA
+P21     A5       adl[5]  IO    QUIETIO 2 NA
+P16     A6       adh[0]  IO    QUIETIO 2 NA
+P14     A7       adh[1]  IO    QUIETIO 2 NA
+P11     A8       adh[2]  IO    QUIETIO 2 NA
+P9      A9       adh[3]  IO    QUIETIO 2 NA
+P7      A10      adh[4]  IO    QUIETIO 2 NA
+P24     A11      adh[5]  IO    QUIETIO 2 NA
 
 # Read only lines
-P144    D8       dbh[0]  I     NA  NA
-P143    D9       dbh[1]  I     NA  NA
-P2      D10      dbh[2]  I     NA  NA
-P1      D11      dbh[3]  I     NA  NA
-P141    RW       rw      I     NA  NA
-P142    CE       ce      I     NA  NA
-P139    LP       lp      I     NA  NA
-P105    RWO      rwo     O     QUIETIO 2
+P144    D8       dbh[0]  I     NA NA NA    # Move for DVI
+P143    D9       dbh[1]  I     NA NA NA    # Move for DVI
+P2      D10      dbh[2]  I     NA NA NA
+P1      D11      dbh[3]  I     NA NA NA
+P141    RW       rw      I     NA NA NA    # Move for DVI
+P142    CE       ce      I     NA NA NA    # Move for DVI
+P139    LP       lp      I     NA NA NA    # Move for DVI
+P105    RWO      rwo     O     QUIETIO 2 NA
 
 # Bi-directional databus
-P93     D7       dbl[7]  IO   QUIETIO  2
-P94     D6       dbl[6]   IO   QUIETIO  2
-P88     D5       dbl[5]   IO   QUIETIO  2
-P97     D4       dbl[4]   IO   QUIETIO  2
-P100    D3       dbl[3]  IO   QUIETIO  2
-P99     D2       dbl[2]  IO   QUIETIO  2
-P102    D1       dbl[1]  IO   QUIETIO  2
-P101    D0       dbl[0]  IO   QUIETIO  2
+P93     D7       dbl[7]  IO   QUIETIO 2 NA
+P94     D6       dbl[6]  IO   QUIETIO 2 NA
+P88     D5       dbl[5]  IO   QUIETIO 2 NA
+P97     D4       dbl[4]  IO   QUIETIO 2 NA
+P100    D3       dbl[3]  IO   QUIETIO 2 NA
+P99     D2       dbl[2]  IO   QUIETIO 2 NA
+P102    D1       dbl[1]  IO   QUIETIO 2 NA
+P101    D0       dbl[0]  IO   QUIETIO 2 NA
 
 # Write only lines
-P51     CAS      cas     O    QUIETIO  2
-P50     RAS      ras     O    QUIETIO  2
-P41     PHI      clk_phi O    QUIETIO  2
-P40     AEC      aec     O    QUIETIO  2
-P58     BA       ba      O    QUIETIO  2
-P111    IRQ      irq     O    SLOW 2
+P51     CAS      cas     O    QUIETIO 2 NA
+P50     RAS      ras     O    QUIETIO 2 NA
+P41     PHI      clk_phi O    QUIETIO 2 NA
+P40     AEC      aec     O    QUIETIO 2 NA
+P58     BA       ba      O    QUIETIO 2 NA
+P111    IRQ      irq     O    SLOW 2 NA
 
 # Control ines
-P34     addr_dir ls245_addr_dir O    SLOW 4
-P83     data_dir ls245_data_dir O    SLOW 4
-P95     data_oe  ls245_data_oe  O    SLOW 4
-P112    RESET    cpu_reset      O    SLOW 4
+P34     addr_dir ls245_addr_dir O    SLOW 4 NA
+P83     data_dir ls245_data_dir O    SLOW 4 NA
+P95     data_oe  ls245_data_oe  O    SLOW 4 NA
+P112    RESET    cpu_reset      O    SLOW 4 NA
 
 # Video output
-P118    PMOD11   red[0]          O   QUIETIO 2
-P119    PMOD12   red[1]          O   QUIETIO 2
-P121    PMOD10   red[3]          O   QUIETIO 2
-P120    PMOD9    red[2]          O   QUIETIO 2
+P118    PMOD11   red[0]          O   QUIETIO 2 NA
+P119    PMOD12   red[1]          O   QUIETIO 2 NA
+P121    PMOD10   red[3]          O   QUIETIO 2 NA
+P120    PMOD9    red[2]          O   QUIETIO 2 NA
 
-P114    PMOD7    green[0]        O   QUIETIO 2
-P115    PMOD8    green[1]        O   QUIETIO 2
-P116    PMOD6    green[2]        O   QUIETIO 2
-P117    PMOD5    green[3]        O   QUIETIO 2
+P114    PMOD7    green[0]        O   QUIETIO 2 NA
+P115    PMOD8    green[1]        O   QUIETIO 2 NA
+P116    PMOD6    green[2]        O   QUIETIO 2 NA
+P117    PMOD5    green[3]        O   QUIETIO 2 NA
 
-P126    PMOD7    blue[0]         O   QUIETIO 2
-P131    PMOD10   blue[1]         O   QUIETIO 2
-P138    PMOD12   blue[2]         O   QUIETIO 2
-P140    PMOD11   blue[3]         O   QUIETIO 2
+P126    PMOD7    blue[0]         O   QUIETIO 2 NA
+P131    PMOD10   blue[1]         O   QUIETIO 2 NA
+P138    PMOD12   blue[2]         O   QUIETIO 2 NA  # Remove for DVI
+P140    PMOD11   blue[3]         O   QUIETIO 2 NA  # Remove for DVI
 
-P134    PMOD9    clk_dot4x_ext   O   SLOW 4
-P127    PMOD8    active          O   SLOW 4
-P123    PMOD5    hsync           O   SLOW 4
-P124    PMOD6    vsync           O   SLOW 4
+P134    PMOD9    clk_dot4x_ext   O   SLOW 4 NA
+P127    PMOD8    active          O   SLOW 4 NA
+P123    PMOD5    hsync           O   SLOW 4 NA
+P124    PMOD6    vsync           O   SLOW 4 NA
 
-P62     IS_15KHZ is_15khz              I  NA  NA
-P65     IS_HIDE  is_hide_raster_lines  I  NA  NA
-P46     CHIP_0   chip[0]               I  NA  NA
-P61     CHIP_1   chip[1]               I  NA  NA
+# Config pins
+P62     IS_15KHZ is_15khz              I  NA  NA NA
+P65     IS_HIDE  is_hide_raster_lines  I  NA  NA NA
+P46     CHIP_0   chip[0]               I  NA  NA NA
+P61     CHIP_1   chip[1]               I  NA  NA NA
 
 # Serial link between MCU and FPGA
-P59     FPGA_TX  tx                    O  FAST 8
-P55     FPGA_RX  rx                    I  NA  NA
-P70     CCLK     cclk                  I  NA  NA
+P59     FPGA_TX  tx                    O  FAST 8 NA
+P55     FPGA_RX  rx                    I  NA  NA NA
+P70     CCLK     cclk                  I  NA  NA NA
 
 # Clock
-P56     CLK      sys_clock       I     NA NA
+P56     CLK      sys_clock       I     NA NA NA

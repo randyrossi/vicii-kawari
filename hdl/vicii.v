@@ -1008,33 +1008,14 @@ comp_sync vic_comp_sync(
 
 // -------------------------------------------------------------
 // VGA/HDMI output - hsync/vsync/active/half_bright/pixel_color4
-// Low resolution that can't do 80 columns.
-// -------------------------------------------------------------
-/*
-vga_sync vic_vga_sync(
-             .rst(rst),
-             .clk_dot4x(clk_dot4x),
-             .raster_x(raster_x),
-             .raster_y(raster_line),
-             .chip(chip),
-             .pixel_color3(pixel_color3),
-             .hsync(hsync),
-             .vsync(vsync),
-             .active(active),
-             .pixel_color4(pixel_color4_vga),
-             .half_bright(half_bright)
-         );
-*/
-
-// -------------------------------------------------------------
-// VGA/HDMI output - hsync/vsync/active/half_bright/pixel_color4
 // Hu-res version that can show the 80 column mode as well as
 // 40.
 // -------------------------------------------------------------
+// TODO: Add is_native_x config bit
 hires_vga_sync vic_vga_sync(
              .rst(rst),
              .clk_dot4x(clk_dot4x),
-	     .is_15khz(is_15khz),
+             .is_15khz(is_15khz),
              .raster_x(raster_x),
              .hires_raster_x(hires_raster_x),
              .raster_y(raster_line),

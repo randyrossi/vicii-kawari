@@ -208,10 +208,20 @@ begin
    tx_new_data_4x <= tx_new_data_sr[1];
 end
 
+// NOTE: To 'force' at least a blue screen with border to get generated
+// for testing video output without connectivity to a C64 bus, do the
+// following:
+// 1. In rst block, set ec, b0c, and den
+//        ec <= `LIGHT_BLUE;
+//        b0c <= `BLUE;
+//        den <= `TRUE;
+// 2. Comment out the ec, b0c and den assignments in the WRITE to
+//    register section below.
 always @(posedge clk_dot4x)
     if (rst) begin
-        //ec <= BLACK;
-        //b0c <= BLACK;
+        //ec <= `BLACK;
+        //b0c <= `BLACK;
+        //den <= `FALSE;
         //b1c <= BLACK;
         //b2c <= BLACK;
         //b3c <= BLACK;
@@ -219,7 +229,6 @@ always @(posedge clk_dot4x)
         //yscroll <= 3'd3;
         //csel <= `FALSE;
         //rsel <= `FALSE;
-        //den <= `TRUE;
         //bmm <= `FALSE;
         //ecm <= `FALSE;
         //res <= `FALSE;

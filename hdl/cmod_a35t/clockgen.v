@@ -21,7 +21,7 @@ module clockgen(
            input sys_clock,
            output clk_dot4x,
            output clk_col4x,
-           output rst,
+           output reg rst,
            output [1:0] chip
        );
 
@@ -31,7 +31,7 @@ reg [21:0] rstcntr = 0;
 wire internal_rst = !rstcntr[21];
 
 // Keep internel reset high for approx 150ms
-always @(posedge sys_clock)
+always @(posedge clk_dot4x)
     if (internal_rst)
         rstcntr <= rstcntr + 4'd1;
 
@@ -126,14 +126,7 @@ dot4x_14_ntsc_clockgen dot4x_14_ntsc_clockgen(
                        );
 `endif
 
-wire running;
-
-// If we are locked and internal reset timer has been reached, then
-// we are running.
-assign running = locked & internal_rst;
-
-// Synchronize reset to clock
-RisingEdge_DFlipFlop_SyncReset ff1(1'b0, clk_dot4x, running, ff1_q);
-RisingEdge_DFlipFlop_SyncReset ff2(ff1_q, clk_dot4x, running, rst);
+// Take design out of reset when internal_rst is high
+always @(posedge clk_dot4x) rst <= internal_rst;
 
 endmodule : clockgen

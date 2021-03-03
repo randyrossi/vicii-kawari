@@ -61,10 +61,10 @@ module dot4x_50_clockgen
 	//                 .000194 (difference)
 	//
 	// Second config is for NTSC timing
-	// 50 * 17 / 26 = 32.692307 = dot4x
-	// 32.692307 /32 = 1.021634 (actual)
+	// 50 * 19 / 29 = 32.758620 = dot4x
+	// 32.758620 /32 = 1.023706 (actual)
 	// 32.727272 /32 = 1.022727 (desired)
-	//                 .001093 (difference)
+	//                  .000979 (difference)
    PLL_ADV #(
 	  .SIM_DEVICE("SPARTAN6"),
       .DIVCLK_DIVIDE(2), // 1 to 52
@@ -87,6 +87,10 @@ module dot4x_50_clockgen
       .CLKOUT0_DIVIDE(23),
       .CLKOUT0_DUTY_CYCLE(0.5),
       .CLKOUT0_PHASE(0.0), 
+
+      //.CLKOUT1_DIVIDE(23),
+      //.CLKOUT1_DUTY_CYCLE(0.5),
+      //.CLKOUT1_PHASE(0.0), 
       
       // Set the compensation
       .COMPENSATION("SYSTEM_SYNCHRONOUS"),
@@ -141,11 +145,11 @@ module dot4x_50_clockgen
       //***********************************************************************
       // State 1 Parameters - These are for the first reconfiguration state.
       //***********************************************************************
-      .S1_CLKFBOUT_MULT(17),
+      .S1_CLKFBOUT_MULT(19),
       .S1_CLKFBOUT_PHASE(0),
       .S1_BANDWIDTH("LOW"),
       .S1_DIVCLK_DIVIDE(1),
-      .S1_CLKOUT0_DIVIDE(26),
+      .S1_CLKOUT0_DIVIDE(29),
       .S1_CLKOUT0_PHASE(0),
       .S1_CLKOUT0_DUTY(50000),
       
@@ -181,4 +185,48 @@ module dot4x_50_clockgen
       .DCLK(dclk),
       .RST_PLL(rst_pll)
    );
-endmodule
+endmodule
+
+`ifdef WITH_DVI
+module dvi_clockgen (
+      input    clkin,
+		output   tx0_pclkx10,
+		output   tx0_pclkx2,
+		output   tx0_serdesstrobe
+		);
+			
+  wire tx0_clkfbout, tx0_clkfbin, tx0_plllckd;
+  wire tx0_pllclk0, tx0_pllclk2;
+
+  PLL_BASE # (
+    // CLKIN_PERIOD is used for timing analysis. This is the value for PAL but
+	 // should be okay for NTSC too.  The tool complains this value does not
+	 // match the period constraint! (NgdBuild:1440) WHY???
+    .CLKIN_PERIOD(31.724138),
+    .CLKFBOUT_MULT(20),   // 10x CLKIN
+    .CLKOUT0_DIVIDE(2),   // 10x
+    .CLKOUT1_DIVIDE(20),  // 1x
+    .CLKOUT2_DIVIDE(10),  // 2x
+    .COMPENSATION("SOURCE_SYNCHRONOUS")
+  ) PLL_OSERDES_0 (
+    .CLKFBOUT(tx0_clkfbout),
+    .CLKOUT0(tx0_pllclk0),
+    .CLKOUT1(),
+    .CLKOUT2(tx0_pllclk2),
+    .CLKOUT3(),
+    .CLKOUT4(),
+    .CLKOUT5(),
+    .LOCKED(tx0_plllckd),
+    .CLKFBIN(tx0_clkfbin),
+    .CLKIN(clkin),     // Pixel clock
+    .RST(tx0_pll_reset)
+  );
+
+  BUFG tx0_clkfb_buf (.I(tx0_clkfbout), .O(tx0_clkfbin));
+  BUFG tx0_pclkx2_buf (.I(tx0_pllclk2), .O(tx0_pclkx2));
+
+  wire tx0_bufpll_lock;
+  BUFPLL #(.DIVIDE(5)) tx0_ioclk_buf (.PLLIN(tx0_pllclk0), .GCLK(tx0_pclkx2), .LOCKED(tx0_plllckd),
+         .IOCLK(tx0_pclkx10), .SERDESSTROBE(tx0_serdesstrobe), .LOCK(tx0_bufpll_lock));
+
+endmodule`endif
