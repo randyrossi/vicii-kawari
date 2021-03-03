@@ -113,15 +113,22 @@ clockgen mojo_clockgen(
 				 );
 
 `ifdef WITH_DVI
+// Scale from 4 bits to 8 for DVI
+wire[31:0] red_scaled;
+wire[31:0] green_scaled;
+wire[31:0] blue_scaled;
+assign red_scaled = red * 255 / 15;
+assign green_scaled = green * 255 / 15;
+assign blue_scaled = blue * 255 / 15;
 dvi_encoder_top dvi_tx0 (
     .pclk        (clk_dot4x),
     .pclkx2      (tx0_pclkx2),
     .pclkx10     (tx0_pclkx10),
     .serdesstrobe(tx0_serdesstrobe),
     .rstin       (1'b0),
-    .blue_din    ({red, 4'b0}),
-    .green_din   ({green, 4'b0}),
-    .red_din     ({blue, 4'b0}),
+    .blue_din    (blue_scaled[7:0]),
+    .green_din   (green_scaled[7:0]),
+    .red_din     (red_scaled[7:0]),
     .hsync       (hsync),
     .vsync       (vsync),
     .de          (active),
