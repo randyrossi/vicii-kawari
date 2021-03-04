@@ -45,9 +45,9 @@ module top(
            output active,       // display active for HDMI
            output hsync,        // hsync signal for VGA/HDMI
            output vsync,        // vsync signal for VGA/HDMI
-           output [3:0] red,    // red out for CXA1545P
-           output [3:0] green,  // green out for CXA1545P
-           output [3:0] blue,   // blue out for CXA1545P
+           output [5:0] red,    // red out
+           output [5:0] green,  // green out
+           output [5:0] blue,   // blue out
 `ifndef IS_SIMULATOR    
            inout tri [5:0] adl, // address (lower 6 bits)
            output tri [5:0] adh,// address (high 6 bits)

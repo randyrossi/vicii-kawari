@@ -79,15 +79,15 @@ public class Conv640X200 {
                 int r = col.getRed();
                 int g = col.getGreen();
                 int b = col.getBlue();
-                int r2 = (r >> 4);
-                int g2 = (g >> 4);
-                int b2 = (b >> 4);
-                int v = (r2 << 8) | (g2 << 4) | b2;
+                int r2 = (r >> 2);
+                int g2 = (g >> 2);
+                int b2 = (b >> 2);
+                int v = (r2 << 12) | (g2 << 6) | b2;
 
 		if (binaryColors) {
                    String s = Integer.toBinaryString(v);
-                   while (s.length() < 12) s="0"+s;
-                   System.out.println(s+"0000");
+                   while (s.length() < 18) s="0"+s;
+                   System.out.println(s+"000000");
                 } else {
                    String s1 = Integer.toHexString(r2);
                    if (s1.length() < 2) s1="0"+s1;

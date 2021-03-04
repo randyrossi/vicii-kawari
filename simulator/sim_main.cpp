@@ -914,9 +914,9 @@ int main(int argc, char** argv, char** env) {
           if (showWindow && HASCHANGED(OUT_DOT_RISING) &&
 			  (top->V_CLK_DOT == 2 || top->V_CLK_DOT == 8)) {
              SDL_SetRenderDrawColor(ren,
-                (top->red << 4) | 0b1111,
-                (top->green << 4) | 0b1111,
-                (top->blue << 4) | 0b1111,
+                (top->red << 2) | 0b11,
+                (top->green << 2) | 0b11,
+                (top->blue << 2) | 0b11,
                 255);
 	     int hoffset = top->V_CLK_DOT == 2 ? 0 : 1;
              drawPixel(ren,

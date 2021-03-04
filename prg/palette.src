@@ -1,20 +1,20 @@
 rem try and detect vicii-kawari
 data 0,0,0,0
-data 15,15,15,0
-data 6,3,2,0
-data 7,10,11,0
-data 6,3,8,0
-data 5,8,4,0
-data 3,2,7,0
-data 11,12,6,0
-data 6,4,2,0
-data 4,3,0,0
-data 9,6,5,0
-data 4,4,4,0
-data 6,6,6,0
-data 9,13,8,0
-data 6,5,11,0
-data 9,9,9,0
+data 63,63,63,0
+data 25,13,10,0
+data 28,40,44,0
+data 27,15,33,0
+data 22,35,16,0
+data 13,10,30,0
+data 45,49,27,0
+data 27,19,9,0
+data 16,14,0,0
+data 38,25,22,0
+data 16,16,16,0
+data 26,26,26,0
+data 38,52,32,0
+data 26,23,45,0
+data 37,37,37,0
 poke 53311,asc("v"):poke 53311,asc("i")
 poke 53311,asc("c"):poke 53311,asc("2")
 poke53311,0
@@ -48,25 +48,25 @@ gosub l_blue
 next
 goto l_wait
 rem l_red
-if pa = 0 then poke 53305,t*4:poke53307,t:return
-if pa = 1 then poke 53305,t*4:poke53307,t:return
+if pa = 0 then poke 53305,t*4:poke53307,t*4:return
+if pa = 1 then poke 53305,t*4:poke53307,t*4:return
 if pa = 2 then poke 53305,t*4:poke53307,0:return
 if pa = 3 then poke 53305,t*4:poke53307,0:return
-if pa = 4 then poke 53305,t*4:poke53307,15-t:return
+if pa = 4 then poke 53305,t*4:poke53307,(15-t)*4:return
 return
 rem l_green
-if pa = 0 then poke 53305,t*4+1:poke53307,t:return
+if pa = 0 then poke 53305,t*4+1:poke53307,t*4:return
 if pa = 1 then poke 53305,t*4+1:poke53307,0:return
-if pa = 2 then poke 53305,t*4+1:poke53307,t:return
+if pa = 2 then poke 53305,t*4+1:poke53307,t*4:return
 if pa = 3 then poke 53305,t*4+1:poke53307,0:return
-if pa = 4 then poke 53305,t*4+1:poke53307,t:return
+if pa = 4 then poke 53305,t*4+1:poke53307,t*4:return
 return
 rem l_blue
-if pa = 0 then poke 53305,t*4+2:poke53307,t:return
+if pa = 0 then poke 53305,t*4+2:poke53307,t*4:return
 if pa = 1 then poke 53305,t*4+2:poke53307,0:return
 if pa = 2 then poke 53305,t*4+2:poke53307,0:return
-if pa = 3 then poke 53305,t*4+2:poke53307,t:return
-if pa = 4 then poke 53305,t*4+2:poke53307,15-t:return
+if pa = 3 then poke 53305,t*4+2:poke53307,t*4:return
+if pa = 4 then poke 53305,t*4+2:poke53307,(15-t)*4:return
 return
 rem l_done
 for t=0to63
