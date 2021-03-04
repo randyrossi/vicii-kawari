@@ -121,11 +121,11 @@ begin
                    vs_end <= 583;  // HEIGHT - v back porch
                    // HEIGHT = 624
                 end
-                hoffset <= 10;
-                voffset = 20;
-                max_height <= is_15khz ? 311 : 623;
-                max_width <= is_native_x ? 503 : 1007;
-                v_count <= is_15khz ? (311 - voffset) : (623 - voffset);
+                hoffset <= 11'd10;
+                voffset = 10'd20;
+                max_height <= is_15khz ? 10'd311 : 10'd623;
+                max_width <= is_native_x ? 11'd503 : 11'd1007;
+                v_count <= is_15khz ? (10'd311 - voffset) : (10'd623 - voffset);
             end
             `CHIP6567R8: begin
                 if (is_native_x) begin
@@ -156,11 +156,11 @@ begin
                    vs_end <= 515;  // HEIGHT - v back porch
                    // HEIGHT = 526
                 end
-                hoffset <= 20;
-                voffset = 52;
-                max_height <= is_15khz ? 262 : 525;
-                max_width <= is_native_x ? 519 : 1039;
-                v_count <= is_15khz ? (262 - voffset) : (525 - voffset);
+                hoffset <= 11'd20;
+                voffset = 10'd52;
+                max_height <= is_15khz ? 10'd262 : 10'd525;
+                max_width <= is_native_x ? 11'd519 : 11'd1039;
+                v_count <= is_15khz ? (10'd262 - voffset) : (10'd525 - voffset);
             end
             `CHIP6567R56A: begin
                 if (is_native_x) begin
@@ -191,11 +191,11 @@ begin
                    vs_end <= 515; // HEIGHT - v back porch
                    // HEIGHT = 524
                 end
-                hoffset <= 20;
-                voffset = 52;
-                max_height <= is_15khz ? 261 : 523;
-                max_width <= is_native_x ? 511 : 1023;
-                v_count <= is_15khz ? (261 - voffset) : (523 - voffset);
+                hoffset <= 11'd20;
+                voffset = 10'd52;
+                max_height <= is_15khz ? 10'd261 : 10'd523;
+                max_width <= is_native_x ? 11'd511 : 11'd1023;
+                v_count <= is_15khz ? (10'd261 - voffset) : (10'd523 - voffset);
             end
         endcase
     end else begin
