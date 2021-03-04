@@ -70,9 +70,9 @@ module registers(
 	   input [3:0] pixel_color4,
 	   input half_bright,
 	   input active,
-	   output reg[3:0] red,
-	   output reg[3:0] green,
-	   output reg[3:0] blue,
+	   output reg[5:0] red,
+	   output reg[5:0] green,
+	   output reg[5:0] blue,
 
 	   // When we poke our custom regs that change config,
 	   // we set the new config byte and raise new data flag
@@ -157,10 +157,10 @@ wire [7:0] video_ram_data_out_a;
 reg [4:0] color_regs_addr_a;
 reg color_regs_wr_a;
 reg color_regs_pre_wr_a;
-reg [3:0] color_regs_wr_value;
-reg [15:0] color_regs_data_in_a;
-wire [15:0] color_regs_data_out_a;
-wire [15:0] color_regs_data_out_b;
+reg [5:0] color_regs_wr_value;
+reg [23:0] color_regs_data_in_a;
+wire [23:0] color_regs_data_out_a;
+wire [23:0] color_regs_data_out_b;
 
 // Auto increment/decrement of extra reg addr should happen on reads/writes
 // to the extra reg data port.  Some CPU instructions result in a single
@@ -192,7 +192,7 @@ COLOR_REGS color_regs(clk_dot4x,
                     color_regs_data_out_a,
                     1'b0,
                     { palette_select, pixel_color4},
-                    16'b0,
+                    24'b0,
                     color_regs_data_out_b
                     );
 
@@ -777,41 +777,41 @@ always @(posedge clk_dot4x)
             // Now we can do the write
             color_regs_pre_wr_a <= 0;
             color_regs_wr_a <= 1;
-	    case (color_regs_wr_nibble)
+            case (color_regs_wr_nibble)
                2'b00:
-		   color_regs_data_in_a <= {color_regs_wr_value, color_regs_data_out_a[11:0]};
+                   color_regs_data_in_a <= {color_regs_wr_value, color_regs_data_out_a[17:0]};
                2'b01:
-                   color_regs_data_in_a <= {color_regs_data_out_a[15:12] , color_regs_wr_value, color_regs_data_out_a[7:0]};
+                   color_regs_data_in_a <= {color_regs_data_out_a[23:18] , color_regs_wr_value, color_regs_data_out_a[11:0]};
                2'b10:
-                   color_regs_data_in_a <= {color_regs_data_out_a[15:8], color_regs_wr_value, color_regs_data_out_a[3:0]};
+                   color_regs_data_in_a <= {color_regs_data_out_a[23:12], color_regs_wr_value, color_regs_data_out_a[5:0]};
                2'b11:
-                   color_regs_data_in_a <= {color_regs_data_out_a[15:4], color_regs_wr_value};
+                   color_regs_data_in_a <= {color_regs_data_out_a[23:6], color_regs_wr_value}; // never used
             endcase
         end
 
         // CPU read from color regs
         if (color_regs_r) begin
-	    case (color_regs_r_nibble)
-               2'b00: dbo[7:0] <= { 4'b0, color_regs_data_out_a[15:12] };
-               2'b01: dbo[7:0] <= { 4'b0, color_regs_data_out_a[11:8] };
-               2'b10: dbo[7:0] <= { 4'b0, color_regs_data_out_a[7:4] };
-               2'b11: dbo[7:0] <= { 4'b0, color_regs_data_out_a[3:0] };
+            case (color_regs_r_nibble)
+               2'b00: dbo[7:0] <= { 2'b0, color_regs_data_out_a[23:18] };
+               2'b01: dbo[7:0] <= { 2'b0, color_regs_data_out_a[17:12] };
+               2'b10: dbo[7:0] <= { 2'b0, color_regs_data_out_a[11:6] };
+               2'b11: dbo[7:0] <= { 2'b0, color_regs_data_out_a[5:0] };
             endcase
         end
 
-	// NOTE: This location means video_ram_wr_a will be high for two
-	// cycles.  color_regs_wr_a is only high for one.  But we needed
-	// an extra cycle to read color regs before we could update the
-	// 12 bit value properly.
+        // NOTE: This location means video_ram_wr_a will be high for two
+        // cycles.  color_regs_wr_a is only high for one.  But we needed
+        // an extra cycle to read color regs before we could update the
+        // 18 bit value properly.
         if (~clk_phi && phi_phase_start_dav_plus_2) begin
             // Always clear both flags and propagate r to r2 here.
             video_ram_r <= 0;
             video_ram_r2 <= video_ram_r;
             video_ram_wr_a <= 0;
 
-	    color_regs_r <= 0;
-	    color_regs_r2 <= color_regs_r;
-	    color_regs_wr_a <= 0;
+            color_regs_r <= 0;
+            color_regs_r2 <= color_regs_r;
+            color_regs_wr_a <= 0;
 
             if (video_ram_r2 || video_ram_wr_a || color_regs_r2 || color_regs_wr_a) begin
                 // Handle auto increment /decrement after port access
@@ -872,25 +872,25 @@ begin
     if (active) begin
 `endif
        if (half_bright) begin
-          red <= {1'b0, color_regs_data_out_b[15:13]};
-          green <= {1'b0, color_regs_data_out_b[11:9]};
-          blue <= {1'b0, color_regs_data_out_b[7:5]};
+          red <= {1'b0, color_regs_data_out_b[23:19]};
+          green <= {1'b0, color_regs_data_out_b[17:13]};
+          blue <= {1'b0, color_regs_data_out_b[11:7]};
        end else begin
-          red <= color_regs_data_out_b[15:12];
-          green <= color_regs_data_out_b[11:8];
-          blue <= color_regs_data_out_b[7:4];
+          red <= color_regs_data_out_b[23:18];
+          green <= color_regs_data_out_b[17:12];
+          blue <= color_regs_data_out_b[11:6];
        end
 `ifndef IS_SIMULATOR
     end else begin
-          red <= 4'b0;
-          green <= 4'b0;
-          blue <= 4'b0;
+          red <= 6'b0;
+          green <= 6'b0;
+          blue <= 6'b0;
     end
 `endif
 end
 
 // For color ram:
-//     flip read bit on and set address and which nibble (out of 4)
+//     flip read bit on and set address and which 6-bit-nibble (out of 4)
 //     is to be read, dbo will be set by the 'CPU read from color regs' block
 //     above.
 // For video ram:
@@ -906,8 +906,8 @@ task read_ram(
     begin
        if (overlay) begin
           if (ram_lo < 8'h80) begin
-              // _r stores which byte within the 16 bit
-              // lookup value we want
+              // _r_nibble stores which 6-bit-nibble within the 24 bit
+              // lookup value we want.  The lowest 6-bits are never used.
               color_regs_r <= 1'b1;
               color_regs_r_nibble <= ram_lo[1:0];
               color_regs_addr_a <= ram_lo[6:2];
@@ -959,7 +959,7 @@ endtask
 
 // For color ram:
 //     Write happens in two stages. First pre_wr flag is set along with
-//     value and which nibble (of 4) and the adddress.  When stage 1 is
+//     value and which 6-bit-nibble (of 4) and the adddress.  When stage 1 is
 //     handled above, the value is read out first, the nibble updated
 //     and then the write op is done.
 // For video ram:
@@ -975,26 +975,26 @@ task write_ram(
     begin
        if (overlay) begin
            if (ram_lo < 8'h80) begin
-              // In order to write to individual 4 bit
-              // values within the 16 bit register, we
+              // In order to write to individual 6 bit
+              // values within the 24 bit register, we
               // have to read it first, then write.
               color_regs_pre_wr_a <= 1;
-              color_regs_wr_value <= dbi[3:0];
+              color_regs_wr_value <= dbi[5:0];
               color_regs_wr_nibble <= ram_lo[1:0];
               color_regs_addr_a <= ram_lo[6:2];
            end else begin
               // When we poke certain config registers, we
-	      // reconstruct a new configuration byte and
-	      // pass it to the MCU over serial.  Then, it
-	      // will save the values and the new config
-	      // bits will be reflected after the next
-	      // cold boot.
+              // reconstruct a new configuration byte and
+              // pass it to the MCU over serial.  Then, it
+              // will save the values and the new config
+              // bits will be reflected after the next
+              // cold boot.
               case (ram_lo)
                  // Not safe to allow this to be changed from
-		 // CPU. Already burned by this with accidental
-		 // overwrite of this register. This can effectively
-		 // disable your display so leave this only to the
-		 // serial connection to change.
+                 // CPU. Already burned by this with accidental
+                 // overwrite of this register. This can effectively
+                 // disable your display so leave this only to the
+                 // serial connection to change.
                  //`EXT_REG_VIDEO_FREQ:
                  // begin
                  //   last_is_15khz <= dbi[0];

@@ -13,7 +13,7 @@
 
 // NOTE: WITH_DVI support here is only included to test the
 // dvi encoder is producing an image.  It's not possible to use
-// the development 'hat' with dvi.  If using WITH_DVI, the
+// the development 'hat' with DVI.  If using WITH_DVI, the
 // pins selected by placement will not be compatible with the 'hat'.
 // It's meant to verify we can get an image over DVI only.
 module top(
@@ -26,13 +26,13 @@ module top(
            input cclk,          // from mcm
            output cpu_reset,    // reset for 6510 CPU
            output clk_phi,      // output phi clock for CPU		  
-           output clk_dot4x_ext,    // pixel clock for exaternal HDMI encoder
-           output hsync,        // hsync signal for VGA/HDMI
-           output vsync,        // vsync signal for VGA/HDMI
-           output active,       // display active for HDMI
-           output [3:0] red,    // red out for CXA1545P
-           output [3:0] green,  // green out for CXA1545P
-           output [3:0] blue,   // blue out for CXA1545P		  
+           output clk_dot4x_ext,// pixel clock
+           output hsync,        // hsync signal for VGA/DVI
+           output vsync,        // vsync signal for VGA/DVI
+           output active,       // display active for DVI
+           output [5:0] red,    // red out
+           output [5:0] green,  // green out
+           output [5:0] blue,   // blue out 
 `ifndef IS_SIMULATOR    
            inout tri [5:0] adl, // address (lower 6 bits)
            output tri [5:0] adh,// address (high 6 bits)
@@ -117,9 +117,9 @@ clockgen mojo_clockgen(
 wire[31:0] red_scaled;
 wire[31:0] green_scaled;
 wire[31:0] blue_scaled;
-assign red_scaled = red * 255 / 15;
-assign green_scaled = green * 255 / 15;
-assign blue_scaled = blue * 255 / 15;
+assign red_scaled = red * 255 / 63;
+assign green_scaled = green * 255 / 63;
+assign blue_scaled = blue * 255 / 63;
 dvi_encoder_top dvi_tx0 (
     .pclk        (clk_dot4x),
     .pclkx2      (tx0_pclkx2),

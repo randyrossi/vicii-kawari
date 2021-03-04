@@ -56,9 +56,9 @@ module vicii(
            //output ls245_addr_oe,
            output vic_write_db,
            output vic_write_ab,
-	   output [3:0] red,
-	   output [3:0] green,
-	   output [3:0] blue
+	   output [5:0] red,
+	   output [5:0] green,
+	   output [5:0] blue
        );
 
 wire [9:0] xpos;

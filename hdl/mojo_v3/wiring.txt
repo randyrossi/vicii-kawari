@@ -47,20 +47,29 @@ P95     data_oe  ls245_data_oe  O    SLOW 4 NA
 P112    RESET    cpu_reset      O    SLOW 4 NA
 
 # Video output
-P118    PMOD11   red[0]          O   QUIETIO 2 NA
-P119    PMOD12   red[1]          O   QUIETIO 2 NA
-P121    PMOD10   red[3]          O   QUIETIO 2 NA
-P120    PMOD9    red[2]          O   QUIETIO 2 NA
+# Note the lower 2 bits are not available on the PMOD
+# header since the ICE breaker HDMI adapter is only
+# 4 bits per color.
+P17     HEAD     red[0]          O   QUIETIO 2 NA
+P22     HEAD     red[1]          O   QUIETIO 2 NA
+P118    PMOD11   red[2]          O   QUIETIO 2 NA
+P119    PMOD12   red[3]          O   QUIETIO 2 NA
+P120    PMOD9    red[4]          O   QUIETIO 2 NA
+P121    PMOD10   red[5]          O   QUIETIO 2 NA
 
-P114    PMOD7    green[0]        O   QUIETIO 2 NA
-P115    PMOD8    green[1]        O   QUIETIO 2 NA
-P116    PMOD6    green[2]        O   QUIETIO 2 NA
-P117    PMOD5    green[3]        O   QUIETIO 2 NA
+P12     HEAD     green[0]        O   QUIETIO 2 NA
+P15     HEAD     green[1]        O   QUIETIO 2 NA
+P114    PMOD7    green[2]        O   QUIETIO 2 NA
+P115    PMOD8    green[3]        O   QUIETIO 2 NA
+P116    PMOD6    green[4]        O   QUIETIO 2 NA
+P117    PMOD5    green[5]        O   QUIETIO 2 NA
 
-P126    PMOD7    blue[0]         O   QUIETIO 2 NA
-P131    PMOD10   blue[1]         O   QUIETIO 2 NA
-P138    PMOD12   blue[2]         O   QUIETIO 2 NA  # Remove for DVI
-P140    PMOD11   blue[3]         O   QUIETIO 2 NA  # Remove for DVI
+P8      HEAD     blue[0]         O   QUIETIO 2 NA
+P10     HEAD     blue[1]         O   QUIETIO 2 NA
+P126    PMOD7    blue[2]         O   QUIETIO 2 NA
+P131    PMOD10   blue[3]         O   QUIETIO 2 NA
+P138    PMOD12   blue[4]         O   QUIETIO 2 NA  # Remove for DVI
+P140    PMOD11   blue[5]         O   QUIETIO 2 NA  # Remove for DVI
 
 P134    PMOD9    clk_dot4x_ext   O   SLOW 4 NA
 P127    PMOD8    active          O   SLOW 4 NA
