@@ -4,7 +4,7 @@ module x2_clockgen
  (// Clock in ports
   input         clk_in,
   // Clock out ports
-  output        clk_dot8x,
+  output        clk_out_x2,
   // Status and control signals
   input         reset
  );
@@ -27,7 +27,7 @@ module x2_clockgen
     .CLKFX_DIVIDE          (1),
     .CLKFX_MULTIPLY        (4),
     .CLKIN_DIVIDE_BY_2     ("FALSE"),
-    .CLKIN_PERIOD          (31.717),
+    .CLKIN_PERIOD          (56.387), // pal 4x color clock
     .CLKOUT_PHASE_SHIFT    ("NONE"),
     .CLK_FEEDBACK          ("2X"),
     .DESKEW_ADJUST         ("SYSTEM_SYNCHRONOUS"),
@@ -42,7 +42,7 @@ module x2_clockgen
     .CLK90                 (),
     .CLK180                (),
     .CLK270                (),
-    .CLK2X                 (clk2x),
+    .CLK2X                 (clk_out_x2),
     .CLK2X180              (),
     .CLKFX                 (),
     .CLKFX180              (),
@@ -63,10 +63,11 @@ module x2_clockgen
   //-----------------------------------
   BUFG clkf_buf
    (.O (clkfb),
-    .I (clk2x));
+    .I (clk_out_x2));
 
-  BUFG clkout1_buf
-   (.O   (clk_dot8x),
-    .I   (clk2x));
+  // This is headed for a PLL so no BUFG.
+  //BUFG clkout1_buf
+  // (.O   (clk_in_x2),
+  //  .I   (clk2x));
 
 endmodule

@@ -1,0 +1,30 @@
+// A list of unused pins on the 'hat' prototype
+// board.  Some of these were used later to
+// hack in color clocks and find places for
+// new composite related outputs. Those have
+// been documented here now.
+P5 - now colref
+P6 - now csync
+P26 - now is_composite
+P27
+P35
+P38
+P57
+P66
+P67
+P74
+P75
+P78
+P79
+P80
+P81
+P82
+P84 - now pal color clock in
+P85 - now ntsc color clock in
+P87
+P92
+P98
+P104
+P125
+P132
+P133

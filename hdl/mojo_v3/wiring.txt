@@ -76,6 +76,13 @@ P127    PMOD8    active          O   SLOW 4 NA
 P123    PMOD5    hsync           O   SLOW 4 NA
 P124    PMOD6    vsync           O   SLOW 4 NA
 
+# Only included if have_color_clocks is true
+P84     HEAD     clk_col4x_pal   I   NA NA NA
+P85     HEAD     clk_col4x_ntsc  I   NA NA NA
+P5      HEAD     clk_colref      O   QUIETIO 2 NA
+P6      HEAD     csync           O   QUIETIO 2 NA
+P26     HEAD     is_composite    I   NA NA NA
+
 # Config pins
 P62     IS_15KHZ is_15khz              I  NA  NA NA
 P65     IS_HIDE  is_hide_raster_lines  I  NA  NA NA
@@ -89,3 +96,51 @@ P70     CCLK     cclk                  I  NA  NA NA
 
 # Clock
 P56     CLK      sys_clock       I     NA NA NA
+
+# For DVI testing on the 'hat' prototype, remove all LOCs except for the
+# signals listed here.  Also, prohibit the use of the pins listed in the
+# next section.  Finally LOC the tmds pins as indicated.  The color
+# clocks don't have to be on the same pins in the final PCB, but they
+# do have to remain fixed as we've defined it here or else we'd have to
+# rewire our prototype board.
+
+# These have to stay fixed:
+#KEEP is_15khz
+#KEEP is_hide_raster_lines
+#KEEP chip[0]
+#KEEP chip[1]
+#KEEP tx
+#KEEP rx
+#KEEP cclk
+#KEEP sys_clock
+
+# Also, if have_color_clocks:
+#KEEP clk_col4x_pal
+#KEEP clk_col4x_ntsc
+
+#CONFIG PROHIBIT=P47
+#CONFIG PROHIBIT=P60
+#CONFIG PROHIBIT=P69
+#CONFIG PROHIBIT=P64
+#CONFIG PROHIBIT=P39
+#CONFIG PROHIBIT=P43
+#CONFIG PROHIBIT=P44
+#CONFIG PROHIBIT=P45
+#CONFIG PROHIBIT=P48
+
+#NET "TX0_TMDS[3]" LOC=P144;
+#NET "TX0_TMDS[3]" IOSTANDARD=TMDS_33;
+#NET "TX0_TMDSB[3]" LOC=P143;
+#NET "TX0_TMDSB[3]" IOSTANDARD=TMDS_33;
+#NET "TX0_TMDS[2]" LOC=P142;
+#NET "TX0_TMDS[2]" IOSTANDARD=TMDS_33;
+#NET "TX0_TMDSB[2]" LOC=P141;
+#NET "TX0_TMDSB[2]" IOSTANDARD=TMDS_33;
+#NET "TX0_TMDS[1]" LOC=P140;
+#NET "TX0_TMDS[1]" IOSTANDARD=TMDS_33;
+#NET "TX0_TMDSB[1]" LOC=P139;
+#NET "TX0_TMDSB[1]" IOSTANDARD=TMDS_33;
+#NET "TX0_TMDS[0]" LOC=P138;
+#NET "TX0_TMDS[0]" IOSTANDARD=TMDS_33;
+#NET "TX0_TMDSB[0]" LOC=P137;
+#NET "TX0_TMDSB[0]" IOSTANDARD=TMDS_33;

@@ -7,6 +7,10 @@
 // Uncomment to include TMDS outputs and DVI encoder for video
 //`define WITH_DVI 1
 
+// Uncomment if the board has both PAL and NTSC color clocks
+// available.
+//`define HAVE_COLOR_CLOCKS 1
+
 // DATA_DAV
 //
 // When to read from the data bus for both char/pixel and sprite dma

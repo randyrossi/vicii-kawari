@@ -1,5 +1,13 @@
 `timescale 1ps/1ps
 
+`include "../common.vh"
+
+// A clock gen module that takes a 50 Mhz system clock
+// and generates a ntsc or pal dot4x clock.  The PLL
+// used is dynamically configured at startup to use
+// mult/divide params depending on whether we are
+// configured for NTSC or PAL timing.  This gets
+// us as accurate a clock as possible.
 module dot4x_50_clockgen 
    (
       // Pulse for one cycle to reconfigure the PLL
@@ -53,22 +61,23 @@ module dot4x_50_clockgen
       .O(CLK0OUT),
       .I(clk0_bufgin) 
    );
-  
+
    // Default config is for PAL timing
-	// 50 / 2 * 29 / 23 = 31.521739 = dot 4x
-	// 31.521739 /32 = .985054 (actual) 
-	// 31.527955 /32 = .985248 (desired)
-	//                 .000194 (difference)
+	// FROM SYS_CLOCK
+	//    50 / 2 * 29 / 23 = 31.521739 = dot 4x
+	//    31.521739 /32 = .985054 (actual) 
+	//    31.527955 /32 = .985248 (desired)
+	//                    .000194 (difference)
 	//
 	// Second config is for NTSC timing
-	// 50 * 19 / 29 = 32.758620 = dot4x
-	// 32.758620 /32 = 1.023706 (actual)
-	// 32.727272 /32 = 1.022727 (desired)
-	//                  .000979 (difference)
+	// FROM SYS_CLOCK
+	//    50 * 19 / 29 = 32.758620 = dot4x
+	//    32.758620 /32 = 1.023706 (actual)
+	//    32.727272 /32 = 1.022727 (desired)
+	//                     .000979 (difference)
    PLL_ADV #(
 	  .SIM_DEVICE("SPARTAN6"),
       .DIVCLK_DIVIDE(2), // 1 to 52
-      
       .BANDWIDTH("LOW"), // "HIGH", "LOW" or "OPTIMIZED"
       
       // CLKFBOUT stuff
@@ -77,8 +86,7 @@ module dot4x_50_clockgen
       
       // Set the clock period (ns) of input clocks and reference jitter
       .REF_JITTER(0.100),
-      .CLKIN1_PERIOD(20.000),
-      //.CLKIN2_PERIOD(20.000), 
+      .CLKIN1_PERIOD(20),  // period for 50mhz
 
       // CLKOUT parameters:
       // DIVIDE: (1 to 128)
@@ -132,7 +140,7 @@ module dot4x_50_clockgen
       .CLKFBIN(clkfb_bufgout),
       
       // Clock inputs
-      .CLKIN1(CLKIN), 
+      .CLKIN1(CLKIN),
       .CLKIN2(),
       .CLKINSEL(1'b1),
       
@@ -188,6 +196,10 @@ module dot4x_50_clockgen
 endmodule
 
 `ifdef WITH_DVI
+// A clock gen module for our DVI module.  Accepts a
+// pixel clock as input and generates the necessary
+// 2x, 10x and serdes strobe signals for the dvi
+// encoder.
 module dvi_clockgen (
       input    clkin,
 		output   tx0_pclkx10,
@@ -230,3 +242,116 @@ module dvi_clockgen (
          .IOCLK(tx0_pclkx10), .SERDESSTROBE(tx0_serdesstrobe), .LOCK(tx0_bufpll_lock));
 
 endmodule`endif
+
+// A clock gen module that takes an 8x color clock and
+// produces 4x dot clocks.  The input 8x color clock will
+// either be NTSC or PAL timing.  The PLL is configured
+// to output both clocks and the correct one should be
+// selected based on the chip model.
+module dot4x_cc_clockgen 
+   (
+      input    RST,
+      input    CLKIN,
+      output   SRDY,
+      output   CLK0OUT,
+      output   CLK1OUT,
+		output   LOCKED
+   );
+
+   // These signals are used for the BUFG's necessary for the design.
+   wire           clkin_bufgout;
+   
+   wire           clkfb_bufgout;
+   wire           clkfb_bufgin;
+   
+   wire           clk0_bufgin;
+
+   BUFG BUFG_CLKIN (
+     .O(clkin_bufgout),
+     .I(CLKIN) 
+   );
+  
+   BUFG BUFG_FB (
+      .O(clkfb_bufgout),
+      .I(clkfb_bufgin) 
+   );
+   
+   BUFG BUFG_CLK0 (
+      .O(CLK0OUT),
+      .I(clk0_bufgin) 
+   );
+
+   BUFG BUFG_CLK1 (
+      .O(CLK1OUT),
+      .I(clk1_bufgin) 
+   );
+
+   // Default config is for PAL timing
+	//
+	// FROM COL_8X
+	//    35.468950 / 18 * 16 = 31.527955
+	//
+	// Second config is for NTSC timing
+	// FROM COL_8X
+	//    28.636362 / 14 * 16 = 32.72727
+   PLL_ADV #(
+	  .SIM_DEVICE("SPARTAN6"),
+      .DIVCLK_DIVIDE(1), // 1 to 52
+      .BANDWIDTH("LOW"), // "HIGH", "LOW" or "OPTIMIZED"
+      
+      // CLKFBOUT stuff
+      .CLKFBOUT_MULT(16), 
+      .CLKFBOUT_PHASE(0.0),
+      
+      // Set the clock period (ns) of input clocks and reference jitter
+      .REF_JITTER(0.100),
+      .CLKIN1_PERIOD(28.190), // period for 35.468950Mhz (pal color x 8)
+
+      .CLKOUT0_DIVIDE(14),
+      .CLKOUT0_DUTY_CYCLE(0.5),
+      .CLKOUT0_PHASE(0.0), 
+
+      .CLKOUT1_DIVIDE(18),
+      .CLKOUT1_DUTY_CYCLE(0.5),
+      .CLKOUT1_PHASE(0.0), 
+      
+      // Set the compensation
+      .COMPENSATION("DCM2PLL"),
+      
+      // PMCD stuff (not used)
+      .EN_REL("FALSE"),
+      .PLL_PMCD_MODE("FALSE"),
+      .RST_DEASSERT_CLK("CLKIN1")
+   ) PLL_ADV_inst (
+      .CLKFBDCM(),
+      .CLKFBOUT(clkfb_bufgin),
+      
+      // CLK outputs
+      .CLKOUT0(clk0_bufgin),
+      .CLKOUT1(clk1_bufgin),
+      .CLKOUT2(clk2_unused),
+      .CLKOUT3(clk3_unused),
+      .CLKOUT4(clk4_unused),
+      .CLKOUT5(clk5_unused),
+      
+      // CLKOUTS to DCM
+      .CLKOUTDCM0(),
+      .CLKOUTDCM1(),
+      .CLKOUTDCM2(), 
+      .CLKOUTDCM3(),
+      .CLKOUTDCM4(),
+      .CLKOUTDCM5(), 
+            
+      .LOCKED(LOCKED),
+      .CLKFBIN(clkfb_bufgout),
+      
+      // Clock inputs
+      .CLKIN1(CLKIN),
+      .CLKIN2(),
+      .CLKINSEL(1'b1),
+      
+      .REL(1'b0),
+      .RST(RST)
+   );
+   
+endmodule

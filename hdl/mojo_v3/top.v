@@ -18,6 +18,13 @@
 // It's meant to verify we can get an image over DVI only.
 module top(
            input sys_clock,
+`ifdef HAVE_COLOR_CLOCKS
+			  input clk_col4x_pal,
+			  input clk_col4x_ntsc,
+			  output clk_colref,
+			  output csync,
+           input is_composite,
+`endif
            input [1:0] chip,    // chip config from MCU
            input is_15khz,      // freq config pin from MCU
            input is_hide_raster_lines, // config pin from MCU
@@ -66,41 +73,63 @@ module top(
 `endif
        );
 
-`ifdef COMPOSITE_SUPPORT
-// Should become an output if we ever support composite
-wire csync;
-// Should become an input if we ever support composite
-wire is_composite;
-`endif
-
 // Never writing to DRAM (yet)
 assign rwo = 1'b0;
 
 wire rst;
 wire clk_dot4x;
 
-// TODO : If we ever support composite, we need clk_col4x to
-// be an input on a clock capable pin.  We then will divide it
-// by 4 to get the color carrier.  Also, this would be the input
-// to our clock gen that would produce clk_dot4x.  For now, we
-// are using the dev board's 50Mhz clock as the source and we
-// don't need a color clock for HDMI.
-// Divides the color4x clock by 4 to get color reference clock
-//clk_div4 clk_colorgen (
-//             .clk_in(clk_col4x),     // from 4x color clock
-//             .reset(rst),
-//             .clk_out(clk_colref));  // create color ref clock
+`ifdef HAVE_COLOR_CLOCKS
+// When we have color clocks available, we select which
+// one we want to enter the 2x clock gen (below) based
+// on the chip model by using a BUFGMUX. 1=PAL, 0 = NTSC
+wire clk_col4x;
+BUFGMUX colmux(
+   .I0(clk_col4x_ntsc),
+   .I1(clk_col4x_pal),
+	.O(clk_col4x),
+   .S(chip[0]));	
 
-`ifdef WITH_DVI
-  wire   tx0_pclkx10;
-  wire   tx0_pclkx2;
-  wire   tx0_serdesstrobe;
+// Since we have color clocks, we will output a color
+// reference clock by dividing the incoming 4x color
+// by 4.  This can be used by an external composite
+// encoder chip to generate luma/chroms and/or composite
+// signals.  Unless we have color clocks available, composite
+// is not possible.
+clk_div4 clk_colorgen (
+             .clk_in(clk_col4x),     // from 4x color clock
+             .reset(rst),
+             .clk_out(clk_colref));  // create color ref clock
+
+// From the 4x color clock, generate an 8x color clock
+// This is necessary to meet the minimum frequency of
+// the PLL_ADV where we further multiple/divide it into
+// a 4x dot clock.
+wire clk_col8x;
+x2_clockgen x2_clockgen(
+   .clk_in(clk_col4x),
+   .clk_out_x2(clk_col8x),
+   .reset(1'b0));
 `endif
 
+`ifdef WITH_DVI
+ wire tx0_pclkx10;
+ wire tx0_pclkx2;
+ wire tx0_serdesstrobe;
+`endif
 
-// Clock generators and chip selection
+// dot4x clock generator
+// If we have color clocks, pass in the col8x clock
+// which will produce an accurate dot4x clock.
+// Otherwise, we are using the system 50mhz clock
+// and we use a dynamically configured PLL to get us
+// as close as possible.
 clockgen mojo_clockgen(
-             .sys_clock(sys_clock),
+`ifdef HAVE_COLOR_CLOCKS
+             .src_clock(clk_col8x),  // with color clocks, we generate dot4x from clk_col8x
+`else
+             .src_clock(sys_clock),  // without color clocks, we generate dot4x from 50mhz
+`endif
              .clk_dot4x(clk_dot4x),
              .rst(rst),
              .chip(chip)
@@ -182,9 +211,9 @@ vicii vic_inst(
           .active(active),
           .hsync(hsync),
           .vsync(vsync),
-`ifdef COMPOSITE_SUPPORT
-          .csync(csync),
+`ifdef HAVE_COLOR_CLOCKS
           .is_composite(is_composite),
+          .csync(csync),
 `endif
           .adi(adl[5:0]),
           .ado(ado),

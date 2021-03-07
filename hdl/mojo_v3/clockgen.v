@@ -8,7 +8,7 @@
 //     2) uses the lower bit of chip to select ntsc/pal clocks
 //     3) generates the reset signal and holds for approx 150ms at startup
 module clockgen(
-           input sys_clock,
+           input src_clock,
            input [1:0] chip,
            output clk_dot4x,
            output reg rst
@@ -29,14 +29,37 @@ always @(posedge clk_dot4x)
     if (internal_rst)
         rstcntr <= rstcntr + 4'd1;
 
-// Use sys_clock to single pulse the sstep register when we detect we
+`ifdef HAVE_COLOR_CLOCKS
+// When we have color clocks, we use the dot4x_cc clock gen
+// module to generate dot4x clocks for ntsc and pal. Only
+// one of these clocks will be correct depending on what
+// src_clock we were given.
+dot4x_cc_clockgen dot4x_cc_clockgen(
+                          .CLKIN(src_clock),    // 8x color clock
+                          .RST(1'b0),
+                          .CLK0OUT(clk_dot4x_ntsc),
+                          .CLK1OUT(clk_dot4x_pal),
+                          .LOCKED(locked)
+                      );
+
+// Now we must pick the correct clock based on the chip model.
+BUFGMUX colmux2(
+   .I0(clk_dot4x_ntsc),
+   .I1(clk_dot4x_pal),
+	.O(clk_dot4x),
+   .S(chip[0]));							 
+							 
+`else
+// We don't have color clocks.  In this case, src_clock will be the
+// on board 50mhz clock.
+// Use src_clock to single pulse the sstep register when we detect we
 // are running NTSC.  This reconfigures the PLL_ADV to use different
 // mult/div necessary to get as accurate a clock as possible with our
 // 50mhz input clock.  If the CPU clock is too far off, some game or demo
 // custom loaders will not work.
 reg [1:0] set_clock_cntr = 0;
 reg sstep;
-always @(posedge sys_clock)
+always @(posedge src_clock)
 begin
     if (chip[0] == 1'b0) begin
        case (set_clock_cntr)
@@ -59,12 +82,13 @@ end
 // dot4x_50_clockgen.v for frequencies.
 dot4x_50_clockgen dot4x_50_clockgen(
                           .SSTEP(sstep),
-                          .CLKIN(sys_clock),    // board 50 Mhz clock
+                          .CLKIN(src_clock),    // 50 Mhz clock
 								  .STATE(chip[0]),
                           .RST(1'b0),
                           .CLK0OUT(clk_dot4x),
                           .LOCKED(locked)
                       );
+`endif
 
 `ifdef WITH_DVI
 // This is the clock gen for our DVI encoder.  It takes in the pixel clock

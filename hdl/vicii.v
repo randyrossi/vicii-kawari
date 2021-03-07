@@ -34,8 +34,8 @@ module vicii(
 	   output active,
 	   output hsync,
 	   output vsync,
-`ifdef COMPOSITE_SUPPORT
-           input is_composite,
+`ifdef HAVE_COLOR_CLOCKS
+      input is_composite,
 	   output csync,
 `endif
            output [11:0] ado,
@@ -786,7 +786,7 @@ wire[3:0] pixel_color4_vga;
 wire half_bright;
 wire show_raster_lines;
 
-`ifdef COMPOSITE_SUPPORT
+`ifdef HAVE_COLOR_CLOCKS
 wire composite_active;
 `endif
 
@@ -851,15 +851,15 @@ registers vic_registers(
               .emmc(emmc),
               .embc(embc),
               .erst(erst),
-	      // This is not active for a pin, it is used to set RGB to 0
+	      // 'active' is not active for a pin, it is used to set RGB to 0
 	      // during blanking intervals and we need it to line up with
 	      // the active period for whatever video standard we are
 	      // producing
-`ifdef COMPOSITE_SUPPORT
+`ifdef HAVE_COLOR_CLOCKS
               .pixel_color4(is_composite ? pixel_color3 : pixel_color4_vga),
               .active(is_composite ? composite_active : active),
               .half_bright(
-	               is_15khz | is_composite) ? 1'b0 :
+	               (is_15khz | is_composite) ? 1'b0 :
                      (show_raster_lines & half_bright)),
 `else
               .half_bright(is_15khz ? 1'b0 :
@@ -994,7 +994,7 @@ hires_pixel_sequencer vic_hires_pixel_sequencer(
 // Composite output - csync/composite_active
 // Can't do 80 column mode.
 // -------------------------------------------------------------
-`ifdef COMPOSITE_SUPPORT
+`ifdef HAVE_COLOR_CLOCKS
 comp_sync vic_comp_sync(
               .rst(rst),
               .clk_dot4x(clk_dot4x),
