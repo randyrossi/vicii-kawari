@@ -260,7 +260,7 @@ begin
 `endif
        if (main_border_stage0)
           pixel_color1 = ec_d2;
-	    else begin
+       else begin
         case (pixel_value[4:2])
             `MODE_STANDARD_CHAR:
                 pixel_color1 = pixel_value[1] ? char_shifting[11:8]:b0c_d2;

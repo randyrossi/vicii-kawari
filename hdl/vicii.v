@@ -23,21 +23,28 @@
 // clk_phi        1.02272 Mhz NTSC, .985248 Mhz PAL
 
 module vicii(
-           input [1:0] chip,               // config from MC
+      input [1:0] chip,               // config from MC
 	   input is_15khz,                 // config from mC
 	   input is_hide_raster_lines,     // config from mC
-           input rst,
-           input clk_dot4x,
+      input rst,
+      input clk_dot4x,
 	   output[7:0] tx_data_4x,         // from regs module
 	   output tx_new_data_4x,          // from regs module
-           output clk_phi,
+      output clk_phi,
 	   output active,
 	   output hsync,
 	   output vsync,
 `ifdef HAVE_COLOR_CLOCKS
-      input is_composite,
-	   output csync,
+      input use_scan_doubler,
+      input clk_col16x,
+`ifdef HAVE_COMPOSITE_ENCODER
+      output csync,
 `endif
+`ifdef GEN_LUMA_CHROMA
+      output [5:0] luma,
+      output [5:0] chroma,
+`endif
+`endif  // HAVE_COLOR_CLOCKS
            output [11:0] ado,
            input [5:0] adi,
            output [7:0] dbo,
@@ -787,7 +794,7 @@ wire half_bright;
 wire show_raster_lines;
 
 `ifdef HAVE_COLOR_CLOCKS
-wire composite_active;
+wire native_active;
 `endif
 
 registers vic_registers(
@@ -851,15 +858,15 @@ registers vic_registers(
               .emmc(emmc),
               .embc(embc),
               .erst(erst),
-	      // 'active' is not active for a pin, it is used to set RGB to 0
-	      // during blanking intervals and we need it to line up with
-	      // the active period for whatever video standard we are
-	      // producing
+              // 'active' is not active for a pin, it is used to set RGB to 0
+              // during blanking intervals and we need it to line up with
+              // the active period for whatever video standard we are
+              // producing
 `ifdef HAVE_COLOR_CLOCKS
-              .pixel_color4(is_composite ? pixel_color3 : pixel_color4_vga),
-              .active(is_composite ? composite_active : active),
+              .pixel_color4(use_scan_doubler ? pixel_color4_vga : pixel_color3),
+              .active(use_scan_doubler ? active : native_active),
               .half_bright(
-	               (is_15khz | is_composite) ? 1'b0 :
+	               (is_15khz | !use_scan_doubler) ? 1'b0 :
                      (show_raster_lines & half_bright)),
 `else
               .half_bright(is_15khz ? 1'b0 :
@@ -867,22 +874,23 @@ registers vic_registers(
               .pixel_color4(pixel_color4_vga),
 	           .active(active),
 `endif
-	      .red(red),
-	      .green(green),
-	      .blue(blue),
-	      .chip(chip),
-	      .is_15khz(is_15khz),
+	      .red(red), // out
+	      .green(green), // out
+	      .blue(blue), // out
+	      .chip(chip), // config in
+	      .is_15khz(is_15khz), // config in
 	      .is_hide_raster_lines(is_hide_raster_lines), // config in
 	      .last_raster_lines(show_raster_lines), // current setting out
+
 	      .tx_data_4x(tx_data_4x),
 	      .tx_new_data_4x(tx_new_data_4x),
 
 	      // --- BEGIN EXTENSIONS --
-              .video_ram_addr_b(video_ram_addr_b),
+         .video_ram_addr_b(video_ram_addr_b),
 	      .video_ram_data_out_b(video_ram_data_out_b),
 	      .hires_char_pixel_base(hires_char_pixel_base),
-              .hires_matrix_base(hires_matrix_base),
-              .hires_color_base(hires_color_base),
+         .hires_matrix_base(hires_matrix_base),
+         .hires_color_base(hires_color_base),
 	      .hires_enabled(hires_enabled),
 	      .hires_mode(hires_mode),
 	      .hires_cursor_hi(hires_cursor_hi),
@@ -913,10 +921,18 @@ wire stage1;
 wire hires_stage1;
 always @(posedge clk_dot4x)
 begin
+`ifdef TEST_PATTERN
+        if (raster_line >=51 && raster_line <= 251 &&
+		xpos >= 31 && xpos <= 351)
+            pixel_color3 <= raster_x[7:4] + 4'd8;
+	else
+            pixel_color3 <= pixel_color1;
+`else
     if (hires_enabled && hires_stage1)
         pixel_color3 <= hires_pixel_color1;
     else if (stage1)
         pixel_color3 <= pixel_color1;
+`endif
 end
 
 // Pixel sequencer - outputs stage 3 pixel_color3
@@ -991,20 +1007,28 @@ hires_pixel_sequencer vic_hires_pixel_sequencer(
 // --- END EXTENSIONS ---
 
 // -------------------------------------------------------------
-// Composite output - csync/composite_active
+// Composite output - csync/native_active
 // Can't do 80 column mode.
 // -------------------------------------------------------------
 `ifdef HAVE_COLOR_CLOCKS
 comp_sync vic_comp_sync(
               .rst(rst),
               .clk_dot4x(clk_dot4x),
+              .clk_col16x(clk_col16x),
               .chip(chip),
               .raster_x(xpos),
               .raster_y(raster_line),
+`ifdef HAVE_COMPOSITE_ENCODER
               .csync(csync),
-              .composite_active(composite_active)
-);
 `endif
+`ifdef GEN_LUMA_CHROMA
+              .pixel_color(pixel_color3), // native res pixel color index
+              .luma(luma),
+              .chroma(chroma),
+`endif
+              .native_active(native_active)
+);
+`endif  // HAVE_COLOR_CLOCKS
 
 // -------------------------------------------------------------
 // VGA/HDMI output - hsync/vsync/active/half_bright/pixel_color4

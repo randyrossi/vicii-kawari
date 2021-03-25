@@ -79,9 +79,25 @@ P124    PMOD6    vsync           O   SLOW 4 NA
 # Only included if have_color_clocks is true
 P84     HEAD     clk_col4x_pal   I   NA NA NA
 P85     HEAD     clk_col4x_ntsc  I   NA NA NA
+P26     HEAD     use_scan_doubler I   NA NA NA
+
+# Only included if have_composite_encoder is true
 P5      HEAD     clk_colref      O   QUIETIO 2 NA
 P6      HEAD     csync           O   QUIETIO 2 NA
-P26     HEAD     is_composite    I   NA NA NA
+
+# Only included if gen_luma_chroma is true
+P92     LUMA     luma[5]         O   QUIETIO 2 NA
+P98     LUMA     luma[4]         O   QUIETIO 2 NA
+P104    LUMA     luma[3]         O   QUIETIO 2 NA
+P132    LUMA     luma[2]         O   QUIETIO 2 NA
+P133    LUMA     luma[1]         O   QUIETIO 2 NA
+P137    LUMA     luma[0]         O   QUIETIO 2 NA
+P87     CHROMA   chroma[5]       O   QUIETIO 2 NA
+P82     CHROMA   chroma[4]       O   QUIETIO 2 NA
+P81     CHROMA   chroma[3]       O   QUIETIO 2 NA
+P80     CHROMA   chroma[2]       O   QUIETIO 2 NA
+P79     CHROMA   chroma[1]       O   QUIETIO 2 NA
+P78     CHROMA   chroma[0]       O   QUIETIO 2 NA
 
 # Config pins
 P62     IS_15KHZ is_15khz              I  NA  NA NA

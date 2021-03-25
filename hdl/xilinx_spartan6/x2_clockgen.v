@@ -5,6 +5,7 @@ module x2_clockgen
   input         clk_in,
   // Clock out ports
   output        clk_out_x2,
+  output        clk_out_x4,
   // Status and control signals
   input         reset
  );
@@ -20,7 +21,7 @@ module x2_clockgen
   wire        psdone_unused;
   wire [7:0]  status_int;
   wire clkfb;
-  wire clk2x;
+  wire clkfx;
 
   DCM_SP
   #(.CLKDV_DIVIDE          (2.000),
@@ -42,9 +43,9 @@ module x2_clockgen
     .CLK90                 (),
     .CLK180                (),
     .CLK270                (),
-    .CLK2X                 (clk_out_x2),
+    .CLK2X                 (clk_out_x2),  // CLKIN x 2
     .CLK2X180              (),
-    .CLKFX                 (),
+    .CLKFX                 (clkfx), // CLKIN x 4
     .CLKFX180              (),
     .CLKDV                 (),
     // Ports for dynamic phase shift
@@ -65,9 +66,13 @@ module x2_clockgen
    (.O (clkfb),
     .I (clk_out_x2));
 
+  BUFG clkf_buf2
+   (.O (clk_out_x4),
+    .I (clkfx));
+
   // This is headed for a PLL so no BUFG.
   //BUFG clkout1_buf
   // (.O   (clk_in_x2),
-  //  .I   (clk2x));
+  //  .I   (clk_out_x2));
 
 endmodule

@@ -3,23 +3,54 @@ import java.util.*;
 
 public class GenConstraints
 {
-     public static void main(String args[]) throws Exception {
-        if (args.length < 2) {
-            System.out.println("Usage:");
-            System.out.println("java GenConstraints wiring.txt have_color_clocks > top.ucf");
-            System.exit(0);
-        }
-	// The prototype 'hat' for the mojov3 was originally designed with no
-	// ntsc/pal color clocks going into the board.  In this case, we rely soley
-	// on the on-board 50mhz clock to generate our pixel clocks for both ntsc
-	// and pal.  This caused some routing and placement issues and hopefully
-	// won't be necessary on the final pcb since we have figured out how to
-	// properly generate dot4x clocks from color clocks.  For 'plain' unmodified
-	// boards to still work, pass in 'false' or 'no' for this cmd line flag and
-	// the 'legacy' top.uc will be generated. (i.e. the one that Adrian Black
-	// has.)
-        boolean have_color_clocks = args[1].equals("yes") || args[1].equals("true");
-	HashMap<String,Integer> map = new HashMap<String,Integer>();
+  final static int HAVE_COLOR_CLOCKS = 0;
+  final static int WITH_DVI = 1;
+  final static int GEN_LUMA_CHROMA = 2;
+  final static int HAVE_COMPOSITE_ENCODER = 3;
+
+  public static boolean[] read_config(String filename) throws Exception {
+    File f = new File(filename);
+    FileInputStream fis = new FileInputStream(f);
+    InputStreamReader ir = new InputStreamReader(fis);
+    BufferedReader br = new BufferedReader(ir);
+
+    boolean[] flags = new boolean[4];
+    while (true) {
+      String line = br.readLine();
+      if (line == null) break;
+      if (line.startsWith("`define HAVE_COLOR_CLOCKS"))
+        flags[HAVE_COLOR_CLOCKS] = true;
+      else if (line.startsWith("`define WITH_DVI"))
+        flags[WITH_DVI] = true;
+      else if (line.startsWith("`define GEN_LUMA_CHROMA"))
+        flags[GEN_LUMA_CHROMA] = true;
+      else if (line.startsWith("`define HAVE_COMPOSITE_ENCODER"))
+        flags[HAVE_COMPOSITE_ENCODER] = true;
+    }
+    return flags;
+  }
+
+  public static void main(String args[]) throws Exception {
+    if (args.length < 2) {
+      System.out.println("Usage:");
+      System.out.println("java GenConstraints wiring.txt common.h > top.ucf");
+      System.exit(0);
+    }
+
+    boolean flags[] = read_config(args[1]);
+
+    // The prototype 'hat' for the mojov3 was originally designed with no
+    // ntsc/pal color clocks going into the board.  In this case, we rely soley
+    // on the on-board 50mhz clock to generate our pixel clocks for both ntsc
+    // and pal.  This caused some routing and placement issues and hopefully
+    // won't be necessary on the final pcb since we have figured out how to
+    // properly generate dot4x clocks from color clocks.  For 'plain' unmodified
+    // boards to still work, pass in 'false' or 'no' for this cmd line flag and
+    // the 'legacy' top.uc will be generated. (i.e. the one that Adrian Black
+    // has.)
+
+    HashMap<String,Integer> map = new HashMap<String,Integer>();
+
         File f = new File(args[0]);
         FileInputStream fis = new FileInputStream(f);
         InputStreamReader ir = new InputStreamReader(fis);
@@ -38,12 +69,22 @@ public class GenConstraints
 		String strength = st.nextToken();
 		String iostand = st.nextToken();
 
-		if (!have_color_clocks) {
+		if (!flags[HAVE_COLOR_CLOCKS]) {
                    if (t6.equals("clk_col4x_pal")) continue;
                    if (t6.equals("clk_col4x_ntsc")) continue;
                    if (t6.equals("clk_colref")) continue;
                    if (t6.equals("csync")) continue;
-                   if (t6.equals("is_composite")) continue;
+                   if (t6.equals("use_scan_doubler")) continue;
+                   if (t6.startsWith("luma")) continue;
+                   if (t6.startsWith("chroma")) continue;
+                }
+		if (!flags[GEN_LUMA_CHROMA]) {
+                   if (t6.startsWith("luma")) continue;
+                   if (t6.startsWith("chroma")) continue;
+                }
+		if (!flags[HAVE_COMPOSITE_ENCODER]) {
+                   if (t6.equals("clk_colref")) continue;
+                   if (t6.equals("csync")) continue;
                 }
 
 		System.out.println("NET \""+t6+"\" LOC="+t4+";");
@@ -63,7 +104,7 @@ public class GenConstraints
         System.out.println("NET \"sys_clock\" TNM_NET = clk;");
         System.out.println("TIMESPEC TS_sys_clock = PERIOD \"clk\" 50 MHz HIGH 50%;");
 
-	if (have_color_clocks) {
+	if (flags[HAVE_COLOR_CLOCKS]) {
            System.out.println("NET \"clk_col4x_pal\" TNM_NET = color_clk_pal;");
            System.out.println("TIMESPEC TS_color_clk_pal = PERIOD \"color_clk_pal\" 17.734475 MHz HIGH 50%;");
            System.out.println("NET \"clk_col4x_ntsc\" TNM_NET = color_clk_ntsc;");
@@ -74,7 +115,7 @@ public class GenConstraints
         // some routing/placement issues. This seems to get things working but hopefully
         // won't be required for the final pcb since we will have color clocks. Keeping
         // this here in case color clocks don't work out for some reason.
-	if (!have_color_clocks) {
+	if (!flags[HAVE_COLOR_CLOCKS]) {
 	  // Necessary to get around routing issue.
           System.out.println("NET \"sys_clock\" CLOCK_DEDICATED_ROUTE = FALSE;");
 

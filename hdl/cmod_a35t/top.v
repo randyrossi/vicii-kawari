@@ -31,7 +31,10 @@
 // be derived from that clock.
 
 module top(
-           input sys_clock,
+           input sys_clock,     // driven by sim
+           input clk_col4x,     // driven by sim
+           input clk_col16x,    // driven by sim
+
 	   input [1:0] chip,    // chip config pin from MCU
 	   input is_15khz,      // freq config pin from MCU
 	   input is_hide_raster_lines, // config pin from MCU
@@ -39,12 +42,36 @@ module top(
 	   //input rx,
 	   input cclk,
            output cpu_reset,    // reset for 6510 CPU
-           output clk_colref,   // output color ref clock for CXA1545P
            output clk_phi,      // output phi clock for CPU
            output clk_dot4x,    // pixel clock for external HDMI encoder
            output active,       // display active for HDMI
            output hsync,        // hsync signal for VGA/HDMI
            output vsync,        // vsync signal for VGA/HDMI
+
+`ifdef HAVE_COLOR_CLOCKS
+           // If use_scan_doubler is false, RGB values will be driven
+           // by the pixel sequencer directly at native resolution.
+           // Otherwise, RGB values go through the scan doubler and VGA
+           // output is assumed. (NOTE: The vga scan doubler may
+           // not be configured to double anything. It depends on how
+           // it is configured). When HAVE_COLOR_CLOCKS is not set
+           // only VGA or DVI output is possible.
+           input use_scan_doubler,
+
+           // If we have a composite encoder, we output two
+           // signals to drive it.
+`ifdef HAVE_COMPOSITE_ENCODER
+           output clk_colref,    // color ref for encoder
+           output csync,         // csync for encoder
+`endif
+           // If we are generating luma/chroma, add outputs
+`ifdef GEN_LUMA_CHROMA
+           output [5:0] luma,    // luma out
+           output [5:0] chroma,  // chroma out
+`endif
+
+`endif  // HAVE_COLOR_CLOCKS
+
            output [5:0] red,    // red out
            output [5:0] green,  // green out
            output [5:0] blue,   // blue out
@@ -75,43 +102,18 @@ module top(
            //output ls245_addr_oe    // OE for addr bus transceiver
        );
 
-`ifdef COMPOSITE_SUPPORT
-// Should become an output if we ever support composite.
-wire csync;
-// Should become an input if we ever support composite.
-wire is_composite
-`endif
-
 wire rst;
-wire clk_col4x;
 
 wire ls245_data_oe; // not enough pins on cmod_a7, just ground it
 wire ls245_addr_dir;  // not enough pins on cmod_a7, use aec
 //wire ls245_addr_oe;  // not enough pins on cmod_a7, just ground it
 
-// TODO : If we ever support composite, we need clk_col4x to
-// be an input on a clock capable pin.  We then will divide it
-// by 4 to get the color carrier.  Also, this would be the input
-// to our clock gen that would produce clk_dot4x.  For now, we
-// are using the dev board's 50Mhz clock as the source and we
-// don't need a color clock for HDMI.
+`ifdef HAVE_COMPOSITE_ENCODER
 // Divides the color4x clock by 4 to get color reference clock
-//clk_div4 clk_colorgen (
-//             .clk_in(clk_col4x),     // from 4x color clock
-//             .reset(rst),
-//             .clk_out(clk_colref));  // create color ref clock
-
-`ifndef IS_SIMULATOR
-// Clock generators
-// TODO: CMOD code has not been updated to follow mojo. Just
-// remove this whole dir and switch simulator build to the mojo
-// top.
-clockgen cmod_clockgen(
-             .sys_clock(sys_clock),
-             .clk_dot4x(clk_dot4x),
-             .clk_col4x(clk_col4x),
-             .rst(rst),
-             .chip(chip));
+clk_div4 clk_colorgen (
+             .clk_in(clk_col4x),     // from 4x color clock
+             .reset(rst),
+             .clk_out(clk_colref));  // create color ref clock
 `endif
 
 // This is a reset line for the CPU which would have to be
@@ -149,10 +151,17 @@ vicii vic_inst(
 	  .active(active),
 	  .hsync(hsync),
 	  .vsync(vsync),
-`ifdef COMPOSITE_SUPPORT
+`ifdef HAVE_COLOR_CLOCKS
+	  .use_scan_doubler(use_scan_doubler),
+          .clk_col16x(clk_col16x),
+`ifdef HAVE_COMPOSITE_ENCODER
 	  .csync(csync),
-	  .is_composite(is_composite),
 `endif
+`ifdef GEN_LUMA_CHROMA
+          .luma(luma),
+          .chroma(chroma),
+`endif
+`endif  // HAVE_COLOR_CLOCKS
           .adi(adl[5:0]),
           .ado(ado),
           .dbi({dbh,dbl}),

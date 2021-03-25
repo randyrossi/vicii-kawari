@@ -28,6 +28,8 @@ static vluint64_t half4XDotPS;
 static vluint64_t startTicks;
 static vluint64_t endTicks;
 static vluint64_t nextClk;
+static double col4xClk;
+static double col16xClk;
 static int nextClkCnt;
 static int screenWidth;
 static int screenHeight;
@@ -240,7 +242,11 @@ static vluint64_t nextTick(Vtop* top) {
    vluint64_t diff1 = nextClk - ticks;
 
    nextClk += half4XDotPS;
+
    top->V_DOT4X = ~top->V_DOT4X;
+   top->V_COL4X = ~top->V_COL4X;
+   top->V_COL16X = ~top->V_COL16X;
+
    top->sys_clock = ~top->sys_clock;
    nextClkCnt = (nextClkCnt + 1) % 32;
    return ticks + diff1;

@@ -4,12 +4,45 @@
 `define VERSION_MAJOR 4'd0
 `define VERSION_MINOR 4'd2
 
+// This shows all 16 colors as bars starting with black on the
+// left. Useful for testing video output from the device without
+// it being plugged into a C64.
+//`define TEST_PATTERN 1
+
+// Notes on config permutations:
+//
+// The prototype 'hat' for the mojov3 was originally designed with no
+// ntsc/pal color clocks going into the board.  In this case, we rely soley
+// on the on-board 50mhz clock to generate our pixel clocks for both ntsc
+// and pal.  This caused some routing and placement issues and hopefully
+// won't be necessary on the final pcb since we have figured out how to
+// properly generate dot4x clocks from color clocks.  For 'plain' unmodified
+// boards to still work, leave HAVE_COLOR_CLOCKS undefined (i.e. the one 
+// Adrian Black has.)  Composite is not possible without color clocks but
+// DVI and/or VGA can still work.
+//
+// If HAVE_COLOR_CLOCKS is defined, then either GEN_LUMA_CHROMA or
+// HAVE_COMPOSITE_ENCODER (or both) can be defined. Since the board can now
+// produce luma/chroma itself, a composite encoder is not necessary but the
+// code is kept functional (for now). DVI/VGA will still work as long as
+// the free pins has not been exhausted.
+
 // Uncomment to include TMDS outputs and DVI encoder for video
 //`define WITH_DVI 1
 
 // Uncomment if the board has both PAL and NTSC color clocks
 // available.
-//`define HAVE_COLOR_CLOCKS 1
+`define HAVE_COLOR_CLOCKS 1
+
+// Uncomment if we have an external composite encoder wired
+// up. This will output csync and color ref clock signals that
+// can feed into an RGB to composite encoder IC. This requires
+// HAVE_COLOR_CLOCKS to be defined.
+//`define HAVE_COMPOSITE_ENCODER 1
+
+// Uncomment if we shuold generate luma and chroma signals.
+// This requires HAVE_COLOR_CLOCKS to be defined.
+`define GEN_LUMA_CHROMA 1
 
 // DATA_DAV
 //

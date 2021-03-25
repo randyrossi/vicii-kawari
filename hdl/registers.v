@@ -219,6 +219,11 @@ end
 //    register section below.
 always @(posedge clk_dot4x)
     if (rst) begin
+`ifdef TEST_PATTERN
+        ec <= `LIGHT_BLUE;
+        b0c <= `BLUE;
+        den <= `TRUE;
+`endif
         //ec <= `BLACK;
         //b0c <= `BLACK;
         //den <= `FALSE;
@@ -605,7 +610,11 @@ always @(posedge clk_dot4x)
                     /* 0x11 */ `REG_SCREEN_CONTROL_1: begin
                         yscroll <= dbi[2:0];
                         rsel <= dbi[3];
+`ifdef TEST_PATTERN
+                        den <= `TRUE;
+`else
                         den <= dbi[4];
+`endif
                         bmm <= dbi[5];
                         ecm <= dbi[6];
                         raster_irq_compare[8] <= dbi[7];
@@ -645,10 +654,12 @@ always @(posedge clk_dot4x)
                         sprite_mmc <= dbi[7:0];
                     /* 0x1d */ `REG_SPRITE_EXPAND_X:
                         sprite_xe <= dbi[7:0];
+`ifndef TEST_PATTERN
                     /* 0x20 */ `REG_BORDER_COLOR:
                         ec <= dbi[3:0];
                     /* 0x21 */ `REG_BACKGROUND_COLOR_0:
                         b0c <= dbi[3:0];
+`endif
                     /* 0x22 */ `REG_BACKGROUND_COLOR_1:
                         b1c <= dbi[3:0];
                     /* 0x23 */ `REG_BACKGROUND_COLOR_2:

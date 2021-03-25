@@ -19,12 +19,32 @@
 module top(
            input sys_clock,
 `ifdef HAVE_COLOR_CLOCKS
-			  input clk_col4x_pal,
-			  input clk_col4x_ntsc,
-			  output clk_colref,
-			  output csync,
-           input is_composite,
+           input clk_col4x_pal,
+           input clk_col4x_ntsc,
+
+           // If use_scan_doubler is false, RGB values will be driven
+           // by the pixel sequencer directly at native resolution.
+           // Otherwise, RGB values go through the scan doubler and VGA
+           // output is assumed. (NOTE: The vga scan doubler may
+           // not be configured to double anything. It depends on how
+           // it is configured but it is still required for any VGA/DVI
+	   // output). When HAVE_COLOR_CLOCKS is not set only VGA or DVI
+	   // output is possible.
+           input use_scan_doubler,
+
+           // If we have a composite encoder, we output two
+           // signals to drive it.
+`ifdef HAVE_COMPOSITE_ENCODER
+           output clk_colref,    // color ref for encoder
+           output csync,         // csync for encoder
 `endif
+           // If we are generating luma/chroma, add outputs
+`ifdef GEN_LUMA_CHROMA
+           output [5:0] luma,    // luma out
+           output [5:0] chroma,  // chroma out
+`endif
+
+`endif  // HAVE_COLOR_CLOCKS
            input [1:0] chip,    // chip config from MCU
            input is_15khz,      // freq config pin from MCU
            input is_hide_raster_lines, // config pin from MCU
@@ -32,15 +52,15 @@ module top(
            input rx,            // from mcm (unused a.t.m)
            input cclk,          // from mcm
            output cpu_reset,    // reset for 6510 CPU
-           output clk_phi,      // output phi clock for CPU		  
+           output clk_phi,      // output phi clock for CPU
            output clk_dot4x_ext,// pixel clock
            output hsync,        // hsync signal for VGA/DVI
            output vsync,        // vsync signal for VGA/DVI
            output active,       // display active for DVI
            output [5:0] red,    // red out
            output [5:0] green,  // green out
-           output [5:0] blue,   // blue out 
-`ifndef IS_SIMULATOR    
+           output [5:0] blue,   // blue out
+`ifndef IS_SIMULATOR
            inout tri [5:0] adl, // address (lower 6 bits)
            output tri [5:0] adh,// address (high 6 bits)
            inout tri [7:0] dbl, // data bus lines (ram/rom)
@@ -55,7 +75,7 @@ module top(
 `endif
            input ce,            // chip enable (LOW=enable, HIGH=disabled)
            input rw,            // read/write (LOW=write, HIGH=read)
-			  output rwo,
+           output rwo,
            output irq,          // irq
            input lp,            // light pen
            output aec,          // aec
@@ -67,8 +87,8 @@ module top(
            output ls245_data_oe,   // OE for data bus transcevier
            output ls245_data_dir   // DIR for data bus transceiver
 `ifdef WITH_DVI
-			  ,
-			  output wire [3:0] TX0_TMDS,
+           ,
+           output wire [3:0] TX0_TMDS,
            output wire [3:0] TX0_TMDSB
 `endif
        );
@@ -90,6 +110,7 @@ BUFGMUX colmux(
 	.O(clk_col4x),
    .S(chip[0]));	
 
+`ifdef HAVE_COMPOSITE_ENCODER
 // Since we have color clocks, we will output a color
 // reference clock by dividing the incoming 4x color
 // by 4.  This can be used by an external composite
@@ -100,15 +121,18 @@ clk_div4 clk_colorgen (
              .clk_in(clk_col4x),     // from 4x color clock
              .reset(rst),
              .clk_out(clk_colref));  // create color ref clock
+`endif
 
 // From the 4x color clock, generate an 8x color clock
 // This is necessary to meet the minimum frequency of
 // the PLL_ADV where we further multiple/divide it into
 // a 4x dot clock.
 wire clk_col8x;
+wire clk_col16x;
 x2_clockgen x2_clockgen(
    .clk_in(clk_col4x),
-   .clk_out_x2(clk_col8x),
+   .clk_out_x2(clk_col8x), // for PLL to gen dot4x
+   .clk_out_x4(clk_col16x), // for LUMA/CHROMA gen
    .reset(1'b0));
 `endif
 
@@ -134,15 +158,15 @@ clockgen mojo_clockgen(
              .rst(rst),
              .chip(chip)
 `ifdef WITH_DVI
-				 ,
-				 .tx0_pclkx10(tx0_pclkx10),
-				 .tx0_pclkx2(tx0_pclkx2),
-				 .tx0_serdesstrobe(tx0_serdesstrobe)
+             ,
+             .tx0_pclkx10(tx0_pclkx10),
+             .tx0_pclkx2(tx0_pclkx2),
+             .tx0_serdesstrobe(tx0_serdesstrobe)
 `endif
-				 );
+        );
 
 `ifdef WITH_DVI
-// Scale from 4 bits to 8 for DVI
+// Scale from 6 bits to 8 for DVI
 wire[31:0] red_scaled;
 wire[31:0] green_scaled;
 wire[31:0] blue_scaled;
@@ -212,8 +236,15 @@ vicii vic_inst(
           .hsync(hsync),
           .vsync(vsync),
 `ifdef HAVE_COLOR_CLOCKS
-          .is_composite(is_composite),
+          .use_scan_doubler(use_scan_doubler),
+          .clk_col16x(clk_col16x),
+`ifdef HAVE_COMPOSITE_ENCODER
           .csync(csync),
+`endif
+`ifdef GEN_LUMA_CHROMA
+          .luma(luma),
+          .chroma(chroma),
+`endif
 `endif
           .adi(adl[5:0]),
           .ado(ado),

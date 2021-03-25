@@ -1,0 +1,59 @@
+When generating chroma, the precision along the time axis is going to be
+determined by your clock.  The precision on the amplitude axis will
+be determined by how many bits you have in your DAC.
+
+1) Time axis precision
+
+If you have a multiple of a color clock...
+
+   i.e. 16x = 57.27272 Mhz
+
+   Use a 4-bit counter that increments once per tick.
+   In this case, we can generate a sine out of 16 samples from a sine wave
+   table.  The 16 samples will be spread evenly at 22.5 degree steps over
+   the sine wave.  But if we had only 16 values in this table, we would not
+   be able to phase shift the wave by any less than 22.5 degrees. So lets
+   add another 4 bits to the length of our sine table.  That's 256 entries
+   for a single period of a sine wave and approx 1.4 degree steps possible
+   for phase shifting.  When generating the wave, the top 4 bits from our
+   counter grab 16 samples out of 256 but we can start at any of the 256
+   starting positions by adding an 8 bit offset.
+
+If not, use system clock (ie. 50mhz) to get close to color clock...
+
+   i.e. 50mhz system clock, use 18-bit counter with 18767 increment
+
+   3579545/(50000000/(2^18)) = 18767
+
+   Bit 17 will toggle @ approx 3.579545* Mhz
+   Bit 16 will toggle @ approx 7.159090* Mhz
+   Bit 15 will toggle @ approx 14.31818* Mhz
+
+   * There will be a certain error measured in hz.
+
+   NOTE: Bit 14 will not be anywhere close to 28.636362 Mhz.
+   That's because the 50 Mhz clock is not high enough.  You
+   would have to double the 50 Mhz clock to 100 Mhz to get another bit of
+   precision. 
+
+   So if we were to use the top 3 bits of the counter to index a sine
+   wave table, that would give us 8 samples / period. If we used the top
+   4, that would give us 16 samples / period.  However, that 4th bit
+   would 'jump' a bit and cause a slight oscillation in the wave. If it's
+   within tolerance, that's okay.  If not, increase the number of bits
+   in the counter or increase the clock.
+
+   As above, we can add another 4 bits to our index and add an 8 bit phase
+   offset.  So our sine table is 256 entries.
+
+2) Amplitude precision
+
+If we want to generate multiple amplitudes and avoid multiplication, we
+should chose how many bits of precision we want for our amplitude.  If we
+want 8 levels (3 bits), then we need to generate 8 sine tables of varying
+amplitude.
+
+So our lookup address in the sine rom will be
+
+{ '4amplitude , {'4counter, 4'b0} + 8'phase_offset } }
+
