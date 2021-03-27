@@ -127,6 +127,7 @@ always @(posedge clk_dot4x)
 `ifdef GEN_LUMA_CHROMA
 // 18 is blanking level - approx 1.29V
 always @(posedge clk_dot4x)
+begin
     if (rst)
         luma <= 6'd0;
     else
@@ -143,6 +144,7 @@ always @(posedge clk_dot4x)
         default:
             luma <= ~hSync ? (~native_active ? 6'b010011 : luma1) : 6'd0;
     endcase
+end
 
 // Phase counter forms the first 4 bits of the index into our
 // sine table of 256 entries.  Hence, it takes 16 samples from
@@ -151,19 +153,19 @@ always @(posedge clk_dot4x)
 // by applying a phase offset of 8 bits.  The amplitude is selected
 // out of the sine wave table rom by prefixing the 8 bits with
 // an additional 3 bits of amplitude.
-wire [5:0] luma1; // color index to luma lookup
+wire [5:0] luma1;
 reg [3:0] phaseCounter;
 reg [8:0] prev_raster_y;
 wire [2:0] amplitude;
 reg [2:0] amplitude2;
+reg [2:0] amplitude3;
+reg [2:0] amplitude4;
 wire [7:0] phaseOffset;
-wire [7:0] phaseOffset2;
+
 always @(posedge clk_col16x)
 begin
     phaseCounter <= phaseCounter + 4'd1;
 end
-
-assign phaseOffset2 = native_active ? phaseOffset : 8'b0;
 
 reg [7:0] burstCount;
 reg [7:0] sineWaveAddr;
@@ -175,18 +177,18 @@ begin
     if (raster_y != prev_raster_y) begin
        need_burst = 1;
     end
-    prev_raster_y = raster_y;
+    prev_raster_y <= raster_y;
 
     if (raster_x >= burst_start && need_burst)
        in_burst = 1;
 
     if (in_burst)
     begin
-       burstCount = burstCount + 1;
+       burstCount <= burstCount + 1;
        if (burstCount == 144) begin // 9 periods * 16 samples for one period
           in_burst = 0;
 			 need_burst = 0;
-			 burstCount = 0;
+			 burstCount <= 0;
        end
     end
 
@@ -194,13 +196,19 @@ begin
     // 3'b010. Otherwise, amplitude should be 3'b111 representing no
     // amplitude.
     amplitude2 = native_active ? amplitude : (in_burst ? 3'b010 : 3'b111);
+	 amplitude3 <= amplitude2;
+	 amplitude4 <= amplitude3;
     // Figure out the entry within one of the sine wave tables.
-    sineWaveAddr = {phaseCounter, 4'b0} + phaseOffset2;
+    sineWaveAddr = {phaseCounter, 4'b0} + (native_active ? phaseOffset : 8'b0);
     // Prefix with amplitude selector. This is our ROM address.
-    sineROMAddr = {amplitude2, sineWaveAddr };
+    sineROMAddr <= {amplitude2, sineWaveAddr };
 
-    // Chroma is centered at 32 for no amplitude.
-    chroma = amplitude2 != 3'b111 ? chroma9[8:3] : 6'd32;
+    // Chroma is centered at 45 for no amplitude. (top 6 bits of 256 offset)
+	 // Make the decision to output chroma or zero level baseed on the amplitude that
+	 // was used to determine the chroma9 lookup (which was two ticks ago, one tick to set
+	 // the address and another to get the data)
+	 chroma <= (amplitude4 == 3'b111) ? 6'd32 : chroma9[8:3];
+	 
 end
 
 // Retrieve luma from pixel_color index
@@ -216,7 +224,7 @@ phase vic_phase(.index(pixel_color), .phase(phaseOffset), .chip(chip));
 // phaseOffset.
 wire [8:0] chroma9;
 SINE_WAVES vic_sinewaves(.clk(clk_col16x),
-	                 .addr(sineROMAddr),
+          .addr(sineROMAddr),
 			 .dout(chroma9));
 `endif  // GEN_LUMA_CHROMA
 

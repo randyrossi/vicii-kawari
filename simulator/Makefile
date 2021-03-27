@@ -40,7 +40,7 @@ VERILOG_SOURCES = ../hdl/cmod_a35t/top.v ../hdl/vicii.v ../hdl/common.vh \
 	          ../hdl/serration.v  ../hdl/bus_access.v ../hdl/cycles.v \
                   ../hdl/matrix.v ../hdl/sprites.v  ../hdl/hires_vga_sync.v \
 		  ../hdl/clockdivs.v ../hdl/videoram.v ../hdl/colorreg.v \
-		  ../hdl/sinewave.v ../hdl/luma.v \
+		  ../hdl/sinewave.v ../hdl/testpattern.v ../hdl/luma.v \
 		  ../hdl/hires_matrix.v ../hdl/hires_addressgen.v ../hdl/hires_pixel_sequencer.v
 
 VTOP_DEPS = vicii_ipc.o libvicii_ipc.so $(VERILOG_SOURCES) sim_main.cpp vicii_ipc.c vicii_ipc.h 

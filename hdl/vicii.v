@@ -914,6 +914,14 @@ begin
     end
 end
 
+`ifdef TEST_PATTERN
+reg [13:0] test_pattern_addr;
+wire [3:0] test_pattern_pixel;
+TEST_PATTERN vic_testpattern(.clk(clk_dot4x),
+                         .addr(test_pattern_addr),
+                         .dout(test_pattern_pixel));
+`endif
+
 // Select between hires and lores
 wire [3:0] pixel_color1;
 wire [3:0] hires_pixel_color1;
@@ -922,9 +930,11 @@ wire hires_stage1;
 always @(posedge clk_dot4x)
 begin
 `ifdef TEST_PATTERN
-        if (raster_line >=51 && raster_line <= 251 &&
-		xpos >= 31 && xpos <= 351)
-            pixel_color3 <= raster_x[7:4] + 4'd8;
+	test_pattern_addr =
+		(({5'b0, raster_line} - {14'd51})*14'd320) +({4'b0,raster_x} - 14'd136);
+        if (raster_line >=51 && raster_line < 251 &&
+		raster_x >= 136 && raster_x < 456)
+            pixel_color3 <= test_pattern_pixel; //raster_x[7:4] + 4'd8;
 	else
             pixel_color3 <= pixel_color1;
 `else
