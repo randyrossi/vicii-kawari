@@ -53,13 +53,15 @@ module top(
            input cclk,          // from mcm
            output cpu_reset,    // reset for 6510 CPU
            output clk_phi,      // output phi clock for CPU
+
            output clk_dot4x_ext,// pixel clock
            output hsync,        // hsync signal for VGA/DVI
            output vsync,        // vsync signal for VGA/DVI
            output active,       // display active for DVI
-           output [5:0] red,    // red out
-           output [5:0] green,  // green out
-           output [5:0] blue,   // blue out
+           output [5:0] red,    // red out for VGA/DVI or Composite Encoder
+           output [5:0] green,  // green out for VGA/DVI or Composite Encoder
+           output [5:0] blue,   // blue out for VGA/DVI or Composite Encoder
+
 `ifndef IS_SIMULATOR
            inout tri [5:0] adl, // address (lower 6 bits)
            output tri [5:0] adh,// address (high 6 bits)

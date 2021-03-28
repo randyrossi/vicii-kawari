@@ -7,7 +7,7 @@
 // This shows all 16 colors as bars starting with black on the
 // left. Useful for testing video output from the device without
 // it being plugged into a C64.
-`define TEST_PATTERN 1
+//`define TEST_PATTERN 1
 
 // Notes on config permutations:
 //
