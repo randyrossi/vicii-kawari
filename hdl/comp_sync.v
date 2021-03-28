@@ -172,10 +172,12 @@ reg [7:0] sineWaveAddr;
 reg [10:0] sineROMAddr;
 reg in_burst;
 reg need_burst;
+reg oddline;
 always @(posedge clk_col16x)
 begin
     if (raster_y != prev_raster_y) begin
        need_burst = 1;
+		 oddline = ~oddline;
     end
     prev_raster_y <= raster_y;
 
@@ -199,7 +201,9 @@ begin
 	 amplitude3 <= amplitude2;
 	 amplitude4 <= amplitude3;
     // Figure out the entry within one of the sine wave tables.
-    sineWaveAddr = {phaseCounter, 4'b0} + (native_active ? phaseOffset : 8'b0);
+	 // For NTSC: Burst phase is always 180 degrees (128 offset)
+	 // For PAL: Burst phase alternates between 135 and -135 (96 & 160 offsets).
+    sineWaveAddr = {phaseCounter, 4'b0} + (native_active ? phaseOffset : (chip[0] == 0 ? 8'd128 : (oddline ? 8'd160 : 8'd96)));
     // Prefix with amplitude selector. This is our ROM address.
     sineROMAddr <= {amplitude2, sineWaveAddr };
 
@@ -218,7 +222,7 @@ luma vic_luma(.index(pixel_color), .luma(luma1)); // TODO add chip
 amplitude vic_amplitude(.index(pixel_color), .amplitude(amplitude));
 
 // Retrieve wave phase from pixel_color index
-phase vic_phase(.index(pixel_color), .phase(phaseOffset), .chip(chip));
+phase vic_phase(.index(pixel_color), .phase(phaseOffset), .oddline(chip[0] ? oddline : 1'b0));
 
 // Retrieve wave value from addr calculated from amplitude, phaseCounter and
 // phaseOffset.

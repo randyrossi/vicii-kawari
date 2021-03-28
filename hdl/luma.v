@@ -69,46 +69,46 @@ endmodule: amplitude
 module phase(
            input [3:0] index,
            output reg [7:0] phase,
-           input [1:0] chip);
+			  input oddline);
     always @*
-    case (chip)
-	`CHIP6567R8, `CHIP6567R56A:
-        case (index)
-        `BLACK:       phase = 8'd0;  // unmodulated
-        `WHITE:       phase = 8'd0;  // unmodulated
-        `RED:         phase = 8'd184;
-        `CYAN:        phase = 8'd56;
-        `PURPLE:      phase = 8'd136;
-        `GREEN:       phase = 8'd8;
-        `BLUE:        phase = 8'd104;
-        `YELLOW:      phase = 8'd232;
-        `ORANGE:      phase = 8'd200;
-        `BROWN:       phase = 8'd216;
-        `PINK:        phase = 8'd184;
-        `DARK_GREY:   phase = 8'd0;  // unmodulated
-        `GREY:        phase = 8'd0;  // unmodulated
-        `LIGHT_GREEN: phase = 8'd8;
-        `LIGHT_BLUE:  phase = 8'd104;
-        `LIGHT_GREY:  phase = 8'd0;  // unmodulated
-        endcase
-    `CHIP6569, `CHIPUNUSED:
-        case (index)
-        `BLACK:       phase = 8'd0;  // unmodulated
-        `WHITE:       phase = 8'd0;  // unmodulated
-        `RED:         phase = 8'd80; // 112.5 deg
-        `CYAN:        phase = 8'd208; // 292.5 deg
-        `PURPLE:      phase = 8'd32; // 45 deg
-        `GREEN:       phase = 8'd160; // 225 deg
-        `BLUE:        phase = 8'd0; // 0 deg
-        `YELLOW:      phase = 8'd128; // 180 deg
-        `ORANGE:      phase = 8'd96; // 135 deg
-        `BROWN:       phase = 8'd112; // 157.5 deg
-        `PINK:        phase = 8'd80; // 112.5 deg
-        `DARK_GREY:   phase = 8'd0;  // unmodulated
-        `GREY:        phase = 8'd0;  // unmodulated
-        `LIGHT_GREEN: phase = 8'd160; // 225 deg
-        `LIGHT_BLUE:  phase = 8'd0; // 0 deg
-        `LIGHT_GREY:  phase = 8'd0;  // unmodulated
-        endcase
-    endcase
+       case (oddline)
+       1'b0:
+         case (index)
+          `BLACK:       phase = 8'd0;  // unmodulated
+          `WHITE:       phase = 8'd0;  // unmodulated
+          `RED:         phase = 8'd80; // 112.5 deg
+          `CYAN:        phase = 8'd208; // 292.5 deg
+          `PURPLE:      phase = 8'd32; // 45 deg
+          `GREEN:       phase = 8'd160; // 225 deg
+          `BLUE:        phase = 8'd0; // 0 deg
+          `YELLOW:      phase = 8'd128; // 180 deg
+          `ORANGE:      phase = 8'd96; // 135 deg
+          `BROWN:       phase = 8'd112; // 157.5 deg
+          `PINK:        phase = 8'd80; // 112.5 deg
+          `DARK_GREY:   phase = 8'd0;  // unmodulated
+          `GREY:        phase = 8'd0;  // unmodulated
+          `LIGHT_GREEN: phase = 8'd160; // 225 deg
+          `LIGHT_BLUE:  phase = 8'd0; // 0 deg
+          `LIGHT_GREY:  phase = 8'd0;  // unmodulated
+          endcase
+       1'b1:
+         case (index)
+          `BLACK:       phase = 8'd0;  // unmodulated
+          `WHITE:       phase = 8'd0;  // unmodulated
+          `RED:         phase = 8'd176; // 247.5 deg
+          `CYAN:        phase = 8'd48; // 67.5 deg
+          `PURPLE:      phase = 8'd224; // 315 deg
+          `GREEN:       phase = 8'd96; // 135 deg
+          `BLUE:        phase = 8'd0; // 0 deg
+          `YELLOW:      phase = 8'd128; // 180 deg
+          `ORANGE:      phase = 8'd160; // 225 deg
+          `BROWN:       phase = 8'd144; // 202.5 deg
+          `PINK:        phase = 8'd176; // 247.5 deg
+          `DARK_GREY:   phase = 8'd0;  // unmodulated
+          `GREY:        phase = 8'd0;  // unmodulated
+          `LIGHT_GREEN: phase = 8'd96; // 135 deg
+          `LIGHT_BLUE:  phase = 8'd0; // 0 deg
+          `LIGHT_GREY:  phase = 8'd0;  // unmodulated
+          endcase
+       endcase
 endmodule: phase
