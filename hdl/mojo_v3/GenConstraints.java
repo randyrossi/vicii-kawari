@@ -39,16 +39,6 @@ public class GenConstraints
 
     boolean flags[] = read_config(args[1]);
 
-    // The prototype 'hat' for the mojov3 was originally designed with no
-    // ntsc/pal color clocks going into the board.  In this case, we rely soley
-    // on the on-board 50mhz clock to generate our pixel clocks for both ntsc
-    // and pal.  This caused some routing and placement issues and hopefully
-    // won't be necessary on the final pcb since we have figured out how to
-    // properly generate dot4x clocks from color clocks.  For 'plain' unmodified
-    // boards to still work, pass in 'false' or 'no' for this cmd line flag and
-    // the 'legacy' top.uc will be generated. (i.e. the one that Adrian Black
-    // has.)
-
     HashMap<String,Integer> map = new HashMap<String,Integer>();
 
         File f = new File(args[0]);

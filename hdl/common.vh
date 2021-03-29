@@ -4,22 +4,46 @@
 `define VERSION_MAJOR 4'd0
 `define VERSION_MINOR 4'd2
 
-// This shows all 16 colors as bars starting with black on the
-// left. Useful for testing video output from the device without
-// it being plugged into a C64.
+// This shows a test pattern with colors and some text.
+// Useful for testing video output from the device without
+// it being plugged into a C64. This will use approx 16k
+// of block ram for the pixel data.
 //`define TEST_PATTERN 1
 
 // Notes on config permutations:
 //
+// This core can be configured to output video in different ways.
+//    DVI/HDMI (8 differential pairs, from scan doubled RGB values)
+//    VGA (scan doubled RGB + sync + clock signals)
+//    External Composite Encoder (native rgb + csync + color ref signals)
+//    LUMA/CHROMA (luma + chroma for a DAC)
+//
+// LUMA/CHROMA can work simultaneously with any other video output
+// method since it works off of pixel index values coming straight
+// out of the pixel sequencer.  It requires HAVE_COLOR_CLOCKS. This
+// video output mode ignores custom RGB palette registers.  Instead, it
+// uses fixed luma, phase, amplitude for each of the 16 colors.
+//
+// An external composite encoder also requires HAVE_COLOR_CLOCKS.
+// For proper video output, use_scan_doubler must be set to false. It
+// can be included in one bitstream and work with DVI/HDMI/VGA but
+// not simultaneously (you must toggle set use_scan_doubler true for a
+// valid DVI/HDMI/VGA picture and set it false for the encoder.)
+//
+// VGA can work without HAVE_COLOR_CLOCKS but use_scan_doubler is always
+// true if color clocks are not available.
+//
+// Similarly, DVI/HDMI can also work without HAVE_COLOR_CLOCKS but
+// use_scan_doubler is always true if color clocks are not available.
+//
 // The prototype 'hat' for the mojov3 was originally designed with no
-// ntsc/pal color clocks going into the board.  In this case, we rely soley
+// ntsc/pal color clocks going into the board. In this case, we rely soley
 // on the on-board 50mhz clock to generate our pixel clocks for both ntsc
-// and pal.  This caused some routing and placement issues and hopefully
-// won't be necessary on the final pcb since we have figured out how to
-// properly generate dot4x clocks from color clocks.  For 'plain' unmodified
-// boards to still work, leave HAVE_COLOR_CLOCKS undefined (i.e. the one 
-// Adrian Black has.)  Composite is not possible without color clocks but
-// DVI and/or VGA can still work.
+// and pal. This caused some routing and placement issues and won't be
+// necessary on the final pcb since we have figured out how to properly
+// generate dot4x clocks from color clocks. For 'plain' unmodified
+// boards to still work, leave HAVE_COLOR_CLOCKS undefined (i.e. the one
+// Adrian Black has.)
 //
 // If HAVE_COLOR_CLOCKS is defined, then either GEN_LUMA_CHROMA or
 // HAVE_COMPOSITE_ENCODER (or both) can be defined. Since the board can now

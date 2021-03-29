@@ -2,7 +2,18 @@
 
 // A module that produces a luma/chroma signal and
 // optionally a composite sync signal for a composite
-// encoder IC.
+// encoder IC. At least of HAVE_COMPOSITE_ENCODER or
+// GEN_LUMA_CHROMA must be defined.
+//
+// Luma/Chroma was tested with these resistor values:
+//
+//     MSB                 LSB
+//     499(1%) 1K 2K 4K 8K 16K
+//
+// Chroma can operate on 3.3V but Luma needs to be closer to 5V
+// to match the brightness of the genuine chips. For luma,
+// the signals were passed to an additional 74LVC4245 transceiver
+// before being passed to the resistor ladder.
 module comp_sync(
            input rst,
            input clk_dot4x,
@@ -207,12 +218,11 @@ begin
     // Prefix with amplitude selector. This is our ROM address.
     sineROMAddr <= {amplitude2, sineWaveAddr };
 
-    // Chroma is centered at 45 for no amplitude. (top 6 bits of 256 offset)
-	 // Make the decision to output chroma or zero level baseed on the amplitude that
-	 // was used to determine the chroma9 lookup (which was two ticks ago, one tick to set
-	 // the address and another to get the data)
-	 chroma <= (amplitude4 == 3'b111) ? 6'd32 : chroma9[8:3];
-	 
+    // Chroma is centered at 32 for no amplitude. (top 6 bits of 256 offset)
+    // Make the decision to output chroma or zero level baseed on the amplitude that
+    // was used to determine the chroma9 lookup (which was two ticks ago, one tick to set
+    // the address and another to get the data)
+    chroma <= (amplitude4 == 3'b111) ? 6'd32 : chroma9[8:3];
 end
 
 // Retrieve luma from pixel_color index

@@ -14,7 +14,7 @@
 // 8           4.28            TBD
 
 // Given an indexed color, set luma
-// 499 1k 2k 4k 8k 16k
+// 499(1%) 1k 2k 4k 8k 16k
 module luma(
            input [3:0] index,
            output reg [5:0] luma);

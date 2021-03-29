@@ -49,13 +49,18 @@ module top(
            output vsync,        // vsync signal for VGA/HDMI
 
 `ifdef HAVE_COLOR_CLOCKS
-           // If use_scan_doubler is false, RGB values will be driven
-           // by the pixel sequencer directly at native resolution.
-           // Otherwise, RGB values go through the scan doubler and VGA
-           // output is assumed. (NOTE: The vga scan doubler may
+           // use_scan_doubler is valid only when HAVE_COLOR_CLOCKS is
+           // set. If an external composite encoder is going to be used,
+           // use_scan_doubler must be false. If use_scan_doubler is false,
+           // RGB values will be driven by the pixel sequencer directly at
+           // native resolution (which is what you need for a composite
+           // encoder). Otherwise, RGB values will go through the scan doubler
+           // suitable for VGA or DVI output. (NOTE: The vga scan doubler may
            // not be configured to double anything. It depends on how
-           // it is configured). When HAVE_COLOR_CLOCKS is not set
-           // only VGA or DVI output is possible.
+           // it is configured but it is still required for any VGA/DVI
+           // output). When HAVE_COLOR_CLOCKS is not set only VGA or DVI
+           // output is possible so the scan doubler is always used in that
+           // case.
            input use_scan_doubler,
 
            // If we have a composite encoder, we output two

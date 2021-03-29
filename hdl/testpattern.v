@@ -2,7 +2,7 @@
 
 `include "common.vh"
 
-// ROM to test pattern.
+// ROM for a test pattern.
 module TEST_PATTERN
 #(
     parameter addr_width = 14,
