@@ -801,7 +801,7 @@ wire native_active;
 wire [95:0] lumareg_o;
 wire [127:0] phasereg_o;
 wire [47:0] amplitudereg_o;
-wire [7:0] blanking_level;
+wire [5:0] blanking_level;
 wire [2:0] burst_amplitude;
 `endif
 

@@ -95,7 +95,7 @@ module registers(
       output [95:0] lumareg_o,
 		output [127:0] phasereg_o,
 		output [47:0] amplitudereg_o,
-		output reg [7:0] blanking_level,
+		output reg [5:0] blanking_level,
 		output reg [2:0] burst_amplitude,
 `endif
 		
@@ -1213,7 +1213,7 @@ task write_ram(
 					  `EXT_REG_AMPL15:
 					     amplitude[15] <= dbi[2:0];
 					  `EXT_REG_BLANKING:
-					     blanking_level <= dbi[7:0];
+					     blanking_level <= dbi[5:0];
 					  `EXT_REG_BURSTAMP:
 					     burst_amplitude <= dbi[2:0];
 

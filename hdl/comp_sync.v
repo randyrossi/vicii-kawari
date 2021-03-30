@@ -33,7 +33,7 @@ module comp_sync(
 			  input [95:0] lumareg_o,
 			  input [127:0] phasereg_o,
 			  input [47:0] amplitudereg_o,
-           input [7:0] blanking_level,
+           input [5:0] blanking_level,
            input [2:0] burst_amplitude,
 `endif
            output reg native_active
