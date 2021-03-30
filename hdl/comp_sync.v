@@ -29,6 +29,13 @@ module comp_sync(
            output reg [5:0] luma,
            output reg [5:0] chroma,
 `endif
+`ifdef CONFIGURABLE_LUMAS
+			  input [95:0] lumareg_o,
+			  input [127:0] phasereg_o,
+			  input [47:0] amplitudereg_o,
+           input [7:0] blanking_level,
+           input [2:0] burst_amplitude,
+`endif
            output reg native_active
 );
 
@@ -146,7 +153,12 @@ reg [5:0] next_luma;
 `endif
 
 // 18 is blanking level - approx 1.29V
+`ifdef CONFIGURABLE_LUMAS
+`define BLANKING_LEVEL blanking_level
+`else
 `define BLANKING_LEVEL 6'b010010
+`endif
+
 always @(posedge clk_dot4x)
 begin
     if (rst)
@@ -200,6 +212,12 @@ begin
     phaseCounter <= phaseCounter + 4'd1;
 end
 
+`ifdef CONFIGURABLE_LUMAS
+`define BURST_AMPLITUDE burst_amplitude
+`else
+`define BURST_AMPLITUDE 3'b010 
+`endif
+
 reg [7:0] burstCount;
 reg [7:0] sineWaveAddr;
 reg [10:0] sineROMAddr;
@@ -230,7 +248,7 @@ begin
     // Use amplitude from table lookup inside active region.  For burst, use
     // 3'b010. Otherwise, amplitude should be 3'b111 representing no
     // amplitude.
-    amplitude2 = vSync ? 3'b111 : (native_active ? amplitude : (in_burst ? 3'b010 : 3'b111));
+    amplitude2 = vSync ? 3'b111 : (native_active ? amplitude : (in_burst ? `BURST_AMPLITUDE : 3'b111));
 	 amplitude3 <= amplitude2;
 	 amplitude4 <= amplitude3;
     // Figure out the entry within one of the sine wave tables.
@@ -248,13 +266,26 @@ begin
 end
 
 // Retrieve luma from pixel_color index
-luma vic_luma(.index(pixel_color), .luma(luma1)); // TODO add chip
+luma vic_luma(.index(pixel_color),
+`ifdef CONFIGURABLE_LUMAS
+              .lumareg_o(lumareg_o),
+`endif
+              .luma(luma1));
 
 // Retrieve wave amplitude from pixel_color index
-amplitude vic_amplitude(.index(pixel_color), .amplitude(amplitude));
+amplitude vic_amplitude(.index(pixel_color),
+`ifdef CONFIGURABLE_LUMAS
+                        .amplitudereg_o(amplitudereg_o),
+`endif
+                        .amplitude(amplitude));
 
 // Retrieve wave phase from pixel_color index
-phase vic_phase(.index(pixel_color), .phase(phaseOffset), .oddline(chip[0] ? oddline : 1'b0));
+phase vic_phase(.index(pixel_color),
+`ifdef CONFIGURABLE_LUMAS
+                .phasereg_o(phasereg_o),
+`endif
+                .phase(phaseOffset),
+                .oddline(chip[0] ? oddline : 1'b0));
 
 // Retrieve wave value from addr calculated from amplitude, phaseCounter and
 // phaseOffset.

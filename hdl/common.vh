@@ -68,6 +68,15 @@
 // This requires HAVE_COLOR_CLOCKS to be defined.
 `define GEN_LUMA_CHROMA 1
 
+// Uncomment to activate registers a0-cf and d1,d2 to control
+// luma(a#), phase(b#) and amplitudes(c#) for the 16 colors as
+// well as blanking level (d1) and burst amplitude (d2).
+`define CONFIGURABLE_LUMAS 1
+
+// Uncomment to average the luma values over 4 ticks of the
+// dot4x clock. This smooths out transitions between levels.
+//'define AVERAGE_LUMAS 1
+
 // DATA_DAV
 //
 // When to read from the data bus for both char/pixel and sprite dma
@@ -240,6 +249,63 @@
 `define EXT_REG_DISPLAY_FLAGS        8'h84
 `define EXT_REG_CURSOR_LO            8'h85
 `define EXT_REG_CURSOR_HI            8'h86
+
+`ifdef CONFIGURABLE_LUMAS
+`define EXT_REG_LUMA0                8'ha0
+`define EXT_REG_LUMA1                8'ha1
+`define EXT_REG_LUMA2                8'ha2
+`define EXT_REG_LUMA3                8'ha3
+`define EXT_REG_LUMA4                8'ha4
+`define EXT_REG_LUMA5                8'ha5
+`define EXT_REG_LUMA6                8'ha6
+`define EXT_REG_LUMA7                8'ha7
+`define EXT_REG_LUMA8                8'ha8
+`define EXT_REG_LUMA9                8'ha9
+`define EXT_REG_LUMA10               8'haa
+`define EXT_REG_LUMA11               8'hab
+`define EXT_REG_LUMA12               8'hac
+`define EXT_REG_LUMA13               8'had
+`define EXT_REG_LUMA14               8'hae
+`define EXT_REG_LUMA15               8'haf
+
+`define EXT_REG_PHASE0                8'hb0
+`define EXT_REG_PHASE1                8'hb1
+`define EXT_REG_PHASE2                8'hb2
+`define EXT_REG_PHASE3                8'hb3
+`define EXT_REG_PHASE4                8'hb4
+`define EXT_REG_PHASE5                8'hb5
+`define EXT_REG_PHASE6                8'hb6
+`define EXT_REG_PHASE7                8'hb7
+`define EXT_REG_PHASE8                8'hb8
+`define EXT_REG_PHASE9                8'hb9
+`define EXT_REG_PHASE10               8'hba
+`define EXT_REG_PHASE11               8'hbb
+`define EXT_REG_PHASE12               8'hbc
+`define EXT_REG_PHASE13               8'hbd
+`define EXT_REG_PHASE14               8'hbe
+`define EXT_REG_PHASE15               8'hbf
+
+`define EXT_REG_AMPL0                8'hc0
+`define EXT_REG_AMPL1                8'hc1
+`define EXT_REG_AMPL2                8'hc2
+`define EXT_REG_AMPL3                8'hc3
+`define EXT_REG_AMPL4                8'hc4
+`define EXT_REG_AMPL5                8'hc5
+`define EXT_REG_AMPL6                8'hc6
+`define EXT_REG_AMPL7                8'hc7
+`define EXT_REG_AMPL8                8'hc8
+`define EXT_REG_AMPL9                8'hc9
+`define EXT_REG_AMPL10               8'hca
+`define EXT_REG_AMPL11               8'hcb
+`define EXT_REG_AMPL12               8'hcc
+`define EXT_REG_AMPL13               8'hcd
+`define EXT_REG_AMPL14               8'hce
+`define EXT_REG_AMPL15               8'hcf
+
+`define EXT_REG_BLANKING             8'hd0
+`define EXT_REG_BURSTAMP             8'hd1
+
+`endif
 
 // Bits in display flags
 `define SHOW_RASTER_LINES            0

@@ -91,6 +91,14 @@ module registers(
 	   // We export this so it can take effect immediately
 	   output reg last_raster_lines,
 
+`ifdef CONFIGURABLE_LUMAS
+      output [95:0] lumareg_o,
+		output [127:0] phasereg_o,
+		output [47:0] amplitudereg_o,
+		output reg [7:0] blanking_level,
+		output reg [2:0] burst_amplitude,
+`endif
+		
 	   // --- BEGIN EXTENSIONS ---
            input [14:0] video_ram_addr_b,
            output [7:0] video_ram_data_out_b,
@@ -115,6 +123,15 @@ integer n;
 assign sprite_x_o = {sprite_x[0], sprite_x[1], sprite_x[2], sprite_x[3], sprite_x[4], sprite_x[5], sprite_x[6], sprite_x[7]};
 assign sprite_y_o = {sprite_y[0], sprite_y[1], sprite_y[2], sprite_y[3], sprite_y[4], sprite_y[5], sprite_y[6], sprite_y[7]};
 assign sprite_col_o = {sprite_col[0], sprite_col[1], sprite_col[2], sprite_col[3], sprite_col[4], sprite_col[5], sprite_col[6],sprite_col[7]};
+
+`ifdef CONFIGURABLE_LUMAS
+reg [5:0] luma[15:0];
+reg [7:0] phase[15:0];
+reg [2:0] amplitude[15:0];
+assign lumareg_o = {luma[0],luma[1],luma[2],luma[3],luma[4],luma[5],luma[6],luma[7],luma[8],luma[9],luma[10],luma[11],luma[12],luma[13],luma[14],luma[15]};
+assign phasereg_o = {phase[0],phase[1],phase[2],phase[3],phase[4],phase[5],phase[6],phase[7],phase[8],phase[9],phase[10],phase[11],phase[12],phase[13],phase[14],phase[15]};
+assign amplitudereg_o = {amplitude[0],amplitude[1],amplitude[2],amplitude[3],amplitude[4],amplitude[5],amplitude[6],amplitude[7],amplitude[8],amplitude[9],amplitude[10],amplitude[11],amplitude[12],amplitude[13],amplitude[14],amplitude[15]};
+`endif
 
 reg res;
 
@@ -264,61 +281,114 @@ always @(posedge clk_dot4x)
         //dbo[7:0] <= 8'd0;
         //handle_sprite_crunch <= `FALSE;
 
-        // --- BEGIN EXTENSIONS ----
-        extra_regs_activation_ctr <= 2'b0;
+`ifdef CONFIGURABLE_LUMAS
+        luma[0] <= 6'b010011; // 0
+        luma[1] <= 6'b111011; // 8
+        luma[2] <= 6'b011111; // 2
+        luma[3] <= 6'b101100; // 6
+        luma[4] <= 6'b100010; // 3
+        luma[5] <= 6'b100111; // 5
+        luma[6] <= 6'b011100; // 1
+        luma[7] <= 6'b110010; // 7
+        luma[8] <= 6'b100010; // 3
+        luma[9] <= 6'b011100; // 1
+        luma[10] <= 6'b100111; // 5
+        luma[11] <= 6'b011111; // 2
+        luma[12] <= 6'b100110; // 4
+        luma[13] <= 6'b110010; // 7
+        luma[14] <= 6'b100110; // 4
+        luma[15] <= 6'b101100; // 6
+        amplitude[0] <= 3'b111; // no modulation
+        amplitude[1] <= 3'b111; // no modulation
+        amplitude[2] <= 3'b010;
+        amplitude[3] <= 3'b010;
+        amplitude[4] <= 3'b001;
+        amplitude[5] <= 3'b001;
+        amplitude[6] <= 3'b010;
+        amplitude[7] <= 3'b000;
+        amplitude[8] <= 3'b000;
+        amplitude[9] <= 3'b010;
+        amplitude[10] <= 3'b010;
+        amplitude[11] <= 3'b111; // no modulation
+        amplitude[12] <= 3'b111; // no modulation
+        amplitude[13] <= 3'b010;
+        amplitude[14] <= 3'b010;
+        amplitude[15] <= 3'b111; // no modulation
+        phase[0] <= 8'd0;  // unmodulated
+        phase[1] <= 8'd0;  // unmodulated
+        phase[2] <= 8'd80; // 112.5 deg
+        phase[3] <= 8'd208; // 292.5 deg
+        phase[4] <= 8'd32; // 45 deg
+        phase[5] <= 8'd160; // 225 deg
+        phase[6] <= 8'd0; // 0 deg
+        phase[7] <= 8'd128; // 180 deg
+        phase[8] <= 8'd96; // 135 deg
+        phase[9] <= 8'd112; // 157.5 deg
+        phase[10] <= 8'd80; // 112.5 deg
+        phase[11] <= 8'd0;  // unmodulated
+        phase[12] <= 8'd0;  // unmodulated
+        phase[13] <= 8'd160; // 225 deg
+        phase[14] <= 8'd0; // 0 deg
+        phase[15] <= 8'd0;  // unmodulated
+		  blanking_level <= 6'b010010;
+		  burst_amplitude <= 3'b010;
+`endif
+
+   // --- BEGIN EXTENSIONS ----
+   extra_regs_activation_ctr <= 2'b0;
 
 	// Latch these config bits during reset
 	last_raster_lines <= ~is_hide_raster_lines;
 	last_chip <= chip;
 	last_is_15khz <= is_15khz;
 `ifdef IS_SIMULATOR
-        extra_regs_activated <= 0'b1;
-        video_ram_flags <= 8'b0;
+   extra_regs_activated <= 0'b1;
+   video_ram_flags <= 8'b0;
 
 	`ifdef HIRES_TEXT
-	// Test mode 0 : Text
+        // Test mode 0 : Text
         hires_enabled <= 1'b1;
-	hires_mode <= 2'b00;
-	// char pixels @0000(4K)
+        hires_mode <= 2'b00;
+        // char pixels @0000(4K)
         hires_char_pixel_base <= 3'b0;
-	// color table @1000(2K)
+        // color table @1000(2K)
         hires_color_base <= 4'b10;
-	// matrix @1800(2K)
+        // matrix @1800(2K)
         hires_matrix_base <= 4'b11;
-	// Cursor top left
-	hires_cursor_hi <= 8'h18;
-	hires_cursor_lo <= 8'b00;
+        // Cursor top left
+        hires_cursor_hi <= 8'h18;
+        hires_cursor_lo <= 8'b00;
 	`endif
 	`ifdef HIRES_BITMAP1
         hires_enabled <= 1'b1;
-	hires_mode <= 2'b01;
+        hires_mode <= 2'b01;
         hires_char_pixel_base <= 3'b0; // ignored
-	// pixels @0000(16k)
+        // pixels @0000(16k)
         hires_matrix_base <= 4'b0000;
-	// color table @8000(2K)
+        // color table @8000(2K)
         hires_color_base <= 4'b1000;
 	`endif
 	`ifdef HIRES_BITMAP2
         hires_enabled <= 1'b1;
-	hires_mode <= 2'b10;
+        hires_mode <= 2'b10;
         hires_char_pixel_base <= 3'b0; // ignored
         hires_matrix_base <= 4'b0000; // ignored
         hires_color_base <= 4'b0000; // ignored
 	`endif
 	`ifdef HIRES_BITMAP3
         hires_enabled <= 1'b1;
-	hires_mode <= 2'b11;
+        hires_mode <= 2'b11;
         hires_char_pixel_base <= 3'b0; // ignored
         hires_matrix_base <= 4'b0000; // ignored
         hires_color_base <= 4'b0000; // ignored
 	`endif
 `else
-        extra_regs_activated <= 1'b0;
+   extra_regs_activated <= 1'b0;
 	hires_mode <= 2'b00;
 	hires_enabled <= 1'b0;
 	hires_char_pixel_base <= 3'b0;
-        hires_matrix_base <= 4'b0000; // ignored
-        hires_color_base <= 4'b0000; // ignored
+   hires_matrix_base <= 4'b0000; // ignored
+   hires_color_base <= 4'b0000; // ignored
 	hires_cursor_hi <= 8'b0;
 	hires_cursor_lo <= 8'b0;
 `endif
@@ -1043,6 +1113,111 @@ task write_ram(
                     video_ram_data_in_a <= dbi[7:0];
                     video_ram_addr_a <= {ram_hi[6:0], ram_lo} + {7'b0, ram_idx};
                  end
+`ifdef CONFIGURABLE_LUMAS
+					  `EXT_REG_LUMA0:
+					     luma[0] <= dbi[5:0];
+					  `EXT_REG_LUMA1:
+					     luma[1] <= dbi[5:0];
+					  `EXT_REG_LUMA2:
+					     luma[2] <= dbi[5:0];
+					  `EXT_REG_LUMA3:
+					     luma[3] <= dbi[5:0];
+					  `EXT_REG_LUMA4:
+					     luma[4] <= dbi[5:0];
+					  `EXT_REG_LUMA5:
+					     luma[5] <= dbi[5:0];
+					  `EXT_REG_LUMA6:
+					     luma[6] <= dbi[5:0];
+					  `EXT_REG_LUMA7:
+					     luma[7] <= dbi[5:0];
+					  `EXT_REG_LUMA8:
+					     luma[8] <= dbi[5:0];
+					  `EXT_REG_LUMA9:
+					     luma[9] <= dbi[5:0];
+					  `EXT_REG_LUMA10:
+					     luma[10] <= dbi[5:0];
+					  `EXT_REG_LUMA11:
+					     luma[11] <= dbi[5:0];
+					  `EXT_REG_LUMA12:
+					     luma[12] <= dbi[5:0];
+					  `EXT_REG_LUMA13:
+					     luma[13] <= dbi[5:0];
+					  `EXT_REG_LUMA14:
+					     luma[14] <= dbi[5:0];
+					  `EXT_REG_LUMA15:
+					     luma[15] <= dbi[5:0];
+
+					  `EXT_REG_PHASE0:
+					     phase[0] <= dbi[7:0];
+					  `EXT_REG_PHASE1:
+					     phase[1] <= dbi[7:0];
+					  `EXT_REG_PHASE2:
+					     phase[2] <= dbi[7:0];
+					  `EXT_REG_PHASE3:
+					     phase[3] <= dbi[7:0];
+					  `EXT_REG_PHASE4:
+					     phase[4] <= dbi[7:0];
+					  `EXT_REG_PHASE5:
+					     phase[5] <= dbi[7:0];
+					  `EXT_REG_PHASE6:
+					     phase[6] <= dbi[7:0];
+					  `EXT_REG_PHASE7:
+					     phase[7] <= dbi[7:0];
+					  `EXT_REG_PHASE8:
+					     phase[8] <= dbi[7:0];
+					  `EXT_REG_PHASE9:
+					     phase[9] <= dbi[7:0];
+					  `EXT_REG_PHASE10:
+					     phase[10] <= dbi[7:0];
+					  `EXT_REG_PHASE11:
+					     phase[11] <= dbi[7:0];
+					  `EXT_REG_PHASE12:
+					     phase[12] <= dbi[7:0];
+					  `EXT_REG_PHASE13:
+					     phase[13] <= dbi[7:0];
+					  `EXT_REG_PHASE14:
+					     phase[14] <= dbi[7:0];
+					  `EXT_REG_PHASE15:
+					     phase[15] <= dbi[7:0];
+
+					  `EXT_REG_AMPL0:
+					     amplitude[0] <= dbi[2:0];
+					  `EXT_REG_AMPL1:
+					     amplitude[1] <= dbi[2:0];
+					  `EXT_REG_AMPL2:
+					     amplitude[2] <= dbi[2:0];
+					  `EXT_REG_AMPL3:
+					     amplitude[3] <= dbi[2:0];
+					  `EXT_REG_AMPL4:
+					     amplitude[4] <= dbi[2:0];
+					  `EXT_REG_AMPL5:
+					     amplitude[5] <= dbi[2:0];
+					  `EXT_REG_AMPL6:
+					     amplitude[6] <= dbi[2:0];
+					  `EXT_REG_AMPL7:
+					     amplitude[7] <= dbi[2:0];
+					  `EXT_REG_AMPL8:
+					     amplitude[8] <= dbi[2:0];
+					  `EXT_REG_AMPL9:
+					     amplitude[9] <= dbi[2:0];
+					  `EXT_REG_AMPL10:
+					     amplitude[10] <= dbi[2:0];
+					  `EXT_REG_AMPL11:
+					     amplitude[11] <= dbi[2:0];
+					  `EXT_REG_AMPL12:
+					     amplitude[12] <= dbi[2:0];
+					  `EXT_REG_AMPL13:
+					     amplitude[13] <= dbi[2:0];
+					  `EXT_REG_AMPL14:
+					     amplitude[14] <= dbi[2:0];
+					  `EXT_REG_AMPL15:
+					     amplitude[15] <= dbi[2:0];
+					  `EXT_REG_BLANKING:
+					     blanking_level <= dbi[7:0];
+					  `EXT_REG_BURSTAMP:
+					     burst_amplitude <= dbi[2:0];
+
+`endif  // CONFIGURABLE_LUMAS
               endcase
            end
         end else begin

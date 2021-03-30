@@ -797,6 +797,14 @@ wire show_raster_lines;
 wire native_active;
 `endif
 
+`ifdef CONFIGURABLE_LUMAS
+wire [95:0] lumareg_o;
+wire [127:0] phasereg_o;
+wire [47:0] amplitudereg_o;
+wire [7:0] blanking_level;
+wire [2:0] burst_amplitude;
+`endif
+
 registers vic_registers(
               .rst(rst),
               .clk_dot4x(clk_dot4x),
@@ -884,6 +892,14 @@ registers vic_registers(
 
 	      .tx_data_4x(tx_data_4x),
 	      .tx_new_data_4x(tx_new_data_4x),
+
+`ifdef CONFIGURABLE_LUMAS
+         .lumareg_o(lumareg_o),
+			.phasereg_o(phasereg_o),
+			.amplitudereg_o(amplitudereg_o),
+			.blanking_level(blanking_level),
+			.burst_amplitude(burst_amplitude),
+`endif
 
 	      // --- BEGIN EXTENSIONS --
          .video_ram_addr_b(video_ram_addr_b),
@@ -1035,7 +1051,14 @@ comp_sync vic_comp_sync(
               .pixel_color(pixel_color3), // native res pixel color index
               .luma(luma),
               .chroma(chroma),
-`endif
+`ifdef CONFIGURABLE_LUMAS
+              .lumareg_o(lumareg_o),
+              .phasereg_o(phasereg_o),
+              .amplitudereg_o(amplitudereg_o),
+              .blanking_level(blanking_level),
+              .burst_amplitude(burst_amplitude),
+`endif  // CONFIGURABLE_LUMAS
+`endif // GEN_LUMA_CHROMA
               .native_active(native_active)
 );
 `endif  // HAVE_COLOR_CLOCKS
