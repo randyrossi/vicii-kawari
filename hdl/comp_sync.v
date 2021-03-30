@@ -136,25 +136,47 @@ always @(posedge clk_dot4x)
 `endif
 
 `ifdef GEN_LUMA_CHROMA
+
+`ifdef AVERAGE_LUMAS
+reg [7:0] add_luma;
+reg [5:0] prev_luma;
+reg [5:0] prev_luma2;
+reg [5:0] prev_luma3;
+reg [5:0] next_luma;
+`endif
+
 // 18 is blanking level - approx 1.29V
+`define BLANKING_LEVEL 6'b010010
 always @(posedge clk_dot4x)
 begin
     if (rst)
         luma <= 6'd0;
-    else
+    else begin
     case(raster_y)
-        vblank_start:	luma <= ~EQ ? 6'b010011 : 6'd0;
-        vblank_start+1:	luma <= ~EQ ? 6'b010011 : 6'd0;
-        vblank_start+2:	luma <= ~EQ ? 6'b010011 : 6'd0;
-        vblank_start+3:	luma <= ~SE ? 6'b010011 : 6'd0;
-        vblank_start+4:	luma <= ~SE ? 6'b010011 : 6'd0;
-        vblank_start+5:	luma <= ~SE ? 6'b010011 : 6'd0;
-        vblank_start+6:	luma <= ~EQ ? 6'b010011 : 6'd0;
-        vblank_start+7:	luma <= ~EQ ? 6'b010011 : 6'd0;
-        vblank_start+8:	luma <= ~EQ ? 6'b010011 : 6'd0;
-        default:
-            luma <= ~hSync ? (~native_active ? 6'b010011 : luma1) : 6'd0;
+        vblank_start:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
+        vblank_start+1:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
+        vblank_start+2:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
+        vblank_start+3:	luma <= ~SE ? `BLANKING_LEVEL : 6'd0;
+        vblank_start+4:	luma <= ~SE ? `BLANKING_LEVEL : 6'd0;
+        vblank_start+5:	luma <= ~SE ? `BLANKING_LEVEL : 6'd0;
+        vblank_start+6:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
+        vblank_start+7:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
+        vblank_start+8:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
+        default: begin
+        `ifdef AVERAGE_LUMAS
+            // Average luma over 4 ticks to smooth out transitions
+            next_luma = ~hSync ? (~native_active ? `BLANKING_LEVEL : luma1) : 6'd0;
+				add_luma = {2'b0,next_luma} + {2'b0,prev_luma} + {2'b0,prev_luma2} + {2'b0,prev_luma3}; // add them
+				luma <= add_luma[7:2];  // div 4
+				prev_luma <= next_luma;
+				prev_luma2 <= prev_luma;
+				prev_luma3 <= prev_luma2;
+        `else
+		      luma <= ~hSync ? (~native_active ? `BLANKING_LEVEL : luma1) : 6'd0;
+        `endif
+        end	
     endcase
+	 end
 end
 
 // Phase counter forms the first 4 bits of the index into our
@@ -208,7 +230,7 @@ begin
     // Use amplitude from table lookup inside active region.  For burst, use
     // 3'b010. Otherwise, amplitude should be 3'b111 representing no
     // amplitude.
-    amplitude2 = native_active ? amplitude : (in_burst ? 3'b010 : 3'b111);
+    amplitude2 = vSync ? 3'b111 : (native_active ? amplitude : (in_burst ? 3'b010 : 3'b111));
 	 amplitude3 <= amplitude2;
 	 amplitude4 <= amplitude3;
     // Figure out the entry within one of the sine wave tables.
