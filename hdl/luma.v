@@ -95,6 +95,7 @@ module amplitude(
 `endif
            output reg [2:0] amplitude);
 
+`ifdef CONFIGURABLE_LUMAS
 wire [2:0] amplitudereg[15:0];
 assign amplitudereg[0] = amplitudereg_o[47:45];
 assign amplitudereg[1] = amplitudereg_o[44:42];
@@ -112,6 +113,7 @@ assign amplitudereg[12] = amplitudereg_o[11:9];
 assign amplitudereg[13] = amplitudereg_o[8:6];
 assign amplitudereg[14] = amplitudereg_o[5:3];
 assign amplitudereg[15] = amplitudereg_o[2:0];
+`endif
  
    always @*
         case (index)
@@ -162,6 +164,7 @@ module phase(
            output reg [7:0] phase,
 			  input oddline);
 
+`ifdef CONFIGURABLE_LUMAS
 wire [7:0] phasereg[15:0];
 assign phasereg[0] = phasereg_o[127:120];
 assign phasereg[1] = phasereg_o[119:112];
@@ -179,6 +182,7 @@ assign phasereg[12] = phasereg_o[31:24];
 assign phasereg[13] = phasereg_o[23:16];
 assign phasereg[14] = phasereg_o[15:8];
 assign phasereg[15] = phasereg_o[7:0];
+`endif
 
     always @*
        case (oddline)
