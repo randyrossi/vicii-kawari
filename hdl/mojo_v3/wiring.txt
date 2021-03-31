@@ -20,7 +20,6 @@ P1      D11      dbh[3]  I     NA NA NA
 P141    RW       rw      I     NA NA NA    # Move for DVI
 P142    CE       ce      I     NA NA NA    # Move for DVI
 P139    LP       lp      I     NA NA NA    # Move for DVI
-P105    RWO      rwo     O     QUIETIO 2 NA
 
 # Bi-directional databus
 P93     D7       dbl[7]  IO   QUIETIO 2 NA
@@ -79,7 +78,6 @@ P124    PMOD6    vsync           O   SLOW 4 NA
 # Only included if have_color_clocks is true
 P84     HEAD     clk_col4x_pal   I   NA NA NA
 P85     HEAD     clk_col4x_ntsc  I   NA NA NA
-P26     HEAD     use_scan_doubler I   NA NA NA
 
 # Only included if have_composite_encoder is true
 P5      HEAD     clk_colref      O   QUIETIO 2 NA

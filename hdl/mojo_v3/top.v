@@ -22,20 +22,6 @@ module top(
            input clk_col4x_pal,
            input clk_col4x_ntsc,
 
-           // use_scan_doubler is valid only when HAVE_COLOR_CLOCKS is
-	   // set. If an external composite encoder is going to be used,
-	   // use_scan_doubler must be false. If use_scan_doubler is false,
-	   // RGB values will be driven by the pixel sequencer directly at
-	   // native resolution (which is what you need for a composite
-	   // encoder). Otherwise, RGB values will go through the scan doubler
-	   // suitable for VGA or DVI output. (NOTE: The vga scan doubler may
-           // not be configured to double anything. It depends on how
-           // it is configured but it is still required for any VGA/DVI
-	   // output). When HAVE_COLOR_CLOCKS is not set only VGA or DVI
-	   // output is possible so the scan doubler is always used in that
-	   // case.
-           input use_scan_doubler,
-
            // If we have a composite encoder, we output two
            // signals to drive it.
 `ifdef HAVE_COMPOSITE_ENCODER
@@ -81,7 +67,6 @@ module top(
 `endif
            input ce,            // chip enable (LOW=enable, HIGH=disabled)
            input rw,            // read/write (LOW=write, HIGH=read)
-           output rwo,
            output irq,          // irq
            input lp,            // light pen
            output aec,          // aec
@@ -99,8 +84,18 @@ module top(
 `endif
        );
 
-// Never writing to DRAM (yet)
-assign rwo = 1'b0;
+// use_scan_doubler is valid only when HAVE_COLOR_CLOCKS is
+// set. If an external composite encoder is going to be used,
+// use_scan_doubler must be false. If use_scan_doubler is false,
+// RGB values will be driven by the pixel sequencer directly at
+// native resolution (which is what you need for a composite
+// encoder). Otherwise, RGB values will go through the scan doubler
+// suitable for VGA or DVI output. (NOTE: The vga scan doubler may
+// not be configured to double anything. It depends on how
+// it is configured but it is still required for any VGA/DVI
+// output). When HAVE_COLOR_CLOCKS is not set only VGA or DVI
+// output is possible so the scan doubler is always used in that
+// case.
 
 wire rst;
 wire clk_dot4x;
@@ -242,7 +237,8 @@ vicii vic_inst(
           .hsync(hsync),
           .vsync(vsync),
 `ifdef HAVE_COLOR_CLOCKS
-          .use_scan_doubler(use_scan_doubler),
+          // see above, only need to be off for external comp encoder
+          .use_scan_doubler(1'b1),
           .clk_col16x(clk_col16x),
 `ifdef HAVE_COMPOSITE_ENCODER
           .csync(csync),
