@@ -48,13 +48,13 @@ reg [8:0] vblank_end;
 wire hSync;
 wire vSync;
 
-always @(*)
+always @(posedge clk_dot4x)
 begin
     if ((raster_x < hsync_start || raster_x >= hvisible_start) &&
             (raster_y < vblank_start || raster_y > vblank_end))
-        native_active = 1'b1;
+        native_active <= 1'b1;
     else
-        native_active = 1'b0;
+        native_active <= 1'b0;
 end
 
 assign hSync = raster_x >= hsync_start && raster_x < hsync_end;
@@ -218,21 +218,42 @@ end
 `define BURST_AMPLITUDE 3'b010 
 `endif
 
+reg [3:0] pixel_color_16_1;
+reg [3:0] pixel_color_16;
+reg [8:0] raster_y_16_1;
+reg [8:0] raster_y_16;
+reg [9:0] raster_x_16_1;
+reg [9:0] raster_x_16;
+reg native_active_16_1;
+reg native_active_16;
+
+// Handle domain crossing for registers we need from dot4x in a co16x block.
+always @(posedge clk_col16x) pixel_color_16_1 <= pixel_color;
+always @(posedge clk_col16x) pixel_color_16 <= pixel_color_16_1;
+always @(posedge clk_col16x) raster_y_16_1 <= raster_y;
+always @(posedge clk_col16x) raster_y_16 <= raster_y_16_1;
+always @(posedge clk_col16x) raster_x_16_1 <= raster_x;
+always @(posedge clk_col16x) raster_x_16 <= raster_x_16_1;
+always @(posedge clk_col16x) native_active_16_1 <= native_active;
+always @(posedge clk_col16x) native_active_16 <= native_active_16_1;
+assign vSync_16 = raster_y_16 >= vblank_start && raster_y_16 < vblank_end;
+
 reg [7:0] burstCount;
 reg [7:0] sineWaveAddr;
 reg [10:0] sineROMAddr;
 reg in_burst;
 reg need_burst;
-reg oddline;
+wire oddline;
+assign oddline = raster_y_16[0];
+
 always @(posedge clk_col16x)
 begin
-    if (raster_y != prev_raster_y) begin
+    if (raster_y_16 != prev_raster_y) begin
        need_burst = 1;
-		 oddline = ~oddline;
     end
-    prev_raster_y <= raster_y;
+    prev_raster_y <= raster_y_16;
 
-    if (raster_x >= burst_start && need_burst)
+    if (raster_x_16 >= burst_start && need_burst)
        in_burst = 1;
 
     if (in_burst)
@@ -248,13 +269,13 @@ begin
     // Use amplitude from table lookup inside active region.  For burst, use
     // 3'b010. Otherwise, amplitude should be 3'b111 representing no
     // amplitude.
-    amplitude2 = vSync ? 3'b111 : (native_active ? amplitude : (in_burst ? `BURST_AMPLITUDE : 3'b111));
+    amplitude2 = vSync_16 ? 3'b111 : (native_active_16 ? amplitude : (in_burst ? `BURST_AMPLITUDE : 3'b111));
 	 amplitude3 <= amplitude2;
 	 amplitude4 <= amplitude3;
     // Figure out the entry within one of the sine wave tables.
 	 // For NTSC: Burst phase is always 180 degrees (128 offset)
 	 // For PAL: Burst phase alternates between 135 and -135 (96 & 160 offsets).
-    sineWaveAddr = {phaseCounter, 4'b0} + (native_active ? phaseOffset : (chip[0] == 0 ? 8'd128 : (oddline ? 8'd160 : 8'd96)));
+    sineWaveAddr = {phaseCounter, 4'b0} + (native_active_16 ? phaseOffset : (chip[0] == 0 ? 8'd128 : (oddline ? 8'd160 : 8'd96)));
     // Prefix with amplitude selector. This is our ROM address.
     sineROMAddr <= {amplitude2, sineWaveAddr };
 
@@ -273,14 +294,14 @@ luma vic_luma(.index(pixel_color),
               .luma(luma1));
 
 // Retrieve wave amplitude from pixel_color index
-amplitude vic_amplitude(.index(pixel_color),
+amplitude vic_amplitude(.index(pixel_color_16),
 `ifdef CONFIGURABLE_LUMAS
-                        .amplitudereg_o(amplitudereg_o),
+              .amplitudereg_o(amplitudereg_o),
 `endif
-                        .amplitude(amplitude));
+              .amplitude(amplitude));
 
 // Retrieve wave phase from pixel_color index
-phase vic_phase(.index(pixel_color),
+phase vic_phase(.index(pixel_color_16),
 `ifdef CONFIGURABLE_LUMAS
                 .phasereg_o(phasereg_o),
 `endif

@@ -100,7 +100,7 @@ wire [2:0] amplitudereg[15:0];
 assign amplitudereg[0] = amplitudereg_o[47:45];
 assign amplitudereg[1] = amplitudereg_o[44:42];
 assign amplitudereg[2] = amplitudereg_o[41:39];
-assign amplitudereg[3] = amplitudereg_o[37:36];
+assign amplitudereg[3] = amplitudereg_o[38:36];
 assign amplitudereg[4] = amplitudereg_o[35:33];
 assign amplitudereg[5] = amplitudereg_o[32:30];
 assign amplitudereg[6] = amplitudereg_o[29:27];
