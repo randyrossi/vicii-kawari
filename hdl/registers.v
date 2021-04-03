@@ -80,6 +80,11 @@ module registers(
 	   output reg [7:0] tx_data_4x,
 	   output reg tx_new_data_4x,
 
+      // When rx_new_data goes high, interpret the next byte
+		// in the command data stream from the AVR
+		input [7:0] rx_data_4x,
+      input rx_new_data_4x,
+
 	   // These are the config bits coming from the MCU. They
 	   // represent what the MCU wants things to be, not what
 	   // they are presently in the FPGA.  They are latched
@@ -100,13 +105,13 @@ module registers(
 `endif
 		
 	   // --- BEGIN EXTENSIONS ---
-           input [14:0] video_ram_addr_b,
-           output [7:0] video_ram_data_out_b,
-           output reg [2:0] hires_char_pixel_base,
-           output reg [3:0] hires_matrix_base,
-           output reg [3:0] hires_color_base,
-           output reg hires_enabled,
-           output reg [1:0] hires_mode,
+      input [14:0] video_ram_addr_b,
+      output [7:0] video_ram_data_out_b,
+      output reg [2:0] hires_char_pixel_base,
+      output reg [3:0] hires_matrix_base,
+      output reg [3:0] hires_color_base,
+      output reg hires_enabled,
+      output reg [1:0] hires_mode,
 	   output reg [7:0] hires_cursor_hi,
 	   output reg [7:0] hires_cursor_lo
 	   // --- END EXTENSIONS ---
@@ -392,11 +397,21 @@ always @(posedge clk_dot4x)
 	hires_cursor_hi <= 8'b0;
 	hires_cursor_lo <= 8'b0;
 `endif
-        // --- END EXTENSIONS ----
+    // --- END EXTENSIONS ----
 
     end else
     begin
         tx_new_data_sr <= {tx_new_data_sr[0], 1'b0};
+
+        // TODO: Sample test code to interpret serial data. Need to
+		  // add a module that will interpret commands and set registers
+		  // for configuration restoration here.
+        if (rx_new_data_4x) begin
+            ec <= rx_data_4x[3:0];
+            b0c <= rx_data_4x[7:4];
+            sprite_x[0] <= sprite_x[0] + 8'd1;			
+		  end
+		  // END TEST
 
         if (phi_phase_start_dav_plus_1) begin
             if (!clk_phi) begin

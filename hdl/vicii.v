@@ -30,6 +30,8 @@ module vicii(
       input clk_dot4x,
 	   output[7:0] tx_data_4x,         // from regs module
 	   output tx_new_data_4x,          // from regs module
+		input [7:0] rx_data_4x,         // from serial_rx
+      input rx_new_data_4x,           // from serial_rx
       output clk_phi,
 	   output active,
 	   output hsync,
@@ -892,6 +894,8 @@ registers vic_registers(
 
 	      .tx_data_4x(tx_data_4x),
 	      .tx_new_data_4x(tx_new_data_4x),
+         .rx_data_4x(rx_data_4x),
+         .rx_new_data_4x(rx_new_data_4x),
 
 `ifdef CONFIGURABLE_LUMAS
          .lumareg_o(lumareg_o),

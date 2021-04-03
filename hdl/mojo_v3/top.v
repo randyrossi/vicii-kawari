@@ -223,12 +223,16 @@ wire vic_write_db;
 
 wire[7:0] tx_data_4x;
 wire tx_new_data_4x;
+wire[7:0] rx_data_4x;
+wire rx_new_data_4x;
 // Instantiate the vicii with our clocks and pins.
 vicii vic_inst(
           .rst(rst),
           .chip(chip),
           .tx_data_4x(tx_data_4x),
           .tx_new_data_4x(tx_new_data_4x),
+          .rx_data_4x(rx_data_4x),
+          .rx_new_data_4x(rx_new_data_4x),
           .is_15khz(is_15khz),
           .is_hide_raster_lines(is_hide_raster_lines),
           .clk_dot4x(clk_dot4x),
@@ -297,17 +301,26 @@ always @(posedge sys_clock) tx_data_sys <= tx_data_sys_pre;
 always @(posedge sys_clock) tx_new_data_sys_pre <= tx_new_data_4x;
 always @(posedge sys_clock) tx_new_data_sys <= tx_new_data_sys_pre;
 
+wire [7:0] rx_data;
+wire new_rx_data;
+
 avr_interface mojo_avr_interface(
     .clk(sys_clock),
     .rst(1'b0),
     .cclk(cclk),
     .tx(tx),
-    //.rx(rx),
+    .rx(rx),
     .tx_data(tx_data_sys),
-    .new_tx_data(tx_new_data_sys)
-    // We don't ever receive from the MCU over serial (yet)
-    //output [7:0] rx_data,
-    //output new_rx_data
+    .new_tx_data(tx_new_data_sys),
+    .rx_data(rx_data),
+    .new_rx_data(new_rx_data)
   );
 
+serial_cross vic_serial_cross(
+    .in_clk(sys_clock),
+	 .out_clk(clk_dot4x),
+	 .in_data(rx_data),
+	 .new_in_data(new_rx_data),
+	 .out_data(rx_data_4x),
+	 .new_out_data(rx_new_data_4x));
 endmodule : top

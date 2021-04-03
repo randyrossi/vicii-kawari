@@ -13,15 +13,15 @@ module avr_interface #(
     
     // AVR Serial Signals
     output tx,
-    //input rx,
+    input rx,
     
     // Serial TX User Interface
     input [7:0] tx_data,
-    input new_tx_data
+    input new_tx_data,
     
     // Serial Rx User Interface
-    //output [7:0] rx_data,
-    //output new_rx_data
+    output [7:0] rx_data,
+    output new_rx_data
   );
   
   wire ready;
@@ -42,13 +42,13 @@ module avr_interface #(
   // rtoi converts a 'real' number to an 'integer'
   parameter CLK_PER_BIT = $rtoi($ceil(CLK_RATE/SERIAL_BAUD_RATE));
   
-  //serial_rx #(.CLK_PER_BIT(CLK_PER_BIT)) serial_rx (
-  //  .clk(clk),
-  //  .rst(n_rdy),
-  //  .rx(rx),
-  //  .data(rx_data),
-  //  .new_data(new_rx_data)
-  //);
+  serial_rx #(.CLK_PER_BIT(CLK_PER_BIT)) serial_rx (
+    .clk(clk),
+    .rst(n_rdy),
+    .rx(rx),
+    .data(rx_data),
+    .new_data(new_rx_data)
+  );
   
   wire busy;
   serial_tx #(.CLK_PER_BIT(CLK_PER_BIT)) serial_tx (
