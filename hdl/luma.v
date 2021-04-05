@@ -24,6 +24,7 @@ module luma(
 			  );
 
 `ifdef CONFIGURABLE_LUMAS
+
 wire [5:0] lumareg[15:0];
 // Handle un-flattening here
 assign lumareg[0] = lumareg_o[95:90];
@@ -89,6 +90,7 @@ endmodule: luma
 // Given a color index, set amplitude
 // 000 = highest, 110 = lowest, 111 = no modulation
 module amplitude(
+           input clk_col16x,
            input [3:0] index,
 `ifdef CONFIGURABLE_LUMAS
 			  input [47:0] amplitudereg_o,
@@ -96,23 +98,31 @@ module amplitude(
            output reg [2:0] amplitude);
 
 `ifdef CONFIGURABLE_LUMAS
+
+// Handle domain crossing from dot4x regs to col16x
+reg [47:0] amplitudereg_o2;
+reg [47:0] amplitudereg_o3;
+always @(posedge clk_col16x) amplitudereg_o2 <=  amplitudereg_o;
+always @(posedge clk_col16x) amplitudereg_o3 <= amplitudereg_o2;
+
+// Handle un-flattening here
 wire [2:0] amplitudereg[15:0];
-assign amplitudereg[0] = amplitudereg_o[47:45];
-assign amplitudereg[1] = amplitudereg_o[44:42];
-assign amplitudereg[2] = amplitudereg_o[41:39];
-assign amplitudereg[3] = amplitudereg_o[38:36];
-assign amplitudereg[4] = amplitudereg_o[35:33];
-assign amplitudereg[5] = amplitudereg_o[32:30];
-assign amplitudereg[6] = amplitudereg_o[29:27];
-assign amplitudereg[7] = amplitudereg_o[26:24];
-assign amplitudereg[8] = amplitudereg_o[23:21];
-assign amplitudereg[9] = amplitudereg_o[20:18];
-assign amplitudereg[10] = amplitudereg_o[17:15];
-assign amplitudereg[11] = amplitudereg_o[14:12];
-assign amplitudereg[12] = amplitudereg_o[11:9];
-assign amplitudereg[13] = amplitudereg_o[8:6];
-assign amplitudereg[14] = amplitudereg_o[5:3];
-assign amplitudereg[15] = amplitudereg_o[2:0];
+assign amplitudereg[0] = amplitudereg_o3[47:45];
+assign amplitudereg[1] = amplitudereg_o3[44:42];
+assign amplitudereg[2] = amplitudereg_o3[41:39];
+assign amplitudereg[3] = amplitudereg_o3[38:36];
+assign amplitudereg[4] = amplitudereg_o3[35:33];
+assign amplitudereg[5] = amplitudereg_o3[32:30];
+assign amplitudereg[6] = amplitudereg_o3[29:27];
+assign amplitudereg[7] = amplitudereg_o3[26:24];
+assign amplitudereg[8] = amplitudereg_o3[23:21];
+assign amplitudereg[9] = amplitudereg_o3[20:18];
+assign amplitudereg[10] = amplitudereg_o3[17:15];
+assign amplitudereg[11] = amplitudereg_o3[14:12];
+assign amplitudereg[12] = amplitudereg_o3[11:9];
+assign amplitudereg[13] = amplitudereg_o3[8:6];
+assign amplitudereg[14] = amplitudereg_o3[5:3];
+assign amplitudereg[15] = amplitudereg_o3[2:0];
 `endif
  
    always @*
@@ -157,6 +167,7 @@ endmodule: amplitude
 
 // Given a color index, set phase offset
 module phase(
+           input clk_col16x,
            input [3:0] index,
 `ifdef CONFIGURABLE_LUMAS
 			  input [127:0] phasereg_o,
@@ -165,23 +176,31 @@ module phase(
 			  input oddline);
 
 `ifdef CONFIGURABLE_LUMAS
+
+// Handle domain crossing from dot4x regs to col16x
+reg [127:0] phasereg_o2;
+reg [127:0] phasereg_o3;
+always @(posedge clk_col16x) phasereg_o2 <= phasereg_o;
+always @(posedge clk_col16x) phasereg_o3 <= phasereg_o2;
+
+// Handle un-flattening here
 wire [7:0] phasereg[15:0];
-assign phasereg[0] = phasereg_o[127:120];
-assign phasereg[1] = phasereg_o[119:112];
-assign phasereg[2] = phasereg_o[111:104];
-assign phasereg[3] = phasereg_o[103:96];
-assign phasereg[4] = phasereg_o[95:88];
-assign phasereg[5] = phasereg_o[87:80];
-assign phasereg[6] = phasereg_o[79:72];
-assign phasereg[7] = phasereg_o[71:64];
-assign phasereg[8] = phasereg_o[63:56];
-assign phasereg[9] = phasereg_o[55:48];
-assign phasereg[10] = phasereg_o[47:40];
-assign phasereg[11] = phasereg_o[39:32];
-assign phasereg[12] = phasereg_o[31:24];
-assign phasereg[13] = phasereg_o[23:16];
-assign phasereg[14] = phasereg_o[15:8];
-assign phasereg[15] = phasereg_o[7:0];
+assign phasereg[0] = phasereg_o3[127:120];
+assign phasereg[1] = phasereg_o3[119:112];
+assign phasereg[2] = phasereg_o3[111:104];
+assign phasereg[3] = phasereg_o3[103:96];
+assign phasereg[4] = phasereg_o3[95:88];
+assign phasereg[5] = phasereg_o3[87:80];
+assign phasereg[6] = phasereg_o3[79:72];
+assign phasereg[7] = phasereg_o3[71:64];
+assign phasereg[8] = phasereg_o3[63:56];
+assign phasereg[9] = phasereg_o3[55:48];
+assign phasereg[10] = phasereg_o3[47:40];
+assign phasereg[11] = phasereg_o3[39:32];
+assign phasereg[12] = phasereg_o3[31:24];
+assign phasereg[13] = phasereg_o3[23:16];
+assign phasereg[14] = phasereg_o3[15:8];
+assign phasereg[15] = phasereg_o3[7:0];
 `endif
 
     always @*
@@ -227,22 +246,22 @@ assign phasereg[15] = phasereg_o[7:0];
        1'b1:
          case (index)
 `ifdef CONFIGURABLE_LUMAS
-          `BLACK:       phase <= 8'd256 - phasereg[0];
-          `WHITE:       phase <= 8'd256 - phasereg[1];
-          `RED:         phase <= 8'd256 - phasereg[2];
-          `CYAN:        phase <= 8'd256 - phasereg[3];
-          `PURPLE:      phase <= 8'd256 - phasereg[4];
-          `GREEN:       phase <= 8'd256 - phasereg[5];
-          `BLUE:        phase <= 8'd256 - phasereg[6];
-          `YELLOW:      phase <= 8'd256 - phasereg[7];
-          `ORANGE:      phase <= 8'd256 - phasereg[8];
-          `BROWN:       phase <= 8'd256 - phasereg[9];
-          `PINK:        phase <= 8'd256 - phasereg[10];
-          `DARK_GREY:   phase <= 8'd256 - phasereg[11];
-          `GREY:        phase <= 8'd256 - phasereg[12];
-          `LIGHT_GREEN: phase <= 8'd256 - phasereg[13];
-          `LIGHT_BLUE:  phase <= 8'd256 - phasereg[14];
-          `LIGHT_GREY:  phase <= 8'd256 - phasereg[15];
+          `BLACK:       phase <= 9'd256 - phasereg[0];
+          `WHITE:       phase <= 9'd256 - phasereg[1];
+          `RED:         phase <= 9'd256 - phasereg[2];
+          `CYAN:        phase <= 9'd256 - phasereg[3];
+          `PURPLE:      phase <= 9'd256 - phasereg[4];
+          `GREEN:       phase <= 9'd256 - phasereg[5];
+          `BLUE:        phase <= 9'd256 - phasereg[6];
+          `YELLOW:      phase <= 9'd256 - phasereg[7];
+          `ORANGE:      phase <= 9'd256 - phasereg[8];
+          `BROWN:       phase <= 9'd256 - phasereg[9];
+          `PINK:        phase <= 9'd256 - phasereg[10];
+          `DARK_GREY:   phase <= 9'd256 - phasereg[11];
+          `GREY:        phase <= 9'd256 - phasereg[12];
+          `LIGHT_GREEN: phase <= 9'd256 - phasereg[13];
+          `LIGHT_BLUE:  phase <= 9'd256 - phasereg[14];
+          `LIGHT_GREY:  phase <= 9'd256 - phasereg[15];
 `else
           `BLACK:       phase <= 8'd0;  // unmodulated
           `WHITE:       phase <= 8'd0;  // unmodulated

@@ -46,7 +46,7 @@ reg [9:0] burst_start;
 reg [8:0] vblank_start;
 reg [8:0] vblank_end;
 wire hSync;
-wire vSync;
+//wire vSync;
 
 always @(posedge clk_dot4x)
 begin
@@ -58,7 +58,7 @@ begin
 end
 
 assign hSync = raster_x >= hsync_start && raster_x < hsync_end;
-assign vSync = raster_y >= vblank_start && raster_y < vblank_end;
+//assign vSync = raster_y >= vblank_start && raster_y < vblank_end;
 
 // NTSC: Each x is ~122.2 ns (.1222 us)
 // PAL : Each x is ~126.8 ns (.1268 us)
@@ -258,7 +258,7 @@ begin
 
     if (in_burst)
     begin
-       burstCount <= burstCount + 1;
+       burstCount <= burstCount + 1'b1;
        if (burstCount == 144) begin // 9 periods * 16 samples for one period
           in_burst = 0;
 			 need_burst = 0;
@@ -294,14 +294,16 @@ luma vic_luma(.index(pixel_color),
               .luma(luma1));
 
 // Retrieve wave amplitude from pixel_color index
-amplitude vic_amplitude(.index(pixel_color_16),
+amplitude vic_amplitude(.clk_col16x(clk_col16x),
+                        .index(pixel_color_16),
 `ifdef CONFIGURABLE_LUMAS
-              .amplitudereg_o(amplitudereg_o),
+                        .amplitudereg_o(amplitudereg_o),
 `endif
-              .amplitude(amplitude));
+                        .amplitude(amplitude));
 
 // Retrieve wave phase from pixel_color index
-phase vic_phase(.index(pixel_color_16),
+phase vic_phase(.clk_col16x(clk_col16x),
+                .index(pixel_color_16),
 `ifdef CONFIGURABLE_LUMAS
                 .phasereg_o(phasereg_o),
 `endif
