@@ -1,3 +1,5 @@
+#include <TFT.h>
+
 /*
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,6 +21,24 @@
 #include <EEPROM.h>
 #include "flash.h"
 #include "string.h"
+
+// Default colors
+int colors[] = {0,0,0,0,
+                63,63,63,0,
+                43,10,10,0,
+                24,54,51,0,
+                44,15,45,0,
+                18,49,18,0,
+                13,14,49,0,
+                57,59,19,0,
+                45,22,7,0,
+                26,14,2,0,
+                58,29,27,0,
+                19,19,19,0,
+                33,33,33,0,
+                41,62,39,0,
+                28,31,57,0,
+                45,45,45,0 };
 
 typedef enum {
   IDLE,
@@ -44,32 +64,23 @@ uint8_t loadBuffer[BUFFER_SIZE + 128];
 volatile taskState_t taskState = SERVICE;
 
 // Current VIC2 settings we are holding on
-// PB4-7 data lines (and maybe in the future
-// what we are transmitting via Serial tx.)
+// PB4-5 data lines.
 int chip_model = 0;
-int is_15khz = 0;
-int is_hide_raster_lines = 0;
 
-#define CHIP_MODEL_ADDR 0x00
-#define IS_15KHZ_ADDR 0x01
-#define IS_HIDE_RASTER_LINES_ADDR 0x02
+#define CHIP_MODEL_ADDR 0x82
+#define IS_15KHZ_ADDR 0x81
+#define SHOW_RASTER_LINES_ADDR 0x84
 
 #define CHIP_MODEL_BIT_0 4
 #define CHIP_MODEL_BIT_1 5
-#define IS_15KHZ_BIT 6
-#define IS_HIDE_RASTER_LINES_BIT 7
 
 // P46 CHIP_MODEL_BIT_0
 // P61 CHIP_MODEL_BIT_1
-// P62 IS_15KHZ
-// P65 IS_HIDE_RASTER_LINES
 
 // Last known saved settings. Used to compare
 // against what the FPGA is telling us it
 // thinks the settings ought to be.
-int last_chip_model;
-int last_is_15khz;
-int last_is_hide_raster_lines;
+unsigned char last_regs[256];
 
 void userLoop() {
   uartTask();
@@ -91,14 +102,11 @@ void disablePostLoad() {
 void initPostLoad() {
   //Serial.flush();
 
-  // Restore VIC settings
-  chip_model = EEPROM.read(CHIP_MODEL_ADDR);
-  is_15khz = EEPROM.read(IS_15KHZ_ADDR);
-  is_hide_raster_lines = EEPROM.read(IS_HIDE_RASTER_LINES_ADDR);
-
-  last_chip_model = chip_model;
-  last_is_15khz = is_15khz;
-  last_is_hide_raster_lines = is_hide_raster_lines;
+  // Restore all registers (not all are used)
+  for (int r=0;r<256;r++) {
+     last_regs[r] = EEPROM.read(r);
+  }
+  chip_model = last_regs[CHIP_MODEL_ADDR] & 0b11;
 
   // Set PB4-PB7 as outputs. These are our configuration pins.
   ADC_BUS_DDR |= ADC_BUS_MASK; // make outputs
@@ -107,8 +115,8 @@ void initPostLoad() {
   switch (chip_model) {
     case 0:
       // 00 - 6567 R8
-      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT_0); 
-      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT_1); 
+      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT_0);
+      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT_1);
       break;
     case 1:
       // 01 - 6569
@@ -117,7 +125,7 @@ void initPostLoad() {
       break;
     case 2:
       // 10 - 6567 R56A
-      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT_0); 
+      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT_0);
       ADC_BUS_PORT |= (1 << CHIP_MODEL_BIT_1);
       break;
     default:
@@ -127,20 +135,10 @@ void initPostLoad() {
       break;
   }
 
-  if (is_15khz)
-      ADC_BUS_PORT |= 1 << IS_15KHZ_BIT;
-  else
-      ADC_BUS_PORT &= ~(1 << IS_15KHZ_BIT); 
-
-  if (is_hide_raster_lines)
-      ADC_BUS_PORT |= 1 << IS_HIDE_RASTER_LINES_BIT;
-  else
-      ADC_BUS_PORT &= ~(1 << IS_HIDE_RASTER_LINES_BIT); 
-
   // Again, the Arduino libraries didn't offer the functionality we wanted
   // so we access the serial port directly. This sets up an interrupt
   // that is used with our own buffer to capture serial input from the FPGA
-  UBRR1 = 1; 
+  UBRR1 = 1;
 
   UCSR1C = (1 << UCSZ11) | (1 << UCSZ10);
   UCSR1A = (1 << U2X1);
@@ -171,7 +169,23 @@ void initPostLoad() {
   // the FPGA looks for CCLK to be high to know the AVR is ready for data
   SET(CCLK, HIGH);
 
-  IN(CCLK); // set as pull up so JTAG can work
+  //IN(CCLK); // set as pull up so JTAG can work
+
+  // Send over last known config to FPGA
+  delay(250);
+
+  // Restore the palette
+  for (int r = 0; r < 64; r++) {
+      // Don't bother with 4th byte in RGBX
+      if (r % 4 == 3) continue;
+      Serial_SendByte(r);
+      Serial_SendByte(last_regs[r]);
+  }
+  // Restore some select registers
+  Serial_SendByte(IS_15KHZ_ADDR);
+  Serial_SendByte(last_regs[IS_15KHZ_ADDR]);
+  Serial_SendByte(SHOW_RASTER_LINES_ADDR);
+  Serial_SendByte(last_regs[SHOW_RASTER_LINES_ADDR]);
 }
 
 
@@ -255,7 +269,7 @@ void loop() {
             transferSize |= ((uint32_t) bt << (byteCount++ * 8));
             if (byteCount > 3) {
               byteCount = 0;
-              
+
               if (destination) {
                 state = WRITE_TO_FPGA;
                 initLoad(); // get the FPGA read for a load
@@ -391,12 +405,23 @@ static inline void Serial_SendByte(const char DataByte)
 #define CONFIG_BUFFER_SIZE 10
 #define CMD_BUFFER_SIZE 32
 
-char config_buf[CONFIG_BUFFER_SIZE];
+unsigned char config_buf[CONFIG_BUFFER_SIZE];
 volatile byte config_buf_write_ptr = 0;
 byte config_buf_read_ptr = 0;
 
 char cmd_buf[CMD_BUFFER_SIZE];
 byte cmd_buf_ptr = 0;
+
+unsigned char cfg_reg_num;
+unsigned char cfg_byte_ff = 0;
+
+// Store the change and tell FPGA the new value
+void SaveAndSend(const char reg, const char value)
+{
+    EEPROM.write(reg, value);
+    Serial_SendByte(reg);
+    Serial_SendByte(value);
+}
 
 void uartTask() {
   // We listen to the fpga for its current settings and if they
@@ -405,45 +430,26 @@ void uartTask() {
 
   // Something to read?
   if (config_buf_read_ptr != config_buf_write_ptr) {
-       // So far we have just 4 bits of config from the fpga
-       // so this doesn't have to be complicated.  Just read
-       // a byte and use the lower 4 bits to make the config
-       // change if necessary.
-       char bits = config_buf[config_buf_read_ptr];
-       int fpga_chip_model = (bits & 3);
-       //int fpga_is_15khz = (bits & 4) ? 1 : 0;
-       int fpga_is_hide_raster_lines = (bits & 8) ? 1 : 0;
-       
-       if (fpga_chip_model != last_chip_model) {
-          EEPROM.write(CHIP_MODEL_ADDR, fpga_chip_model);
-          last_chip_model = fpga_chip_model;
-          if (fpga_chip_model == 0) {
-              Serial.write('N'); Serial.write('8');
-          } else if (fpga_chip_model == 1) {
-              Serial.write('P');
-          } else if (fpga_chip_model == 2) {
-              Serial.write('N'); Serial.write('5'); Serial.write('6');
-          } else {
-              Serial.write('?');
-          }
-          Serial.write('\n');
+       // FPGA sents register followed by value.
+       unsigned char cfg_byte = config_buf[config_buf_read_ptr];
+       if (cfg_byte_ff == 0) {
+           cfg_reg_num = cfg_byte;
+           cfg_byte_ff = 1;
+       } else {
+           if (last_regs[cfg_reg_num] != cfg_byte) {
+              EEPROM.write(cfg_reg_num, cfg_byte);
+              last_regs[cfg_reg_num] = cfg_byte;
+           }
+           cfg_byte_ff = 0;
        }
-       //if (fpga_is_15khz != last_is_15khz) {
-       //   EEPROM.write(IS_15KHZ_ADDR, fpga_is_15khz);
-       //   last_is_15khz = fpga_is_15khz;
-       //   Serial.write(fpga_is_15khz ? 'L' : 'H');
-       //  Serial.write('\n');
-       //}
-       if (fpga_is_hide_raster_lines != last_is_hide_raster_lines) {
-          EEPROM.write(IS_HIDE_RASTER_LINES_ADDR, fpga_is_hide_raster_lines);
-          last_is_hide_raster_lines = fpga_is_hide_raster_lines;
-          Serial.write(fpga_is_hide_raster_lines ? 'X' : 'R');
-          Serial.write('\n');
-       }
-     
+
+       // Print what we get to see if it's what we expect
+       char tmp[32];
+       sprintf (tmp, "(%02x) \n", cfg_byte);
+       Serial.write(tmp);
+
        config_buf_read_ptr = (config_buf_read_ptr + 1) % CONFIG_BUFFER_SIZE;
   }
-        
 
   // Process commands from the PC serial channel.
   // We expect 9600 baud.  Commands can end with \n alone
@@ -454,70 +460,88 @@ void uartTask() {
     while ((w = Serial.read()) >= 0) {
       cmd_buf[cmd_buf_ptr] = (char)w;
       if (cmd_buf[cmd_buf_ptr] == '\n') {
-         
+
          if (cmd_buf_ptr > 0 && cmd_buf[cmd_buf_ptr-1] == '\r' && cmd_buf[cmd_buf_ptr] == '\n')
             cmd_buf[cmd_buf_ptr-1] = '\0';
 
          cmd_buf[cmd_buf_ptr] = '\0';
          cmd_buf_ptr = 0;
-         int ok = 0;
+         int ok = 1;
+         // Reset only takes effect next boot so don't send to FPGA
          if (strcmp(cmd_buf, "re") == 0) {
-             if (last_chip_model != 0) {
-                last_chip_model = 0;
-                EEPROM.write(CHIP_MODEL_ADDR, last_chip_model);
+             // is15khz
+             last_regs[IS_15KHZ_ADDR] = 0;
+             EEPROM.write(IS_15KHZ_ADDR, last_regs[IS_15KHZ_ADDR]);
+             // chip
+             last_regs[CHIP_MODEL_ADDR] = 0;
+             EEPROM.write(CHIP_MODEL_ADDR, last_regs[CHIP_MODEL_ADDR]);
+             // show raster
+             last_regs[SHOW_RASTER_LINES_ADDR] = 0;
+             EEPROM.write(SHOW_RASTER_LINES_ADDR, last_regs[SHOW_RASTER_LINES_ADDR]);
+             // color registers - only 1st palette
+             for (int r = 0; r < 64; r++) {
+                last_regs[r] = colors[r];
+                last_regs[r+64] = colors[r];
+                EEPROM.write(r, last_regs[r]);
+                EEPROM.write(r+64, last_regs[r+64]);
              }
-             if (last_is_15khz != 0) {
-                last_is_15khz = 0;
-                EEPROM.write(IS_15KHZ_ADDR, last_is_15khz);
-             }
-             if (last_is_hide_raster_lines != 0) {
-                last_is_hide_raster_lines = 0;
-                EEPROM.write(IS_HIDE_RASTER_LINES_ADDR, last_is_hide_raster_lines);
-             }
-             ok = 1;
          }
+         // Takes effect immediately
          else if (strcmp(cmd_buf, "15") == 0) {
-             if (last_is_15khz != 1) {
-                last_is_15khz = 1;
-                EEPROM.write(IS_15KHZ_ADDR, last_is_15khz);
+             if ((last_regs[IS_15KHZ_ADDR] & 1) != 1) {
+                last_regs[IS_15KHZ_ADDR] |= 1;
+                SaveAndSend(IS_15KHZ_ADDR, last_regs[IS_15KHZ_ADDR]);
              }
-             ok = 1;
          }
+         // Takes effect immediately
          else if (strcmp(cmd_buf, "31") == 0) {
-             if (last_is_15khz != 0) {
-                last_is_15khz = 0;
-                EEPROM.write(IS_15KHZ_ADDR, last_is_15khz);
+             if ((last_regs[IS_15KHZ_ADDR] & 1) != 0) {
+                last_regs[IS_15KHZ_ADDR] &= ~1;
+                SaveAndSend(IS_15KHZ_ADDR, last_regs[IS_15KHZ_ADDR]);
              }
-             ok = 1;
          }
+         // Takes effect immediately
          else if (strcmp(cmd_buf, "r0") == 0) {
-             if (last_is_hide_raster_lines != 1) {
-                last_is_hide_raster_lines = 1;
-                EEPROM.write(IS_HIDE_RASTER_LINES_ADDR, last_is_hide_raster_lines);
+             if ((last_regs[SHOW_RASTER_LINES_ADDR] & 1) != 0) {
+                last_regs[SHOW_RASTER_LINES_ADDR] &= ~1;
+                SaveAndSend(SHOW_RASTER_LINES_ADDR, last_regs[SHOW_RASTER_LINES_ADDR]);
              }
-             ok = 1;
          }
+         // Takes effect immediately
          else if (strcmp(cmd_buf, "r1") == 0) {
-             if (last_is_hide_raster_lines != 0) {
-                last_is_hide_raster_lines = 0;
-                EEPROM.write(IS_HIDE_RASTER_LINES_ADDR, last_is_hide_raster_lines);
+             if ((last_regs[SHOW_RASTER_LINES_ADDR] & 1) != 1) {
+                last_regs[SHOW_RASTER_LINES_ADDR] |= 1;
+                SaveAndSend(SHOW_RASTER_LINES_ADDR, last_regs[SHOW_RASTER_LINES_ADDR]);
              }
-             ok = 1;
          }
+         // Chip changes next boot
          else if (strcmp(cmd_buf, "0") == 0 || strcmp(cmd_buf, "1") == 0 || strcmp(cmd_buf, "2") == 0) {
              int m = atoi(cmd_buf);
-             if (last_chip_model != m) {
-                last_chip_model = m;
-                EEPROM.write(CHIP_MODEL_ADDR, last_chip_model);
+             if ((last_regs[CHIP_MODEL_ADDR] & 3) != m) {
+                last_regs[CHIP_MODEL_ADDR] = (last_regs[CHIP_MODEL_ADDR] & ~3) | m;
+                EEPROM.write(CHIP_MODEL_ADDR, last_regs[CHIP_MODEL_ADDR]);
+                // No register to write to.  Takes effect on next boot.
              }
-             ok = 1;
          }
+         // Show current settings
          else if (strcmp(cmd_buf, "?") == 0) {
-             Serial.write('R'); Serial.write(last_is_hide_raster_lines ? '0' : '1');
-             Serial.write('C'); Serial.write('0'+last_chip_model);
-             Serial.write('K'); Serial.write('0'+last_is_15khz);
-             Serial.write('\n');
+             Serial.write('R'); Serial.write((last_regs[SHOW_RASTER_LINES_ADDR] & 1) ? '1' : '0');
+             Serial.write('C'); Serial.write('0'+(last_regs[CHIP_MODEL_ADDR] & 3));
+             Serial.write('K'); Serial.write((last_regs[IS_15KHZ_ADDR] & 1) ? '1' : '0');
+
+             for (int r = 0; r < 256; r++) {
+                char tmp[32];
+                if (r % 16 == 0)
+                   Serial.write("\n");
+                sprintf (tmp, "%02x=%02x  ", r, last_regs[r]);
+                Serial.write(tmp);
+             }
          }
+         else {
+             // Unknown command
+             ok = 0;
+         }
+
          if (ok) {
              Serial.write('O'); Serial.write('K');
          } else {
@@ -531,6 +555,7 @@ void uartTask() {
   }
 }
 
+// This is inbound serial data from the FPGA -> MCU
 ISR(USART1_RX_vect) { // new serial data!
   config_buf[config_buf_write_ptr] = UDR1;
   config_buf_write_ptr = (config_buf_write_ptr + 1) % CONFIG_BUFFER_SIZE;

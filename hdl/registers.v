@@ -90,11 +90,10 @@ module registers(
 	   // they are presently in the FPGA.  They are latched
 	   // into 'current' regs into reset block.
 	   input [1:0] chip,
-	   input is_15khz,
-	   input is_hide_raster_lines,
 
-	   // We export this so it can take effect immediately
+	   // Current settings
 	   output reg last_raster_lines,
+		output reg last_is_15khz,
 
 `ifdef CONFIGURABLE_LUMAS
       output [95:0] lumareg_o,
@@ -150,11 +149,13 @@ reg [1:0] extra_regs_activation_ctr;
 reg extra_regs_activated;
 
 // Flags to govern read accesses causing auto inc/dec
-reg video_ram_r;
-reg video_ram_r2;
-reg auto_ram_sel;
-reg color_regs_r;
-reg color_regs_r2;
+reg video_ram_r; // also used to trigger auto inc after read
+reg video_ram_r2; // also used to trigger auto inc after read
+reg auto_ram_sel; // which pointer are we auto incrementing?
+reg color_regs_r; // also used to trigger auto inc after read
+reg color_regs_r2; // also used to trigger auto inc after read
+reg video_ram_aw; // auto increment after write is necessary
+reg color_regs_aw; // auto increment after write is necessary
 reg [1:0] color_regs_r_nibble;
 reg [1:0] color_regs_wr_nibble;
 
@@ -203,42 +204,68 @@ VIDEO_RAM video_ram(clk_dot4x,
                     video_ram_data_out_a,
                     1'b0,          // Video can only read
                     video_ram_addr_b,
-                    8'b0,          // VIdeo can only read
+                    8'b0,          // Video can only read
                     video_ram_data_out_b
                     );
 
 COLOR_REGS color_regs(clk_dot4x,
-                    color_regs_wr_a,
-                    color_regs_addr_a,
+                    color_regs_wr_a, // write to color ram
+                    color_regs_addr_a, // addr for color ram read/write
                     color_regs_data_in_a,
                     color_regs_data_out_a,
-                    1'b0,
-                    { palette_select, pixel_color4},
-                    24'b0,
-                    color_regs_data_out_b
+                    1'b0, // we never write to port b
+                    { palette_select, pixel_color4}, // read addr for color lookups
+                    24'b0, // we never write to port b
+                    color_regs_data_out_b // read value for color lookups
                     );
 
 // --- END EXTENSIONS ----
 
 reg [1:0] last_chip;
-reg last_is_15khz;
-reg [1:0] tx_new_data_sr;
+reg [10:0] tx_new_data_ctr;
+reg tx_new_data_start;
+reg [7:0] tx_cfg_change_1;
+reg [7:0] tx_cfg_change_2;
 
-// Keep tx new data flag high for 2 ticks
+reg rx_new_data_ff;
+reg [7:0] rx_cfg_change_1;
+
+// When transmitting config changes over serial tx, we transmit
+// two bytes for every register change. The first is the register
+// number and the second is the value. The tx_new_data strobe
+// is separated for these two bytes by ~2048 dot4x ticks which gives
+// enough time for the serial module to transmit a byte before
+// transmitting the next one. The tx strobe is held high for two
+// dot4x ticks.  2048 dot 4x ticks = 64 dot clock periods.  Worst
+// case dot clock period is approx 122.5 nanoseconds.  So that's
+// 7840 nano seconds for 7.8 us to transmit a byte.  Therefore, when
+// the 6502 is making register changes with the persistence flag
+// turned on, it should not change registers faster than 15.6us
+// which seems good enough for BASIC to stay away from.  6502
+// assembly might not work though.  This start value (2048) can
+// probably be reduced but I haven't found the lowest value possible.
+
 always @(posedge clk_dot4x)
 begin
-   tx_new_data_4x <= tx_new_data_sr[1];
+   // Signal from other process blocks to start the serial transmission.
+   if (tx_new_data_start) begin
+	   tx_new_data_ctr <= 11'd2047;
+   end
+
+   if (tx_new_data_ctr > 0)
+	   tx_new_data_ctr <= tx_new_data_ctr - 11'b1;
+		
+   if (tx_new_data_ctr == 1 || tx_new_data_ctr == 2) begin
+      tx_new_data_4x <= 1'b1;
+		tx_data_4x <= tx_cfg_change_2;
+   end else if (tx_new_data_ctr == 2046 || tx_new_data_ctr == 2047) begin
+      tx_new_data_4x <= 1'b1;
+		tx_data_4x <= tx_cfg_change_1;
+   end else	
+      tx_new_data_4x <= 1'b0;
 end
 
-// NOTE: To 'force' at least a blue screen with border to get generated
-// for testing video output without connectivity to a C64 bus, do the
-// following:
-// 1. In rst block, set ec, b0c, and den
-//        ec <= `LIGHT_BLUE;
-//        b0c <= `BLUE;
-//        den <= `TRUE;
-// 2. Comment out the ec, b0c and den assignments in the WRITE to
-//    register section below.
+
 always @(posedge clk_dot4x)
     if (rst) begin
 `ifdef TEST_PATTERN
@@ -343,12 +370,13 @@ always @(posedge clk_dot4x)
    extra_regs_activation_ctr <= 2'b0;
 
 	// Latch these config bits during reset
-	last_raster_lines <= ~is_hide_raster_lines;
 	last_chip <= chip;
-	last_is_15khz <= is_15khz;
+	last_raster_lines <= 1'b0;
+	last_is_15khz <= 1'b0;
+	rx_new_data_ff <= 1'b0;
+   video_ram_flags <= 8'b0;
 `ifdef IS_SIMULATOR
    extra_regs_activated <= 0'b1;
-   video_ram_flags <= 8'b0;
 
 	`ifdef HIRES_TEXT
         // Test mode 0 : Text
@@ -401,18 +429,32 @@ always @(posedge clk_dot4x)
 
     end else
     begin
-        tx_new_data_sr <= {tx_new_data_sr[0], 1'b0};
+        // Always reset start flag. write_ram may flip this true if a register was
+		  // changed and it should be persisted.
+        tx_new_data_start = 1'b0;
 
-        // TODO: Sample test code to interpret serial data. Need to
-		  // add a module that will interpret commands and set registers
-		  // for configuration restoration here.
+        // Handle incoming serial commands.
+        // This is guaranteed to go back low on next tick.
+		  // Serial rx will not trigger register set unless the
+		  // stream is prefixed by 3 0xff bytes first.
         if (rx_new_data_4x) begin
-            ec <= rx_data_4x[3:0];
-            b0c <= rx_data_4x[7:4];
-            sprite_x[0] <= sprite_x[0] + 8'd1;			
-		  end
-		  // END TEST
-
+	         rx_new_data_ff <= ~rx_new_data_ff;
+	         if (~rx_new_data_ff) begin
+			      // Config byte 1
+				   rx_cfg_change_1 <= rx_data_4x;
+			   end else begin
+			      // Config byte 2
+				   write_ram(
+                  .overlay(1'b1),
+                  .ram_lo(rx_cfg_change_1), // 1st byte from rx
+                  .ram_hi(8'b0), // ignored
+                  .ram_idx(8'b0), // ignored
+					   .data(rx_data_4x), // 2nd byte from rx
+					   .do_tx(1'b0) // no tx
+                 );
+			   end
+        end
+		  
         if (phi_phase_start_dav_plus_1) begin
             if (!clk_phi) begin
                 // always clear these immediately after they may
@@ -432,8 +474,6 @@ always @(posedge clk_dot4x)
             handle_sprite_crunch <= `FALSE;
         end
         if (!ras && clk_phi && !addr_latch_done) begin
-            // Make sure we 'pretend' we can only see 6 address bits unless
-            // extra regs are activated so 64 reg space repeats as expected.
             addr_latched <= adi[5:0];
             addr_latch_done <= `TRUE;
         end
@@ -836,7 +876,9 @@ always @(posedge clk_dot4x)
                            .overlay(video_ram_flags[5]),
                            .ram_lo(video_ram_lo_1),
                            .ram_hi(video_ram_hi_1),
-                           .ram_idx(video_ram_idx_1));
+                           .ram_idx(video_ram_idx_1),
+									.data(dbi),
+									.do_tx(1'b1));
                         end
                     `VIDEO_MEM_2_HI:
                         if (extra_regs_activated)
@@ -852,7 +894,9 @@ always @(posedge clk_dot4x)
                            .overlay(video_ram_flags[5]),
                            .ram_lo(video_ram_lo_2),
                            .ram_hi(video_ram_hi_2),
-                           .ram_idx(video_ram_idx_2));
+                           .ram_idx(video_ram_idx_2),
+									.data(dbi),
+									.do_tx(1'b1));
                         end
 
                     // --- END EXTENSIONS ----
@@ -871,8 +915,9 @@ always @(posedge clk_dot4x)
         // CPU write to color register ram
         if (color_regs_pre_wr_a) begin
             // Now we can do the write
-            color_regs_pre_wr_a <= 0;
-            color_regs_wr_a <= 1;
+            color_regs_pre_wr_a <= 1'b0;
+            color_regs_wr_a <= 1'b1;
+				color_regs_aw <= 1'b1;
             case (color_regs_wr_nibble)
                2'b00:
                    color_regs_data_in_a <= {color_regs_wr_value, color_regs_data_out_a[17:0]};
@@ -895,21 +940,32 @@ always @(posedge clk_dot4x)
             endcase
         end
 
-        // NOTE: This location means video_ram_wr_a will be high for two
-        // cycles.  color_regs_wr_a is only high for one.  But we needed
-        // an extra cycle to read color regs before we could update the
-        // 18 bit value properly.
+        // Only need 1 tick to write to video ram
+        if (video_ram_wr_a)
+		     video_ram_wr_a <= 1'b0;
+
+        // Only need 1 tick to write to color ram
+        if (color_regs_wr_a)
+		     color_regs_wr_a <= 1'b0;
+
+        // Near the start of the low cycle, handle auto increment of
+		  // our vram pointers.
         if (~clk_phi && phi_phase_start_dav_plus_2) begin
             // Always clear both flags and propagate r to r2 here.
             video_ram_r <= 0;
             video_ram_r2 <= video_ram_r;
-            video_ram_wr_a <= 0;
+				video_ram_aw <= 1'b0;
 
             color_regs_r <= 0;
             color_regs_r2 <= color_regs_r;
-            color_regs_wr_a <= 0;
+				color_regs_aw <= 1'b0;
 
-            if (video_ram_r2 || video_ram_wr_a || color_regs_r2 || color_regs_wr_a) begin
+            // We propagated r to r2 on reads so that we auto increment
+				// two cycles after a read due to some instructions reading first,
+				// then writing.  If we didn't do this, those instructions would
+				// cause two increments when we only wanted one.  So this effectively
+				// waits a full cycle before commiting to increment after a read.
+            if (video_ram_r2 || video_ram_aw || color_regs_r2 || color_regs_aw) begin
                 // Handle auto increment /decrement after port access
                 if (auto_ram_sel == 0) begin // loc 1 of port a
                     case(video_ram_flags[1:0]) // auto inc port a
@@ -954,7 +1010,6 @@ always @(posedge clk_dot4x)
                        ;
                     endcase
                 end
-
             end
         end
         // --- END EXTENSIONS ----
@@ -994,6 +1049,9 @@ end
 //     'CPU read from video ram' block above.
 //
 // In both cases, read happens next cycle and r flags turned off.
+//
+// If overlay is on, ram_hi and ram_idx are ignored and it will never
+// trigger a vram read.
 task read_ram(
     input overlay,
     input [7:0] ram_lo,
@@ -1039,11 +1097,111 @@ task read_ram(
 			 dbo <= `VARIANT_NAME8;
                  `EXT_REG_VARIANT_NAME9:
 			 dbo <= 8'd0;
-                 default: begin
-                     // We fallback to RAM if not peeking a register.
-                     video_ram_r <= 1;
-                     video_ram_addr_a <= {ram_hi[6:0], ram_lo} + {7'b0, ram_idx};
-                 end
+`ifdef CONFIGURABLE_LUMAS
+					  `EXT_REG_LUMA0:
+					     dbo <= {2'b0, luma[0]};
+					  `EXT_REG_LUMA1:
+					     dbo <= {2'b0, luma[1]};
+					  `EXT_REG_LUMA2:
+					     dbo <= {2'b0, luma[2]};
+					  `EXT_REG_LUMA3:
+					     dbo <= {2'b0, luma[3]};
+					  `EXT_REG_LUMA4:
+					     dbo <= {2'b0, luma[4]};
+					  `EXT_REG_LUMA5:
+					     dbo <= {2'b0, luma[5]};
+					  `EXT_REG_LUMA6:
+					     dbo <= {2'b0, luma[6]};
+					  `EXT_REG_LUMA7:
+					     dbo <= {2'b0, luma[7]};
+					  `EXT_REG_LUMA8:
+					     dbo <= {2'b0, luma[8]};
+					  `EXT_REG_LUMA9:
+					     dbo <= {2'b0, luma[9]};
+					  `EXT_REG_LUMA10:
+					     dbo <= {2'b0, luma[10]};
+					  `EXT_REG_LUMA11:
+					     dbo <= {2'b0, luma[11]};
+					  `EXT_REG_LUMA12:
+					     dbo <= {2'b0, luma[12]};
+					  `EXT_REG_LUMA13:
+					     dbo <= {2'b0, luma[13]};
+					  `EXT_REG_LUMA14:
+					     dbo <= {2'b0, luma[14]};
+					  `EXT_REG_LUMA15:
+					     dbo <= {2'b0, luma[15]};
+
+					  `EXT_REG_PHASE0:
+					     dbo <= phase[0];
+					  `EXT_REG_PHASE1:
+					     dbo <= phase[1];
+					  `EXT_REG_PHASE2:
+					     dbo <= phase[2];
+					  `EXT_REG_PHASE3:
+					     dbo <= phase[3];
+					  `EXT_REG_PHASE4:
+					     dbo <= phase[4];
+					  `EXT_REG_PHASE5:
+					     dbo <= phase[5];
+					  `EXT_REG_PHASE6:
+					     dbo <= phase[6];
+					  `EXT_REG_PHASE7:
+					     dbo <= phase[7];
+					  `EXT_REG_PHASE8:
+					     dbo <= phase[8];
+					  `EXT_REG_PHASE9:
+					     dbo <= phase[9];
+					  `EXT_REG_PHASE10:
+					     dbo <= phase[10];
+					  `EXT_REG_PHASE11:
+					     dbo <= phase[11];
+					  `EXT_REG_PHASE12:
+					     dbo <= phase[12];
+					  `EXT_REG_PHASE13:
+					     dbo <= phase[13];
+					  `EXT_REG_PHASE14:
+					     dbo <= phase[14];
+					  `EXT_REG_PHASE15:
+					     dbo <= phase[15];
+
+					  `EXT_REG_AMPL0:
+					     dbo <= {5'b0, amplitude[0]};
+					  `EXT_REG_AMPL1:
+					     dbo <= {5'b0, amplitude[1]};
+					  `EXT_REG_AMPL2:
+					     dbo <= {5'b0, amplitude[2]};
+					  `EXT_REG_AMPL3:
+					     dbo <= {5'b0, amplitude[3]};
+					  `EXT_REG_AMPL4:
+					     dbo <= {5'b0, amplitude[4]};
+					  `EXT_REG_AMPL5:
+					     dbo <= {5'b0, amplitude[5]};
+					  `EXT_REG_AMPL6:
+					     dbo <= {5'b0, amplitude[6]};
+					  `EXT_REG_AMPL7:
+					     dbo <= {5'b0, amplitude[7]};
+					  `EXT_REG_AMPL8:
+					     dbo <= {5'b0, amplitude[8]};
+					  `EXT_REG_AMPL9:
+					     dbo <= {5'b0, amplitude[9]};
+					  `EXT_REG_AMPL10:
+					     dbo <= {5'b0, amplitude[10]};
+					  `EXT_REG_AMPL11:
+					     dbo <= {5'b0, amplitude[11]};
+					  `EXT_REG_AMPL12:
+					     dbo <= {5'b0, amplitude[12]};
+					  `EXT_REG_AMPL13:
+					     dbo <= {5'b0, amplitude[13]};
+					  `EXT_REG_AMPL14:
+					     dbo <= {5'b0, amplitude[14]};
+					  `EXT_REG_AMPL15:
+					     dbo <= {5'b0, amplitude[15]};
+					  `EXT_REG_BLANKING:
+					     dbo <= {2'b0, blanking_level};
+					  `EXT_REG_BURSTAMP:
+					     dbo <= {5'b0, burst_amplitude};
+`endif  // CONFIGURABLE_LUMAS
+                 default: ;
               endcase
           end
        end else begin
@@ -1062,20 +1220,27 @@ endtask
 //     Write happens in one stage. We set the wr flag, address and value
 //     here.
 //
-// In both cases, wr flags are turned off by dav_plus2
+// In both cases, wr flags are turned one cycle after they are set.
+//
+// If overlay is on, ram_hi and ram_idx are ignored and it will never
+// trigger a vram write.
+//
+// If do_tx is 1, we transmit this change to the MCU for persistence.
 task write_ram(
     input overlay,
     input [7:0] ram_lo,
     input [7:0] ram_hi,
-    input [7:0] ram_idx);
+    input [7:0] ram_idx,
+	 input [7:0] data,
+	 input do_tx);
     begin
        if (overlay) begin
            if (ram_lo < 8'h80) begin
               // In order to write to individual 6 bit
               // values within the 24 bit register, we
               // have to read it first, then write.
-              color_regs_pre_wr_a <= 1;
-              color_regs_wr_value <= dbi[5:0];
+              color_regs_pre_wr_a <= 1'b1;
+              color_regs_wr_value <= data[5:0];
               color_regs_wr_nibble <= ram_lo[1:0];
               color_regs_addr_a <= ram_lo[6:2];
            end else begin
@@ -1086,158 +1251,144 @@ task write_ram(
               // bits will be reflected after the next
               // cold boot.
               case (ram_lo)
-                 // Not safe to allow this to be changed from
+                 // Not safe to allow last_is_15khz to be changed from
                  // CPU. Already burned by this with accidental
                  // overwrite of this register. This can effectively
                  // disable your display so leave this only to the
                  // serial connection to change.
-                 //`EXT_REG_VIDEO_FREQ:
-                 // begin
-                 //   last_is_15khz <= dbi[0];
-                 //   tx_data_4x <= {4'b0,
-                 //                  ~last_raster_lines,
-                 //                  dbi[0],
-                 //                  last_chip};
-                 //   tx_new_data_sr <= 2'b11;
-                 // end
                  `EXT_REG_CHIP_MODEL:
                   begin
-                    last_chip <= dbi[1:0];
-                    tx_data_4x <= {4'b0,
-			           ~last_raster_lines,
-                    last_is_15khz,
-                    dbi[1:0]};
-                    tx_new_data_sr <= 2'b11;
+                    last_chip <= data[1:0];
+						  if (do_tx) begin
+						      tx_cfg_change_1 <= `EXT_REG_CHIP_MODEL;
+						      tx_cfg_change_2 <= {6'b0, data[1:0]};
+						      tx_new_data_start = 1'b1;					  
+                    end
                  end
                  `EXT_REG_DISPLAY_FLAGS:
                   begin
-                    last_raster_lines <= dbi[`SHOW_RASTER_LINES];
-                    tx_data_4x <= {4'b0,
-			           ~dbi[`SHOW_RASTER_LINES],
-                    last_is_15khz,
-                    last_chip};
-                    tx_new_data_sr <= 2'b11;
+                    last_raster_lines <= data[`SHOW_RASTER_LINES];
+						  if (do_tx) begin
+						     tx_cfg_change_1 <= `EXT_REG_DISPLAY_FLAGS;
+						     tx_cfg_change_2 <= {7'b0, data[`SHOW_RASTER_LINES]};
+                       tx_new_data_start = 1'b1;
+                    end
                  end
                  `EXT_REG_CURSOR_LO:
-                    hires_cursor_lo <= dbi;
+                    hires_cursor_lo <= data;
                  `EXT_REG_CURSOR_HI:
-                    hires_cursor_hi <= dbi;
-                 default: begin
-                    // We fallback to RAM if not poking a register.
-                    video_ram_wr_a <= 1;
-                    video_ram_data_in_a <= dbi[7:0];
-                    video_ram_addr_a <= {ram_hi[6:0], ram_lo} + {7'b0, ram_idx};
-                 end
+                    hires_cursor_hi <= data;
 `ifdef CONFIGURABLE_LUMAS
 					  `EXT_REG_LUMA0:
-					     luma[0] <= dbi[5:0];
+					     luma[0] <= data[5:0];
 					  `EXT_REG_LUMA1:
-					     luma[1] <= dbi[5:0];
+					     luma[1] <= data[5:0];
 					  `EXT_REG_LUMA2:
-					     luma[2] <= dbi[5:0];
+					     luma[2] <= data[5:0];
 					  `EXT_REG_LUMA3:
-					     luma[3] <= dbi[5:0];
+					     luma[3] <= data[5:0];
 					  `EXT_REG_LUMA4:
-					     luma[4] <= dbi[5:0];
+					     luma[4] <= data[5:0];
 					  `EXT_REG_LUMA5:
-					     luma[5] <= dbi[5:0];
+					     luma[5] <= data[5:0];
 					  `EXT_REG_LUMA6:
-					     luma[6] <= dbi[5:0];
+					     luma[6] <= data[5:0];
 					  `EXT_REG_LUMA7:
-					     luma[7] <= dbi[5:0];
+					     luma[7] <= data[5:0];
 					  `EXT_REG_LUMA8:
-					     luma[8] <= dbi[5:0];
+					     luma[8] <= data[5:0];
 					  `EXT_REG_LUMA9:
-					     luma[9] <= dbi[5:0];
+					     luma[9] <= data[5:0];
 					  `EXT_REG_LUMA10:
-					     luma[10] <= dbi[5:0];
+					     luma[10] <= data[5:0];
 					  `EXT_REG_LUMA11:
-					     luma[11] <= dbi[5:0];
+					     luma[11] <= data[5:0];
 					  `EXT_REG_LUMA12:
-					     luma[12] <= dbi[5:0];
+					     luma[12] <= data[5:0];
 					  `EXT_REG_LUMA13:
-					     luma[13] <= dbi[5:0];
+					     luma[13] <= data[5:0];
 					  `EXT_REG_LUMA14:
-					     luma[14] <= dbi[5:0];
+					     luma[14] <= data[5:0];
 					  `EXT_REG_LUMA15:
-					     luma[15] <= dbi[5:0];
+					     luma[15] <= data[5:0];
 
 					  `EXT_REG_PHASE0:
-					     phase[0] <= dbi[7:0];
+					     phase[0] <= data[7:0];
 					  `EXT_REG_PHASE1:
-					     phase[1] <= dbi[7:0];
+					     phase[1] <= data[7:0];
 					  `EXT_REG_PHASE2:
-					     phase[2] <= dbi[7:0];
+					     phase[2] <= data[7:0];
 					  `EXT_REG_PHASE3:
-					     phase[3] <= dbi[7:0];
+					     phase[3] <= data[7:0];
 					  `EXT_REG_PHASE4:
-					     phase[4] <= dbi[7:0];
+					     phase[4] <= data[7:0];
 					  `EXT_REG_PHASE5:
-					     phase[5] <= dbi[7:0];
+					     phase[5] <= data[7:0];
 					  `EXT_REG_PHASE6:
-					     phase[6] <= dbi[7:0];
+					     phase[6] <= data[7:0];
 					  `EXT_REG_PHASE7:
-					     phase[7] <= dbi[7:0];
+					     phase[7] <= data[7:0];
 					  `EXT_REG_PHASE8:
-					     phase[8] <= dbi[7:0];
+					     phase[8] <= data[7:0];
 					  `EXT_REG_PHASE9:
-					     phase[9] <= dbi[7:0];
+					     phase[9] <= data[7:0];
 					  `EXT_REG_PHASE10:
-					     phase[10] <= dbi[7:0];
+					     phase[10] <= data[7:0];
 					  `EXT_REG_PHASE11:
-					     phase[11] <= dbi[7:0];
+					     phase[11] <= data[7:0];
 					  `EXT_REG_PHASE12:
-					     phase[12] <= dbi[7:0];
+					     phase[12] <= data[7:0];
 					  `EXT_REG_PHASE13:
-					     phase[13] <= dbi[7:0];
+					     phase[13] <= data[7:0];
 					  `EXT_REG_PHASE14:
-					     phase[14] <= dbi[7:0];
+					     phase[14] <= data[7:0];
 					  `EXT_REG_PHASE15:
-					     phase[15] <= dbi[7:0];
+					     phase[15] <= data[7:0];
 
 					  `EXT_REG_AMPL0:
-					     amplitude[0] <= dbi[2:0];
+					     amplitude[0] <= data[2:0];
 					  `EXT_REG_AMPL1:
-					     amplitude[1] <= dbi[2:0];
+					     amplitude[1] <= data[2:0];
 					  `EXT_REG_AMPL2:
-					     amplitude[2] <= dbi[2:0];
+					     amplitude[2] <= data[2:0];
 					  `EXT_REG_AMPL3:
-					     amplitude[3] <= dbi[2:0];
+					     amplitude[3] <= data[2:0];
 					  `EXT_REG_AMPL4:
-					     amplitude[4] <= dbi[2:0];
+					     amplitude[4] <= data[2:0];
 					  `EXT_REG_AMPL5:
-					     amplitude[5] <= dbi[2:0];
+					     amplitude[5] <= data[2:0];
 					  `EXT_REG_AMPL6:
-					     amplitude[6] <= dbi[2:0];
+					     amplitude[6] <= data[2:0];
 					  `EXT_REG_AMPL7:
-					     amplitude[7] <= dbi[2:0];
+					     amplitude[7] <= data[2:0];
 					  `EXT_REG_AMPL8:
-					     amplitude[8] <= dbi[2:0];
+					     amplitude[8] <= data[2:0];
 					  `EXT_REG_AMPL9:
-					     amplitude[9] <= dbi[2:0];
+					     amplitude[9] <= data[2:0];
 					  `EXT_REG_AMPL10:
-					     amplitude[10] <= dbi[2:0];
+					     amplitude[10] <= data[2:0];
 					  `EXT_REG_AMPL11:
-					     amplitude[11] <= dbi[2:0];
+					     amplitude[11] <= data[2:0];
 					  `EXT_REG_AMPL12:
-					     amplitude[12] <= dbi[2:0];
+					     amplitude[12] <= data[2:0];
 					  `EXT_REG_AMPL13:
-					     amplitude[13] <= dbi[2:0];
+					     amplitude[13] <= data[2:0];
 					  `EXT_REG_AMPL14:
-					     amplitude[14] <= dbi[2:0];
+					     amplitude[14] <= data[2:0];
 					  `EXT_REG_AMPL15:
-					     amplitude[15] <= dbi[2:0];
+					     amplitude[15] <= data[2:0];
 					  `EXT_REG_BLANKING:
-					     blanking_level <= dbi[5:0];
+					     blanking_level <= data[5:0];
 					  `EXT_REG_BURSTAMP:
-					     burst_amplitude <= dbi[2:0];
-
+					     burst_amplitude <= data[2:0];
 `endif  // CONFIGURABLE_LUMAS
+                 default: ;
               endcase
            end
         end else begin
-           video_ram_wr_a <= 1;
-           video_ram_data_in_a <= dbi[7:0];
+           video_ram_wr_a <= 1'b1;
+			  video_ram_aw <= 1'b1;
+           video_ram_data_in_a <= data[7:0];
            video_ram_addr_a <= {ram_hi[6:0], ram_lo} + {7'b0, ram_idx};
         end
     end

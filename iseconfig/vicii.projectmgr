@@ -13,17 +13,16 @@
          <ClosedNode>/top |home|ise|vicii|hdl|mojo_v3|top.v/dvi_tx0 - dvi_encoder_top</ClosedNode>
          <ClosedNode>/top |home|ise|vicii|hdl|mojo_v3|top.v/vic_comp_sync - comp_sync</ClosedNode>
          <ClosedNode>/top |home|ise|vicii|hdl|mojo_v3|top.v/vic_inst - vicii/vic_comp_sync - comp_sync</ClosedNode>
-         <ClosedNode>/top |home|ise|vicii|hdl|mojo_v3|top.v/vic_inst - vicii/vic_registers - registers</ClosedNode>
          <ClosedNode>/top |home|ise|vicii|hdl|mojo_v3|top.v/vic_inst - vicii/vic_vga_sync - hires_vga_sync</ClosedNode>
       </ClosedNodes>
       <SelectedItems>
-         <SelectedItem>mojo_avr_interface - avr_interface (/home/ise/vicii/hdl/avr_interface.v)</SelectedItem>
+         <SelectedItem>top (/home/ise/vicii/hdl/mojo_v3/top.v)</SelectedItem>
       </SelectedItems>
       <ScrollbarPosition orientation="vertical" >0</ScrollbarPosition>
       <ScrollbarPosition orientation="horizontal" >0</ScrollbarPosition>
       <ViewHeaderState orientation="horizontal" >000000ff000000000000000100000001000000000000000000000000000000000202000000010000000100000064000002e9000000020000000000000000000000000200000064ffffffff000000810000000300000002000002e90000000100000003000000000000000100000003</ViewHeaderState>
       <UserChangedColumnWidths orientation="horizontal" >true</UserChangedColumnWidths>
-      <CurrentItem>mojo_avr_interface - avr_interface (/home/ise/vicii/hdl/avr_interface.v)</CurrentItem>
+      <CurrentItem>top (/home/ise/vicii/hdl/mojo_v3/top.v)</CurrentItem>
    </ItemView>
    <ItemView engineview="SynthesisOnly" sourcetype="" guiview="Process" >
       <ClosedNodes>
@@ -34,7 +33,7 @@
       </SelectedItems>
       <ScrollbarPosition orientation="vertical" >0</ScrollbarPosition>
       <ScrollbarPosition orientation="horizontal" >0</ScrollbarPosition>
-      <ViewHeaderState orientation="horizontal" >000000ff0000000000000001000000010000000000000000000000000000000000000000000000022c000000010000000100000000000000000000000064ffffffff0000008100000000000000010000022c0000000100000000</ViewHeaderState>
+      <ViewHeaderState orientation="horizontal" >000000ff00000000000000010000000100000000000000000000000000000000000000000000000196000000010000000100000000000000000000000064ffffffff000000810000000000000001000001960000000100000000</ViewHeaderState>
       <UserChangedColumnWidths orientation="horizontal" >false</UserChangedColumnWidths>
       <CurrentItem></CurrentItem>
    </ItemView>
@@ -60,7 +59,7 @@
       <UserChangedColumnWidths orientation="horizontal" >false</UserChangedColumnWidths>
       <CurrentItem>work</CurrentItem>
    </ItemView>
-   <SourceProcessView>000000ff00000000000000020000019d0000009f01000000060100000002</SourceProcessView>
+   <SourceProcessView>000000ff000000000000000200000165000000ea01000000060100000002</SourceProcessView>
    <CurrentView>Implementation</CurrentView>
    <ItemView engineview="SynthesisOnly" sourcetype="DESUT_VERILOG" guiview="Process" >
       <ClosedNodes>
@@ -76,9 +75,9 @@
       <SelectedItems>
          <SelectedItem></SelectedItem>
       </SelectedItems>
-      <ScrollbarPosition orientation="vertical" >0</ScrollbarPosition>
+      <ScrollbarPosition orientation="vertical" >14</ScrollbarPosition>
       <ScrollbarPosition orientation="horizontal" >0</ScrollbarPosition>
-      <ViewHeaderState orientation="horizontal" >000000ff0000000000000001000000010000000000000000000000000000000000000000000000023b000000010000000100000000000000000000000064ffffffff0000008100000000000000010000023b0000000100000000</ViewHeaderState>
+      <ViewHeaderState orientation="horizontal" >000000ff00000000000000010000000100000000000000000000000000000000000000000000000187000000010000000100000000000000000000000064ffffffff000000810000000000000001000001870000000100000000</ViewHeaderState>
       <UserChangedColumnWidths orientation="horizontal" >false</UserChangedColumnWidths>
       <CurrentItem></CurrentItem>
    </ItemView>

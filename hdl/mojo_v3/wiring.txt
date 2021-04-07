@@ -98,8 +98,6 @@ P79     CHROMA   chroma[1]       O   QUIETIO 2 NA
 P78     CHROMA   chroma[0]       O   QUIETIO 2 NA
 
 # Config pins
-P62     IS_15KHZ is_15khz              I  NA  NA NA
-P65     IS_HIDE  is_hide_raster_lines  I  NA  NA NA
 P46     CHIP_0   chip[0]               I  NA  NA NA
 P61     CHIP_1   chip[1]               I  NA  NA NA
 
@@ -119,8 +117,6 @@ P56     CLK      sys_clock       I     NA NA NA
 # rewire our prototype board.
 
 # These have to stay fixed:
-#KEEP is_15khz
-#KEEP is_hide_raster_lines
 #KEEP chip[0]
 #KEEP chip[1]
 #KEEP tx

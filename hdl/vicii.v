@@ -24,8 +24,6 @@
 
 module vicii(
       input [1:0] chip,               // config from MC
-	   input is_15khz,                 // config from mC
-	   input is_hide_raster_lines,     // config from mC
       input rst,
       input clk_dot4x,
 	   output[7:0] tx_data_4x,         // from regs module
@@ -793,6 +791,7 @@ hires_addressgen vic_hires_addressgen(
 // final stage 4 output pixel index to get rgb values
 wire[3:0] pixel_color4_vga;
 wire half_bright;
+wire is_15khz;
 wire show_raster_lines;
 
 `ifdef HAVE_COLOR_CLOCKS
@@ -888,8 +887,7 @@ registers vic_registers(
 	      .green(green), // out
 	      .blue(blue), // out
 	      .chip(chip), // config in
-	      .is_15khz(is_15khz), // config in
-	      .is_hide_raster_lines(is_hide_raster_lines), // config in
+	      .last_is_15khz(is_15khz), // current setting out
 	      .last_raster_lines(show_raster_lines), // current setting out
 
 	      .tx_data_4x(tx_data_4x),

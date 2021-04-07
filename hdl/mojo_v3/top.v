@@ -36,8 +36,6 @@ module top(
 
 `endif  // HAVE_COLOR_CLOCKS
            input [1:0] chip,    // chip config from MCU
-           input is_15khz,      // freq config pin from MCU
-           input is_hide_raster_lines, // config pin from MCU
            output tx,           // to mcm
            input rx,            // from mcm (unused a.t.m)
            input cclk,          // from mcm
@@ -233,8 +231,6 @@ vicii vic_inst(
           .tx_new_data_4x(tx_new_data_4x),
           .rx_data_4x(rx_data_4x),
           .rx_new_data_4x(rx_new_data_4x),
-          .is_15khz(is_15khz),
-          .is_hide_raster_lines(is_hide_raster_lines),
           .clk_dot4x(clk_dot4x),
           .clk_phi(clk_phi),
           .active(active),
@@ -306,7 +302,7 @@ wire new_rx_data;
 
 avr_interface mojo_avr_interface(
     .clk(sys_clock),
-    .rst(1'b0),
+    .rst(rst),
     .cclk(cclk),
     .tx(tx),
     .rx(rx),
@@ -323,4 +319,5 @@ serial_cross vic_serial_cross(
 	 .new_in_data(new_rx_data),
 	 .out_data(rx_data_4x),
 	 .new_out_data(rx_new_data_4x));
+
 endmodule : top
