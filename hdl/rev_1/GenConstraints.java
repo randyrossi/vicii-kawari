@@ -76,7 +76,7 @@ public class GenConstraints
                    if (t6.equals("clk_colref")) continue;
                    if (t6.equals("csync")) continue;
                 }
-                if (!flags[WITH_DVI]) {
+		if (!flags[WITH_DVI]) {
                    if (t6.startsWith("TX0_TMDS")) continue;
                 }
 

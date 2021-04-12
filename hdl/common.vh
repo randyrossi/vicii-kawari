@@ -4,6 +4,11 @@
 `define VERSION_MAJOR 4'd0
 `define VERSION_MINOR 4'd2
 
+// Pick a board. MojoV3 'hat' is still working but
+// this will be dropped soon.
+//`define REV_1_BOARD 1
+`define MOJOV3_BOARD 1
+
 // This shows a test pattern with colors and some text.
 // Useful for testing video output from the device without
 // it being plugged into a C64. This will use approx 16k
@@ -71,7 +76,7 @@
 // Uncomment to activate registers a0-cf and d1,d2 to control
 // luma(a#), phase(b#) and amplitudes(c#) for the 16 colors as
 // well as blanking level (d1) and burst amplitude (d2).
-`define CONFIGURABLE_LUMAS 1
+//`define CONFIGURABLE_LUMAS 1
 
 // Uncomment to average the luma values over 4 ticks of the
 // dot4x clock. This smooths out transitions between levels.

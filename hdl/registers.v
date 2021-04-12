@@ -4,6 +4,9 @@
 
 module registers(
            input rst,
+`ifdef REV_1_BOARD
+           input cpu_reset_i,
+`endif
            input clk_dot4x,
            input clk_phi,
            input phi_phase_start_dav_plus_2,
@@ -429,6 +432,17 @@ always @(posedge clk_dot4x)
 
     end else
     begin
+	 
+`ifdef REV_1_BOARD
+         // For now, this is dummy code to keep the reset in line
+         // from getting thrown away. Replace this with code to
+         // actually reset the extension registers at some point
+         // on the real board.  Remove this ifdef when mojo_v3 is
+         // deprecated.
+	 if (cpu_reset_i)
+	    ec <= 4'b1;
+`endif
+		 
         // Always reset start flag. write_ram may flip this true if a register was
 		  // changed and it should be persisted.
         tx_new_data_start = 1'b0;

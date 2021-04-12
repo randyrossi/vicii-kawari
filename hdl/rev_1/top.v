@@ -40,12 +40,12 @@ module top(
            input rx,            // from mcm (unused a.t.m)
            input cclk,          // from mcm
            output cpu_reset,    // reset for 6510 CPU
+           input cpu_reset_i,
            output clk_phi,      // output phi clock for CPU
 
            output clk_dot4x_ext,// pixel clock
            output hsync,        // hsync signal for VGA/DVI
            output vsync,        // vsync signal for VGA/DVI
-           output active,       // display active for DVI
            output [5:0] red,    // red out for VGA/DVI or Composite Encoder
            output [5:0] green,  // green out for VGA/DVI or Composite Encoder
            output [5:0] blue,   // blue out for VGA/DVI or Composite Encoder
@@ -71,9 +71,7 @@ module top(
            output ba,           // ba
            output cas,          // column address strobe
            output ras,          // row address strobe
-           //output ls245_addr_oe,   // OE for addr bus transceviers
            output ls245_addr_dir,  // DIR for addr bus transceivers
-			  output ls245_data_oe,   // OE for data bus transcevier
            output ls245_data_dir   // DIR for data bus transceiver
 `ifdef WITH_DVI
            ,
@@ -81,7 +79,7 @@ module top(
            output wire [3:0] TX0_TMDSB
 `endif
        );
-
+wire active;
 // use_scan_doubler is valid only when HAVE_COLOR_CLOCKS is
 // set. If an external composite encoder is going to be used,
 // use_scan_doubler must be false. If use_scan_doubler is false,
@@ -227,6 +225,7 @@ wire rx_new_data_4x;
 vicii vic_inst(
           .rst(rst),
           .chip(chip),
+          .cpu_reset_i(cpu_reset_i),
           .tx_data_4x(tx_data_4x),
           .tx_new_data_4x(tx_new_data_4x),
           .rx_data_4x(rx_data_4x),
@@ -261,9 +260,7 @@ vicii vic_inst(
           .cas(cas),
           .ras(ras),
           .ls245_data_dir(ls245_data_dir),
-			 .ls245_data_oe(ls245_data_oe),
           .ls245_addr_dir(ls245_addr_dir),
-          //.ls245_addr_oe(ls245_addr_oe),
           .vic_write_db(vic_write_db),
           .vic_write_ab(vic_write_ab),
           .red(red),

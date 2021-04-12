@@ -24,6 +24,9 @@
 
 module vicii(
       input [1:0] chip,               // config from MC
+`ifdef REV_1_BOARD
+      input cpu_reset_i,
+`endif
       input rst,
       input clk_dot4x,
 	   output[7:0] tx_data_4x,         // from regs module
@@ -58,9 +61,10 @@ module vicii(
            output ras,
            output cas,
            output ls245_data_dir,
+`ifdef MOJOV3_BOARD
            output ls245_data_oe,
+`endif
            output ls245_addr_dir,
-           //output ls245_addr_oe,
            output vic_write_db,
            output vic_write_ab,
 	   output [5:0] red,
@@ -712,7 +716,9 @@ assign vic_write_ab = ~(aec | aec3);
 
 // For data bus direction, use inverse of vic_write_db
 assign ls245_data_dir = ~vic_write_db;
+`ifdef MOJOV3_BOARD
 assign ls245_data_oe = 1'b0; // aec & ce;  for now, always enable
+`endif
 assign ls245_addr_dir = aec;
 //assign ls245_addr_oe = 1'b0; // aec & ce;  for now, always enable
 
@@ -808,6 +814,9 @@ wire [2:0] burst_amplitude;
 
 registers vic_registers(
               .rst(rst),
+`ifdef REV_1_BOARD
+              .cpu_reset_i(cpu_reset_i),
+`endif
               .clk_dot4x(clk_dot4x),
               .clk_phi(clk_phi),
               .phi_phase_start_dav_plus_2(phi_phase_start[`DATA_DAV_PLUS_2]),
