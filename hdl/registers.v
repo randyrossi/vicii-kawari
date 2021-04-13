@@ -1079,7 +1079,19 @@ task read_ram(
               color_regs_r <= 1'b1;
               color_regs_r_nibble <= ram_lo[1:0];
               color_regs_addr_a <= ram_lo[6:2];
-          end else begin
+          end
+`ifdef CONFIGURABLE_LUMAS
+			  else if (ram_lo >= `EXT_REG_LUMA0 && ram_lo <= `EXT_REG_LUMA15) begin
+			     dbo <= {2'b0, luma[ram_lo - `EXT_REG_LUMA0]};
+			  end
+			  else if (ram_lo >= `EXT_REG_PHASE0 && ram_lo <= `EXT_REG_PHASE15) begin
+			     dbo <= phase[ram_lo - `EXT_REG_PHASE0];
+			  end
+			  else if (ram_lo >= `EXT_REG_AMPL0 && ram_lo <= `EXT_REG_AMPL15) begin
+			     dbo <= {5'b0, amplitude[ram_lo - `EXT_REG_AMPL0]};
+			  end
+`endif
+          else begin
               case (ram_lo)
                  `EXT_REG_VIDEO_FREQ:
 		         dbo <= {7'b0, last_is_15khz};
@@ -1112,109 +1124,11 @@ task read_ram(
                  `EXT_REG_VARIANT_NAME9:
 			 dbo <= 8'd0;
 `ifdef CONFIGURABLE_LUMAS
-					  `EXT_REG_LUMA0:
-					     dbo <= {2'b0, luma[0]};
-					  `EXT_REG_LUMA1:
-					     dbo <= {2'b0, luma[1]};
-					  `EXT_REG_LUMA2:
-					     dbo <= {2'b0, luma[2]};
-					  `EXT_REG_LUMA3:
-					     dbo <= {2'b0, luma[3]};
-					  `EXT_REG_LUMA4:
-					     dbo <= {2'b0, luma[4]};
-					  `EXT_REG_LUMA5:
-					     dbo <= {2'b0, luma[5]};
-					  `EXT_REG_LUMA6:
-					     dbo <= {2'b0, luma[6]};
-					  `EXT_REG_LUMA7:
-					     dbo <= {2'b0, luma[7]};
-					  `EXT_REG_LUMA8:
-					     dbo <= {2'b0, luma[8]};
-					  `EXT_REG_LUMA9:
-					     dbo <= {2'b0, luma[9]};
-					  `EXT_REG_LUMA10:
-					     dbo <= {2'b0, luma[10]};
-					  `EXT_REG_LUMA11:
-					     dbo <= {2'b0, luma[11]};
-					  `EXT_REG_LUMA12:
-					     dbo <= {2'b0, luma[12]};
-					  `EXT_REG_LUMA13:
-					     dbo <= {2'b0, luma[13]};
-					  `EXT_REG_LUMA14:
-					     dbo <= {2'b0, luma[14]};
-					  `EXT_REG_LUMA15:
-					     dbo <= {2'b0, luma[15]};
-
-					  `EXT_REG_PHASE0:
-					     dbo <= phase[0];
-					  `EXT_REG_PHASE1:
-					     dbo <= phase[1];
-					  `EXT_REG_PHASE2:
-					     dbo <= phase[2];
-					  `EXT_REG_PHASE3:
-					     dbo <= phase[3];
-					  `EXT_REG_PHASE4:
-					     dbo <= phase[4];
-					  `EXT_REG_PHASE5:
-					     dbo <= phase[5];
-					  `EXT_REG_PHASE6:
-					     dbo <= phase[6];
-					  `EXT_REG_PHASE7:
-					     dbo <= phase[7];
-					  `EXT_REG_PHASE8:
-					     dbo <= phase[8];
-					  `EXT_REG_PHASE9:
-					     dbo <= phase[9];
-					  `EXT_REG_PHASE10:
-					     dbo <= phase[10];
-					  `EXT_REG_PHASE11:
-					     dbo <= phase[11];
-					  `EXT_REG_PHASE12:
-					     dbo <= phase[12];
-					  `EXT_REG_PHASE13:
-					     dbo <= phase[13];
-					  `EXT_REG_PHASE14:
-					     dbo <= phase[14];
-					  `EXT_REG_PHASE15:
-					     dbo <= phase[15];
-
-					  `EXT_REG_AMPL0:
-					     dbo <= {5'b0, amplitude[0]};
-					  `EXT_REG_AMPL1:
-					     dbo <= {5'b0, amplitude[1]};
-					  `EXT_REG_AMPL2:
-					     dbo <= {5'b0, amplitude[2]};
-					  `EXT_REG_AMPL3:
-					     dbo <= {5'b0, amplitude[3]};
-					  `EXT_REG_AMPL4:
-					     dbo <= {5'b0, amplitude[4]};
-					  `EXT_REG_AMPL5:
-					     dbo <= {5'b0, amplitude[5]};
-					  `EXT_REG_AMPL6:
-					     dbo <= {5'b0, amplitude[6]};
-					  `EXT_REG_AMPL7:
-					     dbo <= {5'b0, amplitude[7]};
-					  `EXT_REG_AMPL8:
-					     dbo <= {5'b0, amplitude[8]};
-					  `EXT_REG_AMPL9:
-					     dbo <= {5'b0, amplitude[9]};
-					  `EXT_REG_AMPL10:
-					     dbo <= {5'b0, amplitude[10]};
-					  `EXT_REG_AMPL11:
-					     dbo <= {5'b0, amplitude[11]};
-					  `EXT_REG_AMPL12:
-					     dbo <= {5'b0, amplitude[12]};
-					  `EXT_REG_AMPL13:
-					     dbo <= {5'b0, amplitude[13]};
-					  `EXT_REG_AMPL14:
-					     dbo <= {5'b0, amplitude[14]};
-					  `EXT_REG_AMPL15:
-					     dbo <= {5'b0, amplitude[15]};
-					  `EXT_REG_BLANKING:
-					     dbo <= {2'b0, blanking_level};
-					  `EXT_REG_BURSTAMP:
-					     dbo <= {5'b0, burst_amplitude};
-`endif  // CONFIGURABLE_LUMAS
+                 `EXT_REG_BLANKING:
+                     dbo <= {2'b0, blanking_level};
+                 `EXT_REG_BURSTAMP:
+                     dbo <= {5'b0, burst_amplitude};
+`endif
                  default: ;
               endcase
           end
@@ -1257,7 +1171,19 @@ task write_ram(
               color_regs_wr_value <= data[5:0];
               color_regs_wr_nibble <= ram_lo[1:0];
               color_regs_addr_a <= ram_lo[6:2];
-           end else begin
+           end
+`ifdef CONFIGURABLE_LUMAS
+			  else if (ram_lo >= `EXT_REG_LUMA0 && ram_lo <= `EXT_REG_LUMA15) begin
+			     luma[ram_lo - `EXT_REG_LUMA0] <= data[5:0];
+			  end
+			  else if (ram_lo >= `EXT_REG_PHASE0 && ram_lo <= `EXT_REG_PHASE15) begin
+			     phase[ram_lo - `EXT_REG_PHASE0] <= data[7:0];
+			  end
+			  else if (ram_lo >= `EXT_REG_AMPL0 && ram_lo <= `EXT_REG_AMPL15) begin
+			     amplitude[ram_lo - `EXT_REG_AMPL0] <= data[2:0];
+			  end
+`endif
+           else begin
               // When we poke certain config registers, we
               // reconstruct a new configuration byte and
               // pass it to the MCU over serial.  Then, it
@@ -1293,109 +1219,11 @@ task write_ram(
                  `EXT_REG_CURSOR_HI:
                     hires_cursor_hi <= data;
 `ifdef CONFIGURABLE_LUMAS
-					  `EXT_REG_LUMA0:
-					     luma[0] <= data[5:0];
-					  `EXT_REG_LUMA1:
-					     luma[1] <= data[5:0];
-					  `EXT_REG_LUMA2:
-					     luma[2] <= data[5:0];
-					  `EXT_REG_LUMA3:
-					     luma[3] <= data[5:0];
-					  `EXT_REG_LUMA4:
-					     luma[4] <= data[5:0];
-					  `EXT_REG_LUMA5:
-					     luma[5] <= data[5:0];
-					  `EXT_REG_LUMA6:
-					     luma[6] <= data[5:0];
-					  `EXT_REG_LUMA7:
-					     luma[7] <= data[5:0];
-					  `EXT_REG_LUMA8:
-					     luma[8] <= data[5:0];
-					  `EXT_REG_LUMA9:
-					     luma[9] <= data[5:0];
-					  `EXT_REG_LUMA10:
-					     luma[10] <= data[5:0];
-					  `EXT_REG_LUMA11:
-					     luma[11] <= data[5:0];
-					  `EXT_REG_LUMA12:
-					     luma[12] <= data[5:0];
-					  `EXT_REG_LUMA13:
-					     luma[13] <= data[5:0];
-					  `EXT_REG_LUMA14:
-					     luma[14] <= data[5:0];
-					  `EXT_REG_LUMA15:
-					     luma[15] <= data[5:0];
-
-					  `EXT_REG_PHASE0:
-					     phase[0] <= data[7:0];
-					  `EXT_REG_PHASE1:
-					     phase[1] <= data[7:0];
-					  `EXT_REG_PHASE2:
-					     phase[2] <= data[7:0];
-					  `EXT_REG_PHASE3:
-					     phase[3] <= data[7:0];
-					  `EXT_REG_PHASE4:
-					     phase[4] <= data[7:0];
-					  `EXT_REG_PHASE5:
-					     phase[5] <= data[7:0];
-					  `EXT_REG_PHASE6:
-					     phase[6] <= data[7:0];
-					  `EXT_REG_PHASE7:
-					     phase[7] <= data[7:0];
-					  `EXT_REG_PHASE8:
-					     phase[8] <= data[7:0];
-					  `EXT_REG_PHASE9:
-					     phase[9] <= data[7:0];
-					  `EXT_REG_PHASE10:
-					     phase[10] <= data[7:0];
-					  `EXT_REG_PHASE11:
-					     phase[11] <= data[7:0];
-					  `EXT_REG_PHASE12:
-					     phase[12] <= data[7:0];
-					  `EXT_REG_PHASE13:
-					     phase[13] <= data[7:0];
-					  `EXT_REG_PHASE14:
-					     phase[14] <= data[7:0];
-					  `EXT_REG_PHASE15:
-					     phase[15] <= data[7:0];
-
-					  `EXT_REG_AMPL0:
-					     amplitude[0] <= data[2:0];
-					  `EXT_REG_AMPL1:
-					     amplitude[1] <= data[2:0];
-					  `EXT_REG_AMPL2:
-					     amplitude[2] <= data[2:0];
-					  `EXT_REG_AMPL3:
-					     amplitude[3] <= data[2:0];
-					  `EXT_REG_AMPL4:
-					     amplitude[4] <= data[2:0];
-					  `EXT_REG_AMPL5:
-					     amplitude[5] <= data[2:0];
-					  `EXT_REG_AMPL6:
-					     amplitude[6] <= data[2:0];
-					  `EXT_REG_AMPL7:
-					     amplitude[7] <= data[2:0];
-					  `EXT_REG_AMPL8:
-					     amplitude[8] <= data[2:0];
-					  `EXT_REG_AMPL9:
-					     amplitude[9] <= data[2:0];
-					  `EXT_REG_AMPL10:
-					     amplitude[10] <= data[2:0];
-					  `EXT_REG_AMPL11:
-					     amplitude[11] <= data[2:0];
-					  `EXT_REG_AMPL12:
-					     amplitude[12] <= data[2:0];
-					  `EXT_REG_AMPL13:
-					     amplitude[13] <= data[2:0];
-					  `EXT_REG_AMPL14:
-					     amplitude[14] <= data[2:0];
-					  `EXT_REG_AMPL15:
-					     amplitude[15] <= data[2:0];
-					  `EXT_REG_BLANKING:
-					     blanking_level <= data[5:0];
-					  `EXT_REG_BURSTAMP:
-					     burst_amplitude <= data[2:0];
-`endif  // CONFIGURABLE_LUMAS
+                 `EXT_REG_BLANKING:
+                    blanking_level <= data[5:0];
+                 `EXT_REG_BURSTAMP:
+                    burst_amplitude <= data[2:0];
+`endif
                  default: ;
               endcase
            end
