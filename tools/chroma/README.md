@@ -1,6 +1,7 @@
-sine.bin - 7 sine waves of increasing amplitude, each 9 bits wide (signed)
+sine.bin - 7 sine waves of decreasing amplitude, each 9 bits wide (signed)
 
-Sine.java turns the signed data into unsigned and centers @ 256
+Sine.java generates the waves into 9 bit signed values and
+draws the same data centered @ 256.
 
 java Sine > sine.bin
 

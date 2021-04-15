@@ -19,35 +19,32 @@ public class Sine extends java.awt.Frame implements KeyListener {
     public static void main(String[] args) throws Exception {
       Sine sine = new Sine(); 
 
-      sine.setSize(640,480);
-      sine.setVisible(true);
-
-      File f = new File("sine.tables");
-      FileInputStream fis = new FileInputStream(f);
-      InputStreamReader ir = new InputStreamReader(fis);
-      BufferedReader br = new BufferedReader(ir);
-
-      int p=0;
-      while (true) {
-	      String line = br.readLine();
-	      if (line == null) break;
-	      int b = 256;
-	      int v = 0;
-	      for (int i=0;i<9;i++) {
-		      if (line.charAt(i) == '1') v=v+b;
-		      b=b/2;
-	      }
-	      
-	      if (v >=256) sine_tables[p] = (-(512-v)); else sine_tables[p] = v;
-
-	      String result = Integer.toBinaryString(sine_tables[p]+256);
- 		String resultWithPadding = 
-			 String.format("%9s", result).replaceAll(" ", "0");
-	      System.out.println(resultWithPadding);
-	      p++;
+      if (args.length == 0) {
+         sine.setSize(640,600);
+	 sine.setVisible(true);
       }
 
-      sine.repaint();
+      int num_waves = 7;
+      double max_amp = 230;
+      double min_amp = 60;
+
+      double amp = max_amp;
+      double amp_step = (max_amp - min_amp) / (num_waves-1);
+      int p = 0;
+      for (int wave = 0; wave < num_waves; wave++) {
+         for (int x = 0; x < 256; x++) {
+            int y = (int)(Math.sin(x/40.74366) * amp); // 256/(2*pi)
+	    sine_tables[p++] = y;
+	    String binary = Integer.toBinaryString(y);
+	    while (binary.length() < 9) binary = "0" + binary;
+	    System.out.println(binary.substring(binary.length()-9,binary.length()));
+	 }
+	 amp=amp-amp_step;
+      }
+
+      if (args.length == 0) {
+         sine.repaint();
+      }
     }
 
     public Sine() {
@@ -55,11 +52,14 @@ public class Sine extends java.awt.Frame implements KeyListener {
     }
 
     public void paint(Graphics g) {
-       
+        int left = 100;
+        int cy = 300;	
+        g.drawLine(left,cy+256,left,cy-256);
+        g.drawLine(left,cy+256,left+256,cy+256);
 	for (int a = 0;a<7;a++) {
 	  for (int x = 0;x<256;x++) {
 	    int y = sine_tables[x+256*a];
-            g.drawLine(x+100,200+y,x+100,200+y);
+            g.drawLine(x+left,cy+y,x+left,cy+y);
 	  }
 	}
     }
