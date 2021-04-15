@@ -1,0 +1,165 @@
+*= $c000
+
+.lst vectors.lab
+
+len = $57
+codevec = $59
+count = $5b
+
+		jmp loader
+loadpage	.byt 0
+
+modmsg		.asc "Module name: \0"
+
+loader		jsr setnam
+		lda #2
+		ldx 186
+		ldy #2
+		jsr setlfs
+		jsr open
+
+		ldx #2
+		jsr chkin
+
+		ldx #<modmsg
+		ldy #>modmsg
+		jsr outstr
+
+; show module name
+
+		jsr chrin
+		tay
+		beq +
+
+-		jsr chrin
+		jsr chrout
+		dey
+		bne -
+
+		lda #"\m"
+		jsr chrout
+
+; get code length
+
++		jsr chrin
+		sta len
+		sta $0400
+		jsr chrin
+		sta len+1
+		sta $0401
+
+; load code
+
+		ldy #0
+		sty count+1
+		sty codevec
+		lda loadpage
+		sta codevec+1
+
+-		jsr chrin
+		sta (codevec),y
+		iny
+		bne +
+		inc codevec+1
+		inc count+1
+
++		cpy len
+		bne -
+		lda count+1
+		cmp len+1
+		bne -
+
+; relocate one-bytes
+
+		ldx #<onemsg
+		ldy #>onemsg
+		jsr outstr
+		jmp ONE
+
+onemsg		.asc "getting one-bytes\m\0"
+
+ONE		jsr chrin
+		sta count
+		sta $0428
+		beq +TWO
+
+		lda #0
+		sta codevec
+		lda loadpage
+		sta codevec+1
+
+-		jsr chrin
+		tay
+		clc
+		lda (codevec),y
+		adc loadpage
+		sta (codevec),y
+
+		dec count
+		bne -
+
++TWO		ldx #<twomsg
+		ldy #>twomsg
+		jsr outstr
+		jmp TWO
+
+twomsg		.asc "getting two-bytes\m\0"
+
+TWO		jsr chrin
+		sta len
+		sta $0450
+		jsr chrin
+		sta len+1
+		sta $0451
+		ora len
+		beq end
+
+		lda #0
+		sta count
+		sta count+1
+
+-		jsr chrin
+		sta codevec
+		jsr chrin
+		clc
+		adc loadpage
+		sta codevec+1
+		ldy #0
+		clc
+		lda (codevec),y
+		adc loadpage
+		sta (codevec),y
+
+		inc count
+		bne +
+		inc count+1
++		lda count
+		cmp len
+		bne -
+		lda count+1
+		cmp len+1
+		bne -
+
+end		jsr restor
+		lda #2
+		jmp close
+
+outstr		stx len
+		sty len+1
+		ldy #0
+-		lda (len),y
+		beq +
+		jsr chrout
+		iny
+		bne -
++		rts
+
+*= $c200
+		lda #$25
+		sta loadpage
+		lda #7
+		ldx #<tfile
+		ldy #>tfile
+		jmp loader
+
+tfile		.asc "test.ml"

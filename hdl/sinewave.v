@@ -3,6 +3,9 @@
 `include "common.vh"
 
 // ROM to hold sine wave tables.
+// There are 7 sine waves of decreasing amplitude in sine.bin
+// Each sine wave is 256 entries in length.
+// The sine waves are 9 bits centered at 256.
 module SINE_WAVES
 #(
     parameter addr_width = 11,
