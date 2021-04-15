@@ -38,3 +38,14 @@ should also not require separate power supply.
 
 Now that both the boot loader and loader is installed,
 you can use the mojo loader to upload the bistream.
+
+SOMETIMES ArduinoIDE does not 'see' the bootloader
+mode com port appear and the sketch upload will
+fail.  If this happens, short the GND and RST pins
+on the MojoV3 board temporarily and it will enter
+bootloader mode.  Then use avrdude command that
+ArduinoIDE is trying to use but make sure the COM
+port is changed to the new 'bootloader' COM port.
+
+Example:
+F:\Arduino\arduino-1.6.5-r5\hardware\tools\avr/bin/avrdude -CF:\Arduino\arduino-1.6.5-r5\hardware\embeddedmicro\avr/etc/avrdude.conf -v -patmega32u4 -cavr109 -PCOM17 -b57600 -D -Uflash:w:C:\Users\rross\AppData\Local\Temp\build6946186849045811066.tmp/vic2_loader.cpp.hex:i
