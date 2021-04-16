@@ -24,7 +24,7 @@ module VIDEO_RAM
 
 (* ram_style = "block" *) reg [data_width-1:0] ram_dual_port[2**addr_width-1:0];
 
-`ifdef IS_SIMULATOR
+`ifdef SIMULATOR_BOARD
 `ifdef HIRES_TEXT
 initial $readmemh ("hires00.hex", ram_dual_port);
 `endif

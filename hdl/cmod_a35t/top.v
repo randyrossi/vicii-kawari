@@ -36,12 +36,11 @@ module top(
            input clk_col16x,    // driven by sim
 
 	   input [1:0] chip,    // chip config pin from MCU
-	   input is_15khz,      // freq config pin from MCU
-	   input is_hide_raster_lines, // config pin from MCU
 	   output tx,
-	   //input rx,
+	   input rx,
 	   input cclk,
            output cpu_reset,    // reset for 6510 CPU
+	   input cpu_reset_i,
            output clk_phi,      // output phi clock for CPU
            output clk_dot4x,    // pixel clock for external HDMI encoder
            output active,       // display active for HDMI
@@ -80,19 +79,17 @@ module top(
            output [5:0] red,    // red out
            output [5:0] green,  // green out
            output [5:0] blue,   // blue out
-`ifndef IS_SIMULATOR    
-           inout tri [5:0] adl, // address (lower 6 bits)
-           output tri [5:0] adh,// address (high 6 bits)
-           inout tri [7:0] dbl, // data bus lines (ram/rom)
-           input [3:0] dbh,     // data bus lines (color)
-`else
-           input [5:0] adl,
-           output [5:0] adh,
-           input [7:0] dbl,
-           input [3:0] dbh,
-           output [7:0] dbo_sim,
-           output [11:0] ado_sim,
-`endif
+
+	   // Verilog doesn't support inout/tri so this section is
+	   // slightly different than non-sim top
+           input [5:0] adl,  // address (lower 6 bits)
+           output [5:0] adh, // address (upper 6 bits)
+           input [7:0] dbl,  // data bus lines (ram/rom)
+           input [3:0] dbh,  // data bus lines (color)
+           output [7:0] dbo_sim,  // for our simulator
+           output [11:0] ado_sim, // for our simulator
+	   // End diff
+
            input ce,            // chip enable (LOW=enable, HIGH=disabled)
            input rw,            // read/write (LOW=write, HIGH=read)
            output irq,          // irq
@@ -101,17 +98,11 @@ module top(
            output ba,           // ba
            output cas,          // column address strobe
            output ras,          // row address strobe
-           output ls245_data_dir  // DIR for data bus transceiver
-           //output ls245_data_oe,   // OE for data bus transceiver
-           //output ls245_addr_dir,  // DIR for addr bus transceiver
-           //output ls245_addr_oe    // OE for addr bus transceiver
+           output ls245_data_dir,  // DIR for data bus transceiver
+           output ls245_addr_dir   // DIR for addr bus transceiver
        );
 
 wire rst;
-
-wire ls245_data_oe; // not enough pins on cmod_a7, just ground it
-wire ls245_addr_dir;  // not enough pins on cmod_a7, use aec
-//wire ls245_addr_oe;  // not enough pins on cmod_a7, just ground it
 
 `ifdef HAVE_COMPOSITE_ENCODER
 // Divides the color4x clock by 4 to get color reference clock
@@ -142,15 +133,18 @@ wire vic_write_db;
 
 wire[7:0] tx_data_4x;
 wire tx_new_data_4x;
+wire[7:0] rx_data_4x;
+wire rx_new_data_4x;
 
 // Instantiate the vicii with our clocks and pins.
 vicii vic_inst(
           .rst(rst),
           .chip(chip),
-	  .tx_data_4x(tx_data_4x),
-	  .tx_new_data_4x(tx_new_data_4x),
-	  .is_15khz(is_15khz),
-	  .is_hide_raster_lines(is_hide_raster_lines),
+	  .cpu_reset_i(cpu_reset_i),
+          .tx_data_4x(tx_data_4x),
+          .tx_new_data_4x(tx_new_data_4x),
+          .rx_data_4x(rx_data_4x),
+          .rx_new_data_4x(rx_new_data_4x),
           .clk_dot4x(clk_dot4x),
           .clk_phi(clk_phi),
 	  .active(active),
@@ -180,9 +174,7 @@ vicii vic_inst(
           .cas(cas),
           .ras(ras),
           .ls245_data_dir(ls245_data_dir),
-          .ls245_data_oe(ls245_data_oe),
           .ls245_addr_dir(ls245_addr_dir),
-          //.ls245_addr_oe(ls245_addr_oe),
           .vic_write_db(vic_write_db),
           .vic_write_ab(vic_write_ab),
 	  .red(red),
@@ -190,15 +182,10 @@ vicii vic_inst(
 	  .blue(blue)
       );
 
-`ifndef IS_SIMULATOR
-// Write to bus condition, else tri state.
-assign dbl[7:0] = vic_write_db ? dbo : 8'bz; // CPU reading
-assign adl = vic_write_ab ? ado[5:0] : 6'bz; // vic or stollen cycle
-assign adh = vic_write_ab ? ado[11:6] : 6'bz;
-`else
+// Diff for Verilator, no tri state so use _sim regs
 assign ado_sim = ado;
 assign dbo_sim = dbo;
-`endif
+// End diff
 
 // NOTE: For the simulator, sys_clock is actually the same as
 // our dot4x clock.  But it's just for simulaion purposes to
@@ -215,16 +202,19 @@ always @(posedge sys_clock) tx_data_sys<= tx_data_sys_pre;
 always @(posedge sys_clock) tx_new_data_sys_pre <= tx_new_data_4x;
 always @(posedge sys_clock) tx_new_data_sys <= tx_new_data_sys_pre;
 
+wire [7:0] rx_data;
+wire new_rx_data;
+
 avr_interface mojo_avr_interface(
     .clk(sys_clock),
     .rst(rst),
     .cclk(cclk),
     .tx(tx),
-    //.rx(rx),
+    .rx(rx),
     .tx_data(tx_data_sys),
-    .new_tx_data(tx_new_data_sys)
-    //output [7:0] rx_data,
-    //output new_rx_data
+    .new_tx_data(tx_new_data_sys),
+    .rx_data(rx_data),
+    .new_rx_data(new_rx_data)
   );
 
 endmodule : top

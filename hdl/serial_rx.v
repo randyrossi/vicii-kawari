@@ -27,6 +27,7 @@ module serial_rx #(
     assign new_data = new_data_q;
     assign data = data_q;
 
+    /* verilator lint_off WIDTH */
     always @(*) begin
         rx_d = rx;
         state_d = state_q;
@@ -90,5 +91,6 @@ module serial_rx #(
         rx_q <= rx_d;
         data_q <= data_d;
     end
+    /* verilator lint_on WIDTH */
 
 endmodule

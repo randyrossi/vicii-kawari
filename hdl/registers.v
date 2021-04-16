@@ -4,7 +4,7 @@
 
 module registers(
            input rst,
-`ifdef REV_1_BOARD
+`ifdef REV_1_BOARD_OR_SIMULATOR_BOARD
            input cpu_reset_i,
 `endif
            input clk_dot4x,
@@ -378,7 +378,7 @@ always @(posedge clk_dot4x)
 	last_is_15khz <= 1'b0;
 	rx_new_data_ff <= 1'b0;
    video_ram_flags <= 8'b0;
-`ifdef IS_SIMULATOR
+`ifdef SIMULATOR_BOARD
    extra_regs_activated <= 0'b1;
 
 	`ifdef HIRES_TEXT
@@ -433,7 +433,7 @@ always @(posedge clk_dot4x)
     end else
     begin
 	 
-`ifdef REV_1_BOARD
+`ifdef REV_1_BOARD_OR_SIMULATOR_BOARD
          // For now, this is dummy code to keep the reset in line
          // from getting thrown away. Replace this with code to
          // actually reset the extension registers at some point
@@ -975,10 +975,10 @@ always @(posedge clk_dot4x)
 				color_regs_aw <= 1'b0;
 
             // We propagated r to r2 on reads so that we auto increment
-				// two cycles after a read due to some instructions reading first,
-				// then writing.  If we didn't do this, those instructions would
-				// cause two increments when we only wanted one.  So this effectively
-				// waits a full cycle before commiting to increment after a read.
+            // two cycles after a read due to some instructions reading first,
+            // then writing.  If we didn't do this, those instructions would
+            // cause two increments when we only wanted one.  So this effectively
+            // waits a full cycle before commiting to increment after a read.
             if (video_ram_r2 || video_ram_aw || color_regs_r2 || color_regs_aw) begin
                 // Handle auto increment /decrement after port access
                 if (auto_ram_sel == 0) begin // loc 1 of port a
@@ -1033,7 +1033,7 @@ always @(posedge clk_dot4x)
 // register ram according to the pixel_color4 address.
 always @(posedge clk_dot4x)
 begin
-`ifndef IS_SIMULATOR
+`ifndef SIMULATOR_BOARD
     if (active) begin
 `endif
        if (half_bright) begin
@@ -1045,7 +1045,7 @@ begin
           green <= color_regs_data_out_b[17:12];
           blue <= color_regs_data_out_b[11:6];
        end
-`ifndef IS_SIMULATOR
+`ifndef SIMULATOR_BOARD
     end else begin
           red <= 6'b0;
           green <= 6'b0;
@@ -1081,6 +1081,7 @@ task read_ram(
               color_regs_addr_a <= ram_lo[6:2];
           end
 `ifdef CONFIGURABLE_LUMAS
+/* verilator lint_off WIDTH */
 			  else if (ram_lo >= `EXT_REG_LUMA0 && ram_lo <= `EXT_REG_LUMA15) begin
 			     dbo <= {2'b0, luma[ram_lo - `EXT_REG_LUMA0]};
 			  end
@@ -1090,6 +1091,7 @@ task read_ram(
 			  else if (ram_lo >= `EXT_REG_AMPL0 && ram_lo <= `EXT_REG_AMPL15) begin
 			     dbo <= {5'b0, amplitude[ram_lo - `EXT_REG_AMPL0]};
 			  end
+/* verilator lint_on WIDTH */
 `endif
           else begin
               case (ram_lo)
@@ -1173,6 +1175,7 @@ task write_ram(
               color_regs_addr_a <= ram_lo[6:2];
            end
 `ifdef CONFIGURABLE_LUMAS
+/* verilator lint_off WIDTH */
 			  else if (ram_lo >= `EXT_REG_LUMA0 && ram_lo <= `EXT_REG_LUMA15) begin
 			     luma[ram_lo - `EXT_REG_LUMA0] <= data[5:0];
 			  end
@@ -1182,6 +1185,7 @@ task write_ram(
 			  else if (ram_lo >= `EXT_REG_AMPL0 && ram_lo <= `EXT_REG_AMPL15) begin
 			     amplitude[ram_lo - `EXT_REG_AMPL0] <= data[2:0];
 			  end
+/* verilator lint_on WIDTH */
 `endif
            else begin
               // When we poke certain config registers, we

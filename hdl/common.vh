@@ -5,9 +5,18 @@
 `define VERSION_MINOR 4'd2
 
 // Pick a board. MojoV3 'hat' is still working but
-// this will be dropped soon.
+// it will be dropped soon.
+`define SIMULATOR_BOARD 1
 //`define REV_1_BOARD 1
-`define MOJOV3_BOARD 1
+//`define MOJOV3_BOARD 1
+
+// Annoying
+`ifdef SIMULATOR_BOARD
+`define REV_1_BOARD_OR_SIMULATOR_BOARD 1
+`endif
+`ifdef REV_1__BOARD
+`define REV_1_BOARD_OR_SIMULATOR_BOARD 1
+`endif
 
 // This shows a test pattern with colors and some text.
 // Useful for testing video output from the device without
@@ -27,7 +36,7 @@
 // method since it works off of pixel index values coming straight
 // out of the pixel sequencer.  It requires HAVE_COLOR_CLOCKS. This
 // video output mode ignores custom RGB palette registers.  Instead, it
-// uses fixed luma, phase, amplitude for each of the 16 colors.
+// uses luma, phase, amplitude for each of the 16 colors.
 //
 // An external composite encoder also requires HAVE_COLOR_CLOCKS.
 // For proper video output, use_scan_doubler must be set to false. It
@@ -57,7 +66,7 @@
 // the free pins has not been exhausted.
 
 // Uncomment to include TMDS outputs and DVI encoder for video
-//`define WITH_DVI 1
+`define WITH_DVI 1
 
 // Uncomment if the board has both PAL and NTSC color clocks
 // available.
@@ -75,12 +84,12 @@
 
 // Uncomment to activate registers a0-cf and d1,d2 to control
 // luma(a#), phase(b#) and amplitudes(c#) for the 16 colors as
-// well as blanking level (d1) and burst amplitude (d2).
+// well as blanking level (d0) and burst amplitude (d1).
 //`define CONFIGURABLE_LUMAS 1
 
 // Uncomment to average the luma values over 4 ticks of the
 // dot4x clock. This smooths out transitions between levels.
-//'define AVERAGE_LUMAS 1
+//`define AVERAGE_LUMAS 1
 
 // DATA_DAV
 //

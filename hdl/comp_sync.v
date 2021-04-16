@@ -226,6 +226,7 @@ reg [9:0] raster_x_16_1;
 reg [9:0] raster_x_16;
 reg native_active_16_1;
 reg native_active_16;
+wire vSync_16;
 
 // Handle domain crossing for registers we need from dot4x in a co16x block.
 always @(posedge clk_col16x) pixel_color_16_1 <= pixel_color;

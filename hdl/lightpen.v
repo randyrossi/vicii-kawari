@@ -29,7 +29,7 @@ begin
         else if (!light_pen_triggered && lp == `FALSE) begin
             light_pen_triggered <= `TRUE;
             ilp <= `TRUE;
-`ifdef IS_SIMULATOR
+`ifdef SIMULATOR_BOARD
             lpx <= xpos_div_2 + 2; // 6567/6569 offset to keep VICE happy
 `else
             lpx <= xpos_div_2; // passes lp-trigger/test1.prg & test2.prg

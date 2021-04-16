@@ -723,7 +723,6 @@ int main(int argc, char** argv, char** env) {
     // it takes to wait for phase lock from the clock.
     printf ("(RESET)\n");
     top->V_RST = 1;
-    top->is_15khz = 1;
     top->cclk = 1; // hold high to simulate MCU ready
     top->lp = 1;
     for (int i=0;i<32;i++) {

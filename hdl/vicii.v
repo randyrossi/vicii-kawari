@@ -24,7 +24,7 @@
 
 module vicii(
       input [1:0] chip,               // config from MC
-`ifdef REV_1_BOARD
+`ifdef REV_1_BOARD_OR_SIMULATOR_BOARD
       input cpu_reset_i,
 `endif
       input rst,
@@ -162,7 +162,7 @@ reg [3:0] dot_rising;
 // Delayed raster line for irq comparison
 wire [8:0] raster_line_d;
 
-`ifdef IS_SIMULATOR
+`ifdef SIMULATOR_BOARD
 reg [7:0] reg11_delayed;
 `endif
 
@@ -814,7 +814,7 @@ wire [2:0] burst_amplitude;
 
 registers vic_registers(
               .rst(rst),
-`ifdef REV_1_BOARD
+`ifdef REV_1_BOARD_OR_SIMULATOR_BOARD
               .cpu_reset_i(cpu_reset_i),
 `endif
               .clk_dot4x(clk_dot4x),
@@ -932,7 +932,7 @@ always @(posedge clk_dot4x)
 begin
     // must be before badline idle reset in vic_matrix
     if (clk_phi && phi_phase_start[0]) begin
-`ifdef IS_SIMULATOR
+`ifdef SIMULATOR_BOARD
         reg11_delayed <= { raster_line[8], ecm, bmm, den, rsel, yscroll };
 `endif
         bmm_delayed <= bmm;

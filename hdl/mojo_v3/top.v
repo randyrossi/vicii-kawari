@@ -50,19 +50,11 @@ module top(
            output [5:0] green,  // green out for VGA/DVI or Composite Encoder
            output [5:0] blue,   // blue out for VGA/DVI or Composite Encoder
 
-`ifndef IS_SIMULATOR
            inout tri [5:0] adl, // address (lower 6 bits)
            output tri [5:0] adh,// address (high 6 bits)
            inout tri [7:0] dbl, // data bus lines (ram/rom)
            input [3:0] dbh,     // data bus lines (color)
-`else
-           input [5:0] adl,
-           output [5:0] adh,
-           input [7:0] dbl,
-           input [3:0] dbh,
-           output [7:0] dbo_sim,
-           output [11:0] ado_sim,
-`endif
+`
            input ce,            // chip enable (LOW=enable, HIGH=disabled)
            input rw,            // read/write (LOW=write, HIGH=read)
            output irq,          // irq
@@ -271,15 +263,10 @@ vicii vic_inst(
           .blue(blue)
       );
 
-`ifndef IS_SIMULATOR
 // Write to bus condition, else tri state.
 assign dbl[7:0] = vic_write_db ? dbo : 8'bz; // CPU reading
 assign adl = vic_write_ab ? ado[5:0] : 6'bz; // vic or stollen cycle
 assign adh = vic_write_ab ? ado[11:6] : 6'bz;
-`else
-assign ado_sim = ado;
-assign dbo_sim = dbo;
-`endif
 
 // Propagate tx from 4x domain to clk_serial domain
 // When tx_new_data goes high, avr_interface will transmit
