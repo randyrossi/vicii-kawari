@@ -6,9 +6,9 @@
 
 // Pick a board. MojoV3 'hat' is still working but
 // it will be dropped soon.
-`define SIMULATOR_BOARD 1
+//`define SIMULATOR_BOARD 1
 //`define REV_1_BOARD 1
-//`define MOJOV3_BOARD 1
+`define MOJOV3_BOARD 1
 
 // Annoying
 `ifdef SIMULATOR_BOARD
@@ -66,7 +66,7 @@
 // the free pins has not been exhausted.
 
 // Uncomment to include TMDS outputs and DVI encoder for video
-`define WITH_DVI 1
+//`define WITH_DVI 1
 
 // Uncomment if the board has both PAL and NTSC color clocks
 // available.
@@ -85,7 +85,7 @@
 // Uncomment to activate registers a0-cf and d1,d2 to control
 // luma(a#), phase(b#) and amplitudes(c#) for the 16 colors as
 // well as blanking level (d0) and burst amplitude (d1).
-//`define CONFIGURABLE_LUMAS 1
+`define CONFIGURABLE_LUMAS 1
 
 // Uncomment to average the luma values over 4 ticks of the
 // dot4x clock. This smooths out transitions between levels.

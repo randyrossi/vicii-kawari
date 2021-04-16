@@ -54,7 +54,7 @@ module top(
            output tri [5:0] adh,// address (high 6 bits)
            inout tri [7:0] dbl, // data bus lines (ram/rom)
            input [3:0] dbh,     // data bus lines (color)
-`
+
            input ce,            // chip enable (LOW=enable, HIGH=disabled)
            input rw,            // read/write (LOW=write, HIGH=read)
            output irq,          // irq
