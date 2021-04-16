@@ -2,33 +2,13 @@
 
 `include "common.vh"
 
-// Top level module for the CMod A35t PDIP board.
+// Top level module for the simulator.
 //
-// Two clock configurations are supported:
-//     1) using the on-board 12Mhz clock
-//     2) using external 14.318181 and/or 17.734475 Mhz clocks
+// sys_clock is simulated by verilog
 //
-// System clock:
-//     This config uses the on-board 12Mhz clock and uses an MMCM
-//     to generate both the 4x dot and 4x color clocks.
-//
-// External Clocks:
-//     This config takes in a 4x color clock signal and uses an MMCM
-//     to generate the 4x dot clock and pass through the 4x color
-//     clock.
-//
-// In either case, the 4x color clock is divided by 4 to produce a
-// color ref clock for an external composite encoder.  The 4x dot clock
-// is divided by 32 to generate the CPU phi clock.
-//
-// NOTE: The system clock configuration does not produce a suitable
-// color clock for PAL composite video.  This is due to there being
-// no mult/div possible from a 12Mhz clock to get an accurate color
-// clock.  Consequently, colors will 'shimmer'.  For a stable PAL
-// composite signal, an external clock must be used. HDMI or VGA
-// output options don't require a color clock so the clock gens
-// could be modified to accept a 4x dot clock and phi could then
-// be derived from that clock.
+`ifndef SIMULATOR_BOARD
+ERROR_NEED_SIMULATOR_BOARD_DEFINED See common.vh
+`endif
 
 module top(
            input sys_clock,     // driven by sim
