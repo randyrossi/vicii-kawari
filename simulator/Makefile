@@ -33,7 +33,7 @@ export VERILATOR_ROOT
 VERILATOR = $(VERILATOR_ROOT)/bin/verilator
 endif
 
-VERILOG_SOURCES = ../hdl/cmod_a35t/top.v ../hdl/vicii.v ../hdl/common.vh \
+VERILOG_SOURCES = ../hdl/simulator/top.v ../hdl/vicii.v ../hdl/common.vh \
 		  ../hdl/addressgen.v  ../hdl/equalization.v  ../hdl/pixel_sequencer.v \
                   ../hdl/registers.v  ../hdl/comp_sync.v ../hdl/border.v \
 	          ../hdl/lightpen.v ../hdl/raster.v \
