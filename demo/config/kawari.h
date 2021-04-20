@@ -1,0 +1,20 @@
+#define VIDEO_MEM_1_IDX 0xd035L
+#define VIDEO_MEM_2_IDX 0xd036L
+#define VIDEO_MODE1 0xd037L
+#define VIDEO_MODE2 0xd038L
+#define VIDEO_MEM_1_LO 0xd039L
+#define VIDEO_MEM_1_HI 0xd03aL
+#define VIDEO_MEM_1_VAL 0xd03bL
+#define VIDEO_MEM_2_LO 0xd03cL
+#define VIDEO_MEM_2_HI 0xd03dL
+#define VIDEO_MEM_2_VAL 0xd03eL
+#define VIDEO_MEM_FLAGS 0xd03fL
+
+#define VIDEO_FREQ 0x81
+#define CHIP_MODEL 0x82
+#define VERSION 0x83
+#define DISPLAY_FLAGS 0x84
+#define CURSOR_LO 0x85
+#define CURSOR_HI 0x86
+
+#define VARIANT 0x90

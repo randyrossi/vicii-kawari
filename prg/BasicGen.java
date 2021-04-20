@@ -23,6 +23,7 @@ public class BasicGen
 		   map.put(label, ln);
 		}
                 if (l.length() == 0) continue;
+                if (l.startsWith("#")) continue;
 		ln+=10;
         }
 
@@ -38,6 +39,7 @@ public class BasicGen
 			l=l.replaceAll(lab,""+map.get(lab));
 		}
                 if (l.length() == 0) continue;
+                if (l.startsWith("#")) continue;
 		System.out.println(ln + " " + l); ln+=10;
         }
 
