@@ -97,7 +97,7 @@ void main_menu(void)
 	        POKE(VIDEO_MEM_1_LO, color*4+2);
 	        blue = PEEK(VIDEO_MEM_1_VAL);
                 TOXY(16,SL+color);
-	        printf ("%02d %02d %02d", red, green, blue);
+	        printf ("%02x %02x %02x", red, green, blue);
 		if (store_current) {
 	           current_colors[color*4] = red;
 	           current_colors[color*4+1] = green;
@@ -111,29 +111,31 @@ void main_menu(void)
        POKE(VIDEO_MEM_1_LO, color_cursor);
        v = PEEK(VIDEO_MEM_1_VAL);
 
+       // Hi-lite cursor
        TOXY(16+(color_cursor%4)*3,SL+color_cursor/4);
-       printf ("%c%02d%c",18,v,146);
+       printf ("%c%02x%c",18,v,146);
 
        WAITKEY;
        key = r.a;
 
+       // Un-hi-lite cursor
        TOXY(16+(color_cursor%4)*3,SL+color_cursor/4);
-       printf ("%02d",v);
+       printf ("%02x",v);
 
-       if (key == 's') {
+       if (key == CRSR_DOWN) {
 	    color_cursor+=4;
 	    if (color_cursor > 62) color_cursor=62;
        }
-       else if (key == 'w')  {
+       else if (key == CRSR_UP)  {
 	    color_cursor-=4;
 	    if (color_cursor < 0) color_cursor=0;
        }
-       else if (key == 'a')  {
+       else if (key == CRSR_LEFT)  {
 	    color_cursor-=1;
 	    if (color_cursor % 4 == 3) color_cursor+=1;
 	    if (color_cursor < 0) color_cursor = 0;
        }
-       else if (key == 'd')  {
+       else if (key == CRSR_RIGHT)  {
 	    color_cursor+=1;
 	    if (color_cursor % 4 == 3) color_cursor-=1;
 	    if (color_cursor > 62) color_cursor = 62;
@@ -177,6 +179,7 @@ void main_menu(void)
 	    refresh_all = 1;
        }
        else if (key == 'q')  {
+            CLRSCRN;
 	    return;
        }
     }
