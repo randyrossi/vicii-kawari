@@ -280,7 +280,9 @@ begin
     // Figure out the entry within one of the sine wave tables.
 	 // For NTSC: Burst phase is always 180 degrees (128 offset)
 	 // For PAL: Burst phase alternates between 135 and -135 (96 & 160 offsets).
+    /* verilator lint_off WIDTH */
     sineWaveAddr = {phaseCounter, 4'b0} + (native_active_16 ? (chip[0] ? (oddline ? phasereg_16: 9'd256 - phasereg_16) : phasereg_16) : (chip[0] == 0 ? 8'd128 : (oddline ? 8'd160 : 8'd96)));
+    /* verilator lint_on WIDTH */
     // Prefix with amplitude selector. This is our ROM address.
     sineROMAddr <= {amplitude2, sineWaveAddr };
 
