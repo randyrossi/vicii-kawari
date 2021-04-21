@@ -804,10 +804,10 @@ wire show_raster_lines;
 wire native_active;
 `endif
 
+wire [5:0] lumareg_o;
+wire [7:0] phasereg_o;
+wire [2:0] amplitudereg_o;
 `ifdef CONFIGURABLE_LUMAS
-wire [95:0] lumareg_o;
-wire [127:0] phasereg_o;
-wire [47:0] amplitudereg_o;
 wire [5:0] blanking_level;
 wire [2:0] burst_amplitude;
 `endif
@@ -881,6 +881,7 @@ registers vic_registers(
               // the active period for whatever video standard we are
               // producing
 `ifdef HAVE_COLOR_CLOCKS
+              .pixel_color3(pixel_color3), // always native
               .pixel_color4(use_scan_doubler ? pixel_color4_vga : pixel_color3),
               .active(use_scan_doubler ? active : native_active),
               .half_bright(
@@ -904,10 +905,10 @@ registers vic_registers(
          .rx_data_4x(rx_data_4x),
          .rx_new_data_4x(rx_new_data_4x),
 
-`ifdef CONFIGURABLE_LUMAS
          .lumareg_o(lumareg_o),
 			.phasereg_o(phasereg_o),
 			.amplitudereg_o(amplitudereg_o),
+`ifdef CONFIGURABLE_LUMAS
 			.blanking_level(blanking_level),
 			.burst_amplitude(burst_amplitude),
 `endif
@@ -1059,13 +1060,12 @@ comp_sync vic_comp_sync(
               .csync(csync),
 `endif
 `ifdef GEN_LUMA_CHROMA
-              .pixel_color(pixel_color3), // native res pixel color index
               .luma(luma),
               .chroma(chroma),
-`ifdef CONFIGURABLE_LUMAS
               .lumareg_o(lumareg_o),
               .phasereg_o(phasereg_o),
               .amplitudereg_o(amplitudereg_o),
+`ifdef CONFIGURABLE_LUMAS
               .blanking_level(blanking_level),
               .burst_amplitude(burst_amplitude),
 `endif  // CONFIGURABLE_LUMAS

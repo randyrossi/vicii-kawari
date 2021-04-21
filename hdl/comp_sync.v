@@ -25,14 +25,13 @@ module comp_sync(
            output reg csync,
 `endif
 `ifdef GEN_LUMA_CHROMA
-           input [3:0] pixel_color, // index of pixel color
            output reg [5:0] luma,
            output reg [5:0] chroma,
 `endif
+			  input [5:0] lumareg_o, // from registers base on pixel_color3
+			  input [7:0] phasereg_o, // from registers base on pixel_color3
+			  input [2:0] amplitudereg_o, // from registers base on pixel_color3
 `ifdef CONFIGURABLE_LUMAS
-			  input [95:0] lumareg_o,
-			  input [127:0] phasereg_o,
-			  input [47:0] amplitudereg_o,
            input [5:0] blanking_level,
            input [2:0] burst_amplitude,
 `endif
@@ -177,14 +176,14 @@ begin
         default: begin
         `ifdef AVERAGE_LUMAS
             // Average luma over 4 ticks to smooth out transitions
-            next_luma = ~hSync ? (~native_active ? `BLANKING_LEVEL : luma1) : 6'd0;
+            next_luma = ~hSync ? (~native_active ? `BLANKING_LEVEL : lumareg_o) : 6'd0;
 				add_luma = {2'b0,next_luma} + {2'b0,prev_luma} + {2'b0,prev_luma2} + {2'b0,prev_luma3}; // add them
 				luma <= add_luma[7:2];  // div 4
 				prev_luma <= next_luma;
 				prev_luma2 <= prev_luma;
 				prev_luma3 <= prev_luma2;
         `else
-		      luma <= ~hSync ? (~native_active ? `BLANKING_LEVEL : luma1) : 6'd0;
+		      luma <= ~hSync ? (~native_active ? `BLANKING_LEVEL : lumareg_o) : 6'd0;
         `endif
         end	
     endcase
@@ -198,14 +197,11 @@ end
 // by applying a phase offset of 8 bits.  The amplitude is selected
 // out of the sine wave table rom by prefixing the 8 bits with
 // an additional 3 bits of amplitude.
-wire [5:0] luma1;
 reg [3:0] phaseCounter;
 reg [8:0] prev_raster_y;
-wire [2:0] amplitude;
 reg [2:0] amplitude2;
 reg [2:0] amplitude3;
 reg [2:0] amplitude4;
-wire [7:0] phaseOffset;
 
 always @(posedge clk_col16x)
 begin
@@ -218,8 +214,6 @@ end
 `define BURST_AMPLITUDE 3'b010 
 `endif
 
-reg [3:0] pixel_color_16_1;
-reg [3:0] pixel_color_16;
 reg [8:0] raster_y_16_1;
 reg [8:0] raster_y_16;
 reg [9:0] raster_x_16_1;
@@ -229,8 +223,6 @@ reg native_active_16;
 wire vSync_16;
 
 // Handle domain crossing for registers we need from dot4x in a co16x block.
-always @(posedge clk_col16x) pixel_color_16_1 <= pixel_color;
-always @(posedge clk_col16x) pixel_color_16 <= pixel_color_16_1;
 always @(posedge clk_col16x) raster_y_16_1 <= raster_y;
 always @(posedge clk_col16x) raster_y_16 <= raster_y_16_1;
 always @(posedge clk_col16x) raster_x_16_1 <= raster_x;
@@ -246,6 +238,18 @@ reg in_burst;
 reg need_burst;
 wire oddline;
 assign oddline = raster_y_16[0];
+
+// Handle domain crossing from dot4x to col16x
+reg [7:0] phasereg_o2;
+reg [7:0] phasereg_16;
+always @(posedge clk_col16x) phasereg_o2 <= phasereg_o;
+always @(posedge clk_col16x) phasereg_16 <= phasereg_o2;
+
+reg [2:0] amplitudereg_o2;
+reg [2:0] amplitudereg_16;
+always @(posedge clk_col16x) amplitudereg_o2 <=  amplitudereg_o;
+always @(posedge clk_col16x) amplitudereg_16 <= amplitudereg_o2;
+
 
 always @(posedge clk_col16x)
 begin
@@ -270,13 +274,13 @@ begin
     // Use amplitude from table lookup inside active region.  For burst, use
     // 3'b010. Otherwise, amplitude should be 3'b111 representing no
     // amplitude.
-    amplitude2 = vSync_16 ? 3'b111 : (native_active_16 ? amplitude : (in_burst ? `BURST_AMPLITUDE : 3'b111));
+    amplitude2 = vSync_16 ? 3'b111 : (native_active_16 ? amplitudereg_16 : (in_burst ? `BURST_AMPLITUDE : 3'b111));
 	 amplitude3 <= amplitude2;
 	 amplitude4 <= amplitude3;
     // Figure out the entry within one of the sine wave tables.
 	 // For NTSC: Burst phase is always 180 degrees (128 offset)
 	 // For PAL: Burst phase alternates between 135 and -135 (96 & 160 offsets).
-    sineWaveAddr = {phaseCounter, 4'b0} + (native_active_16 ? phaseOffset : (chip[0] == 0 ? 8'd128 : (oddline ? 8'd160 : 8'd96)));
+    sineWaveAddr = {phaseCounter, 4'b0} + (native_active_16 ? (chip[0] ? (oddline ? phasereg_16: 9'd256 - phasereg_16) : phasereg_16) : (chip[0] == 0 ? 8'd128 : (oddline ? 8'd160 : 8'd96)));
     // Prefix with amplitude selector. This is our ROM address.
     sineROMAddr <= {amplitude2, sineWaveAddr };
 
@@ -286,30 +290,6 @@ begin
     // the address and another to get the data)
     chroma <= (amplitude4 == 3'b111) ? 6'd32 : chroma9[8:3];
 end
-
-// Retrieve luma from pixel_color index
-luma vic_luma(.index(pixel_color),
-`ifdef CONFIGURABLE_LUMAS
-              .lumareg_o(lumareg_o),
-`endif
-              .luma(luma1));
-
-// Retrieve wave amplitude from pixel_color index
-amplitude vic_amplitude(.clk_col16x(clk_col16x),
-                        .index(pixel_color_16),
-`ifdef CONFIGURABLE_LUMAS
-                        .amplitudereg_o(amplitudereg_o),
-`endif
-                        .amplitude(amplitude));
-
-// Retrieve wave phase from pixel_color index
-phase vic_phase(.clk_col16x(clk_col16x),
-                .index(pixel_color_16),
-`ifdef CONFIGURABLE_LUMAS
-                .phasereg_o(phasereg_o),
-`endif
-                .phase(phaseOffset),
-                .oddline(chip[0] ? oddline : 1'b0));
 
 // Retrieve wave value from addr calculated from amplitude, phaseCounter and
 // phaseOffset.
