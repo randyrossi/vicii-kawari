@@ -110,6 +110,7 @@ void main_menu(void)
 {
     int need_refresh = 0;
 
+    POKE(VIDEO_MEM_FLAGS,32);
     get_version();
     get_variant();
 
@@ -124,7 +125,6 @@ void main_menu(void)
     printf ("Raster Lines   :\n");
     printf ("\n");
 
-    POKE(VIDEO_MEM_FLAGS,32);
     get_chip_model();
     get_display_flags();
 

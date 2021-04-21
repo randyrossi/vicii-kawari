@@ -162,11 +162,11 @@ void main_menu(void)
        else if (key == 'n')  {
             for (color=0; color < 16; color++) {
 	        POKE(VIDEO_MEM_1_LO, color*4);
-	        POKE(VIDEO_MEM_1_VAL, preset[preset_num][color*4]&63);
+	        POKE(VIDEO_MEM_1_VAL, preset[preset_num][color*4]>>2); // top6
 	        POKE(VIDEO_MEM_1_LO, color*4+1);
-	        POKE(VIDEO_MEM_1_VAL, preset[preset_num][color*4+1]&63);
+	        POKE(VIDEO_MEM_1_VAL, preset[preset_num][color*4+1]>>2); // top6
 	        POKE(VIDEO_MEM_1_LO, color*4+2);
-	        POKE(VIDEO_MEM_1_VAL, preset[preset_num][color*4+2]&63);
+	        POKE(VIDEO_MEM_1_VAL, preset[preset_num][color*4+2]>>2); // top6
             }
 	    preset_num = (preset_num + 1) % NUM_PRESETS;
 	    refresh_all = 1;

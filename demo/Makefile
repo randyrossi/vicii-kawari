@@ -4,6 +4,8 @@ demo:
 	truncate -s 174848 demo.d64
 	c1541 -attach demo.d64 -format "vicii-kawaridemo",0
 	c1541 -attach demo.d64 -write config/config.prg config
+	c1541 -attach demo.d64 -write config/rgbed/rgbed.prg rgbed
+	c1541 -attach demo.d64 -write config/comped/comped.prg comped
 	c1541 -attach demo.d64 -write ../asm/grogu.prg img-grogu
 	c1541 -attach demo.d64 -write ../asm/field.prg img-field
 	c1541 -attach demo.d64 -write ../asm/horse.prg img-horse
