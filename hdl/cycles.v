@@ -128,7 +128,7 @@ always @(posedge clk_dot4x)
                         // go to refresh.
                     end else if (chip == `CHIP6567R8 && idle_cnt == 4)
                         cycle_type <= `VIC_LR;
-                    else if (chip == `CHIP6569 && idle_cnt == 2)
+                    else if (chip[1] /* 6569Rx */ && idle_cnt == 2)
                         cycle_type <= `VIC_LP;
                     else begin
                         idle_cnt <= idle_cnt + 1'd1;

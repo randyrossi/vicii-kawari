@@ -136,7 +136,7 @@ case(chip)
         chars_ba_start = 'h1f4;
         chars_ba_end = 'h14c;
     end
-    `CHIP6569, `CHIPUNUSED:
+    `CHIP6569R1, `CHIP6569R5:
     begin
         raster_x_max = 10'd503;     // 504 pixels
         raster_y_max = 9'd311;      // 312
@@ -191,7 +191,7 @@ wire [2:0] cb;
 // cycleNum : Each cycle is 8 pixels.
 // 6567R56A : 0-63
 // 6567R8   : 0-64
-// 6569     : 0-62
+// 6569RX   : 0-62
 // NOTE: cycle_num is not valid until PPS[1] within low phase of PHI
 wire [6:0] cycle_num;
 

@@ -25,7 +25,7 @@ case (chip)
             (raster_x < 10'd476)
         )
         ;
-    `CHIP6569, `CHIPUNUSED:
+    `CHIP6569R1, `CHIP6569R5:
         SE = // 93% tH (7%tH) (3051-427)
         (raster_x < 10'd217) ||
         (

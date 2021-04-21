@@ -81,7 +81,7 @@ case(chip)
         vblank_start = 9'd14;
         vblank_end = 9'd22;
     end
-    `CHIP6569, `CHIPUNUSED:
+    `CHIP6569R1, `CHIP6569R5:
     begin
         hsync_start = 10'd408;
         hsync_end = 10'd444;        // +37*.1269 = ~4.69us after hsync_start

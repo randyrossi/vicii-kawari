@@ -429,8 +429,6 @@ always @(posedge clk_dot4x)
 
         // Handle incoming serial commands.
         // This is guaranteed to go back low on next tick.
-		  // Serial rx will not trigger register set unless the
-		  // stream is prefixed by 3 0xff bytes first.
         if (rx_new_data_4x) begin
 	         rx_new_data_ff <= ~rx_new_data_ff;
 	         if (~rx_new_data_ff) begin

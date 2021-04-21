@@ -492,7 +492,7 @@ int main(int argc, char** argv, char** env) {
     struct vicii_state* state;
     bool capture = false;
 
-    int chip = CHIP6569;
+    int chip = CHIP6569R5;
     bool isNtsc = false;
 
     bool captureByTime = true;
@@ -560,7 +560,7 @@ int main(int argc, char** argv, char** env) {
         printf ("  -w        : show SDL2 window\n");
         printf ("  -z        : single step eval for shadow vic via ipc\n");
         printf ("  -b        : render each cycle, waiting for key press after each one\n");
-        printf ("  -c <chip> : 0=CHIP6567R8, 1=CHIP6569 2=CHIP6567R56A\n");
+        printf ("  -c <chip> : 0=CHIP6567R8, 1=CHIP6569R5 2=CHIP6567R56A 3=CHIP6569R1\n");
         printf ("  -h        : start under reset\n");
         printf ("  -l        : log level\n");
         printf ("  -q        : hide scanline\n");
@@ -616,9 +616,14 @@ int main(int argc, char** argv, char** env) {
           printf ("CHIP: 6567R56A\n");
           printf ("VIDEO: NTSC\n");
           break;
-       case CHIP6569:
+       case CHIP6569R1:
           isNtsc = false;
-          printf ("CHIP: 6569\n");
+          printf ("CHIP: 6569R1\n");
+          printf ("VIDEO: PAL\n");
+          break;
+       case CHIP6569R5:
+          isNtsc = false;
+          printf ("CHIP: 6569R5\n");
           printf ("VIDEO: PAL\n");
           break;
        default:
@@ -634,7 +639,8 @@ int main(int argc, char** argv, char** env) {
           case CHIP6567R56A:
              durationTicks = US_TO_TICKS(16700L);
              break;
-          case CHIP6569:
+          case CHIP6569R1:
+          case CHIP6569R5:
              durationTicks = US_TO_TICKS(20000L);
              break;
           default:
@@ -666,7 +672,8 @@ int main(int argc, char** argv, char** env) {
     } else {
        half4XDotPS = PAL_HALF_4X_DOT_PS;
        switch (top->V_CHIP) {
-          case CHIP6569:
+          case CHIP6569R1:
+          case CHIP6569R5:
              screenWidth = PAL_6569_MAX_DOT_X+1;
              screenHeight = PAL_6569_MAX_DOT_Y+1;
              lastXPos = PAL_6569_LAST_XPOS;
@@ -895,7 +902,7 @@ int main(int argc, char** argv, char** env) {
                CHECK (top, top->V_XPOS == 0, __LINE__); // rollover
 
              if (top->V_CYCLE_NUM == 0 && top->V_CYCLE_BIT == 0)
-               if (chip == CHIP6569)
+               if (chip == CHIP6569R1 || chip == CHIP6569R5)
                   CHECK (top, top->V_XPOS == 0x194, __LINE__); // reset
                else
                   CHECK (top, top->V_XPOS == 0x19c, __LINE__); // reset

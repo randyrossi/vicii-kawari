@@ -92,7 +92,7 @@ begin
         h_count <= 0;
 		  ff <= 2'b01;
         case (chip)
-            `CHIP6569, `CHIPUNUSED: begin
+            `CHIP6569R1, `CHIP6569R5: begin
                 if (is_native_x) begin
                     ha_sta <= 100;  // +h front porch 30 = 504 - 404
                     hs_end <= 70;   // +h sync pulse 60 = 504 - 434

@@ -57,13 +57,13 @@ void show_chip_model(void)
             printf ("6567R8  ");   
             break;
         case 1:
-            printf ("6569    ");   
+            printf ("6569R5  ");   
             break;
         case 2:
             printf ("6567R56A");   
             break;
         default:
-            printf ("UNKNOWN");   
+            printf ("6569R1  ");   
             break;
     }
 
@@ -151,7 +151,7 @@ void main_menu(void)
           return;
        } else if (r.a == 'm') {
           next_model=next_model+1;
-          if (next_model > 2) next_model=0;
+          if (next_model > 3) next_model=0;
           show_chip_model();
        } else if (r.a == 'r') {
           next_display_flags ^= 1;

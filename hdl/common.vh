@@ -137,9 +137,9 @@
 
 // Chip types
 `define CHIP6567R8   0
-`define CHIP6569     1
+`define CHIP6569R5   1
 `define CHIP6567R56A 2
-`define CHIPUNUSED   3
+`define CHIP6569R1   3
 
 // Cycle types
 `define VIC_LP     0  // low phase, sprite pointer
