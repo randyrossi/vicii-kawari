@@ -806,10 +806,10 @@ wire native_active;
 
 wire [5:0] lumareg_o;
 wire [7:0] phasereg_o;
-wire [2:0] amplitudereg_o;
+wire [3:0] amplitudereg_o;
 `ifdef CONFIGURABLE_LUMAS
 wire [5:0] blanking_level;
-wire [2:0] burst_amplitude;
+wire [3:0] burst_amplitude;
 `endif
 
 registers vic_registers(

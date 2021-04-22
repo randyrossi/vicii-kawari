@@ -2,12 +2,12 @@
 
 `include "common.vh"
 
-// Ram to hold 6-bit luma, 8-bit phase and 3-bit amplitude values for
+// Ram to hold 6-bit luma, 8-bit phase and 4-bit amplitude values for
 // 16 color registers and 2 palettes.
 module LUMA_REGS
 #(
-    parameter addr_width = 5,
-              data_width = 17
+    parameter addr_width = 5,  // 32 for 2 palettes of 16 each
+              data_width = 18
 )
 (
     input wire clk,

@@ -103,10 +103,10 @@ module registers(
 
       output reg [5:0] lumareg_o,
 		output reg [7:0] phasereg_o,
-		output reg [2:0] amplitudereg_o,
+		output reg [3:0] amplitudereg_o,
 `ifdef CONFIGURABLE_LUMAS
 		output reg [5:0] blanking_level,
-		output reg [2:0] burst_amplitude,
+		output reg [3:0] burst_amplitude,
 `endif
 
 	   // --- BEGIN EXTENSIONS ---
@@ -198,9 +198,9 @@ reg [4:0] luma_regs_addr_a;
 reg luma_regs_wr_a;
 reg luma_regs_pre_wr_a;
 reg [7:0] luma_regs_wr_value;
-reg [16:0] luma_regs_data_in_a;
-wire [16:0] luma_regs_data_out_a;
-wire [16:0] luma_regs_data_out_b;
+reg [17:0] luma_regs_data_in_a;
+wire [17:0] luma_regs_data_out_a;
+wire [17:0] luma_regs_data_out_b;
 `endif
 
 // Auto increment/decrement of extra reg addr should happen on reads/writes
@@ -245,7 +245,7 @@ LUMA_REGS luma_regs(clk_dot4x,
                     luma_regs_data_out_a,
                     1'b0, // we never write to port b
                     { palette_select, pixel_color3}, // read addr for luma lookups
-                    17'b0, // we never write to port b
+                    18'b0, // we never write to port b
                     luma_regs_data_out_b // read value for luma lookups
                     );
 `endif
@@ -346,7 +346,7 @@ always @(posedge clk_dot4x)
 
 `ifdef CONFIGURABLE_LUMAS
 		  blanking_level <= 6'b010010;
-		  burst_amplitude <= 3'b010;
+		  burst_amplitude <= 4'b1001;
 `endif
 
    // --- BEGIN EXTENSIONS ----
@@ -928,14 +928,15 @@ always @(posedge clk_dot4x)
             // Now we can do the write
             luma_regs_pre_wr_a <= 1'b0;
             luma_regs_wr_a <= 1'b1;
-				luma_regs_aw <= 1'b1;
+            luma_regs_aw <= 1'b1;
+            // 18-bits : llllllppppppppaaaa
             case (luma_regs_wr_nibble)
                2'b00: //luma
-                   luma_regs_data_in_a <= {luma_regs_wr_value[5:0], luma_regs_data_out_a[10:0]};
+                   luma_regs_data_in_a <= {luma_regs_wr_value[5:0], luma_regs_data_out_a[11:0]};
                2'b01: // phase
-                   luma_regs_data_in_a <= {luma_regs_data_out_a[16:11] , luma_regs_wr_value[7:0], luma_regs_data_out_a[2:0]};
+                   luma_regs_data_in_a <= {luma_regs_data_out_a[17:12] , luma_regs_wr_value[7:0], luma_regs_data_out_a[3:0]};
                2'b10: // amplitude
-                   luma_regs_data_in_a <= {luma_regs_data_out_a[16:3], luma_regs_wr_value[2:0]};
+                   luma_regs_data_in_a <= {luma_regs_data_out_a[17:4], luma_regs_wr_value[3:0]};
                default:
 					    ;
             endcase
@@ -953,12 +954,12 @@ always @(posedge clk_dot4x)
         end
 
 `ifdef CONFIGURABLE_LUMAS
-        // CPU read from color regs
+        // CPU read from luma regs
         if (luma_regs_r) begin
             case (luma_regs_r_nibble)
-               2'b00: dbo[7:0] <= { 2'b0, luma_regs_data_out_a[16:11] };
-               2'b01: dbo[7:0] <= luma_regs_data_out_a[10:3];
-               2'b10: dbo[7:0] <= { 5'b0, luma_regs_data_out_a[2:0] };
+               2'b00: dbo[7:0] <= { 2'b0, luma_regs_data_out_a[17:12] };
+               2'b01: dbo[7:0] <= luma_regs_data_out_a[11:4];
+               2'b10: dbo[7:0] <= { 4'b0, luma_regs_data_out_a[3:0] };
                default: ;
             endcase
         end
@@ -1094,9 +1095,9 @@ end
 always @(posedge clk_dot4x)
 begin
 `ifdef CONFIGURABLE_LUMAS
-    lumareg_o <= luma_regs_data_out_b[16:11];
-    phasereg_o <= luma_regs_data_out_b[10:3];
-    amplitudereg_o <= luma_regs_data_out_b[2:0];
+    lumareg_o <= luma_regs_data_out_b[17:12];
+    phasereg_o <= luma_regs_data_out_b[11:4];
+    amplitudereg_o <= luma_regs_data_out_b[3:0];
 `else
     case (pixel_color3)
         `BLACK:       lumareg_o <= 6'b010011; // 0
@@ -1137,22 +1138,22 @@ begin
    endcase
 
    case (pixel_color3)
-        `BLACK:       amplitudereg_o <= 3'b111; // no modulation
-        `WHITE:       amplitudereg_o <= 3'b111; // no modulation
-        `RED:         amplitudereg_o <= 3'b010;
-        `CYAN:        amplitudereg_o <= 3'b010;
-        `PURPLE:      amplitudereg_o <= 3'b001;
-        `GREEN:       amplitudereg_o <= 3'b001;
-        `BLUE:        amplitudereg_o <= 3'b010;
-        `YELLOW:      amplitudereg_o <= 3'b000;
-        `ORANGE:      amplitudereg_o <= 3'b000;
-        `BROWN:       amplitudereg_o <= 3'b010;
-        `PINK:        amplitudereg_o <= 3'b010;
-        `DARK_GREY:   amplitudereg_o <= 3'b111; // no modulation
-        `GREY:        amplitudereg_o <= 3'b111; // no modulation
-        `LIGHT_GREEN: amplitudereg_o <= 3'b010;
-        `LIGHT_BLUE:  amplitudereg_o <= 3'b010;
-        `LIGHT_GREY:  amplitudereg_o <= 3'b111; // no modulation
+        `BLACK:       amplitudereg_o <= 4'b0000; // no modulation
+        `WHITE:       amplitudereg_o <= 4'b0000; // no modulation
+        `RED:         amplitudereg_o <= 4'b1010;
+        `CYAN:        amplitudereg_o <= 4'b1010;
+        `PURPLE:      amplitudereg_o <= 4'b1100;
+        `GREEN:       amplitudereg_o <= 4'b1100;
+        `BLUE:        amplitudereg_o <= 4'b1010;
+        `YELLOW:      amplitudereg_o <= 4'b1110;
+        `ORANGE:      amplitudereg_o <= 4'b1110;
+        `BROWN:       amplitudereg_o <= 4'b1010;
+        `PINK:        amplitudereg_o <= 4'b1010;
+        `DARK_GREY:   amplitudereg_o <= 4'b0000; // no modulation
+        `GREY:        amplitudereg_o <= 4'b0000; // no modulation
+        `LIGHT_GREEN: amplitudereg_o <= 4'b1010;
+        `LIGHT_BLUE:  amplitudereg_o <= 4'b1010;
+        `LIGHT_GREY:  amplitudereg_o <= 4'b0000; // no modulation
    endcase
 `endif
 end
@@ -1186,19 +1187,19 @@ task read_ram(
 `ifdef CONFIGURABLE_LUMAS
 /* verilator lint_off WIDTH */
 			  else if (ram_lo >= `EXT_REG_LUMA0 && ram_lo <= `EXT_REG_LUMA15) begin
-			     luma_regs_r <= 1'b1;
-				  luma_regs_r_nibble <= 2'b00; // luma
-				  luma_regs_addr_a <= ram_lo - `EXT_REG_LUMA0;
+                              luma_regs_r <= 1'b1;
+                              luma_regs_r_nibble <= 2'b00; // luma
+                              luma_regs_addr_a <= ram_lo - `EXT_REG_LUMA0;
 			  end
 			  else if (ram_lo >= `EXT_REG_PHASE0 && ram_lo <= `EXT_REG_PHASE15) begin
-			     luma_regs_r <= 1'b1;
-				  luma_regs_r_nibble <= 2'b01; // phase
-				  luma_regs_addr_a <= ram_lo - `EXT_REG_PHASE0;
+			      luma_regs_r <= 1'b1;
+                              luma_regs_r_nibble <= 2'b01; // phase
+                              luma_regs_addr_a <= ram_lo - `EXT_REG_PHASE0;
 			  end
 			  else if (ram_lo >= `EXT_REG_AMPL0 && ram_lo <= `EXT_REG_AMPL15) begin
-			     luma_regs_r <= 1'b1;
-				  luma_regs_r_nibble <= 2'b10; // amplitude
-				  luma_regs_addr_a <= ram_lo - `EXT_REG_AMPL0;
+                              luma_regs_r <= 1'b1;
+                              luma_regs_r_nibble <= 2'b10; // amplitude
+                              luma_regs_addr_a <= ram_lo - `EXT_REG_AMPL0;
 			  end
 /* verilator lint_on WIDTH */
 `endif
@@ -1238,7 +1239,7 @@ task read_ram(
                  `EXT_REG_BLANKING:
                      dbo <= {2'b0, blanking_level};
                  `EXT_REG_BURSTAMP:
-                     dbo <= {5'b0, burst_amplitude};
+                     dbo <= {4'b0, burst_amplitude};
 `endif
                  default: ;
               endcase
@@ -1344,7 +1345,7 @@ task write_ram(
                  `EXT_REG_BLANKING:
                     blanking_level <= data[5:0];
                  `EXT_REG_BURSTAMP:
-                    burst_amplitude <= data[2:0];
+                    burst_amplitude <= data[3:0];
 `endif
                  default: ;
               endcase

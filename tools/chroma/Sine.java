@@ -14,7 +14,9 @@ import java.util.ArrayList;
 // Convert grid.png to grid.bin 
 public class Sine extends java.awt.Frame implements KeyListener {
 
-    static int sine_tables[] = new int[7*256];
+    static final int NUM_WAVES = 16;
+
+    static int sine_tables[] = new int[NUM_WAVES*256];
 
     public static void main(String[] args) throws Exception {
       Sine sine = new Sine(); 
@@ -24,14 +26,23 @@ public class Sine extends java.awt.Frame implements KeyListener {
 	 sine.setVisible(true);
       }
 
-      int num_waves = 7;
-      double max_amp = 230;
-      double min_amp = 60;
+      double max_amp = 250;
+      double min_amp = 40;
 
-      double amp = max_amp;
-      double amp_step = (max_amp - min_amp) / (num_waves-1);
+      double amp = min_amp;
+      double amp_step = (max_amp - min_amp) / (NUM_WAVES-2);
       int p = 0;
-      for (int wave = 0; wave < num_waves; wave++) {
+
+      // Wave 0 is reserved for no modulation
+      for (int x = 0; x < 256; x++) {
+	 sine_tables[p++] = 0;
+         String binary = Integer.toBinaryString(0);
+	 while (binary.length() < 9) binary = "0" + binary;
+	 System.out.println(binary.substring(binary.length()-9,binary.length()));
+      }
+
+      for (int wave = 1; wave < NUM_WAVES; wave++) {
+	 System.err.println(amp);
          for (int x = 0; x < 256; x++) {
             int y = (int)(Math.sin(x/40.74366) * amp); // 256/(2*pi)
 	    sine_tables[p++] = y;
@@ -39,7 +50,7 @@ public class Sine extends java.awt.Frame implements KeyListener {
 	    while (binary.length() < 9) binary = "0" + binary;
 	    System.out.println(binary.substring(binary.length()-9,binary.length()));
 	 }
-	 amp=amp-amp_step;
+	 amp=amp+amp_step;
       }
 
       if (args.length == 0) {
@@ -56,7 +67,7 @@ public class Sine extends java.awt.Frame implements KeyListener {
         int cy = 300;	
         g.drawLine(left,cy+256,left,cy-256);
         g.drawLine(left,cy+256,left+256,cy+256);
-	for (int a = 0;a<7;a++) {
+	for (int a = 1;a<NUM_WAVES;a++) {
 	  for (int x = 0;x<256;x++) {
 	    int y = sine_tables[x+256*a];
             g.drawLine(x+left,cy+y,x+left,cy+y);
