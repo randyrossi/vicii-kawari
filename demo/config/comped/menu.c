@@ -169,13 +169,13 @@ void main_menu(void)
 	       cursor_mod_4 = color_cursor % 4;
 	       if (cursor_mod_4 == 0 && v > 63) v=63;
 	       else if (cursor_mod_4 == 1 && v > 255) v=255;
-	       else if (cursor_mod_4 == 2 && v > 7) v=7;
+	       else if (cursor_mod_4 == 2 && v > 15) v=15;
 	    } else {
                if (other_cursor == 0) {
                     if (v > 63) v = 63;
 	       }
 	       else {
-                    if (v > 7) v = 7;
+                    if (v > 15) v = 15;
 	       }
 	    }
 	    POKE(VIDEO_MEM_1_VAL, v);

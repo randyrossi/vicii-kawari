@@ -8,7 +8,7 @@
 // The sine waves are 9 bits centered at 256.
 module SINE_WAVES
 #(
-    parameter addr_width = 11,
+    parameter addr_width = 12,
               data_width = 9
 )
 (
