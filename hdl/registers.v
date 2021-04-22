@@ -1300,7 +1300,7 @@ task write_ram(
            end
            else if (ram_lo >= `EXT_REG_AMPL0 && ram_lo <= `EXT_REG_AMPL15) begin
               luma_regs_pre_wr_a <= 1'b1;
-              luma_regs_wr_value <= {5'b0, data[2:0]};
+              luma_regs_wr_value <= {4'b0, data[3:0]};
               luma_regs_wr_nibble <= 2'b10; // amplitude
               luma_regs_addr_a <= ram_lo - `EXT_REG_AMPL0;
            end
