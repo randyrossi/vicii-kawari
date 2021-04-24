@@ -29,10 +29,12 @@ module vicii(
 `endif
       input rst,
       input clk_dot4x,
+`ifdef HAVE_SERIAL_LINK
 	   output[7:0] tx_data_4x,         // from regs module
 	   output tx_new_data_4x,          // from regs module
 		input [7:0] rx_data_4x,         // from serial_rx
       input rx_new_data_4x,           // from serial_rx
+`endif
       output clk_phi,
 	   output active,
 	   output hsync,
@@ -899,12 +901,12 @@ registers vic_registers(
 	      .chip(chip), // config in
 	      .last_is_15khz(is_15khz), // current setting out
 	      .last_raster_lines(show_raster_lines), // current setting out
-
+`ifdef HAVE_SERIAL_LINK
 	      .tx_data_4x(tx_data_4x),
 	      .tx_new_data_4x(tx_new_data_4x),
          .rx_data_4x(rx_data_4x),
          .rx_new_data_4x(rx_new_data_4x),
-
+`endif
          .lumareg_o(lumareg_o),
 			.phasereg_o(phasereg_o),
 			.amplitudereg_o(amplitudereg_o),

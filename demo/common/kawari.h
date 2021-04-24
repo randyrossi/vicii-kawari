@@ -10,6 +10,9 @@
 #define VIDEO_MEM_2_VAL 0xd03eL
 #define VIDEO_MEM_FLAGS 0xd03fL
 
+#define VMEM_FLAG_REGS_BIT 32
+#define VMEM_FLAG_PERSIST_BIT 64
+
 #define VIDEO_FREQ 0x81
 #define CHIP_MODEL 0x82
 #define VERSION 0x83

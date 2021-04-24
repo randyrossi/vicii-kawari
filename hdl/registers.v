@@ -79,18 +79,17 @@ module registers(
 	   output reg[5:0] red,
 	   output reg[5:0] green,
 	   output reg[5:0] blue,
-
+`ifdef HAVE_SERIAL_LINK
 	   // When we poke our custom regs that change config,
 	   // we set the new config byte and raise new data flag
 	   // for the MCU to pick up over serial.
 	   output reg [7:0] tx_data_4x,
 	   output reg tx_new_data_4x,
-
       // When rx_new_data goes high, interpret the next byte
 		// in the command data stream from the AVR
 		input [7:0] rx_data_4x,
       input rx_new_data_4x,
-
+`endif
 	   // These are the config bits coming from the MCU. They
 	   // represent what the MCU wants things to be, not what
 	   // they are presently in the FPGA.  They are latched
@@ -253,13 +252,15 @@ LUMA_REGS luma_regs(clk_dot4x,
 // --- END EXTENSIONS ----
 
 reg [1:0] last_chip;
+
+`ifdef HAVE_SERIAL_LINK
 reg [10:0] tx_new_data_ctr;
 reg tx_new_data_start;
 reg [7:0] tx_cfg_change_1;
 reg [7:0] tx_cfg_change_2;
-
 reg rx_new_data_ff;
 reg [7:0] rx_cfg_change_1;
+`endif
 
 // When transmitting config changes over serial tx, we transmit
 // two bytes for every register change. The first is the register
@@ -275,7 +276,7 @@ reg [7:0] rx_cfg_change_1;
 // which seems good enough for BASIC to stay away from.  6502
 // assembly might not work though.  This start value (2048) can
 // probably be reduced but I haven't found the lowest value possible.
-
+`ifdef HAVE_SERIAL_LINK
 always @(posedge clk_dot4x)
 begin
    // Signal from other process blocks to start the serial transmission.
@@ -295,7 +296,7 @@ begin
    end else	
       tx_new_data_4x <= 1'b0;
 end
-
+`endif
 
 always @(posedge clk_dot4x)
     if (rst) begin
@@ -422,7 +423,8 @@ always @(posedge clk_dot4x)
 	 if (cpu_reset_i)
 	    ec <= 4'b1;
 `endif
-		 
+
+`ifdef HAVE_SERIAL_LINK
         // Always reset start flag. write_ram may flip this true if a register was
 		  // changed and it should be persisted.
         tx_new_data_start = 1'b0;
@@ -446,6 +448,7 @@ always @(posedge clk_dot4x)
                  );
 			   end
         end
+`endif
 		  
         if (phi_phase_start_dav_plus_1) begin
             if (!clk_phi) begin
@@ -640,7 +643,7 @@ always @(posedge clk_dot4x)
                           // reg overlay or video mem
                           auto_ram_sel <= 0;
                           read_ram(
-                           .overlay(video_ram_flags[5]),
+                           .overlay(video_ram_flags[`VMEM_FLAG_REGS_BIT]),
                            .ram_lo(video_ram_lo_1),
                            .ram_hi(video_ram_hi_1),
                            .ram_idx(video_ram_idx_1));
@@ -661,7 +664,7 @@ always @(posedge clk_dot4x)
                           // reg overlay or video mem
                           auto_ram_sel <= 1;
                           read_ram(
-                           .overlay(video_ram_flags[5]),
+                           .overlay(video_ram_flags[`VMEM_FLAG_REGS_BIT]),
                            .ram_lo(video_ram_lo_2),
                            .ram_hi(video_ram_hi_2),
                            .ram_idx(video_ram_idx_2));
@@ -850,7 +853,7 @@ always @(posedge clk_dot4x)
                         endcase
                         end else begin
                             video_ram_flags <= dbi[7:0];
-                            if (video_ram_flags[7])
+                            if (video_ram_flags[`VMEM_FLAG_DISABLE_BIT])
                                extra_regs_activated <= 1'b0;
                         end
 
@@ -865,12 +868,12 @@ always @(posedge clk_dot4x)
                           // reg overlay or video mem
                           auto_ram_sel <= 0;
                           write_ram(
-                           .overlay(video_ram_flags[5]),
+                           .overlay(video_ram_flags[`VMEM_FLAG_REGS_BIT]),
                            .ram_lo(video_ram_lo_1),
                            .ram_hi(video_ram_hi_1),
                            .ram_idx(video_ram_idx_1),
 									.data(dbi),
-									.do_tx(1'b1));
+									.do_tx(video_ram_flags[`VMEM_FLAG_PERSIST_BIT]));
                         end
                     `VIDEO_MEM_2_HI:
                         if (extra_regs_activated)
@@ -883,12 +886,12 @@ always @(posedge clk_dot4x)
                           // reg overlay or video mem
                           auto_ram_sel <= 1;
                           write_ram(
-                           .overlay(video_ram_flags[5]),
+                           .overlay(video_ram_flags[`VMEM_FLAG_REGS_BIT]),
                            .ram_lo(video_ram_lo_2),
                            .ram_hi(video_ram_hi_2),
                            .ram_idx(video_ram_idx_2),
 									.data(dbi),
-									.do_tx(1'b1));
+									.do_tx(video_ram_flags[`VMEM_FLAG_PERSIST_BIT]));
                         end
 
                     // --- END EXTENSIONS ----
@@ -1010,7 +1013,7 @@ always @(posedge clk_dot4x)
             ) begin
                 // Handle auto increment /decrement after port access
                 if (auto_ram_sel == 0) begin // loc 1 of port a
-                    case(video_ram_flags[1:0]) // auto inc port a
+                    case(video_ram_flags[`VMEM_FLAG_PORT1_FUNCTION]) // auto inc port a
                     2'd1: begin
                         if (video_ram_lo_1 < 8'hff)
                             video_ram_lo_1 <= video_ram_lo_1 + 8'b1;
@@ -1031,7 +1034,7 @@ always @(posedge clk_dot4x)
                        ;
                     endcase
                 end else begin // loc 2 of port a
-                    case(video_ram_flags[3:2]) // auto inc port b
+                    case(video_ram_flags[`VMEM_FLAG_PORT2_FUNCTION]) // auto inc port b
                     2'd1: begin
                        if (video_ram_lo_2 < 8'hff)
                            video_ram_lo_2 <= video_ram_lo_2 + 8'b1;
@@ -1322,20 +1325,24 @@ task write_ram(
                  `EXT_REG_CHIP_MODEL:
                   begin
                     last_chip <= data[1:0];
+`ifdef HAVE_SERIAL_LINK
 						  if (do_tx) begin
 						      tx_cfg_change_1 <= `EXT_REG_CHIP_MODEL;
 						      tx_cfg_change_2 <= {6'b0, data[1:0]};
 						      tx_new_data_start = 1'b1;					  
                     end
+`endif
                  end
                  `EXT_REG_DISPLAY_FLAGS:
                   begin
                     last_raster_lines <= data[`SHOW_RASTER_LINES];
+`ifdef HAVE_SERIAL_LINK
 						  if (do_tx) begin
 						     tx_cfg_change_1 <= `EXT_REG_DISPLAY_FLAGS;
 						     tx_cfg_change_2 <= {7'b0, data[`SHOW_RASTER_LINES]};
                        tx_new_data_start = 1'b1;
                     end
+`endif
                  end
                  `EXT_REG_CURSOR_LO:
                     hires_cursor_lo <= data;

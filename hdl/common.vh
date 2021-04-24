@@ -91,6 +91,10 @@
 // dot4x clock. This smooths out transitions between levels.
 //`define AVERAGE_LUMAS 1
 
+// Uncomment if board has serial link between MCU and FPGA
+`define HAVE_SERIAL_LINK
+
+
 // DATA_DAV
 //
 // When to read from the data bus for both char/pixel and sprite dma
@@ -239,6 +243,12 @@
 `define REG_UNUSED8                   6'h36
 
 // --- BEGIN EXTENSIONS ---
+`define VMEM_FLAG_PORT1_FUNCTION 1:0
+`define VMEM_FLAG_PORT2_FUNCTION 3:2
+`define VMEM_FLAG_REGS_BIT 5
+`define VMEM_FLAG_PERSIST_BIT 6
+`define VMEM_FLAG_DISABLE_BIT 7
+
 `define VIDEO_MEM_1_IDX               6'h35
 `define VIDEO_MEM_2_IDX               6'h36
 `define VIDEO_MODE1                   6'h37

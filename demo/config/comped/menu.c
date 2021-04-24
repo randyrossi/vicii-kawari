@@ -20,6 +20,17 @@ int current_black_level;
 int current_color_burst;
 int preset_num = 0;
 
+void save_changes(void)
+{
+   int reg;
+   POKE(VIDEO_MEM_FLAGS, PEEK(VIDEO_MEM_FLAGS) | VMEM_FLAG_PERSIST_BIT);
+   for (reg=0xa0;reg<=0xd1;reg++) {
+      POKE(VIDEO_MEM_1_LO, reg);
+      POKE(VIDEO_MEM_1_VAL, PEEK(VIDEO_MEM_1_VAL));
+   }
+   POKE(VIDEO_MEM_FLAGS, PEEK(VIDEO_MEM_FLAGS) & ~VMEM_FLAG_PERSIST_BIT);
+}
+
 void main_menu(void)
 {
     int key;
@@ -53,7 +64,7 @@ void main_menu(void)
     CLRSCRN;
     printf ("VIC-II Kawari Composite Settings Editor\n\n");
  
-    POKE(VIDEO_MEM_FLAGS,32);
+    POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
 
     printf ("                Lu PH Amp  Black Color\n");
     for (color=0; color < 16; color++) {
@@ -213,7 +224,7 @@ void main_menu(void)
 	    refresh_all = 1;
        }
        else if (key == 's')  {
-	    // TODO - POKE TO PERSIST INTO FLASH
+	    save_changes();
 	    store_current = 1;
 	    refresh_all = 1;
        }

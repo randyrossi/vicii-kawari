@@ -94,6 +94,7 @@ void show_raster_lines(void)
 
 void save_changes(void)
 {
+   POKE(VIDEO_MEM_FLAGS, PEEK(VIDEO_MEM_FLAGS) | VMEM_FLAG_PERSIST_BIT);
    if (current_display_flags != next_display_flags) {
       POKE(VIDEO_MEM_1_LO, DISPLAY_FLAGS);
       POKE(VIDEO_MEM_1_VAL, next_display_flags);
@@ -104,13 +105,14 @@ void save_changes(void)
       POKE(VIDEO_MEM_1_VAL, next_model);
       current_model = next_model;
    }
+   POKE(VIDEO_MEM_FLAGS, PEEK(VIDEO_MEM_FLAGS) & ~VMEM_FLAG_PERSIST_BIT);
 }
 
 void main_menu(void)
 {
     int need_refresh = 0;
 
-    POKE(VIDEO_MEM_FLAGS,32);
+    POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
     get_version();
     get_variant();
 
