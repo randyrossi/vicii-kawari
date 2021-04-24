@@ -22,7 +22,7 @@
 #include "flash.h"
 #include "string.h"
 
-// Default colors
+// Default colors - community
 int colors[] = {0,0,0,0,
                 63,63,63,0,
                 43,10,10,0,
@@ -39,6 +39,27 @@ int colors[] = {0,0,0,0,
                 41,62,39,0,
                 28,31,57,0,
                 45,45,45,0 };
+
+// Default luma/phase/amplitude
+#define DEFAULT_BLANKING_LEVEL 18
+#define DEFAULT_BURST_AMPLITUDE 9
+int luma[] = {
+                19,0,0,
+                59,0,0,
+                31,80,10,
+                44,208,10,
+                34,32,12,
+                39,160,12,
+                28,0,10,
+                50,128,14,
+                34,96,14,
+                28,112,10,
+                39,80,10,
+                31,0,0,
+                38,0,0,
+                50,160,10,
+                38,0,10,
+                44,0,0};
 
 typedef enum {
   IDLE,
@@ -70,6 +91,8 @@ int chip_model = 0;
 #define CHIP_MODEL_ADDR 0x82
 #define IS_15KHZ_ADDR 0x81
 #define SHOW_RASTER_LINES_ADDR 0x84
+#define BLANKING_LEVEL 0xd0
+#define BURST_AMPLITUDE 0xd1
 
 #define CHIP_MODEL_BIT_0 4
 #define CHIP_MODEL_BIT_1 5
@@ -81,6 +104,10 @@ int chip_model = 0;
 // against what the FPGA is telling us it
 // thinks the settings ought to be.
 unsigned char last_regs[256];
+unsigned char magic_1;
+unsigned char magic_2;
+unsigned char magic_3;
+unsigned char magic_4;
 
 void userLoop() {
   uartTask();
@@ -98,6 +125,21 @@ void disablePostLoad() {
   SET(INIT, HIGH); // pullup on INIT
 }
 
+void setMagic() {
+  EEPROM.write(0x100, 'V');
+  EEPROM.write(0x101, 'I');
+  EEPROM.write(0x102, 'C');
+  EEPROM.write(0x103, '2');
+  magic_1 = 'V';
+  magic_2 = 'I';
+  magic_3 = 'C';
+  magic_4 = '2';
+}
+
+int haveMagic() {
+  return magic_1 == 'V' && magic_2 == 'I' && magic_3 == 'C' && magic_4 == '2';
+}
+
 /* Here you can do some setup before entering the userLoop loop */
 void initPostLoad() {
   //Serial.flush();
@@ -107,6 +149,12 @@ void initPostLoad() {
      last_regs[r] = EEPROM.read(r);
   }
   chip_model = last_regs[CHIP_MODEL_ADDR] & 0b11;
+
+  // Read magic bytes
+  magic_1 = EEPROM.read(0x100);
+  magic_2 = EEPROM.read(0x101);
+  magic_3 = EEPROM.read(0x102);
+  magic_4 = EEPROM.read(0x103);
 
   // Set PB4-PB7 as outputs. These are our configuration pins.
   ADC_BUS_DDR |= ADC_BUS_MASK; // make outputs
@@ -174,18 +222,32 @@ void initPostLoad() {
   // Send over last known config to FPGA
   delay(250);
 
-  // Restore the palette
-  for (int r = 0; r < 64; r++) {
-      // Don't bother with 4th byte in RGBX
-      if (r % 4 == 3) continue;
-      Serial_SendByte(r);
-      Serial_SendByte(last_regs[r]);
+  // Only restore config if we have the magic bytes
+  if (haveMagic()) {
+     // Restore the palette
+     for (int r = 0; r < 64; r++) {
+        // Don't bother with 4th byte in RGBX
+        if (r % 4 == 3) continue;
+        Serial_SendByte(r);
+        Serial_SendByte(last_regs[r]);
+     }
+
+     // Restore luma/phase/amp
+     for (int r = 0xa0; r < 0xd0; r++) {
+        Serial_SendByte(r);
+        Serial_SendByte(last_regs[r]);
+     }
+     Serial_SendByte(BLANKING_LEVEL);
+     Serial_SendByte(last_regs[BLANKING_LEVEL]);
+     Serial_SendByte(BURST_AMPLITUDE);
+     Serial_SendByte(last_regs[BURST_AMPLITUDE]);
+
+     // Restore some select registers
+     Serial_SendByte(IS_15KHZ_ADDR);
+     Serial_SendByte(last_regs[IS_15KHZ_ADDR]);
+     Serial_SendByte(SHOW_RASTER_LINES_ADDR);
+     Serial_SendByte(last_regs[SHOW_RASTER_LINES_ADDR]);
   }
-  // Restore some select registers
-  Serial_SendByte(IS_15KHZ_ADDR);
-  Serial_SendByte(last_regs[IS_15KHZ_ADDR]);
-  Serial_SendByte(SHOW_RASTER_LINES_ADDR);
-  Serial_SendByte(last_regs[SHOW_RASTER_LINES_ADDR]);
 }
 
 
@@ -480,10 +542,27 @@ void uartTask() {
              EEPROM.write(SHOW_RASTER_LINES_ADDR, last_regs[SHOW_RASTER_LINES_ADDR]);
              // color registers - only 1st palette
              for (int r = 0; r < 64; r++) {
+                if (r % 4 == 3) continue;
                 last_regs[r] = colors[r];
                 last_regs[r+64] = colors[r];
                 EEPROM.write(r, last_regs[r]);
                 EEPROM.write(r+64, last_regs[r+64]);
+             }
+             // luma,phase,amplitude registers
+             for (int ci = 0; ci < 16; ci++) {
+                last_regs[ci+0xa0] = luma[ci*3];  // luma
+                last_regs[ci+0xb0] = luma[ci*3+1]; // phase
+                last_regs[ci+0xc0] = luma[ci*3+2]; // amplitude
+                EEPROM.write(ci+0xa0, last_regs[ci+0xa0]);
+                EEPROM.write(ci+0xb0, last_regs[ci+0xb0]);
+                EEPROM.write(ci+0xc0, last_regs[ci+0xc0]);
+             }
+             last_regs[0xd0] = DEFAULT_BLANKING_LEVEL;
+             last_regs[0xd1] = DEFAULT_BURST_AMPLITUDE;
+             EEPROM.write(0xd0, last_regs[0xd0]);
+             EEPROM.write(0xd1, last_regs[0xd1]);
+             if (!haveMagic()) {
+                setMagic();
              }
          }
          // Takes effect immediately
@@ -515,7 +594,10 @@ void uartTask() {
              }
          }
          // Chip changes next boot
-         else if (strcmp(cmd_buf, "0") == 0 || strcmp(cmd_buf, "1") == 0 || strcmp(cmd_buf, "2") == 0) {
+         else if (strcmp(cmd_buf, "0") == 0 ||
+                  strcmp(cmd_buf, "1") == 0 ||
+                  strcmp(cmd_buf, "2") == 0 ||
+                  strcmp(cmd_buf, "3") == 0) {
              int m = atoi(cmd_buf);
              if ((last_regs[CHIP_MODEL_ADDR] & 3) != m) {
                 last_regs[CHIP_MODEL_ADDR] = (last_regs[CHIP_MODEL_ADDR] & ~3) | m;
@@ -560,4 +642,3 @@ ISR(USART1_RX_vect) { // new serial data!
   config_buf[config_buf_write_ptr] = UDR1;
   config_buf_write_ptr = (config_buf_write_ptr + 1) % CONFIG_BUFFER_SIZE;
 }
-

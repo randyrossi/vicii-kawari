@@ -5,11 +5,7 @@
 #define DECIMAL 1
 #define CHARS 2
 
-static int output_type = BINARY;
-static int do_ntsc = 0;
-static int do_pal = 0;
-static int do_ansii = 0;
-static int do_community = 1;
+static int output_type = DECIMAL;
 
 unsigned int luma[16] ={
 	0b010011, // 0
@@ -84,6 +80,9 @@ int main(int argc, char *argv[]) {
   int loc;
 
   for (int i=0;i<16;i++) {
-    printf ("%s%s%s\n",bin(0,luma[i],6,32), bin(1,phase[i],8,128), bin(2,amplitude[i],4,8));
+    if (output_type == BINARY)
+       printf ("%s%s%s\n",bin(0,luma[i],6,32), bin(1,phase[i],8,128), bin(2,amplitude[i],4,8));
+    else if (output_type == DECIMAL)
+       printf ("%d,%d,%d,\n",luma[i], phase[i], amplitude[i]);
   } 
 }
