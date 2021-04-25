@@ -89,8 +89,7 @@ volatile taskState_t taskState = SERVICE;
 int chip_model = 0;
 
 #define CHIP_MODEL_ADDR 0x82
-#define IS_15KHZ_ADDR 0x81
-#define SHOW_RASTER_LINES_ADDR 0x84
+#define DISPLAY_FLAGS_ADDR 0x84
 #define BLANKING_LEVEL 0xd0
 #define BURST_AMPLITUDE 0xd1
 
@@ -140,6 +139,33 @@ int haveMagic() {
   return magic_1 == 'V' && magic_2 == 'I' && magic_3 == 'C' && magic_4 == '2';
 }
 
+void restoreSettings() {
+ // Only restore config if we have the magic bytes
+  if (haveMagic()) {
+     // Restore the palette
+     for (int r = 0; r < 64; r++) {
+        // Don't bother with 4th byte in RGBX
+        if (r % 4 == 3) continue;
+        Serial_SendByte(r);
+        Serial_SendByte(last_regs[r]);
+     }
+
+     // Restore luma/phase/amp
+     for (int r = 0xa0; r < 0xd0; r++) {
+        Serial_SendByte(r);
+        Serial_SendByte(last_regs[r]);
+     }
+     Serial_SendByte(BLANKING_LEVEL);
+     Serial_SendByte(last_regs[BLANKING_LEVEL]);
+     Serial_SendByte(BURST_AMPLITUDE);
+     Serial_SendByte(last_regs[BURST_AMPLITUDE]);
+
+     // Restore some select registers
+     Serial_SendByte(DISPLAY_FLAGS_ADDR);
+     Serial_SendByte(last_regs[DISPLAY_FLAGS_ADDR]);
+  }
+}
+
 /* Here you can do some setup before entering the userLoop loop */
 void initPostLoad() {
   //Serial.flush();
@@ -167,7 +193,7 @@ void initPostLoad() {
       ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT_1);
       break;
     case 1:
-      // 01 - 6569
+      // 01 - 6569R9
       ADC_BUS_PORT |= (1 << CHIP_MODEL_BIT_0);
       ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT_1);
       break;
@@ -176,10 +202,10 @@ void initPostLoad() {
       ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT_0);
       ADC_BUS_PORT |= (1 << CHIP_MODEL_BIT_1);
       break;
-    default:
-      // 00 - 6569
+    case 3:
+      // 11 - 6569R3
       ADC_BUS_PORT |= (1 << CHIP_MODEL_BIT_0);
-      ADC_BUS_PORT &= ~(1 << CHIP_MODEL_BIT_1);
+      ADC_BUS_PORT |= (1 << CHIP_MODEL_BIT_1);
       break;
   }
 
@@ -221,33 +247,7 @@ void initPostLoad() {
 
   // Send over last known config to FPGA
   delay(250);
-
-  // Only restore config if we have the magic bytes
-  if (haveMagic()) {
-     // Restore the palette
-     for (int r = 0; r < 64; r++) {
-        // Don't bother with 4th byte in RGBX
-        if (r % 4 == 3) continue;
-        Serial_SendByte(r);
-        Serial_SendByte(last_regs[r]);
-     }
-
-     // Restore luma/phase/amp
-     for (int r = 0xa0; r < 0xd0; r++) {
-        Serial_SendByte(r);
-        Serial_SendByte(last_regs[r]);
-     }
-     Serial_SendByte(BLANKING_LEVEL);
-     Serial_SendByte(last_regs[BLANKING_LEVEL]);
-     Serial_SendByte(BURST_AMPLITUDE);
-     Serial_SendByte(last_regs[BURST_AMPLITUDE]);
-
-     // Restore some select registers
-     Serial_SendByte(IS_15KHZ_ADDR);
-     Serial_SendByte(last_regs[IS_15KHZ_ADDR]);
-     Serial_SendByte(SHOW_RASTER_LINES_ADDR);
-     Serial_SendByte(last_regs[SHOW_RASTER_LINES_ADDR]);
-  }
+  restoreSettings();
 }
 
 
@@ -531,15 +531,12 @@ void uartTask() {
          int ok = 1;
          // Reset only takes effect next boot so don't send to FPGA
          if (strcmp(cmd_buf, "re") == 0) {
-             // is15khz
-             last_regs[IS_15KHZ_ADDR] = 0;
-             EEPROM.write(IS_15KHZ_ADDR, last_regs[IS_15KHZ_ADDR]);
              // chip
              last_regs[CHIP_MODEL_ADDR] = 0;
              EEPROM.write(CHIP_MODEL_ADDR, last_regs[CHIP_MODEL_ADDR]);
-             // show raster
-             last_regs[SHOW_RASTER_LINES_ADDR] = 0;
-             EEPROM.write(SHOW_RASTER_LINES_ADDR, last_regs[SHOW_RASTER_LINES_ADDR]);
+             // display flags (all off, no native x, no native y, no raster lines)
+             last_regs[DISPLAY_FLAGS_ADDR] = 0;
+             EEPROM.write(DISPLAY_FLAGS_ADDR, last_regs[DISPLAY_FLAGS_ADDR]);
              // color registers - only 1st palette
              for (int r = 0; r < 64; r++) {
                 if (r % 4 == 3) continue;
@@ -566,31 +563,43 @@ void uartTask() {
              }
          }
          // Takes effect immediately
+         else if (strcmp(cmd_buf, "nx") == 0) {
+             if ((last_regs[DISPLAY_FLAGS_ADDR] & 4) != 1) {
+                last_regs[DISPLAY_FLAGS_ADDR] |= 4;
+                SaveAndSend(DISPLAY_FLAGS_ADDR, last_regs[DISPLAY_FLAGS_ADDR]);
+             }
+         }
+         else if (strcmp(cmd_buf, "dx") == 0) {
+             if ((last_regs[DISPLAY_FLAGS_ADDR] & 4) != 0) {
+                last_regs[DISPLAY_FLAGS_ADDR] &= ~4;
+                SaveAndSend(DISPLAY_FLAGS_ADDR, last_regs[DISPLAY_FLAGS_ADDR]);
+             }
+         }
          else if (strcmp(cmd_buf, "15") == 0) {
-             if ((last_regs[IS_15KHZ_ADDR] & 1) != 1) {
-                last_regs[IS_15KHZ_ADDR] |= 1;
-                SaveAndSend(IS_15KHZ_ADDR, last_regs[IS_15KHZ_ADDR]);
+             if ((last_regs[DISPLAY_FLAGS_ADDR] & 2) != 1) {
+                last_regs[DISPLAY_FLAGS_ADDR] |= 2;
+                SaveAndSend(DISPLAY_FLAGS_ADDR, last_regs[DISPLAY_FLAGS_ADDR]);
              }
          }
          // Takes effect immediately
          else if (strcmp(cmd_buf, "31") == 0) {
-             if ((last_regs[IS_15KHZ_ADDR] & 1) != 0) {
-                last_regs[IS_15KHZ_ADDR] &= ~1;
-                SaveAndSend(IS_15KHZ_ADDR, last_regs[IS_15KHZ_ADDR]);
+             if ((last_regs[DISPLAY_FLAGS_ADDR] & 2) != 0) {
+                last_regs[DISPLAY_FLAGS_ADDR] &= ~2;
+                SaveAndSend(DISPLAY_FLAGS_ADDR, last_regs[DISPLAY_FLAGS_ADDR]);
              }
          }
          // Takes effect immediately
          else if (strcmp(cmd_buf, "r0") == 0) {
-             if ((last_regs[SHOW_RASTER_LINES_ADDR] & 1) != 0) {
-                last_regs[SHOW_RASTER_LINES_ADDR] &= ~1;
-                SaveAndSend(SHOW_RASTER_LINES_ADDR, last_regs[SHOW_RASTER_LINES_ADDR]);
+             if ((last_regs[DISPLAY_FLAGS_ADDR] & 1) != 0) {
+                last_regs[DISPLAY_FLAGS_ADDR] &= ~1;
+                SaveAndSend(DISPLAY_FLAGS_ADDR, last_regs[DISPLAY_FLAGS_ADDR]);
              }
          }
          // Takes effect immediately
          else if (strcmp(cmd_buf, "r1") == 0) {
-             if ((last_regs[SHOW_RASTER_LINES_ADDR] & 1) != 1) {
-                last_regs[SHOW_RASTER_LINES_ADDR] |= 1;
-                SaveAndSend(SHOW_RASTER_LINES_ADDR, last_regs[SHOW_RASTER_LINES_ADDR]);
+             if ((last_regs[DISPLAY_FLAGS_ADDR] & 1) != 1) {
+                last_regs[DISPLAY_FLAGS_ADDR] |= 1;
+                SaveAndSend(DISPLAY_FLAGS_ADDR, last_regs[DISPLAY_FLAGS_ADDR]);
              }
          }
          // Chip changes next boot
@@ -605,11 +614,14 @@ void uartTask() {
                 // No register to write to.  Takes effect on next boot.
              }
          }
+         else if (strcmp(cmd_buf, "l") == 0) {
+            restoreSettings();
+         }
          // Show current settings
          else if (strcmp(cmd_buf, "?") == 0) {
-             Serial.write('R'); Serial.write((last_regs[SHOW_RASTER_LINES_ADDR] & 1) ? '1' : '0');
+             Serial.write('R'); Serial.write((last_regs[DISPLAY_FLAGS_ADDR] & 1) ? '1' : '0');
              Serial.write('C'); Serial.write('0'+(last_regs[CHIP_MODEL_ADDR] & 3));
-             Serial.write('K'); Serial.write((last_regs[IS_15KHZ_ADDR] & 1) ? '1' : '0');
+             Serial.write('K'); Serial.write((last_regs[DISPLAY_FLAGS_ADDR] & 2) ? '1' : '0');
 
              for (int r = 0; r < 256; r++) {
                 char tmp[32];
