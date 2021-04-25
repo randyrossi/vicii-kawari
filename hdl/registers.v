@@ -85,6 +85,7 @@ module registers(
 	   // for the MCU to pick up over serial.
 	   output reg [7:0] tx_data_4x,
 	   output reg tx_new_data_4x,
+      input tx_busy_4x,
       // When rx_new_data goes high, interpret the next byte
 		// in the command data stream from the AVR
 		input [7:0] rx_data_4x,
@@ -167,7 +168,12 @@ reg [1:0] luma_regs_wr_nibble;
 reg auto_ram_sel; // which pointer are we auto incrementing?
 
 reg palette_select;
-reg [7:0] video_ram_flags;
+
+reg [1:0] video_ram_flag_port_1_auto;
+reg [1:0] video_ram_flag_port_2_auto;
+// bit 4 is tx busy flag
+reg video_ram_flag_regs_overlay;
+reg video_ram_flag_persist;
 
 // Port A used for CPU access
 reg [14:0] video_ram_addr_a;
@@ -364,7 +370,10 @@ always @(posedge clk_dot4x)
 	last_raster_lines <= 1'b0;
 	last_is_native_y <= 1'b0;
 	last_is_native_x <= 1'b0;
-   video_ram_flags <= 8'b0;
+   video_ram_flag_port_1_auto <= 2'b0;
+	video_ram_flag_port_2_auto <= 2'b0;
+	video_ram_flag_regs_overlay <= 1'b0;
+	video_ram_flag_persist <= 1'b0;
 `ifdef HAVE_SERIAL_LINK
 	rx_new_data_ff <= 1'b0;
 `endif
@@ -653,7 +662,7 @@ always @(posedge clk_dot4x)
                           // reg overlay or video mem
                           auto_ram_sel <= 0;
                           read_ram(
-                           .overlay(video_ram_flags[`VMEM_FLAG_REGS_BIT]),
+                           .overlay(video_ram_flag_regs_overlay),
                            .ram_lo(video_ram_lo_1),
                            .ram_hi(video_ram_hi_1),
                            .ram_idx(video_ram_idx_1));
@@ -674,7 +683,7 @@ always @(posedge clk_dot4x)
                           // reg overlay or video mem
                           auto_ram_sel <= 1;
                           read_ram(
-                           .overlay(video_ram_flags[`VMEM_FLAG_REGS_BIT]),
+                           .overlay(video_ram_flag_regs_overlay),
                            .ram_lo(video_ram_lo_2),
                            .ram_hi(video_ram_hi_2),
                            .ram_idx(video_ram_idx_2));
@@ -682,7 +691,13 @@ always @(posedge clk_dot4x)
                           dbo[7:0] <= 8'hFF;
                     /* 0x3F */ `VIDEO_MEM_FLAGS:
                         if (extra_regs_activated)
-                           dbo[7:0] <= video_ram_flags;
+                           dbo[7:0] <= { 1'b0,
+                                         video_ram_flag_persist,
+                                         video_ram_flag_regs_overlay,
+                                         tx_busy_4x,
+                                         video_ram_flag_port_2_auto,
+                                         video_ram_flag_port_1_auto
+                                       };
                         else
                            dbo[7:0] <= 8'hFF;
 
@@ -862,11 +877,13 @@ always @(posedge clk_dot4x)
                             extra_regs_activation_ctr <= 2'd0;
                         endcase
                         end else begin
-                            video_ram_flags <= dbi[7:0];
-                            if (video_ram_flags[`VMEM_FLAG_DISABLE_BIT])
+                            video_ram_flag_port_1_auto <= dbi[`VMEM_FLAG_PORT1_FUNCTION];
+                            video_ram_flag_port_2_auto <= dbi[`VMEM_FLAG_PORT2_FUNCTION];
+                            video_ram_flag_regs_overlay <= dbi[`VMEM_FLAG_REGS_OVERLAY_BIT];
+                            video_ram_flag_persist <= dbi[`VMEM_FLAG_PERSIST_BIT];
+                            if (dbi[`VMEM_FLAG_DISABLE_BIT])
                                extra_regs_activated <= 1'b0;
                         end
-
                     `VIDEO_MEM_1_HI:
                         if (extra_regs_activated)
                            video_ram_hi_1 <= dbi[7:0];
@@ -878,13 +895,13 @@ always @(posedge clk_dot4x)
                           // reg overlay or video mem
                           auto_ram_sel <= 0;
                           write_ram(
-                           .overlay(video_ram_flags[`VMEM_FLAG_REGS_BIT]),
+                           .overlay(video_ram_flag_regs_overlay),
                            .ram_lo(video_ram_lo_1),
                            .ram_hi(video_ram_hi_1),
                            .ram_idx(video_ram_idx_1),
-									.data(dbi),
-									.from_cpu(1'b1),
-									.do_tx(video_ram_flags[`VMEM_FLAG_PERSIST_BIT]));
+                           .data(dbi),
+                           .from_cpu(1'b1),
+                           .do_tx(video_ram_flag_persist));
                         end
                     `VIDEO_MEM_2_HI:
                         if (extra_regs_activated)
@@ -897,15 +914,14 @@ always @(posedge clk_dot4x)
                           // reg overlay or video mem
                           auto_ram_sel <= 1;
                           write_ram(
-                           .overlay(video_ram_flags[`VMEM_FLAG_REGS_BIT]),
+                           .overlay(video_ram_flag_regs_overlay),
                            .ram_lo(video_ram_lo_2),
                            .ram_hi(video_ram_hi_2),
                            .ram_idx(video_ram_idx_2),
-									.data(dbi),
-									.from_cpu(1'b1),
-									.do_tx(video_ram_flags[`VMEM_FLAG_PERSIST_BIT]));
+                           .data(dbi),
+                           .from_cpu(1'b1),
+                           .do_tx(video_ram_flag_persist));
                         end
-
                     // --- END EXTENSIONS ----
 
                     default:;
@@ -1033,7 +1049,7 @@ always @(posedge clk_dot4x)
             ) begin
                 // Handle auto increment /decrement after port access
                 if (auto_ram_sel == 0) begin // loc 1 of port a
-                    case(video_ram_flags[`VMEM_FLAG_PORT1_FUNCTION]) // auto inc port a
+                    case(video_ram_flag_port_1_auto) // auto inc port a
                     2'd1: begin
                         if (video_ram_lo_1 < 8'hff)
                             video_ram_lo_1 <= video_ram_lo_1 + 8'b1;
@@ -1054,7 +1070,7 @@ always @(posedge clk_dot4x)
                        ;
                     endcase
                 end else begin // loc 2 of port a
-                    case(video_ram_flags[`VMEM_FLAG_PORT2_FUNCTION]) // auto inc port b
+                    case(video_ram_flag_port_2_auto) // auto inc port b
                     2'd1: begin
                        if (video_ram_lo_2 < 8'hff)
                            video_ram_lo_2 <= video_ram_lo_2 + 8'b1;

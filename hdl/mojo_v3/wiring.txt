@@ -102,9 +102,12 @@ P46     CHIP_0   chip[0]               I  NA  NA LVCMOS33
 P61     CHIP_1   chip[1]               I  NA  NA LVCMOS33
 
 # Serial link between MCU and FPGA
-P59     FPGA_TX  tx                    O  FAST 8 LVCMOS33
-P55     FPGA_RX  rx                    I  NA  NA LVCMOS33
-P70     CCLK     cclk                  I  NA  NA LVCMOS33
+P59     FPGA_TX       tx                    O  FAST 8 LVCMOS33
+P55     FPGA_RX       rx                    I  NA  NA LVCMOS33
+P39     FPGA_RX_BUSY  rx_busy               I  NA  NA LVCMOS33
+
+# For flashing
+P70     CCLK          cclk                  I  NA  NA LVCMOS33
 
 # Clock
 P56     CLK      sys_clock       I     NA NA NA

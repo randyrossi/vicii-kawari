@@ -37,7 +37,8 @@ module top(
 `endif  // HAVE_COLOR_CLOCKS
            input [1:0] chip,    // chip config from MCU
            output tx,           // to mcm
-           input rx,            // from mcm (unused a.t.m)
+           input rx,            // from mcm
+           input rx_busy,       // from mcm (indicates receive buffer is full)
            input cclk,          // from mcm
            output cpu_reset,    // reset for 6510 CPU
            input cpu_reset_i,
@@ -211,6 +212,7 @@ wire vic_write_db;
 
 wire[7:0] tx_data_4x;
 wire tx_new_data_4x;
+reg tx_busy_4x;
 wire[7:0] rx_data_4x;
 wire rx_new_data_4x;
 // Instantiate the vicii with our clocks and pins.
@@ -220,6 +222,7 @@ vicii vic_inst(
           .cpu_reset_i(cpu_reset_i),
           .tx_data_4x(tx_data_4x),
           .tx_new_data_4x(tx_new_data_4x),
+          .tx_busy_4x(tx_busy_4x | rx_busy),
           .rx_data_4x(rx_data_4x),
           .rx_new_data_4x(rx_new_data_4x),
           .clk_dot4x(clk_dot4x),
@@ -274,12 +277,16 @@ assign adh = vic_write_ab ? ado[11:6] : 6'bz;
 (* ASYNC_REG = "TRUE" *) reg tx_new_data_sys_pre;
 (* ASYNC_REG = "TRUE" *) reg[7:0] tx_data_sys;
 (* ASYNC_REG = "TRUE" *) reg tx_new_data_sys;
+(* ASYNC_REG = "TRUE" *) reg tx_busy_4x_pre;
 
 always @(posedge sys_clock) tx_data_sys_pre <= tx_data_4x;
 always @(posedge sys_clock) tx_data_sys <= tx_data_sys_pre;
 
 always @(posedge sys_clock) tx_new_data_sys_pre <= tx_new_data_4x;
 always @(posedge sys_clock) tx_new_data_sys <= tx_new_data_sys_pre;
+
+always @(posedge clk_dot4x) tx_busy_4x_pre <= tx_busy_sys;
+always @(posedge clk_dot4x) tx_busy_4x <= tx_busy_4x_pre;
 
 wire [7:0] rx_data;
 wire new_rx_data;
@@ -289,6 +296,7 @@ avr_interface mojo_avr_interface(
     .rst(rst),
     .cclk(cclk),
     .tx(tx),
+    .tx_busy(tx_busy_sys),
     .rx(rx),
     .tx_data(tx_data_sys),
     .new_tx_data(tx_new_data_sys),

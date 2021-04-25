@@ -63,10 +63,12 @@ VIDEO_MEM_FLAGS | Description
 ----------------|-------------
 BIT 1,2  | PORT 1 AUTO INCREMENT FLAGS<br>0=NONE<br>1=INC<br>2=DEC<br>3=UNUSED
 BIT 3,4  | PORT 2 AUTO INCREMENT FLAGS<br>0=NONE<br>1=INC<br>2=DEC<br>3=UNUSED
-BIT 5    | UNUSED
-BIT 6    | Extra Registers Overlay at 0x0000 Enable/Disable
-BIT 7    | Persist Flag (Changes to some registers will persist between reboots)
+BIT 5    | Persist busy status flag (see below)
+BIT 6    | Extra 256 registers overlay at 0x0000 Enable/Disable
+BIT 7    | Persist Flag (see below) Changes to some registers will persist between reboots)
 BIT 8    | Deactivate Extra Registers
+
+When BIT 7 is 1, changes to some registers (like color palette, composite luma, phase, amplitude, etc) will be persisted to the MCU's EEPROM flashram and restored on reboot. Each register change must be written to the MCU's EEPROM so the MCU may not be able to keep up with many register changes back to back. To avoid lost changes, the 6502 should check BIT 5 and make sure it is 0 before attempting to set the next register. For boards that do not support persistence, BIT 7 has no function and BIT 5 is always 0.  If BIT 7 is not enabled, BIT 5 can be ignored.
 
 VIDEO_MODE1 | Description
 ------------|------------

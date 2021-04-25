@@ -7,6 +7,7 @@ public class GenConstraints
   final static int WITH_DVI = 1;
   final static int GEN_LUMA_CHROMA = 2;
   final static int HAVE_COMPOSITE_ENCODER = 3;
+  final static int HAVE_SERIAL_LINK = 4;
 
   public static boolean[] read_config(String filename) throws Exception {
     File f = new File(filename);
@@ -14,7 +15,7 @@ public class GenConstraints
     InputStreamReader ir = new InputStreamReader(fis);
     BufferedReader br = new BufferedReader(ir);
 
-    boolean[] flags = new boolean[4];
+    boolean[] flags = new boolean[5];
     while (true) {
       String line = br.readLine();
       if (line == null) break;
@@ -26,6 +27,8 @@ public class GenConstraints
         flags[GEN_LUMA_CHROMA] = true;
       else if (line.startsWith("`define HAVE_COMPOSITE_ENCODER"))
         flags[HAVE_COMPOSITE_ENCODER] = true;
+      else if (line.startsWith("`define HAVE_SERIAL_LINK"))
+        flags[HAVE_SERIAL_LINK] = true;
     }
     return flags;
   }
@@ -78,6 +81,12 @@ public class GenConstraints
                 }
                 if (!flags[WITH_DVI]) {
                    if (t6.startsWith("TX0_TMDS")) continue;
+                }
+
+		if (!flags[HAVE_SERIAL_LINK]) {
+                   if (t6.equals("tx")) continue;
+                   if (t6.equals("tx_busy")) continue;
+                   if (t6.equals("rx")) continue;
                 }
 
 		System.out.println("NET \""+t6+"\" LOC="+t4+";");

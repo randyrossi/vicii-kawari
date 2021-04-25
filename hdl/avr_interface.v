@@ -13,6 +13,7 @@ module avr_interface #(
     
     // AVR Serial Signals
     output tx,
+	 output tx_busy,
     input rx,
     
     // Serial TX User Interface
@@ -50,13 +51,12 @@ module avr_interface #(
     .new_data(new_rx_data)
   );
   
-  wire busy;
   serial_tx #(.CLK_PER_BIT(CLK_PER_BIT)) serial_tx (
     .clk(clk),
     .rst(n_rdy),
     .tx(tx_m),
     .block(1'b0),
-    .busy(busy),
+    .busy(tx_busy),
     .data(tx_data),
     .new_data(new_tx_data)
   );
