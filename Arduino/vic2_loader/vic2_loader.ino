@@ -22,6 +22,15 @@
 #include "flash.h"
 #include "string.h"
 
+char scratch_buf[32];
+
+#define SERIAL_BUFFER_SIZE 128
+#define SERIAL_STOP 100
+
+int tx_busy = 0;
+RingBuffer_t serialBuffer;
+uint8_t serialBufferData[SERIAL_BUFFER_SIZE];
+
 // Default colors - community
 int colors[] = {0,0,0,0,
                 63,63,63,0,
@@ -169,6 +178,8 @@ void restoreSettings() {
 /* Here you can do some setup before entering the userLoop loop */
 void initPostLoad() {
   //Serial.flush();
+
+  RingBuffer_InitBuffer(&serialBuffer, serialBufferData, SERIAL_BUFFER_SIZE);
 
   // Restore all registers (not all are used)
   for (int r=0;r<256;r++) {
@@ -464,13 +475,7 @@ static inline void Serial_SendByte(const char DataByte)
   UDR1 = DataByte;
 }
 
-#define CONFIG_BUFFER_SIZE 10
 #define CMD_BUFFER_SIZE 32
-
-unsigned char config_buf[CONFIG_BUFFER_SIZE];
-volatile byte config_buf_write_ptr = 0;
-byte config_buf_read_ptr = 0;
-
 char cmd_buf[CMD_BUFFER_SIZE];
 byte cmd_buf_ptr = 0;
 
@@ -491,9 +496,12 @@ void uartTask() {
   // EEPROM for the next boot to pick it up.
 
   // Something to read?
-  if (config_buf_read_ptr != config_buf_write_ptr) {
+  uint16_t ct;
+  do {
+    ct = RingBuffer_GetCount(&serialBuffer);
+    if (ct > 0) {
        // FPGA sents register followed by value.
-       unsigned char cfg_byte = config_buf[config_buf_read_ptr];
+       uint8_t cfg_byte = RingBuffer_Remove(&serialBuffer);
        if (cfg_byte_ff == 0) {
            cfg_reg_num = cfg_byte;
            cfg_byte_ff = 1;
@@ -506,12 +514,17 @@ void uartTask() {
        }
 
        // Print what we get to see if it's what we expect
-       char tmp[32];
-       sprintf (tmp, "(%02x) \n", cfg_byte);
-       Serial.write(tmp);
+       sprintf (scratch_buf, "(%02x) \n", cfg_byte);
+       Serial.write(scratch_buf);
 
-       config_buf_read_ptr = (config_buf_read_ptr + 1) % CONFIG_BUFFER_SIZE;
-  }
+       if (ct < SERIAL_STOP) {
+          if (tx_busy) {
+            tx_busy = 0;
+            SET(TX_BUSY, LOW);
+          }
+       }
+    }
+  } while (ct > 0);
 
   // Process commands from the PC serial channel.
   // We expect 9600 baud.  Commands can end with \n alone
@@ -624,11 +637,10 @@ void uartTask() {
              Serial.write('K'); Serial.write((last_regs[DISPLAY_FLAGS_ADDR] & 2) ? '1' : '0');
 
              for (int r = 0; r < 256; r++) {
-                char tmp[32];
                 if (r % 16 == 0)
                    Serial.write("\n");
-                sprintf (tmp, "%02x=%02x  ", r, last_regs[r]);
-                Serial.write(tmp);
+                sprintf (scratch_buf, "%02x=%02x  ", r, last_regs[r]);
+                Serial.write(scratch_buf);
              }
          }
          else {
@@ -651,6 +663,15 @@ void uartTask() {
 
 // This is inbound serial data from the FPGA -> MCU
 ISR(USART1_RX_vect) { // new serial data!
-  config_buf[config_buf_write_ptr] = UDR1;
-  config_buf_write_ptr = (config_buf_write_ptr + 1) % CONFIG_BUFFER_SIZE;
+  *(serialBuffer.In) = UDR1;
+
+  if (++serialBuffer.In == serialBuffer.End)
+    serialBuffer.In = serialBuffer.Start;
+
+  serialBuffer.Count++;
+
+  if (serialBuffer.Count >= SERIAL_STOP && !tx_busy) { // are we almost out of space?
+     tx_busy = 1;
+     SET(TX_BUSY, HIGH); 
+  }
 }

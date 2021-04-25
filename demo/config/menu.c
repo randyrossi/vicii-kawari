@@ -97,12 +97,12 @@ void save_changes(void)
    POKE(VIDEO_MEM_FLAGS, PEEK(VIDEO_MEM_FLAGS) | VMEM_FLAG_PERSIST_BIT);
    if (current_display_flags != next_display_flags) {
       POKE(VIDEO_MEM_1_LO, DISPLAY_FLAGS);
-      POKE(VIDEO_MEM_1_VAL, next_display_flags);
+      SAFE_POKE(VIDEO_MEM_1_VAL, next_display_flags);
       current_display_flags = next_display_flags;
    }
    if (current_model != next_model) {
       POKE(VIDEO_MEM_1_LO, CHIP_MODEL);
-      POKE(VIDEO_MEM_1_VAL, next_model);
+      SAFE_POKE(VIDEO_MEM_1_VAL, next_model);
       current_model = next_model;
    }
    POKE(VIDEO_MEM_FLAGS, PEEK(VIDEO_MEM_FLAGS) & ~VMEM_FLAG_PERSIST_BIT);

@@ -45,7 +45,7 @@ void save_changes(void)
    for (reg=0;reg<64;reg++) {
       if (reg % 4 == 3) continue;
       POKE(VIDEO_MEM_1_LO, reg);
-      POKE(VIDEO_MEM_1_VAL, PEEK(VIDEO_MEM_1_VAL));
+      SAFE_POKE(VIDEO_MEM_1_VAL, PEEK(VIDEO_MEM_1_VAL));
    }
    POKE(VIDEO_MEM_FLAGS, PEEK(VIDEO_MEM_FLAGS) & ~VMEM_FLAG_PERSIST_BIT);
 }
