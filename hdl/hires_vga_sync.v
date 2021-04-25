@@ -37,7 +37,8 @@ endmodule
 // are always filling one buffer while reading from the other.
 module hires_vga_sync(
            input wire clk_dot4x,
-           input is_15khz,
+           input is_native_y,
+			  input is_native_x,
            input wire rst,
            input [1:0] chip,
            input [9:0] raster_x,
@@ -73,17 +74,14 @@ assign vsync = ~((v_count >= vs_sta) & (v_count < vs_end));
 // active: high during active pixel drawing
 assign active = ~((h_count < ha_sta) | (v_count > va_end - 1));
 
-wire is_native_x;
-assign is_native_x = 1'b0; // TODO : Make config
-
 // These conditions determine whether we advance our h/v counts
 // based whether we are doubling X/Y resolutions or not.  See
 // the table below for more info.
 wire advance;
-assign advance = (!is_15khz && !is_native_x) ||
-                 (is_15khz && !is_native_x && (ff == 2'b01 || ff == 2'b11)) ||
-				     (!is_15khz && is_native_x && (ff == 2'b01 || ff == 2'b11)) ||
-				     (is_15khz && is_native_x && ff == 2'b01);
+assign advance = (!is_native_y && !is_native_x) ||
+                 (is_native_y && !is_native_x && (ff == 2'b01 || ff == 2'b11)) ||
+				     (!is_native_y && is_native_x && (ff == 2'b01 || ff == 2'b11)) ||
+				     (is_native_y && is_native_x && ff == 2'b01);
 
 always @ (posedge clk_dot4x)
 begin
@@ -104,7 +102,7 @@ begin
                     hs_sta <= 20;   //  h back porch 20 = 1008 - 988
 						  // WIDTH 1008
                 end
-                if (is_15khz) begin
+                if (is_native_y) begin
                    // v front porch 5
                    // v sync pulse 2
                    // v back porch 20
@@ -123,9 +121,9 @@ begin
                 end
                 hoffset <= 11'd10;
                 voffset = 10'd20;
-                max_height <= is_15khz ? 10'd311 : 10'd623;
+                max_height <= is_native_y ? 10'd311 : 10'd623;
                 max_width <= is_native_x ? 11'd503 : 11'd1007;
-                v_count <= is_15khz ? (10'd311 - voffset) : (10'd623 - voffset);
+                v_count <= is_native_y ? (10'd311 - voffset) : (10'd623 - voffset);
             end
             `CHIP6567R8: begin
                 if (is_native_x) begin
@@ -139,7 +137,7 @@ begin
                     hs_sta <= 20;   //  h back porch 20 = 1040 - 1020
                     // WIDTH 1040
                 end
-                if (is_15khz) begin
+                if (is_native_y) begin
                    // v front porch 5
                    // v sync pulse 2
                    // v back porch 5
@@ -158,9 +156,9 @@ begin
                 end
                 hoffset <= 11'd20;
                 voffset = 10'd52;
-                max_height <= is_15khz ? 10'd262 : 10'd525;
+                max_height <= is_native_y ? 10'd262 : 10'd525;
                 max_width <= is_native_x ? 11'd519 : 11'd1039;
-                v_count <= is_15khz ? (10'd262 - voffset) : (10'd525 - voffset);
+                v_count <= is_native_y ? (10'd262 - voffset) : (10'd525 - voffset);
             end
             `CHIP6567R56A: begin
                 if (is_native_x) begin
@@ -174,7 +172,7 @@ begin
                     hs_sta <= 20;   //  h back porch 20 = 1024 - 1004
                     // WIDTH 1024
                 end
-                if (is_15khz) begin
+                if (is_native_y) begin
                    // v front porch 5
                    // v sync pulse 2
                    // v back porch 4
@@ -193,9 +191,9 @@ begin
                 end
                 hoffset <= 11'd20;
                 voffset = 10'd52;
-                max_height <= is_15khz ? 10'd261 : 10'd523;
+                max_height <= is_native_y ? 10'd261 : 10'd523;
                 max_width <= is_native_x ? 11'd511 : 11'd1023;
-                v_count <= is_15khz ? (10'd261 - voffset) : (10'd523 - voffset);
+                v_count <= is_native_y ? (10'd261 - voffset) : (10'd523 - voffset);
             end
         endcase
     end else begin

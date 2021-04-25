@@ -92,7 +92,7 @@
 //`define AVERAGE_LUMAS 1
 
 // Uncomment if board has serial link between MCU and FPGA
-`define HAVE_SERIAL_LINK
+`define HAVE_SERIAL_LINK 1
 
 
 // DATA_DAV
@@ -267,7 +267,6 @@
 `define HIRES_TEXT_BITMAP             5
 `define HIRES_COLOR_2K_16K            6
 
-`define EXT_REG_VIDEO_FREQ           8'h81
 `define EXT_REG_CHIP_MODEL           8'h82
 `define EXT_REG_VERSION              8'h83
 `define EXT_REG_DISPLAY_FLAGS        8'h84
@@ -332,7 +331,9 @@
 `endif
 
 // Bits in display flags
-`define SHOW_RASTER_LINES            0
+`define SHOW_RASTER_LINES_BIT        0
+`define IS_NATIVE_Y_BIT              1     // a.k.a 15khz
+`define IS_NATIVE_X_BIT              2
 
 `define EXT_REG_VARIANT_NAME1        8'h90
 `define EXT_REG_VARIANT_NAME2        8'h91

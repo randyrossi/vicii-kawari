@@ -97,8 +97,9 @@ module registers(
 	   input [1:0] chip,
 
 	   // Current settings
-	   output reg last_raster_lines,
-		output reg last_is_15khz,
+	   output reg last_raster_lines, // for dvi/vga only
+		output reg last_is_native_y, // for dvi/vga only
+		output reg last_is_native_x, // for dvi/vga only
 
       output reg [5:0] lumareg_o,
 		output reg [7:0] phasereg_o,
@@ -180,22 +181,27 @@ reg [7:0] video_ram_idx_2;
 reg [7:0] video_ram_data_in_a;
 wire [7:0] video_ram_data_out_a;
 
-// TODO : Port B will be used for video access
+// Regarding pre_wr registers below. We need an additional cycle to
+// read existing values before writing. Otherwise, the data_out_a
+// register will have garbage. This goes for both color and luma
+// registers where we pack components inside a wider register.
 
-// For CPU register read/write to color regs
-reg [4:0] color_regs_addr_a;
+// For CPU/MCU register read/write to color regs
+reg [4:0] color_regs_addr_a; // 16 regs + palette select bit
 reg color_regs_wr_a;
 reg color_regs_pre_wr_a;
+reg color_regs_pre_wr2_a;
 reg [5:0] color_regs_wr_value;
 reg [23:0] color_regs_data_in_a;
 wire [23:0] color_regs_data_out_a;
 wire [23:0] color_regs_data_out_b;
 
 `ifdef CONFIGURABLE_LUMAS
-// For CPU register read/write to luma regs
-reg [4:0] luma_regs_addr_a;
+// For CPU/MCU register read/write to luma regs
+reg [3:0] luma_regs_addr_a;
 reg luma_regs_wr_a;
 reg luma_regs_pre_wr_a;
+reg luma_regs_pre_wr2_a;
 reg [7:0] luma_regs_wr_value;
 reg [17:0] luma_regs_data_in_a;
 wire [17:0] luma_regs_data_out_a;
@@ -356,9 +362,12 @@ always @(posedge clk_dot4x)
 	// Latch these config bits during reset
 	last_chip <= chip;
 	last_raster_lines <= 1'b0;
-	last_is_15khz <= 1'b0;
-	rx_new_data_ff <= 1'b0;
+	last_is_native_y <= 1'b0;
+	last_is_native_x <= 1'b0;
    video_ram_flags <= 8'b0;
+`ifdef HAVE_SERIAL_LINK
+	rx_new_data_ff <= 1'b0;
+`endif
 `ifdef SIMULATOR_BOARD
    extra_regs_activated <= 0'b1;
 
@@ -444,6 +453,7 @@ always @(posedge clk_dot4x)
                   .ram_hi(8'b0), // ignored
                   .ram_idx(8'b0), // ignored
 					   .data(rx_data_4x), // 2nd byte from rx
+						.from_cpu(1'b0), // this is from the MCU
 					   .do_tx(1'b0) // no tx
                  );
 			   end
@@ -873,6 +883,7 @@ always @(posedge clk_dot4x)
                            .ram_hi(video_ram_hi_1),
                            .ram_idx(video_ram_idx_1),
 									.data(dbi),
+									.from_cpu(1'b1),
 									.do_tx(video_ram_flags[`VMEM_FLAG_PERSIST_BIT]));
                         end
                     `VIDEO_MEM_2_HI:
@@ -891,6 +902,7 @@ always @(posedge clk_dot4x)
                            .ram_hi(video_ram_hi_2),
                            .ram_idx(video_ram_idx_2),
 									.data(dbi),
+									.from_cpu(1'b1),
 									.do_tx(video_ram_flags[`VMEM_FLAG_PERSIST_BIT]));
                         end
 
@@ -908,6 +920,10 @@ always @(posedge clk_dot4x)
             dbo[7:0] <= video_ram_data_out_a;
     
         // CPU write to color register ram
+        if (color_regs_pre_wr2_a) begin
+            color_regs_pre_wr_a <= 1'b1;
+				color_regs_pre_wr2_a <= 1'b0;
+        end
         if (color_regs_pre_wr_a) begin
             // Now we can do the write
             color_regs_pre_wr_a <= 1'b0;
@@ -927,6 +943,10 @@ always @(posedge clk_dot4x)
 
 `ifdef CONFIGURABLE_LUMAS
         // CPU write to luma register ram
+        if (luma_regs_pre_wr2_a) begin
+            luma_regs_pre_wr_a <= 1'b1;
+				luma_regs_pre_wr2_a <= 1'b0;
+        end
         if (luma_regs_pre_wr_a) begin
             // Now we can do the write
             luma_regs_pre_wr_a <= 1'b0;
@@ -1192,28 +1212,26 @@ task read_ram(
 			  else if (ram_lo >= `EXT_REG_LUMA0 && ram_lo <= `EXT_REG_LUMA15) begin
                               luma_regs_r <= 1'b1;
                               luma_regs_r_nibble <= 2'b00; // luma
-                              luma_regs_addr_a <= ram_lo - `EXT_REG_LUMA0;
+                              luma_regs_addr_a <= ram_lo[3:0];
 			  end
 			  else if (ram_lo >= `EXT_REG_PHASE0 && ram_lo <= `EXT_REG_PHASE15) begin
-			      luma_regs_r <= 1'b1;
+                              luma_regs_r <= 1'b1;
                               luma_regs_r_nibble <= 2'b01; // phase
-                              luma_regs_addr_a <= ram_lo - `EXT_REG_PHASE0;
+                              luma_regs_addr_a <= ram_lo[3:0];
 			  end
 			  else if (ram_lo >= `EXT_REG_AMPL0 && ram_lo <= `EXT_REG_AMPL15) begin
                               luma_regs_r <= 1'b1;
                               luma_regs_r_nibble <= 2'b10; // amplitude
-                              luma_regs_addr_a <= ram_lo - `EXT_REG_AMPL0;
+                              luma_regs_addr_a <= ram_lo[3:0];
 			  end
 /* verilator lint_on WIDTH */
 `endif
           else begin
               case (ram_lo)
-                 `EXT_REG_VIDEO_FREQ:
-		               dbo <= {7'b0, last_is_15khz};
                  `EXT_REG_CHIP_MODEL:
 		               dbo <= {6'b0, last_chip};
                  `EXT_REG_DISPLAY_FLAGS:
-		               dbo <= {7'b0, last_raster_lines};
+		               dbo <= {5'b0, last_is_native_x, last_is_native_y, last_raster_lines};
                  `EXT_REG_CURSOR_LO:
 		               dbo <= hires_cursor_lo;
                  `EXT_REG_CURSOR_HI:
@@ -1275,6 +1293,7 @@ task write_ram(
     input [7:0] ram_hi,
     input [7:0] ram_idx,
 	 input [7:0] data,
+	 input from_cpu,
 	 input do_tx);
     begin
        if (overlay) begin
@@ -1282,30 +1301,58 @@ task write_ram(
               // In order to write to individual 6 bit
               // values within the 24 bit register, we
               // have to read it first, then write.
-              color_regs_pre_wr_a <= 1'b1;
+              color_regs_pre_wr2_a <= 1'b1;
               color_regs_wr_value <= data[5:0];
               color_regs_wr_nibble <= ram_lo[1:0];
               color_regs_addr_a <= ram_lo[6:2];
-           end
+`ifdef HAVE_SERIAL_LINK
+              if (do_tx) begin
+                  tx_cfg_change_1 <= ram_lo;
+                  tx_cfg_change_2 <= {2'b0, data[5:0]};
+                  tx_new_data_start = 1'b1;					  
+              end
+`endif
+          end
 `ifdef CONFIGURABLE_LUMAS
 /* verilator lint_off WIDTH */
            else if (ram_lo >= `EXT_REG_LUMA0 && ram_lo <= `EXT_REG_LUMA15) begin
-              luma_regs_pre_wr_a <= 1'b1;
+              luma_regs_pre_wr2_a <= 1'b1;
               luma_regs_wr_value <= {2'b0, data[5:0]};
               luma_regs_wr_nibble <= 2'b00; // luma
-              luma_regs_addr_a <= ram_lo - `EXT_REG_LUMA0;
+              luma_regs_addr_a <= ram_lo[3:0];
+`ifdef HAVE_SERIAL_LINK
+              if (do_tx) begin
+                  tx_cfg_change_1 <= ram_lo;
+                  tx_cfg_change_2 <= {2'b0, data[5:0]};
+                  tx_new_data_start = 1'b1;					  
+              end
+`endif
            end
            else if (ram_lo >= `EXT_REG_PHASE0 && ram_lo <= `EXT_REG_PHASE15) begin
-              luma_regs_pre_wr_a <= 1'b1;
+              luma_regs_pre_wr2_a <= 1'b1;
               luma_regs_wr_value <= data[7:0];
               luma_regs_wr_nibble <= 2'b01; // phase
-              luma_regs_addr_a <= ram_lo - `EXT_REG_PHASE0;
+              luma_regs_addr_a <= ram_lo[3:0];
+`ifdef HAVE_SERIAL_LINK
+              if (do_tx) begin
+                  tx_cfg_change_1 <= ram_lo;
+                  tx_cfg_change_2 <= data[7:0];
+                  tx_new_data_start = 1'b1;					  
+              end
+`endif
            end
            else if (ram_lo >= `EXT_REG_AMPL0 && ram_lo <= `EXT_REG_AMPL15) begin
-              luma_regs_pre_wr_a <= 1'b1;
+              luma_regs_pre_wr2_a <= 1'b1;
               luma_regs_wr_value <= {4'b0, data[3:0]};
               luma_regs_wr_nibble <= 2'b10; // amplitude
-              luma_regs_addr_a <= ram_lo - `EXT_REG_AMPL0;
+              luma_regs_addr_a <= ram_lo[3:0];
+`ifdef HAVE_SERIAL_LINK
+              if (do_tx) begin
+                  tx_cfg_change_1 <= ram_lo;
+                  tx_cfg_change_2 <= {4'b0, data[3:0]};
+                  tx_new_data_start = 1'b1;					  
+              end
+`endif
            end
 /* verilator lint_on WIDTH */
 `endif
@@ -1317,7 +1364,7 @@ task write_ram(
               // bits will be reflected after the next
               // cold boot.
               case (ram_lo)
-                 // Not safe to allow last_is_15khz to be changed from
+                 // Not safe to allow nativex/y to be changed from
                  // CPU. Already burned by this with accidental
                  // overwrite of this register. This can effectively
                  // disable your display so leave this only to the
@@ -1335,11 +1382,15 @@ task write_ram(
                  end
                  `EXT_REG_DISPLAY_FLAGS:
                   begin
-                    last_raster_lines <= data[`SHOW_RASTER_LINES];
+                    last_raster_lines <= data[`SHOW_RASTER_LINES_BIT];
+						  if (!from_cpu) begin // protect from CPU
+						     last_is_native_y <= data[`IS_NATIVE_Y_BIT]; // 15khz
+						     last_is_native_x <= data[`IS_NATIVE_X_BIT];
+						  end
 `ifdef HAVE_SERIAL_LINK
 						  if (do_tx) begin
 						     tx_cfg_change_1 <= `EXT_REG_DISPLAY_FLAGS;
-						     tx_cfg_change_2 <= {7'b0, data[`SHOW_RASTER_LINES]};
+						     tx_cfg_change_2 <= {5'b0, data[`IS_NATIVE_X_BIT], data[`IS_NATIVE_Y_BIT], data[`SHOW_RASTER_LINES_BIT]};
                        tx_new_data_start = 1'b1;
                     end
 `endif

@@ -799,7 +799,8 @@ hires_addressgen vic_hires_addressgen(
 // final stage 4 output pixel index to get rgb values
 wire[3:0] pixel_color4_vga;
 wire half_bright;
-wire is_15khz;
+wire is_native_y;
+wire is_native_x;
 wire show_raster_lines;
 
 `ifdef HAVE_COLOR_CLOCKS
@@ -887,10 +888,10 @@ registers vic_registers(
               .pixel_color4(use_scan_doubler ? pixel_color4_vga : pixel_color3),
               .active(use_scan_doubler ? active : native_active),
               .half_bright(
-	               (is_15khz | !use_scan_doubler) ? 1'b0 :
+	               (is_native_y | !use_scan_doubler) ? 1'b0 :
                      (show_raster_lines & half_bright)),
 `else
-              .half_bright(is_15khz ? 1'b0 :
+              .half_bright(is_native_y ? 1'b0 :
                   (show_raster_lines & half_bright)),
               .pixel_color4(pixel_color4_vga),
 	           .active(active),
@@ -899,7 +900,8 @@ registers vic_registers(
 	      .green(green), // out
 	      .blue(blue), // out
 	      .chip(chip), // config in
-	      .last_is_15khz(is_15khz), // current setting out
+	      .last_is_native_y(is_native_y), // current setting out
+			.last_is_native_x(is_native_x), // current setting out
 	      .last_raster_lines(show_raster_lines), // current setting out
 `ifdef HAVE_SERIAL_LINK
 	      .tx_data_4x(tx_data_4x),
@@ -1081,11 +1083,11 @@ comp_sync vic_comp_sync(
 // Hu-res version that can show the 80 column mode as well as
 // 40.
 // -------------------------------------------------------------
-// TODO: Add is_native_x config bit
 hires_vga_sync vic_vga_sync(
              .rst(rst),
              .clk_dot4x(clk_dot4x),
-             .is_15khz(is_15khz),
+             .is_native_y(is_native_y),
+             .is_native_x(is_native_x),
              .raster_x(raster_x),
              .hires_raster_x(hires_raster_x),
              .raster_y(raster_line),
