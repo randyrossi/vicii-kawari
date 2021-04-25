@@ -32,6 +32,7 @@ module vicii(
 `ifdef HAVE_SERIAL_LINK
 	   output[7:0] tx_data_4x,         // from regs module
 	   output tx_new_data_4x,          // from regs module
+      input tx_busy_4x,
 		input [7:0] rx_data_4x,         // from serial_rx
       input rx_new_data_4x,           // from serial_rx
 `endif
@@ -906,6 +907,7 @@ registers vic_registers(
 `ifdef HAVE_SERIAL_LINK
 	      .tx_data_4x(tx_data_4x),
 	      .tx_new_data_4x(tx_new_data_4x),
+         .tx_busy_4x(tx_busy_4x),
          .rx_data_4x(rx_data_4x),
          .rx_new_data_4x(rx_new_data_4x),
 `endif
