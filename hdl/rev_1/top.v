@@ -290,6 +290,7 @@ always @(posedge clk_dot4x) tx_busy_4x <= tx_busy_4x_pre;
 
 wire [7:0] rx_data;
 wire new_rx_data;
+wire tx_busy_sys;
 
 avr_interface mojo_avr_interface(
     .clk(sys_clock),

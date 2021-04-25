@@ -18,6 +18,7 @@ module top(
 	   input [1:0] chip,    // chip config pin from MCU
 	   output tx,
 	   input rx,
+           input rx_busy,
 	   input cclk,
            output cpu_reset,    // reset for 6510 CPU
 	   input cpu_reset_i,
@@ -113,6 +114,7 @@ wire vic_write_db;
 
 wire[7:0] tx_data_4x;
 wire tx_new_data_4x;
+reg tx_busy_4x;
 wire[7:0] rx_data_4x;
 wire rx_new_data_4x;
 
@@ -123,6 +125,7 @@ vicii vic_inst(
 	  .cpu_reset_i(cpu_reset_i),
           .tx_data_4x(tx_data_4x),
           .tx_new_data_4x(tx_new_data_4x),
+          .tx_busy_4x(tx_busy_4x | rx_busy),
           .rx_data_4x(rx_data_4x),
           .rx_new_data_4x(rx_new_data_4x),
           .clk_dot4x(clk_dot4x),
@@ -175,6 +178,7 @@ reg[7:0] tx_data_sys_pre;
 reg tx_new_data_sys_pre;
 reg[7:0] tx_data_sys;
 reg tx_new_data_sys;
+reg tx_busy_4x_pre;
 
 always @(posedge sys_clock) tx_data_sys_pre <= tx_data_4x;
 always @(posedge sys_clock) tx_data_sys<= tx_data_sys_pre;
@@ -182,14 +186,19 @@ always @(posedge sys_clock) tx_data_sys<= tx_data_sys_pre;
 always @(posedge sys_clock) tx_new_data_sys_pre <= tx_new_data_4x;
 always @(posedge sys_clock) tx_new_data_sys <= tx_new_data_sys_pre;
 
+always @(posedge clk_dot4x) tx_busy_4x_pre <= tx_busy_sys;
+always @(posedge clk_dot4x) tx_busy_4x <= tx_busy_4x_pre;
+
 wire [7:0] rx_data;
 wire new_rx_data;
+wire tx_busy_sys;
 
 avr_interface mojo_avr_interface(
     .clk(sys_clock),
     .rst(rst),
     .cclk(cclk),
     .tx(tx),
+    .tx_busy(tx_busy_sys),
     .rx(rx),
     .tx_data(tx_data_sys),
     .new_tx_data(tx_new_data_sys),

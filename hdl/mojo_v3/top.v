@@ -38,7 +38,7 @@ module top(
            input [1:0] chip,    // chip config from MCU
            output tx,           // to mcm
            input rx,            // from mcm
-			  input rx_busy,       // from mcm (indicates receive buffer is full)
+           input rx_busy,       // from mcm (indicates receive buffer is full)
            input cclk,          // from mcm
            output cpu_reset,    // reset for 6510 CPU
            output clk_phi,      // output phi clock for CPU
@@ -291,6 +291,7 @@ always @(posedge sys_clock) tx_new_data_sys <= tx_new_data_sys_pre;
 always @(posedge clk_dot4x) tx_busy_4x_pre <= tx_busy_sys;
 always @(posedge clk_dot4x) tx_busy_4x <= tx_busy_4x_pre;
 
+wire tx_busy_sys;
 wire [7:0] rx_data;
 wire new_rx_data;
 

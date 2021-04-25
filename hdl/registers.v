@@ -255,7 +255,7 @@ LUMA_REGS luma_regs(clk_dot4x,
                     luma_regs_data_in_a,
                     luma_regs_data_out_a,
                     1'b0, // we never write to port b
-                    { palette_select, pixel_color3}, // read addr for luma lookups
+                    pixel_color3, // read addr for luma lookups
                     18'b0, // we never write to port b
                     luma_regs_data_out_b // read value for luma lookups
                     );
