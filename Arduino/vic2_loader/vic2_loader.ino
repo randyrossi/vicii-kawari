@@ -483,7 +483,7 @@ unsigned char cfg_reg_num;
 unsigned char cfg_byte_ff = 0;
 
 // Store the change and tell FPGA the new value
-void SaveAndSend(const char reg, const char value)
+void SaveAndSend(const unsigned int reg, const unsigned char value)
 {
     EEPROM.write(reg, value);
     Serial_SendByte(reg);
@@ -642,6 +642,7 @@ void uartTask() {
                 sprintf (scratch_buf, "%02x=%02x  ", r, last_regs[r]);
                 Serial.write(scratch_buf);
              }
+             Serial.write("\n");
          }
          else {
              // Unknown command
