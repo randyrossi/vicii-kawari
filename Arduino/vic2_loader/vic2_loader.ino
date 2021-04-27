@@ -97,10 +97,10 @@ volatile taskState_t taskState = SERVICE;
 // PB4-5 data lines.
 int chip_model = 0;
 
+#define BLANKING_LEVEL 0x80
+#define BURST_AMPLITUDE 0x81
 #define CHIP_MODEL_ADDR 0x82
 #define DISPLAY_FLAGS_ADDR 0x84
-#define BLANKING_LEVEL 0xd0
-#define BURST_AMPLITUDE 0xd1
 
 #define CHIP_MODEL_BIT_0 4
 #define CHIP_MODEL_BIT_1 5
@@ -567,10 +567,10 @@ void uartTask() {
                 EEPROM.write(ci+0xb0, last_regs[ci+0xb0]);
                 EEPROM.write(ci+0xc0, last_regs[ci+0xc0]);
              }
-             last_regs[0xd0] = DEFAULT_BLANKING_LEVEL;
-             last_regs[0xd1] = DEFAULT_BURST_AMPLITUDE;
-             EEPROM.write(0xd0, last_regs[0xd0]);
-             EEPROM.write(0xd1, last_regs[0xd1]);
+             last_regs[BLANKING_LEVEL] = DEFAULT_BLANKING_LEVEL;
+             last_regs[BURST_AMPLITUDE] = DEFAULT_BURST_AMPLITUDE;
+             EEPROM.write(BLANKING_LEVEL, last_regs[BLANKING_LEVEL]);
+             EEPROM.write(BURST_AMPLITUDE, last_regs[BURST_AMPLITUDE]);
              if (!haveMagic()) {
                 setMagic();
              }
