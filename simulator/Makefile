@@ -81,6 +81,87 @@ logic:
 view: obj_dir/Vtop
 	obj_dir/Vtop -w
 
+gen_config: gen_config.o
+	cc -o gen_config gen_config.o
+
+gen_config.o: gen_config.c
+	cc -c gen_config.c -o gen_config.o
+
+config_test_0: gen_config
+	@(./gen_config 0 > ../hdl/config.vh)
+	$(MAKE) clean
+	$(MAKE) vicii_ipc.o
+	$(VERILATOR) --top-module top --trace -cc  --exe \
+		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
+	               -CFLAGS "-g `./gen_config 0 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
+	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
+
+config_test_1: gen_config
+	@(./gen_config 1 > ../hdl/config.vh)
+	$(MAKE) clean
+	$(MAKE) vicii_ipc.o
+	$(VERILATOR) --top-module top --trace -cc  --exe \
+		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
+	               -CFLAGS "-g `./gen_config 1 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
+	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
+
+config_test_2: gen_config
+	@(./gen_config 2 > ../hdl/config.vh)
+	$(MAKE) clean
+	$(MAKE) vicii_ipc.o
+	$(VERILATOR) --top-module top --trace -cc  --exe \
+		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
+	               -CFLAGS "-g `./gen_config 2 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
+	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
+
+config_test_3: gen_config
+	@(./gen_config 3 > ../hdl/config.vh)
+	$(MAKE) clean
+	$(MAKE) vicii_ipc.o
+	$(VERILATOR) --top-module top --trace -cc  --exe \
+		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
+	               -CFLAGS "-g `./gen_config 3 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
+	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
+
+config_test_4: gen_config
+	@(./gen_config 4 > ../hdl/config.vh)
+	$(MAKE) clean
+	$(MAKE) vicii_ipc.o
+	$(VERILATOR) --top-module top --trace -cc  --exe \
+		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
+	               -CFLAGS "-g `./gen_config 4 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
+	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
+
+config_test_5: gen_config
+	@(./gen_config 5 > ../hdl/config.vh)
+	$(MAKE) clean
+	$(MAKE) vicii_ipc.o
+	$(VERILATOR) --top-module top --trace -cc  --exe \
+		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
+	               -CFLAGS "-g `./gen_config 5 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
+	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
+
+config_test_6: gen_config
+	@(./gen_config 6 > ../hdl/config.vh)
+	$(MAKE) clean
+	$(MAKE) vicii_ipc.o
+	$(VERILATOR) --top-module top --trace -cc  --exe \
+		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
+	               -CFLAGS "-g `./gen_config 6 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
+	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
+
+config_test_7: gen_config
+	@(./gen_config 7 > ../hdl/config.vh)
+	$(MAKE) clean
+	$(MAKE) vicii_ipc.o
+	$(VERILATOR) --top-module top --trace -cc  --exe \
+		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
+	               -CFLAGS "-g `./gen_config 7 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
+	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
+
+config_test: config_test_0 config_test_1 config_test_2 config_test_3 \
+	     config_test_4 config_test_5 config_test_6 config_test_7 
+
 ######################################################################
 
 maintainer-copy::

@@ -730,7 +730,9 @@ int main(int argc, char** argv, char** env) {
     // it takes to wait for phase lock from the clock.
     printf ("(RESET)\n");
     top->V_RST = 1;
+#ifdef HAVE_SERIAL_LINK
     top->cclk = 1; // hold high to simulate MCU ready
+#endif
     top->lp = 1;
     for (int i=0;i<32;i++) {
        top->eval();
@@ -925,11 +927,21 @@ int main(int argc, char** argv, char** env) {
 	  // dot_rising[1] || dot_rising[3]
           if (showWindow && HASCHANGED(OUT_DOT_RISING) &&
 			  (top->V_CLK_DOT == 2 || top->V_CLK_DOT == 8)) {
+#ifdef GEN_RGB
              SDL_SetRenderDrawColor(ren,
                 (top->red << 2) | 0b11,
                 (top->green << 2) | 0b11,
                 (top->blue << 2) | 0b11,
                 255);
+#else 
+#ifdef NEED_RGB
+             SDL_SetRenderDrawColor(ren,
+                (top->top__DOT__red << 2) | 0b11,
+                (top->top__DOT__green << 2) | 0b11,
+                (top->top__DOT__blue << 2) | 0b11,
+                255);
+#endif
+#endif
 	     int hoffset = top->V_CLK_DOT == 2 ? 0 : 1;
              drawPixel(ren,
                 top->V_RASTER_X*2+hoffset,
