@@ -27,10 +27,10 @@ module comp_sync(
 `ifdef GEN_LUMA_CHROMA
            output reg [5:0] luma,
            output reg [5:0] chroma,
+           input [5:0] lumareg_o, // from registers base on pixel_color3
+           input [7:0] phasereg_o, // from registers base on pixel_color3
+           input [3:0] amplitudereg_o, // from registers base on pixel_color3
 `endif
-			  input [5:0] lumareg_o, // from registers base on pixel_color3
-			  input [7:0] phasereg_o, // from registers base on pixel_color3
-			  input [3:0] amplitudereg_o, // from registers base on pixel_color3
 `ifdef CONFIGURABLE_LUMAS
            input [5:0] blanking_level,
            input [3:0] burst_amplitude,

@@ -8,6 +8,7 @@ public class GenConstraints
   final static int GEN_LUMA_CHROMA = 2;
   final static int HAVE_COMPOSITE_ENCODER = 3;
   final static int HAVE_SERIAL_LINK = 4;
+  final static int GEN_RGB = 5;
 
   public static boolean[] read_config(String filename) throws Exception {
     File f = new File(filename);
@@ -15,10 +16,11 @@ public class GenConstraints
     InputStreamReader ir = new InputStreamReader(fis);
     BufferedReader br = new BufferedReader(ir);
 
-    boolean[] flags = new boolean[5];
+    boolean[] flags = new boolean[6];
     while (true) {
       String line = br.readLine();
       if (line == null) break;
+
       if (line.startsWith("`define HAVE_COLOR_CLOCKS"))
         flags[HAVE_COLOR_CLOCKS] = true;
       else if (line.startsWith("`define WITH_DVI"))
@@ -29,6 +31,8 @@ public class GenConstraints
         flags[HAVE_COMPOSITE_ENCODER] = true;
       else if (line.startsWith("`define HAVE_SERIAL_LINK"))
         flags[HAVE_SERIAL_LINK] = true;
+      else if (line.startsWith("`define GEN_RGB"))
+        flags[GEN_RGB] = true;
     }
     return flags;
   }
@@ -36,7 +40,7 @@ public class GenConstraints
   public static void main(String args[]) throws Exception {
     if (args.length < 2) {
       System.out.println("Usage:");
-      System.out.println("java GenConstraints wiring.txt common.vh > top.ucf");
+      System.out.println("java GenConstraints wiring.txt ../config.vh > top.ucf");
       System.exit(0);
     }
 
@@ -87,6 +91,16 @@ public class GenConstraints
                    if (t6.equals("tx")) continue;
                    if (t6.equals("tx_busy")) continue;
                    if (t6.equals("rx")) continue;
+                }
+
+		if (!flags[GEN_RGB]) {
+                   if (t6.startsWith("clk_dot4x_ext")) continue;
+                   if (t6.startsWith("active")) continue;
+                   if (t6.startsWith("vsync")) continue;
+                   if (t6.startsWith("hsync")) continue;
+                   if (t6.startsWith("green")) continue;
+                   if (t6.startsWith("red")) continue;
+                   if (t6.startsWith("blue")) continue;
                 }
 
 		System.out.println("NET \""+t6+"\" LOC="+t4+";");

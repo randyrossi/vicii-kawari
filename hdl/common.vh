@@ -1,14 +1,37 @@
 `ifndef common_vh_
 `define common_vh_
 
-`define VERSION_MAJOR 4'd0
-`define VERSION_MINOR 4'd2
+`include "config.vh"
 
-// Pick a board. MojoV3 'hat' is still working but
-// it will be dropped soon.
-//`define SIMULATOR_BOARD 1
-//`define REV_1_BOARD 1
-`define MOJOV3_BOARD 1
+// If we're using a composite encoder, we need to export RGB
+// (But the pixel clock and active can be trimmed)
+`ifdef HAVE_COMPOSITE_ENCODER
+`ifndef GEN_RGB
+`define GEN_RGB 1
+`endif
+`endif
+
+// Do some sanity checks
+// If we'er exporting RGB signals, we need RGB
+`ifdef GEN_RGB
+`ifndef NEED_RGB
+`define NEED_RGB 1
+`endif
+`endif
+
+// If we're exporting DVI signals, we need RGB
+`ifdef WITH_DVI
+`ifndef NEED_RGB
+`define NEED_RGB 1
+`endif
+`endif
+
+// If we're generating luma/chroma, we need color clocks
+`ifdef GEN_LUMA_CHROMA
+`ifndef HAVE_COLOR_CLOCKS
+`define HAVE_COLOR_CLOCKS 1
+`endif
+`endif
 
 // Annoying
 `ifdef SIMULATOR_BOARD
@@ -17,89 +40,6 @@
 `ifdef REV_1__BOARD
 `define REV_1_BOARD_OR_SIMULATOR_BOARD 1
 `endif
-
-// This shows a test pattern with colors and some text.
-// Useful for testing video output from the device without
-// it being plugged into a C64. This will use approx 16k
-// of block ram for the pixel data.
-//`define TEST_PATTERN 1
-
-// Notes on config permutations:
-//
-// This core can be configured to output video in different ways.
-//    DVI/HDMI (8 differential pairs, from scan doubled RGB values)
-//    VGA (scan doubled RGB + sync + clock signals)
-//    External Composite Encoder (native rgb + csync + color ref signals)
-//    LUMA/CHROMA (luma + chroma for a DAC)
-//
-// LUMA/CHROMA can work simultaneously with any other video output
-// method since it works off of pixel index values coming straight
-// out of the pixel sequencer.  It requires HAVE_COLOR_CLOCKS. This
-// video output mode ignores custom RGB palette registers.  Instead, it
-// uses luma, phase, amplitude for each of the 16 colors.
-//
-// An external composite encoder also requires HAVE_COLOR_CLOCKS.
-// For proper video output, use_scan_doubler must be set to false. It
-// can be included in one bitstream and work with DVI/HDMI/VGA but
-// not simultaneously (you must toggle set use_scan_doubler true for a
-// valid DVI/HDMI/VGA picture and set it false for the encoder.)
-//
-// VGA can work without HAVE_COLOR_CLOCKS but use_scan_doubler is always
-// true if color clocks are not available.
-//
-// Similarly, DVI/HDMI can also work without HAVE_COLOR_CLOCKS but
-// use_scan_doubler is always true if color clocks are not available.
-//
-// The prototype 'hat' for the mojov3 was originally designed with no
-// ntsc/pal color clocks going into the board. In this case, we rely soley
-// on the on-board 50mhz clock to generate our pixel clocks for both ntsc
-// and pal. This caused some routing and placement issues and won't be
-// necessary on the final pcb since we have figured out how to properly
-// generate dot4x clocks from color clocks. For 'plain' unmodified
-// boards to still work, leave HAVE_COLOR_CLOCKS undefined (i.e. the one
-// Adrian Black has.)
-//
-// If HAVE_COLOR_CLOCKS is defined, then either GEN_LUMA_CHROMA or
-// HAVE_COMPOSITE_ENCODER (or both) can be defined. Since the board can now
-// produce luma/chroma itself, a composite encoder is not necessary but the
-// code is kept functional (for now). DVI/VGA will still work as long as
-// the free pins has not been exhausted.
-
-// Uncomment to include TMDS outputs and DVI encoder for video
-//`define WITH_DVI 1
-
-// Uncomment if the board has both PAL and NTSC color clocks
-// available.
-`define HAVE_COLOR_CLOCKS 1
-
-// Uncomment if we have an external composite encoder wired
-// up. This will output csync and color ref clock signals that
-// can feed into an RGB to composite encoder IC. This requires
-// HAVE_COLOR_CLOCKS to be defined.
-//`define HAVE_COMPOSITE_ENCODER 1
-
-// Uncomment if we shuold generate luma and chroma signals.
-// This requires HAVE_COLOR_CLOCKS to be defined.
-`define GEN_LUMA_CHROMA 1
-
-// Uncomment to activate registers a0-cf and 80,81 to control
-// luma(a#), phase(b#) and amplitudes(c#) for the 16 colors as
-// well as blanking level (80) and burst amplitude (81).
-`define CONFIGURABLE_LUMAS 1
-
-// Uncomment to activate registers d0-ef to control HDMI/VGA
-// timings for all the supported resolutions.  This take up a lot
-// space on the device.  Not intended for the release, only to
-// be used as a tool to find correct timings.
-//`define CONFIGURABLE_TIMING 1
-
-// Uncomment to average the luma values over 4 ticks of the
-// dot4x clock. This smooths out transitions between levels.
-//`define AVERAGE_LUMAS 1
-
-// Uncomment if board has serial link between MCU and FPGA
-`define HAVE_SERIAL_LINK 1
-
 
 // DATA_DAV
 //

@@ -16,17 +16,24 @@ module top(
            input clk_col16x,    // driven by sim
 
 	   input [1:0] chip,    // chip config pin from MCU
+`ifdef HAVE_SERIAL_LINK
 	   output tx,
 	   input rx,
            input rx_busy,
 	   input cclk,
+`endif
            output cpu_reset,    // reset for 6510 CPU
 	   input cpu_reset_i,
            output clk_phi,      // output phi clock for CPU
-           output clk_dot4x,    // pixel clock for external HDMI encoder
+           output clk_dot4x,    // pixel clock
+`ifdef GEN_RGB
            output active,       // display active for HDMI
            output hsync,        // hsync signal for VGA/HDMI
            output vsync,        // vsync signal for VGA/HDMI
+           output [5:0] red,    // red out
+           output [5:0] green,  // green out
+           output [5:0] blue,   // blue out
+`endif
 
 `ifdef HAVE_COLOR_CLOCKS
            // use_scan_doubler is valid only when HAVE_COLOR_CLOCKS is
@@ -57,10 +64,6 @@ module top(
 
 `endif  // HAVE_COLOR_CLOCKS
 
-           output [5:0] red,    // red out
-           output [5:0] green,  // green out
-           output [5:0] blue,   // blue out
-
 	   // Verilog doesn't support inout/tri so this section is
 	   // slightly different than non-sim top
            input [5:0] adl,  // address (lower 6 bits)
@@ -84,6 +87,19 @@ module top(
        );
 
 wire rst;
+
+`ifndef GEN_RGB
+// When we're not exporting these signals, we still need
+// them defined as wires (for DVI for example).
+`ifdef NEED_RGB
+wire hsync;
+wire vsync;
+wire active;
+wire [5:0] red;
+wire [5:0] green;
+wire [5:0] blue;
+`endif
+`endif
 
 `ifdef HAVE_COMPOSITE_ENCODER
 // Divides the color4x clock by 4 to get color reference clock
@@ -112,27 +128,36 @@ wire [11:0] ado;
 wire vic_write_ab;
 wire vic_write_db;
 
+`ifdef HAVE_SERIAL_LINK
 wire[7:0] tx_data_4x;
 wire tx_new_data_4x;
 reg tx_busy_4x;
 wire[7:0] rx_data_4x;
 wire rx_new_data_4x;
+`endif
 
 // Instantiate the vicii with our clocks and pins.
 vicii vic_inst(
           .rst(rst),
           .chip(chip),
 	  .cpu_reset_i(cpu_reset_i),
+`ifdef HAVE_SERIAL_LINK
           .tx_data_4x(tx_data_4x),
           .tx_new_data_4x(tx_new_data_4x),
           .tx_busy_4x(tx_busy_4x | rx_busy),
           .rx_data_4x(rx_data_4x),
           .rx_new_data_4x(rx_new_data_4x),
+`endif
           .clk_dot4x(clk_dot4x),
           .clk_phi(clk_phi),
+`ifdef NEED_RGB
 	  .active(active),
 	  .hsync(hsync),
 	  .vsync(vsync),
+	  .red(red),
+	  .green(green),
+	  .blue(blue),
+`endif
 `ifdef HAVE_COLOR_CLOCKS
 	  .use_scan_doubler(use_scan_doubler),
           .clk_col16x(clk_col16x),
@@ -159,10 +184,7 @@ vicii vic_inst(
           .ls245_data_dir(ls245_data_dir),
           .ls245_addr_dir(ls245_addr_dir),
           .vic_write_db(vic_write_db),
-          .vic_write_ab(vic_write_ab),
-	  .red(red),
-	  .green(green),
-	  .blue(blue)
+          .vic_write_ab(vic_write_ab)
       );
 
 // Diff for Verilator, no tri state so use _sim regs
@@ -170,6 +192,7 @@ assign ado_sim = ado;
 assign dbo_sim = dbo;
 // End diff
 
+`ifdef HAVE_SERIAL_LINK
 // NOTE: For the simulator, sys_clock is actually the same as
 // our dot4x clock.  But it's just for simulaion purposes to
 // check tx is working.
@@ -205,5 +228,7 @@ avr_interface mojo_avr_interface(
     .rx_data(rx_data),
     .new_rx_data(new_rx_data)
   );
+
+`endif
 
 endmodule : top

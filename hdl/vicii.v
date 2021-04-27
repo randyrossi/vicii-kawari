@@ -37,9 +37,7 @@ module vicii(
       input rx_new_data_4x,           // from serial_rx
 `endif
       output clk_phi,
-	   output active,
-	   output hsync,
-	   output vsync,
+
 `ifdef HAVE_COLOR_CLOCKS
       input use_scan_doubler,
       input clk_col16x,
@@ -51,6 +49,15 @@ module vicii(
       output [5:0] chroma,
 `endif
 `endif  // HAVE_COLOR_CLOCKS
+
+`ifdef NEED_RGB
+	   output active,
+	   output hsync,
+	   output vsync,
+	   output [5:0] red,
+	   output [5:0] green,
+	   output [5:0] blue,
+`endif
            output [11:0] ado,
            input [5:0] adi,
            output [7:0] dbo,
@@ -69,10 +76,7 @@ module vicii(
 `endif
            output ls245_addr_dir,
            output vic_write_db,
-           output vic_write_ab,
-	   output [5:0] red,
-	   output [5:0] green,
-	   output [5:0] blue
+           output vic_write_ab
        );
 
 wire [9:0] xpos;
@@ -798,22 +802,26 @@ hires_addressgen vic_hires_addressgen(
 //
 // Since color registers are owned by registers, we pass in the
 // final stage 4 output pixel index to get rgb values
+`ifdef NEED_RGB
 wire[3:0] pixel_color4_vga;
 wire half_bright;
 wire is_native_y;
 wire is_native_x;
 wire show_raster_lines;
+`endif
 
 `ifdef HAVE_COLOR_CLOCKS
 wire native_active;
 `endif
 
+`ifdef GEN_LUMA_CHROMA
 wire [5:0] lumareg_o;
 wire [7:0] phasereg_o;
 wire [3:0] amplitudereg_o;
 `ifdef CONFIGURABLE_LUMAS
 wire [5:0] blanking_level;
 wire [3:0] burst_amplitude;
+`endif
 `endif
 
 `ifdef CONFIGURABLE_TIMING
@@ -912,26 +920,33 @@ registers vic_registers(
               // during blanking intervals and we need it to line up with
               // the active period for whatever video standard we are
               // producing
-`ifdef HAVE_COLOR_CLOCKS
               .pixel_color3(pixel_color3), // always native
+`ifdef HAVE_COLOR_CLOCKS
+`ifdef NEED_RGB
               .pixel_color4(use_scan_doubler ? pixel_color4_vga : pixel_color3),
+
               .active(use_scan_doubler ? active : native_active),
               .half_bright(
 	               (is_native_y | !use_scan_doubler) ? 1'b0 :
                      (show_raster_lines & half_bright)),
+`endif
 `else
+`ifdef NEED_RGB
               .half_bright(is_native_y ? 1'b0 :
                   (show_raster_lines & half_bright)),
               .pixel_color4(pixel_color4_vga),
-	           .active(active),
+	          .active(active),
 `endif
+`endif
+`ifdef NEED_RGB
 	      .red(red), // out
 	      .green(green), // out
 	      .blue(blue), // out
-	      .chip(chip), // config in
 	      .last_is_native_y(is_native_y), // current setting out
-			.last_is_native_x(is_native_x), // current setting out
+          .last_is_native_x(is_native_x), // current setting out
 	      .last_raster_lines(show_raster_lines), // current setting out
+`endif
+	      .chip(chip), // config in
 `ifdef HAVE_SERIAL_LINK
 	      .tx_data_4x(tx_data_4x),
 	      .tx_new_data_4x(tx_new_data_4x),
@@ -939,12 +954,14 @@ registers vic_registers(
          .rx_data_4x(rx_data_4x),
          .rx_new_data_4x(rx_new_data_4x),
 `endif
-         .lumareg_o(lumareg_o),
+`ifdef GEN_LUMA_CHROMA
+            .lumareg_o(lumareg_o),
 			.phasereg_o(phasereg_o),
 			.amplitudereg_o(amplitudereg_o),
 `ifdef CONFIGURABLE_LUMAS
 			.blanking_level(blanking_level),
 			.burst_amplitude(burst_amplitude),
+`endif
 `endif
 `ifdef CONFIGURABLE_TIMING
 .timing_change(timing_change),
@@ -1139,37 +1156,38 @@ comp_sync vic_comp_sync(
 // Hu-res version that can show the 80 column mode as well as
 // 40.
 // -------------------------------------------------------------
+`ifdef NEED_RGB
 hires_vga_sync vic_vga_sync(
              .rst(rst),
              .clk_dot4x(clk_dot4x),
              .is_native_y_in(is_native_y),
              .is_native_x_in(is_native_x),
 `ifdef CONFIGURABLE_TIMING
-.timing_change_in(timing_change),
-.timing_1x_fporch_ntsc(timing_1x_fporch_ntsc),
-.timing_1x_bporch_ntsc(timing_1x_bporch_ntsc),
-.timing_1x_sync_ntsc(timing_1x_sync_ntsc),
-.timing_1y_fporch_ntsc(timing_1y_fporch_ntsc),
-.timing_1y_bporch_ntsc(timing_1y_bporch_ntsc),
-.timing_1y_sync_ntsc(timing_1y_sync_ntsc),
-.timing_2x_fporch_ntsc(timing_2x_fporch_ntsc),
-.timing_2x_bporch_ntsc(timing_2x_bporch_ntsc),
-.timing_2x_sync_ntsc(timing_2x_sync_ntsc),
-.timing_2y_fporch_ntsc(timing_2y_fporch_ntsc),
-.timing_2y_bporch_ntsc(timing_2y_bporch_ntsc),
-.timing_2y_sync_ntsc(timing_2y_sync_ntsc),
-.timing_1x_fporch_pal(timing_1x_fporch_pal),
-.timing_1x_bporch_pal(timing_1x_bporch_pal),
-.timing_1x_sync_pal(timing_1x_sync_pal),
-.timing_1y_fporch_pal(timing_1y_fporch_pal),
-.timing_1y_bporch_pal(timing_1y_bporch_pal),
-.timing_1y_sync_pal(timing_1y_sync_pal),
-.timing_2x_fporch_pal(timing_2x_fporch_pal),
-.timing_2x_bporch_pal(timing_2x_bporch_pal),
-.timing_2x_sync_pal(timing_2x_sync_pal),
-.timing_2y_fporch_pal(timing_2y_fporch_pal),
-.timing_2y_bporch_pal(timing_2y_bporch_pal),
-.timing_2y_sync_pal(timing_2y_sync_pal),
+            .timing_change_in(timing_change),
+            .timing_1x_fporch_ntsc(timing_1x_fporch_ntsc),
+            .timing_1x_bporch_ntsc(timing_1x_bporch_ntsc),
+            .timing_1x_sync_ntsc(timing_1x_sync_ntsc),
+            .timing_1y_fporch_ntsc(timing_1y_fporch_ntsc),
+            .timing_1y_bporch_ntsc(timing_1y_bporch_ntsc),
+            .timing_1y_sync_ntsc(timing_1y_sync_ntsc),
+            .timing_2x_fporch_ntsc(timing_2x_fporch_ntsc),
+            .timing_2x_bporch_ntsc(timing_2x_bporch_ntsc),
+            .timing_2x_sync_ntsc(timing_2x_sync_ntsc),
+            .timing_2y_fporch_ntsc(timing_2y_fporch_ntsc),
+            .timing_2y_bporch_ntsc(timing_2y_bporch_ntsc),
+            .timing_2y_sync_ntsc(timing_2y_sync_ntsc),
+            .timing_1x_fporch_pal(timing_1x_fporch_pal),
+            .timing_1x_bporch_pal(timing_1x_bporch_pal),
+            .timing_1x_sync_pal(timing_1x_sync_pal),
+            .timing_1y_fporch_pal(timing_1y_fporch_pal),
+            .timing_1y_bporch_pal(timing_1y_bporch_pal),
+            .timing_1y_sync_pal(timing_1y_sync_pal),
+            .timing_2x_fporch_pal(timing_2x_fporch_pal),
+            .timing_2x_bporch_pal(timing_2x_bporch_pal),
+            .timing_2x_sync_pal(timing_2x_sync_pal),
+            .timing_2y_fporch_pal(timing_2y_fporch_pal),
+            .timing_2y_bporch_pal(timing_2y_bporch_pal),
+            .timing_2y_sync_pal(timing_2y_sync_pal),
 `endif
              .raster_x(raster_x),
              .hires_raster_x(hires_raster_x),
@@ -1182,5 +1200,6 @@ hires_vga_sync vic_vga_sync(
              .pixel_color4(pixel_color4_vga),
              .half_bright(half_bright)
          );
+`endif
 
 endmodule : vicii

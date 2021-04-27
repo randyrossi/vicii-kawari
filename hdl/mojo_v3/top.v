@@ -43,13 +43,15 @@ module top(
            output cpu_reset,    // reset for 6510 CPU
            output clk_phi,      // output phi clock for CPU
 
-           output clk_dot4x_ext,// pixel clock
+`ifdef GEN_RGB
+           output clk_dot4x_ext,// pixel clock for VGA/DVI
            output hsync,        // hsync signal for VGA/DVI
            output vsync,        // vsync signal for VGA/DVI
            output active,       // display active for DVI
            output [5:0] red,    // red out for VGA/DVI or Composite Encoder
            output [5:0] green,  // green out for VGA/DVI or Composite Encoder
            output [5:0] blue,   // blue out for VGA/DVI or Composite Encoder
+`endif
 
            inout tri [5:0] adl, // address (lower 6 bits)
            output tri [5:0] adh,// address (high 6 bits)
@@ -66,7 +68,7 @@ module top(
            output ras,          // row address strobe
            //output ls245_addr_oe,   // OE for addr bus transceviers
            output ls245_addr_dir,  // DIR for addr bus transceivers
-			  output ls245_data_oe,   // OE for data bus transcevier
+           output ls245_data_oe,   // OE for data bus transcevier
            output ls245_data_dir   // DIR for data bus transceiver
 `ifdef WITH_DVI
            ,
@@ -90,6 +92,19 @@ module top(
 
 wire rst;
 wire clk_dot4x;
+
+`ifndef GEN_RGB
+// When we're not exporting these signals, we still need
+// them defined as wires (for DVI for example).
+`ifdef NEED_RGB
+wire hsync;
+wire vsync;
+wire active;
+wire [5:0] red;
+wire [5:0] green;
+wire [5:0] blue;
+`endif
+`endif
 
 `ifdef HAVE_COLOR_CLOCKS
 // When we have color clocks available, we select which
@@ -182,6 +197,7 @@ dvi_encoder_top dvi_tx0 (
 `endif
 
 // https://www.xilinx.com/support/answers/35032.html
+`ifdef GEN_RGB
 ODDR2 oddr2(
           .D0(1'b1),
           .D1(1'b0),
@@ -192,6 +208,7 @@ ODDR2 oddr2(
           .S(1'b0),
           .Q(clk_dot4x_ext)
       );
+`endif
 
 // This is a reset line for the CPU which would have to be
 // connected with a jumper.  It holds the CPU in reset
@@ -228,9 +245,14 @@ vicii vic_inst(
           .rx_new_data_4x(rx_new_data_4x),
           .clk_dot4x(clk_dot4x),
           .clk_phi(clk_phi),
+`ifdef NEED_RGB
           .active(active),
           .hsync(hsync),
           .vsync(vsync),
+          .red(red),
+          .green(green),
+          .blue(blue),
+`endif
 `ifdef HAVE_COLOR_CLOCKS
           // see above, only need to be off for external comp encoder
           .use_scan_doubler(1'b1),
@@ -260,10 +282,7 @@ vicii vic_inst(
           .ls245_addr_dir(ls245_addr_dir),
           //.ls245_addr_oe(ls245_addr_oe),
           .vic_write_db(vic_write_db),
-          .vic_write_ab(vic_write_ab),
-          .red(red),
-          .green(green),
-          .blue(blue)
+          .vic_write_ab(vic_write_ab)
       );
 
 // Write to bus condition, else tri state.

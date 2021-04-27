@@ -67,18 +67,24 @@ module registers(
            output reg emmc,
            output reg embc,
            output reg erst,
-		// pixel_color3 is from native res pixel sequencer and should be used
-		// to look up luma/phase/chroma values (prefixed with palette select bit)
-      input [3:0] pixel_color3,
+       // pixel_color3 is from native res pixel sequencer and should be used
+       // to look up luma/phase/chroma values (prefixed with palette select bit)
+       input [3:0] pixel_color3,
 	   // pixel_color4 is from the scan doubler and should be used to look up
 	   // RGB color register ram prefixed with the palette select
 	   // bit, so 5 bit address.
+`ifdef NEED_RGB
 	   input [3:0] pixel_color4,
 	   input half_bright,
 	   input active,
 	   output reg[5:0] red,
 	   output reg[5:0] green,
 	   output reg[5:0] blue,
+       // Current settings
+	   output reg last_raster_lines, // for dvi/vga only
+       output reg last_is_native_y, // for dvi/vga only
+       output reg last_is_native_x, // for dvi/vga only
+`endif
 `ifdef HAVE_SERIAL_LINK
 	   // When we poke our custom regs that change config,
 	   // we set the new config byte and raise new data flag
@@ -97,18 +103,16 @@ module registers(
 	   // into 'current' regs into reset block.
 	   input [1:0] chip,
 
-	   // Current settings
-	   output reg last_raster_lines, // for dvi/vga only
-		output reg last_is_native_y, // for dvi/vga only
-		output reg last_is_native_x, // for dvi/vga only
-
-      output reg [5:0] lumareg_o,
+`ifdef GEN_LUMA_CHROMA
+        output reg [5:0] lumareg_o,
 		output reg [7:0] phasereg_o,
 		output reg [3:0] amplitudereg_o,
 `ifdef CONFIGURABLE_LUMAS
 		output reg [5:0] blanking_level,
 		output reg [3:0] burst_amplitude,
 `endif
+`endif
+
 `ifdef CONFIGURABLE_TIMING
 output reg timing_change,
 output reg [7:0] timing_1x_fporch_ntsc,
@@ -178,11 +182,13 @@ reg video_ram_r; // also used to trigger auto inc after read
 reg video_ram_r2; // also used to trigger auto inc after read
 reg video_ram_aw; // auto increment after write is necessary
 
+`ifdef NEED_RGB
 reg color_regs_r; // also used to trigger auto inc after read
 reg color_regs_r2; // also used to trigger auto inc after read
 reg color_regs_aw; // auto increment after write is necessary
 reg [1:0] color_regs_r_nibble;
 reg [1:0] color_regs_wr_nibble;
+`endif
 
 `ifdef CONFIGURABLE_LUMAS
 reg luma_regs_r; // also used to trigger auto inc after read
@@ -219,6 +225,7 @@ wire [7:0] video_ram_data_out_a;
 // register will have garbage. This goes for both color and luma
 // registers where we pack components inside a wider register.
 
+`ifdef NEED_RGB
 // For CPU/MCU register read/write to color regs
 reg [4:0] color_regs_addr_a; // 16 regs + palette select bit
 reg color_regs_wr_a;
@@ -228,6 +235,7 @@ reg [5:0] color_regs_wr_value;
 reg [23:0] color_regs_data_in_a;
 wire [23:0] color_regs_data_out_a;
 wire [23:0] color_regs_data_out_b;
+`endif
 
 `ifdef CONFIGURABLE_LUMAS
 // For CPU/MCU register read/write to luma regs
@@ -264,6 +272,7 @@ VIDEO_RAM video_ram(clk_dot4x,
                     video_ram_data_out_b
                     );
 
+`ifdef NEED_RGB
 COLOR_REGS color_regs(clk_dot4x,
                     color_regs_wr_a, // write to color ram
                     color_regs_addr_a, // addr for color ram read/write
@@ -274,6 +283,7 @@ COLOR_REGS color_regs(clk_dot4x,
                     24'b0, // we never write to port b
                     color_regs_data_out_b // read value for color lookups
                     );
+`endif
 
 `ifdef CONFIGURABLE_LUMAS
 LUMA_REGS luma_regs(clk_dot4x,
@@ -420,9 +430,11 @@ timing_2y_bporch_pal <= 20;
 
 	// Latch these config bits during reset
 	last_chip <= chip;
+`ifdef NEED_RGB
 	last_raster_lines <= 1'b0;
 	last_is_native_y <= 1'b0;
 	last_is_native_x <= 1'b0;
+`endif
     video_ram_flag_port_1_auto <= 2'b0;
 	video_ram_flag_port_2_auto <= 2'b0;
 	video_ram_flag_regs_overlay <= 1'b0;
@@ -747,7 +759,11 @@ timing_2y_bporch_pal <= 20;
                            dbo[7:0] <= { 1'b0,
                                          video_ram_flag_persist,
                                          video_ram_flag_regs_overlay,
+`ifdef HAVE_SERIAL_LINK
                                          tx_busy_4x,
+`else
+                                         1'b0,
+`endif
                                          video_ram_flag_port_2_auto,
                                          video_ram_flag_port_1_auto
                                        };
@@ -987,7 +1003,8 @@ timing_2y_bporch_pal <= 20;
         // CPU read from video mem
         if (video_ram_r)
             dbo[7:0] <= video_ram_data_out_a;
-    
+
+`ifdef NEED_RGB
         // CPU write to color register ram
         if (color_regs_pre_wr2_a) begin
             color_regs_pre_wr_a <= 1'b1;
@@ -1009,6 +1026,7 @@ timing_2y_bporch_pal <= 20;
                    color_regs_data_in_a <= {color_regs_data_out_a[23:6], color_regs_wr_value}; // never used
             endcase
         end
+`endif
 
 `ifdef CONFIGURABLE_LUMAS
         // CPU write to luma register ram
@@ -1035,6 +1053,7 @@ timing_2y_bporch_pal <= 20;
         end
 `endif
 
+`ifdef NEED_RGB
         // CPU read from color regs
         if (color_regs_r) begin
             case (color_regs_r_nibble)
@@ -1044,6 +1063,7 @@ timing_2y_bporch_pal <= 20;
                2'b11: dbo[7:0] <= { 2'b0, color_regs_data_out_a[5:0] };
             endcase
         end
+`endif
 
 `ifdef CONFIGURABLE_LUMAS
         // CPU read from luma regs
@@ -1061,9 +1081,11 @@ timing_2y_bporch_pal <= 20;
         if (video_ram_wr_a)
 		     video_ram_wr_a <= 1'b0;
 
+`ifdef NEED_RGB
         // Only need 1 tick to write to color ram
         if (color_regs_wr_a)
 		     color_regs_wr_a <= 1'b0;
+`endif
 
 `ifdef CONFIGURABLE_LUMAS
         // Only need 1 tick to write to color ram
@@ -1079,9 +1101,11 @@ timing_2y_bporch_pal <= 20;
             video_ram_r2 <= video_ram_r;
 				video_ram_aw <= 1'b0;
 
+`ifdef NEED_RGB
             color_regs_r <= 0;
             color_regs_r2 <= color_regs_r;
 				color_regs_aw <= 1'b0;
+`endif
 
 `ifdef CONFIGURABLE_LUMAS
             luma_regs_r <= 0;
@@ -1095,7 +1119,9 @@ timing_2y_bporch_pal <= 20;
             // cause two increments when we only wanted one.  So this effectively
             // waits a full cycle before commiting to increment after a read.
             if (video_ram_r2 || video_ram_aw
+`ifdef NEED_RGB
 				    || color_regs_r2 || color_regs_aw
+`endif
 `ifdef CONFIGURABLE_LUMAS
 				    || luma_regs_r2 || luma_regs_aw
 `endif
@@ -1149,6 +1175,7 @@ timing_2y_bporch_pal <= 20;
         // --- END EXTENSIONS ----
     end
 
+`ifdef NEED_RGB
 // At every pixel clock tick, set red,green,blue from color
 // register ram according to the pixel_color4 address.
 always @(posedge clk_dot4x)
@@ -1173,6 +1200,7 @@ begin
     end
 `endif
 end
+`endif
 
 // Luma        NTSC-Voltage    PAL-Voltage
 // 0           1.38            TBD
@@ -1184,6 +1212,7 @@ end
 // 6           3.24            TBD
 // 7           3.66            TBD
 // 8           4.28            TBD
+`ifdef GEN_LUMA_CHROMA
 always @(posedge clk_dot4x)
 begin
 `ifdef CONFIGURABLE_LUMAS
@@ -1249,6 +1278,7 @@ begin
    endcase
 `endif
 end
+`endif
 
 // For color ram:
 //     flip read bit on and set address and which 6-bit-nibble (out of 4)
@@ -1272,9 +1302,11 @@ task read_ram(
           if (ram_lo < 8'h80) begin
               // _r_nibble stores which 6-bit-nibble within the 24 bit
               // lookup value we want.  The lowest 6-bits are never used.
+`ifdef NEED_RGB
               color_regs_r <= 1'b1;
               color_regs_r_nibble <= ram_lo[1:0];
               color_regs_addr_a <= ram_lo[6:2];
+`endif
           end
 `ifdef CONFIGURABLE_LUMAS
 /* verilator lint_off WIDTH */
@@ -1300,7 +1332,11 @@ task read_ram(
                  `EXT_REG_CHIP_MODEL:
 		               dbo <= {6'b0, last_chip};
                  `EXT_REG_DISPLAY_FLAGS:
+`ifdef NEED_RGB
 		               dbo <= {5'b0, last_is_native_x, last_is_native_y, last_raster_lines};
+`else
+                       dbo <= 8'b0;
+`endif
                  `EXT_REG_CURSOR_LO:
 		               dbo <= hires_cursor_lo;
                  `EXT_REG_CURSOR_HI:
@@ -1370,6 +1406,7 @@ task write_ram(
               // In order to write to individual 6 bit
               // values within the 24 bit register, we
               // have to read it first, then write.
+`ifdef NEED_RGB
               color_regs_pre_wr2_a <= 1'b1;
               color_regs_wr_value <= data[5:0];
               color_regs_wr_nibble <= ram_lo[1:0];
@@ -1380,6 +1417,7 @@ task write_ram(
                   tx_cfg_change_2 <= {2'b0, data[5:0]};
                   tx_new_data_start = 1'b1;					  
               end
+`endif
 `endif
           end
 `ifdef CONFIGURABLE_LUMAS
@@ -1451,18 +1489,20 @@ task write_ram(
                  end
                  `EXT_REG_DISPLAY_FLAGS:
                   begin
-                    last_raster_lines <= data[`SHOW_RASTER_LINES_BIT];
+`ifdef NEED_RGB
+                          last_raster_lines <= data[`SHOW_RASTER_LINES_BIT];
 						  if (!from_cpu) begin // protect from CPU
 						     last_is_native_y <= data[`IS_NATIVE_Y_BIT]; // 15khz
 						     last_is_native_x <= data[`IS_NATIVE_X_BIT];
 						  end
-`ifdef HAVE_SERIAL_LINK
+    `ifdef HAVE_SERIAL_LINK
 						  if (do_tx) begin
 						     tx_cfg_change_1 <= `EXT_REG_DISPLAY_FLAGS;
 						     tx_cfg_change_2 <= {5'b0, data[`IS_NATIVE_X_BIT], data[`IS_NATIVE_Y_BIT], data[`SHOW_RASTER_LINES_BIT]};
-                       tx_new_data_start = 1'b1;
-                    end
-`endif
+                             tx_new_data_start = 1'b1;
+                          end
+    `endif // HAVE_SERIAL_LINK
+`endif // NEED_RGB
                  end
                  `EXT_REG_CURSOR_LO:
                     hires_cursor_lo <= data;
@@ -1513,7 +1553,7 @@ task write_ram(
                 timing_1y_bporch_pal <= data;
                 8'he2:
                 timing_2x_fporch_pal <= data;
-                8'hd3:
+                8'he3:
                 timing_2x_sync_pal <= data;
                 8'he4:
                 timing_2x_bporch_pal <= data;
@@ -1531,7 +1571,7 @@ task write_ram(
            end
         end else begin
            video_ram_wr_a <= 1'b1;
-			  video_ram_aw <= 1'b1;
+           video_ram_aw <= 1'b1;
            video_ram_data_in_a <= data[7:0];
            video_ram_addr_a <= {ram_hi[6:0], ram_lo} + {7'b0, ram_idx};
         end

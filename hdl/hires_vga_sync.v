@@ -317,6 +317,7 @@ endtask
 task set_params_configurable();
     begin
         case (chip)
+            /* verilator lint_off WIDTH */
             `CHIP6569R1, `CHIP6569R5: begin
                 if (is_native_x) begin
                     hs_sta <= timing_1x_fporch_pal;
@@ -398,6 +399,7 @@ task set_params_configurable();
                 max_height <= is_native_y ? 10'd261 : 10'd523;
                 max_width <= is_native_x ? 11'd511 : 11'd1023;
             end
+            /* verilator lint_on WIDTH */
         endcase
     end
 endtask
