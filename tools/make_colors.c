@@ -4,8 +4,9 @@
 #define BINARY 0
 #define DECIMAL 1
 #define CHARS 2
+#define CODE 3
 
-static int output_type = BINARY;
+static int output_type = CODE;
 static int do_ntsc = 0;
 static int do_pal = 0;
 static int do_ansii = 0;
@@ -51,6 +52,25 @@ static unsigned int ansii[] = {
 /*bright white*/   255, 255, 255
 };
 
+static char *name[] = {
+	"BLACK",
+        "WHITE",
+        "RED",
+        "CYAN",
+        "PURPLE",
+        "GREEN",
+        "BLUE",
+        "YELLOW",
+        "ORANGE",
+        "BROWN",
+        "PINK",
+        "DARK_GREY",
+        "GREY",
+        "LIGHT_GREEN",
+        "LIGHT_BLUE",
+        "LIGHT_GREY"
+};
+
 char dst[3][16];
 char* bin(int n, int v) {
    int bit=128;
@@ -68,6 +88,10 @@ char* bin(int n, int v) {
 // for colors.
 int main(int argc, char *argv[]) {
   int loc;
+
+  if (output_type == CODE)
+     printf ("    case (pixel_color4)\n");
+
   if (do_ntsc) {
     for (int i=0;i<16;i++) {
        if (output_type == BINARY)
@@ -76,6 +100,9 @@ int main(int argc, char *argv[]) {
           printf ("%d,%d,%d,0\n",ntsc[i*3]>>2, ntsc[i*3+1]>>2, ntsc[i*3+2]>>2);
        else if (output_type == CHARS)
           printf ("%c%c%c%c",ntsc[i*3]>>2, ntsc[i*3+1]>>2, ntsc[i*3+2]>>2, 0);
+       else if (output_type == CODE)
+	  printf ("        `%s:{red, green, blue} <= {6'h%02x, 6'h%02x, 6'h%02x};\n", name[i], 
+                        ntsc[i*3]>>2, ntsc[i*3+1]>>2, ntsc[i*3+2]>>2);
     } 
   }
   if (do_pal) {
@@ -86,6 +113,9 @@ int main(int argc, char *argv[]) {
           printf ("%d,%d,%d,0\n",pal[i*3]>>2, pal[i*3+1]>>2, pal[i*3+2]>>2);
        else if (output_type == CHARS)
           printf ("%c%c%c%c",pal[i*3]>>2, pal[i*3+1]>>2, pal[i*3+2]>>2, 0);
+       else if (output_type == CODE)
+	  printf ("        `%s:{red, green, blue} <= {6'h%02x, 6'h%02x, 6'h%02x};\n", name[i], 
+                        pal[i*3]>>2, pal[i*3+1]>>2, pal[i*3+2]>>2);
     } 
   }
   if (do_ansii) {
@@ -96,6 +126,9 @@ int main(int argc, char *argv[]) {
           printf ("%d,%d,%d,0\n",ansii[i*3]>>2, ansii[i*3+1]>>2, ansii[i*3+2]>>2);
        else if (output_type == CHARS)
           printf ("%c%c%c%c",ansii[i*3]>>2, ansii[i*3+1]>>2, ansii[i*3+2]>>2, 0);
+       else if (output_type == CODE)
+	  printf ("        `%s:{red, green, blue} <= {6'h%02x, 6'h%02x, 6'h%02x};\n", name[i], 
+                        ansii[i*3]>>2, ansii[i*3+1]>>2, ansii[i*3+2]>>2);
     } 
   }
   if (do_community) {
@@ -106,6 +139,11 @@ int main(int argc, char *argv[]) {
           printf ("%d,%d,%d,0\n",community[i*3]>>2, community[i*3+1]>>2, community[i*3+2]>>2);
        else if (output_type == CHARS)
           printf ("%c%c%c%c",community[i*3]>>2, community[i*3+1]>>2, community[i*3+2]>>2, 0);
+       else if (output_type == CODE)
+	  printf ("        `%s:{red, green, blue} <= {6'h%02x, 6'h%02x, 6'h%02x};\n", name[i], 
+                        community[i*3]>>2, community[i*3+1]>>2, community[i*3+2]>>2);
     } 
   }
+  if (output_type == CODE)
+     printf ("    endcase\n");
 }
