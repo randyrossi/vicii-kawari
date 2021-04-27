@@ -6,9 +6,9 @@
 
 // Pick a board. MojoV3 'hat' is still working but support will
 // be dropped soon.
-//`define SIMULATOR_BOARD 1
+`define SIMULATOR_BOARD 1
 //`define REV_1_BOARD 1
-`define MOJOV3_BOARD 1
+//`define MOJOV3_BOARD 1
 
 // Notes on config permutations:
 //
@@ -125,3 +125,5 @@
 // pins (hsync,vsync,active,red,green,blue,clock). Setting
 // GEN_RGB will automatically set NEED_RGB.
 `define GEN_RGB 1
+
+`endif // config_vh_
