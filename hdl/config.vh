@@ -6,9 +6,9 @@
 
 // Pick a board. MojoV3 'hat' is still working but support will
 // be dropped soon.
-`define SIMULATOR_BOARD 1
+//`define SIMULATOR_BOARD 1
 //`define REV_1_BOARD 1
-//`define MOJOV3_BOARD 1
+`define MOJOV3_BOARD 1
 
 // Notes on config permutations:
 //
@@ -91,6 +91,14 @@
 // control luma(a#), phase(0xb#) and amplitudes(0xc#) for the 16
 // colors as well as blanking level (0x80) and burst amplitude (0x81).
 //`define CONFIGURABLE_LUMAS 1
+
+// CONFIGURABLE_RGB
+// ------------------
+// Uncomment to activate registers 0x00-0x7f to control
+// 18-bit RGB values for the 16 colors.  If RGB is not
+// configurable, a single static  palette is used and palette
+// select bit does nothing.
+//`define CONFIGURABLE_RGB 1
 
 // CONFIGURABLE_TIMING
 // -------------------

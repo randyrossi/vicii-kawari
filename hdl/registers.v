@@ -183,11 +183,13 @@ reg video_ram_r2; // also used to trigger auto inc after read
 reg video_ram_aw; // auto increment after write is necessary
 
 `ifdef NEED_RGB
+`ifdef CONFIGURABLE_RGB
 reg color_regs_r; // also used to trigger auto inc after read
 reg color_regs_r2; // also used to trigger auto inc after read
 reg color_regs_aw; // auto increment after write is necessary
 reg [1:0] color_regs_r_nibble;
 reg [1:0] color_regs_wr_nibble;
+`endif
 `endif
 
 `ifdef CONFIGURABLE_LUMAS
@@ -226,6 +228,7 @@ wire [7:0] video_ram_data_out_a;
 // registers where we pack components inside a wider register.
 
 `ifdef NEED_RGB
+`ifdef CONFIGURABLE_RGB
 // For CPU/MCU register read/write to color regs
 reg [4:0] color_regs_addr_a; // 16 regs + palette select bit
 reg color_regs_wr_a;
@@ -235,6 +238,7 @@ reg [5:0] color_regs_wr_value;
 reg [23:0] color_regs_data_in_a;
 wire [23:0] color_regs_data_out_a;
 wire [23:0] color_regs_data_out_b;
+`endif
 `endif
 
 `ifdef CONFIGURABLE_LUMAS
@@ -273,6 +277,7 @@ VIDEO_RAM video_ram(clk_dot4x,
                     );
 
 `ifdef NEED_RGB
+`ifdef CONFIGURABLE_RGB
 COLOR_REGS color_regs(clk_dot4x,
                     color_regs_wr_a, // write to color ram
                     color_regs_addr_a, // addr for color ram read/write
@@ -283,6 +288,7 @@ COLOR_REGS color_regs(clk_dot4x,
                     24'b0, // we never write to port b
                     color_regs_data_out_b // read value for color lookups
                     );
+`endif
 `endif
 
 `ifdef CONFIGURABLE_LUMAS
@@ -1005,6 +1011,7 @@ timing_2y_bporch_pal <= 20;
             dbo[7:0] <= video_ram_data_out_a;
 
 `ifdef NEED_RGB
+`ifdef CONFIGURABLE_RGB
         // CPU write to color register ram
         if (color_regs_pre_wr2_a) begin
             color_regs_pre_wr_a <= 1'b1;
@@ -1026,6 +1033,7 @@ timing_2y_bporch_pal <= 20;
                    color_regs_data_in_a <= {color_regs_data_out_a[23:6], color_regs_wr_value}; // never used
             endcase
         end
+`endif
 `endif
 
 `ifdef CONFIGURABLE_LUMAS
@@ -1054,6 +1062,7 @@ timing_2y_bporch_pal <= 20;
 `endif
 
 `ifdef NEED_RGB
+`ifdef CONFIGURABLE_RGB
         // CPU read from color regs
         if (color_regs_r) begin
             case (color_regs_r_nibble)
@@ -1063,6 +1072,7 @@ timing_2y_bporch_pal <= 20;
                2'b11: dbo[7:0] <= { 2'b0, color_regs_data_out_a[5:0] };
             endcase
         end
+`endif
 `endif
 
 `ifdef CONFIGURABLE_LUMAS
@@ -1082,9 +1092,11 @@ timing_2y_bporch_pal <= 20;
 		     video_ram_wr_a <= 1'b0;
 
 `ifdef NEED_RGB
+`ifdef CONFIGURABLE_RGB
         // Only need 1 tick to write to color ram
         if (color_regs_wr_a)
 		     color_regs_wr_a <= 1'b0;
+`endif
 `endif
 
 `ifdef CONFIGURABLE_LUMAS
@@ -1102,9 +1114,11 @@ timing_2y_bporch_pal <= 20;
 				video_ram_aw <= 1'b0;
 
 `ifdef NEED_RGB
+`ifdef CONFIGURABLE_RGB
             color_regs_r <= 0;
             color_regs_r2 <= color_regs_r;
 				color_regs_aw <= 1'b0;
+`endif
 `endif
 
 `ifdef CONFIGURABLE_LUMAS
@@ -1120,7 +1134,9 @@ timing_2y_bporch_pal <= 20;
             // waits a full cycle before commiting to increment after a read.
             if (video_ram_r2 || video_ram_aw
 `ifdef NEED_RGB
+`ifdef CONFIGURABLE_RGB
 				    || color_regs_r2 || color_regs_aw
+`endif
 `endif
 `ifdef CONFIGURABLE_LUMAS
 				    || luma_regs_r2 || luma_regs_aw
@@ -1183,6 +1199,7 @@ begin
 `ifndef SIMULATOR_BOARD
     if (active) begin
 `endif
+`ifdef CONFIGURABLE_RGB
        if (half_bright) begin
           red <= {1'b0, color_regs_data_out_b[23:19]};
           green <= {1'b0, color_regs_data_out_b[17:13]};
@@ -1192,6 +1209,46 @@ begin
           green <= color_regs_data_out_b[17:12];
           blue <= color_regs_data_out_b[11:6];
        end
+`else
+  if (half_bright)
+    case (pixel_color4)
+        `BLACK:{red, green, blue} <= {6'h00, 6'h00, 6'h00};
+        `WHITE:{red, green, blue} <= {6'h3f, 6'h3f, 6'h3f};
+        `RED:{red, green, blue} <= {6'h2b, 6'h0a, 6'h0a};
+        `CYAN:{red, green, blue} <= {6'h18, 6'h36, 6'h33};
+        `PURPLE:{red, green, blue} <= {6'h2c, 6'h0f, 6'h2d};
+        `GREEN:{red, green, blue} <= {6'h12, 6'h31, 6'h12};
+        `BLUE:{red, green, blue} <= {6'h0d, 6'h0e, 6'h31};
+        `YELLOW:{red, green, blue} <= {6'h39, 6'h3b, 6'h13};
+        `ORANGE:{red, green, blue} <= {6'h2d, 6'h16, 6'h07};
+        `BROWN:{red, green, blue} <= {6'h1a, 6'h0e, 6'h02};
+        `PINK:{red, green, blue} <= {6'h3a, 6'h1d, 6'h1b};
+        `DARK_GREY:{red, green, blue} <= {6'h13, 6'h13, 6'h13};
+        `GREY:{red, green, blue} <= {6'h21, 6'h21, 6'h21};
+        `LIGHT_GREEN:{red, green, blue} <= {6'h29, 6'h3e, 6'h27};
+        `LIGHT_BLUE:{red, green, blue} <= {6'h1c, 6'h1f, 6'h39};
+        `LIGHT_GREY:{red, green, blue} <= {6'h2d, 6'h2d, 6'h2d};
+    endcase
+  else
+    case (pixel_color4)
+        `BLACK:{red, green, blue} <= {6'h00, 6'h00, 6'h00};
+        `WHITE:{red, green, blue} <= {6'h1f, 6'h1f, 6'h1f};
+        `RED:{red, green, blue} <= {6'h15, 6'h05, 6'h05};
+        `CYAN:{red, green, blue} <= {6'h0c, 6'h1b, 6'h19};
+        `PURPLE:{red, green, blue} <= {6'h16, 6'h07, 6'h16};
+        `GREEN:{red, green, blue} <= {6'h09, 6'h18, 6'h09};
+        `BLUE:{red, green, blue} <= {6'h06, 6'h07, 6'h18};
+        `YELLOW:{red, green, blue} <= {6'h1c, 6'h1d, 6'h09};
+        `ORANGE:{red, green, blue} <= {6'h16, 6'h0b, 6'h03};
+        `BROWN:{red, green, blue} <= {6'h0d, 6'h07, 6'h01};
+        `PINK:{red, green, blue} <= {6'h1d, 6'h0e, 6'h0d};
+        `DARK_GREY:{red, green, blue} <= {6'h09, 6'h09, 6'h09};
+        `GREY:{red, green, blue} <= {6'h10, 6'h10, 6'h10};
+        `LIGHT_GREEN:{red, green, blue} <= {6'h14, 6'h1f, 6'h13};
+        `LIGHT_BLUE:{red, green, blue} <= {6'h0e, 6'h0f, 6'h1c};
+        `LIGHT_GREY:{red, green, blue} <= {6'h16, 6'h16, 6'h16};
+    endcase
+`endif
 `ifndef SIMULATOR_BOARD
     end else begin
           red <= 6'b0;
@@ -1303,9 +1360,11 @@ task read_ram(
               // _r_nibble stores which 6-bit-nibble within the 24 bit
               // lookup value we want.  The lowest 6-bits are never used.
 `ifdef NEED_RGB
+`ifdef CONFIGURABLE_RGB
               color_regs_r <= 1'b1;
               color_regs_r_nibble <= ram_lo[1:0];
               color_regs_addr_a <= ram_lo[6:2];
+`endif
 `endif
           end
 `ifdef CONFIGURABLE_LUMAS
@@ -1407,6 +1466,7 @@ task write_ram(
               // values within the 24 bit register, we
               // have to read it first, then write.
 `ifdef NEED_RGB
+`ifdef CONFIGURABLE_RGB
               color_regs_pre_wr2_a <= 1'b1;
               color_regs_wr_value <= data[5:0];
               color_regs_wr_nibble <= ram_lo[1:0];
@@ -1417,6 +1477,7 @@ task write_ram(
                   tx_cfg_change_2 <= {2'b0, data[5:0]};
                   tx_new_data_start = 1'b1;					  
               end
+`endif
 `endif
 `endif
           end
