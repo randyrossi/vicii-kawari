@@ -292,7 +292,7 @@ begin
     (
         native_active_16 ?
             (chip[0] ?
-                (oddline ? phasereg_16 : 9'd256 - phasereg_16) : /* pal */
+                (oddline ? 9'd256 - phasereg_16 :  phasereg_16) : /* pal */
                 phasereg_16) :                                   /* ntsc */
             (chip[0] == 0 ?
                 8'd128 :                                         /* ntsc */

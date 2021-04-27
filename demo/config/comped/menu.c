@@ -24,10 +24,14 @@ void save_changes(void)
 {
    int reg;
    POKE(VIDEO_MEM_FLAGS, PEEK(VIDEO_MEM_FLAGS) | VMEM_FLAG_PERSIST_BIT);
-   for (reg=0xa0;reg<=0xd1;reg++) {
+   for (reg=0xa0;reg<=0xcf;reg++) {
       POKE(VIDEO_MEM_1_LO, reg);
       SAFE_POKE(VIDEO_MEM_1_VAL, PEEK(VIDEO_MEM_1_VAL));
    }
+   POKE(VIDEO_MEM_1_LO, BLACK_LEVEL);
+   SAFE_POKE(VIDEO_MEM_1_VAL, PEEK(VIDEO_MEM_1_VAL));
+   POKE(VIDEO_MEM_1_LO, BURST_AMPLITUDE);
+   SAFE_POKE(VIDEO_MEM_1_VAL, PEEK(VIDEO_MEM_1_VAL));
    POKE(VIDEO_MEM_FLAGS, PEEK(VIDEO_MEM_FLAGS) & ~VMEM_FLAG_PERSIST_BIT);
 }
 
@@ -103,14 +107,14 @@ void main_menu(void)
 		}
             }
 
-            POKE(VIDEO_MEM_1_LO, 0xd0);
+            POKE(VIDEO_MEM_1_LO, BLACK_LEVEL);
             v = PEEK(VIDEO_MEM_1_VAL);
             if (store_current)
                current_black_level = v;
             TOXY(27,4);
             printf ("%02x",v);
 
-            POKE(VIDEO_MEM_1_LO, 0xd1);
+            POKE(VIDEO_MEM_1_LO, BURST_AMPLITUDE);
             v = PEEK(VIDEO_MEM_1_VAL);
             if (store_current)
                current_color_burst = v;
@@ -127,7 +131,7 @@ void main_menu(void)
           v = PEEK(VIDEO_MEM_1_VAL);
           TOXY(16+(color_cursor%4)*3,SL+color_cursor/4);
        } else {
-          POKE(VIDEO_MEM_1_LO, 0xd0 + other_cursor);
+          POKE(VIDEO_MEM_1_LO, BLACK_LEVEL + other_cursor);
           v = PEEK(VIDEO_MEM_1_VAL);
           TOXY(27+other_cursor*7,4);
        }
@@ -205,9 +209,9 @@ void main_menu(void)
 	        POKE(VIDEO_MEM_1_LO, 0xc0+color);
 	        POKE(VIDEO_MEM_1_VAL, current_amplitude[color]);
             }
-            POKE(VIDEO_MEM_1_LO, 0xd0);
+            POKE(VIDEO_MEM_1_LO, BLACK_LEVEL);
 	    POKE(VIDEO_MEM_1_VAL, current_black_level);
-            POKE(VIDEO_MEM_1_LO, 0xd1);
+            POKE(VIDEO_MEM_1_LO, BURST_AMPLITUDE);
 	    POKE(VIDEO_MEM_1_VAL, current_color_burst);
 	    refresh_all = 1;
        }

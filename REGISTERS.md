@@ -346,14 +346,44 @@ Register | Description
 
 Location | Name | Description
 ---------|------|------------
+0x0080 | BLACK_LEVEL | Composite black level (0-63)
+0x0081 | BURST_AMPLITUDE | Composite color burst amplitude (1-15, 0 = no color burst)
 0x0082 | CHIP_MODEL | Chip Model Select (0=6567R8, 1=6569, 2=6567R56A)
 0x0083 | VERSION | Version (high nibble major, low nibble minor) - Read Only
 0x0084 | DISPLAY_FLAGS | See below
 0x0085 | CURSOR_LO | Cursor lo byte
 0x0086 | CURSOR_HI | Cursor hi byte
-0x0087 - 0x008f | Reserved
-0x0090 - 0xd09f | VARIANT_NAME | Variant Name
-0x00a0 - 0xd0ff | Unused
+0x0087 - 0x008f | Reserved | Reserved
+0x0090 - 0x009f | VARIANT_NAME | Variant Name
+0x00a0 - 0x00af | LUMA_LEVELS | Composite luma levels for colors (0-63)
+0x00b0 - 0x00bf | PHASE_VALUES | Composite phase values for colors (0-255 representing 0-359 degrees)
+0x00c0 - 0x00cf | AMPL_VALUES | Composite amplitude values for colors (1-15, 0 = no modulation)
+
+0x00d0 | FPORCH | HDMI/VGA 1X NTSC H front porch (15 khz mode)
+0x00d1 | SPULSE | HDMI/VGA 1X NTSC H sync pulse (15 khz mode)
+0x00d2 | BPORCH | HDMI/VGA 1X NTSC H back porch (15 khz mode)
+0x00d3 | FPORCH | HDMI/VGA 1Y NTSC V front porch (15 khz mode)
+0x00d4 | SPULSE | HDMI/VGA 1Y NTSC V sync pulse (15 khz mode)
+0x00d5 | BPORCH | HDMI/VGA 1Y NTSC V back porch (15 khz mode)
+0x00d6 | FPORCH | HDMI/VGA 2X NTSC H front porch (31 khz mode)
+0x00d7 | SPULSE | HDMI/VGA 2X NTSC H sync pulse (31 khz mode)
+0x00d8 | BPORCH | HDMI/VGA 2X NTSC H back porch (31 khz mode)
+0x00d9 | FPORCH | HDMI/VGA 2Y NTSC V front porch (31 khz mode)
+0x00da | SPULSE | HDMI/VGA 2Y NTSC V sync pulse (31 khz mode)
+0x00db | BPORCH | HDMI/VGA 2Y NTSC V back porch (31 khz mode)
+0x00dc | FPORCH | HDMI/VGA 1X PAL H front porch (15 khz mode)
+0x00dd | SPULSE | HDMI/VGA 1X PAL H sync pulse (15 khz mode)
+0x00de | BPORCH | HDMI/VGA 1X PAL H back porch (15 khz mode)
+0x00df | FPORCH | HDMI/VGA 1Y PAL V front porch (15 khz mode)
+0x00e0 | SPULSE | HDMI/VGA 1Y PAL V sync pulse (15 khz mode)
+0x00e1 | BPORCH | HDMI/VGA 1Y PAL V back porch (15 khz mode)
+0x00e2 | FPORCH | HDMI/VGA 2X PAL H front porch (31 khz mode)
+0x00e3 | SPULSE | HDMI/VGA 2X PAL H sync pulse (31 khz mode)
+0x00e4 | BPORCH | HDMI/VGA 2X PAL H back porch (31 khz mode)
+0x00e5 | FPORCH | HDMI/VGA 2Y PAL V front porch (31 khz mode)
+0x00e6 | SPULSE | HDMI/VGA 2Y PAL V sync pulse (31 khz mode)
+0x00e7 | BPORCH | HDMI/VGA 2Y PAL V back porch (31 khz mode)
+0x00d8 | CHANGE | Timing change signal - Bit 1 
 
 DISPLAY_FLAGS|Function
 -------------|-------

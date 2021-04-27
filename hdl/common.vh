@@ -82,10 +82,16 @@
 // This requires HAVE_COLOR_CLOCKS to be defined.
 `define GEN_LUMA_CHROMA 1
 
-// Uncomment to activate registers a0-cf and d1,d2 to control
+// Uncomment to activate registers a0-cf and 80,81 to control
 // luma(a#), phase(b#) and amplitudes(c#) for the 16 colors as
-// well as blanking level (d0) and burst amplitude (d1).
+// well as blanking level (80) and burst amplitude (81).
 `define CONFIGURABLE_LUMAS 1
+
+// Uncomment to activate registers d0-ef to control HDMI/VGA
+// timings for all the supported resolutions.  This take up a lot
+// space on the device.  Not intended for the release, only to
+// be used as a tool to find correct timings.
+//`define CONFIGURABLE_TIMING 1
 
 // Uncomment to average the luma values over 4 ticks of the
 // dot4x clock. This smooths out transitions between levels.
@@ -268,6 +274,8 @@
 `define HIRES_TEXT_BITMAP             5
 `define HIRES_COLOR_2K_16K            6
 
+`define EXT_REG_BLANKING             8'h80
+`define EXT_REG_BURSTAMP             8'h81
 `define EXT_REG_CHIP_MODEL           8'h82
 `define EXT_REG_VERSION              8'h83
 `define EXT_REG_DISPLAY_FLAGS        8'h84
@@ -326,8 +334,8 @@
 `define EXT_REG_AMPL14               8'hce
 `define EXT_REG_AMPL15               8'hcf
 
-`define EXT_REG_BLANKING             8'hd0
-`define EXT_REG_BURSTAMP             8'hd1
+`define EXT_REG_TIMING_REG_START     8'hd0
+`define EXT_REG_TIMING_REG_END       8'hef
 
 `endif
 

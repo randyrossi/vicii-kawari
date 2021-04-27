@@ -816,6 +816,34 @@ wire [5:0] blanking_level;
 wire [3:0] burst_amplitude;
 `endif
 
+`ifdef CONFIGURABLE_TIMING
+wire timing_change;
+wire [7:0] timing_1x_fporch_ntsc;
+wire [7:0] timing_1x_bporch_ntsc;
+wire [7:0] timing_1x_sync_ntsc;
+wire [7:0] timing_1y_fporch_ntsc;
+wire [7:0] timing_1y_bporch_ntsc;
+wire [7:0] timing_1y_sync_ntsc;
+wire [7:0] timing_2x_fporch_ntsc;
+wire [7:0] timing_2x_bporch_ntsc;
+wire [7:0] timing_2x_sync_ntsc;
+wire [7:0] timing_2y_fporch_ntsc;
+wire [7:0] timing_2y_bporch_ntsc;
+wire [7:0] timing_2y_sync_ntsc;
+wire [7:0] timing_1x_fporch_pal;
+wire [7:0] timing_1x_bporch_pal;
+wire [7:0] timing_1x_sync_pal;
+wire [7:0] timing_1y_fporch_pal;
+wire [7:0] timing_1y_bporch_pal;
+wire [7:0] timing_1y_sync_pal;
+wire [7:0] timing_2x_fporch_pal;
+wire [7:0] timing_2x_bporch_pal;
+wire [7:0] timing_2x_sync_pal;
+wire [7:0] timing_2y_fporch_pal;
+wire [7:0] timing_2y_bporch_pal;
+wire [7:0] timing_2y_sync_pal;
+`endif
+
 registers vic_registers(
               .rst(rst),
 `ifdef REV_1_BOARD_OR_SIMULATOR_BOARD
@@ -918,7 +946,33 @@ registers vic_registers(
 			.blanking_level(blanking_level),
 			.burst_amplitude(burst_amplitude),
 `endif
-
+`ifdef CONFIGURABLE_TIMING
+.timing_change(timing_change),
+.timing_1x_fporch_ntsc(timing_1x_fporch_ntsc),
+.timing_1x_bporch_ntsc(timing_1x_bporch_ntsc),
+.timing_1x_sync_ntsc(timing_1x_sync_ntsc),
+.timing_1y_fporch_ntsc(timing_1y_fporch_ntsc),
+.timing_1y_bporch_ntsc(timing_1y_bporch_ntsc),
+.timing_1y_sync_ntsc(timing_1y_sync_ntsc),
+.timing_2x_fporch_ntsc(timing_2x_fporch_ntsc),
+.timing_2x_bporch_ntsc(timing_2x_bporch_ntsc),
+.timing_2x_sync_ntsc(timing_2x_sync_ntsc),
+.timing_2y_fporch_ntsc(timing_2y_fporch_ntsc),
+.timing_2y_bporch_ntsc(timing_2y_bporch_ntsc),
+.timing_2y_sync_ntsc(timing_2y_sync_ntsc),
+.timing_1x_fporch_pal(timing_1x_fporch_pal),
+.timing_1x_bporch_pal(timing_1x_bporch_pal),
+.timing_1x_sync_pal(timing_1x_sync_pal),
+.timing_1y_fporch_pal(timing_1y_fporch_pal),
+.timing_1y_bporch_pal(timing_1y_bporch_pal),
+.timing_1y_sync_pal(timing_1y_sync_pal),
+.timing_2x_fporch_pal(timing_2x_fporch_pal),
+.timing_2x_bporch_pal(timing_2x_bporch_pal),
+.timing_2x_sync_pal(timing_2x_sync_pal),
+.timing_2y_fporch_pal(timing_2y_fporch_pal),
+.timing_2y_bporch_pal(timing_2y_bporch_pal),
+.timing_2y_sync_pal(timing_2y_sync_pal),
+`endif
 	      // --- BEGIN EXTENSIONS --
          .video_ram_addr_b(video_ram_addr_b),
 	      .video_ram_data_out_b(video_ram_data_out_b),
@@ -1088,8 +1142,35 @@ comp_sync vic_comp_sync(
 hires_vga_sync vic_vga_sync(
              .rst(rst),
              .clk_dot4x(clk_dot4x),
-             .is_native_y(is_native_y),
-             .is_native_x(is_native_x),
+             .is_native_y_in(is_native_y),
+             .is_native_x_in(is_native_x),
+`ifdef CONFIGURABLE_TIMING
+.timing_change_in(timing_change),
+.timing_1x_fporch_ntsc(timing_1x_fporch_ntsc),
+.timing_1x_bporch_ntsc(timing_1x_bporch_ntsc),
+.timing_1x_sync_ntsc(timing_1x_sync_ntsc),
+.timing_1y_fporch_ntsc(timing_1y_fporch_ntsc),
+.timing_1y_bporch_ntsc(timing_1y_bporch_ntsc),
+.timing_1y_sync_ntsc(timing_1y_sync_ntsc),
+.timing_2x_fporch_ntsc(timing_2x_fporch_ntsc),
+.timing_2x_bporch_ntsc(timing_2x_bporch_ntsc),
+.timing_2x_sync_ntsc(timing_2x_sync_ntsc),
+.timing_2y_fporch_ntsc(timing_2y_fporch_ntsc),
+.timing_2y_bporch_ntsc(timing_2y_bporch_ntsc),
+.timing_2y_sync_ntsc(timing_2y_sync_ntsc),
+.timing_1x_fporch_pal(timing_1x_fporch_pal),
+.timing_1x_bporch_pal(timing_1x_bporch_pal),
+.timing_1x_sync_pal(timing_1x_sync_pal),
+.timing_1y_fporch_pal(timing_1y_fporch_pal),
+.timing_1y_bporch_pal(timing_1y_bporch_pal),
+.timing_1y_sync_pal(timing_1y_sync_pal),
+.timing_2x_fporch_pal(timing_2x_fporch_pal),
+.timing_2x_bporch_pal(timing_2x_bporch_pal),
+.timing_2x_sync_pal(timing_2x_sync_pal),
+.timing_2y_fporch_pal(timing_2y_fporch_pal),
+.timing_2y_bporch_pal(timing_2y_bporch_pal),
+.timing_2y_sync_pal(timing_2y_sync_pal),
+`endif
              .raster_x(raster_x),
              .hires_raster_x(hires_raster_x),
              .raster_y(raster_line),
