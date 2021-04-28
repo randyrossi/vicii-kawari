@@ -6,6 +6,7 @@ demo:
 	c1541 -attach demo.d64 -write config/config.prg config
 	c1541 -attach demo.d64 -write config/rgbed/rgbed.prg rgbed
 	c1541 -attach demo.d64 -write config/comped/comped.prg comped
+	c1541 -attach demo.d64 -write config/timeed/timeed.prg timeed
 	c1541 -attach demo.d64 -write ../asm/grogu.prg img-grogu
 	c1541 -attach demo.d64 -write ../asm/field.prg img-field
 	c1541 -attach demo.d64 -write ../asm/horse.prg img-horse
