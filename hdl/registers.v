@@ -221,6 +221,20 @@ reg [7:0] video_ram_idx_2;
 reg [7:0] video_ram_data_in_a;
 wire [7:0] video_ram_data_out_a;
 
+reg [15:0] video_ram_copy_src;
+reg [15:0] video_ram_copy_dst;
+reg [15:0] video_ram_copy_num;
+reg video_ram_copy_dir;
+// 0= write off, set read addr
+// 1= read data, set write addr, write on
+reg [1:0] video_ram_copy_state;
+reg video_ram_copy_done;
+
+reg [15:0] video_ram_fill_dst;
+reg [15:0] video_ram_fill_num;
+reg [7:0] video_ram_fill_val;
+reg video_ram_fill_done;
+
 // Regarding pre_wr registers below. We need an additional cycle to
 // read existing values before writing. Otherwise, the data_out_a
 // register will have garbage. This goes for both color and luma
@@ -984,16 +998,46 @@ timing_2y_bporch_pal <= 20;
                            video_ram_lo_1 <= dbi[7:0];
                     `VIDEO_MEM_1_VAL:
                         if (extra_regs_activated) begin
-                          // reg overlay or video mem
-                          auto_ram_sel <= 0;
-                          write_ram(
-                           .overlay(video_ram_flag_regs_overlay),
-                           .ram_lo(video_ram_lo_1),
-                           .ram_hi(video_ram_hi_1),
-                           .ram_idx(video_ram_idx_1),
-                           .data(dbi),
-                           .from_cpu(1'b1),
-                           .do_tx(video_ram_flag_persist));
+                          if (!video_ram_flag_regs_overlay &&
+                              video_ram_flag_port_1_auto == 2'b11 &&
+                              video_ram_flag_port_2_auto == 2'b11)
+                          begin
+                             // block copy or fill operation
+                             if (dbi[0]) begin
+                                // copy low to high
+                                video_ram_copy_src <= { video_ram_hi_1, video_ram_lo_1 };
+                                video_ram_copy_dst <= { video_ram_hi_2, video_ram_lo_2 };
+                                video_ram_copy_num <= { video_ram_idx_2, video_ram_idx_1 };
+                                video_ram_copy_state <= 2'b0;
+                                video_ram_copy_dir <= 1'b0;
+                                video_ram_copy_done <= 1'b0;
+                             end else if (dbi[1]) begin
+                                // copy high to low
+                                video_ram_copy_src <= { video_ram_hi_1, video_ram_lo_1 } + { video_ram_idx_2, video_ram_idx_1 } - 1'b1;
+                                video_ram_copy_dst <= { video_ram_hi_2, video_ram_lo_2 } + { video_ram_idx_2, video_ram_idx_1 } - 1'b1;
+                                video_ram_copy_num <= { video_ram_idx_2, video_ram_idx_1 };
+                                video_ram_copy_state <= 2'b0;
+                                video_ram_copy_dir <= 1'b1;
+                                video_ram_copy_done <= 1'b0;
+                             end else if (dbi[2]) begin
+                                // fill
+                                video_ram_fill_dst <= { video_ram_hi_1, video_ram_lo_1 };
+                                video_ram_fill_num <= { video_ram_idx_2, video_ram_idx_1 };
+                                video_ram_fill_val <= video_ram_lo_2;
+                                video_ram_fill_done <= 1'b0;
+                             end
+                          end else begin
+                             // reg overlay or video mem
+                             auto_ram_sel <= 0;
+                             write_ram(
+                              .overlay(video_ram_flag_regs_overlay),
+                              .ram_lo(video_ram_lo_1),
+                              .ram_hi(video_ram_hi_1),
+                              .ram_idx(video_ram_idx_1),
+                              .data(dbi),
+                              .from_cpu(1'b1),
+                              .do_tx(video_ram_flag_persist));
+                          end
                         end
                     `VIDEO_MEM_2_HI:
                         if (extra_regs_activated)
@@ -1205,6 +1249,50 @@ timing_2y_bporch_pal <= 20;
                 end
             end
         end
+        
+        // Handle block copy here
+        if (video_ram_copy_num > 0) begin
+           if (video_ram_copy_state == 2'b0) begin
+              // read
+              video_ram_wr_a <= 1'b0;
+              video_ram_addr_a <= video_ram_copy_src[14:0];
+           end else if (video_ram_copy_state == 2'b10) begin
+              // write 
+              video_ram_wr_a <= 1'b1;
+              video_ram_addr_a <= video_ram_copy_dst[14:0];
+              video_ram_data_in_a <= video_ram_data_out_a;
+              video_ram_copy_num <= video_ram_copy_num - 16'b1;
+              if (video_ram_copy_dir) begin
+                 video_ram_copy_src <= video_ram_copy_src - 16'b1;
+                 video_ram_copy_dst <= video_ram_copy_dst - 16'b1;
+              end else begin
+                 video_ram_copy_src <= video_ram_copy_src + 16'b1;
+                 video_ram_copy_dst <= video_ram_copy_dst + 16'b1;
+              end
+           end
+           video_ram_copy_state <= video_ram_copy_state + 2'b1;
+        end
+        else if (video_ram_copy_num == 0 && !video_ram_copy_done) begin
+           video_ram_copy_done <= 1'b1;
+           video_ram_wr_a <= 1'b0;
+           video_ram_idx_1 <= 8'b0; // signal done
+           video_ram_idx_2 <= 8'b0;
+        end
+        // Handle block fill here
+        if (video_ram_fill_num > 0) begin
+            video_ram_wr_a <= 1'b1;
+            video_ram_addr_a <= video_ram_fill_dst[14:0];
+            video_ram_data_in_a <= video_ram_fill_val;
+            video_ram_fill_dst <= video_ram_fill_dst + 16'b1;
+            video_ram_fill_num <= video_ram_fill_num - 16'b1;
+        end
+        else if (video_ram_fill_num == 0 && !video_ram_fill_done) begin
+           video_ram_fill_done <= 1'b1;
+           video_ram_wr_a <= 1'b0;
+           video_ram_idx_1 <= 8'b0; // signal done
+           video_ram_idx_2 <= 8'b0;
+        end
+        
         // --- END EXTENSIONS ----
     end
 
