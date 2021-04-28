@@ -91,6 +91,8 @@ public class GenConstraints
                    if (t6.equals("tx")) continue;
                    if (t6.equals("tx_busy")) continue;
                    if (t6.equals("rx")) continue;
+                   if (t6.equals("rx_busy")) continue;
+                   if (t6.equals("cclk")) continue;
                 }
 
 		if (!flags[GEN_RGB]) {

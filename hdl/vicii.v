@@ -81,9 +81,6 @@ module vicii(
 
 wire [9:0] xpos;
 wire [9:0] raster_x;
-// --- BEGIN EXTENSIONS ---
-wire [10:0] hires_raster_x;
-// --- END EXTENSIONS ---
 wire [8:0] raster_line;
 reg [3:0] pixel_color3;
 
@@ -242,9 +239,10 @@ reg raster_irq_triggered;
 wire [9:0] vc; // video counter
 wire [2:0] rc; // row counter
 
-// --- ADDED FOR HIRES MODE ---
 wire [14:0] video_ram_addr_b;
 wire [7:0] video_ram_data_out_b;
+
+`ifdef HIRES_MODES
 wire [10:0] hires_vc; // hires video counter
 wire [13:0] hires_fvc; // hires video counter (for 16k bitmap)
 wire [2:0] hires_rc; // hires row counter
@@ -257,8 +255,9 @@ wire [7:0] hires_color_data;
 wire [7:0] hires_cursor_hi;
 wire [7:0] hires_cursor_lo;
 wire hires_enabled;
-
-// --- END ADDED FOR HIRES MODE ---
+wire [10:0] hires_raster_x;
+reg hires_badline;
+`endif
 
 wire idle;
 
@@ -289,9 +288,6 @@ wire [7:0] pixels_read;
 
 // badline condition
 reg badline;
-// --- BEGIN EXTENSIONS ---
-reg hires_badline;
-// --- END EXTENSIONS ---
 
 // determines when ba should drop due to chars and sprites
 reg ba_chars;
@@ -398,7 +394,12 @@ begin
                     raster_line_d == 48))
             allow_bad_lines = `TRUE;
 
-        if (raster_line == 248 || hires_enabled) // hires condition added for EXTENSIONS
+        if (raster_line == 248
+`ifdef HIRES_MODES
+            // Extra condition to disable bad lines when hires mode is enabled.
+            || hires_enabled 
+`endif
+        )
             allow_bad_lines = `FALSE;
 
         badline = `FALSE;
@@ -406,11 +407,12 @@ begin
                 raster_line >= 48 && raster_line < 248)
             badline = `TRUE;
 
-        // --- BEGIN EXTENSIONS ---
-		  hires_badline = `FALSE;
+`ifdef HIRES_MODES
+        hires_badline = `FALSE;
         if (raster_line[2:0] == yscroll && raster_line >= 48 && raster_line < 248)
-				hires_badline = `TRUE;
-        // --- END EXTENSIONS ---
+            hires_badline = `TRUE;
+`endif
+
     end
 end
 
@@ -539,14 +541,14 @@ raster vic_raster(
            .raster_y_max(raster_y_max),
            .xpos(xpos),
            .raster_x(raster_x),
+`ifdef HIRES_MODES
+           .blink_ctr(blink_ctr),
+           .dot_rising_2(dot_rising[2]),
+           .hires_raster_x(hires_raster_x),
+`endif
            .sprite_raster_x(sprite_raster_x),
            .raster_line(raster_line),
-           .raster_line_d(raster_line_d),
-	   .blink_ctr(blink_ctr),
-	   // --- BEGIN EXTENSIONS ---
-           .dot_rising_2(dot_rising[2]),
-           .hires_raster_x(hires_raster_x)
-	   // --- END EXTENSIONS ---
+           .raster_line_d(raster_line_d)
        );
 
 matrix vic_matrix(
@@ -563,6 +565,7 @@ matrix vic_matrix(
            .rc(rc)
        );
 
+`ifdef HIRES_MODES
 hires_matrix vic_hires_matrix(
            .rst(rst),
            .clk_phi(clk_phi),
@@ -576,6 +579,7 @@ hires_matrix vic_hires_matrix(
            .hires_fvc(hires_fvc),
            .hires_rc(hires_rc)
        );
+`endif
 
 // Handle when ba should go low due to c-access. We can use xpos
 // here since there are no repeats within this range.
@@ -778,6 +782,7 @@ addressgen vic_addressgen(
                .phi_phase_start_col(phi_phase_start[6]), // mux between rhl and chl
                .ado(ado));
 
+`ifdef HIRES_MODES
 hires_addressgen vic_hires_addressgen(
            .clk_dot4x(clk_dot4x),
            .clk_phi(clk_phi),
@@ -796,7 +801,7 @@ hires_addressgen vic_hires_addressgen(
 	   .hires_pixel_data(hires_pixel_data),
 	   .hires_color_data(hires_color_data)
        );
-
+`endif
 
 // Handle set/get registers
 //
@@ -946,7 +951,6 @@ registers vic_registers(
           .last_is_native_x(is_native_x), // current setting out
 	      .last_raster_lines(show_raster_lines), // current setting out
 `endif
-	      .chip(chip), // config in
 `ifdef HAVE_SERIAL_LINK
 	      .tx_data_4x(tx_data_4x),
 	      .tx_new_data_4x(tx_new_data_4x),
@@ -964,44 +968,45 @@ registers vic_registers(
 `endif
 `endif
 `ifdef CONFIGURABLE_TIMING
-.timing_change(timing_change),
-.timing_1x_fporch_ntsc(timing_1x_fporch_ntsc),
-.timing_1x_bporch_ntsc(timing_1x_bporch_ntsc),
-.timing_1x_sync_ntsc(timing_1x_sync_ntsc),
-.timing_1y_fporch_ntsc(timing_1y_fporch_ntsc),
-.timing_1y_bporch_ntsc(timing_1y_bporch_ntsc),
-.timing_1y_sync_ntsc(timing_1y_sync_ntsc),
-.timing_2x_fporch_ntsc(timing_2x_fporch_ntsc),
-.timing_2x_bporch_ntsc(timing_2x_bporch_ntsc),
-.timing_2x_sync_ntsc(timing_2x_sync_ntsc),
-.timing_2y_fporch_ntsc(timing_2y_fporch_ntsc),
-.timing_2y_bporch_ntsc(timing_2y_bporch_ntsc),
-.timing_2y_sync_ntsc(timing_2y_sync_ntsc),
-.timing_1x_fporch_pal(timing_1x_fporch_pal),
-.timing_1x_bporch_pal(timing_1x_bporch_pal),
-.timing_1x_sync_pal(timing_1x_sync_pal),
-.timing_1y_fporch_pal(timing_1y_fporch_pal),
-.timing_1y_bporch_pal(timing_1y_bporch_pal),
-.timing_1y_sync_pal(timing_1y_sync_pal),
-.timing_2x_fporch_pal(timing_2x_fporch_pal),
-.timing_2x_bporch_pal(timing_2x_bporch_pal),
-.timing_2x_sync_pal(timing_2x_sync_pal),
-.timing_2y_fporch_pal(timing_2y_fporch_pal),
-.timing_2y_bporch_pal(timing_2y_bporch_pal),
-.timing_2y_sync_pal(timing_2y_sync_pal),
+            .timing_change(timing_change),
+            .timing_1x_fporch_ntsc(timing_1x_fporch_ntsc),
+            .timing_1x_bporch_ntsc(timing_1x_bporch_ntsc),
+            .timing_1x_sync_ntsc(timing_1x_sync_ntsc),
+            .timing_1y_fporch_ntsc(timing_1y_fporch_ntsc),
+            .timing_1y_bporch_ntsc(timing_1y_bporch_ntsc),
+            .timing_1y_sync_ntsc(timing_1y_sync_ntsc),
+            .timing_2x_fporch_ntsc(timing_2x_fporch_ntsc),
+            .timing_2x_bporch_ntsc(timing_2x_bporch_ntsc),
+            .timing_2x_sync_ntsc(timing_2x_sync_ntsc),
+            .timing_2y_fporch_ntsc(timing_2y_fporch_ntsc),
+            .timing_2y_bporch_ntsc(timing_2y_bporch_ntsc),
+            .timing_2y_sync_ntsc(timing_2y_sync_ntsc),
+            .timing_1x_fporch_pal(timing_1x_fporch_pal),
+            .timing_1x_bporch_pal(timing_1x_bporch_pal),
+            .timing_1x_sync_pal(timing_1x_sync_pal),
+            .timing_1y_fporch_pal(timing_1y_fporch_pal),
+            .timing_1y_bporch_pal(timing_1y_bporch_pal),
+            .timing_1y_sync_pal(timing_1y_sync_pal),
+            .timing_2x_fporch_pal(timing_2x_fporch_pal),
+            .timing_2x_bporch_pal(timing_2x_bporch_pal),
+            .timing_2x_sync_pal(timing_2x_sync_pal),
+            .timing_2y_fporch_pal(timing_2y_fporch_pal),
+            .timing_2y_bporch_pal(timing_2y_bporch_pal),
+            .timing_2y_sync_pal(timing_2y_sync_pal),
 `endif
-	      // --- BEGIN EXTENSIONS --
-         .video_ram_addr_b(video_ram_addr_b),
-	      .video_ram_data_out_b(video_ram_data_out_b),
-	      .hires_char_pixel_base(hires_char_pixel_base),
-         .hires_matrix_base(hires_matrix_base),
-         .hires_color_base(hires_color_base),
-	      .hires_enabled(hires_enabled),
-	      .hires_mode(hires_mode),
-	      .hires_cursor_hi(hires_cursor_hi),
-	      .hires_cursor_lo(hires_cursor_lo)
-	      // --- END EXTENSIONS --
 
+            .video_ram_addr_b(video_ram_addr_b),
+            .video_ram_data_out_b(video_ram_data_out_b),
+`ifdef HIRES_MODES
+            .hires_char_pixel_base(hires_char_pixel_base),
+            .hires_matrix_base(hires_matrix_base),
+            .hires_color_base(hires_color_base),
+            .hires_enabled(hires_enabled),
+            .hires_mode(hires_mode),
+            .hires_cursor_hi(hires_cursor_hi),
+            .hires_cursor_lo(hires_cursor_lo),
+`endif
+	        .chip(chip) // config in
           );
 
 // at the start of every high phase, store current reg11 for delayed fetch
@@ -1029,9 +1034,12 @@ TEST_PATTERN vic_testpattern(.clk(clk_dot4x),
 
 // Select between hires and lores
 wire [3:0] pixel_color1;
-wire [3:0] hires_pixel_color1;
 wire stage1;
+`ifdef HIRES_MODES
+wire [3:0] hires_pixel_color1;
 wire hires_stage1;
+`endif
+
 always @(posedge clk_dot4x)
 begin
 `ifdef TEST_PATTERN
@@ -1043,9 +1051,13 @@ begin
 	else
             pixel_color3 <= pixel_color1;
 `else
+
+`ifdef HIRES_MODES
     if (hires_enabled && hires_stage1)
         pixel_color3 <= hires_pixel_color1;
-    else if (stage1)
+    else
+`endif
+    if (stage1)
         pixel_color3 <= pixel_color1;
 `endif
 end
@@ -1089,8 +1101,7 @@ pixel_sequencer vic_pixel_sequencer(
                     .active_sprite_d(active_sprite_d)
                 );
 
-// --- BEGIN EXTENSIONS ---
-
+`ifdef HIRES_MODES
 wire hires_cursor;
 assign hires_cursor = ({hires_matrix_base, hires_vc} == {hires_cursor_hi[6:0] , hires_cursor_lo});
 
@@ -1119,7 +1130,7 @@ hires_pixel_sequencer vic_hires_pixel_sequencer(
 		    .hires_rc(hires_rc),
 		    .hires_cursor(hires_cursor)
                 );
-// --- END EXTENSIONS ---
+`endif
 
 // -------------------------------------------------------------
 // Composite output - csync/native_active
@@ -1190,7 +1201,9 @@ hires_vga_sync vic_vga_sync(
             .timing_2y_sync_pal(timing_2y_sync_pal),
 `endif
              .raster_x(raster_x),
+`ifdef HIRES_MODES
              .hires_raster_x(hires_raster_x),
+`endif
              .raster_y(raster_line),
              .chip(chip),
              .pixel_color3(pixel_color3),

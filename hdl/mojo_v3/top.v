@@ -36,10 +36,12 @@ module top(
 
 `endif  // HAVE_COLOR_CLOCKS
            input [1:0] chip,    // chip config from MCU
+`ifdef HAVE_SERIAL_LINK
            output tx,           // to mcm
            input rx,            // from mcm
            input rx_busy,       // from mcm (indicates receive buffer is full)
            input cclk,          // from mcm
+`endif
            output cpu_reset,    // reset for 6510 CPU
            output clk_phi,      // output phi clock for CPU
 
@@ -229,20 +231,25 @@ wire [11:0] ado;
 wire vic_write_ab;
 wire vic_write_db;
 
+`ifdef HAVE_SERIAL_LINK
 wire[7:0] tx_data_4x;
 wire tx_new_data_4x;
 reg tx_busy_4x;
 wire[7:0] rx_data_4x;
 wire rx_new_data_4x;
+`endif
+
 // Instantiate the vicii with our clocks and pins.
 vicii vic_inst(
           .rst(rst),
           .chip(chip),
+`ifdef HAVE_SERIAL_LINK      
           .tx_data_4x(tx_data_4x),
           .tx_new_data_4x(tx_new_data_4x),
           .tx_busy_4x(tx_busy_4x | rx_busy),
           .rx_data_4x(rx_data_4x),
           .rx_new_data_4x(rx_new_data_4x),
+`endif
           .clk_dot4x(clk_dot4x),
           .clk_phi(clk_phi),
 `ifdef NEED_RGB
@@ -290,6 +297,7 @@ assign dbl[7:0] = vic_write_db ? dbo : 8'bz; // CPU reading
 assign adl = vic_write_ab ? ado[5:0] : 6'bz; // vic or stollen cycle
 assign adh = vic_write_ab ? ado[11:6] : 6'bz;
 
+`ifdef HAVE_SERIAL_LINK
 // Propagate tx from 4x domain to clk_serial domain
 // When tx_new_data goes high, avr_interface will transmit
 // the config byte to the MCU.  There is a timing exception
@@ -334,5 +342,6 @@ serial_cross vic_serial_cross(
 	 .new_in_data(new_rx_data),
 	 .out_data(rx_data_4x),
 	 .new_out_data(rx_new_data_4x));
+`endif
 
 endmodule : top

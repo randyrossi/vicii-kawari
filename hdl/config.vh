@@ -134,4 +134,11 @@
 // GEN_RGB will automatically set NEED_RGB.
 `define GEN_RGB 1
 
+// HIRES_MODES
+// -----------
+// Uncomment to enable hires modes (including 80 column
+// mode).  X resolution will be confined to 1X unless
+// this is enabled.
+`define HIRES_MODES
+
 `endif // config_vh_

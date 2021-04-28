@@ -97,11 +97,6 @@ module registers(
 		input [7:0] rx_data_4x,
       input rx_new_data_4x,
 `endif
-	   // These are the config bits coming from the MCU. They
-	   // represent what the MCU wants things to be, not what
-	   // they are presently in the FPGA.  They are latched
-	   // into 'current' regs into reset block.
-	   input [1:0] chip,
 
 `ifdef GEN_LUMA_CHROMA
         output reg [5:0] lumareg_o,
@@ -114,44 +109,48 @@ module registers(
 `endif
 
 `ifdef CONFIGURABLE_TIMING
-output reg timing_change,
-output reg [7:0] timing_1x_fporch_ntsc,
-output reg [7:0] timing_1x_bporch_ntsc,
-output reg [7:0] timing_1x_sync_ntsc,
-output reg [7:0] timing_1y_fporch_ntsc,
-output reg [7:0] timing_1y_bporch_ntsc,
-output reg [7:0] timing_1y_sync_ntsc,
-output reg [7:0] timing_2x_fporch_ntsc,
-output reg [7:0] timing_2x_bporch_ntsc,
-output reg [7:0] timing_2x_sync_ntsc,
-output reg [7:0] timing_2y_fporch_ntsc,
-output reg [7:0] timing_2y_bporch_ntsc,
-output reg [7:0] timing_2y_sync_ntsc,
-output reg [7:0] timing_1x_fporch_pal,
-output reg [7:0] timing_1x_bporch_pal,
-output reg [7:0] timing_1x_sync_pal,
-output reg [7:0] timing_1y_fporch_pal,
-output reg [7:0] timing_1y_bporch_pal,
-output reg [7:0] timing_1y_sync_pal,
-output reg [7:0] timing_2x_fporch_pal,
-output reg [7:0] timing_2x_bporch_pal,
-output reg [7:0] timing_2x_sync_pal,
-output reg [7:0] timing_2y_fporch_pal,
-output reg [7:0] timing_2y_bporch_pal,
-output reg [7:0] timing_2y_sync_pal,
+        output reg timing_change,
+        output reg [7:0] timing_1x_fporch_ntsc,
+        output reg [7:0] timing_1x_bporch_ntsc,
+        output reg [7:0] timing_1x_sync_ntsc,
+        output reg [7:0] timing_1y_fporch_ntsc,
+        output reg [7:0] timing_1y_bporch_ntsc,
+        output reg [7:0] timing_1y_sync_ntsc,
+        output reg [7:0] timing_2x_fporch_ntsc,
+        output reg [7:0] timing_2x_bporch_ntsc,
+        output reg [7:0] timing_2x_sync_ntsc,
+        output reg [7:0] timing_2y_fporch_ntsc,
+        output reg [7:0] timing_2y_bporch_ntsc,
+        output reg [7:0] timing_2y_sync_ntsc,
+        output reg [7:0] timing_1x_fporch_pal,
+        output reg [7:0] timing_1x_bporch_pal,
+        output reg [7:0] timing_1x_sync_pal,
+        output reg [7:0] timing_1y_fporch_pal,
+        output reg [7:0] timing_1y_bporch_pal,
+        output reg [7:0] timing_1y_sync_pal,
+        output reg [7:0] timing_2x_fporch_pal,
+        output reg [7:0] timing_2x_bporch_pal,
+        output reg [7:0] timing_2x_sync_pal,
+        output reg [7:0] timing_2y_fporch_pal,
+        output reg [7:0] timing_2y_bporch_pal,
+        output reg [7:0] timing_2y_sync_pal,
 `endif
-
-	   // --- BEGIN EXTENSIONS ---
-      input [14:0] video_ram_addr_b,
-      output [7:0] video_ram_data_out_b,
-      output reg [2:0] hires_char_pixel_base,
-      output reg [3:0] hires_matrix_base,
-      output reg [3:0] hires_color_base,
-      output reg hires_enabled,
-      output reg [1:0] hires_mode,
-	   output reg [7:0] hires_cursor_hi,
-	   output reg [7:0] hires_cursor_lo
-	   // --- END EXTENSIONS ---
+        input [14:0] video_ram_addr_b,
+        output [7:0] video_ram_data_out_b,
+`ifdef HIRES_MODES
+        output reg [2:0] hires_char_pixel_base,
+        output reg [3:0] hires_matrix_base,
+        output reg [3:0] hires_color_base,
+        output reg hires_enabled,
+        output reg [1:0] hires_mode,
+        output reg [7:0] hires_cursor_hi,
+        output reg [7:0] hires_cursor_lo,
+`endif
+	   // These are the config bits coming from the MCU. They
+	   // represent what the MCU wants things to be, not what
+	   // they are presently in the FPGA.  They are latched
+	   // into 'current' regs into reset block.
+	   input [1:0] chip
        );
 
 // 2D arrays that need to be flattened for output
@@ -449,8 +448,8 @@ timing_2y_bporch_pal <= 20;
 	rx_new_data_ff <= 1'b0;
 `endif
 `ifdef SIMULATOR_BOARD
-   extra_regs_activated <= 0'b1;
-
+        extra_regs_activated <= 0'b1;
+`ifdef HIRES_MODES
 	`ifdef HIRES_TEXT
         // Test mode 0 : Text
         hires_enabled <= 1'b1;
@@ -488,17 +487,19 @@ timing_2y_bporch_pal <= 20;
         hires_matrix_base <= 4'b0000; // ignored
         hires_color_base <= 4'b0000; // ignored
 	`endif
+`endif // HIRES_MODES
 `else
    extra_regs_activated <= 1'b0;
-	hires_mode <= 2'b00;
-	hires_enabled <= 1'b0;
-	hires_char_pixel_base <= 3'b0;
-   hires_matrix_base <= 4'b0000; // ignored
-   hires_color_base <= 4'b0000; // ignored
-	hires_cursor_hi <= 8'b0;
-	hires_cursor_lo <= 8'b0;
+`ifdef HIRES_MODES
+    hires_mode <= 2'b00;
+    hires_enabled <= 1'b0;
+    hires_char_pixel_base <= 3'b0;
+    hires_matrix_base <= 4'b0000; // ignored
+    hires_color_base <= 4'b0000; // ignored
+    hires_cursor_hi <= 8'b0;
+    hires_cursor_lo <= 8'b0;
 `endif
-    // --- END EXTENSIONS ----
+`endif // SIMULATOR_BOARD
 
     end else
     begin
@@ -706,16 +707,28 @@ timing_2y_bporch_pal <= 20;
                            dbo[7:0] <= 8'hFF;
                     `VIDEO_MODE1:
                         if (extra_regs_activated)
+`ifdef HIRES_MODES
                            dbo[7:0] <= { 1'b0,
                                          hires_mode,
                                          hires_enabled,
                                          palette_select,
                                          hires_char_pixel_base };
+`else
+                           dbo[7:0] <= { 1'b0,
+                                         2'b0,
+                                         1'b0,
+                                         palette_select,
+                                         4'b0 };
+`endif
                         else
                            dbo[7:0] <= 8'hFF;
                     `VIDEO_MODE2:
                         if (extra_regs_activated)
+`ifdef HIRES_MODES
                            dbo[7:0] <= { hires_color_base, hires_matrix_base };
+`else
+                           dbo[7:0] <= { 4'b0, 4'b0 };
+`endif
                         else
                            dbo[7:0] <= 8'hFF;
                     `VIDEO_MEM_1_HI:
@@ -916,16 +929,20 @@ timing_2y_bporch_pal <= 20;
                            video_ram_idx_2 <= dbi;
 		    `VIDEO_MODE1:
                         if (extra_regs_activated) begin
+`ifdef HIRES_MODES
                           hires_mode <= dbi[6:5];
                           hires_enabled <= dbi[`HIRES_ENABLE];
-                          palette_select <= dbi[`PALETTE_SELECT_BIT];
                           hires_char_pixel_base <= dbi[2:0];
-		        end
+`endif
+                          palette_select <= dbi[`PALETTE_SELECT_BIT];
+                        end
 		    `VIDEO_MODE2:
-                        if (extra_regs_activated) begin
-			  hires_matrix_base <= dbi[3:0];
-			  hires_color_base <= dbi[7:4];
-		        end
+                       if (extra_regs_activated) begin
+`ifdef HIRES_MODES
+                        hires_matrix_base <= dbi[3:0];
+                        hires_color_base <= dbi[7:4];
+`endif
+                       end
 
                     /* 0x3f */ `VIDEO_MEM_FLAGS:
                         if (~extra_regs_activated) begin
@@ -1396,10 +1413,12 @@ task read_ram(
 `else
                        dbo <= 8'b0;
 `endif
+`ifdef HIRES_MODES
                  `EXT_REG_CURSOR_LO:
 		               dbo <= hires_cursor_lo;
                  `EXT_REG_CURSOR_HI:
 		               dbo <= hires_cursor_hi;
+`endif
                  `EXT_REG_VERSION:
                      dbo <= {`VERSION_MAJOR, `VERSION_MINOR};
                  `EXT_REG_VARIANT_NAME1:
@@ -1565,10 +1584,12 @@ task write_ram(
     `endif // HAVE_SERIAL_LINK
 `endif // NEED_RGB
                  end
+`ifdef HIRES_MODES
                  `EXT_REG_CURSOR_LO:
                     hires_cursor_lo <= data;
                  `EXT_REG_CURSOR_HI:
                     hires_cursor_hi <= data;
+`endif
 `ifdef CONFIGURABLE_LUMAS
                  `EXT_REG_BLANKING:
                     blanking_level <= data[5:0];

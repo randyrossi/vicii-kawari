@@ -12,16 +12,16 @@ module raster(
            input [6:0] cycle_num,
            input[9:0] raster_x_max,
            input[8:0] raster_y_max,
+`ifdef HIRES_MODES
+           output reg [5:0] blink_ctr,
+           output reg [10:0] hires_raster_x,
+           input dot_rising_2,
+`endif
            output reg [9:0] xpos,
            output reg [9:0] raster_x,
            output reg [9:0] sprite_raster_x,
            output reg [8:0] raster_line,
-           output reg [8:0] raster_line_d,
-	   output reg [5:0] blink_ctr,
-	   // --- BEGIN EXTENSIONS ---
-           output reg [10:0] hires_raster_x,
-           input dot_rising_2
-	   // --- END EXTENSIONS ---
+           output reg [8:0] raster_line_d
        );
 
 // sprite_raster_x is positioned such that the first cycle for
@@ -43,9 +43,9 @@ always @(posedge clk_dot4x)
     if (rst)
     begin
         raster_x <= 10'b0;
-	// --- BEGIN EXTENSIONS ---
+`ifdef HIRES_MODES
         hires_raster_x <= 11'b0;
-	// --- END EXTENSIONS ---
+`endif
         raster_line <= 9'b0;
         raster_line_d <= 9'b0;
         start_of_line = 0;
@@ -80,9 +80,9 @@ always @(posedge clk_dot4x)
             begin
                 // Can advance to next pixel
                 raster_x <= raster_x + 10'd1;
-	        // --- BEGIN EXTENSIONS ---
+`ifdef HIRES_MODES
                 hires_raster_x <= hires_raster_x + 10'd1;
-		// --- END EXTENSIONS ---
+`endif
 
                 // Handle xpos move but deal with special cases
                 case(chip)
@@ -117,10 +117,9 @@ always @(posedge clk_dot4x)
                 // Time to go back to x coord 0
                 raster_x <= 10'd0;
 
-
-	        // --- BEGIN EXTENSIONS ---
+`ifdef HIRES_MODES
                 hires_raster_x <= 11'd0;
-		// --- END EXTENSIONS ---
+`endif
 
                 // xpos also goes back to start value
                 case(chip)
@@ -137,8 +136,10 @@ always @(posedge clk_dot4x)
                     raster_line <= 9'd0;
                     start_of_frame = 1;
 
-		    // Used for hires blinking attribute
-		    blink_ctr <= blink_ctr + 6'd1;
+`ifdef HIRES_MODES
+                    // Used for hires blinking attribute
+                    blink_ctr <= blink_ctr + 6'd1;
+`endif
                 end
             end
 
@@ -148,11 +149,11 @@ always @(posedge clk_dot4x)
                 sprite_raster_x <= 10'd0;
         end
 
-	// --- BEGIN EXTENSIONS ---
+`ifdef HIRES_MODES
         if (dot_rising_2) begin
             hires_raster_x <= hires_raster_x + 11'b1;
         end
-	// --- END EXTENSIONS ---
+`endif
     end
 
 endmodule: raster

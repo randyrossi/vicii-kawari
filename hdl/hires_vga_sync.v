@@ -69,7 +69,9 @@ module hires_vga_sync(
            input wire rst,
            input [1:0] chip,
            input [9:0] raster_x,
+`ifdef HIRES_MODES
            input [10:0] hires_raster_x,
+`endif
            input [8:0] raster_y,
            input [3:0] pixel_color3,
            output wire hsync,             // horizontal sync
@@ -177,15 +179,16 @@ reg active_buf;
 wire [3:0] dout0; // output color from line_buf_0
 wire [3:0] dout1; // output color from line_buf_1
 
-wire [10:0] output_x;
-
-assign output_x = h_count;
-
 // When the line buffer is being written to, we use raster_x (the VIC native
 // resolution x) as the address.
-// When the line buffer is being read from, we used h_count.
-linebuf_RAM line_buf_0(clk_dot4x, active_buf, active_buf ? is_native_x ? {1'b0, raster_x} : hires_raster_x : output_x, pixel_color3, dout0);
-linebuf_RAM line_buf_1(clk_dot4x, !active_buf, !active_buf ? is_native_x ? {1'b0, raster_x} : hires_raster_x : output_x, pixel_color3, dout1);
+// When the line buffer is being read from, we use h_count.
+`ifdef HIRES_MODES
+linebuf_RAM line_buf_0(clk_dot4x, active_buf, active_buf ? (is_native_x ? {1'b0, raster_x} : hires_raster_x) : h_count, pixel_color3, dout0);
+linebuf_RAM line_buf_1(clk_dot4x, !active_buf, !active_buf ? (is_native_x ? {1'b0, raster_x} : hires_raster_x) : h_count, pixel_color3, dout1);
+`else
+linebuf_RAM line_buf_0(clk_dot4x, active_buf, active_buf ? {1'b0, raster_x} : h_count, pixel_color3, dout0);
+linebuf_RAM line_buf_1(clk_dot4x, !active_buf, !active_buf ? {1'b0, raster_x} : h_count, pixel_color3, dout1);
+`endif
 
 reg [3:0] dot_rising;
 always @(posedge clk_dot4x)
