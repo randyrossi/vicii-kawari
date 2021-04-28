@@ -718,7 +718,7 @@ timing_2y_bporch_pal <= 20;
                                          2'b0,
                                          1'b0,
                                          palette_select,
-                                         4'b0 };
+                                         3'b0 };
 `endif
                         else
                            dbo[7:0] <= 8'hFF;

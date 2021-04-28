@@ -16,6 +16,7 @@ void average_lumas_0() { printf ("`define AVERAGE_LUMAS 1\n"); }
 void have_serial_link_0() { printf ("`define HAVE_SERIAL_LINK 1\n"); }
 void need_rgb_0() { printf ("`define NEED_RGB 1\n"); }
 void gen_rgb_0() { printf ("`define GEN_RGB 1\n"); }
+void hires_modes_0() { printf ("`define HIRES_MODES 1\n"); }
 
 void test_pattern_1() { printf ("-DTEST_PATTERN=1 "); }
 void with_dvi_1() { printf ("-DWITH_DVI=1 "); }
@@ -28,6 +29,7 @@ void average_lumas_1() { printf ("-DAVERAGE_LUMAS=1 "); }
 void have_serial_link_1() { printf ("-DHAVE_SERIAL_LINK=1 "); }
 void need_rgb_1() { printf ("-DNEED_RGB=1 "); }
 void gen_rgb_1() { printf ("-DGEN_RGB=1 "); }
+void hires_modes_1() { printf ("-DHIRES_MODES=1 "); }
 
 void main(int argc, char* argv[]) {
 
@@ -42,6 +44,7 @@ void main(int argc, char* argv[]) {
 	def_func have_serial_link;
 	def_func need_rgb;
 	def_func gen_rgb;
+	def_func hires_modes;
 
     char defines[] = {
     };
@@ -61,6 +64,7 @@ void main(int argc, char* argv[]) {
     have_serial_link = have_serial_link_0;
     need_rgb = need_rgb_0;
     gen_rgb = gen_rgb_0;
+    hires_modes = hires_modes_0;
 
     if (argc > 2) {
         test_pattern = test_pattern_1;
@@ -74,6 +78,7 @@ void main(int argc, char* argv[]) {
         have_serial_link = have_serial_link_1;
         need_rgb = need_rgb_1;
         gen_rgb = gen_rgb_1;
+        hires_modes = hires_modes_1;
     }
     else {
        printf ("`define VERSION_MAJOR 4'd0\n");
@@ -87,12 +92,14 @@ void main(int argc, char* argv[]) {
 		    gen_luma_chroma();
 		    have_serial_link();
 		    gen_rgb();
+		    hires_modes();
 		    break;
 	    case 1:
 		    have_color_clocks();
 		    gen_luma_chroma();
 		    have_serial_link();
 		    with_dvi();
+		    hires_modes();
 	    case 2:
 		    have_color_clocks();
 		    gen_luma_chroma();
