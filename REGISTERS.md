@@ -10,10 +10,10 @@ by poking it with the PETSCII bytes "VIC2".  This prevents existing
 software from unintentionally triggering extra registers.
 
 ### BASIC
-    POKE 54271,ASC("V")
-    POKE 54271,ASC("I")
-    POKE 54271,ASC("C")
-    POKE 54271,ASC("2")
+    POKE 53311,ASC("V")
+    POKE 53311,ASC("I")
+    POKE 53311,ASC("C")
+    POKE 53311,ASC("2")
 
 ### 6510 ASSEMBLY
     LDA #86
@@ -61,8 +61,8 @@ by the CPU.)
 
 VIDEO_MEM_FLAGS | Description
 ----------------|-------------
-BIT 1,2  | PORT 1 AUTO INCREMENT FLAGS<br>0=NONE<br>1=INC<br>2=DEC<br>3=UNUSED
-BIT 3,4  | PORT 2 AUTO INCREMENT FLAGS<br>0=NONE<br>1=INC<br>2=DEC<br>3=UNUSED
+BIT 1,2  | PORT 1 FUNCTION <br>0=NONE<br>1=AUTO INC<br>2=AUTO DEC<br>3=COPYSRC/FILL
+BIT 3,4  | PORT 2 FUNCTION <br>0=NONE<br>1=AUTO INC<br>2=AUTO DEC<br>3=COPYDST/FILLVAL
 BIT 5    | Persist busy status flag (see below)
 BIT 6    | Extra 256 registers overlay at 0x0000 Enable/Disable
 BIT 7    | Persist Flag (see below) Changes to some registers will persist between reboots)
@@ -89,7 +89,7 @@ For the 80 column text mode, each byte stores color information as well as displ
 BIT        | Description
 -----------|-------------
 0-3        | 16 color index
-4          | blink (toggled every 32 frames)
+4          | blink (every 32 frames)
 5          | underscore
 6          | reverse video
 7          | alt char set
@@ -146,8 +146,8 @@ HIRES MODE | Description
 
 ### Performing a move within video memory
 
-Moving memory still requires the CPU but uses two ports; one for
-a source and the other for a destination.
+Here is an example of moving memory within video RAM using the CPU.
+(A much more efficient way using block copy is shown below).
 
     LDA <SRC_ADDR
     STA VIDEO_MEM_A_HI
@@ -166,6 +166,90 @@ a source and the other for a destination.
     STA VIDEO_MEM_B_VAL  ; write to dest
 
     Sequential read/writes will auto increment/decrement the address as above.
+
+## Block Copy
+
+You can perform high speed block copy operations by setting the vmem
+port 1 and 2 functions to COPYSRC/FILL and COPYDST/FILLVAL respectively.
+
+VIDEO_MEM_1_LO | Src Lo Byte
+VIDEO_MEM_1_HI | Src Hi Byte
+VIDEO_MEM_2_LO | Dest Lo Byte
+VIDEO_MEM_2_HI | Dest Hi Byte
+VIDEO_MEM_1_IDX | Num Bytes Lo
+VIDEO_MEM_2_IDX | Num Bytes Hi
+VIDEO_MEM_1_VAL | Perform Copy, 1=copy start to end, 2=copy end to start
+
+### Copy Example
+
+    LDA <SRC_ADDR
+    STA VIDEO_MEM_A_HI
+    LDA >SRC_ADDR
+    STA VIDEO_MEM_A_LO
+
+    LDA <DEST_ADDR
+    STA VIDEO_MEM_B_HI
+    LDA >DEST_ADDR
+    STA VIDEO_MEM_B_LO
+
+    LDA #15               ; Port 1 copy src, Port 2 copy dest
+    STA VIDEO_MEM_FLAGS
+
+    LDA #00
+    STA VIDEO_MEM_1_IDX
+    LDA #02
+    STA VIDEO_MEM_2_IDX   ; 512 bytes
+
+    LDA #1
+    STA VIDEO_MEM_1_VAL   ; Perform copy (start to end)
+
+* Copy is finished when VIDEO_MEM_1_IDX == 0 && VIDEO_MEM_2_IDX == 0
+* These values do not change while copy is performed so just checking
+  one value that started as not 0 for 0 is sufficient to indicate done.
+* 8 bytes are moved each 6510 cycle.
+* Max copy is 65535 bytes
+
+## Block Fill
+
+You can perform high speed block fill operations by setting the vmem
+port 1 and 2 functions to COPYSRC/FILL and COPYDST/FILLVAL respectively.
+
+### Fill
+
+VIDEO_MEM_1_LO | Start Lo Byte
+VIDEO_MEM_1_HI | Start Hi Byte
+VIDEO_MEM_1_IDX | Num Bytes Lo
+VIDEO_MEM_2_IDX | Num Bytes Hi
+VIDEO_MEM_2_LO  | Byte for fill
+VIDEO_MEM_2_HI  | Unused
+VIDEO_MEM_1_VAL | 4 = Perform fill with byte stored in VIDEO_MEM_2_VAL
+
+### Fill Example
+
+    LDA <DST_ADDR
+    STA VIDEO_MEM_A_HI
+    LDA >DST_ADDR
+    STA VIDEO_MEM_A_LO
+
+    LDA #15               ; Port 1 fill dst, Port 2 fill val
+    STA VIDEO_MEM_FLAGS
+
+    LDA #00
+    STA VIDEO_MEM_1_IDX
+    LDA #02
+    STA VIDEO_MEM_2_IDX   ; 512 bytes
+
+    LDA #ff               ; Byte for fill
+    STA VIDEO_MEM_2_LO
+
+    LDA #4
+    STA VIDEO_MEM_1_VAL   ; Perform fill
+
+* Fill is finished when VIDEO_MEM_1_IDX == 0 && VIDEO_MEM_2_IDX == 0
+* These values do not change while copy is performed so just checking
+  one value that started as not 0 for 0 is sufficient to indicate done.
+* 32 bytes are filled each 6510 cycle.
+* Max fill is 65535 bytes
 
 ### Using video mem pointers with an index
 
@@ -358,7 +442,6 @@ Location | Name | Description
 0x00a0 - 0x00af | LUMA_LEVELS | Composite luma levels for colors (0-63)
 0x00b0 - 0x00bf | PHASE_VALUES | Composite phase values for colors (0-255 representing 0-359 degrees)
 0x00c0 - 0x00cf | AMPL_VALUES | Composite amplitude values for colors (1-15, 0 = no modulation)
-
 0x00d0 | FPORCH | HDMI/VGA 1X NTSC H front porch (15 khz mode)
 0x00d1 | SPULSE | HDMI/VGA 1X NTSC H sync pulse (15 khz mode)
 0x00d2 | BPORCH | HDMI/VGA 1X NTSC H back porch (15 khz mode)
