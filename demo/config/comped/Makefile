@@ -2,8 +2,8 @@ all: comped.prg
 
 OBJS=main.o menu.o
 
-comped.prg: main.o menu.o
-	cl65 -o comped.prg main.o menu.o
+comped.prg: main.o menu.o ../util.o
+	cl65 -o comped.prg main.o menu.o ../util.o
 
 main.o: main.c ../../common/util.h
 	cl65 --include-dir ../../common -c main.c -o main.o

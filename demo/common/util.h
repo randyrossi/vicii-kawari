@@ -25,3 +25,4 @@
 
 #define INIT_COLORS() POKE(53280L,6); POKE(53281L,14); POKE(646,1);
 
+int detected(void);
