@@ -10,10 +10,8 @@ int detected(void);
 void main()
 {
     if (detected()) {
-       // Init color scheme
-       POKE(53280L,6);
-       POKE(53281L,14);
-       POKE(646,1);
+       HIRES_OFF();    
+       INIT_COLORS();
        main_menu();
     } else {
        printf ("kawari not detected");

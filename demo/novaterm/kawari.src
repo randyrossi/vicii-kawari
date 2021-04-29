@@ -29,6 +29,23 @@ VMEM_B_HI = $d03d
 VMEM_B_LO = $d03c
 VMEM_B_VAL = $d03e
 
+; Aliases for hw copy function
+VMEM_COPY_NUM_LO = $d035
+VMEM_COPY_NUM_HI = $d036
+VMEM_COPY_SRC_HI = $d03a
+VMEM_COPY_SRC_LO = $d039
+VMEM_COPY_DST_HI = $d03d
+VMEM_COPY_DST_LO = $d03c
+VMEM_COPY_FUNC = $d03b
+
+; Aliases for hw fill function
+VMEM_FILL_DST_HI = $d03a
+VMEM_FILL_DST_LO = $d039
+VMEM_FILL_NUM_LO = $d035
+VMEM_FILL_NUM_HI = $d036
+VMEM_FILL_BYTE = $d03c
+VMEM_FILL_FUNC = $d03b
+
 *= column
         jmp enter80     ; 0
         jmp outchr      ; 3

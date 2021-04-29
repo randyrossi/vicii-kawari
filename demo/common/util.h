@@ -17,3 +17,11 @@
 // buffer.  Used by config programs when saving many registers
 // back to back in a loop.
 #define SAFE_POKE(addr, val) while (PEEK(53311L) & 16) {} POKE(addr,val);
+
+// Turn off hires bit
+#define HIRES_OFF() POKE(53303L, PEEK(53303L) & 239)
+// Turn on hires bit
+#define HIRES_ON() POKE(53303L, PEEK(53303L) | 16)
+
+#define INIT_COLORS() POKE(53280L,6); POKE(53281L,14); POKE(646,1);
+

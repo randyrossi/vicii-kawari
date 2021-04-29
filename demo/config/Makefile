@@ -1,4 +1,4 @@
-all: config.prg
+all: config.prg subdirs
 
 OBJS=main.o menu.o
 
@@ -14,5 +14,13 @@ menu.o: menu.c ../common/util.h ../common/kawari.h
 run:
 	x64sc config.prg
 
+subdirs:
+	$(MAKE) -C rgbed
+	$(MAKE) -C comped
+	$(MAKE) -C timeed
+
 clean:
+	$(MAKE) -C rgbed clean
+	$(MAKE) -C comped clean
+	$(MAKE) -C timeed clean
 	rm -f *.o config.prg
