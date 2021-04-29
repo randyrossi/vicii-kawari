@@ -221,6 +221,8 @@
 `define EXT_REG_DISPLAY_FLAGS        8'h84
 `define EXT_REG_CURSOR_LO            8'h85
 `define EXT_REG_CURSOR_HI            8'h86
+`define EXT_REG_CAP_LO               8'h87
+`define EXT_REG_CAP_HI               8'h88
 
 `ifdef CONFIGURABLE_LUMAS
 `define EXT_REG_LUMA0                8'ha0
@@ -330,5 +332,55 @@
 `define MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR     3'b101
 `define MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP     3'b110
 `define MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP   3'b111
+
+`define CAP_RGB_BIT 0
+`define CAP_DVI_BIT 1
+`define CAP_COMP_BIT 2
+`define CAP_CONFIG_RGB_BIT 3
+`define CAP_CONFIG_LUMA_BIT 4
+`define CAP_CONFIG_TIMING_BIT 5
+`define CAP_PERSIST_BIT 6
+
+`ifdef GEN_RGB
+`define HAS_RGB_CAP 1'b1
+`else
+`define HAS_RGB_CAP 1'b0
+`endif
+
+`ifdef WITH_DVI
+`define HAS_DVI_CAP 1'b1
+`else
+`define HAS_DVI_CAP 1'b0
+`endif
+
+`ifdef GEN_LUMA_CHROMA
+`define HAS_COMP_CAP 1'b1
+`else
+`define HAS_COMP_CAP 1'b0
+`endif
+
+`ifdef CONFIGURABLE_RGB
+`define HAS_CONFIG_RGB_CAP 1'b1
+`else
+`define HAS_CONFIG_RGB_CAP 1'b0
+`endif
+
+`ifdef CONFIGURABLE_LUMA
+`define HAS_CONFIG_LUMA_CAP 1'b1
+`else
+`define HAS_CONFIG_LUMA_CAP 1'b0
+`endif
+
+`ifdef CONFIGURABLE_TIMING
+`define HAS_CONFIG_TIMING_CAP 1'b1
+`else
+`define HAS_CONFIG_TIMING_CAP 1'b0
+`endif
+
+`ifdef HAVE_SERIAL_LINK
+`define HAS_PERSIST_CAP 1'b1
+`else
+`define HAS_PERSIST_CAP 1'b0
+`endif
 
 `endif // common_vh_

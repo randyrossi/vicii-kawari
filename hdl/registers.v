@@ -1533,6 +1533,19 @@ task read_ram(
                  `EXT_REG_BURSTAMP:
                      dbo <= {4'b0, burst_amplitude};
 `endif
+                 // Advertise some capability bits
+                 `EXT_REG_CAP_LO:
+                     begin
+                       dbo[`CAP_RGB_BIT] <= `HAS_RGB_CAP;
+                       dbo[`CAP_DVI_BIT] <= `HAS_DVI_CAP;
+                       dbo[`CAP_COMP_BIT] <= `HAS_COMP_CAP;
+                       dbo[`CAP_CONFIG_RGB_BIT] <= `HAS_CONFIG_RGB_CAP;
+                       dbo[`CAP_CONFIG_LUMA_BIT] <= `HAS_CONFIG_LUMA_CAP;
+                       dbo[`CAP_CONFIG_TIMING_BIT] <= `HAS_CONFIG_TIMING_CAP;
+                       dbo[`CAP_PERSIST_BIT] <= `HAS_PERSIST_CAP;
+                     end
+                 `EXT_REG_CAP_HI:
+                     dbo <= 8'b0; // reserved for now
                  default: ;
               endcase
           end

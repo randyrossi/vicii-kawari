@@ -33,12 +33,12 @@ can be deactivated again by setting bit 8 of 0xd03f to 1.
 
 REG    | Name | Description
 -------|------|-------------
-0xd02f |      | Unused
-0xd030 |      | Unused
-0xd031 |      | Unused
-0xd032 |      | Unused
-0xd033 |      | Unused
-0xd034 |      | Unused
+0xd02f |      | Reserved
+0xd030 |      | Reserved
+0xd031 |      | Reserved
+0xd032 |      | Reserved
+0xd033 |      | Reserved
+0xd034 |      | Reserved
 0xd035 | VIDEO_MEM_1_IDX | Video Memory Index Port A (RAM only)
 0xd036 | VIDEO_MEM_2_IDX | Video Memory Index Port B (RAM only)
 0xd037 | VIDEO_MODE1 | See below
@@ -171,6 +171,7 @@ Here is an example of moving memory within video RAM using the CPU.
 
 You can perform high speed block copy operations by setting the vmem
 port 1 and 2 functions to COPYSRC/FILL and COPYDST/FILLVAL respectively.
+NOTE: Both port 1 and 2 must be configured for COPY/FILL function.
 
 VIDEO_MEM_1_LO | Dest Lo Byte
 VIDEO_MEM_1_HI | Dest Hi Byte
@@ -179,6 +180,7 @@ VIDEO_MEM_2_HI | Src Hi Byte
 VIDEO_MEM_1_IDX | Num Bytes Lo
 VIDEO_MEM_2_IDX | Num Bytes Hi
 VIDEO_MEM_1_VAL | Perform Copy, 1=copy start to end, 2=copy end to start
+VIDEO_MEM_2_VAL | Unused
 
 ### Copy Example
 
@@ -223,6 +225,7 @@ VIDEO_MEM_2_IDX | Num Bytes Hi
 VIDEO_MEM_2_LO  | Byte for fill
 VIDEO_MEM_2_HI  | Unused
 VIDEO_MEM_1_VAL | 4 = Perform fill with byte stored in VIDEO_MEM_2_VAL
+VIDEO_MEM_2_VAL | Unused
 
 ### Fill Example
 
@@ -286,195 +289,79 @@ functions.
 ### Color Registers
 
 VICII-Kawari has a configurable color palette. The 16 colors can be selected
-from a palette of 4096 colors by specifying three 4-bit RGB values. (The
-upper 4 bits in each byte are ignored).  The palette is also double buffered
+from a palette of 262144 colors by specifying three 6-bit RGB values. (The
+upper 2 bits in each byte are ignored).  The palette is also double buffered
 to allow changing all colors instantaneously with the palette select bit in
 register VIDEO_MODE1. Palette 0 is located at 0x0000. Palette 1 is located at
 0x0040.
 
-Register | Description
--------|-------------------
-0x0000 | Palette 0 Color0_R
-0x0001 | Palette 0 Color0_G
-0x0002 | Palette 0 Color0_B
-0x0003 | Unused
-0x0004 | Palette 0 Color1_R
-0x0005 | Palette 0 Color1_G
-0x0006 | Palette 0 Color1_B
-0x0007 | Unused
-0x0008 | Palette 0 Color2_R
-0x0009 | Palette 0 Color2_G
-0x000a | Palette 0 Color2_B
-0x000b | Unused
-0x000c | Palette 0 Color3_R
-0x000d | Palette 0 Color3_G
-0x000e | Palette 0 Color3_B
-0x000f | Unused
-0x0010 | Palette 0 Color4_R
-0x0011 | Palette 0 Color4_G
-0x0012 | Palette 0 Color4_B
-0x0013 | Unused
-0x0014 | Palette 0 Color5_R
-0x0015 | Palette 0 Color5_G
-0x0016 | Palette 0 Color5_B
-0x0017 | Unused
-0x0018 | Palette 0 Color6_R
-0x0019 | Palette 0 Color6_G
-0x001a | Palette 0 Color6_B
-0x001b | Unused
-0x001c | Palette 0 Color7_R
-0x001d | Palette 0 Color7_G
-0x001e | Palette 0 Color7_B
-0x001f | Unused
-0x0020 | Palette 0 Color8_R
-0x0021 | Palette 0 Color8_G
-0x0022 | Palette 0 Color8_B
-0x0023 | Unused
-0x0024 | Palette 0 Color9_R
-0x0025 | Palette 0 Color9_G
-0x0026 | Palette 0 Color9_B
-0x0027 | Unused
-0x0028 | Palette 0 ColorA_R
-0x0029 | Palette 0 ColorA_G
-0x002a | Palette 0 ColorA_B
-0x002b | Unused
-0x002c | Palette 0 ColorB_R
-0x002d | Palette 0 ColorB_G
-0x002e | Palette 0 ColorB_B
-0x002f | Unused
-0x0030 | Palette 0 ColorC_R
-0x0031 | Palette 0 ColorC_G
-0x0032 | Palette 0 ColorC_B
-0x0033 | Unused
-0x0034 | Palette 0 ColorD_R
-0x0035 | Palette 0 ColorD_G
-0x0036 | Palette 0 ColorD_B
-0x0037 | Unused
-0x0038 | Palette 0 ColorE_R
-0x0039 | Palette 0 ColorE_G
-0x003a | Palette 0 ColorE_B
-0x003b | Unused
-0x003c | Palette 0 ColorF_R
-0x003d | Palette 0 ColorF_G
-0x003e | Palette 0 ColorF_B
-0x003f | Unused
-
-Register | Description
--------|-------------------
-0x0040 | Palette 1 Color0_R
-0x0041 | Palette 1 Color0_G
-0x0042 | Palette 1 Color0_B
-0x0043 | Unused
-0x0044 | Palette 1 Color1_R
-0x0045 | Palette 1 Color1_G
-0x0046 | Palette 1 Color1_B
-0x0047 | Unused
-0x0048 | Palette 1 Color2_R
-0x0049 | Palette 1 Color2_G
-0x004a | Palette 1 Color2_B
-0x004b | Unused
-0x004c | Palette 1 Color3_R
-0x004d | Palette 1 Color3_G
-0x004e | Palette 1 Color3_B
-0x004f | Unused
-0x0050 | Palette 1 Color4_R
-0x0051 | Palette 1 Color4_G
-0x0052 | Palette 1 Color4_B
-0x0053 | Unused
-0x0054 | Palette 1 Color5_R
-0x0055 | Palette 1 Color5_G
-0x0056 | Palette 1 Color5_B
-0x0057 | Unused
-0x0058 | Palette 1 Color6_R
-0x0059 | Palette 1 Color6_G
-0x005a | Palette 1 Color6_B
-0x005b | Unused
-0x005c | Palette 1 Color7_R
-0x005d | Palette 1 Color7_G
-0x005e | Palette 1 Color7_B
-0x005f | Unused
-0x0060 | Palette 1 Color8_R
-0x0061 | Palette 1 Color8_G
-0x0062 | Palette 1 Color8_B
-0x0063 | Unused
-0x0064 | Palette 1 Color9_R
-0x0065 | Palette 1 Color9_G
-0x0066 | Palette 1 Color9_B
-0x0067 | Unused
-0x0068 | Palette 1 ColorA_R
-0x0069 | Palette 1 ColorA_G
-0x006a | Palette 1 ColorA_B
-0x006b | Unused
-0x006c | Palette 1 ColorB_R
-0x006d | Palette 1 ColorB_G
-0x006e | Palette 1 ColorB_B
-0x006f | Unused
-0x0070 | Palette 1 ColorC_R
-0x0031 | Palette 1 ColorC_G
-0x0072 | Palette 1 ColorC_B
-0x0073 | Unused
-0x0074 | Palette 1 ColorD_R
-0x0075 | Palette 1 ColorD_G
-0x0076 | Palette 1 ColorD_B
-0x0077 | Unused
-0x0078 | Palette 1 ColorE_R
-0x0079 | Palette 1 ColorE_G
-0x007a | Palette 1 ColorE_B
-0x007b | Unused
-0x007c | Palette 1 ColorF_R
-0x007d | Palette 1 ColorF_G
-0x007e | Palette 1 ColorF_B
-0x007f | Unused
-
-## Other registers
-
-Location | Name | Description
----------|------|------------
-0x0080 | BLACK_LEVEL | Composite black level (0-63)
-0x0081 | BURST_AMPLITUDE | Composite color burst amplitude (1-15, 0 = no color burst)
-0x0082 | CHIP_MODEL | Chip Model Select (0=6567R8, 1=6569, 2=6567R56A)
-0x0083 | VERSION | Version (high nibble major, low nibble minor) - Read Only
-0x0084 | DISPLAY_FLAGS | See below
-0x0085 | CURSOR_LO | Cursor lo byte
-0x0086 | CURSOR_HI | Cursor hi byte
-0x0087 - 0x008f | Reserved | Reserved
-0x0090 - 0x009f | VARIANT_NAME | Variant Name
-0x00a0 - 0x00af | LUMA_LEVELS | Composite luma levels for colors (0-63)
-0x00b0 - 0x00bf | PHASE_VALUES | Composite phase values for colors (0-255 representing 0-359 degrees)
-0x00c0 - 0x00cf | AMPL_VALUES | Composite amplitude values for colors (1-15, 0 = no modulation)
-0x00d0 | FPORCH | HDMI/VGA 1X NTSC H front porch (15 khz mode)
-0x00d1 | SPULSE | HDMI/VGA 1X NTSC H sync pulse (15 khz mode)
-0x00d2 | BPORCH | HDMI/VGA 1X NTSC H back porch (15 khz mode)
-0x00d3 | FPORCH | HDMI/VGA 1Y NTSC V front porch (15 khz mode)
-0x00d4 | SPULSE | HDMI/VGA 1Y NTSC V sync pulse (15 khz mode)
-0x00d5 | BPORCH | HDMI/VGA 1Y NTSC V back porch (15 khz mode)
-0x00d6 | FPORCH | HDMI/VGA 2X NTSC H front porch (31 khz mode)
-0x00d7 | SPULSE | HDMI/VGA 2X NTSC H sync pulse (31 khz mode)
-0x00d8 | BPORCH | HDMI/VGA 2X NTSC H back porch (31 khz mode)
-0x00d9 | FPORCH | HDMI/VGA 2Y NTSC V front porch (31 khz mode)
-0x00da | SPULSE | HDMI/VGA 2Y NTSC V sync pulse (31 khz mode)
-0x00db | BPORCH | HDMI/VGA 2Y NTSC V back porch (31 khz mode)
-0x00dc | FPORCH | HDMI/VGA 1X PAL H front porch (15 khz mode)
-0x00dd | SPULSE | HDMI/VGA 1X PAL H sync pulse (15 khz mode)
-0x00de | BPORCH | HDMI/VGA 1X PAL H back porch (15 khz mode)
-0x00df | FPORCH | HDMI/VGA 1Y PAL V front porch (15 khz mode)
-0x00e0 | SPULSE | HDMI/VGA 1Y PAL V sync pulse (15 khz mode)
-0x00e1 | BPORCH | HDMI/VGA 1Y PAL V back porch (15 khz mode)
-0x00e2 | FPORCH | HDMI/VGA 2X PAL H front porch (31 khz mode)
-0x00e3 | SPULSE | HDMI/VGA 2X PAL H sync pulse (31 khz mode)
-0x00e4 | BPORCH | HDMI/VGA 2X PAL H back porch (31 khz mode)
-0x00e5 | FPORCH | HDMI/VGA 2Y PAL V front porch (31 khz mode)
-0x00e6 | SPULSE | HDMI/VGA 2Y PAL V sync pulse (31 khz mode)
-0x00e7 | BPORCH | HDMI/VGA 2Y PAL V back porch (31 khz mode)
-0x00d8 | CHANGE | Timing change signal - Bit 1 
+Location | Name | Description | Capability Requirement
+---------|------|-------------|-----------------------
+0x0000 - 0x003f | PAL0_RGB | 4x16 array of RGBx for palette 0 (4th byte unused) | CONFIG_RGB
+0x0040 - 0x007f | PAL1_RGB | 4x16 array of RGBx for palette 1 (4th byte unused) | CONFIG_RGB
+0x0080 | BLACK_LEVEL | Composite black level (0-63) | CONFIG_COMPOSITE
+0x0081 | BURST_AMPLITUDE | Composite color burst amplitude (1-15, 0 = no color burst) | CONFIG_COMPOSITE
+0x0082 | CHIP_MODEL | Chip Model Select (0=6567R8, 1=6569, 2=6567R56A) | NONE
+0x0083 | VERSION | Version (high nibble major, low nibble minor) - Read Only | NONE
+0x0084 | DISPLAY_FLAGS | See below | NONE
+0x0085 | CURSOR_LO | Hires Cursor lo byte | HIRES_MODES
+0x0086 | CURSOR_HI | Hires Cursor hi byte | HIRES_MODES
+0x0087 | CAP_LO    | Capability Bits lo byte (Read Only)| NONE
+0x0088 | CAP_HI    | Capability Bits hi byte (Read Only)| NONE
+0x0089 - 0x008f | Reserved | Reserved | NONE
+0x0090 - 0x009f | VARIANT_NAME | Variant Name | NONE
+0x00a0 - 0x00af | LUMA_LEVELS | Composite luma levels for colors (0-63) | CONFIG_COMPOSITE
+0x00b0 - 0x00bf | PHASE_VALUES | Composite phase values for colors (0-255 representing 0-359 degrees) | CONFIG_COMPOSITE
+0x00c0 - 0x00cf | AMPL_VALUES | Composite amplitude values for colors (1-15, 0 = no modulation) | CONFIG_COMPOSITE
+0x00d0 | FPORCH | HDMI/VGA 1X NTSC H front porch (15 khz mode) | CONFIG_RGB
+0x00d1 | SPULSE | HDMI/VGA 1X NTSC H sync pulse (15 khz mode) | CONFIG_RGB
+0x00d2 | BPORCH | HDMI/VGA 1X NTSC H back porch (15 khz mode) | CONFIG_RGB
+0x00d3 | FPORCH | HDMI/VGA 1Y NTSC V front porch (15 khz mode) | CONFIG_RGB
+0x00d4 | SPULSE | HDMI/VGA 1Y NTSC V sync pulse (15 khz mode) | CONFIG_RGB
+0x00d5 | BPORCH | HDMI/VGA 1Y NTSC V back porch (15 khz mode) | CONFIG_RGB
+0x00d6 | FPORCH | HDMI/VGA 2X NTSC H front porch (31 khz mode) | CONFIG_RGB
+0x00d7 | SPULSE | HDMI/VGA 2X NTSC H sync pulse (31 khz mode) | CONFIG_RGB
+0x00d8 | BPORCH | HDMI/VGA 2X NTSC H back porch (31 khz mode) | CONFIG_RGB
+0x00d9 | FPORCH | HDMI/VGA 2Y NTSC V front porch (31 khz mode) | CONFIG_RGB
+0x00da | SPULSE | HDMI/VGA 2Y NTSC V sync pulse (31 khz mode) | CONFIG_RGB
+0x00db | BPORCH | HDMI/VGA 2Y NTSC V back porch (31 khz mode) | CONFIG_RGB
+0x00dc | FPORCH | HDMI/VGA 1X PAL H front porch (15 khz mode) | CONFIG_RGB
+0x00dd | SPULSE | HDMI/VGA 1X PAL H sync pulse (15 khz mode) | CONFIG_RGB
+0x00de | BPORCH | HDMI/VGA 1X PAL H back porch (15 khz mode) | CONFIG_RGB
+0x00df | FPORCH | HDMI/VGA 1Y PAL V front porch (15 khz mode) | CONFIG_RGB
+0x00e0 | SPULSE | HDMI/VGA 1Y PAL V sync pulse (15 khz mode) | CONFIG_RGB
+0x00e1 | BPORCH | HDMI/VGA 1Y PAL V back porch (15 khz mode) | CONFIG_RGB
+0x00e2 | FPORCH | HDMI/VGA 2X PAL H front porch (31 khz mode) | CONFIG_RGB
+0x00e3 | SPULSE | HDMI/VGA 2X PAL H sync pulse (31 khz mode) | CONFIG_RGB
+0x00e4 | BPORCH | HDMI/VGA 2X PAL H back porch (31 khz mode) | CONFIG_RGB
+0x00e5 | FPORCH | HDMI/VGA 2Y PAL V front porch (31 khz mode) | CONFIG_RGB
+0x00e6 | SPULSE | HDMI/VGA 2Y PAL V sync pulse (31 khz mode) | CONFIG_RGB
+0x00e7 | BPORCH | HDMI/VGA 2Y PAL V back porch (31 khz mode) | CONFIG_RGB
+0x00d8 | CHANGE | Timing change signal - Bit 1  | CONFIG_RGB
 
 DISPLAY_FLAGS|Function
 -------------|-------
 Bit 1        | Raster lines visible(1) or invisible(0)
-Bit 2        | Use native y resolution (1=15khz, 0=31khz)
-Bit 3        | Use native x resolution or not (1=native, 0=doubled)
+Bit 2        | Use native y resolution rather than double (1=15khz, 0=31khz)
+Bit 3        | Use native x resolution rather than double (1=native, 0=doubled)
+Bit 4-8      | Reserved
 
-* Double x resolution is required for 80 column mode.
+* Double x resolution is required for 80 column mode or any hires mode.
+
+CAP_LO|Function
+------|--------
+Bit 1 | Has analog RGB out
+Bit 2 | Has digital RGB out (HDMI/DVI)
+Bit 3 | Has composite out (LUMA/CHROMA)
+Bit 4 | Has configurable RGB palette
+Bit 5 | Has configurable Luma/Chroma/Amplitude
+Bit 6 | Has configurable analog/digital RGB timing params
+Bit 7 | Has configuration persistance
+Bit 8 | Reserved
+
+CAP_HI|Function
+------|--------
+Bit 1-9 | Reserved
 
 ### Variant Name
 
@@ -489,8 +376,21 @@ The extra registers described here should remain functional across all
 VICII-Kawari variants. This way, the official configuration utility will
 be able to at least query the variant name and version on any variant
 (as well as set palette colors, change video standard, or other common
-features between variants).  Users will be able to at least identify what
+features between variants). Users will be able to at least identify what
 variant they are running even if they use the official config utility.
 Also, programs can run a simple check routine that will run on all variants
 and can display a user friendly message indicating the wrong variant is
 installed.
+
+# Notation
+
+Bit   | Description | Value
+------|-------------|------
+Bit 1 | LSB | 1
+Bit 2 |  | 2
+Bit 3 |  | 4
+Bit 4 |  | 8
+Bit 5 |  | 16
+Bit 6 |  | 32
+Bit 7 |  | 64
+Bit 8 | MSB | 128
