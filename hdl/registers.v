@@ -80,10 +80,11 @@ module registers(
 	   output reg[5:0] red,
 	   output reg[5:0] green,
 	   output reg[5:0] blue,
-       // Current settings
-	   output reg last_raster_lines, // for dvi/vga only
-       output reg last_is_native_y, // for dvi/vga only
-       output reg last_is_native_x, // for dvi/vga only
+           // Current settings
+           output reg last_raster_lines, // for dvi/vga only
+           output reg last_is_native_y, // for dvi/vga only
+           output reg last_is_native_x, // for dvi/vga only
+           output reg last_enable_csync, // for dvi/vga only
 `endif
 `ifdef HAVE_SERIAL_LINK
 	   // When we poke our custom regs that change config,
@@ -453,6 +454,7 @@ timing_2y_bporch_pal <= 20;
 	last_raster_lines <= 1'b0;
 	last_is_native_y <= 1'b0;
 	last_is_native_x <= 1'b0;
+	last_enable_csync <= 1'b0;
 `endif
     video_ram_flag_port_1_auto <= 2'b0;
 	video_ram_flag_port_2_auto <= 2'b0;
@@ -1497,7 +1499,11 @@ task read_ram(
 		               dbo <= {6'b0, last_chip};
                  `EXT_REG_DISPLAY_FLAGS:
 `ifdef NEED_RGB
-		               dbo <= {5'b0, last_is_native_x, last_is_native_y, last_raster_lines};
+		               dbo <= {4'b0,
+				       last_enable_csync,
+				       last_is_native_x,
+				       last_is_native_y,
+				       last_raster_lines};
 `else
                        dbo <= 8'b0;
 `endif
@@ -1672,14 +1678,20 @@ task write_ram(
                   begin
 `ifdef NEED_RGB
                           last_raster_lines <= data[`SHOW_RASTER_LINES_BIT];
-						  if (!from_cpu) begin // protect from CPU
-						     last_is_native_y <= data[`IS_NATIVE_Y_BIT]; // 15khz
-						     last_is_native_x <= data[`IS_NATIVE_X_BIT];
-						  end
+			  if (!from_cpu) begin // protect from CPU
+			     last_is_native_y <= data[`IS_NATIVE_Y_BIT]; // 15khz
+			     last_is_native_x <= data[`IS_NATIVE_X_BIT];
+			     last_enable_csync <= data[`ENABLE_CSYNC_BIT];
+			  end
     `ifdef HAVE_SERIAL_LINK
-						  if (do_tx) begin
-						     tx_cfg_change_1 <= `EXT_REG_DISPLAY_FLAGS;
-						     tx_cfg_change_2 <= {5'b0, data[`IS_NATIVE_X_BIT], data[`IS_NATIVE_Y_BIT], data[`SHOW_RASTER_LINES_BIT]};
+			  if (do_tx) begin
+			     tx_cfg_change_1 <= `EXT_REG_DISPLAY_FLAGS;
+			     tx_cfg_change_2 <= {4'b0,
+				     data[`ENABLE_CSYNC_BIT],
+				     data[`IS_NATIVE_X_BIT],
+				     data[`IS_NATIVE_Y_BIT],
+				     data[`SHOW_RASTER_LINES_BIT]
+				     };
                              tx_new_data_start = 1'b1;
                           end
     `endif // HAVE_SERIAL_LINK

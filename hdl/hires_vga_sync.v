@@ -38,7 +38,8 @@ endmodule
 module hires_vga_sync(
            input wire clk_dot4x,
            input is_native_y_in,
-			  input is_native_x_in,
+           input is_native_x_in,
+           input enable_csync,
 `ifdef CONFIGURABLE_TIMING
             input timing_change_in,
             input [7:0] timing_1x_fporch_ntsc,
@@ -99,9 +100,15 @@ reg [10:0] h_count;  // output x position
 reg [9:0] v_count;  // output y position
 reg [1:0] ff;
 
+wire hsync_int;
+wire vsync_int;
+
+assign hsync_int = ~((h_count >= hs_sta) & (h_count < hs_end));
+assign vsync_int = ~((v_count >= vs_sta) & (v_count < vs_end));
+
 // generate sync signals active low
-assign hsync = ~((h_count >= hs_sta) & (h_count < hs_end));
-assign vsync = ~((v_count >= vs_sta) & (v_count < vs_end));
+assign hsync = enable_csync ? (hsync_int | vsync_int) : hsync_int;
+assign vsync = enable_csync ? 1'b0 : vsync_int;
 
 // active: high during active pixel drawing
 assign active = chip[0] ? ~((h_count < ha_sta) | (v_count > va_end)) : ~((h_count < ha_sta) | (v_count < va_sta));

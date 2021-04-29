@@ -76,8 +76,8 @@ void show_chip_model(void)
 
 void show_raster_lines(void)
 {
-    int next_raster_lines = next_display_flags & 1;
-    int current_raster_lines = current_display_flags & 1;
+    int next_raster_lines = next_display_flags & DISPLAY_SHOW_RASTER_LINES_BIT;
+    int current_raster_lines = current_display_flags & DISPLAY_SHOW_RASTER_LINES_BIT;
     TOXY(17,7);
     if (next_raster_lines) {
        printf ("ON ");
@@ -156,7 +156,7 @@ void main_menu(void)
           if (next_model > 3) next_model=0;
           show_chip_model();
        } else if (r.a == 'r') {
-          next_display_flags ^= 1;
+          next_display_flags ^= DISPLAY_SHOW_RASTER_LINES_BIT;
           show_raster_lines();
        } else if (r.a == 's') {
           save_changes();

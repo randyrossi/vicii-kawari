@@ -108,6 +108,11 @@ int chip_model = 0;
 // P46 CHIP_MODEL_BIT_0
 // P61 CHIP_MODEL_BIT_1
 
+#define DISPLAY_SHOW_RASTER_LINES_BIT 1
+#define DISPLAY_NATIVE_Y_BIT 2
+#define DISPLAY_NATIVE_X_BIT 4
+#define DISPLAY_ENABLE_CSYNC_BIT 8
+
 // Last known saved settings. Used to compare
 // against what the FPGA is telling us it
 // thinks the settings ought to be.
@@ -577,41 +582,55 @@ void uartTask() {
          }
          // Takes effect immediately
          else if (strcmp(cmd_buf, "nx") == 0) {
-             if ((last_regs[DISPLAY_FLAGS_ADDR] & 4) != 1) {
-                last_regs[DISPLAY_FLAGS_ADDR] |= 4;
+             if ((last_regs[DISPLAY_FLAGS_ADDR] & DISPLAY_NATIVE_X_BIT) != DISPLAY_NATIVE_X_BIT) {
+                last_regs[DISPLAY_FLAGS_ADDR] |= DISPLAY_NATIVE_X_BIT;
                 SaveAndSend(DISPLAY_FLAGS_ADDR, last_regs[DISPLAY_FLAGS_ADDR]);
              }
          }
          else if (strcmp(cmd_buf, "dx") == 0) {
-             if ((last_regs[DISPLAY_FLAGS_ADDR] & 4) != 0) {
-                last_regs[DISPLAY_FLAGS_ADDR] &= ~4;
+             if ((last_regs[DISPLAY_FLAGS_ADDR] & DISPLAY_NATIVE_X_BIT) != 0) {
+                last_regs[DISPLAY_FLAGS_ADDR] &= ~DISPLAY_NATIVE_X_BIT;
                 SaveAndSend(DISPLAY_FLAGS_ADDR, last_regs[DISPLAY_FLAGS_ADDR]);
              }
          }
          else if (strcmp(cmd_buf, "15") == 0) {
-             if ((last_regs[DISPLAY_FLAGS_ADDR] & 2) != 1) {
-                last_regs[DISPLAY_FLAGS_ADDR] |= 2;
+             if ((last_regs[DISPLAY_FLAGS_ADDR] & DISPLAY_NATIVE_Y_BIT) != DISPLAY_NATIVE_Y_BIT) {
+                last_regs[DISPLAY_FLAGS_ADDR] |= DISPLAY_NATIVE_Y_BIT;
                 SaveAndSend(DISPLAY_FLAGS_ADDR, last_regs[DISPLAY_FLAGS_ADDR]);
              }
          }
          // Takes effect immediately
          else if (strcmp(cmd_buf, "31") == 0) {
-             if ((last_regs[DISPLAY_FLAGS_ADDR] & 2) != 0) {
-                last_regs[DISPLAY_FLAGS_ADDR] &= ~2;
+             if ((last_regs[DISPLAY_FLAGS_ADDR] & DISPLAY_NATIVE_Y_BIT) != 0) {
+                last_regs[DISPLAY_FLAGS_ADDR] &= ~DISPLAY_NATIVE_Y_BIT;
                 SaveAndSend(DISPLAY_FLAGS_ADDR, last_regs[DISPLAY_FLAGS_ADDR]);
              }
          }
          // Takes effect immediately
          else if (strcmp(cmd_buf, "r0") == 0) {
-             if ((last_regs[DISPLAY_FLAGS_ADDR] & 1) != 0) {
-                last_regs[DISPLAY_FLAGS_ADDR] &= ~1;
+             if ((last_regs[DISPLAY_FLAGS_ADDR] & DISPLAY_SHOW_RASTER_LINES_BIT) != 0) {
+                last_regs[DISPLAY_FLAGS_ADDR] &= ~DISPLAY_SHOW_RASTER_LINES_BIT;
                 SaveAndSend(DISPLAY_FLAGS_ADDR, last_regs[DISPLAY_FLAGS_ADDR]);
              }
          }
          // Takes effect immediately
          else if (strcmp(cmd_buf, "r1") == 0) {
-             if ((last_regs[DISPLAY_FLAGS_ADDR] & 1) != 1) {
-                last_regs[DISPLAY_FLAGS_ADDR] |= 1;
+             if ((last_regs[DISPLAY_FLAGS_ADDR] & DISPLAY_SHOW_RASTER_LINES_BIT) != DISPLAY_SHOW_RASTER_LINES_BIT) {
+                last_regs[DISPLAY_FLAGS_ADDR] |= DISPLAY_SHOW_RASTER_LINES_BIT;
+                SaveAndSend(DISPLAY_FLAGS_ADDR, last_regs[DISPLAY_FLAGS_ADDR]);
+             }
+         }
+         // Takes effect immediately
+         else if (strcmp(cmd_buf, "s0") == 0) {
+             if ((last_regs[DISPLAY_FLAGS_ADDR] & DISPLAY_ENABLE_CSYNC_BIT) != 0) {
+                last_regs[DISPLAY_FLAGS_ADDR] &= ~DISPLAY_ENABLE_CSYNC_BIT;
+                SaveAndSend(DISPLAY_FLAGS_ADDR, last_regs[DISPLAY_FLAGS_ADDR]);
+             }
+         }
+         // Takes effect immediately
+         else if (strcmp(cmd_buf, "s1") == 0) {
+             if ((last_regs[DISPLAY_FLAGS_ADDR] & DISPLAY_ENABLE_CSYNC_BIT) != DISPLAY_ENABLE_CSYNC_BIT) {
+                last_regs[DISPLAY_FLAGS_ADDR] |= DISPLAY_ENABLE_CSYNC_BIT;
                 SaveAndSend(DISPLAY_FLAGS_ADDR, last_regs[DISPLAY_FLAGS_ADDR]);
              }
          }
@@ -632,9 +651,11 @@ void uartTask() {
          }
          // Show current settings
          else if (strcmp(cmd_buf, "?") == 0) {
-             Serial.write('R'); Serial.write((last_regs[DISPLAY_FLAGS_ADDR] & 1) ? '1' : '0');
              Serial.write('C'); Serial.write('0'+(last_regs[CHIP_MODEL_ADDR] & 3));
-             Serial.write('K'); Serial.write((last_regs[DISPLAY_FLAGS_ADDR] & 2) ? '1' : '0');
+             Serial.write('R'); Serial.write((last_regs[DISPLAY_FLAGS_ADDR] & DISPLAY_SHOW_RASTER_LINES_BIT) ? '1' : '0');
+             Serial.write('X'); Serial.write((last_regs[DISPLAY_FLAGS_ADDR] & DISPLAY_NATIVE_X_BIT) ? '1' : '0');
+             Serial.write('Y'); Serial.write((last_regs[DISPLAY_FLAGS_ADDR] & DISPLAY_NATIVE_Y_BIT) ? '1' : '0');
+             Serial.write('S'); Serial.write((last_regs[DISPLAY_FLAGS_ADDR] & DISPLAY_ENABLE_CSYNC_BIT) ? '1' : '0');
 
              for (int r = 0; r < 256; r++) {
                 if (r % 16 == 0)
