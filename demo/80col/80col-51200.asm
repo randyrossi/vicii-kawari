@@ -1,8 +1,4 @@
-!to "hires80.prg",cbm
-
-; NOTE: This is the old un-accelerated version of the 80 column
-; mode driver. It's been replaced by config/80col version which
-; uses hardware block copy/fill.  Keeping this for reference.
+!to "80col-51200.prg",cbm
 
 ; Bytes to enable VICII-Kawari extensions
 CHAR_V = 86
@@ -35,6 +31,23 @@ VMEM_B_IDX = $d036
 VMEM_B_HI = $d03d
 VMEM_B_LO = $d03c
 VMEM_B_VAL = $d03e
+
+; Aliases for hw copy function
+VMEM_COPY_NUM_LO = $d035
+VMEM_COPY_NUM_HI = $d036
+VMEM_COPY_DST_LO = $d039
+VMEM_COPY_DST_HI = $d03a
+VMEM_COPY_SRC_LO = $d03c
+VMEM_COPY_SRC_HI = $d03d
+VMEM_COPY_FUNC = $d03b
+
+; Aliases for hw fill function
+VMEM_FILL_DST_LO = $d039
+VMEM_FILL_DST_HI = $d03a
+VMEM_FILL_NUM_LO = $d035
+VMEM_FILL_NUM_HI = $d036
+VMEM_FILL_BYTE = $d03c
+VMEM_FILL_FUNC = $d03b
 
 ; Kernel defines we use
 R6510  = $01
@@ -120,40 +133,16 @@ init
 
         jsr save40
 
-        ; We need to first copy char rom from $d000 into
-        ; $9000, then turn off ROM and copy from $9000 into
-        ; Kawari video memory.
+        ; We need to copy char rom from $d000 into kawari
+        ; video memory. Since char rom is visible while $d0xx registers
+        ; we need are not, we need to swap back and forth between
+        ; I/O maping modes.  This is not efficient but we only have to
+        ; do this once at startup and we don't have to use any
+        ; other memory locations for temp space this way.
 
-        ; first $d000 to $9000
         sei         ; disable interrupts
-        ldx #$10    ; we loop 16 times (16x256 = 4Kb)
-        lda #$33    ; make the CPU see the Character Generator ROM...
-        sta $01     ; ...at $D000 by storing %00110011 into location $01
+
         lda #$d0    ; load high byte of $D000
-        sta $fc     ; store it in a free location we use as vector
-        ldy #$00    ; init counter with 0
-        sty $fb     ; store it as low byte in the $FB/$FC vector
-
-        lda #$90    ; we're going to copy it to $9000
-        sta $fe
-        lda #$00
-        sta $fd
-
-loop    lda ($fb),y ; read byte from src $fb/$fc
-        sta ($fd),y ; write byte to dest $fd/$fe
-        iny         ; do this 255 times...
-        bne loop    ; ..for low byte $00 to $FF
-        inc $fc     ; when we passed $FF increase high byte...
-        inc $fe     ; when we passed $FF increase high byte...
-        dex         ; ... and decrease X by one before restart
-        bne loop    ; We repeat this until X becomes Zero
-
-        lda #$37    ; switch in I/O mapped registers again...
-        sta $01     ; ... with %00110111 so CPU can see them
-
-        ; now copy from $9000 into VICII-Kawari memory
-
-        lda #$90    ; load high byte of $9000
         sta $fc     ; store it in a free location we use as vector
         ldy #$00    ; init counter with 0
         sty $fb     ; store it as low byte in the $FB/$FC vector
@@ -166,15 +155,21 @@ loop    lda ($fb),y ; read byte from src $fb/$fc
         lda #1      ; use auto increment
         sta KAWARI_PORT
 
-        ; copy loop
         ldx #$10    ; we loop 16 times (16x256 = 4Kb)
-loop2   lda ($fb),y ; read byte from src $fb/$fc
+loop   
+        lda #$33    ; make the CPU see the Character Generator ROM...
+        sta $01     ; ...at $D000 by storing %00110011 into location $01
+        lda ($fb),y ; read byte from src $fb/$fc
+        sta $fd     ; temp storage
+        lda #$37    ; switch in I/O mapped registers again...
+        sta $01     ; ... with %00110111 so CPU can see them
+        lda $fd     ; get back temp
         sta VMEM_A_VAL   ; write byte to dest video ram
         iny         ; do this 256 times...
-        bne loop2   ; ..for low byte $00 to $FF
+        bne loop    ; ..for low byte $00 to $FF
         inc $fc     ; when we passed $FF increase high byte...
         dex         ; ... and decrease X by one before restart
-        bne loop2   ; We repeat this until X becomes Zero
+        bne loop    ; We repeat this until X becomes Zero
 
         jsr install_routines
 
@@ -1063,7 +1058,7 @@ SCR10
         STA SAL
         LDA LDTB1+1,X
         JSR SCRLIN      ;SCROLL THIS LINE UP1
-        BMI SCR10
+        JMP SCR10       ; was BMI SCR10
         ;
 SCR41
         JSR CLRLN
@@ -1160,7 +1155,7 @@ SCD10
         STA SAL
         LDA LDTB1-1,X
         JSR SCRLIN      ;SCROLL THIS LINE DOWN
-        BMI SCD10
+        JMP SCD10       ; was BMI SCD10
 SCR40
         JSR CLRLN
         LDX #NLINES-2
@@ -1193,38 +1188,35 @@ SCRLIN
         STA SAL+1
         JSR TOFROM      ;COLOR TO & FROM ADDRS
 
-        ; it's more efficient to scroll screen and color
-        ; separately for kawari since we can use two
-        ; mem ptrs
+        ; color mem copy
+        LDY #LLEN
+        JSR PNT_TO_VMEM_A     ; dst
+        JSR SAL_TO_VMEM_B     ; src
+        LDA #0
+        STA VMEM_COPY_NUM_HI  ; num bytes to copy
+        STY VMEM_COPY_NUM_LO
+	LDA #$0f              ; activate copy/fill mode
+	STA KAWARI_PORT
+	LDA #1                ; execute copy function
+        STA VMEM_COPY_FUNC
 
-        LDY #LLEN-1
-        JSR PNT_TO_VMEM_A
-        JSR SAL_TO_VMEM_B
+WAIT
+        LDA VMEM_COPY_NUM_LO  ; wait for copy to complete
+	BNE WAIT
+        
+	; screen mem copy
+        JSR USER_TO_VMEM_A    ; dst
+        JSR EAL_TO_VMEM_B     ; src
+        STY VMEM_COPY_NUM_LO  ; num bytes to copy
+	LDA #1                ; execute copy function
+        STA VMEM_COPY_FUNC
 
-SCD20_PNT
-        ;LDA (SAL),Y
-        STY VMEM_B_IDX
-        LDA VMEM_B_VAL
-        ;STA (PNT),Y
-        STY VMEM_A_IDX
-        STA VMEM_A_VAL
-        DEY
-        BPL SCD20_PNT
+WAIT2
+        LDA VMEM_COPY_NUM_LO  ; wait for copy to complete
+	BNE WAIT2
 
-        LDY #LLEN-1
-        JSR USER_TO_VMEM_A
-        JSR EAL_TO_VMEM_B
-
-SCD20_USER
-        ;LDA (EAL),Y
-        STY VMEM_B_IDX
-        LDA VMEM_B_VAL
-        ;STA (USER),Y
-        STY VMEM_A_IDX
-        STA VMEM_A_VAL
-        DEY
-        BPL SCD20_USER
-
+        LDA #0
+        STA KAWARI_PORT
         RTS
         ;
         ; DO COLOR TO AND FROM ADDRESSES
@@ -1259,20 +1251,33 @@ SETPNT
         ; CLEAR THE LINE POINTED TO BY .X
         ;
 CLRLN
-        LDY #LLEN-1
+        LDY #LLEN
         JSR SETPNT
         JSR SCOLOR
-CLR10
-        STY VMEM_A_IDX
-        JSR USER_TO_VMEM_A
-        LDA $d021
-        STA VMEM_A_VAL
+
+        ; fill color ram
+        LDA #0
+        STA VMEM_FILL_NUM_HI  ; num bytes to fill
+        STY VMEM_FILL_NUM_LO
+        JSR USER_TO_VMEM_A    ; color mem ptr
+	LDA COLOR             ; use char color
+	AND #$0f              ; clear upper 4 bits
+	STA VMEM_FILL_BYTE    ; set fill byte
+	LDA #$0f              ; activate copy/fill mode
+	STA KAWARI_PORT
+	LDA #4                ; execute fill function
+        STA VMEM_FILL_FUNC
+
+        ; fill screen ram
+        STY VMEM_FILL_NUM_LO  ; num bytes to fill
         JSR PNT_TO_VMEM_A
-        LDA #$20        ;STORE A SPACE
-        ;STA (PNT),Y     ;TO DISPLAY
-        STA VMEM_A_VAL
-        DEY
-        BPL CLR10
+        LDA #$20              ; space char
+	STA VMEM_FILL_BYTE    ; set fill byte
+	LDA #4                ; execute fill function
+        STA VMEM_FILL_FUNC
+
+	LDA #$00
+	STA KAWARI_PORT
         RTS
         NOP
         ;
