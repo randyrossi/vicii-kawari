@@ -1005,16 +1005,16 @@ timing_2y_bporch_pal <= 20;
                              // block copy or fill operation
                              if (dbi[0]) begin
                                 // copy low to high
-                                video_ram_copy_src <= { video_ram_hi_1, video_ram_lo_1 };
-                                video_ram_copy_dst <= { video_ram_hi_2, video_ram_lo_2 };
+                                video_ram_copy_dst <= { video_ram_hi_1, video_ram_lo_1 };
+                                video_ram_copy_src <= { video_ram_hi_2, video_ram_lo_2 };
                                 video_ram_copy_num <= { video_ram_idx_2, video_ram_idx_1 };
                                 video_ram_copy_state <= 2'b0;
                                 video_ram_copy_dir <= 1'b0;
                                 video_ram_copy_done <= 1'b0;
                              end else if (dbi[1]) begin
                                 // copy high to low
-                                video_ram_copy_src <= { video_ram_hi_1, video_ram_lo_1 } + { video_ram_idx_2, video_ram_idx_1 } - 1'b1;
-                                video_ram_copy_dst <= { video_ram_hi_2, video_ram_lo_2 } + { video_ram_idx_2, video_ram_idx_1 } - 1'b1;
+                                video_ram_copy_dst <= { video_ram_hi_1, video_ram_lo_1 } + { video_ram_idx_2, video_ram_idx_1 } - 1'b1;
+                                video_ram_copy_src <= { video_ram_hi_2, video_ram_lo_2 } + { video_ram_idx_2, video_ram_idx_1 } - 1'b1;
                                 video_ram_copy_num <= { video_ram_idx_2, video_ram_idx_1 };
                                 video_ram_copy_state <= 2'b0;
                                 video_ram_copy_dir <= 1'b1;

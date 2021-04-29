@@ -172,10 +172,10 @@ Here is an example of moving memory within video RAM using the CPU.
 You can perform high speed block copy operations by setting the vmem
 port 1 and 2 functions to COPYSRC/FILL and COPYDST/FILLVAL respectively.
 
-VIDEO_MEM_1_LO | Src Lo Byte
-VIDEO_MEM_1_HI | Src Hi Byte
-VIDEO_MEM_2_LO | Dest Lo Byte
-VIDEO_MEM_2_HI | Dest Hi Byte
+VIDEO_MEM_1_LO | Dest Lo Byte
+VIDEO_MEM_1_HI | Dest Hi Byte
+VIDEO_MEM_2_LO | Src Lo Byte
+VIDEO_MEM_2_HI | Src Hi Byte
 VIDEO_MEM_1_IDX | Num Bytes Lo
 VIDEO_MEM_2_IDX | Num Bytes Hi
 VIDEO_MEM_1_VAL | Perform Copy, 1=copy start to end, 2=copy end to start
