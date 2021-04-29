@@ -107,7 +107,7 @@ assign hsync_int = ~((h_count >= hs_sta) & (h_count < hs_end));
 assign vsync_int = ~((v_count >= vs_sta) & (v_count < vs_end));
 
 // generate sync signals active low
-assign hsync = enable_csync ? (hsync_int | vsync_int) : hsync_int;
+assign hsync = enable_csync ? (hsync_int & vsync_int) : hsync_int;
 assign vsync = enable_csync ? 1'b0 : vsync_int;
 
 // active: high during active pixel drawing
