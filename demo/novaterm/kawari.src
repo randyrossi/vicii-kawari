@@ -32,19 +32,24 @@ VMEM_B_VAL = $d03e
 ; Aliases for hw copy function
 VMEM_COPY_NUM_LO = $d035
 VMEM_COPY_NUM_HI = $d036
-VMEM_COPY_SRC_HI = $d03a
-VMEM_COPY_SRC_LO = $d039
-VMEM_COPY_DST_HI = $d03d
-VMEM_COPY_DST_LO = $d03c
+VMEM_COPY_DST_LO = $d039
+VMEM_COPY_DST_HI = $d03a
+VMEM_COPY_SRC_LO = $d03c
+VMEM_COPY_SRC_HI = $d03d
 VMEM_COPY_FUNC = $d03b
 
 ; Aliases for hw fill function
-VMEM_FILL_DST_HI = $d03a
 VMEM_FILL_DST_LO = $d039
+VMEM_FILL_DST_HI = $d03a
 VMEM_FILL_NUM_LO = $d035
 VMEM_FILL_NUM_HI = $d036
 VMEM_FILL_BYTE = $d03c
 VMEM_FILL_FUNC = $d03b
+
+; Some constants for copy/fill
+COPY_LOW_TO_HIGH = 1
+COPY_HIGH_TO_LOW = 2
+DO_FILL = 4
 
 *= column
         jmp enter80     ; 0
@@ -611,45 +616,58 @@ chr10   cmp #148    ; insert
         bcs chr3i
 
 	sec
-	lda #78   ; one less so we don't insert onto next line
+	lda #79   ; one less so we don't insert onto next line
 	sbc 211
 	pha
 
-	jsr setlocblk
+	jsr setlocblk ; src from VMEM_B
 
 	inc loc
 	bne +
 	inc loc+1
-+	jsr setlocvdc
++	jsr setlocvdc ; dst to VMEM_A
 
 	; A has num to copy
 	pla
 	pha
-	tax
-ins_1
-	stx VMEM_A_IDX
-	stx VMEM_B_IDX
-	lda VMEM_B_VAL
-	sta VMEM_A_VAL
-	dex
-	bpl ins_1
 
-	jsr setcolblk
+        ; copy A bytes from VMEM_B to VMEM_A
+        sta VMEM_COPY_NUM_LO
+        lda #0
+        sta VMEM_COPY_NUM_HI
+        lda #$0f
+        sta KAWARI_PORT
+        lda #COPY_HIGH_TO_LOW ; must be high to low when doing insert
+        sta VMEM_COPY_FUNC
+
+waitcopyins
+        lda VMEM_COPY_NUM_LO
+        bne waitcopyins
+
+	jsr setcolblk ; src from VMEM_B
 
 	inc coloc
 	bne +
 	inc coloc+1
-+	jsr setcolvdc
++	jsr setcolvdc ; dest to VMEM_A
 
 	pla
-	tax
-ins_2
-	stx VMEM_A_IDX
-	stx VMEM_B_IDX
-	lda VMEM_B_VAL
-	sta VMEM_A_VAL
-	dex
-	bpl ins_2
+
+        ; copy A bytes from VMEM_B to VMEM_A
+        sta VMEM_COPY_NUM_LO
+        lda #0
+        sta VMEM_COPY_NUM_HI
+        ; port already configured for copy
+        lda #COPY_HIGH_TO_LOW ; must copy high to low when doing insert
+        sta VMEM_COPY_FUNC
+
+waitcopyins2
+        lda VMEM_COPY_NUM_LO
+        bne waitcopyins2
+
+        ; clear mem flags
+        lda #0
+        sta KAWARI_PORT
 
 	jsr calcrsr
 chr3i	lda #" "
@@ -707,12 +725,12 @@ chr12   cmp #20     ; delete
 	dec 211
 	jsr calcrsr
 
-	jsr setlocvdc
+	jsr setlocvdc ; dest to VMEM_A
 
 	inc loc
 	bne +
 	inc loc+1
-+	jsr setlocblk
++	jsr setlocblk ; src from VMEM_B
 
 	sec
 	lda #79
@@ -721,36 +739,39 @@ chr12   cmp #20     ; delete
 	pha
 
 	; do the copy from blk to dvdc incrementing
-	tax 
-
-	; auto inc both ptrs
-	lda #5
-	sta KAWARI_PORT
-del_2
-	lda VMEM_B_VAL
-	sta VMEM_A_VAL
-	dex	
-	bpl del_2
+        sta VMEM_COPY_NUM_LO
+        lda #0
+        sta VMEM_COPY_NUM_HI
+        lda #$0f
+        sta KAWARI_PORT
+        lda #COPY_LOW_TO_HIGH ; copy low to high when doing delete
+        sta VMEM_COPY_FUNC
+waitdelcopy
+        lda VMEM_COPY_NUM_LO
+        bne waitdelcopy
 
 	; now same for color mem
 
-	jsr setcolvdc
+	jsr setcolvdc ; dest to VMEM_A
 
 	inc coloc
 	bne +
 	inc coloc+1
-+	jsr setcolblk
++	jsr setcolblk ; src from VMEM_B
 
 	pla
 
-	tax
-del_3
-	lda VMEM_B_VAL
-	sta VMEM_A_VAL
-	dex	
-	bpl del_3
+        sta VMEM_COPY_NUM_LO
+        lda #0
+        sta VMEM_COPY_NUM_HI
+        ; port already configured
+        lda #COPY_LOW_TO_HIGH ; copy low to high when doing delete
+        sta VMEM_COPY_FUNC
+waitdelcopy2
+        lda VMEM_COPY_NUM_LO
+        bne waitdelcopy2
 
-	; back to no inc
+	; clear mem flags
 	lda #0
 	sta KAWARI_PORT
 
@@ -793,6 +814,7 @@ clrtoeol = *
 clrerase ldx 214
 	jmp erase
 
+; TODO: Both of these loops can be replaced with hw block fill.
 ; clear to end of line
 +	cmp #80
 	bcc +
@@ -836,6 +858,7 @@ clend2
 +	clc
 	rts
 
+; TODO: Both of these loops can be replaced with hw block fill.
 clrfrombol = *
 	lda 211       ; esc [1K
         cmp #79
@@ -893,25 +916,45 @@ setupdaddr = *
 +	rts
 ;
 fill80 = *
-	ldy #79
-fill80_1
-	sty VMEM_A_IDX
-	sta VMEM_A_VAL
-	dey
-	bpl fill80_1
-	; this should leave IDX = 0
+        ; use block fill func
+        sta VMEM_FILL_BYTE
+        ldy #0
+        sty VMEM_FILL_NUM_HI
+        ldy #80
+        sty VMEM_FILL_NUM_LO
+        ldy #$0f
+        sty KAWARI_PORT
+        ldy #DO_FILL
+        sty VMEM_FILL_FUNC
+waitfill80
+        lda VMEM_FILL_NUM_LO
+        bne waitfill80
+
+        ; clear port flags
+        ldy #$00
+        sty KAWARI_PORT
 	rts
 
 	; copy from ptr B to ptr A
 copy80 = *
-	ldx #79
-copy80_1
-	stx VMEM_B_IDX
-	stx VMEM_A_IDX
-	lda VMEM_B_VAL
-	sta VMEM_A_VAL
-	dex
-	bpl copy80_1
+        ; use block copy func
+        ldx #0
+        stx VMEM_COPY_NUM_HI
+        ldx #80
+        stx VMEM_COPY_NUM_LO
+        lda #$0f
+        sta KAWARI_PORT
+        ; There is never overlap here as far as I can tell so
+        ; low to high is okay (this is used for scroll)
+        lda #COPY_LOW_TO_HIGH
+        sta VMEM_COPY_FUNC
+waitcopy80
+        lda VMEM_COPY_NUM_LO
+        bne waitcopy80
+
+        ; clear port flags
+        ldy #$00
+        sty KAWARI_PORT
 	rts
 
 ; Copy line .A to line .X
