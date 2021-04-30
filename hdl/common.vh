@@ -286,6 +286,8 @@
 `define IS_NATIVE_Y_BIT              1     // a.k.a 15khz
 `define IS_NATIVE_X_BIT              2
 `define ENABLE_CSYNC_BIT             3
+`define VPOLARITY_BIT                4
+`define HPOLARITY_BIT                5
 
 `define EXT_REG_VARIANT_NAME1        8'h90
 `define EXT_REG_VARIANT_NAME2        8'h91

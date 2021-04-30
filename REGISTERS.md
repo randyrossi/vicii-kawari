@@ -345,9 +345,13 @@ Bit 1        | Raster lines visible(1) or invisible(0)
 Bit 2        | Use native y resolution rather than double (1=15khz, 0=31khz)
 Bit 3        | Use native x resolution rather than double (1=native, 0=doubled)
 Bit 4        | Enable CSYNC on HSYNC pin (VSYNC held low)
-Bit 5-8      | Reserved
+Bit 5        | VSync Polarity (0=active low, 1=active high)
+Bit 6        | HSync Polarity (0=active low, 1=active high)
+Bit 7        | Reserved
+Bit 8        | Reserved
 
 * Double x resolution is required for 80 column mode or any hires mode.
+* If CSYNC is enabled, polarity is controlled by HSync Polarity
 
 CAP_LO|Function
 ------|--------

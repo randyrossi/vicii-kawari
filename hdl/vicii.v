@@ -814,6 +814,8 @@ wire is_native_y;
 wire is_native_x;
 wire show_raster_lines;
 wire enable_csync;
+wire hpolarity;
+wire vpolarity;
 `endif
 
 `ifdef HAVE_COLOR_CLOCKS
@@ -952,6 +954,8 @@ registers vic_registers(
               .last_is_native_x(is_native_x), // current setting out
               .last_raster_lines(show_raster_lines), // current setting out
               .last_enable_csync(enable_csync), // current setting out
+              .last_hpolarity(hpolarity),
+              .last_vpolarity(vpolarity),
 `endif
 `ifdef HAVE_SERIAL_LINK
 	      .tx_data_4x(tx_data_4x),
@@ -1176,6 +1180,8 @@ hires_vga_sync vic_vga_sync(
              .is_native_y_in(is_native_y),
              .is_native_x_in(is_native_x),
              .enable_csync(enable_csync),
+             .hpolarity(hpolarity),
+             .vpolarity(vpolarity),
 `ifdef CONFIGURABLE_TIMING
             .timing_change_in(timing_change),
             .timing_1x_fporch_ntsc(timing_1x_fporch_ntsc),

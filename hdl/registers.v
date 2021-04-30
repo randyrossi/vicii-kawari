@@ -85,6 +85,8 @@ module registers(
            output reg last_is_native_y, // for dvi/vga only
            output reg last_is_native_x, // for dvi/vga only
            output reg last_enable_csync, // for dvi/vga only
+           output reg last_hpolarity, // for vga only
+           output reg last_vpolarity, // for vga only
 `endif
 `ifdef HAVE_SERIAL_LINK
 	   // When we poke our custom regs that change config,
@@ -455,6 +457,8 @@ timing_2y_bporch_pal <= 20;
 	last_is_native_y <= 1'b0;
 	last_is_native_x <= 1'b0;
 	last_enable_csync <= 1'b0;
+    last_hpolarity <= 1'b0;
+    last_vpolarity <= 1'b1;
 `endif
     video_ram_flag_port_1_auto <= 2'b0;
 	video_ram_flag_port_2_auto <= 2'b0;
@@ -1499,7 +1503,9 @@ task read_ram(
 		               dbo <= {6'b0, last_chip};
                  `EXT_REG_DISPLAY_FLAGS:
 `ifdef NEED_RGB
-		               dbo <= {4'b0,
+		               dbo <= {2'b0,
+                       last_hpolarity,
+                       last_vpolarity,
 				       last_enable_csync,
 				       last_is_native_x,
 				       last_is_native_y,
@@ -1677,11 +1683,13 @@ task write_ram(
                  `EXT_REG_DISPLAY_FLAGS:
                   begin
 `ifdef NEED_RGB
-                          last_raster_lines <= data[`SHOW_RASTER_LINES_BIT];
+              last_raster_lines <= data[`SHOW_RASTER_LINES_BIT];
 			  if (!from_cpu) begin // protect from CPU
 			     last_is_native_y <= data[`IS_NATIVE_Y_BIT]; // 15khz
 			     last_is_native_x <= data[`IS_NATIVE_X_BIT];
 			     last_enable_csync <= data[`ENABLE_CSYNC_BIT];
+                 last_hpolarity <= data[`HPOLARITY_BIT];
+                 last_vpolarity <= data[`VPOLARITY_BIT];
 			  end
     `ifdef HAVE_SERIAL_LINK
 			  if (do_tx) begin

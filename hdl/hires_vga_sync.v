@@ -39,6 +39,8 @@ module hires_vga_sync(
            input wire clk_dot4x,
            input is_native_y_in,
            input is_native_x_in,
+           input hpolarity,
+           input vpolarity,
            input enable_csync,
 `ifdef CONFIGURABLE_TIMING
             input timing_change_in,
@@ -102,12 +104,20 @@ reg [1:0] ff;
 
 wire hsync_int;
 wire vsync_int;
+wire csync_int;
 
-assign hsync_int = ~((h_count >= hs_sta) & (h_count < hs_end));
-assign vsync_int = ~((v_count >= vs_sta) & (v_count < vs_end));
+// Active high
+assign hsync_ah = ((h_count >= hs_sta) & (h_count < hs_end));
+assign vsync_ah = ((v_count >= vs_sta) & (v_count < vs_end));
+assign csync_ah = hsync_ah | vsync_ah;
 
-// generate sync signals active low
-assign hsync = enable_csync ? (hsync_int & vsync_int) : hsync_int;
+// Turn to active low if poliarity flag says so
+assign hsync_int = hpolarity ? hsync_ah : ~hsync_ah;
+assign vsync_int = vpolarity ? vsync_ah : ~vsync_ah;
+assign csync_int = hpolarity ? csync_ah : ~csync_ah;
+
+// Assign hsync/vsync or combine to csync if needed
+assign hsync = enable_csync ? csync_int : hsync_int;
 assign vsync = enable_csync ? 1'b0 : vsync_int;
 
 // active: high during active pixel drawing
