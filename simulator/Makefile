@@ -46,10 +46,11 @@ VERILOG_SOURCES = ../hdl/simulator/top.v ../hdl/vicii.v ../hdl/common.vh \
 VTOP_DEPS = vicii_ipc.o libvicii_ipc.so $(VERILOG_SOURCES) sim_main.cpp vicii_ipc.c vicii_ipc.h 
 
 # Use -DHIRES_TEXT -DHIRES_BITMAP1 -DHIRES_BITMAP2 -DHIRES_BITMAP3 for other modes
-obj_dir/Vtop: $(VTOP_DEPS)
+obj_dir/Vtop: $(VTOP_DEPS) gen_config
+	@(./gen_config 0 > ../hdl/config.vh)
 	$(VERILATOR) --top-module top --trace -cc  --exe \
-		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
-	               -CFLAGS -g -LDFLAGS '../vicii_ipc.o -lSDL2'
+	    -I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
+	    -CFLAGS "-g `./gen_config 0 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
 
 default: obj_dir/Vtop
