@@ -112,6 +112,8 @@ int chip_model = 0;
 #define DISPLAY_NATIVE_Y_BIT 2
 #define DISPLAY_NATIVE_X_BIT 4
 #define DISPLAY_ENABLE_CSYNC_BIT 8
+#define DISPLAY_VPOLARITY_BIT 16
+#define DISPLAY_HPOLARITY_BIT 32
 
 // Last known saved settings. Used to compare
 // against what the FPGA is telling us it
@@ -634,6 +636,32 @@ void uartTask() {
                 SaveAndSend(DISPLAY_FLAGS_ADDR, last_regs[DISPLAY_FLAGS_ADDR]);
              }
          }
+         else if (strcmp(cmd_buf, "v0") == 0) {
+             if ((last_regs[DISPLAY_FLAGS_ADDR] & DISPLAY_VPOLARITY_BIT) != 0) {
+                last_regs[DISPLAY_FLAGS_ADDR] &= ~DISPLAY_VPOLARITY_BIT;
+                SaveAndSend(DISPLAY_FLAGS_ADDR, last_regs[DISPLAY_FLAGS_ADDR]);
+             }
+         }
+         // Takes effect immediately
+         else if (strcmp(cmd_buf, "v1") == 0) {
+             if ((last_regs[DISPLAY_FLAGS_ADDR] & DISPLAY_VPOLARITY_BIT) != DISPLAY_VPOLARITY_BIT) {
+                last_regs[DISPLAY_FLAGS_ADDR] |= DISPLAY_VPOLARITY_BIT;
+                SaveAndSend(DISPLAY_FLAGS_ADDR, last_regs[DISPLAY_FLAGS_ADDR]);
+             }
+         }
+         else if (strcmp(cmd_buf, "h0") == 0) {
+             if ((last_regs[DISPLAY_FLAGS_ADDR] & DISPLAY_HPOLARITY_BIT) != 0) {
+                last_regs[DISPLAY_FLAGS_ADDR] &= ~DISPLAY_HPOLARITY_BIT;
+                SaveAndSend(DISPLAY_FLAGS_ADDR, last_regs[DISPLAY_FLAGS_ADDR]);
+             }
+         }
+         // Takes effect immediately
+         else if (strcmp(cmd_buf, "h1") == 0) {
+             if ((last_regs[DISPLAY_FLAGS_ADDR] & DISPLAY_HPOLARITY_BIT) != DISPLAY_HPOLARITY_BIT) {
+                last_regs[DISPLAY_FLAGS_ADDR] |= DISPLAY_HPOLARITY_BIT;
+                SaveAndSend(DISPLAY_FLAGS_ADDR, last_regs[DISPLAY_FLAGS_ADDR]);
+             }
+         }
          // Chip changes next boot
          else if (strcmp(cmd_buf, "0") == 0 ||
                   strcmp(cmd_buf, "1") == 0 ||
@@ -656,6 +684,8 @@ void uartTask() {
              Serial.write('X'); Serial.write((last_regs[DISPLAY_FLAGS_ADDR] & DISPLAY_NATIVE_X_BIT) ? '1' : '0');
              Serial.write('Y'); Serial.write((last_regs[DISPLAY_FLAGS_ADDR] & DISPLAY_NATIVE_Y_BIT) ? '1' : '0');
              Serial.write('S'); Serial.write((last_regs[DISPLAY_FLAGS_ADDR] & DISPLAY_ENABLE_CSYNC_BIT) ? '1' : '0');
+             Serial.write('H'); Serial.write((last_regs[DISPLAY_FLAGS_ADDR] & DISPLAY_HPOLARITY_BIT) ? '1' : '0');
+             Serial.write('V'); Serial.write((last_regs[DISPLAY_FLAGS_ADDR] & DISPLAY_VPOLARITY_BIT) ? '1' : '0');
 
              for (int r = 0; r < 256; r++) {
                 if (r % 16 == 0)
