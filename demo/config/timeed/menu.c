@@ -150,7 +150,7 @@ void main_menu(void)
 	    refresh_all = 1;
        }
        else if (key == 'a')  {
-	    POKE(VIDEO_MEM_1_LO, 0xe8);
+	    POKE(VIDEO_MEM_1_LO, TIMING_CHANGE);
 	    POKE(VIDEO_MEM_1_VAL, timing_changed);
 	    timing_changed = 1-timing_changed;
        }

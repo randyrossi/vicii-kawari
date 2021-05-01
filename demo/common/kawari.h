@@ -20,6 +20,9 @@
 #define DISPLAY_FLAGS 0x84
 #define CURSOR_LO 0x85
 #define CURSOR_HI 0x86
+#define CAP_LO 0x87
+#define CAP_HI 0x88
+#define TIMING_CHANGE 0x89
 
 #define VARIANT 0x90
 
