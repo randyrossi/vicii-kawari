@@ -766,9 +766,13 @@ int main(int argc, char** argv, char** env) {
     // we are hard wired to do 2x and 1y. Any other
     // configuration will require some work to the
     // way rendering is done.
+#ifdef NEED_RGB
     top->top__DOT__vic_inst__DOT__is_native_y = 1;
     top->top__DOT__vic_inst__DOT__is_native_x = 0;
+#endif
+#ifdef HAVE_COLOR_CLOCKS
     top->use_scan_doubler = 1;
+#endif
 
     if (shadowVic) {
        ipc = ipc_init(IPC_RECEIVER);
