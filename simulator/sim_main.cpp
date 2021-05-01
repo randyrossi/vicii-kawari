@@ -762,6 +762,13 @@ int main(int argc, char** argv, char** env) {
     top->V_VM = 1; // 0001
     top->V_CB = 2; //  010
     top->V_YSCROLL = 3; //  011
+    // Set the simulator to use the scan doubler but
+    // we are hard wired to do 2x and 1y. Any other
+    // configuration will require some work to the
+    // way rendering is done.
+    top->top__DOT__vic_inst__DOT__is_native_y = 1;
+    top->top__DOT__vic_inst__DOT__is_native_x = 0;
+    top->use_scan_doubler = 1;
 
     if (shadowVic) {
        ipc = ipc_init(IPC_RECEIVER);
