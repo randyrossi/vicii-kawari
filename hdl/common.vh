@@ -223,6 +223,7 @@
 `define EXT_REG_CURSOR_HI            8'h86
 `define EXT_REG_CAP_LO               8'h87
 `define EXT_REG_CAP_HI               8'h88
+`define EXT_REG_TIMING_CHANGE        8'h89
 
 `ifdef CONFIGURABLE_LUMAS
 `define EXT_REG_LUMA0                8'ha0

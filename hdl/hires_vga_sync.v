@@ -44,38 +44,31 @@ module hires_vga_sync(
            input enable_csync,
 `ifdef CONFIGURABLE_TIMING
             input timing_change_in,
-            input [7:0] timing_1x_fporch_ntsc,
-            input [7:0] timing_1x_bporch_ntsc,
-            input [7:0] timing_1x_sync_ntsc,
-            input [7:0] timing_1y_fporch_ntsc,
-            input [7:0] timing_1y_bporch_ntsc,
-            input [7:0] timing_1y_sync_ntsc,
-            input [7:0] timing_2x_fporch_ntsc,
-            input [7:0] timing_2x_bporch_ntsc,
-            input [7:0] timing_2x_sync_ntsc,
-            input [7:0] timing_2y_fporch_ntsc,
-            input [7:0] timing_2y_bporch_ntsc,
-            input [7:0] timing_2y_sync_ntsc,
-            input [7:0] timing_1x_fporch_pal,
-            input [7:0] timing_1x_bporch_pal,
-            input [7:0] timing_1x_sync_pal,
-            input [7:0] timing_1y_fporch_pal,
-            input [7:0] timing_1y_bporch_pal,
-            input [7:0] timing_1y_sync_pal,
-            input [7:0] timing_2x_fporch_pal,
-            input [7:0] timing_2x_bporch_pal,
-            input [7:0] timing_2x_sync_pal,
-            input [7:0] timing_2y_fporch_pal,
-            input [7:0] timing_2y_bporch_pal,
-            input [7:0] timing_2y_sync_pal,
+            input [7:0] timing_h_blank_ntsc,
+            input [7:0] timing_h_fporch_ntsc,
+            input [7:0] timing_h_sync_ntsc,
+            input [7:0] timing_h_bporch_ntsc,
+            input [7:0] timing_v_blank_ntsc,
+            input [7:0] timing_v_fporch_ntsc,
+            input [7:0] timing_v_sync_ntsc,
+            input [7:0] timing_v_bporch_ntsc,
+            input [7:0] timing_h_blank_pal,
+            input [7:0] timing_h_fporch_pal,
+            input [7:0] timing_h_sync_pal,
+            input [7:0] timing_h_bporch_pal,
+            input [7:0] timing_v_blank_pal,
+            input [7:0] timing_v_fporch_pal,
+            input [7:0] timing_v_sync_pal,
+            input [7:0] timing_v_bporch_pal,
 `endif
            input wire rst,
            input [1:0] chip,
-           input [9:0] raster_x,
+           input [9:0] raster_x, // native res counters
+           input [8:0] raster_y, // native res counters
+           input [9:0] xpos,
 `ifdef HIRES_MODES
            input [10:0] hires_raster_x,
 `endif
-           input [8:0] raster_y,
            input [3:0] pixel_color3,
            output wire hsync,             // horizontal sync
            output wire vsync,             // vertical sync
@@ -84,16 +77,17 @@ module hires_vga_sync(
            output reg half_bright
        );
 
-reg [10:0] max_width;
-reg [9:0] max_height;
-reg [10:0] hs_sta;
-reg [10:0] hs_end;
-reg [10:0] ha_sta;
-reg [9:0] vs_sta;
-reg [9:0] vs_end;
-reg [9:0] va_end; // used for pal only
-reg [9:0] va_sta; // used for ntsc only
+reg [10:0] max_width; // compared to hcount which can be 2x
+reg [9:0] max_height; // compared to vcount which can be 2y
 
+reg [10:0] hs_sta; // compared against hcount which can be 2x
+reg [10:0] hs_end; // compared against hcount which can be 2x
+reg [10:0] ha_sta; // compared against hcount which can be 2x
+reg [10:0] ha_end; // compared against hcount which can be 2x
+reg [9:0] vs_sta; // compared against vcount which can be 2y
+reg [9:0] vs_end; // compared against vcount which can be 2y
+reg [9:0] va_sta; // compared against vcount which can be 2y
+reg [9:0] va_end; // compared against vcount which can be 2y
 
 reg timing_change;
 reg is_native_x;
@@ -101,6 +95,10 @@ reg is_native_y;
 reg [10:0] h_count;  // output x position
 reg [9:0] v_count;  // output y position
 reg [1:0] ff;
+
+wire hsync_ah;
+wire vsync_ah;
+wire csync_ah;
 
 wire hsync_int;
 wire vsync_int;
@@ -121,7 +119,23 @@ assign hsync = enable_csync ? csync_int : hsync_int;
 assign vsync = enable_csync ? 1'b0 : vsync_int;
 
 // active: high during active pixel drawing
-assign active = chip[0] ? ~((h_count < ha_sta) | (v_count > va_end)) : ~((h_count < ha_sta) | (v_count < va_sta));
+// Find the union within the range vae<->vas and hae<->has and negate it.
+//
+//            ae as
+//             |  |  
+// xxxxxxxxxxxxx  xxx 
+// xxxxxxxxxxxxx  xxx
+// xxxxxxxxxxxxx  xxx
+// xxxxxxxxxxxxx  xxx
+// xxxxxxxxxxxxx  xxx
+// xxxxxxxxxxxxx  xxx
+// xxxxxxxxxxxxx  xxx-ae
+//
+// xxxxxxxxxxxxx  xxx-as
+// xxxxxxxxxxxxx  xxx
+
+assign active = ~((h_count >= ha_end & h_count < ha_sta) |
+	          (v_count >= va_end & v_count < va_sta));
 
 // These conditions determine whether we advance our h/v counts
 // based whether we are doubling X/Y resolutions or not.  See
@@ -137,14 +151,15 @@ begin
     if (rst)
     begin
         h_count <= 0;
-		  ff <= 2'b01;
+        v_count <= 0;
+        ff <= 2'b01;
 `ifdef CONFIGURABLE_TIMING
         set_params_configurable();
 `else
         set_params();
 `endif
     end else begin
-	     // Resolution | advance on counter | pixel clock       | case
+	    // Resolution | advance on counter | pixel clock       | case
         // -------------------------------------------------------------------------
         // 2xX & 2xY  | 0,1,2,3            | 4x DIV 1          | !native_y && !native_x
         // 2xX & 1xY  | 1,3                | 4x DIV 2          | native_y && !native_x
@@ -178,7 +193,7 @@ begin
                is_native_x = is_native_x_in;
                is_native_y = is_native_y_in;
 `ifdef CONFIGURABLE_TIMING
-					timing_change <= timing_change_in;
+               timing_change <= timing_change_in;
                set_params_configurable();
 `else
                set_params();
@@ -228,199 +243,157 @@ begin
     end
 end
 
+`ifndef CONFIGURABLE_TIMING
 task set_params();
     begin
         case (chip)
             `CHIP6569R1, `CHIP6569R5: begin
-                if (is_native_x) begin
-                    hs_sta <= 10;   // front portch 10
-                    hs_end <= 70;   // sync pulse 60
-                    ha_sta <= 100;  // back porch 30
-						  // WIDTH 504
-                end else begin
-                    hs_sta <= 20;  // front porch 20
-                    hs_end <= 140;  // sync pulse 120
-                    ha_sta <= 200; //  back porch 60
-						  // WIDTH 1008
-                end
-                if (is_native_y) begin
-                   // v front porch 5
-                   // v sync pulse 2
-                   // v back porch 10
-                   va_end <= 295;  // HEIGHT - v back porch - v sync pulse - v front porch
-                   vs_sta <= 300;  // HEIGHT - v back porch - v sync pulse
-                   vs_end <= 302;  // HEIGHT - v back porch
-                   // HEIGHT = 312
-                end else begin
-                   // v front porch 10
-                   // v sync pulse 3
-                   // v back porch 20
-                   va_end <= 591;  // HEIGHT - v back porch - v sync pulse - v front porch
-                   vs_sta <= 601;  // HEIGHT - v back porch - v sync pulse
-                   vs_end <= 604;  // HEIGHT - v back porch
-                   // HEIGHT = 624
-                end
+                // WIDTH 504  HEIGHT 312
+                ha_end=11'd0;  // start   0
+                hs_sta=11'd10;  // fporch  10
+                hs_end=11'd70;  // sync  60
+                ha_sta=11'd90;  // bporch  20
+                va_end=10'd285;  // start  29 (+256)
+                vs_sta=10'd290;  // fporch   5
+                vs_end=10'd292;  // sync   2
+                va_sta=10'd312;  // bporch  20
                 max_height <= is_native_y ? 10'd311 : 10'd623;
                 max_width <= is_native_x ? 11'd503 : 11'd1007;
             end
             `CHIP6567R8: begin
-                if (is_native_x) begin
-                    hs_sta <= 10;  // front porch 10
-                    hs_end <= 70;  // h sync pulse 60
-                    ha_sta <= 80;  // h back porch 10
-                    // WIDTH 520
-                end else begin
-                    hs_sta <= 20;  // front porch 20
-                    hs_end <= 140; // sync pulse 120
-                    ha_sta <= 160; // back porch 20
-                    // WIDTH 1040
-                end
-                if (is_native_y) begin
-                   // v front porch 35
-                   // v sync pulse 2
-                   // v back porch 2
-                   vs_sta <= 35;
-                   vs_end <= 37;
-                   va_sta <= 39;
-                   // HEIGHT = 263
-                end else begin
-                   // v front porch 70
-                   // v sync pulse 2
-                   // v back porch 4
-                   vs_sta <= 70;
-                   vs_end <= 72;
-                   va_sta <= 76;
-                   // HEIGHT = 526
-                end
+                // WIDTH 520  HEIGHT 263
+                ha_end=11'd0;  // start   0
+                hs_sta=11'd10;  // fporch  10
+                hs_end=11'd70;  // sync  60
+                ha_sta=11'd80;  // bporch  10
+                va_end=10'd11;  // start  11
+                vs_sta=10'd19;  // fporch   8
+                vs_end=10'd22;  // sync   3
+                va_sta=10'd24;  // bporch   2
                 max_height <= is_native_y ? 10'd262 : 10'd525;
                 max_width <= is_native_x ? 11'd519 : 11'd1039;
-                v_count <= is_native_y ? (10'd262) : (10'd525);
             end
             `CHIP6567R56A: begin
-                if (is_native_x) begin
-                    hs_sta <= 10;  // front porch 10
-                    hs_end <= 70;  // h sync pulse 60
-                    ha_sta <= 80;  // h back porch 10
-                    // WIDTH 512
-                end else begin
-                    hs_sta <= 20;  // front porch 20
-                    hs_end <= 140; // sync pulse 120
-                    ha_sta <= 160; // back porch 20
-                    // WIDTH 1024
-                end
-                if (is_native_y) begin
-                   // v front porch 35
-                   // v sync pulse 2
-                   // v back porch 2
-                   vs_sta <= 35;
-                   vs_end <= 37;
-                   va_sta <= 39;
-                   // HEIGHT = 262
-                end else begin
-                   // v front porch 70
-                   // v sync pulse 2
-                   // v back porch 4
-                   vs_sta <= 70;
-                   vs_end <= 72;
-                   va_sta <= 76;
-                   // HEIGHT = 524
-                end
+                // WIDTH 512  HEIGHT 262
+                ha_end=11'd0;  // start   0
+                hs_sta=11'd10;  // fporch  10
+                hs_end=11'd70;  // sync  60
+                ha_sta=11'd80;  // bporch  10
+                va_end=10'd11;  // start  11
+                vs_sta=10'd19;  // fporch   8
+                vs_end=10'd22;  // sync   3
+                va_sta=10'd24;  // bporch   2 
                 max_height <= is_native_y ? 10'd261 : 10'd523;
                 max_width <= is_native_x ? 11'd511 : 11'd1023;
-                v_count <= is_native_y ? (10'd261) : (10'd523);
             end
         endcase
+        // Adjust for 2x or 2y timing
+        if (!is_native_x) begin
+          ha_end = { ha_end[9:0], 1'b0 };
+          hs_sta = { hs_sta[9:0], 1'b0 };
+          hs_end = { hs_end[9:0], 1'b0 };
+          ha_sta = { ha_sta[9:0], 1'b0 };
+        end
+        if (!is_native_y) begin
+          va_end = { va_end[8:0], 1'b0 };
+          vs_sta = { vs_sta[8:0], 1'b0 };
+          vs_end = { vs_end[8:0], 1'b0 };
+          va_sta = { va_sta[8:0], 1'b0 };
+        end
     end
 endtask
-
-`ifdef CONFIGURABLE_TIMING
+`else
 task set_params_configurable();
     begin
         case (chip)
-            /* verilator lint_off WIDTH */
             `CHIP6569R1, `CHIP6569R5: begin
-                if (is_native_x) begin
-                    hs_sta <= timing_1x_fporch_pal;
-                    hs_end <= timing_1x_fporch_pal + timing_1x_sync_pal;
-                    ha_sta <= timing_1x_fporch_pal +  timing_1x_sync_pal + timing_1x_bporch_pal;
-						  // WIDTH 504
-                end else begin
-                    hs_sta <= timing_2x_fporch_pal;
-                    hs_end <= timing_2x_fporch_pal + timing_2x_sync_pal;
-                    ha_sta <= timing_2x_fporch_pal +  timing_2x_sync_pal + timing_2x_bporch_pal;
-						  // WIDTH 1008
-                end
-                // NOTE: PAL vertical sync is from 'bottom' edge.
-                if (is_native_y) begin
-                   va_end <= 312 - (timing_1y_fporch_pal +  timing_1y_sync_pal + timing_1y_bporch_pal);
-                   vs_sta <= 312 - (timing_1y_sync_pal + timing_1y_bporch_pal);
-                   vs_end <= 312 - (timing_1y_bporch_pal);
-                   // HEIGHT = 312
-                end else begin
-                   va_end <= 624 - (timing_2y_fporch_pal +  timing_2y_sync_pal + timing_2y_bporch_pal);
-                   vs_sta <= 624 - (timing_2y_sync_pal + timing_2y_bporch_pal);
-                   vs_end <= 624 - (timing_2y_bporch_pal);
-                   // HEIGHT = 624
-                end
+                ha_end = {3'b000, timing_h_blank_pal};
+                hs_sta = ha_end + {3'b000, timing_h_fporch_pal};
+                hs_end = hs_sta + {3'b000, timing_h_sync_pal};
+                ha_sta = hs_end + {3'b000, timing_h_bporch_pal};
+                // WIDTH 504
+                va_end = {2'b01, timing_v_blank_pal}; // starts at 256
+                vs_sta = va_end + {2'b00, timing_v_fporch_pal};
+                vs_end = vs_sta + {2'b00, timing_v_sync_pal};
+                va_sta = vs_end + {2'b00, timing_v_bporch_pal};
+                // HEIGHT 312
                 max_height <= is_native_y ? 10'd311 : 10'd623;
                 max_width <= is_native_x ? 11'd503 : 11'd1007;
+// Use this to generate code for static settings above
+/*
+$display("ha_end=11'd%d;  // start %d", ha_end, timing_h_blank_pal);
+$display("hs_sta=11'd%d;  // fporch %d", hs_sta, timing_h_fporch_pal);
+$display("hs_end=11'd%d;  // sync %d", hs_end, timing_h_sync_pal);
+$display("ha_sta=11'd%d;  // bporch %d", ha_sta, timing_h_bporch_pal);
+$display("va_end=10'd%d;  // start %d", va_end, timing_v_blank_pal);
+$display("vs_sta=10'd%d;  // fporch %d", vs_sta, timing_v_fporch_pal);
+$display("vs_end=10'd%d;  // sync %d", vs_end, timing_v_sync_pal);
+$display("va_sta=10'd%d;  // bporch %d ", va_sta, timing_v_bporch_pal);
+*/
             end
             `CHIP6567R8: begin
-                if (is_native_x) begin
-                    hs_sta <= timing_1x_fporch_ntsc;
-                    hs_end <= timing_1x_fporch_ntsc + timing_1x_sync_ntsc;
-                    ha_sta <= timing_1x_fporch_ntsc + timing_1x_sync_ntsc + timing_1x_bporch_ntsc;
-                    // WIDTH 520
-                end else begin
-                    hs_sta <= timing_2x_fporch_ntsc;
-                    hs_end <= timing_2x_fporch_ntsc + timing_2x_sync_ntsc;
-                    ha_sta <= timing_2x_fporch_ntsc + timing_2x_sync_ntsc + timing_2x_bporch_ntsc;
-                    // WIDTH 1040
-                end
-                // NOTE: NTSC vertical sync is from 'top' edge.
-                if (is_native_y) begin
-                   vs_sta <= timing_1y_fporch_ntsc;
-                   vs_end <= timing_1y_fporch_ntsc + timing_1y_sync_ntsc;
-                   va_sta <= timing_1y_fporch_ntsc + timing_1y_sync_ntsc + timing_1y_bporch_ntsc;
-                   // HEIGHT = 263
-                end else begin
-                   vs_sta <= timing_2y_fporch_ntsc;
-                   vs_end <= timing_2y_fporch_ntsc + timing_2y_sync_ntsc;
-                   va_sta <= timing_2y_fporch_ntsc + timing_2y_sync_ntsc + timing_2y_bporch_ntsc;
-                   // HEIGHT = 526
-                end
+                ha_end = {3'b000, timing_h_blank_ntsc};
+                hs_sta = ha_end + {3'b000, timing_h_fporch_ntsc};
+                hs_end = hs_sta + {3'b000, timing_h_sync_ntsc};
+                ha_sta = hs_end + {3'b000, timing_h_bporch_ntsc};
+                va_end = {2'b00, timing_v_blank_ntsc};
+                vs_sta = va_end + {2'b00, timing_v_fporch_ntsc};
+                vs_end = vs_sta + {2'b00, timing_v_sync_ntsc};
+                va_sta = vs_end + {2'b00, timing_v_bporch_ntsc};
+                // HEIGHT 263
                 max_height <= is_native_y ? 10'd262 : 10'd525;
                 max_width <= is_native_x ? 11'd519 : 11'd1039;
+// Use this to generate code for static settings above
+/*
+$display("ha_end=11'd%d;  // start %d", ha_end, timing_h_blank_ntsc);
+$display("hs_sta=11'd%d;  // fporch %d", hs_sta, timing_h_fporch_ntsc);
+$display("hs_end=11'd%d;  // sync %d", hs_end, timing_h_sync_ntsc);
+$display("ha_sta=11'd%d;  // bporch %d", ha_sta, timing_h_bporch_ntsc);
+$display("va_end=10'd%d;  // start %d", va_end, timing_v_blank_ntsc);
+$display("vs_sta=10'd%d;  // fporch %d", vs_sta, timing_v_fporch_ntsc);
+$display("vs_end=10'd%d;  // sync %d", vs_end, timing_v_sync_ntsc);
+$display("va_sta=10'd%d;  // bporch %d ", va_sta, timing_v_bporch_ntsc);
+*/
             end
             `CHIP6567R56A: begin
-                if (is_native_x) begin
-                    hs_sta <= timing_1x_fporch_ntsc;
-                    hs_end <= timing_1x_fporch_ntsc + timing_1x_sync_ntsc;
-                    ha_sta <= timing_1x_fporch_ntsc + timing_1x_sync_ntsc + timing_1x_bporch_ntsc;
-                    // WIDTH 512
-                end else begin
-                    hs_sta <= timing_2x_fporch_ntsc;
-                    hs_end <= timing_2x_fporch_ntsc + timing_2x_sync_ntsc;
-                    ha_sta <= timing_2x_fporch_ntsc + timing_2x_sync_ntsc + timing_2x_bporch_ntsc;
-                    // WIDTH 1024
-                end
-                // NOTE: NTSC vertical sync is from 'top' edge.
-                if (is_native_y) begin
-                   vs_sta <= timing_1y_fporch_ntsc;
-                   vs_end <= timing_1y_fporch_ntsc + timing_1y_sync_ntsc;
-                   va_sta <= timing_1y_fporch_ntsc + timing_1y_sync_ntsc + timing_1y_bporch_ntsc;
-                   // HEIGHT = 262
-                end else begin
-                   vs_sta <= timing_2y_fporch_ntsc;
-                   vs_end <= timing_2y_fporch_ntsc + timing_2y_sync_ntsc;
-                   va_sta <= timing_2y_fporch_ntsc + timing_2y_sync_ntsc + timing_2y_bporch_ntsc;
-                   // HEIGHT = 524
-                end
+                ha_end = {3'b000, timing_h_blank_ntsc};
+                hs_sta = ha_end + {3'b000, timing_h_fporch_ntsc};
+                hs_end = hs_sta + {3'b000, timing_h_sync_ntsc};
+                ha_sta = hs_end + {3'b000, timing_h_bporch_ntsc};
+                // WIDTH 512
+                va_end = {2'b00, timing_v_blank_ntsc};
+                vs_sta = va_end + {2'b00, timing_v_fporch_ntsc};
+                vs_end = vs_sta + {2'b00, timing_v_sync_ntsc};
+                va_sta = vs_end + {2'b00, timing_v_bporch_ntsc};
+                // HEIGHT 262
                 max_height <= is_native_y ? 10'd261 : 10'd523;
                 max_width <= is_native_x ? 11'd511 : 11'd1023;
+// Use this to generate code for static settings above
+/*
+$display("ha_end=11'd%d;  // start %d", ha_end, timing_h_blank_ntsc);
+$display("hs_sta=11'd%d;  // fporch %d", hs_sta, timing_h_fporch_ntsc);
+$display("hs_end=11'd%d;  // sync %d", hs_end, timing_h_sync_ntsc);
+$display("ha_sta=11'd%d;  // bporch %d", ha_sta, timing_h_bporch_ntsc);
+$display("va_end=10'd%d;  // start %d", va_end, timing_v_blank_ntsc);
+$display("vs_sta=10'd%d;  // fporch %d", vs_sta, timing_v_fporch_ntsc);
+$display("vs_end=10'd%d;  // sync %d", vs_end, timing_v_sync_ntsc);
+$display("va_sta=10'd%d;  // bporch %d ", va_sta, timing_v_bporch_ntsc);
+*/
             end
-            /* verilator lint_on WIDTH */
         endcase
+        // Adjust for 2x or 2y timing
+        if (!is_native_x) begin
+          ha_end = { ha_end[9:0], 1'b0 };
+          hs_sta = { hs_sta[9:0], 1'b0 };
+          hs_end = { hs_end[9:0], 1'b0 };
+          ha_sta = { ha_sta[9:0], 1'b0 };
+        end
+        if (!is_native_y) begin
+          va_end = { va_end[8:0], 1'b0 };
+          vs_sta = { vs_sta[8:0], 1'b0 };
+          vs_end = { vs_end[8:0], 1'b0 };
+          va_sta = { va_sta[8:0], 1'b0 };
+        end
     end
 endtask
 `endif

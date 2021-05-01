@@ -113,30 +113,22 @@ module registers(
 
 `ifdef CONFIGURABLE_TIMING
         output reg timing_change,
-        output reg [7:0] timing_1x_fporch_ntsc,
-        output reg [7:0] timing_1x_bporch_ntsc,
-        output reg [7:0] timing_1x_sync_ntsc,
-        output reg [7:0] timing_1y_fporch_ntsc,
-        output reg [7:0] timing_1y_bporch_ntsc,
-        output reg [7:0] timing_1y_sync_ntsc,
-        output reg [7:0] timing_2x_fporch_ntsc,
-        output reg [7:0] timing_2x_bporch_ntsc,
-        output reg [7:0] timing_2x_sync_ntsc,
-        output reg [7:0] timing_2y_fporch_ntsc,
-        output reg [7:0] timing_2y_bporch_ntsc,
-        output reg [7:0] timing_2y_sync_ntsc,
-        output reg [7:0] timing_1x_fporch_pal,
-        output reg [7:0] timing_1x_bporch_pal,
-        output reg [7:0] timing_1x_sync_pal,
-        output reg [7:0] timing_1y_fporch_pal,
-        output reg [7:0] timing_1y_bporch_pal,
-        output reg [7:0] timing_1y_sync_pal,
-        output reg [7:0] timing_2x_fporch_pal,
-        output reg [7:0] timing_2x_bporch_pal,
-        output reg [7:0] timing_2x_sync_pal,
-        output reg [7:0] timing_2y_fporch_pal,
-        output reg [7:0] timing_2y_bporch_pal,
-        output reg [7:0] timing_2y_sync_pal,
+        output reg [7:0] timing_h_blank_ntsc,
+        output reg [7:0] timing_h_fporch_ntsc,
+        output reg [7:0] timing_h_sync_ntsc,
+        output reg [7:0] timing_h_bporch_ntsc,
+        output reg [7:0] timing_v_blank_ntsc,
+        output reg [7:0] timing_v_fporch_ntsc,
+        output reg [7:0] timing_v_sync_ntsc,
+        output reg [7:0] timing_v_bporch_ntsc,
+        output reg [7:0] timing_h_blank_pal,
+        output reg [7:0] timing_h_fporch_pal,
+        output reg [7:0] timing_h_sync_pal,
+        output reg [7:0] timing_h_bporch_pal,
+        output reg [7:0] timing_v_blank_pal,
+        output reg [7:0] timing_v_fporch_pal,
+        output reg [7:0] timing_v_sync_pal,
+        output reg [7:0] timing_v_bporch_pal,
 `endif
         input [14:0] video_ram_addr_b,
         output [7:0] video_ram_data_out_b,
@@ -422,30 +414,22 @@ always @(posedge clk_dot4x)
 `endif
 `ifdef CONFIGURABLE_TIMING
         timing_change <= 1'b0;
-        timing_1x_fporch_ntsc <= 10;
-        timing_1x_sync_ntsc <= 60;
-        timing_1x_bporch_ntsc <= 10;
-        timing_1y_fporch_ntsc <= 35;
-        timing_1y_sync_ntsc <= 2;
-        timing_1y_bporch_ntsc <= 2;
-        timing_2x_fporch_ntsc <= 20;
-        timing_2x_sync_ntsc <= 120;
-        timing_2x_bporch_ntsc <= 20;
-        timing_2y_fporch_ntsc <= 70;
-        timing_2y_sync_ntsc <= 2;
-        timing_2y_bporch_ntsc <= 4;
-        timing_1x_fporch_pal <= 30;
-        timing_1x_sync_pal <= 60;
-        timing_1x_bporch_pal <= 10;
-        timing_1y_fporch_pal <= 5;
-        timing_1y_sync_pal <= 2;
-        timing_1y_bporch_pal <= 20;
-        timing_2x_fporch_pal <= 60;
-        timing_2x_sync_pal <= 120;
-        timing_2x_bporch_pal <= 20;
-        timing_2y_fporch_pal <= 10;
-        timing_2y_sync_pal <= 3;
-timing_2y_bporch_pal <= 20;
+        timing_h_blank_ntsc <= 0;
+        timing_h_fporch_ntsc <= 10;
+        timing_h_sync_ntsc <= 60;
+        timing_h_bporch_ntsc <= 10;
+        timing_v_blank_ntsc <= 11;
+        timing_v_fporch_ntsc <= 8;
+        timing_v_sync_ntsc <= 3;
+        timing_v_bporch_ntsc <= 2;
+        timing_h_blank_pal <= 0;
+        timing_h_fporch_pal <= 10;
+        timing_h_sync_pal <= 60;
+        timing_h_bporch_pal <= 20;
+        timing_v_blank_pal <= 29; // represents 285 (285-256)
+        timing_v_fporch_pal <= 5;
+        timing_v_sync_pal <= 2;
+        timing_v_bporch_pal <= 20;
 `endif
    // --- BEGIN EXTENSIONS ----
    extra_regs_activation_ctr <= 2'b0;
@@ -1558,6 +1542,42 @@ task read_ram(
                      end
                  `EXT_REG_CAP_HI:
                      dbo <= 8'b0; // reserved for now
+`ifdef CONFIGURABLE_TIMING
+                `EXT_REG_TIMING_CHANGE:
+                dbo <= {7'b0, timing_change};
+                8'hd0:
+                dbo <= timing_h_blank_ntsc;
+                8'hd1:
+                dbo <= timing_h_fporch_ntsc;
+                8'hd2:
+                dbo <= timing_h_sync_ntsc;
+                8'hd3:
+                dbo <= timing_h_bporch_ntsc;
+                8'hd4:
+                dbo <= timing_v_blank_ntsc;
+                8'hd5:
+                dbo <= timing_v_fporch_ntsc;
+                8'hd6:
+                dbo <= timing_v_sync_ntsc;
+                8'hd7:
+                dbo <= timing_v_bporch_ntsc;
+                8'hd8:
+                dbo <= timing_h_blank_pal;
+                8'hd9:
+                dbo <= timing_h_fporch_pal;
+                8'hda:
+                dbo <= timing_h_sync_pal;
+                8'hdb:
+                dbo <= timing_h_bporch_pal;
+                8'hdc:
+                dbo <= timing_v_blank_pal;
+                8'hdd:
+                dbo <= timing_v_fporch_pal;
+                8'hde:
+                dbo <= timing_v_sync_pal;
+                8'hdf:
+                dbo <= timing_v_bporch_pal;
+`endif
                  default: ;
               endcase
           end
@@ -1718,56 +1738,41 @@ task write_ram(
                     burst_amplitude <= data[3:0];
 `endif
 `ifdef CONFIGURABLE_TIMING
-                8'hd0:
-                timing_1x_fporch_ntsc <= data;
-                8'hd1:
-                timing_1x_sync_ntsc <= data;
-                8'hd2:
-                timing_1x_bporch_ntsc <= data;
-                8'hd3:
-                timing_1y_fporch_ntsc <= data;
-                8'hd4:
-                timing_1y_sync_ntsc <= data;
-                8'hd5:
-                timing_1y_bporch_ntsc <= data;
-                8'hd6:
-                timing_2x_fporch_ntsc <= data;
-                8'hd7:
-                timing_2x_sync_ntsc <= data;
-                8'hd8:
-                timing_2x_bporch_ntsc <= data;
-                8'hd9:
-                timing_2y_fporch_ntsc <= data;
-                8'hda:
-                timing_2y_sync_ntsc <= data;
-                8'hdb:
-                timing_2y_bporch_ntsc <= data;
-                8'hdc:
-                timing_1x_fporch_pal <= data;
-                8'hdd:
-                timing_1x_sync_pal <= data;
-                8'hde:
-                timing_1x_bporch_pal <= data;
-                8'hdf:
-                timing_1y_fporch_pal <= data;
-                8'he0:
-                timing_1y_sync_pal <= data;
-                8'he1:
-                timing_1y_bporch_pal <= data;
-                8'he2:
-                timing_2x_fporch_pal <= data;
-                8'he3:
-                timing_2x_sync_pal <= data;
-                8'he4:
-                timing_2x_bporch_pal <= data;
-                8'he5:
-                timing_2y_fporch_pal <= data;
-                8'he6:
-                timing_2y_sync_pal <= data;
-                8'he7:
-                timing_2y_bporch_pal <= data;
-                8'he8:
+                `EXT_REG_TIMING_CHANGE:
                 timing_change <= data[0];
+
+                8'hd0:
+                timing_h_blank_ntsc <= data;
+                8'hd1:
+                timing_h_fporch_ntsc <= data;
+                8'hd2:
+                timing_h_sync_ntsc <= data;
+                8'hd3:
+                timing_h_bporch_ntsc <= data;
+                8'hd4:
+                timing_v_blank_ntsc <= data;
+                8'hd5:
+                timing_v_fporch_ntsc <= data;
+                8'hd6:
+                timing_v_sync_ntsc <= data;
+                8'hd7:
+                timing_v_bporch_ntsc <= data;
+                8'hd8:
+                timing_h_blank_pal <= data;
+                8'hd9:
+                timing_h_fporch_pal <= data;
+                8'hda:
+                timing_h_sync_pal <= data;
+                8'hdb:
+                timing_h_bporch_pal <= data;
+                8'hdc:
+                timing_v_blank_pal <= data;
+                8'hdd:
+                timing_v_fporch_pal <= data;
+                8'hde:
+                timing_v_sync_pal <= data;
+                8'hdf:
+                timing_v_bporch_pal <= data;
 `endif
                  default: ;
               endcase

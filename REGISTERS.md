@@ -308,36 +308,41 @@ Location | Name | Description | Capability Requirement
 0x0086 | CURSOR_HI | Hires Cursor hi byte | HIRES_MODES
 0x0087 | CAP_LO    | Capability Bits lo byte (Read Only)| NONE
 0x0088 | CAP_HI    | Capability Bits hi byte (Read Only)| NONE
-0x0089 - 0x008f | Reserved | Reserved | NONE
+0x0089 | TIMING_CHANGE | HDMI/VGA Timing change signal - Bit 1  | CONFIG_RGB
+0x008a - 0x008f | Reserved | Reserved | NONE
 0x0090 - 0x009f | VARIANT_NAME | Variant Name | NONE
 0x00a0 - 0x00af | LUMA_LEVELS | Composite luma levels for colors (0-63) | CONFIG_COMPOSITE
 0x00b0 - 0x00bf | PHASE_VALUES | Composite phase values for colors (0-255 representing 0-359 degrees) | CONFIG_COMPOSITE
 0x00c0 - 0x00cf | AMPL_VALUES | Composite amplitude values for colors (1-15, 0 = no modulation) | CONFIG_COMPOSITE
-0x00d0 | FPORCH | HDMI/VGA 1X NTSC H front porch (15 khz mode) | CONFIG_RGB
-0x00d1 | SPULSE | HDMI/VGA 1X NTSC H sync pulse (15 khz mode) | CONFIG_RGB
-0x00d2 | BPORCH | HDMI/VGA 1X NTSC H back porch (15 khz mode) | CONFIG_RGB
-0x00d3 | FPORCH | HDMI/VGA 1Y NTSC V front porch (15 khz mode) | CONFIG_RGB
-0x00d4 | SPULSE | HDMI/VGA 1Y NTSC V sync pulse (15 khz mode) | CONFIG_RGB
-0x00d5 | BPORCH | HDMI/VGA 1Y NTSC V back porch (15 khz mode) | CONFIG_RGB
-0x00d6 | FPORCH | HDMI/VGA 2X NTSC H front porch (31 khz mode) | CONFIG_RGB
-0x00d7 | SPULSE | HDMI/VGA 2X NTSC H sync pulse (31 khz mode) | CONFIG_RGB
-0x00d8 | BPORCH | HDMI/VGA 2X NTSC H back porch (31 khz mode) | CONFIG_RGB
-0x00d9 | FPORCH | HDMI/VGA 2Y NTSC V front porch (31 khz mode) | CONFIG_RGB
-0x00da | SPULSE | HDMI/VGA 2Y NTSC V sync pulse (31 khz mode) | CONFIG_RGB
-0x00db | BPORCH | HDMI/VGA 2Y NTSC V back porch (31 khz mode) | CONFIG_RGB
-0x00dc | FPORCH | HDMI/VGA 1X PAL H front porch (15 khz mode) | CONFIG_RGB
-0x00dd | SPULSE | HDMI/VGA 1X PAL H sync pulse (15 khz mode) | CONFIG_RGB
-0x00de | BPORCH | HDMI/VGA 1X PAL H back porch (15 khz mode) | CONFIG_RGB
-0x00df | FPORCH | HDMI/VGA 1Y PAL V front porch (15 khz mode) | CONFIG_RGB
-0x00e0 | SPULSE | HDMI/VGA 1Y PAL V sync pulse (15 khz mode) | CONFIG_RGB
-0x00e1 | BPORCH | HDMI/VGA 1Y PAL V back porch (15 khz mode) | CONFIG_RGB
-0x00e2 | FPORCH | HDMI/VGA 2X PAL H front porch (31 khz mode) | CONFIG_RGB
-0x00e3 | SPULSE | HDMI/VGA 2X PAL H sync pulse (31 khz mode) | CONFIG_RGB
-0x00e4 | BPORCH | HDMI/VGA 2X PAL H back porch (31 khz mode) | CONFIG_RGB
-0x00e5 | FPORCH | HDMI/VGA 2Y PAL V front porch (31 khz mode) | CONFIG_RGB
-0x00e6 | SPULSE | HDMI/VGA 2Y PAL V sync pulse (31 khz mode) | CONFIG_RGB
-0x00e7 | BPORCH | HDMI/VGA 2Y PAL V back porch (31 khz mode) | CONFIG_RGB
-0x00d8 | CHANGE | Timing change signal - Bit 1  | CONFIG_RGB
+0x00d0 | VGA_HBLANK | HDMI/VGA NTSC H blank start | CONFIG_RGB
+0x00d1 | VGA_FPORCH | HDMI/VGA NTSC H front porch | CONFIG_RGB
+0x00d2 | VGA_SPULSE | HDMI/VGA NTSC H sync pulse | CONFIG_RGB
+0x00d3 | VGA_BPORCH | HDMI/VGA NTSC H back porch | CONFIG_RGB
+0x00d4 | VGA_VBLANK | HDMI/VGA NTSC V blank start | CONFIG_RGB
+0x00d5 | VGA_FPORCH | HDMI/VGA NTSC V front porch | CONFIG_RGB
+0x00d6 | VGA_SPULSE | HDMI/VGA NTSC V sync pulse | CONFIG_RGB
+0x00d7 | VGA_BPORCH | HDMI/VGA NTSC V back porch | CONFIG_RGB
+0x00d8 | VGA_HBLANK | HDMI/VGA PAL H blank start | CONFIG_RGB
+0x00d9 | VGA_FPORCH | HDMI/VGA PAL H front porch | CONFIG_RGB
+0x00da | VGA_SPULSE | HDMI/VGA PAL H sync pulse | CONFIG_RGB
+0x00db | VGA_BPORCH | HDMI/VGA PAL H back porch | CONFIG_RGB
+0x00dc | VGA_VBLANK | HDMI/VGA PAL V blank start | CONFIG_RGB
+0x00dd | VGA_FPORCH | HDMI/VGA PAL V front porch | CONFIG_RGB
+0x00de | VGA_SPULSE | HDMI/VGA PAL V sync pulse | CONFIG_RGB
+0x00df | VGA_BPORCH | HDMI/VGA PAL V back porch | CONFIG_RGB
+0x00e0 | CMP_HBLANK | Composite NTSC H blank start | CONFIG_COMP
+0x00e1 | CMP_HBLANK | Composite NTSC H blank end | CONFIG_COMP
+0x00e2 | CMP_VBLANK | Composite NTSC V blank start | CONFIG_COMP
+0x00e3 | CMP_VBLANK | Composite NTSC V blank end | CONFIG_COMP
+
+NOTES
+    Blanking start/end values are absolute values compared to the native resolution raster line (vertical) or xpos (horizontal) internal counters.
+    NTSC hblank and vblank start/end ranges from 0-255
+    PAL hblank start/end ranges from 0-255
+    PAL vblank start/end ranges from 256-511 (represented by 0-255)
+    For VGA, Front Porch, Sync Pulse Width and Back Porch are durations and are added cumulatively to blank start. (Hence, Visible End = Blank Start and Visible Start = Blank Start + Front Porch + Sync Pulse Width + Back Porch)
+    Care must be taken so that no value exceeds the resolution.
+    For composite output, color burst and sync pulses begin/end are hard coded to NTSC or PAL video standards and are relative to blank start.
 
 DISPLAY_FLAGS|Function
 -------------|-------
