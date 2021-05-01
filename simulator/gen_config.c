@@ -6,7 +6,6 @@ int for_comp = 0;
 typedef void (*def_func)();
 
 void test_pattern_0() { printf ("`define TEST_PATTERN 1\n"); }
-void with_dvi_0() { printf ("`define WITH_DVI 1\n"); }
 void have_color_clocks_0() { printf ("`define HAVE_COLOR_CLOCKS 1\n"); }
 void have_composite_encoder_0() { printf ("`define HAVE_COMPOSITE_ENCODER 1\n"); }
 void gen_luma_chroma_0() { printf ("`define GEN_LUMA_CHROMA 1\n"); }
@@ -15,11 +14,12 @@ void configurable_timing_0() { printf ("`define CONFIGURABLE_TIMING 1\n"); }
 void average_lumas_0() { printf ("`define AVERAGE_LUMAS 1\n"); }
 void have_serial_link_0() { printf ("`define HAVE_SERIAL_LINK 1\n"); }
 void need_rgb_0() { printf ("`define NEED_RGB 1\n"); }
-void gen_rgb_0() { printf ("`define GEN_RGB 1\n"); }
+void gen_rgb_0() { printf ("`define GEN_RGB 1\n"); need_rgb_0(); }
+void with_dvi_0() { printf ("`define WITH_DVI 1\n"); need_rgb_0(); }
 void hires_modes_0() { printf ("`define HIRES_MODES 1\n"); }
+void hide_sync_0() { printf ("`define HIDE_SYNC 1\n"); }
 
 void test_pattern_1() { printf ("-DTEST_PATTERN=1 "); }
-void with_dvi_1() { printf ("-DWITH_DVI=1 "); }
 void have_color_clocks_1() { printf ("-DHAVE_COLOR_CLOCKS=1 "); }
 void have_composite_encoder_1() { printf ("-DHAVE_COMPOSITE_ENCODER=1 "); }
 void gen_luma_chroma_1() { printf ("-DGEN_LUMA_CHROMA=1 "); }
@@ -28,8 +28,10 @@ void configurable_timing_1() { printf ("-DCONFIGURABLE_TIMING=1 "); }
 void average_lumas_1() { printf ("-DAVERAGE_LUMAS=1 "); }
 void have_serial_link_1() { printf ("-DHAVE_SERIAL_LINK=1 "); }
 void need_rgb_1() { printf ("-DNEED_RGB=1 "); }
-void gen_rgb_1() { printf ("-DGEN_RGB=1 "); }
+void gen_rgb_1() { printf ("-DGEN_RGB=1 "); need_rgb_1(); }
+void with_dvi_1() { printf ("-DWITH_DVI=1 "); need_rgb_1(); }
 void hires_modes_1() { printf ("-DHIRES_MODES=1 "); }
+void hide_sync_1() { printf ("-DHIDE_SYNC=1 "); }
 
 void main(int argc, char* argv[]) {
 
@@ -45,6 +47,7 @@ void main(int argc, char* argv[]) {
 	def_func need_rgb;
 	def_func gen_rgb;
 	def_func hires_modes;
+	def_func hide_sync;
 
     char defines[] = {
     };
@@ -65,6 +68,7 @@ void main(int argc, char* argv[]) {
     need_rgb = need_rgb_0;
     gen_rgb = gen_rgb_0;
     hires_modes = hires_modes_0;
+    hide_sync = hide_sync_0;
 
     if (argc > 2) {
         test_pattern = test_pattern_1;
@@ -79,6 +83,7 @@ void main(int argc, char* argv[]) {
         need_rgb = need_rgb_1;
         gen_rgb = gen_rgb_1;
         hires_modes = hires_modes_1;
+        hide_sync = hide_sync_1;
     }
     else {
        printf ("`define VERSION_MAJOR 4'd0\n");
@@ -95,11 +100,14 @@ void main(int argc, char* argv[]) {
 		    hires_modes();
 		    break;
 	    case 1:
+		    // Use this config for generating test results
+		    // since it hides sync lines.
 		    have_color_clocks();
 		    gen_luma_chroma();
 		    have_serial_link();
 		    with_dvi();
 		    hires_modes();
+		    hide_sync();
 	    case 2:
 		    have_color_clocks();
 		    gen_luma_chroma();

@@ -1291,7 +1291,7 @@ always @(posedge clk_dot4x)
 // register ram according to the pixel_color4 address.
 always @(posedge clk_dot4x)
 begin
-`ifndef SIMULATOR_BOARD
+`ifndef HIDE_SYNC
     if (active) begin
 `endif
 `ifdef CONFIGURABLE_RGB
@@ -1344,7 +1344,7 @@ begin
         `LIGHT_GREY:{red, green, blue} <= {6'h16, 6'h16, 6'h16};
     endcase
 `endif
-`ifndef SIMULATOR_BOARD
+`ifndef HIDE_SYNC
     end else begin
           red <= 6'b0;
           green <= 6'b0;
