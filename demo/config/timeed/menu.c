@@ -11,20 +11,38 @@
 
 struct regs r;
 
-int current_fp[8];
-int current_sync[8];
-int current_bp[8];
+int current_start[4];
+int current_fp[4];
+int current_sync[4];
+int current_bp[4];
 
-int defaults[] = { 10, 60, 10, 35, 2, 2,
-                 20, 120, 20, 70, 2, 4,
-                 30, 60, 10, 5, 2, 20,
-                 60, 120, 20, 10, 3, 20 }; 
+int defaults[] = {
+	// ntsc
+        0,  // start   0
+        10,  // fporch  10
+        60,  // sync  60
+        10,  // bporch  10
+        11,  // start  11
+        8,  // fporch   8
+        3,  // sync   3
+        2,  // bporch   2
+
+	// pal
+        0,  // start   0
+        10,  // fporch  10
+        60,  // sync  60
+        20,  // bporch  20
+        29,  // start  29 (+256)
+        5,  // fporch   5
+        2,  // sync   2
+        20,  // bporch  20
+};
 
 void save_changes(void)
 {
    int reg;
    POKE(VIDEO_MEM_FLAGS, PEEK(VIDEO_MEM_FLAGS) | VMEM_FLAG_PERSIST_BIT);
-   for (reg=0xd0;reg<0xd0+24;reg++) {
+   for (reg=0xd0;reg<0xd0+16;reg++) {
       POKE(VIDEO_MEM_1_LO, reg);
       SAFE_POKE(VIDEO_MEM_1_VAL, PEEK(VIDEO_MEM_1_VAL));
    }
@@ -36,7 +54,7 @@ void main_menu(void)
     int key;
     int side = 0;
     int res_cursor = 0;
-    int fp, sync, bp;
+    int start, fp, sync, bp;
     int v;
     int refresh_all = 1;
     int store_current = 1;
@@ -49,16 +67,12 @@ void main_menu(void)
     POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
 
     POKE(646,1);
-    printf ("                Front  Sync   Back\n");
-    printf ("                Porch  Pulse  Porch\n");
-    printf ("NTSC 1 x Horiz\n");
-    printf ("NTSC 1 x Vert\n");
-    printf ("NTSC 2 x Horiz\n");
-    printf ("NTSC 2 x Vert\n");
-    printf ("PAL  1 x Horiz\n");
-    printf ("PAL  1 x Vert\n");
-    printf ("PAL  2 x Horiz\n");
-    printf ("PAL  2 x Vert\n");
+    printf ("             Start  Front  Sync   Back\n");
+    printf ("                    Porch  Pulse  Porch\n");
+    printf ("NTSC Horiz\n");
+    printf ("NTSC Vert\n");
+    printf ("PAL  Horiz\n");
+    printf ("PAL  Vert\n");
 
     printf ("\n");
     printf ("S to save changes\n");
@@ -74,16 +88,19 @@ void main_menu(void)
     for (;;) {
 
         if (refresh_all) {
-            for (res=0; res < 8; res++) {
-	        POKE(VIDEO_MEM_1_LO, 0xd0 + res*3);
+            for (res=0; res < 4; res++) {
+	        POKE(VIDEO_MEM_1_LO, 0xd0 + res*4);
+	        start = PEEK(VIDEO_MEM_1_VAL);
+	        POKE(VIDEO_MEM_1_LO, 0xd0 + res*4+1);
 	        fp = PEEK(VIDEO_MEM_1_VAL);
-	        POKE(VIDEO_MEM_1_LO, 0xd0 + res*3+1);
+	        POKE(VIDEO_MEM_1_LO, 0xd0 + res*4+2);
 	        sync = PEEK(VIDEO_MEM_1_VAL);
-	        POKE(VIDEO_MEM_1_LO, 0xd0 + res*3+2);
+	        POKE(VIDEO_MEM_1_LO, 0xd0 + res*4+3);
 	        bp = PEEK(VIDEO_MEM_1_VAL);
-                TOXY(16,SL+res);
-	        printf ("%03d    %03d    %03d", fp, sync, bp);
+                TOXY(13,SL+res);
+	        printf ("%03d    %03d    %03d    %03d", start, fp, sync, bp);
 		if (store_current) {
+	           current_start[res] = start;
 	           current_fp[res] = fp;
 	           current_sync[res] = sync;
 	           current_bp[res] = bp;
@@ -97,22 +114,22 @@ void main_menu(void)
        // Hi-lite cursor
        POKE(VIDEO_MEM_1_LO, 0xd0 + res_cursor);
        v = PEEK(VIDEO_MEM_1_VAL);
-       TOXY(16+(res_cursor%3)*7,SL+res_cursor/3);
+       TOXY(13+(res_cursor%4)*7,SL+res_cursor/4);
        printf ("%c%03d%c",18,v,146);
 
        WAITKEY;
        key = r.a;
 
        // un-hi-lite cursor
-       TOXY(16+(res_cursor%3)*7,SL+res_cursor/3);
+       TOXY(13+(res_cursor%4)*7,SL+res_cursor/4);
        printf ("%03d",v);
 
        if (key == CRSR_DOWN) {
-	    res_cursor+=3;
-	    if (res_cursor > 23) res_cursor=23;
+	    res_cursor+=4;
+	    if (res_cursor > 15) res_cursor=15;
        }
        else if (key == CRSR_UP)  {
-	    res_cursor-=3;
+	    res_cursor-=4;
 	    if (res_cursor < 0) res_cursor=0;
        }
        else if (key == CRSR_LEFT)  {
@@ -121,7 +138,7 @@ void main_menu(void)
        }
        else if (key == CRSR_RIGHT)  {
 	    res_cursor+=1;
-	    if (res_cursor > 23) res_cursor = 23;
+	    if (res_cursor > 15) res_cursor = 15;
        }
        else if (key == '+')  {
 	    v=v+1;
@@ -135,11 +152,13 @@ void main_menu(void)
        }
        else if (key == 'r')  {
             for (res=0; res < 8; res++) {
-	        POKE(VIDEO_MEM_1_LO, 0xd0+res*3);
+	        POKE(VIDEO_MEM_1_LO, 0xd0+res*4);
+	        POKE(VIDEO_MEM_1_VAL, current_start[res]);
+	        POKE(VIDEO_MEM_1_LO, 0xd0+res*4+1);
 	        POKE(VIDEO_MEM_1_VAL, current_fp[res]);
-	        POKE(VIDEO_MEM_1_LO, 0xd0+res*3+1);
+	        POKE(VIDEO_MEM_1_LO, 0xd0+res*4+2);
 	        POKE(VIDEO_MEM_1_VAL, current_sync[res]);
-	        POKE(VIDEO_MEM_1_LO, 0xd0+res*3+2);
+	        POKE(VIDEO_MEM_1_LO, 0xd0+res*4+3);
 	        POKE(VIDEO_MEM_1_VAL, current_bp[res]);
             }
 	    refresh_all = 1;
@@ -155,7 +174,7 @@ void main_menu(void)
 	    timing_changed = 1-timing_changed;
        }
        else if (key == 'd')  {
-            for (res=0; res < 24; res++) {
+            for (res=0; res < 16; res++) {
 	        POKE(VIDEO_MEM_1_LO, 0xd0+res);
 	        POKE(VIDEO_MEM_1_VAL, defaults[res]);
 	        refresh_all = 1;
