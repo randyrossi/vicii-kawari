@@ -105,8 +105,14 @@ wire vsync_int;
 wire csync_int;
 
 // Active high
-assign hsync_ah = ((h_count >= hs_sta) & (h_count < hs_end));
-assign vsync_ah = ((v_count >= vs_sta) & (v_count < vs_end));
+// The range checks on vsync must take into account the horizontal start and
+// end, otherwise we cut short the last line's scan too early and start it
+// too soon if hs_sta is > 0.
+assign hsync_ah = ((h_count >= hs_sta) & (h_count <= hs_end));
+assign vsync_ah = (
+   ((v_count == vs_sta & h_count >= hs_sta) | v_count > vs_sta) &
+   (v_count < vs_end | (v_count == vs_end & h_count < hs_end))
+);
 assign csync_ah = hsync_ah | vsync_ah;
 
 // Turn to active low if poliarity flag says so
@@ -133,9 +139,18 @@ assign vsync = enable_csync ? 1'b0 : vsync_int;
 //
 // xxxxxxxxxxxxx  xxx-as
 // xxxxxxxxxxxxx  xxx
+// Same logic as above for h/v sync except for active ranges.  Also need
+// to treat first and last active lines special so we don't start active
+// too soon or end it too early when ha_end > 0
+assign active = ~(
+   (h_count >= ha_end & h_count <= ha_sta) |
+   (
+      ((v_count == va_end & h_count >= ha_end) | v_count > va_end) &
+      ((v_count == va_sta & h_count < ha_sta) | v_count < va_sta)
+   )
+);
 
-assign active = ~((h_count >= ha_end & h_count < ha_sta) |
-	          (v_count >= va_end & v_count < va_sta));
+
 
 // These conditions determine whether we advance our h/v counts
 // based whether we are doubling X/Y resolutions or not.  See
