@@ -939,6 +939,14 @@ int main(int argc, char** argv, char** env) {
           if (showWindow && HASCHANGED(OUT_DOT_RISING) &&
 			  (top->V_CLK_DOT == 2 || top->V_CLK_DOT == 8)) {
 #ifdef GEN_RGB
+            // Show h/v sync in red
+            if (!top->hsync || !top->vsync)
+             SDL_SetRenderDrawColor(ren,
+                0b11111111,
+                0b0,
+                0b0,
+                255);
+            else
              SDL_SetRenderDrawColor(ren,
                 (top->red << 2) | 0b11,
                 (top->green << 2) | 0b11,
@@ -946,6 +954,15 @@ int main(int argc, char** argv, char** env) {
                 255);
 #else 
 #ifdef NEED_RGB
+            // Show h/v sync in red
+            if (top->top__DOT__vic_inst__DOT__vic_vga_sync__DOT__hsync_ah ||
+                top->top__DOT__vic_inst__DOT__vic_vga_sync__DOT__vsync_ah)
+             SDL_SetRenderDrawColor(ren,
+                0b11111111,
+                0b0,
+                0b0,
+                255);
+            else
              SDL_SetRenderDrawColor(ren,
                 (top->top__DOT__red << 2) | 0b11,
                 (top->top__DOT__green << 2) | 0b11,
