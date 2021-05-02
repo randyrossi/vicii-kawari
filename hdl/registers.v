@@ -442,7 +442,7 @@ always @(posedge clk_dot4x)
 	last_is_native_x <= 1'b0;
 	last_enable_csync <= 1'b0;
     last_hpolarity <= 1'b0;
-    last_vpolarity <= 1'b1;
+    last_vpolarity <= 1'b0;
 `endif
     video_ram_flag_port_1_auto <= 2'b0;
 	video_ram_flag_port_2_auto <= 2'b0;
