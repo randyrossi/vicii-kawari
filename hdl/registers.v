@@ -426,7 +426,7 @@ always @(posedge clk_dot4x)
         timing_h_fporch_pal <= 10;
         timing_h_sync_pal <= 60;
         timing_h_bporch_pal <= 20;
-        timing_v_blank_pal <= 29; // represents 285 (285-256)
+        timing_v_blank_pal <= 28; // represents 284 (284-256)
         timing_v_fporch_pal <= 5;
         timing_v_sync_pal <= 2;
         timing_v_bporch_pal <= 20;

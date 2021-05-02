@@ -268,10 +268,10 @@ task set_params();
                 hs_sta=11'd10;  // fporch  10
                 hs_end=11'd70;  // sync  60
                 ha_sta=11'd90;  // bporch  20
-                va_end=10'd285;  // start  29 (+256)
-                vs_sta=10'd290;  // fporch   5
-                vs_end=10'd292;  // sync   2
-                va_sta=10'd312;  // bporch  20
+                va_end=10'd284;  // start  28 (+256)
+                vs_sta=10'd289;  // fporch   5
+                vs_end=10'd291;  // sync   2
+                va_sta=10'd311;  // bporch  20
                 max_height <= is_native_y ? 10'd311 : 10'd623;
                 max_width <= is_native_x ? 11'd503 : 11'd1007;
             end
