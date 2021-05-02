@@ -59,6 +59,27 @@ static unsigned short *signal_src16[NUM_SIGNALS];
 static unsigned int signal_bit[NUM_SIGNALS];
 static unsigned char prev_signal_values[NUM_SIGNALS];
 
+// Used when no RGB is avaiable (i.e. composite only)
+int native_rgb[] = {
+0,0,0,
+63,63,63,
+43,10,10,
+24,54,51,
+44,15,45,
+18,49,18,
+13,14,49,
+57,59,19,
+45,22,7,
+26,14,2,
+58,29,27,
+19,19,19,
+33,33,33,
+41,62,39,
+28,31,57,
+45,45,45,
+};
+
+
 static char cycleToChar(int cycle){
   switch (cycle) {
     case VIC_LP   : return '#';
@@ -762,13 +783,18 @@ int main(int argc, char** argv, char** env) {
     top->V_VM = 1; // 0001
     top->V_CB = 2; //  010
     top->V_YSCROLL = 3; //  011
+#ifdef NEED_RGB
     // Set the simulator to use the scan doubler but
     // we are hard wired to do 2x and 1y. Any other
     // configuration will require some work to the
     // way rendering is done.
-#ifdef NEED_RGB
     top->top__DOT__vic_inst__DOT__is_native_y = 1;
     top->top__DOT__vic_inst__DOT__is_native_x = 0;
+#else
+    // NO RGB? We will fallback to native res and we will use
+    // the color index coming out of the pixel sequencer
+    // (pixel_color3)
+    ;
 #endif
 #ifdef HAVE_COLOR_CLOCKS
     top->use_scan_doubler = 1;
@@ -968,6 +994,38 @@ int main(int argc, char** argv, char** env) {
                 (top->top__DOT__green << 2) | 0b11,
                 (top->top__DOT__blue << 2) | 0b11,
                 255);
+#else
+#ifdef GEN_LUMA_CHROMA
+            // Fallback to native pixel sequencer's pixel3 value
+	    // and lookup colors.
+	    if (top->top__DOT__vic_inst__DOT__native_active) {
+	       int index = top->top__DOT__vic_inst__DOT__pixel_color3;
+               SDL_SetRenderDrawColor(ren,
+                (native_rgb[index*3] << 2) | 0b11,
+                (native_rgb[index*3+1] << 2) | 0b11,
+                (native_rgb[index*3+2] << 2) | 0b11,
+                255);
+	    } else {
+               int hss = top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__hsync_start;
+               int hse = top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__hsync_end;
+               int vss = top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__vblank_start;
+               int vse = top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__vblank_end;
+	       // This is the same condition in comp_sync.v
+	       int vsync = (
+                    ((top->V_RASTER_LINE == vss & top->V_RASTER_X >= hss) |
+		         top->V_RASTER_LINE > vss) &
+                    (top->V_RASTER_LINE < vse |
+		         (top->V_RASTER_LINE == vse & top->V_RASTER_X < hse))
+               );
+
+	       if ((top->V_RASTER_X >= hss && top->V_RASTER_X < hse) || vsync) 
+                  SDL_SetRenderDrawColor(ren, 255,0,0,255);
+	       else
+                  SDL_SetRenderDrawColor(ren, 0,0,0,255);
+	    }
+#else
+#warning "There are no video output options available. Simulator will show nothing"
+#endif
 #endif
 #endif
 	     int hoffset = top->V_CLK_DOT == 2 ? 0 : 1;

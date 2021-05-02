@@ -1132,7 +1132,7 @@ comp_sync vic_comp_sync(
               .clk_dot4x(clk_dot4x),
               .clk_col16x(clk_col16x),
               .chip(chip),
-              .raster_x(xpos),
+              .raster_x(raster_x),
               .raster_y(raster_line),
 `ifdef HAVE_COMPOSITE_ENCODER
               .csync(csync),

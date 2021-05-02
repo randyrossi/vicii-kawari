@@ -38,26 +38,33 @@ module comp_sync(
            output reg native_active
 );
 
+reg [9:0] hvisible_end;
 reg [9:0] hsync_start;
 reg [9:0] hsync_end;
-reg [9:0] hvisible_start;
 reg [9:0] burst_start;
+reg [9:0] hvisible_start;
+reg [8:0] vvisible_end;
 reg [8:0] vblank_start;
 reg [8:0] vblank_end;
-wire hSync;
-//wire vSync;
+reg [8:0] vvisible_start;
+reg hSync;
+reg vSync;
 
 always @(posedge clk_dot4x)
 begin
-    if ((raster_x < hsync_start || raster_x >= hvisible_start) &&
-            (raster_y < vblank_start || raster_y > vblank_end))
-        native_active <= 1'b1;
-    else
-        native_active <= 1'b0;
+   hSync <= raster_x >= hsync_start && raster_x < hsync_end;
+   vSync <= (
+   ((raster_y == vblank_start & raster_x >= hsync_start) | raster_y > vblank_start) &
+   (raster_y < vblank_end | (raster_y == vblank_end & raster_x < hsync_end))
+   );
+   native_active <= ~(
+   (raster_x >= hvisible_end & raster_x < hvisible_start) |
+   (
+      ((raster_y == vvisible_end & raster_x >= hvisible_end) | raster_y > vvisible_end) &
+      ((raster_y == vvisible_start & raster_x <= hvisible_start) | raster_y < vvisible_start)
+   )
+   );
 end
-
-assign hSync = raster_x >= hsync_start && raster_x < hsync_end;
-//assign vSync = raster_y >= vblank_start && raster_y < vblank_end;
 
 // NTSC: Each x is ~122.2 ns (.1222 us)
 // PAL : Each x is ~126.8 ns (.1268 us)
@@ -65,30 +72,39 @@ always @(chip)
 case(chip)
     `CHIP6567R8:
     begin
-        hsync_start = 10'd409;
-        hsync_end = 10'd446;       // +37*.1222 = ~4.52us after hsync_start
-        hvisible_start = 10'd497;  // +88*.1222 = ~10.7us after hsync_start
-        burst_start = 10'd451;     // +5*.1222  = ~.61us after hsync_end
-        vblank_start = 9'd14;
-        vblank_end = 9'd22;
+        hvisible_end = 10'd0;
+        hsync_start = hvisible_end + 10'd8; // +12*.1222 = ~1us
+        hsync_end = hsync_start + 10'd37;    // +37*.1222 = ~4.52us
+        hvisible_start = hsync_start + 10'd88; // +88*.1222 = ~10.7us
+        burst_start = hsync_end + 10'd5;       // +5*.1222  = ~.61us
+        vvisible_end = 9'd13;
+        vblank_start = vvisible_end + 9'd1;
+        vblank_end = vblank_start + 9'd8;
+        vvisible_start = vblank_end + 9'd1;
     end
     `CHIP6567R56A:
     begin
-        hsync_start = 10'd409;
-        hsync_end = 10'd446;       // +37*.1222 = ~4.52us after hsync_start
-        hvisible_start = 10'd497;  // +88*.1222 = ~10.7us after hsync_start
-        burst_start = 10'd451;     // +5*.1222  = ~.61us after hsync_end
-        vblank_start = 9'd14;
-        vblank_end = 9'd22;
+        hvisible_end = 10'd0;
+        hsync_start = hvisible_end + 10'd8; // +8*.1222 = ~1us
+        hsync_end = hsync_start + 10'd37;    // +37*.1222 = ~4.52us
+        hvisible_start = hsync_start + 10'd88; // +88*.1222 = ~10.7us
+        burst_start = hsync_end + 10'd5;       // +5*.1222  = ~.61us
+        vvisible_end = 9'd13;
+        vblank_start = vvisible_end + 9'd1;
+        vblank_end = vblank_start + 9'd8;
+        vvisible_start = vblank_end + 9'd1;
     end
     `CHIP6569R1, `CHIP6569R5:
     begin
-        hsync_start = 10'd408;
-        hsync_end = 10'd444;        // +37*.1269 = ~4.69us after hsync_start
-        hvisible_start = 10'd492;   // +84*.1269 = ~10.65us after hsync_start
-        burst_start = 10'd449;      // +5*.1269  = ~.63us after hsync_end
-        vblank_start = 9'd301;
-        vblank_end = 9'd309;
+        hvisible_end = 10'd0;
+        hsync_start = hvisible_end + 10'd7;  // +7*.1269 = ~1us
+        hsync_end = hsync_start + 10'd37;      // +37*.1269 = ~4.69us
+        hvisible_start = hsync_start + 10'd84; // +84*.1269 = ~10.65us
+        burst_start = hsync_end + 10'd5;      // +5*.1269  = ~.63us
+        vvisible_end = 9'd300;
+        vblank_start = vvisible_end + 9'd1;
+        vblank_end = vblank_start + 9'd8;
+        vvisible_start = vblank_end + 9'd1;
     end
 endcase
 
@@ -222,7 +238,8 @@ reg [9:0] raster_x_16_1;
 reg [9:0] raster_x_16;
 reg native_active_16_1;
 reg native_active_16;
-wire vSync_16;
+reg vSync_16_1;
+reg vSync_16;
 
 // Handle domain crossing for registers we need from dot4x in a co16x block.
 always @(posedge clk_col16x) raster_y_16_1 <= raster_y;
@@ -231,7 +248,8 @@ always @(posedge clk_col16x) raster_x_16_1 <= raster_x;
 always @(posedge clk_col16x) raster_x_16 <= raster_x_16_1;
 always @(posedge clk_col16x) native_active_16_1 <= native_active;
 always @(posedge clk_col16x) native_active_16 <= native_active_16_1;
-assign vSync_16 = raster_y_16 >= vblank_start && raster_y_16 < vblank_end;
+always @(posedge clk_col16x) vSync_16_1 <= vSync;
+always @(posedge clk_col16x) vSync_16 <= vSync_16_1;
 
 reg [7:0] burstCount;
 reg [7:0] sineWaveAddr;
