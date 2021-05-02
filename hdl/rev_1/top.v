@@ -2,20 +2,9 @@
 
 `include "../common.vh"
 
-// Top level module for the MojoV3 dev board.
+// Top level module for the Rev1 board.
 //
-// Only one clock configurations is supported that uses
-// the on-board 50Mhz clock to produce a single dot4x
-// clock.  No color clock is required since we don't
-// support composite out in this module.
-//
-// The 4x dot clock is divided by 32 to generate the CPU phi clock.
-
-// NOTE: WITH_DVI support here is only included to test the
-// dvi encoder is producing an image.  It's not possible to use
-// the development 'hat' with DVI.  If using WITH_DVI, the
-// pins selected by placement will not be compatible with the 'hat'.
-// It's meant to verify we can get an image over DVI only.
+// Color clocks, DVI + RGB out.
 module top(
            input sys_clock,
 `ifdef HAVE_COLOR_CLOCKS
@@ -37,20 +26,23 @@ module top(
 `endif  // HAVE_COLOR_CLOCKS
            input [1:0] chip,    // chip config from MCU
            input standard_sw,
+`ifdef HAVE_SERIAL_LINK
            output tx,           // to mcm
            input rx,            // from mcm
            input rx_busy,       // from mcm (indicates receive buffer is full)
            input cclk,          // from mcm
+`endif
            output cpu_reset,    // reset for 6510 CPU
            input cpu_reset_i,
            output clk_phi,      // output phi clock for CPU
-
-           output clk_dot4x_ext,// pixel clock
+`ifdef GEN_RGB
+           output clk_dot4x_ext,// pixel clock for VGA/DVI
            output hsync,        // hsync signal for VGA/DVI
            output vsync,        // vsync signal for VGA/DVI
            output [5:0] red,    // red out for VGA/DVI or Composite Encoder
            output [5:0] green,  // green out for VGA/DVI or Composite Encoder
            output [5:0] blue,   // blue out for VGA/DVI or Composite Encoder
+`endif
 
            inout tri [5:0] adl, // address (lower 6 bits)
            output tri [5:0] adh,// address (high 6 bits)
@@ -95,6 +87,19 @@ wire clk_dot4x;
 // on.
 wire [1:0] chip2;
 assign chip2 = {chip[1], standard_sw ? chip[0] : ~chip[0]};
+
+`ifndef GEN_RGB
+// When we're not exporting these signals, we still need
+// them defined as wires (for DVI for example).
+`ifdef NEED_RGB
+wire hsync;
+wire vsync;
+wire active;
+wire [5:0] red;
+wire [5:0] green;
+wire [5:0] blue;
+`endif
+`endif
 
 `ifdef HAVE_COLOR_CLOCKS
 // When we have color clocks available, we select which
@@ -217,26 +222,36 @@ wire [11:0] ado;
 wire vic_write_ab;
 wire vic_write_db;
 
+`ifdef HAVE_SERIAL_LINK
 wire[7:0] tx_data_4x;
 wire tx_new_data_4x;
 reg tx_busy_4x;
 wire[7:0] rx_data_4x;
 wire rx_new_data_4x;
+`endif
+
 // Instantiate the vicii with our clocks and pins.
 vicii vic_inst(
           .rst(rst),
           .chip(chip2),
           .cpu_reset_i(cpu_reset_i),
+`ifdef HAVE_SERIAL_LINK
           .tx_data_4x(tx_data_4x),
           .tx_new_data_4x(tx_new_data_4x),
           .tx_busy_4x(tx_busy_4x | rx_busy),
           .rx_data_4x(rx_data_4x),
           .rx_new_data_4x(rx_new_data_4x),
+`endif
           .clk_dot4x(clk_dot4x),
           .clk_phi(clk_phi),
+`ifdef NEED_RGB
           .active(active),
           .hsync(hsync),
           .vsync(vsync),
+          .red(red),
+          .green(green),
+          .blue(blue),
+`endif
 `ifdef HAVE_COLOR_CLOCKS
           // see above, only need to be off for external comp encoder
           .use_scan_doubler(1'b1),
@@ -264,10 +279,7 @@ vicii vic_inst(
           .ls245_data_dir(ls245_data_dir),
           .ls245_addr_dir(ls245_addr_dir),
           .vic_write_db(vic_write_db),
-          .vic_write_ab(vic_write_ab),
-          .red(red),
-          .green(green),
-          .blue(blue)
+          .vic_write_ab(vic_write_ab)
       );
 
 // Write to bus condition, else tri state.
@@ -275,6 +287,7 @@ assign dbl[7:0] = vic_write_db ? dbo : 8'bz; // CPU reading
 assign adl = vic_write_ab ? ado[5:0] : 6'bz; // vic or stollen cycle
 assign adh = vic_write_ab ? ado[11:6] : 6'bz;
 
+`ifdef HAVE_SERIAL_LINK
 // Propagate tx from 4x domain to clk_serial domain
 // When tx_new_data goes high, avr_interface will transmit
 // the config byte to the MCU.  There is a timing exception
@@ -319,5 +332,6 @@ serial_cross vic_serial_cross(
 	 .new_in_data(new_rx_data),
 	 .out_data(rx_data_4x),
 	 .new_out_data(rx_new_data_4x));
+`endif
 
 endmodule : top

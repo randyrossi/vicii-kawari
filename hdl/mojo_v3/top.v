@@ -285,7 +285,7 @@ vicii vic_inst(
           .cas(cas),
           .ras(ras),
           .ls245_data_dir(ls245_data_dir),
-			 .ls245_data_oe(ls245_data_oe),
+          .ls245_data_oe(ls245_data_oe),
           .ls245_addr_dir(ls245_addr_dir),
           //.ls245_addr_oe(ls245_addr_oe),
           .vic_write_db(vic_write_db),
