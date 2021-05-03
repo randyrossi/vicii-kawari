@@ -44,6 +44,7 @@ P111     IRQ      irq     O    SLOW 2 LVCMOS33
 P10     addr_dir ls245_addr_dir O    SLOW 4 LVCMOS33
 P134    data_dir ls245_data_dir O    SLOW 4 LVCMOS33
 P1      RESET    cpu_reset      O    SLOW 4 LVCMOS33
+P67     switch   standard_sw    I    NA NA NA
 
 # RGB Video output
 P74    HEAD   red[0]          O   QUIETIO 2 LVCMOS33

@@ -36,6 +36,7 @@ module top(
 
 `endif  // HAVE_COLOR_CLOCKS
            input [1:0] chip,    // chip config from MCU
+           input standard_sw,
            output tx,           // to mcm
            input rx,            // from mcm
            input rx_busy,       // from mcm (indicates receive buffer is full)
@@ -55,7 +56,7 @@ module top(
            output tri [5:0] adh,// address (high 6 bits)
            inout tri [7:0] dbl, // data bus lines (ram/rom)
            input [3:0] dbh,     // data bus lines (color)
-`
+
            input ce,            // chip enable (LOW=enable, HIGH=disabled)
            input rw,            // read/write (LOW=write, HIGH=read)
            output irq,          // irq
@@ -89,6 +90,12 @@ wire active;
 wire rst;
 wire clk_dot4x;
 
+// The rev1 board can invert the ntsc/pal bit of the incoming
+// chip lines with a physical switch. So we use chip2 from here
+// on.
+wire [1:0] chip2;
+assign chip2 = {chip[1], standard_sw ? chip[0] : ~chip[0]};
+
 `ifdef HAVE_COLOR_CLOCKS
 // When we have color clocks available, we select which
 // one we want to enter the 2x clock gen (below) based
@@ -98,7 +105,7 @@ BUFGMUX colmux(
    .I0(clk_col4x_ntsc),
    .I1(clk_col4x_pal),
 	.O(clk_col4x),
-   .S(chip[0]));	
+   .S(chip2[0]));	
 
 `ifdef HAVE_COMPOSITE_ENCODER
 // Since we have color clocks, we will output a color
@@ -146,7 +153,7 @@ clockgen mojo_clockgen(
 `endif
              .clk_dot4x(clk_dot4x),
              .rst(rst),
-             .chip(chip)
+             .chip(chip2)
 `ifdef WITH_DVI
              ,
              .tx0_pclkx10(tx0_pclkx10),
@@ -218,7 +225,7 @@ wire rx_new_data_4x;
 // Instantiate the vicii with our clocks and pins.
 vicii vic_inst(
           .rst(rst),
-          .chip(chip),
+          .chip(chip2),
           .cpu_reset_i(cpu_reset_i),
           .tx_data_4x(tx_data_4x),
           .tx_new_data_4x(tx_new_data_4x),

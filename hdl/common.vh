@@ -37,7 +37,7 @@
 `ifdef SIMULATOR_BOARD
 `define REV_1_BOARD_OR_SIMULATOR_BOARD 1
 `endif
-`ifdef REV_1__BOARD
+`ifdef REV_1_BOARD
 `define REV_1_BOARD_OR_SIMULATOR_BOARD 1
 `endif
 
