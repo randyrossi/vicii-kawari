@@ -37,6 +37,7 @@ endmodule
 // are always filling one buffer while reading from the other.
 module hires_vga_sync(
            input wire clk_dot4x,
+           input [3:0] dot_rising,
            input is_native_y_in,
            input is_native_x_in,
            input hpolarity,
@@ -236,13 +237,6 @@ linebuf_RAM line_buf_1(clk_dot4x, !active_buf, !active_buf ? (is_native_x ? {1'b
 linebuf_RAM line_buf_0(clk_dot4x, active_buf, active_buf ? {1'b0, raster_x} : h_count, pixel_color3, dout0);
 linebuf_RAM line_buf_1(clk_dot4x, !active_buf, !active_buf ? {1'b0, raster_x} : h_count, pixel_color3, dout1);
 `endif
-
-reg [3:0] dot_rising;
-always @(posedge clk_dot4x)
-    if (rst)
-        dot_rising <= 4'b1000;
-    else
-        dot_rising <= {dot_rising[2:0], dot_rising[3]};
 
 // Whenever we reach the beginning of a raster line, swap buffers.
 always @(posedge clk_dot4x)

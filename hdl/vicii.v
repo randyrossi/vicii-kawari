@@ -1161,6 +1161,7 @@ comp_sync vic_comp_sync(
 hires_vga_sync vic_vga_sync(
              .rst(rst),
              .clk_dot4x(clk_dot4x),
+             .dot_rising(dot_rising),
              .is_native_y_in(is_native_y),
              .is_native_x_in(is_native_x),
              .enable_csync(enable_csync),
