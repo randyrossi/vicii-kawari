@@ -16,13 +16,13 @@ software from unintentionally triggering extra registers.
     POKE 53311,ASC("2")
 
 ### 6510 ASSEMBLY
-    LDA #86
+    LDA #86 ; 'V'
     STA $d03f
-    LDA #73
+    LDA #73 ; 'I'
     STA $d03f
-    LDA #67
+    LDA #67 ; 'C'
     STA $d03f
-    LDA #50
+    LDA #50 ; '2'
     STA $d03f
 
 Once activated, registers 0xd02f - 0xd03f become available and
@@ -65,7 +65,7 @@ BIT 1,2  | PORT 1 FUNCTION <br>0=NONE<br>1=AUTO INC<br>2=AUTO DEC<br>3=COPYSRC/F
 BIT 3,4  | PORT 2 FUNCTION <br>0=NONE<br>1=AUTO INC<br>2=AUTO DEC<br>3=COPYDST/FILLVAL
 BIT 5    | Persist busy status flag (see below)
 BIT 6    | Extra 256 registers overlay at 0x0000 Enable/Disable
-BIT 7    | Persist Flag (see below) Changes to some registers will persist between reboots)
+BIT 7    | Persist Flag (see below)
 BIT 8    | Deactivate Extra Registers
 
 When BIT 7 is 1, changes to some registers (like color palette, composite luma, phase, amplitude, etc) will be persisted to the MCU's EEPROM flashram and restored on reboot. Each register change must be written to the MCU's EEPROM so the MCU may not be able to keep up with many register changes back to back. To avoid lost changes, the 6502 should check BIT 5 and make sure it is 0 before attempting to set the next register. For boards that do not support persistence, BIT 7 has no function and BIT 5 is always 0.  If BIT 7 is not enabled, BIT 5 can be ignored.
@@ -205,6 +205,10 @@ VIDEO_MEM_2_VAL | Unused
     LDA #1
     STA VIDEO_MEM_1_VAL   ; Perform copy (start to end)
 
+waitdone
+    LDA VIDEO_MEM_2_IDX   ; wait for done
+    bne waitdone
+
 * Copy is finished when VIDEO_MEM_1_IDX == 0 && VIDEO_MEM_2_IDX == 0
 * These values do not change while copy is performed so just checking
   one value that started as not 0 for 0 is sufficient to indicate done.
@@ -247,6 +251,10 @@ VIDEO_MEM_2_VAL | Unused
 
     LDA #4
     STA VIDEO_MEM_1_VAL   ; Perform fill
+
+waitdone
+    LDA VIDEO_MEM_2_IDX   ; wait for done
+    bne waitdone
 
 * Fill is finished when VIDEO_MEM_1_IDX == 0 && VIDEO_MEM_2_IDX == 0
 * These values do not change while copy is performed so just checking
@@ -330,10 +338,6 @@ Location | Name | Description | Capability Requirement
 0x00dd | VGA_FPORCH | HDMI/VGA PAL V front porch | CONFIG_RGB
 0x00de | VGA_SPULSE | HDMI/VGA PAL V sync pulse | CONFIG_RGB
 0x00df | VGA_BPORCH | HDMI/VGA PAL V back porch | CONFIG_RGB
-0x00e0 | CMP_HBLANK | Composite NTSC H blank start | CONFIG_COMP
-0x00e1 | CMP_HBLANK | Composite NTSC H blank end | CONFIG_COMP
-0x00e2 | CMP_VBLANK | Composite NTSC V blank start | CONFIG_COMP
-0x00e3 | CMP_VBLANK | Composite NTSC V blank end | CONFIG_COMP
 
 NOTES
     Blanking start/end values are absolute values compared to the native resolution raster line (vertical) or xpos (horizontal) internal counters.
@@ -357,8 +361,9 @@ Bit 8        | Reserved
 
 * Double x resolution is required for 80 column mode or any hires mode.
 * If CSYNC is enabled, polarity is controlled by HSync Polarity
+* Bits 2-6 cannot be changed by the 6510 CPU, only the MCU
 
-CAP_LO|Function
+CAP_LO|Description
 ------|--------
 Bit 1 | Has analog RGB out
 Bit 2 | Has digital RGB out (HDMI/DVI)
@@ -369,9 +374,9 @@ Bit 6 | Has configurable analog/digital RGB timing params
 Bit 7 | Has configuration persistance
 Bit 8 | Reserved
 
-CAP_HI|Function
+CAP_HI|Description
 ------|--------
-Bit 1-9 | Reserved
+Bit 1-8 | Reserved
 
 ### Variant Name
 
@@ -385,12 +390,11 @@ on releasing a bitstream. See [FORKING.md](FORKING.md)
 The extra registers described here should remain functional across all
 VICII-Kawari variants. This way, the official configuration utility will
 be able to at least query the variant name and version on any variant
-(as well as set palette colors, change video standard, or other common
-features between variants). Users will be able to at least identify what
-variant they are running even if they use the official config utility.
-Also, programs can run a simple check routine that will run on all variants
-and can display a user friendly message indicating the wrong variant is
-installed.
+(as well as change video standard or other common features between variants).
+Users will be able to at least identify what variant they are running even if
+they use the official config utility.  Also, programs can run a simple check
+routine that will run on all variants and can display a user friendly message
+indicating the wrong variant is installed.
 
 # Notation
 
