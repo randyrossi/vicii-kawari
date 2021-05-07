@@ -4,3 +4,4 @@ obj_dir/*
 screenshot.bmp
 screenshot.png
 session.vcd
+gen_config
