@@ -654,6 +654,20 @@ int main(int argc, char** argv, char** env) {
     }
     printf ("Log Level: %d\n", logLevel);
 
+#ifdef GEN_RGB
+    printf ("Color: Using RGB/Sync output values\n");
+#else
+#ifdef NEED_RGB
+    printf ("Color: Using internal RGB/Sync values\n");
+#else
+#ifdef GEN_LUMA_CHROMA
+    printf ("Color: Using composite palette/sync\n");
+#else
+    printf ("Color: No color information available\n");
+#endif
+#endif
+#endif
+
     if (userDurationUs == -1) {
        switch (top->V_CHIP) {
           case CHIP6567R8:
