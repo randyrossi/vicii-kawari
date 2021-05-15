@@ -1,0 +1,29 @@
+
+
+REVISION 1.0	25/10/2012
+- first official revision of ST SPI EEPROM verilog models
+
+
+REVISION 1.1	25/03/2014
+- error in the M95XXX_Parameters.v file: SPI 1Mb page size and number of pages
+was (wrong):
+'define PAGE_ADDR_BITS      10               //page address bits
+`define PAGES               1024             //1024 pages
+changed into:
+'define PAGE_ADDR_BITS      9               //page address bits
+`define PAGES               512             //512 pages
+
+
+REVISION 2.0	11/06/2014
+- the SPI mode (CPOL=1, CPHA=1) was not fully supported: at the end of transactions(last bit of last byte) when the clock remains high with no falling edge of clock, the 8th bit was not taken into account.  
+- Pb fixed: the last bit is captured on the rising_edge of S.
+
+REVISION 3.0	27/06/2014
+- new 16 MHz and 20 MHz AC tables added
+- M95M01-R with Vcc=1.8V must is now linked to AC table “5MHz_1” (it was linked to “5MHz_2”) 
+- add a new directive to differentiate
+  o the supply voltage value used in the end application 
+  o the Voltage letter (M95xxx-F, M95xxx-R or M95xxx-W)
+these directive are:
++define+Vcc_range. Example:“+define+W” (or R or F)
++define+Vcc        Example:“+define+voltage=1.7” (or 1.8 or 2.5 or 4.5)
