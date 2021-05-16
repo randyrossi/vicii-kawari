@@ -12,7 +12,17 @@ The PCB interfaces with a real C64 address and data bus through the VIC-II socke
 If you intend to fork VICII-Kawari to add your own features, please read [FORKING.md](FORKING.md)
 
 ## What kind of video output options are there?
-The core can be configured to output DVI (over an HDMI connector), analog RGB (for VGA or analog RGB for a 1084 monitor) and composite video. It can be configured to support all three or any subset of these options. 
+The core supports these video options:
+
+    DVI (i.e. over an HDMI connector)
+    Analog RGB (i.e VGA or RGB for a 1084 monitor)
+        R,G,B - .7Vp-p (75 ohm termination)
+        H,V   - TTL
+    Luma/Chroma (later mixed by the C64's RF modulator for composite video)
+
+    A CSYNC option can be enabled to output composite sync over the H output for the 1084-D.
+
+The core can be configured to support all three or any subset of these options. 
 
 By default, the DVI/RGB signals double the horizontal frequency from ~15.7khz to ~31.4khz (for 2X native height). The horizontal resolution is also doubled to support the 80 column mode.  However, the resolution scaling can be turned off for both width and height if desired.
 
