@@ -305,39 +305,40 @@ register VIDEO_MODE1. Palette 0 is located at 0x0000. Palette 1 is located at
 
 Location | Name | Description | Capability Requirement
 ---------|------|-------------|-----------------------
-0x0000 - 0x003f | PAL0_RGB | 4x16 array of RGBx for palette 0 (4th byte unused) | CONFIG_RGB
-0x0040 - 0x007f | PAL1_RGB | 4x16 array of RGBx for palette 1 (4th byte unused) | CONFIG_RGB
-0x0080 | BLACK_LEVEL | Composite black level (0-63) | CONFIG_COMPOSITE
-0x0081 | BURST_AMPLITUDE | Composite color burst amplitude (1-15, 0 = no color burst) | CONFIG_COMPOSITE
-0x0082 | CHIP_MODEL | Chip Model Select (0=6567R8, 1=6569, 2=6567R56A) | NONE
-0x0083 | VERSION | Version (high nibble major, low nibble minor) - Read Only | NONE
-0x0084 | DISPLAY_FLAGS | See below | NONE
-0x0085 | CURSOR_LO | Hires Cursor lo byte | HIRES_MODES
-0x0086 | CURSOR_HI | Hires Cursor hi byte | HIRES_MODES
-0x0087 | CAP_LO    | Capability Bits lo byte (Read Only)| NONE
-0x0088 | CAP_HI    | Capability Bits hi byte (Read Only)| NONE
-0x0089 | TIMING_CHANGE | HDMI/VGA Timing change signal - Bit 1  | CONFIG_RGB
-0x008a - 0x008f | Reserved | Reserved | NONE
-0x0090 - 0x009f | VARIANT_NAME | Variant Name | NONE
-0x00a0 - 0x00af | LUMA_LEVELS | Composite luma levels for colors (0-63) | CONFIG_COMPOSITE
-0x00b0 - 0x00bf | PHASE_VALUES | Composite phase values for colors (0-255 representing 0-359 degrees) | CONFIG_COMPOSITE
-0x00c0 - 0x00cf | AMPL_VALUES | Composite amplitude values for colors (1-15, 0 = no modulation) | CONFIG_COMPOSITE
-0x00d0 | VGA_HBLANK | HDMI/VGA NTSC H blank start | CONFIG_RGB
-0x00d1 | VGA_FPORCH | HDMI/VGA NTSC H front porch | CONFIG_RGB
-0x00d2 | VGA_SPULSE | HDMI/VGA NTSC H sync pulse | CONFIG_RGB
-0x00d3 | VGA_BPORCH | HDMI/VGA NTSC H back porch | CONFIG_RGB
-0x00d4 | VGA_VBLANK | HDMI/VGA NTSC V blank start | CONFIG_RGB
-0x00d5 | VGA_FPORCH | HDMI/VGA NTSC V front porch | CONFIG_RGB
-0x00d6 | VGA_SPULSE | HDMI/VGA NTSC V sync pulse | CONFIG_RGB
-0x00d7 | VGA_BPORCH | HDMI/VGA NTSC V back porch | CONFIG_RGB
-0x00d8 | VGA_HBLANK | HDMI/VGA PAL H blank start | CONFIG_RGB
-0x00d9 | VGA_FPORCH | HDMI/VGA PAL H front porch | CONFIG_RGB
-0x00da | VGA_SPULSE | HDMI/VGA PAL H sync pulse | CONFIG_RGB
-0x00db | VGA_BPORCH | HDMI/VGA PAL H back porch | CONFIG_RGB
-0x00dc | VGA_VBLANK | HDMI/VGA PAL V blank start | CONFIG_RGB
-0x00dd | VGA_FPORCH | HDMI/VGA PAL V front porch | CONFIG_RGB
-0x00de | VGA_SPULSE | HDMI/VGA PAL V sync pulse | CONFIG_RGB
-0x00df | VGA_BPORCH | HDMI/VGA PAL V back porch | CONFIG_RGB
+0x00 - 0x3f | PAL0_RGB | 4x16 array of RGBx for palette 0 (4th byte unused) | CONFIG_RGB
+0x40 - 0x7f | PAL1_RGB | 4x16 array of RGBx for palette 1 (4th byte unused) | CONFIG_RGB
+0x80 | BLACK_LEVEL | Composite black level (0-63) | CONFIG_COMPOSITE
+0x81 | BURST_AMPLITUDE | Composite color burst amplitude (1-15, 0 = no color burst) | CONFIG_COMPOSITE
+0x82 | CHIP_MODEL | Chip Model Select (0=6567R8, 1=6569, 2=6567R56A) | NONE
+0x83 | VERSION | Version (high nibble major, low nibble minor) - Read Only | NONE
+0x84 | DISPLAY_FLAGS | See below | NONE
+0x85 | CURSOR_LO | Hires Cursor lo byte | HIRES_MODES
+0x86 | CURSOR_HI | Hires Cursor hi byte | HIRES_MODES
+0x87 | CAP_LO    | Capability Bits lo byte (Read Only)| NONE
+0x88 | CAP_HI    | Capability Bits hi byte (Read Only)| NONE
+0x89 | TIMING_CHANGE | HDMI/VGA Timing change signal - Bit 1  | CONFIG_RGB
+0x8a - 0x8f | Reserved | Reserved | NONE
+0x90 - 0x9f | VARIANT_NAME | Variant Name | NONE
+0xa0 - 0xaf | LUMA_LEVELS | Composite luma levels for colors (0-63) | CONFIG_COMPOSITE
+0xb0 - 0xbf | PHASE_VALUES | Composite phase values for colors (0-255 representing 0-359 degrees) | CONFIG_COMPOSITE
+0xc0 - 0xcf | AMPL_VALUES | Composite amplitude values for colors (1-15, 0 = no modulation) | CONFIG_COMPOSITE
+0xd0 | VGA_HBLANK | HDMI/VGA NTSC H blank start | CONFIG_RGB
+0xd1 | VGA_FPORCH | HDMI/VGA NTSC H front porch | CONFIG_RGB
+0xd2 | VGA_SPULSE | HDMI/VGA NTSC H sync pulse | CONFIG_RGB
+0xd3 | VGA_BPORCH | HDMI/VGA NTSC H back porch | CONFIG_RGB
+0xd4 | VGA_VBLANK | HDMI/VGA NTSC V blank start | CONFIG_RGB
+0xd5 | VGA_FPORCH | HDMI/VGA NTSC V front porch | CONFIG_RGB
+0xd6 | VGA_SPULSE | HDMI/VGA NTSC V sync pulse | CONFIG_RGB
+0xd7 | VGA_BPORCH | HDMI/VGA NTSC V back porch | CONFIG_RGB
+0xd8 | VGA_HBLANK | HDMI/VGA PAL H blank start | CONFIG_RGB
+0xd9 | VGA_FPORCH | HDMI/VGA PAL H front porch | CONFIG_RGB
+0xda | VGA_SPULSE | HDMI/VGA PAL H sync pulse | CONFIG_RGB
+0xdb | VGA_BPORCH | HDMI/VGA PAL H back porch | CONFIG_RGB
+0xdc | VGA_VBLANK | HDMI/VGA PAL V blank start | CONFIG_RGB
+0xdd | VGA_FPORCH | HDMI/VGA PAL V front porch | CONFIG_RGB
+0xde | VGA_SPULSE | HDMI/VGA PAL V sync pulse | CONFIG_RGB
+0xdf | VGA_BPORCH | HDMI/VGA PAL V back porch | CONFIG_RGB
+0xfc - 0xff | MAGIC BYTES 'VIC2' for EEPROM
 
 NOTES
     Blanking start/end values are absolute values compared to the native resolution raster line (vertical) or xpos (horizontal) internal counters.
