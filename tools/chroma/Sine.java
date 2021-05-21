@@ -46,7 +46,7 @@ public class Sine extends java.awt.Frame implements KeyListener {
          for (int x = 0; x < 256; x++) {
             int y = (int)(Math.sin(x/40.74366) * amp); // 256/(2*pi)
 	    sine_tables[p++] = y;
-	    String binary = Integer.toBinaryString(y);
+	    String binary = Integer.toBinaryString(y+256);
 	    while (binary.length() < 9) binary = "0" + binary;
 	    System.out.println(binary.substring(binary.length()-9,binary.length()));
 	 }
