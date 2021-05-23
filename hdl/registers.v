@@ -514,7 +514,7 @@ always @(posedge clk_dot4x)
          // actually reset the extension registers at some point
          // on the real board.  Remove this ifdef when mojo_v3 is
          // deprecated.
-	 if (cpu_reset_i)
+	 if (!cpu_reset_i)
 	    ec <= 4'b1;
 `endif
 
