@@ -6,7 +6,9 @@
 //
 // Color clocks, DVI + RGB out.
 module top(
+`ifdef HAVE_SYS_CLOCK
            input sys_clock,
+`endif
 `ifdef HAVE_COLOR_CLOCKS
            input clk_col4x_pal,
            input clk_col4x_ntsc,
@@ -24,7 +26,7 @@ module top(
 `endif
 
 `endif  // HAVE_COLOR_CLOCKS
-           input [1:0] chip,    // chip config from MCU
+           input [1:0] chip_ext, // chip config from MCU
            input standard_sw,
 `ifdef HAVE_SERIAL_LINK
            output tx,           // to mcm
@@ -81,12 +83,13 @@ wire active;
 
 wire rst;
 wire clk_dot4x;
+wire [1:0] chip;
 
 // The rev1 board can invert the ntsc/pal bit of the incoming
-// chip lines with a physical switch. So we use chip2 from here
-// on.
-wire [1:0] chip2;
-assign chip2 = {chip[1], standard_sw ? chip[0] : ~chip[0]};
+// chip lines with a physical switch. So we use chip_ext2 for
+// vicii module.
+wire [1:0] chip_ext2;
+assign chip_ext2 = {chip_ext[1], ~standard_sw ? chip_ext[0] : ~chip_ext[0]};
 
 `ifndef GEN_RGB
 // When we're not exporting these signals, we still need
@@ -110,7 +113,7 @@ BUFGMUX colmux(
    .I0(clk_col4x_ntsc),
    .I1(clk_col4x_pal),
 	.O(clk_col4x),
-   .S(chip2[0]));	
+   .S(chip[0]));	
 
 `ifdef HAVE_COMPOSITE_ENCODER
 // Since we have color clocks, we will output a color
@@ -153,12 +156,13 @@ x2_clockgen x2_clockgen(
 clockgen mojo_clockgen(
 `ifdef HAVE_COLOR_CLOCKS
              .src_clock(clk_col8x),  // with color clocks, we generate dot4x from clk_col8x
-`else
+`elsif HAVE_SYS_CLOCK
              .src_clock(sys_clock),  // without color clocks, we generate dot4x from 50mhz
+`else
+             error Need HAVE_COLOR_CLOCKS OR SYS_CLOCK
 `endif
              .clk_dot4x(clk_dot4x),
-             .rst(rst),
-             .chip(chip2)
+             .chip(chip)
 `ifdef WITH_DVI
              ,
              .tx0_pclkx10(tx0_pclkx10),
@@ -233,9 +237,10 @@ wire rx_new_data_4x;
 // Instantiate the vicii with our clocks and pins.
 vicii vic_inst(
           .rst(rst),
-          .chip(chip2),
+          .chip(chip),
           .cpu_reset_i(cpu_reset_i),
 `ifdef HAVE_SERIAL_LINK
+          .chip_ext(chip_ext2),
           .tx_data_4x(tx_data_4x),
           .tx_new_data_4x(tx_new_data_4x),
           .tx_busy_4x(tx_busy_4x | rx_busy),

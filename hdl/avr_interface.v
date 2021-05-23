@@ -1,3 +1,5 @@
+`timescale 1ns / 1ps
+
 module avr_interface #(
     parameter CLK_RATE = 50000000,
     parameter SERIAL_BAUD_RATE = 500000

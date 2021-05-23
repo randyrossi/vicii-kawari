@@ -95,8 +95,8 @@ P9     CHROMA   chroma[0]       O   QUIETIO 2 LVCMOS33
 # P61 = D2 From AVR
 # P62 = D1 (Unused)
 # P65 = D0 (Unused)
-P46    CHIP_0   chip[0]               I  NA  NA LVCMOS33
-P61    CHIP_1   chip[1]               I  NA  NA LVCMOS33
+P46    CHIP_0   chip_ext[0]               I  NA  NA LVCMOS33
+P61    CHIP_1   chip_ext[1]               I  NA  NA LVCMOS33
 
 # Serial link between MCU and FPGA
 P59    FPGA_TX       tx                    O  FAST 8 LVCMOS33

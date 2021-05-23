@@ -23,17 +23,18 @@
 // clk_phi        1.02272 Mhz NTSC, .985248 Mhz PAL
 
 module vicii(
-      input [1:0] chip,               // config from MC
+      output [1:0] chip,               // exported from registers
 `ifdef REV_1_BOARD_OR_SIMULATOR_BOARD
       input cpu_reset_i,
 `endif
-      input rst,
+      output rst,
       input clk_dot4x,
 `ifdef HAVE_SERIAL_LINK
-	   output[7:0] tx_data_4x,         // from regs module
-	   output tx_new_data_4x,          // from regs module
+      input [1:0] chip_ext,           // config from MC
+      output[7:0] tx_data_4x,         // from regs module
+      output tx_new_data_4x,          // from regs module
       input tx_busy_4x,
-		input [7:0] rx_data_4x,         // from serial_rx
+      input [7:0] rx_data_4x,         // from serial_rx
       input rx_new_data_4x,           // from serial_rx
 `endif
       output clk_phi,
@@ -49,6 +50,12 @@ module vicii(
       output [5:0] chroma,
 `endif
 `endif  // HAVE_COLOR_CLOCKS
+`ifdef HAVE_EEPROM
+        output D,
+        input  Q,
+        output C,
+        output S,
+`endif
 
 `ifdef NEED_RGB
 	   output active,
@@ -114,7 +121,14 @@ wire [9:0] sprite_ba_end [`NUM_SPRITES-1:0];
 wire [9:0] sprite_raster_x;
 
 // Set limits for chips
+`ifdef SIMULATOR_BOARD
+	// Ugly hack for simulator. Verilator is not letting us
+	// change chip from driver. So perform this at every
+	// clock edge.
+always @(posedge clk_dot4x)
+`else
 always @(chip)
+`endif
 case(chip)
     `CHIP6567R8:
     begin
@@ -950,8 +964,9 @@ registers vic_registers(
               .last_vpolarity(vpolarity),
 `endif
 `ifdef HAVE_SERIAL_LINK
-	      .tx_data_4x(tx_data_4x),
-	      .tx_new_data_4x(tx_new_data_4x),
+         .chip_ext(chip_ext),
+         .tx_data_4x(tx_data_4x),
+         .tx_new_data_4x(tx_new_data_4x),
          .tx_busy_4x(tx_busy_4x),
          .rx_data_4x(rx_data_4x),
          .rx_new_data_4x(rx_new_data_4x),
@@ -996,7 +1011,13 @@ registers vic_registers(
             .hires_cursor_hi(hires_cursor_hi),
             .hires_cursor_lo(hires_cursor_lo),
 `endif
-	        .chip(chip) // config in
+`ifdef HAVE_EEPROM
+            .D(D),
+            .Q(Q),
+            .C(C),
+            .S(S),
+`endif
+            .chip(chip) // config out
           );
 
 // at the start of every high phase, store current reg11 for delayed fetch

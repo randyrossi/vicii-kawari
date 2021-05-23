@@ -71,6 +71,12 @@
 // available.
 `define HAVE_COLOR_CLOCKS 1
 
+// HAVE_SYS_CLOCK
+// -----------------
+// Uncomment if the board has a 50Mhz clock. If HAVE_SERIAL_LINK
+// is enabled, this must be present.
+`define HAVE_SYS_CLOCK 1
+
 // HAVE_COMPOSITE_ENCODER
 // ----------------------
 // Uncomment if we have an external composite encoder wired
@@ -118,6 +124,11 @@
 // ----------------
 // Uncomment if board has serial link between MCU and FPGA
 `define HAVE_SERIAL_LINK 1
+
+// HAVE_EEPROM
+// ----------------
+// Uncomment if board has EEPROM for persistence
+//`define HAVE_EEPROM 1
 
 // NEED_RGB
 // --------

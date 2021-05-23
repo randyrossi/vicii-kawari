@@ -17,7 +17,9 @@
 // pins selected by placement will not be compatible with the 'hat'.
 // It's meant to verify we can get an image over DVI only.
 module top(
+`ifdef HAVE_SYS_CLOCK
            input sys_clock,
+`endif
 `ifdef HAVE_COLOR_CLOCKS
            input clk_col4x_pal,
            input clk_col4x_ntsc,
@@ -35,8 +37,8 @@ module top(
 `endif
 
 `endif  // HAVE_COLOR_CLOCKS
-           input [1:0] chip,    // chip config from MCU
 `ifdef HAVE_SERIAL_LINK
+           input [1:0] chip_ext, // chip config from MCU
            output tx,           // to mcm
            input rx,            // from mcm
            input rx_busy,       // from mcm (indicates receive buffer is full)
@@ -94,6 +96,7 @@ module top(
 
 wire rst;
 wire clk_dot4x;
+wire [1:0] chip;
 
 `ifndef GEN_RGB
 // When we're not exporting these signals, we still need
@@ -160,11 +163,12 @@ x2_clockgen x2_clockgen(
 clockgen mojo_clockgen(
 `ifdef HAVE_COLOR_CLOCKS
              .src_clock(clk_col8x),  // with color clocks, we generate dot4x from clk_col8x
-`else
+`elsif HAVE_SYS_CLOCK
              .src_clock(sys_clock),  // without color clocks, we generate dot4x from 50mhz
+`else
+             error Need HAVE_COLOR_CLOCKS OR SYS_CLOCK
 `endif
              .clk_dot4x(clk_dot4x),
-             .rst(rst),
              .chip(chip)
 `ifdef WITH_DVI
              ,
@@ -244,6 +248,7 @@ vicii vic_inst(
           .rst(rst),
           .chip(chip),
 `ifdef HAVE_SERIAL_LINK      
+	  .chip_ext(chip_ext),
           .tx_data_4x(tx_data_4x),
           .tx_new_data_4x(tx_new_data_4x),
           .tx_busy_4x(tx_busy_4x | rx_busy),

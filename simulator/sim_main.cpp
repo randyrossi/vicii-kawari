@@ -267,8 +267,9 @@ static vluint64_t nextTick(Vtop* top) {
    top->V_DOT4X = ~top->V_DOT4X;
    top->V_COL4X = ~top->V_COL4X;
    top->V_COL16X = ~top->V_COL16X;
-
+#ifdef HAVE_SYS_CLOCK
    top->sys_clock = ~top->sys_clock;
+#endif
    nextClkCnt = (nextClkCnt + 1) % 32;
    return ticks + diff1;
 }
@@ -623,10 +624,9 @@ int main(int argc, char** argv, char** env) {
     }
 #endif
 
-    top->V_CHIP = chip;
     top->eval();
 
-    switch (top->V_CHIP) {
+    switch (chip) {
        case CHIP6567R8:
           isNtsc = true;
           printf ("CHIP: 6567R8\n");
@@ -669,7 +669,7 @@ int main(int argc, char** argv, char** env) {
 #endif
 
     if (userDurationUs == -1) {
-       switch (top->V_CHIP) {
+       switch (chip) {
           case CHIP6567R8:
           case CHIP6567R56A:
              durationTicks = US_TO_TICKS(16700L);
@@ -687,7 +687,7 @@ int main(int argc, char** argv, char** env) {
 
     if (isNtsc) {
        half4XDotPS = NTSC_HALF_4X_DOT_PS;
-       switch (top->V_CHIP) {
+       switch (chip) {
           case CHIP6567R56A:
              screenWidth = NTSC_6567R56A_MAX_DOT_X+1;
              screenHeight = NTSC_6567R56A_MAX_DOT_Y+1;
@@ -706,7 +706,7 @@ int main(int argc, char** argv, char** env) {
        }
     } else {
        half4XDotPS = PAL_HALF_4X_DOT_PS;
-       switch (top->V_CHIP) {
+       switch (chip) {
           case CHIP6569R1:
           case CHIP6569R5:
              screenWidth = PAL_6569_MAX_DOT_X+1;
@@ -721,7 +721,6 @@ int main(int argc, char** argv, char** env) {
     }
 
     nextClk = half4XDotPS;
-    endTicks = startTicks + durationTicks;
 
     if (showWindow) {
       SDL_DisplayMode current;
@@ -761,15 +760,20 @@ int main(int argc, char** argv, char** env) {
 
     HEADER(top);
 
-    // Hold the design under reset, simulating the time
-    // it takes to wait for phase lock from the clock.
-    printf ("(RESET)\n");
-    top->V_RST = 1;
+#if HAVE_SERIAL_LINK
+    // When we have the serial link (MCU), set the chip select lines
+    top->V_CHIP_EXT = chip;
+#endif
+#ifdef HAVE_EEPROM
+    // When we have an eeprom, just start off with the chip we have
+    top->V_CHIP = chip;
+#endif
 #ifdef HAVE_SERIAL_LINK
     top->cclk = 1; // hold high to simulate MCU ready
 #endif
-    top->lp = 1;
-    for (int i=0;i<32;i++) {
+
+    int cnt = 0;
+    while (top->V_RST) {
        top->eval();
        nextClkCnt = 0;
 #if VM_TRACE
@@ -778,9 +782,17 @@ int main(int argc, char** argv, char** env) {
        STATE(top);
        STORE_PREV();
        ticks = nextTick(top);
+       cnt++;
     }
+
+    // Not sure if this matters anymore
     nextClkCnt = 31;
-    top->V_RST = 0;
+
+    // Start counting from after reset
+    startTicks = ticks;
+    endTicks = startTicks + durationTicks;
+
+    top->lp = 1;
     top->rw = 1;
     top->ce = 1;
     top->lp = 1;

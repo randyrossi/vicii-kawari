@@ -1,3 +1,5 @@
+`timescale 1ns / 1ps
+
 module cclk_detector #(
     parameter CLK_RATE = 50000000
     )(

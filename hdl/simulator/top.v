@@ -11,12 +11,14 @@ ERROR_NEED_SIMULATOR_BOARD_DEFINED See common.vh
 `endif
 
 module top(
+`ifdef HAVE_SYS_CLOCK
            input sys_clock,     // driven by sim
+`endif
            input clk_col4x,     // driven by sim
            input clk_col16x,    // driven by sim
 
-	   input [1:0] chip,    // chip config pin from MCU
 `ifdef HAVE_SERIAL_LINK
+	   input [1:0] chip_ext, // chip config pin from MCU
 	   output tx,
 	   input rx,
            input rx_busy,
@@ -64,6 +66,13 @@ module top(
 
 `endif  // HAVE_COLOR_CLOCKS
 
+`ifdef HAVE_EEPROM
+           output D,
+           input  Q,
+           output C,
+           output S,
+`endif
+
 	   // Verilog doesn't support inout/tri so this section is
 	   // slightly different than non-sim top
            input [5:0] adl,  // address (lower 6 bits)
@@ -84,9 +93,16 @@ module top(
            output ras,          // row address strobe
            output ls245_data_dir,  // DIR for data bus transceiver
            output ls245_addr_dir   // DIR for addr bus transceiver
+`ifdef WITH_DVI
+           ,
+           output wire [3:0] TX0_TMDS,
+           output wire [3:0] TX0_TMDSB
+`endif
+
        );
 
 wire rst;
+wire [1:0] chip;
 
 `ifndef GEN_RGB
 // When we're not exporting these signals, we still need
@@ -108,6 +124,19 @@ clk_div4 clk_colorgen (
              .reset(rst),
              .clk_out(clk_colref));  // create color ref clock
 `endif
+
+`ifdef WITH_DVI
+// For config test only
+assign TX0_TMDS[0] = 1;
+assign TX0_TMDS[1] = 0;
+assign TX0_TMDS[2] = 1;
+assign TX0_TMDS[3] = 0;
+assign TX0_TMDSB[0] = 1;
+assign TX0_TMDSB[1] = 0;
+assign TX0_TMDSB[2] = 1;
+assign TX0_TMDSB[3] = 0;
+`endif
+
 
 // This is a reset line for the CPU which would have to be
 // connected with a jumper.  It holds the CPU in reset
@@ -142,6 +171,7 @@ vicii vic_inst(
           .chip(chip),
 	  .cpu_reset_i(cpu_reset_i),
 `ifdef HAVE_SERIAL_LINK
+          .chip_ext(chip_ext),
           .tx_data_4x(tx_data_4x),
           .tx_new_data_4x(tx_new_data_4x),
           .tx_busy_4x(tx_busy_4x | rx_busy),
@@ -169,6 +199,12 @@ vicii vic_inst(
           .chroma(chroma),
 `endif
 `endif  // HAVE_COLOR_CLOCKS
+`ifdef HAVE_EEPROM
+          .D(D),
+          .Q(Q),
+          .C(C),
+          .S(S),
+`endif
           .adi(adl[5:0]),
           .ado(ado),
           .dbi({dbh,dbl}),

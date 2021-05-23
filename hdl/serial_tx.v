@@ -1,3 +1,5 @@
+`timescale 1ns / 1ps
+
 module serial_tx #(
         parameter CLK_PER_BIT = 50
     )(

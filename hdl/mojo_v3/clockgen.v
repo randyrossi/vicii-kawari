@@ -10,24 +10,14 @@
 module clockgen(
            input src_clock,
            input [1:0] chip,
-           output clk_dot4x,
-           output reg rst
+           output clk_dot4x
 `ifdef WITH_DVI
-			  ,
+           ,
            output tx0_pclkx10,
            output tx0_pclkx2,
            output tx0_serdesstrobe
 `endif
        ); 
-
-// 22 = ~150ms
-// 27 = ~4s for testing
-reg [22:0] rstcntr = 0;
-wire internal_rst = !rstcntr[22];
-
-always @(posedge clk_dot4x)
-    if (internal_rst)
-        rstcntr <= rstcntr + 4'd1;
 
 `ifdef HAVE_COLOR_CLOCKS
 // When we have color clocks, we use the dot4x_cc clock gen
@@ -46,7 +36,7 @@ dot4x_cc_clockgen dot4x_cc_clockgen(
 BUFGMUX colmux2(
    .I0(clk_dot4x_ntsc),
    .I1(clk_dot4x_pal),
-	.O(clk_dot4x),
+   .O(clk_dot4x),
    .S(chip[0]));							 
 							 
 `else
@@ -100,8 +90,5 @@ dvi_clockgen dvi_clockgen(
 								  .tx0_serdesstrobe(tx0_serdesstrobe)
 							 );
 `endif
-
-// Take design out of reset when internal_rst is high
-always @(posedge clk_dot4x) rst <= internal_rst;
 
 endmodule : clockgen
