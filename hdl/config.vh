@@ -7,8 +7,8 @@
 // Pick a board. MojoV3 'hat' is still working but support will
 // be dropped soon.
 //`define SIMULATOR_BOARD 1
-//`define REV_1_BOARD 1
-`define MOJOV3_BOARD 1
+`define REV_1_BOARD 1
+//`define MOJOV3_BOARD 1
 
 // Notes on config permutations:
 //
@@ -63,7 +63,7 @@
 // --------
 // Uncomment to include TMDS outputs and DVI encoder for video
 // Enabling will automatically enable NEED_RGB.
-//`define WITH_DVI 1
+`define WITH_DVI 1
 
 // HAVE_COLOR_CLOCKS
 // -----------------
