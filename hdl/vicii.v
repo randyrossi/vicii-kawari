@@ -19,7 +19,8 @@
 // clk_dot4x;     32.727272 Mhz NTSC, 31.527955 Mhz PAL
 // clk_col4x;     14.318181 Mhz NTSC, 17.734475 Mhz PAL
 // clk_dot;       8.18181 Mhz NTSC, 7.8819888 Mhz PAL
-// clk_colref     3.579545 Mhz NTSC, 4.43361875 Mhz PAL
+// clk_col        3.579545 Mhz NTSC, 4.43361875 Mhz PAL
+// clk_col16x     57.272720 Mhz NTSC, 70.9379 Mhz PAL
 // clk_phi        1.02272 Mhz NTSC, .985248 Mhz PAL
 
 module vicii(
@@ -29,7 +30,7 @@ module vicii(
 `endif
       output rst,
       input clk_dot4x,
-`ifdef HAVE_SERIAL_LINK
+`ifdef HAVE_MCU_EEPROM
       input [1:0] chip_ext,           // config from MC
       output[7:0] tx_data_4x,         // from regs module
       output tx_new_data_4x,          // from regs module
@@ -40,11 +41,7 @@ module vicii(
       output clk_phi,
 
 `ifdef HAVE_COLOR_CLOCKS
-      input use_scan_doubler,
       input clk_col16x,
-`ifdef HAVE_COMPOSITE_ENCODER
-      output csync,
-`endif
 `ifdef GEN_LUMA_CHROMA
       output [5:0] luma,
       output [5:0] chroma,
@@ -78,9 +75,6 @@ module vicii(
            output ras,
            output cas,
            output ls245_data_dir,
-`ifdef MOJOV3_BOARD
-           output ls245_data_oe,
-`endif
            output ls245_addr_dir,
            output vic_write_db,
            output vic_write_ab
@@ -741,12 +735,7 @@ assign vic_write_ab = ~(aec | aec3);
 
 // For data bus direction, use inverse of vic_write_db
 assign ls245_data_dir = ~vic_write_db;
-`ifdef MOJOV3_BOARD
-assign ls245_data_oe = 1'b0; // aec & ce;  for now, always enable
-`endif
 assign ls245_addr_dir = aec;
-//assign ls245_addr_oe = 1'b0; // aec & ce;  for now, always enable
-
 
 // Handle cycles that perform data bus accesses
 bus_access vic_bus_access(
@@ -830,10 +819,6 @@ wire show_raster_lines;
 wire enable_csync;
 wire hpolarity;
 wire vpolarity;
-`endif
-
-`ifdef HAVE_COLOR_CLOCKS
-wire native_active;
 `endif
 
 `ifdef GEN_LUMA_CHROMA
@@ -935,24 +920,11 @@ registers vic_registers(
               // the active period for whatever video standard we are
               // producing
               .pixel_color3(pixel_color3), // always native
-`ifdef HAVE_COLOR_CLOCKS
 `ifdef NEED_RGB
-              .pixel_color4(use_scan_doubler ? pixel_color4_vga : pixel_color3),
-
-              .active(use_scan_doubler ? active : native_active),
-              .half_bright(
-	               (is_native_y | !use_scan_doubler) ? 1'b0 :
-                     (show_raster_lines & half_bright)),
-`endif
-`else
-`ifdef NEED_RGB
+              .pixel_color4(pixel_color4_vga), // from scan doubler
+              .active(active),
               .half_bright(is_native_y ? 1'b0 :
-                  (show_raster_lines & half_bright)),
-              .pixel_color4(pixel_color4_vga),
-	          .active(active),
-`endif
-`endif
-`ifdef NEED_RGB
+                     (show_raster_lines & half_bright)),
 	      .red(red), // out
 	      .green(green), // out
 	      .blue(blue), // out
@@ -963,7 +935,7 @@ registers vic_registers(
               .last_hpolarity(hpolarity),
               .last_vpolarity(vpolarity),
 `endif
-`ifdef HAVE_SERIAL_LINK
+`ifdef HAVE_MCU_EEPROM
          .chip_ext(chip_ext),
          .tx_data_4x(tx_data_4x),
          .tx_new_data_4x(tx_new_data_4x),
@@ -1144,20 +1116,15 @@ hires_pixel_sequencer vic_hires_pixel_sequencer(
 `endif
 
 // -------------------------------------------------------------
-// Composite output - csync/native_active
-// Can't do 80 column mode.
+// Luma/Chroma output
 // -------------------------------------------------------------
 `ifdef HAVE_COLOR_CLOCKS
 comp_sync vic_comp_sync(
               .rst(rst),
               .clk_dot4x(clk_dot4x),
               .clk_col16x(clk_col16x),
-              .chip(chip),
               .raster_x(raster_x),
               .raster_y(raster_line),
-`ifdef HAVE_COMPOSITE_ENCODER
-              .csync(csync),
-`endif
 `ifdef GEN_LUMA_CHROMA
               .luma(luma),
               .chroma(chroma),
@@ -1169,14 +1136,13 @@ comp_sync vic_comp_sync(
               .burst_amplitude(burst_amplitude),
 `endif  // CONFIGURABLE_LUMAS
 `endif // GEN_LUMA_CHROMA
-              .native_active(native_active)
+              .chip(chip)
 );
 `endif  // HAVE_COLOR_CLOCKS
 
 // -------------------------------------------------------------
 // VGA/HDMI output - hsync/vsync/active/half_bright/pixel_color4
-// Hu-res version that can show the 80 column mode as well as
-// 40.
+// When X resolution is doubled, this can show hi-res modes.
 // -------------------------------------------------------------
 `ifdef NEED_RGB
 hires_vga_sync vic_vga_sync(

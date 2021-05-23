@@ -193,7 +193,7 @@ task write_ram(
               color_regs_wr_value <= data[5:0];
               color_regs_wr_nibble <= ram_lo[1:0];
               color_regs_addr_a <= ram_lo[6:2];
-`ifdef HAVE_SERIAL_LINK
+`ifdef HAVE_MCU_EEPROM
               if (do_tx) begin
                   tx_cfg_change_1 <= ram_lo;
                   tx_cfg_change_2 <= {2'b0, data[5:0]};
@@ -210,7 +210,7 @@ task write_ram(
               luma_regs_wr_value <= {2'b0, data[5:0]};
               luma_regs_wr_nibble <= 2'b00; // luma
               luma_regs_addr_a <= ram_lo[3:0];
-`ifdef HAVE_SERIAL_LINK
+`ifdef HAVE_MCU_EEPROM
               if (do_tx) begin
                   tx_cfg_change_1 <= ram_lo;
                   tx_cfg_change_2 <= {2'b0, data[5:0]};
@@ -223,7 +223,7 @@ task write_ram(
               luma_regs_wr_value <= data[7:0];
               luma_regs_wr_nibble <= 2'b01; // phase
               luma_regs_addr_a <= ram_lo[3:0];
-`ifdef HAVE_SERIAL_LINK
+`ifdef HAVE_MCU_EEPROM
               if (do_tx) begin
                   tx_cfg_change_1 <= ram_lo;
                   tx_cfg_change_2 <= data[7:0];
@@ -236,7 +236,7 @@ task write_ram(
               luma_regs_wr_value <= {4'b0, data[3:0]};
               luma_regs_wr_nibble <= 2'b10; // amplitude
               luma_regs_addr_a <= ram_lo[3:0];
-`ifdef HAVE_SERIAL_LINK
+`ifdef HAVE_MCU_EEPROM
               if (do_tx) begin
                   tx_cfg_change_1 <= ram_lo;
                   tx_cfg_change_2 <= {4'b0, data[3:0]};
@@ -264,7 +264,7 @@ task write_ram(
                     // We never change chip register from CPU. Only
 		    // init sequence will set it either from MCU lines
 		    // or EEPROM data.
-`ifdef HAVE_SERIAL_LINK
+`ifdef HAVE_MCU_EEPROM
 		  if (do_tx) begin
 		      tx_cfg_change_1 <= `EXT_REG_CHIP_MODEL;
 		      tx_cfg_change_2 <= {6'b0, data[1:0]};
@@ -283,7 +283,7 @@ task write_ram(
                  last_hpolarity <= data[`HPOLARITY_BIT];
                  last_vpolarity <= data[`VPOLARITY_BIT];
 			  end
-    `ifdef HAVE_SERIAL_LINK
+    `ifdef HAVE_MCU_EEPROM
 			  if (do_tx) begin
 			     tx_cfg_change_1 <= `EXT_REG_DISPLAY_FLAGS;
 			     tx_cfg_change_2 <= {4'b0,
@@ -294,7 +294,7 @@ task write_ram(
 				     };
                              tx_new_data_start = 1'b1;
                           end
-    `endif // HAVE_SERIAL_LINK
+    `endif // HAVE_MCU_EEPROM
 `endif // NEED_RGB
                  end
 `ifdef HIRES_MODES

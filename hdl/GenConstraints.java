@@ -6,10 +6,9 @@ public class GenConstraints
   final static int HAVE_COLOR_CLOCKS = 0;
   final static int WITH_DVI = 1;
   final static int GEN_LUMA_CHROMA = 2;
-  final static int HAVE_COMPOSITE_ENCODER = 3;
-  final static int HAVE_SERIAL_LINK = 4;
-  final static int GEN_RGB = 5;
-  final static int HAVE_EEPROM = 6;
+  final static int HAVE_MCU_EEPROM = 3;
+  final static int GEN_RGB = 4;
+  final static int HAVE_EEPROM = 5;
 
   public static boolean[] read_config(String filename) throws Exception {
     File f = new File(filename);
@@ -17,7 +16,7 @@ public class GenConstraints
     InputStreamReader ir = new InputStreamReader(fis);
     BufferedReader br = new BufferedReader(ir);
 
-    boolean[] flags = new boolean[7];
+    boolean[] flags = new boolean[6];
     while (true) {
       String line = br.readLine();
       if (line == null) break;
@@ -28,10 +27,8 @@ public class GenConstraints
         flags[WITH_DVI] = true;
       else if (line.startsWith("`define GEN_LUMA_CHROMA"))
         flags[GEN_LUMA_CHROMA] = true;
-      else if (line.startsWith("`define HAVE_COMPOSITE_ENCODER"))
-        flags[HAVE_COMPOSITE_ENCODER] = true;
-      else if (line.startsWith("`define HAVE_SERIAL_LINK"))
-        flags[HAVE_SERIAL_LINK] = true;
+      else if (line.startsWith("`define HAVE_MCU_EEPROM"))
+        flags[HAVE_MCU_EEPROM] = true;
       else if (line.startsWith("`define GEN_RGB"))
         flags[GEN_RGB] = true;
       else if (line.startsWith("`define HAVE_EEPROM"))
@@ -72,9 +69,6 @@ public class GenConstraints
 		if (!flags[HAVE_COLOR_CLOCKS]) {
                    if (t6.equals("clk_col4x_pal")) continue;
                    if (t6.equals("clk_col4x_ntsc")) continue;
-                   if (t6.equals("clk_colref")) continue;
-                   if (t6.equals("csync")) continue;
-                   if (t6.equals("use_scan_doubler")) continue;
                    if (t6.startsWith("luma")) continue;
                    if (t6.startsWith("chroma")) continue;
                 }
@@ -82,15 +76,11 @@ public class GenConstraints
                    if (t6.startsWith("luma")) continue;
                    if (t6.startsWith("chroma")) continue;
                 }
-		if (!flags[HAVE_COMPOSITE_ENCODER]) {
-                   if (t6.equals("clk_colref")) continue;
-                   if (t6.equals("csync")) continue;
-                }
                 if (!flags[WITH_DVI]) {
                    if (t6.startsWith("TX0_TMDS")) continue;
                 }
 
-		if (!flags[HAVE_SERIAL_LINK]) {
+		if (!flags[HAVE_MCU_EEPROM]) {
                    if (t6.equals("chip_ext")) continue;
                    if (t6.equals("tx")) continue;
                    if (t6.equals("tx_busy")) continue;

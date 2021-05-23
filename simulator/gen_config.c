@@ -8,12 +8,11 @@ typedef void (*def_func)();
 void test_pattern_0() { printf ("`define TEST_PATTERN 1\n"); }
 void have_color_clocks_0() { printf ("`define HAVE_COLOR_CLOCKS 1\n"); }
 void have_sys_clock_0() { printf ("`define HAVE_SYS_CLOCK 1\n"); }
-void have_composite_encoder_0() { printf ("`define HAVE_COMPOSITE_ENCODER 1\n"); }
 void gen_luma_chroma_0() { printf ("`define GEN_LUMA_CHROMA 1\n"); }
 void configurable_lumas_0() { printf ("`define CONFIGURABLE_LUMAS 1\n"); }
 void configurable_timing_0() { printf ("`define CONFIGURABLE_TIMING 1\n"); }
 void average_lumas_0() { printf ("`define AVERAGE_LUMAS 1\n"); }
-void have_serial_link_0() { printf ("`define HAVE_SERIAL_LINK 1\n"); have_sys_clock_0(); }
+void have_mcu_eeprom_0() { printf ("`define HAVE_MCU_EEPROM 1\n"); have_sys_clock_0(); }
 void have_eeprom_0() { printf ("`define HAVE_EEPROM 1\n"); }
 void need_rgb_0() { printf ("`define NEED_RGB 1\n"); }
 void gen_rgb_0() { printf ("`define GEN_RGB 1\n"); need_rgb_0(); }
@@ -24,12 +23,11 @@ void hide_sync_0() { printf ("`define HIDE_SYNC 1\n"); }
 void test_pattern_1() { printf ("-DTEST_PATTERN=1 "); }
 void have_color_clocks_1() { printf ("-DHAVE_COLOR_CLOCKS=1 "); }
 void have_sys_clock_1() { printf ("-DHAVE_SYS_CLOCK=1 "); }
-void have_composite_encoder_1() { printf ("-DHAVE_COMPOSITE_ENCODER=1 "); }
 void gen_luma_chroma_1() { printf ("-DGEN_LUMA_CHROMA=1 "); }
 void configurable_lumas_1() { printf ("-DCONFIGURABLE_LUMAS=1 "); }
 void configurable_timing_1() { printf ("-DCONFIGURABLE_TIMING=1 "); }
 void average_lumas_1() { printf ("-DAVERAGE_LUMAS=1 "); }
-void have_serial_link_1() { printf ("-DHAVE_SERIAL_LINK=1 "); have_sys_clock_1(); }
+void have_mcu_eeprom_1() { printf ("-DHAVE_MCU_EEPROM=1 "); have_sys_clock_1(); }
 void have_eeprom_1() { printf ("-DHAVE_EEPROM=1 "); }
 void need_rgb_1() { printf ("-DNEED_RGB=1 "); }
 void gen_rgb_1() { printf ("-DGEN_RGB=1 "); need_rgb_1(); }
@@ -43,12 +41,11 @@ void main(int argc, char* argv[]) {
 	def_func with_dvi;
 	def_func have_color_clocks;
 	def_func have_sys_clock;
-	def_func have_composite_encoder;
 	def_func gen_luma_chroma;
 	def_func configurable_lumas;
 	def_func configurable_timing;
 	def_func average_lumas;
-	def_func have_serial_link;
+	def_func have_mcu_eeprom;
 	def_func have_eeprom;
 	def_func need_rgb;
 	def_func gen_rgb;
@@ -66,12 +63,11 @@ void main(int argc, char* argv[]) {
     with_dvi = with_dvi_0;
     have_color_clocks = have_color_clocks_0;
     have_sys_clock = have_sys_clock_0;
-    have_composite_encoder = have_composite_encoder_0;
     gen_luma_chroma = gen_luma_chroma_0;
     configurable_lumas = configurable_lumas_0;
     configurable_timing  = configurable_timing_0;
     average_lumas = average_lumas_0;
-    have_serial_link = have_serial_link_0;
+    have_mcu_eeprom = have_mcu_eeprom_0;
     have_eeprom = have_eeprom_0;
     need_rgb = need_rgb_0;
     gen_rgb = gen_rgb_0;
@@ -83,12 +79,11 @@ void main(int argc, char* argv[]) {
         with_dvi = with_dvi_1;
         have_color_clocks = have_color_clocks_1;
         have_sys_clock = have_sys_clock;
-        have_composite_encoder = have_composite_encoder_1;
         gen_luma_chroma = gen_luma_chroma_1;
         configurable_lumas = configurable_lumas_1;
         configurable_timing  = configurable_timing_1;
         average_lumas = average_lumas_1;
-        have_serial_link = have_serial_link_1;
+        have_mcu_eeprom = have_mcu_eeprom_1;
         have_eeprom = have_eeprom_1;
         need_rgb = need_rgb_1;
         gen_rgb = gen_rgb_1;
@@ -105,7 +100,7 @@ void main(int argc, char* argv[]) {
 	    case 0:
 		    have_color_clocks();
 		    gen_luma_chroma();
-		    have_serial_link();
+		    have_mcu_eeprom();
 		    gen_rgb();
 		    hires_modes();
 		    break;
@@ -114,7 +109,7 @@ void main(int argc, char* argv[]) {
 		    // since it hides sync lines.
 		    have_color_clocks();
 		    gen_luma_chroma();
-		    have_serial_link();
+		    have_mcu_eeprom();
 		    with_dvi();
 		    hires_modes();
 		    hide_sync();
@@ -133,7 +128,7 @@ void main(int argc, char* argv[]) {
 		    break;
 	    case 5:
 		    have_color_clocks();
-		    have_composite_encoder();
+		    with_dvi();
 		    break;
 	    case 6:
 		    have_color_clocks();

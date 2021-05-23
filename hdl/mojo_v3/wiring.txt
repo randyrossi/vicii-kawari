@@ -79,10 +79,6 @@ P124    PMOD6    vsync           O   SLOW 4 LVCMOS33
 P84     HEAD     clk_col4x_pal   I   NA NA LVCMOS33
 P85     HEAD     clk_col4x_ntsc  I   NA NA LVCMOS33
 
-# Only included if have_composite_encoder is true
-P5      HEAD     clk_colref      O   QUIETIO 2 LVCMOS33
-P6      HEAD     csync           O   QUIETIO 2 LVCMOS33
-
 # Only included if gen_luma_chroma is true
 P92     LUMA     luma[5]         O   QUIETIO 2 LVCMOS33
 P98     LUMA     luma[4]         O   QUIETIO 2 LVCMOS33

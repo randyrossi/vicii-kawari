@@ -1,9 +1,8 @@
 `include "common.vh"
 
-// A module that produces a luma/chroma signal and
-// optionally a composite sync signal for a composite
-// encoder IC. At least of HAVE_COMPOSITE_ENCODER or
-// GEN_LUMA_CHROMA must be defined.
+// A module that produces a luma/chroma signal. Was
+// also previously used to feed an external composite
+// encoder but that was removed.
 //
 // Luma/Chroma was tested with these resistor values:
 //
@@ -18,12 +17,8 @@ module comp_sync(
            input rst,
            input clk_dot4x,
            input clk_col16x,
-           input [1:0] chip,
            input [9:0] raster_x,
            input [8:0] raster_y,
-`ifdef HAVE_COMPOSITE_ENCODER
-           output reg csync,
-`endif
 `ifdef GEN_LUMA_CHROMA
            output reg [5:0] luma,
            output reg [5:0] chroma,
@@ -35,7 +30,7 @@ module comp_sync(
            input [5:0] blanking_level,
            input [3:0] burst_amplitude,
 `endif
-           output reg native_active
+           input [1:0] chip
 );
 
 reg [9:0] hvisible_end;
@@ -49,6 +44,7 @@ reg [8:0] vblank_end;
 reg [8:0] vvisible_start;
 reg hSync;
 reg vSync;
+reg native_active;
 
 always @(posedge clk_dot4x)
 begin
@@ -134,28 +130,6 @@ SerrationPulse usep1
                    .chip(chip),
                    .SE(SE)
                );
-
-// This is a composite sync signal for use by
-// an exernal composite encoder.
-`ifdef HAVE_COMPOSITE_ENCODER
-always @(posedge clk_dot4x)
-    if (rst)
-        csync <= 1'b0;
-    else
-    case(raster_y)
-        vblank_start:	csync <= ~EQ;
-        vblank_start+1:	csync <= ~EQ;
-        vblank_start+2:	csync <= ~EQ;
-        vblank_start+3:	csync <= ~SE;
-        vblank_start+4:	csync <= ~SE;
-        vblank_start+5:	csync <= ~SE;
-        vblank_start+6:	csync <= ~EQ;
-        vblank_start+7:	csync <= ~EQ;
-        vblank_start+8:	csync <= ~EQ;
-        default:
-            csync <= ~hSync;
-    endcase
-`endif
 
 `ifdef GEN_LUMA_CHROMA
 

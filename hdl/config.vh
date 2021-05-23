@@ -4,18 +4,16 @@
 `define VERSION_MAJOR 4'd0
 `define VERSION_MINOR 4'd2
 
-// Pick a board. MojoV3 'hat' is still working but support will
-// be dropped soon.
+// Pick a board.
 //`define SIMULATOR_BOARD 1
 `define REV_1_BOARD 1
-//`define MOJOV3_BOARD 1
+//`define REV_2_BOARD 1
 
 // Notes on config permutations:
 //
 // This core can be configured to output video in different ways.
 //    DVI/HDMI (8 differential pairs, from scan doubled RGB values)
 //    VGA (scan doubled RGB + sync + clock signals)
-//    External Composite Encoder (native rgb + csync + color ref signals)
 //    LUMA/CHROMA (luma + chroma, luma needs voltage conv + DAC)
 //
 // LUMA/CHROMA can work simultaneously with any other video output
@@ -24,32 +22,12 @@
 // video output mode ignores custom RGB palette registers. Instead,
 // it uses luma, phase, amplitude for each of the 16 colors.
 //
-// An external composite encoder also requires HAVE_COLOR_CLOCKS.
-// For proper video output, use_scan_doubler must be set to false. It
-// can be included in one bitstream and work with DVI/HDMI/VGA but
-// not simultaneously (you must toggle set use_scan_doubler true for a
-// valid DVI/HDMI/VGA picture and set it false for the encoder.)
+// VGA and DVI can work without HAVE_COLOR_CLOCKS but HAVE_SYS_CLOCK
+// must be present.  Luma/chroma can't be generated without color
+// clocks.
 //
-// VGA can work without HAVE_COLOR_CLOCKS but use_scan_doubler is always
-// true if color clocks are not available.
-//
-// Similarly, DVI/HDMI can also work without HAVE_COLOR_CLOCKS but
-// use_scan_doubler is always true if color clocks are not available.
-//
-// The prototype 'hat' for the mojov3 was originally designed with no
-// ntsc/pal color clocks going into the board. In this case, we rely
-// soley on the on-board 50mhz clock to generate our pixel clocks for
-// both ntsc  and pal. This caused some routing and placement issues
-// and won't be necessary on the final pcb since we have figured out
-// how to properly generate dot4x clocks from color clocks. For 'plain'
-// unmodified boards to still work, leave HAVE_COLOR_CLOCKS undefined
-// (i.e. the one Adrian Black has.)
-//
-// If HAVE_COLOR_CLOCKS is defined, then either GEN_LUMA_CHROMA or
-// HAVE_COMPOSITE_ENCODER (or both) can be defined. Since the board can
-// now produce luma/chroma itself, a composite encoder is not necessary
-// but the code is kept functional (for now). DVI/VGA will still work
-// as long as free pins have not been exhausted.
+// If HAVE_COLOR_CLOCKS is defined, then GEN_LUMA_CHROMA can
+// be defined.
 
 // TEST_PATTERN
 // ------------
@@ -73,17 +51,9 @@
 
 // HAVE_SYS_CLOCK
 // -----------------
-// Uncomment if the board has a 50Mhz clock. If HAVE_SERIAL_LINK
+// Uncomment if the board has a 50Mhz clock. If HAVE_MCU_EEPROM
 // is enabled, this must be present.
 `define HAVE_SYS_CLOCK 1
-
-// HAVE_COMPOSITE_ENCODER
-// ----------------------
-// Uncomment if we have an external composite encoder wired
-// up. This will output csync and color ref clock signals that
-// can feed into an RGB to composite encoder IC. This requires
-// HAVE_COLOR_CLOCKS to be defined.  This will enable GEN_RGB.
-//`define HAVE_COMPOSITE_ENCODER 1
 
 // GEN_LUMA_CHROMA
 // ---------------
@@ -120,10 +90,11 @@
 // dot4x clock. This smooths out transitions between levels.
 //`define AVERAGE_LUMAS 1
 
-// HAVE_SERIAL_LINK
+// HAVE_MCU_EEPROM
 // ----------------
 // Uncomment if board has serial link between MCU and FPGA
-`define HAVE_SERIAL_LINK 1
+// to save/restore settings on its EEPROM.
+`define HAVE_MCU_EEPROM 1
 
 // HAVE_EEPROM
 // ----------------

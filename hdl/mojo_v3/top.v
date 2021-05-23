@@ -24,12 +24,6 @@ module top(
            input clk_col4x_pal,
            input clk_col4x_ntsc,
 
-           // If we have a composite encoder, we output two
-           // signals to drive it.
-`ifdef HAVE_COMPOSITE_ENCODER
-           output clk_colref,    // color ref for encoder
-           output csync,         // csync for encoder
-`endif
            // If we are generating luma/chroma, add outputs
 `ifdef GEN_LUMA_CHROMA
            output [5:0] luma,    // luma out
@@ -37,7 +31,7 @@ module top(
 `endif
 
 `endif  // HAVE_COLOR_CLOCKS
-`ifdef HAVE_SERIAL_LINK
+`ifdef HAVE_MCU_EEPROM
            input [1:0] chip_ext, // chip config from MCU
            output tx,           // to mcm
            input rx,            // from mcm
@@ -81,19 +75,6 @@ module top(
 `endif
        );
 
-// use_scan_doubler is valid only when HAVE_COLOR_CLOCKS is
-// set. If an external composite encoder is going to be used,
-// use_scan_doubler must be false. If use_scan_doubler is false,
-// RGB values will be driven by the pixel sequencer directly at
-// native resolution (which is what you need for a composite
-// encoder). Otherwise, RGB values will go through the scan doubler
-// suitable for VGA or DVI output. (NOTE: The vga scan doubler may
-// not be configured to double anything. It depends on how
-// it is configured but it is still required for any VGA/DVI
-// output). When HAVE_COLOR_CLOCKS is not set only VGA or DVI
-// output is possible so the scan doubler is always used in that
-// case.
-
 wire rst;
 wire clk_dot4x;
 wire [1:0] chip;
@@ -121,19 +102,6 @@ BUFGMUX colmux(
    .I1(clk_col4x_pal),
 	.O(clk_col4x),
    .S(chip[0]));	
-
-`ifdef HAVE_COMPOSITE_ENCODER
-// Since we have color clocks, we will output a color
-// reference clock by dividing the incoming 4x color
-// by 4.  This can be used by an external composite
-// encoder chip to generate luma/chroms and/or composite
-// signals.  Unless we have color clocks available, composite
-// is not possible.
-clk_div4 clk_colorgen (
-             .clk_in(clk_col4x),     // from 4x color clock
-             .reset(rst),
-             .clk_out(clk_colref));  // create color ref clock
-`endif
 
 // From the 4x color clock, generate an 8x color clock
 // This is necessary to meet the minimum frequency of
@@ -235,7 +203,7 @@ wire [11:0] ado;
 wire vic_write_ab;
 wire vic_write_db;
 
-`ifdef HAVE_SERIAL_LINK
+`ifdef HAVE_MCU_EEPROM
 wire[7:0] tx_data_4x;
 wire tx_new_data_4x;
 reg tx_busy_4x;
@@ -247,7 +215,7 @@ wire rx_new_data_4x;
 vicii vic_inst(
           .rst(rst),
           .chip(chip),
-`ifdef HAVE_SERIAL_LINK      
+`ifdef HAVE_MCU_EEPROM      
 	  .chip_ext(chip_ext),
           .tx_data_4x(tx_data_4x),
           .tx_new_data_4x(tx_new_data_4x),
@@ -266,12 +234,7 @@ vicii vic_inst(
           .blue(blue),
 `endif
 `ifdef HAVE_COLOR_CLOCKS
-          // see above, only need to be off for external comp encoder
-          .use_scan_doubler(1'b1),
           .clk_col16x(clk_col16x),
-`ifdef HAVE_COMPOSITE_ENCODER
-          .csync(csync),
-`endif
 `ifdef GEN_LUMA_CHROMA
           .luma(luma),
           .chroma(chroma),
@@ -302,7 +265,7 @@ assign dbl[7:0] = vic_write_db ? dbo : 8'bz; // CPU reading
 assign adl = vic_write_ab ? ado[5:0] : 6'bz; // vic or stollen cycle
 assign adh = vic_write_ab ? ado[11:6] : 6'bz;
 
-`ifdef HAVE_SERIAL_LINK
+`ifdef HAVE_MCU_EEPROM
 // Propagate tx from 4x domain to clk_serial domain
 // When tx_new_data goes high, avr_interface will transmit
 // the config byte to the MCU.  There is a timing exception

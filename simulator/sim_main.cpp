@@ -760,7 +760,7 @@ int main(int argc, char** argv, char** env) {
 
     HEADER(top);
 
-#if HAVE_SERIAL_LINK
+#if HAVE_MCU_EEPROM
     // When we have the serial link (MCU), set the chip select lines
     top->V_CHIP_EXT = chip;
 #endif
@@ -768,7 +768,7 @@ int main(int argc, char** argv, char** env) {
     // When we have an eeprom, just start off with the chip we have
     top->V_CHIP = chip;
 #endif
-#ifdef HAVE_SERIAL_LINK
+#ifdef HAVE_MCU_EEPROM
     top->cclk = 1; // hold high to simulate MCU ready
 #endif
 
@@ -821,9 +821,6 @@ int main(int argc, char** argv, char** env) {
     // the color index coming out of the pixel sequencer
     // (pixel_color3)
     ;
-#endif
-#ifdef HAVE_COLOR_CLOCKS
-    top->use_scan_doubler = 1;
 #endif
 
     if (shadowVic) {
@@ -1024,7 +1021,7 @@ int main(int argc, char** argv, char** env) {
 #ifdef GEN_LUMA_CHROMA
             // Fallback to native pixel sequencer's pixel3 value
 	    // and lookup colors.
-	    if (top->top__DOT__vic_inst__DOT__native_active) {
+	    if (top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__native_active) {
 	       int index = top->top__DOT__vic_inst__DOT__pixel_color3;
                SDL_SetRenderDrawColor(ren,
                 (native_rgb[index*3] << 2) | 0b11,

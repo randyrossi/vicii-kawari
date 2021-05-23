@@ -6,14 +6,6 @@
 `define EEPROM_READ  1'd0
 `define EEPROM_WRITE 1'd1
 
-// If we're using a composite encoder, we need to export RGB
-// (But the pixel clock and active can be trimmed)
-`ifdef HAVE_COMPOSITE_ENCODER
-`ifndef GEN_RGB
-`define GEN_RGB 1
-`endif
-`endif
-
 // Do some sanity checks
 // If we'er exporting RGB signals, we need RGB
 `ifdef GEN_RGB
@@ -385,21 +377,21 @@
 `endif
 
 // Can't have both serial link and eeprom
-`ifdef HAVE_SERIAL_LINK
+`ifdef HAVE_MCU_EEPROM
 `ifdef HAVE_EEPROM
-error CAN'T HAVE HAVE_SERIAL_LINK AND HAVE_EEPROM together
+error CAN'T HAVE HAVE_MCU_EEPROM AND HAVE_EEPROM together
 `endif
 `endif
 
 // Can't have both serial link and eeprom
 `ifdef HAVE_EEPROM
-`ifdef HAVE_SERIAL_LINK
-error CAN'T HAVE HAVE_SERIAL_LINK AND HAVE_EEPROM together
+`ifdef HAVE_MCU_EEPROM
+error CAN'T HAVE HAVE_MCU_EEPROM AND HAVE_EEPROM together
 `endif
 `endif
 
 // Serial link implies we have sys_clock
-`ifdef HAVE_SERIAL_LINK
+`ifdef HAVE_MCU_EEPROM
 `define HAS_PERSIST_CAP 1'b1
 `define HAVE_SYS_CLOCK 1
 `elsif HAVE_EEPROM

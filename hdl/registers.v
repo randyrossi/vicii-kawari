@@ -88,7 +88,7 @@ module registers(
            output reg last_hpolarity, // for vga only
            output reg last_vpolarity, // for vga only
 `endif
-`ifdef HAVE_SERIAL_LINK
+`ifdef HAVE_MCU_EEPROM
 	   // When we poke our custom regs that change config,
 	   // we set the new config byte and raise new data flag
 	   // for the MCU to pick up over serial.
@@ -317,7 +317,7 @@ LUMA_REGS luma_regs(clk_dot4x,
 
 // --- END EXTENSIONS ----
 
-`ifdef HAVE_SERIAL_LINK
+`ifdef HAVE_MCU_EEPROM
 reg [10:0] tx_new_data_ctr;
 reg tx_new_data_start;
 reg [7:0] tx_cfg_change_1;
@@ -340,7 +340,7 @@ reg [7:0] rx_cfg_change_1;
 // which seems good enough for BASIC to stay away from.  6502
 // assembly might not work though.  This start value (2048) can
 // probably be reduced but I haven't found the lowest value possible.
-`ifdef HAVE_SERIAL_LINK
+`ifdef HAVE_MCU_EEPROM
 always @(posedge clk_dot4x)
 begin
    // Signal from other process blocks to start the serial transmission.
@@ -448,7 +448,7 @@ always @(posedge clk_dot4x)
 	video_ram_flag_port_2_auto <= 2'b0;
 	video_ram_flag_regs_overlay <= 1'b0;
 	video_ram_flag_persist <= 1'b0;
-`ifdef HAVE_SERIAL_LINK
+`ifdef HAVE_MCU_EEPROM
 	rx_new_data_ff <= 1'b0;
 `endif
 `ifdef SIMULATOR_BOARD
@@ -512,13 +512,12 @@ always @(posedge clk_dot4x)
          // For now, this is dummy code to keep the reset in line
          // from getting thrown away. Replace this with code to
          // actually reset the extension registers at some point
-         // on the real board.  Remove this ifdef when mojo_v3 is
-         // deprecated.
-	 if (!cpu_reset_i)
+         // on the real board.
+	 if (cpu_reset_i)
 	    ec <= 4'b1;
 `endif
 
-`ifdef HAVE_SERIAL_LINK
+`ifdef HAVE_MCU_EEPROM
         // Always reset start flag. write_ram may flip this true if a register was
 		  // changed and it should be persisted.
         tx_new_data_start = 1'b0;
@@ -782,7 +781,7 @@ always @(posedge clk_dot4x)
                            dbo[7:0] <= { 1'b0,
                                          video_ram_flag_persist,
                                          video_ram_flag_regs_overlay,
-`ifdef HAVE_SERIAL_LINK
+`ifdef HAVE_MCU_EEPROM
                                          tx_busy_4x,
 `else
                                          1'b0,
@@ -1437,7 +1436,7 @@ end
 
 // Handle init and settings retrieval for boards
 // with MCU + SERIAL
-`ifdef HAVE_SERIAL_LINK
+`ifdef HAVE_MCU_EEPROM
 `include "registers_mcu_eeprom.v"
 `elsif HAVE_EEPROM
 `include "registers_eeprom.v"
