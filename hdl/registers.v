@@ -513,7 +513,7 @@ always @(posedge clk_dot4x)
          // from getting thrown away. Replace this with code to
          // actually reset the extension registers at some point
          // on the real board.
-	 if (cpu_reset_i)
+	 if (!cpu_reset_i)
 	    ec <= 4'b1;
 `endif
 
