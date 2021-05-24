@@ -2,6 +2,14 @@
 
 `include "common.vh"
 
+task send_data_mcu(input do_tx, input [7:0] reg_num, input [7:0] reg_val);
+    if (do_tx) begin
+        tx_cfg_change_1 <= reg_num;
+        tx_cfg_change_2 <= reg_val;
+        tx_new_data_start = 1'b1;
+    end
+endtask
+
 // For color ram:
 //     flip read bit on and set address and which 6-bit-nibble (out of 4)
 //     is to be read, dbo will be set by the 'CPU read from color regs' block
@@ -194,11 +202,7 @@ task write_ram(
               color_regs_wr_nibble <= ram_lo[1:0];
               color_regs_addr_a <= ram_lo[6:2];
 `ifdef HAVE_MCU_EEPROM
-              if (do_tx) begin
-                  tx_cfg_change_1 <= ram_lo;
-                  tx_cfg_change_2 <= {2'b0, data[5:0]};
-                  tx_new_data_start = 1'b1;					  
-              end
+	      send_data_mcu(do_tx, ram_lo, {2'b0, data[5:0]});
 `endif
 `endif
 `endif
@@ -211,11 +215,7 @@ task write_ram(
               luma_regs_wr_nibble <= 2'b00; // luma
               luma_regs_addr_a <= ram_lo[3:0];
 `ifdef HAVE_MCU_EEPROM
-              if (do_tx) begin
-                  tx_cfg_change_1 <= ram_lo;
-                  tx_cfg_change_2 <= {2'b0, data[5:0]};
-                  tx_new_data_start = 1'b1;					  
-              end
+	      send_data_mcu(do_tx, ram_lo, {2'b0, data[5:0]});
 `endif
            end
            else if (ram_lo >= `EXT_REG_PHASE0 && ram_lo <= `EXT_REG_PHASE15) begin
@@ -224,11 +224,7 @@ task write_ram(
               luma_regs_wr_nibble <= 2'b01; // phase
               luma_regs_addr_a <= ram_lo[3:0];
 `ifdef HAVE_MCU_EEPROM
-              if (do_tx) begin
-                  tx_cfg_change_1 <= ram_lo;
-                  tx_cfg_change_2 <= data[7:0];
-                  tx_new_data_start = 1'b1;					  
-              end
+	      send_data_mcu(do_tx, ram_lo, data[7:0]);
 `endif
            end
            else if (ram_lo >= `EXT_REG_AMPL0 && ram_lo <= `EXT_REG_AMPL15) begin
@@ -237,11 +233,7 @@ task write_ram(
               luma_regs_wr_nibble <= 2'b10; // amplitude
               luma_regs_addr_a <= ram_lo[3:0];
 `ifdef HAVE_MCU_EEPROM
-              if (do_tx) begin
-                  tx_cfg_change_1 <= ram_lo;
-                  tx_cfg_change_2 <= {4'b0, data[3:0]};
-                  tx_new_data_start = 1'b1;					  
-              end
+	      send_data_mcu(do_tx, ram_lo, {4'b0, data[3:0]});
 `endif
            end
 /* verilator lint_on WIDTH */
@@ -265,11 +257,7 @@ task write_ram(
 		    // init sequence will set it either from MCU lines
 		    // or EEPROM data.
 `ifdef HAVE_MCU_EEPROM
-		  if (do_tx) begin
-		      tx_cfg_change_1 <= `EXT_REG_CHIP_MODEL;
-		      tx_cfg_change_2 <= {6'b0, data[1:0]};
-		      tx_new_data_start = 1'b1;					  
-                  end
+	          send_data_mcu(do_tx, `EXT_REG_CHIP_MODEL, {6'b0, data[1:0]});
 `endif
                  end
                  `EXT_REG_DISPLAY_FLAGS:
@@ -284,16 +272,13 @@ task write_ram(
                  last_vpolarity <= data[`VPOLARITY_BIT];
 			  end
     `ifdef HAVE_MCU_EEPROM
-			  if (do_tx) begin
-			     tx_cfg_change_1 <= `EXT_REG_DISPLAY_FLAGS;
-			     tx_cfg_change_2 <= {4'b0,
+	                  send_data_mcu(do_tx, `EXT_REG_DISPLAY_FLAGS,
+			             {4'b0,
 				     data[`ENABLE_CSYNC_BIT],
 				     data[`IS_NATIVE_X_BIT],
 				     data[`IS_NATIVE_Y_BIT],
 				     data[`SHOW_RASTER_LINES_BIT]
-				     };
-                             tx_new_data_start = 1'b1;
-                          end
+				     });
     `endif // HAVE_MCU_EEPROM
 `endif // NEED_RGB
                  end
@@ -304,10 +289,18 @@ task write_ram(
                     hires_cursor_hi <= data;
 `endif
 `ifdef CONFIGURABLE_LUMAS
-                 `EXT_REG_BLANKING:
+                 `EXT_REG_BLANKING: begin
                     blanking_level <= data[5:0];
-                 `EXT_REG_BURSTAMP:
+`ifdef HAVE_MCU_EEPROM
+	            send_data_mcu(do_tx, ram_lo, {2'b0, data[5:0]});
+`endif
+                 end
+		 `EXT_REG_BURSTAMP: begin
                     burst_amplitude <= data[3:0];
+`ifdef HAVE_MCU_EEPROM
+	            send_data_mcu(do_tx, ram_lo, {4'b0, data[3:0]});
+`endif
+                 end
 `endif
 `ifdef CONFIGURABLE_TIMING
                 `EXT_REG_TIMING_CHANGE:
@@ -357,3 +350,4 @@ task write_ram(
         end
     end
 endtask
+
