@@ -28,9 +28,11 @@ void save_changes(void)
       POKE(VIDEO_MEM_1_LO, reg);
       SAFE_POKE(VIDEO_MEM_1_VAL, PEEK(VIDEO_MEM_1_VAL));
    }
-   POKE(VIDEO_MEM_1_LO, BLACK_LEVEL);
+   reg = BLACK_LEVEL;
+   POKE(VIDEO_MEM_1_LO, reg);
    SAFE_POKE(VIDEO_MEM_1_VAL, PEEK(VIDEO_MEM_1_VAL));
-   POKE(VIDEO_MEM_1_LO, BURST_AMPLITUDE);
+   reg = BURST_AMPLITUDE;
+   POKE(VIDEO_MEM_1_LO, reg);
    SAFE_POKE(VIDEO_MEM_1_VAL, PEEK(VIDEO_MEM_1_VAL));
    POKE(VIDEO_MEM_FLAGS, PEEK(VIDEO_MEM_FLAGS) & ~VMEM_FLAG_PERSIST_BIT);
 }
@@ -47,6 +49,8 @@ void main_menu(void)
     int v;
     int refresh_all = 1;
     int store_current = 1;
+    int border = PEEK(53280L);
+    int background = PEEK(53281L);
 
     color_name[0] = "black  ";
     color_name[1] = "white  ";
@@ -84,8 +88,8 @@ void main_menu(void)
 
     printf ("\n");
     printf ("S to save changes    %c to switch sides\n",95);
-    printf ("R to revert changes\n");
-    printf ("N for next preset\n");
+    printf ("R to revert changes  B inc brd color\n");
+    printf ("N for next preset    G inc bg color\n");
     printf ("Q to quit changes\n");
 
     for (;;) {
@@ -238,6 +242,14 @@ void main_menu(void)
        else if (key == 'q')  {
             CLRSCRN;
 	    return;
+       }
+       else if (key == 'b')  {
+	    border = (border + 1 ) % 16;
+            POKE(53280L, border);
+       }
+       else if (key == 'g')  {
+	    background = (background + 1 ) % 16;
+            POKE(53281L, background);
        }
     }
 }
