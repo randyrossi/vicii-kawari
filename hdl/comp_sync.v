@@ -243,6 +243,7 @@ reg [3:0] amplitudereg_o2;
 reg [3:0] amplitudereg_16;
 always @(posedge clk_col16x) amplitudereg_o2 <=  amplitudereg_o;
 always @(posedge clk_col16x) amplitudereg_16 <= amplitudereg_o2;
+wire [8:0] chroma9;
 
 
 always @(posedge clk_col16x)
@@ -304,7 +305,6 @@ end
 
 // Retrieve wave value from addr calculated from amplitude, phaseCounter and
 // phaseOffset.
-wire [8:0] chroma9;
 SINE_WAVES vic_sinewaves(.clk(clk_col16x),
                          .addr(sineROMAddr),
                          .dout(chroma9));
