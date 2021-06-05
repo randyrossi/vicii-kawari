@@ -2,6 +2,7 @@
 
 `include "common.vh"
 
+`ifdef HAVE_MCU_EEPROM
 task send_data_mcu(input do_tx, input [7:0] reg_num, input [7:0] reg_val);
     if (do_tx) begin
         tx_cfg_change_1 <= reg_num;
@@ -9,6 +10,7 @@ task send_data_mcu(input do_tx, input [7:0] reg_num, input [7:0] reg_val);
         tx_new_data_start = 1'b1;
     end
 endtask
+`endif
 
 // For color ram:
 //     flip read bit on and set address and which 6-bit-nibble (out of 4)
