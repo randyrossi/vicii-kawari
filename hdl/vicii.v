@@ -30,6 +30,10 @@ module vicii(
 `endif
       output rst,
       input clk_dot4x,
+`ifdef CMOD_BOARD
+      input [1:0] btn,
+      output [1:0] led,
+`endif
 `ifdef HAVE_MCU_EEPROM
       input [1:0] chip_ext,           // config from MC
       output[7:0] tx_data_4x,         // from regs module
@@ -853,6 +857,10 @@ wire [7:0] timing_v_bporch_pal;
 
 registers vic_registers(
               .rst(rst),
+`ifdef CMOD_BOARD
+              .btn(btn),
+              .led(led),
+`endif
 `ifdef REV_1_BOARD_OR_SIMULATOR_BOARD
               .cpu_reset_i(cpu_reset_i),
 `endif

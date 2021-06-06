@@ -1,12 +1,12 @@
 `timescale 1ns/1ps
 
-module color4x_12_pal_clockgen
-       (output wire clk_col4x,
+module color16x_12_pal_clockgen
+       (output wire clk_col16x,
         input wire reset,
         input wire clk_in12mhz
        );
 
-wire clk_col4x_clk_wiz_0;
+wire clk_col16x_clk_wiz_0;
 
 wire [15:0] do_unused;
 wire drdy_unused;
@@ -29,10 +29,10 @@ MMCME2_ADV
       .COMPENSATION("ZHOLD"),
       .STARTUP_WAIT("FALSE"),
       .DIVCLK_DIVIDE(1),
-      .CLKFBOUT_MULT_F(62.625),
+      .CLKFBOUT_MULT_F(58.375),
       .CLKFBOUT_PHASE(0.000),
       .CLKFBOUT_USE_FINE_PS("FALSE"),
-      .CLKOUT0_DIVIDE_F(42.375),
+      .CLKOUT0_DIVIDE_F(9.875),
       .CLKOUT0_PHASE(0.000),
       .CLKOUT0_DUTY_CYCLE(0.500),
       .CLKOUT0_USE_FINE_PS("FALSE"),
@@ -42,7 +42,7 @@ MMCME2_ADV
     (
         .CLKFBOUT(clkfbout_clk_wiz_0),
         .CLKFBOUTB(clkfboutb_unused),
-        .CLKOUT0(clk_col4x_clk_wiz_0),
+        .CLKOUT0(clk_col16x_clk_wiz_0),
         .CLKOUT0B(clkout0b_unused),
         .CLKOUT1(clkout1_unused),
         .CLKOUT1B(clkout1b_unused),
@@ -85,7 +85,7 @@ BUFG clkf_buf
       .I(clkfbout_clk_wiz_0));
 
 BUFG clkout_buf
-     (.O(clk_col4x),
-      .I(clk_col4x_clk_wiz_0));
+     (.O(clk_col16x),
+      .I(clk_col16x_clk_wiz_0));
 
 endmodule

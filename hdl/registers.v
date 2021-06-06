@@ -1,11 +1,15 @@
 `timescale 1ns / 1ps
 
 `include "common.vh"
-
+    
 module registers(
            output reg rst = 1'b1,
 `ifdef REV_1_BOARD_OR_SIMULATOR_BOARD
            input cpu_reset_i,
+`endif
+`ifdef CMOD_BOARD
+           input [1:0] btn,
+           output [1:0] led,
 `endif
            input clk_dot4x,
            input clk_phi,
@@ -145,8 +149,8 @@ module registers(
 `ifdef HAVE_EEPROM
         output reg    D,
         input         Q,
-        output reg    C,
-        output reg    S,
+        output reg    C = 1'b1,
+        output reg    S = 1'b1,
 `endif
         output reg [1:0] chip
        );

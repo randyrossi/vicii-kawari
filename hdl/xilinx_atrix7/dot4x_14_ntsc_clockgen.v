@@ -1,21 +1,22 @@
 `timescale 1ns/1ps
 
 // Generate clk_dot4x from a 14.318181 Mhz input clock
-//       dot = 14.318181 / 14 * 8
-// clk_dot4x = 14.318181 / 14 * 32
+// Also generate a clk_col16x clock.
 //
-// DIV = 28 , MULT = 64 : 28/64 = 14 / 32
+// clk_dot    = 14.318181 * 8 / 14
+// clk_dot4x  = 14.318181 * 64 / 28
+// clk_col16x = 14.318181 * 64 / 16 (=*4)
 
 module dot4x_14_ntsc_clockgen
        (output wire clk_dot4x,
-        output wire clk_col4x,
+        output wire clk_col16x,
         input wire reset,
         input wire clk_in14mhz,
         output locked
        );
 
 wire clk_dot4x_clk_wiz_0;
-wire clk_col4x_clk_wiz_0;
+wire clk_col16x_clk_wiz_0;
 
 wire [15:0] do_unused;
 wire drdy_unused;
@@ -36,7 +37,7 @@ MMCME2_ADV
       .CLKFBOUT_MULT_F(64.000),
       .CLKFBOUT_PHASE(0.000),
       .CLKFBOUT_USE_FINE_PS("FALSE"),
-      .CLKOUT0_DIVIDE_F(64.000),
+      .CLKOUT0_DIVIDE_F(16.000),
       .CLKOUT0_PHASE(0.000),
       .CLKOUT0_DUTY_CYCLE(0.500),
       .CLKOUT0_USE_FINE_PS("FALSE"),
@@ -50,7 +51,7 @@ MMCME2_ADV
     (
         .CLKFBOUT(clkfbout_clk_wiz_0),
         .CLKFBOUTB(clkfboutb_unused),
-        .CLKOUT0(clk_col4x_clk_wiz_0),
+        .CLKOUT0(clk_col16x_clk_wiz_0),
         .CLKOUT0B(clkout0b_unused),
         .CLKOUT1(clk_dot4x_clk_wiz_0),
         .CLKOUT1B(clkout1b_unused),
@@ -93,8 +94,8 @@ BUFG clkf_buf
       .I(clkfbout_clk_wiz_0));
 
 BUFG clkout1_buf
-     (.O(clk_col4x),
-      .I(clk_col4x_clk_wiz_0));
+     (.O(clk_col16x),
+      .I(clk_col16x_clk_wiz_0));
 
 BUFG clkout2_buf
      (.O(clk_dot4x),

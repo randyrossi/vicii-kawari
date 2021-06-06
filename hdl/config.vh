@@ -6,6 +6,7 @@
 
 // Pick a board.
 //`define SIMULATOR_BOARD 1
+//`define CMOD_BOARD 1
 `define REV_1_BOARD 1
 //`define REV_2_BOARD 1
 
