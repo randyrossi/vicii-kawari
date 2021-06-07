@@ -322,15 +322,6 @@ LUMA_REGS luma_regs(clk_dot4x,
 // --- END EXTENSIONS ----
 
 `ifdef HAVE_MCU_EEPROM
-reg [10:0] tx_new_data_ctr;
-reg tx_new_data_start;
-reg [7:0] tx_cfg_change_1;
-reg [7:0] tx_cfg_change_2;
-reg rx_new_data_ff;
-reg [7:0] rx_cfg_change_1;
-`endif
-
-`ifdef HAVE_MCU_EEPROM
 `include "registers_mcu_eeprom.vh"
 `elsif HAVE_EEPROM
 `include "registers_eeprom.vh"
@@ -338,42 +329,7 @@ reg [7:0] rx_cfg_change_1;
 `include "registers_no_eeprom.vh"
 `endif
 
-// When transmitting config changes over serial tx, we transmit
-// two bytes for every register change. The first is the register
-// number and the second is the value. The tx_new_data strobe
-// is separated for these two bytes by ~2048 dot4x ticks which gives
-// enough time for the serial module to transmit a byte before
-// transmitting the next one. The tx strobe is held high for two
-// dot4x ticks.  2048 dot 4x ticks = 64 dot clock periods.  Worst
-// case dot clock period is approx 122.5 nanoseconds.  So that's
-// 7840 nano seconds for 7.8 us to transmit a byte.  Therefore, when
-// the 6502 is making register changes with the persistence flag
-// turned on, it should not change registers faster than 15.6us
-// which seems good enough for BASIC to stay away from.  6502
-// assembly might not work though.  This start value (2048) can
-// probably be reduced but I haven't found the lowest value possible.
-`ifdef HAVE_MCU_EEPROM
-always @(posedge clk_dot4x)
-begin
-   // Signal from other process blocks to start the serial transmission.
-   if (tx_new_data_start) begin
-	   tx_new_data_ctr <= 11'd2047;
-   end
-
-   if (tx_new_data_ctr > 0)
-	   tx_new_data_ctr <= tx_new_data_ctr - 11'b1;
-		
-   if (tx_new_data_ctr == 1 || tx_new_data_ctr == 2) begin
-      tx_new_data_4x <= 1'b1;
-		tx_data_4x <= tx_cfg_change_2;
-   end else if (tx_new_data_ctr == 2046 || tx_new_data_ctr == 2047) begin
-      tx_new_data_4x <= 1'b1;
-		tx_data_4x <= tx_cfg_change_1;
-   end else	
-      tx_new_data_4x <= 1'b0;
-end
-`endif
-
+// Master process block for registers
 always @(posedge clk_dot4x)
     if (rst) begin
 
