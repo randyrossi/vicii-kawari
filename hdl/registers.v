@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 
 `include "common.vh"
-    
+
 module registers(
            output reg rst = 1'b1,
 `ifdef REV_1_BOARD_OR_SIMULATOR_BOARD
@@ -330,6 +330,14 @@ reg rx_new_data_ff;
 reg [7:0] rx_cfg_change_1;
 `endif
 
+`ifdef HAVE_MCU_EEPROM
+`include "registers_mcu_eeprom.vh"
+`elsif HAVE_EEPROM
+`include "registers_eeprom.vh"
+`else
+`include "registers_no_eeprom.vh"
+`endif
+
 // When transmitting config changes over serial tx, we transmit
 // two bytes for every register change. The first is the register
 // number and the second is the value. The tx_new_data strobe
@@ -368,6 +376,9 @@ end
 
 always @(posedge clk_dot4x)
     if (rst) begin
+
+        handle_persist(1'b1);
+
 `ifdef TEST_PATTERN
         ec <= `LIGHT_BLUE;
         b0c <= `BLUE;
@@ -511,6 +522,8 @@ always @(posedge clk_dot4x)
 
     end else
     begin
+
+         handle_persist(1'b0);
 	 
 `ifdef REV_1_BOARD_OR_SIMULATOR_BOARD
          // For now, this is dummy code to keep the reset in line
@@ -1440,14 +1453,13 @@ end
 
 // Handle init and settings retrieval for boards
 // with MCU + SERIAL
+
 `ifdef HAVE_MCU_EEPROM
 `include "registers_mcu_eeprom.v"
 `elsif HAVE_EEPROM
 `include "registers_eeprom.v"
 `else
 `include "registers_no_eeprom.v"
-`else
-     
 `endif
 
 endmodule

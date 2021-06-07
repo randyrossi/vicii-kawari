@@ -3,8 +3,9 @@
 
 `include "config.vh"
 
-`define EEPROM_READ  1'd0
-`define EEPROM_WRITE 1'd1
+`define EEPROM_READ  2'd0
+`define EEPROM_WRITE 2'd1
+`define EEPROM_IDLE  2'd2
 
 // Do some sanity checks
 // If we'er exporting RGB signals, we need RGB
