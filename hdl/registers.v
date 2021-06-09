@@ -379,8 +379,8 @@ always @(posedge clk_dot4x)
         //handle_sprite_crunch <= `FALSE;
 
 `ifdef CONFIGURABLE_LUMAS
-		  blanking_level <= 6'b010010;
-		  burst_amplitude <= 4'b1001;
+		  blanking_level <= 6'd12;
+		  burst_amplitude <= 4'd12;
 `endif
 `ifdef CONFIGURABLE_TIMING
         timing_change <= 1'b0;
@@ -479,12 +479,9 @@ always @(posedge clk_dot4x)
 
      handle_persist(1'b0);
 	 
-     // For now, this is dummy code to keep the reset in line
-     // from getting thrown away. Replace this with code to
-     // actually reset the extension registers at some point
-     // on the real board.
-	 if (!cpu_reset_i)
-	    ec <= 4'b1;
+	 //if (!cpu_reset_i) begin
+     // TODO : Reset hires registers when reset line detected active
+     //end
 
 `ifdef HAVE_MCU_EEPROM
         // Always reset start flag. write_ram may flip this true if a register was
@@ -512,7 +509,7 @@ always @(posedge clk_dot4x)
 			   end
         end
 `endif
-		  
+
         if (phi_phase_start_dav_plus_1) begin
             if (!clk_phi) begin
                 // always clear these immediately after they may
@@ -1341,22 +1338,22 @@ begin
     amplitudereg_o <= luma_regs_data_out_b[3:0];
 `else
     case (pixel_color3)
-        `BLACK:       lumareg_o <= 6'b010011; // 0
-        `WHITE:       lumareg_o <= 6'b111011; // 8
-        `RED:         lumareg_o <= 6'b011111; // 2
-        `CYAN:        lumareg_o <= 6'b101100; // 6
-        `PURPLE:      lumareg_o <= 6'b100010; // 3
-        `GREEN:       lumareg_o <= 6'b100111; // 5
-        `BLUE:        lumareg_o <= 6'b011100; // 1
-        `YELLOW:      lumareg_o <= 6'b110010; // 7
-        `ORANGE:      lumareg_o <= 6'b100010; // 3
-        `BROWN:       lumareg_o <= 6'b011100; // 1
-        `PINK:        lumareg_o <= 6'b100111; // 5
-        `DARK_GREY:   lumareg_o <= 6'b011111; // 2
-        `GREY:        lumareg_o <= 6'b100110; // 4
-        `LIGHT_GREEN: lumareg_o <= 6'b110010; // 7
-        `LIGHT_BLUE:  lumareg_o <= 6'b100110; // 4
-        `LIGHT_GREY:  lumareg_o <= 6'b101100; // 6
+        `BLACK:       lumareg_o <= 6'h05;
+        `WHITE:       lumareg_o <= 6'h3a;
+        `RED:         lumareg_o <= 6'h13;
+        `CYAN:        lumareg_o <= 6'h24;
+        `PURPLE:      lumareg_o <= 6'h16;
+        `GREEN:       lumareg_o <= 6'h1e;
+        `BLUE:        lumareg_o <= 6'h0e;
+        `YELLOW:      lumareg_o <= 6'h2b;
+        `ORANGE:      lumareg_o <= 6'h16;
+        `BROWN:       lumareg_o <= 6'h0e;
+        `PINK:        lumareg_o <= 6'h1e;
+        `DARK_GREY:   lumareg_o <= 6'h13;
+        `GREY:        lumareg_o <= 6'h1c;
+        `LIGHT_GREEN: lumareg_o <= 6'h2b;
+        `LIGHT_BLUE:  lumareg_o <= 6'h1c;
+        `LIGHT_GREY:  lumareg_o <= 6'h24;
    endcase
 
    case (pixel_color3)
