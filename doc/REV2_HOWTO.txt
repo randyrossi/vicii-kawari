@@ -1,0 +1,31 @@
+Some notes about REV2 board with W25Q16 flash chip.
+This configuration loads the bitstream from flash and you need
+to use ISE Impact to program via the JTAG header.
+
+!!! Must add this to .bashrc for ISE 14.7 
+export XIL_IMPACT_SKIPIDCODECHECK="1"
+(This will take effect on next boot)
+
+This tells Impact to ignore the IDCODE check.  Otherwise, the SPI
+flash chip will not match what it expects.  But W25Q16 will work.
+
+To make a PROM:
+1. Run impact and select Generate PROM
+2. Add the top.bit (lots of wasted space)
+3. Save
+
+To program
+1. Initialize JTAG chain
+2. Boundary scan
+3. Add SPI flash device
+4. Select W25Q16
+5. Program
+
+Must re-create PROM (.mcs) file after every new bitstream?
+Sometimes Impact will crash loading the project
+Just launch from desktop icon and it will ask you if you want to load last
+project.  Say no and start from scratch.
+
+
+Remember to go to Process Properties (when Generate Programming File is selected in Project Navigator) and turn on SPI bus width 4!  This enables quad SPI
+programming.

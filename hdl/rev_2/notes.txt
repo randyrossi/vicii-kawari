@@ -1,0 +1,23 @@
+Diffs from rev_1
+
+L64N_2(P40) moved to L62N_2(P43) for CAS
+L64P_2(P41) moved to L64N_2(P40) for RAS
+L65N_2(P38) moved to L64P_2(P41) for BA
+L65N_2(P38) becomes CS_FLASH
+
+PIN 6 on IC2 becomes CCLK
+
+64 MOSI pin 5
+65 MISO pin 2
+61 D3 pin 7
+62 D2 pin 3
+
+NEW EEPROM_FLASH pin
+
+Removed
+J2 IC1 MCUProgrammingPads Q2 R1 R4 R3 Z1,Z2 C2
+L1,C1 C4 C3 D1 C28 C29 C5
+
+M0 and M1 reversed for flash config
+
+add cfg_reset

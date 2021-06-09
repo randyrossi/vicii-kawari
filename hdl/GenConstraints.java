@@ -9,6 +9,7 @@ public class GenConstraints
   final static int HAVE_MCU_EEPROM = 3;
   final static int GEN_RGB = 4;
   final static int HAVE_EEPROM = 5;
+  final static int HAVE_SYS_CLOCK = 6;
 
   public static boolean[] read_config(String filename) throws Exception {
     File f = new File(filename);
@@ -16,7 +17,7 @@ public class GenConstraints
     InputStreamReader ir = new InputStreamReader(fis);
     BufferedReader br = new BufferedReader(ir);
 
-    boolean[] flags = new boolean[6];
+    boolean[] flags = new boolean[7];
     while (true) {
       String line = br.readLine();
       if (line == null) break;
@@ -33,6 +34,8 @@ public class GenConstraints
         flags[GEN_RGB] = true;
       else if (line.startsWith("`define HAVE_EEPROM"))
         flags[HAVE_EEPROM] = true;
+      else if (line.startsWith("`define HAVE_SYS_CLOCK"))
+        flags[HAVE_SYS_CLOCK] = true;
     }
     return flags;
   }
@@ -101,6 +104,13 @@ public class GenConstraints
 
 		if (!flags[HAVE_EEPROM]) {
                    if (t6.startsWith("eeprom_flash")) continue;
+                   if (t6.startsWith("eeprom_q")) continue;
+                   if (t6.startsWith("eeprom_d")) continue;
+                   if (t6.startsWith("eeprom_clk")) continue;
+                }
+
+                if (!flags[HAVE_SYS_CLOCK]) {
+                   if (t6.startsWith("sys_clock")) continue;
                 }
 
 		System.out.println("NET \""+t6+"\" LOC="+t4+";");
@@ -121,8 +131,10 @@ public class GenConstraints
         }
 
 	// Our clock period constraint
-        System.out.println("NET \"sys_clock\" TNM_NET = clk;");
-        System.out.println("TIMESPEC TS_sys_clock = PERIOD \"clk\" 50 MHz HIGH 50%;");
+	if (flags[HAVE_SYS_CLOCK]) {
+           System.out.println("NET \"sys_clock\" TNM_NET = clk;");
+           System.out.println("TIMESPEC TS_sys_clock = PERIOD \"clk\" 50 MHz HIGH 50%;");
+        }
 
 	if (flags[HAVE_COLOR_CLOCKS]) {
            System.out.println("NET \"clk_col4x_pal\" TNM_NET = color_clk_pal;");

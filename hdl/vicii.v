@@ -25,9 +25,7 @@
 
 module vicii(
       output [1:0] chip,               // exported from registers
-`ifdef REV_1_BOARD_OR_SIMULATOR_BOARD
       input cpu_reset_i,
-`endif
       output rst,
       input clk_dot4x,
 `ifdef CMOD_BOARD
@@ -861,9 +859,7 @@ registers vic_registers(
               .btn(btn),
               .led(led),
 `endif
-`ifdef REV_1_BOARD_OR_SIMULATOR_BOARD
               .cpu_reset_i(cpu_reset_i),
-`endif
               .clk_dot4x(clk_dot4x),
               .clk_phi(clk_phi),
               .phi_phase_start_dav_plus_2(phi_phase_start[`DATA_DAV_PLUS_2]),

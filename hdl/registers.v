@@ -4,9 +4,7 @@
 
 module registers(
            output reg rst = 1'b1,
-`ifdef REV_1_BOARD_OR_SIMULATOR_BOARD
            input cpu_reset_i,
-`endif
 `ifdef CMOD_BOARD
            input [1:0] btn,
            output [1:0] led,
@@ -479,16 +477,14 @@ always @(posedge clk_dot4x)
     end else
     begin
 
-         handle_persist(1'b0);
+     handle_persist(1'b0);
 	 
-`ifdef REV_1_BOARD_OR_SIMULATOR_BOARD
-         // For now, this is dummy code to keep the reset in line
-         // from getting thrown away. Replace this with code to
-         // actually reset the extension registers at some point
-         // on the real board.
+     // For now, this is dummy code to keep the reset in line
+     // from getting thrown away. Replace this with code to
+     // actually reset the extension registers at some point
+     // on the real board.
 	 if (!cpu_reset_i)
 	    ec <= 4'b1;
-`endif
 
 `ifdef HAVE_MCU_EEPROM
         // Always reset start flag. write_ram may flip this true if a register was

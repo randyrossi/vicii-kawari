@@ -1,0 +1,113 @@
+# Bi-directional address bus
+P34     A0       adl[0]  IO    QUIETIO 2 LVCMOS33
+P33     A1       adl[1]  IO    QUIETIO 2 LVCMOS33
+P32     A2       adl[2]  IO    QUIETIO 2 LVCMOS33
+P30     A3       adl[3]  IO    QUIETIO 2 LVCMOS33
+P29     A4       adl[4]  IO    QUIETIO 2 LVCMOS33
+P27     A5       adl[5]  IO    QUIETIO 2 LVCMOS33
+P26     A6       adh[0]  IO    QUIETIO 2 LVCMOS33
+P24     A7       adh[1]  IO    QUIETIO 2 LVCMOS33
+P23     A8       adh[2]  IO    QUIETIO 2 LVCMOS33
+P22     A9       adh[3]  IO    QUIETIO 2 LVCMOS33
+P21     A10      adh[4]  IO    QUIETIO 2 LVCMOS33
+P35     A11      adh[5]  IO    QUIETIO 2 LVCMOS33
+
+# Bi-directional databus
+P116     D7       dbl[7]  IO   QUIETIO 2 LVCMOS33
+P118     D6       dbl[6]  IO   QUIETIO 2 LVCMOS33
+P120     D5       dbl[5]  IO   QUIETIO 2 LVCMOS33
+P123     D4       dbl[4]  IO   QUIETIO 2 LVCMOS33
+P124     D3       dbl[3]  IO   QUIETIO 2 LVCMOS33
+P126     D2       dbl[2]  IO   QUIETIO 2 LVCMOS33
+P131     D1       dbl[1]  IO   QUIETIO 2 LVCMOS33
+P132     D0       dbl[0]  IO   QUIETIO 2 LVCMOS33
+
+# Read only lines
+P127    D8       dbh[0]  I     NA NA LVCMOS33
+P121    D9       dbh[1]  I     NA NA LVCMOS33
+P119    D10      dbh[2]  I     NA NA LVCMOS33
+P115    D11      dbh[3]  I     NA NA LVCMOS33
+P112    RW       rw      I     NA NA LVCMOS33
+P114    CE       ce      I     NA NA LVCMOS33
+P117    LP       lp      I     NA NA LVCMOS33
+P133    CPURI    cpu_reset_i   I NA NA LVCMOS33
+
+# Write only lines
+P43      CAS      cas     O    QUIETIO 2 LVCMOS33
+P40      RAS      ras     O    QUIETIO 2 LVCMOS33
+P50      PHI      clk_phi O    QUIETIO 2 LVCMOS33
+P51      AEC      aec     O    QUIETIO 2 LVCMOS33
+P41      BA       ba      O    QUIETIO 2 LVCMOS33
+P111     IRQ      irq     O    SLOW 2 LVCMOS33
+
+# Control ines
+P10     addr_dir  ls245_addr_dir O    SLOW 4 LVCMOS33
+P134    data_dir  ls245_data_dir O    SLOW 4 LVCMOS33
+P1      RESET     cpu_reset      O    SLOW 4 LVCMOS33
+P67     switch    standard_sw    I    NA NA LVCMOS33
+P44     CFG_RESET cfg_reset      I    NA NA LVCMOS33
+
+# RGB Video output
+P74    HEAD   red[0]          O   QUIETIO 2 LVCMOS33
+P75    HEAD   red[1]          O   QUIETIO 2 LVCMOS33
+P78    HEAD   red[2]          O   QUIETIO 2 LVCMOS33
+P79    HEAD   red[3]          O   QUIETIO 2 LVCMOS33
+P80    HEAD   red[4]          O   QUIETIO 2 LVCMOS33
+P81    HEAD   red[5]          O   QUIETIO 2 LVCMOS33
+
+P82    HEAD    green[0]        O   QUIETIO 2 LVCMOS33
+P83    HEAD    green[1]        O   QUIETIO 2 LVCMOS33
+P87    HEAD    green[2]        O   QUIETIO 2 LVCMOS33
+P88    HEAD    green[3]        O   QUIETIO 2 LVCMOS33
+P92    HEAD    green[4]        O   QUIETIO 2 LVCMOS33
+P93    HEAD    green[5]        O   QUIETIO 2 LVCMOS33
+
+P94    HEAD   blue[0]         O   QUIETIO 2 LVCMOS33
+P95    HEAD   blue[1]         O   QUIETIO 2 LVCMOS33
+P97    HEAD   blue[2]         O   QUIETIO 2 LVCMOS33
+P98    HEAD   blue[3]         O   QUIETIO 2 LVCMOS33
+P99    HEAD   blue[4]         O   QUIETIO 2 LVCMOS33
+P100   HEAD   blue[5]         O   QUIETIO 2 LVCMOS33
+
+P104   HEAD   clk_dot4x_ext   O   SLOW 4 LVCMOS33
+P101   HEAD   hsync           O   SLOW 4 LVCMOS33
+P102   HEAD   vsync           O   SLOW 4 LVCMOS33
+
+# Only included if have_color_clocks is true
+P85    HEAD     clk_col4x_pal   I   NA NA LVCMOS33
+P84    HEAD     clk_col4x_ntsc  I   NA NA LVCMOS33
+
+# Only included if gen_luma_chroma is true
+P11    LUMA     luma[5]         O   QUIETIO 2 LVCMOS33
+P12    LUMA     luma[4]         O   QUIETIO 2 LVCMOS33
+P14    LUMA     luma[3]         O   QUIETIO 2 LVCMOS33
+P15    LUMA     luma[2]         O   QUIETIO 2 LVCMOS33
+P16    LUMA     luma[1]         O   QUIETIO 2 LVCMOS33
+P17    LUMA     luma[0]         O   QUIETIO 2 LVCMOS33
+P2     CHROMA   chroma[5]       O   QUIETIO 2 LVCMOS33
+P5     CHROMA   chroma[4]       O   QUIETIO 2 LVCMOS33
+P6     CHROMA   chroma[3]       O   QUIETIO 2 LVCMOS33
+P7     CHROMA   chroma[2]       O   QUIETIO 2 LVCMOS33
+P8     CHROMA   chroma[1]       O   QUIETIO 2 LVCMOS33
+P9     CHROMA   chroma[0]       O   QUIETIO 2 LVCMOS33
+
+P46    EEPROM_CS  eeprom_cs               O  QUIETIO  2 LVCMOS33
+P70    EEPROM_CLK eeprom_clk              O  QUIETIO  2 LVCMOS33
+P64    EEPROM_D   eeprom_d                O  QUIETIO  2 LVCMOS33
+P65    EEPROM_Q   eeprom_q                I  NA NA LVCMOS33
+
+# Clock
+P56    CLK      sys_clock       I     NA NA NA
+
+# 0 = BLUE
+# 1 = RED
+# 2 = GREEN
+# 3 = CLOCK
+P144    TX0_TMDS3 TX0_TMDS[2] O NA NA TMDS_33
+P143    TX0_TMDS3 TX0_TMDSB[2] O NA NA TMDS_33
+P142    TX0_TMDS3 TX0_TMDS[1] O NA NA TMDS_33
+P141    TX0_TMDS3 TX0_TMDSB[1] O NA NA TMDS_33
+P140    TX0_TMDS3 TX0_TMDS[0] O NA NA TMDS_33
+P139    TX0_TMDS3 TX0_TMDSB[0] O NA NA TMDS_33
+P138    TX0_TMDS3 TX0_TMDS[3] O NA NA TMDS_33
+P137    TX0_TMDS3 TX0_TMDSB[3] O NA NA TMDS_33

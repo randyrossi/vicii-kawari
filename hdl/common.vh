@@ -29,14 +29,6 @@
 `endif
 `endif
 
-// Annoying
-`ifdef SIMULATOR_BOARD
-`define REV_1_BOARD_OR_SIMULATOR_BOARD 1
-`endif
-`ifdef REV_1_BOARD
-`define REV_1_BOARD_OR_SIMULATOR_BOARD 1
-`endif
-
 // DATA_DAV
 //
 // When to read from the data bus for both char/pixel and sprite dma
