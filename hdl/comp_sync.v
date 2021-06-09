@@ -145,7 +145,7 @@ reg [5:0] next_luma;
 `ifdef CONFIGURABLE_LUMAS
 `define BLANKING_LEVEL blanking_level
 `else
-`define BLANKING_LEVEL 6'b010010
+`define BLANKING_LEVEL 6'd12
 `endif
 
 always @(posedge clk_dot4x)
@@ -203,7 +203,7 @@ end
 `ifdef CONFIGURABLE_LUMAS
 `define BURST_AMPLITUDE burst_amplitude
 `else
-`define BURST_AMPLITUDE 4'b1001
+`define BURST_AMPLITUDE 4'd12
 `endif
 
 reg [8:0] raster_y_16_1;
