@@ -479,36 +479,9 @@ always @(posedge clk_dot4x)
 
      handle_persist(1'b0);
 	 
-	 //if (!cpu_reset_i) begin
+     //if (!cpu_reset_i) begin
      // TODO : Reset hires registers when reset line detected active
      //end
-
-`ifdef HAVE_MCU_EEPROM
-        // Always reset start flag. write_ram may flip this true if a register was
-		  // changed and it should be persisted.
-        tx_new_data_start = 1'b0;
-
-        // Handle incoming serial commands.
-        // This is guaranteed to go back low on next tick.
-        if (rx_new_data_4x) begin
-	         rx_new_data_ff <= ~rx_new_data_ff;
-	         if (~rx_new_data_ff) begin
-			      // Config byte 1
-				   rx_cfg_change_1 <= rx_data_4x;
-			   end else begin
-			      // Config byte 2
-				   write_ram(
-                  .overlay(1'b1),
-                  .ram_lo(rx_cfg_change_1), // 1st byte from rx
-                  .ram_hi(8'b0), // ignored
-                  .ram_idx(8'b0), // ignored
-					   .data(rx_data_4x), // 2nd byte from rx
-						.from_cpu(1'b0), // this is from the MCU
-					   .do_tx(1'b0) // no tx
-                 );
-			   end
-        end
-`endif
 
         if (phi_phase_start_dav_plus_1) begin
             if (!clk_phi) begin
