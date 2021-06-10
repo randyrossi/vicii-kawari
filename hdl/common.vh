@@ -5,7 +5,8 @@
 
 `define EEPROM_READ  2'd0
 `define EEPROM_WRITE 2'd1
-`define EEPROM_IDLE  2'd2
+`define EEPROM_WAIT  2'd2
+`define EEPROM_IDLE  2'd3
 
 // Do some sanity checks
 // If we'er exporting RGB signals, we need RGB

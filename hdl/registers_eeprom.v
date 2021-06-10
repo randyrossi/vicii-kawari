@@ -62,10 +62,13 @@ task handle_persist(input is_reset);
             if (~clk8) begin
                 case (eeprom_state)
                     `EEPROM_READ:
-                        if (state_val >= 25 && state_val <= 32) begin
-                            // Shift in data from EEPROM - 8 bits
+                        // 25-32 : DATA 8 bit value
+                        if (state_val >= 25 && state_val <= 32)
                             data <= { data[6:0], Q };
-                        end
+                    `EEPROM_WAIT:
+                        // 9-16 : STATUS 8 bit value
+                        if (state_val >= 9 && state_val <= 16)
+                            status <= { status[6:0], Q };
                     default:
                         ;
                 endcase
@@ -78,20 +81,27 @@ task handle_persist(input is_reset);
                 state_ctr <= state_ctr + 15'b1;
         end
         else if (clk_div[2] && state_ctr[14]) begin
+            // End of state
             case (eeprom_state)
                 `EEPROM_READ:
                 if (is_reset) begin
                    $display("rst <= 0, chip restored");
                    // First pass was to set chip during reset
-                   rst <= 0;
+                   rst <= 0; // out of reset
                    // Now do another iteration to set registers
+		   // so leave eeprom_state set to EEPROM_READ
                    state_ctr <= 15'd0;
                    magic <= 0; // reset our magic counter again
                 end else begin
                    $display("registers restored");
 		   eeprom_state <= `EEPROM_IDLE;
                 end
-                `EEPROM_WRITE:
+		`EEPROM_WRITE: begin
+                   // Now poll status reg
+		   eeprom_state <= `EEPROM_WAIT;
+                   state_ctr <= 15'd0;
+                end
+                `EEPROM_WAIT:
 		   eeprom_state <= `EEPROM_IDLE;
                 default:
                    ;
@@ -105,8 +115,12 @@ task handle_persist(input is_reset);
                 // clk8 is LOW and about to set C LOW
                 case (eeprom_state)
                     `EEPROM_READ:
+                        // 0 : setup
+			// 1-8 : 8 bit instruction
+			// 9-24 : 16 bit address
+			// 25-32 : 8 bit value read
+			// 33 : extra for C to go low again
                         if (state_val >= 1 && state_val <= 33)
-                            // Include 33 for last C pulse low
                             C <= clk8;
                         else if (state_val == 34) begin
                             $display("GOT %d for ADDR %d (magic %d)",
@@ -127,20 +141,62 @@ task handle_persist(input is_reset);
                                 default:
                                     ;
                             endcase
-                            // TODO: Set the register with the data but only if
-                            // magic was found.  Only chip for is_reset and
-			    // anything else for !is_reset
+
+                            // Only restore settings if we have magic
+                            if (magic == 4) begin
+                              // For 2nd pass, write to registers
+                              if (!is_reset)
+                                write_ram(
+                                  .overlay(1'b1),
+                                  .ram_lo(addr_lo),
+                                  .ram_hi(8'b0), // ignored
+                                  .ram_idx(8'b0), // ignored
+                                  .data(data),
+                                  .from_cpu(1'b0), // this is from the EEPROM
+                                  .do_tx(1'b0) // no tx
+                                );
+                              // For 1st pass, set chip (during reset) so
+                              // everything inits to the right chip model
+                              else if (addr_lo == `EXT_REG_CHIP_MODEL) begin
+                                 chip <= data[1:0];
+                              end
+                            end
                         end
                     `EEPROM_WRITE:
                         if (addr_lo == eeprom_w_addr[7:0])
                         begin
+                            // 0 : setup
+                            // 1-8 : 8 bit instruction
+			    // 9 : extra for C to go low again
                             if (state_val >= 1 && state_val <= 9)
-                                // Extra after last bit to bring C LOW again
                                 C <= clk8;
-                            else if (state_val > 10 && state_val <= 43)
-                                // Extra after last bit to bring C LOW again
+                            // 10 : setup
+			    // 11-18 : 8 bit instruction
+			    // 19-34 : 16 bit address
+			    // 35-42 : 8 bit value
+			    // 43 : extra for C to go low again
+                            if (state_val >= 1 && state_val <= 43)
                                 C <= clk8;
                         end
+                    `EEPROM_WAIT:
+                        begin
+                            // 0 : setup
+                            // 1-8 : 8 bit instruction
+			    // 9-16 : 8 bit value
+			    // 17 : extra for C to go low again
+                            if (state_val >= 1 && state_val <= 17)
+                                C <= clk8;
+                            if (state_val == 17) begin
+                                if (!status[0]) begin
+                                    $display("NOT BUSY");
+                                    eeprom_state <= `EEPROM_IDLE;   
+				    eeprom_busy <= 1'b0;
+			        end else begin
+                                    $display("STILL BUSY");
+				    state_ctr <= 0;
+			        end
+			    end
+			end
                      default:
                         ;
                 endcase
@@ -167,23 +223,20 @@ task handle_persist(input is_reset);
                             C <= clk8;
                         end
                         else if (state_val >= 25 && state_val <= 32) begin
-                            // Extra state for last pulse to go low again
                             C <= clk8;
                         end
                         else if (state_val == 33) begin
                             S <= 1;
                             C <= 1;
                         end
-
                     `EEPROM_WRITE:
                         // If we hit the write address, then write now.
-                        if (addr_lo == eeprom_w_addr[7:0])
+                        if (addr_lo == eeprom_w_addr)
                         begin
                             if (state_val == 0) begin
                                 S <= 0;
                                 C <= 1;
                                 instr <= 8'b00000110; // WREN
-                                // TODO: Set the persist busy flag to true here
                             end
                             else if (state_val >= 1 && state_val <= 8) begin
                                 // Shift in the instruction - 8 bits
@@ -200,18 +253,7 @@ task handle_persist(input is_reset);
                                 C <= 1;
                                 instr <= 8'b00000010; // WRITE
                                 addr <= {8'b0, addr_lo};
-                                case (addr_lo)
-                                    8'hfc:
-                                        data <= 8'd86; // V
-                                    8'hfd:
-                                        data <= 8'd73; // I
-                                    8'hfe:
-                                        data <= 8'd67; // C
-                                    8'hff:
-                                        data <= 8'd50; // 2
-                                    default:
-                                        data <= 8'd55; // TODO get from register
-                                endcase
+				data <= eeprom_w_value;
                             end
                             else if (state_val >= 11 && state_val <= 18) begin
                                 // Shift in the instruction - 8 bits
@@ -237,6 +279,26 @@ task handle_persist(input is_reset);
                                 $display("WROTE for ADDR %d", addr_lo);
                             end
                         end
+                    `EEPROM_WAIT:
+                        if (state_val == 0) begin
+                           S <= 0;
+                           C <= 1;
+                           instr <= 8'b00000101; // RDSR
+                        end
+                        else if (state_val >= 1 && state_val <= 8) begin
+                            // Shift in the instruction - 8 bits
+                            D <= instr[7];
+                            C <= clk8;
+                            instr <= {instr[6:0], 1'b0};
+                        end
+                        else if (state_val >= 9 && state_val <= 16) begin
+                            C <= clk8;
+                        end
+			else if (state_val == 17) begin
+                            C <= 1;
+                            S <= 1;
+                            $display("POLLED STATUS %d", status);
+                        end
                     default:
                         ;
                 endcase
@@ -244,3 +306,4 @@ task handle_persist(input is_reset);
         end
     end
 endtask
+

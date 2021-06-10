@@ -3,12 +3,28 @@
 `include "common.vh"
 
 `ifdef HAVE_MCU_EEPROM
-task send_data_mcu(input do_tx, input [7:0] reg_num, input [7:0] reg_val);
+task persist_eeprom(input do_tx, input [7:0] reg_num, input [7:0] reg_val);
+    // This version sends the change bytes to the MCU via serial link
     if (do_tx) begin
         tx_cfg_change_1 <= reg_num;
         tx_cfg_change_2 <= reg_val;
         tx_new_data_start = 1'b1;
     end
+endtask
+`elsif HAVE_EEPROM
+task persist_eeprom(input do_tx, input [7:0] reg_num, input [7:0] reg_val);
+    // This version writes to the eeprom
+    if (do_tx) begin
+       eeprom_busy <= 1'b1;
+       eeprom_state <= `EEPROM_WRITE;
+       eeprom_w_addr <= reg_num;
+       eeprom_w_value <= reg_val;
+       state_ctr <= 15'd0;
+    end
+endtask
+`else
+task persist_eeprom(input do_tx, input [7:0] reg_num, input [7:0] reg_val);
+    ; // noop
 endtask
 `endif
 
@@ -158,6 +174,14 @@ task read_ram(
                 8'hdf:
                 dbo <= timing_v_bporch_pal;
 `endif
+                8'hfc:
+                   dbo <= magic_1;
+                8'hfd:
+                   dbo <= magic_2;
+                8'hfe:
+                   dbo <= magic_3;
+                8'hff:
+                   dbo <= magic_4;
                  default: ;
               endcase
           end
@@ -203,9 +227,7 @@ task write_ram(
               color_regs_wr_value <= data[5:0];
               color_regs_wr_nibble <= ram_lo[1:0];
               color_regs_addr_a <= ram_lo[6:2];
-`ifdef HAVE_MCU_EEPROM
-	      send_data_mcu(do_tx, ram_lo, {2'b0, data[5:0]});
-`endif
+	      persist_eeprom(do_tx, ram_lo, {2'b0, data[5:0]});
 `endif
 `endif
           end
@@ -216,37 +238,28 @@ task write_ram(
               luma_regs_wr_value <= {2'b0, data[5:0]};
               luma_regs_wr_nibble <= 2'b00; // luma
               luma_regs_addr_a <= ram_lo[3:0];
-`ifdef HAVE_MCU_EEPROM
-	      send_data_mcu(do_tx, ram_lo, {2'b0, data[5:0]});
-`endif
+	      persist_eeprom(do_tx, ram_lo, {2'b0, data[5:0]});
            end
            else if (ram_lo >= `EXT_REG_PHASE0 && ram_lo <= `EXT_REG_PHASE15) begin
               luma_regs_pre_wr2_a <= 1'b1;
               luma_regs_wr_value <= data[7:0];
               luma_regs_wr_nibble <= 2'b01; // phase
               luma_regs_addr_a <= ram_lo[3:0];
-`ifdef HAVE_MCU_EEPROM
-	      send_data_mcu(do_tx, ram_lo, data[7:0]);
-`endif
+	      persist_eeprom(do_tx, ram_lo, data[7:0]);
            end
            else if (ram_lo >= `EXT_REG_AMPL0 && ram_lo <= `EXT_REG_AMPL15) begin
               luma_regs_pre_wr2_a <= 1'b1;
               luma_regs_wr_value <= {4'b0, data[3:0]};
               luma_regs_wr_nibble <= 2'b10; // amplitude
               luma_regs_addr_a <= ram_lo[3:0];
-`ifdef HAVE_MCU_EEPROM
-	      send_data_mcu(do_tx, ram_lo, {4'b0, data[3:0]});
-`endif
+	      persist_eeprom(do_tx, ram_lo, {4'b0, data[3:0]});
            end
 /* verilator lint_on WIDTH */
 `endif
            else begin
               // When we poke certain config registers, we
-              // reconstruct a new configuration byte and
-              // pass it to the MCU over serial.  Then, it
-              // will save the values and the new config
-              // bits will be reflected after the next
-              // cold boot.
+              // persist them according to persist_eeprom
+	      // implementation.
               case (ram_lo)
                  // Not safe to allow nativex/y to be changed from
                  // CPU. Already burned by this with accidental
@@ -258,9 +271,7 @@ task write_ram(
                     // We never change chip register from CPU. Only
 		    // init sequence will set it either from MCU lines
 		    // or EEPROM data.
-`ifdef HAVE_MCU_EEPROM
-	          send_data_mcu(do_tx, `EXT_REG_CHIP_MODEL, {6'b0, data[1:0]});
-`endif
+                    persist_eeprom(do_tx, `EXT_REG_CHIP_MODEL, {6'b0, data[1:0]});
                  end
                  `EXT_REG_DISPLAY_FLAGS:
                   begin
@@ -273,15 +284,13 @@ task write_ram(
                  last_hpolarity <= data[`HPOLARITY_BIT];
                  last_vpolarity <= data[`VPOLARITY_BIT];
 			  end
-    `ifdef HAVE_MCU_EEPROM
-	                  send_data_mcu(do_tx, `EXT_REG_DISPLAY_FLAGS,
+	                  persist_eeprom(do_tx, `EXT_REG_DISPLAY_FLAGS,
 			             {4'b0,
 				     data[`ENABLE_CSYNC_BIT],
 				     data[`IS_NATIVE_X_BIT],
 				     data[`IS_NATIVE_Y_BIT],
 				     data[`SHOW_RASTER_LINES_BIT]
 				     });
-    `endif // HAVE_MCU_EEPROM
 `endif // NEED_RGB
                  end
 `ifdef HIRES_MODES
@@ -293,15 +302,11 @@ task write_ram(
 `ifdef CONFIGURABLE_LUMAS
                  `EXT_REG_BLANKING: begin
                     blanking_level <= data[5:0];
-`ifdef HAVE_MCU_EEPROM
-	            send_data_mcu(do_tx, ram_lo, {2'b0, data[5:0]});
-`endif
+	            persist_eeprom(do_tx, ram_lo, {2'b0, data[5:0]});
                  end
 		 `EXT_REG_BURSTAMP: begin
                     burst_amplitude <= data[3:0];
-`ifdef HAVE_MCU_EEPROM
-	            send_data_mcu(do_tx, ram_lo, {4'b0, data[3:0]});
-`endif
+	            persist_eeprom(do_tx, ram_lo, {4'b0, data[3:0]});
                  end
 `endif
 `ifdef CONFIGURABLE_TIMING
@@ -341,6 +346,14 @@ task write_ram(
                 8'hdf:
                 timing_v_bporch_pal <= data;
 `endif
+                8'hfc:
+                   magic_1 <= data;
+                8'hfd:
+                   magic_2 <= data;
+                8'hfe:
+                   magic_3 <= data;
+                8'hff:
+                   magic_4 <= data;
                  default: ;
               endcase
            end

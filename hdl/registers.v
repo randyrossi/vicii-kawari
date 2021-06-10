@@ -153,6 +153,11 @@ module registers(
         output reg [1:0] chip
        );
 
+reg[7:0] magic_1;
+reg[7:0] magic_2;
+reg[7:0] magic_3;
+reg[7:0] magic_4;
+
 // 2D arrays that need to be flattened for output
 reg [8:0] sprite_x[0:`NUM_SPRITES - 1];
 reg [7:0] sprite_y[0:`NUM_SPRITES - 1];
@@ -721,7 +726,9 @@ always @(posedge clk_dot4x)
                                          video_ram_flag_persist,
                                          video_ram_flag_regs_overlay,
 `ifdef HAVE_MCU_EEPROM
-                                         tx_busy_4x,
+                                         tx_busy_4x, // serial link busy
+`elsif HAVE_EEPROM
+                                         eeprom_busy, // eeprom busy
 `else
                                          1'b0,
 `endif
