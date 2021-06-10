@@ -3,16 +3,22 @@
 #include <peekpoke.h>
 
 #include "util.h"
+#include "init.h"
 #include "menu.h"
-
-int detected(void);
 
 void main()
 {
-    if (detected()) {
+    if (enable_kawari()) {
        HIRES_OFF();    
        INIT_COLORS();
-       main_menu();
+
+       while (1) {
+          if (have_magic())
+             main_menu();
+          else
+             if (!first_init())
+                break;
+       }
     } else {
        printf ("kawari not detected");
     }

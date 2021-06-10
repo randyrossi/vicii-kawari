@@ -25,4 +25,8 @@
 
 #define INIT_COLORS() POKE(53280L,6); POKE(53281L,14); POKE(646,1);
 
-int detected(void);
+// Returns 1 if Kawari was successfully enabled.
+int enable_kawari(void);
+
+// Returns 1 if we detected magic bytes for settings.
+int have_magic(void);

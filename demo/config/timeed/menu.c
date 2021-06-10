@@ -9,14 +9,14 @@
 #define SL 4   // start line
 #define NUM_PRESETS 2
 
-struct regs r;
+static struct regs r;
 
-int current_start[4];
-int current_fp[4];
-int current_sync[4];
-int current_bp[4];
+static int current_start[4];
+static int current_fp[4];
+static int current_sync[4];
+static int current_bp[4];
 
-int defaults[] = {
+static int defaults[] = {
 	// ntsc
         0,  // start   0
         10,  // fporch  10

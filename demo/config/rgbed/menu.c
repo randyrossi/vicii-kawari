@@ -10,12 +10,12 @@
 #define SL 3   // start line
 #define NUM_PRESETS 3
 
-struct regs r;
+static struct regs r;
 
-char* color_name[16];
+static char* color_name[16];
 
-int current_colors[64];
-int preset_num = 0;
+static int current_colors[64];
+static int preset_num = 0;
 
 static unsigned int preset[NUM_PRESETS][64] = {
 {

@@ -4,7 +4,7 @@
 #include "util.h"
 #include "kawari.h"
 
-int detected(void) {
+int enable_kawari(void) {
     POKE(53311L,86);
     POKE(53311L,73);
     POKE(53311L,67);
@@ -16,3 +16,11 @@ int detected(void) {
     return PEEK(53311L) == 0;
 }
 
+int have_magic(void) {
+    int m1 = PEEK(53500L);
+    int m2 = PEEK(53500L);
+    int m3 = PEEK(53500L);
+    int m4 = PEEK(53500L);
+
+    return m1 == 86 && m2 == 73 && m3 == 67 && m4 == 50;
+}

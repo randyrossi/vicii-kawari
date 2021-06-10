@@ -6,15 +6,15 @@
 #include "kawari.h"
 #include "menu.h"
 
-struct regs r;
-int next_model=0;
-int current_model=0;
+static struct regs r;
+static int next_model=0;
+static int current_model=0;
 
-int next_display_flags=0;
-int current_display_flags=0;
+static int next_display_flags=0;
+static int current_display_flags=0;
 
-int version;
-char variant[16];
+static int version;
+static char variant[16];
 
 void get_chip_model(void)
 {

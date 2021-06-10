@@ -133,6 +133,20 @@ void writeFlashAdesto(uint32_t startAddress, uint8_t *data, uint16_t length) {
 }
 
 void writeFlashMicrochip(uint32_t startAddress, uint8_t *data, uint16_t length) {
+
+  // TODO: This is the slower way to flash our replacement
+  // for the flash chip found on the Mojo.  The code below
+  // was replaced with this so we can flash our replacement
+  // but the faster 'page' method above could possibly work
+  // for our chip too. For now, just use this slower method.
+  // This code should be refactored to be Kawari specific
+  // as we don't need Mojo anymore.
+  for (int q=0;q<length;q++) {
+    writeByteFlash(startAddress, data[q]);
+    startAddress++;
+  }
+
+/* -- COMMENTED OUT DUE TO NOT COMPATIBLE WITH OUR FLASH CHIP
   if (startAddress % 2 && length > 0){
     writeByteFlash(startAddress, data[0]);
     startAddress++;
@@ -145,6 +159,7 @@ void writeFlashMicrochip(uint32_t startAddress, uint8_t *data, uint16_t length) 
       writeByteFlash(startAddress, data[0]);
     return;
   }
+
 
   
 
@@ -195,6 +210,7 @@ void writeFlashMicrochip(uint32_t startAddress, uint8_t *data, uint16_t length) 
 
   if (pos < length)
     writeByteFlash(startAddress + pos, data[pos]);
+*/
 }
 
 void writeFlash(uint32_t startAddress, uint8_t *data, uint16_t length) {
@@ -222,7 +238,3 @@ void readFlash(volatile uint8_t* buffer, uint32_t address, uint16_t count) {
 
   SPI.end();
 }
-
-
-
-

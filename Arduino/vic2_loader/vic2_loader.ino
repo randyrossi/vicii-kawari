@@ -31,6 +31,11 @@ int tx_busy = 0;
 RingBuffer_t serialBuffer;
 uint8_t serialBufferData[SERIAL_BUFFER_SIZE];
 
+// TODO : Use common file from config util for all defaults
+// Default luma/phase/amplitude
+#define DEFAULT_BLANKING_LEVEL 12
+#define DEFAULT_BURST_AMPLITUDE 12
+#define DEFAULT_DISPLAY_FLAGS 0
 // Default colors - community
 int colors[] = {0,0,0,0,
                 63,63,63,0,
@@ -49,26 +54,24 @@ int colors[] = {0,0,0,0,
                 28,31,57,0,
                 45,45,45,0 };
 
-// Default luma/phase/amplitude
-#define DEFAULT_BLANKING_LEVEL 18
-#define DEFAULT_BURST_AMPLITUDE 9
 int luma[] = {
-                19,0,0,
-                59,0,0,
-                31,80,10,
-                44,208,10,
-                34,32,12,
-                39,160,12,
-                28,0,10,
-                50,128,14,
-                34,96,14,
-                28,112,10,
-                39,80,10,
-                31,0,0,
-                38,0,0,
-                50,160,10,
-                38,0,10,
-                44,0,0};
+   5,0,0,
+   58,0,0,
+   19,80,10,
+   36,208,10,
+   22,32,12,
+   30,160,12,
+   14,0,10,
+   43,128,14,
+   22,96,14,
+   14,112,10,
+   30,80,10,
+   19,0,0,
+   28,0,0,
+   43,160,10,
+   28,0,10,
+   36,0,0,
+};
 
 typedef enum {
   IDLE,
@@ -141,14 +144,18 @@ void disablePostLoad() {
 }
 
 void setMagic() {
-  EEPROM.write(0x100, 'V');
-  EEPROM.write(0x101, 'I');
-  EEPROM.write(0x102, 'C');
-  EEPROM.write(0x103, '2');
   magic_1 = 'V';
   magic_2 = 'I';
   magic_3 = 'C';
   magic_4 = '2';
+  EEPROM.write(0xfc, magic_1);
+  EEPROM.write(0xfd, magic_2);
+  EEPROM.write(0xfe, magic_3);
+  EEPROM.write(0xff, magic_4);
+  last_regs[0xfc] = magic_1;
+  last_regs[0xfd] = magic_2;
+  last_regs[0xfe] = magic_3;
+  last_regs[0xff] = magic_4;
 }
 
 int haveMagic() {
@@ -195,10 +202,10 @@ void initPostLoad() {
   chip_model = last_regs[CHIP_MODEL_ADDR] & 0b11;
 
   // Read magic bytes
-  magic_1 = EEPROM.read(0x100);
-  magic_2 = EEPROM.read(0x101);
-  magic_3 = EEPROM.read(0x102);
-  magic_4 = EEPROM.read(0x103);
+  magic_1 = EEPROM.read(0xfc);
+  magic_2 = EEPROM.read(0xfd);
+  magic_3 = EEPROM.read(0xfe);
+  magic_4 = EEPROM.read(0xff);
 
   // Set PB4-PB7 as outputs. These are our configuration pins.
   ADC_BUS_DDR |= ADC_BUS_MASK; // make outputs
@@ -555,7 +562,7 @@ void uartTask() {
              last_regs[CHIP_MODEL_ADDR] = 0;
              EEPROM.write(CHIP_MODEL_ADDR, last_regs[CHIP_MODEL_ADDR]);
              // display flags (all off, no native x, no native y, no raster lines)
-             last_regs[DISPLAY_FLAGS_ADDR] = 0;
+             last_regs[DISPLAY_FLAGS_ADDR] = DEFAULT_DISPLAY_FLAGS;
              EEPROM.write(DISPLAY_FLAGS_ADDR, last_regs[DISPLAY_FLAGS_ADDR]);
              // color registers - only 1st palette
              for (int r = 0; r < 64; r++) {
