@@ -173,8 +173,6 @@ task read_ram(
                 8'hdf:
                 dbo <= timing_v_bporch_pal;
 `endif
-8'hfb:
-dbo <= remove_me;
                 8'hfc:
                    dbo <= magic_1;
                 8'hfd:
