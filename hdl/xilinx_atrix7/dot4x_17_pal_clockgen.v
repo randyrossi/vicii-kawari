@@ -3,7 +3,7 @@
 // Generate clk_dot4x from a 17.734475Mhz Mhz input clock
 // Also generate clk_col16x.
 //
-// clk_dotx = 17.734475 * 8 / 18 
+// clk_dotx = 17.734475 * 8 / 18
 // clk_dot4x = 17.734475 * 48 / 27    (48/27 = 32/18)
 // clk_col16x = 17.434575 * 48 / 12   (= *4)
 

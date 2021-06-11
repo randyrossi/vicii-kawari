@@ -31,7 +31,7 @@ module comp_sync(
            input [3:0] burst_amplitude,
 `endif
            input [1:0] chip
-);
+       );
 
 reg [9:0] hvisible_end;
 reg [9:0] hsync_start;
@@ -48,18 +48,18 @@ reg native_active;
 
 always @(posedge clk_dot4x)
 begin
-   hSync <= raster_x >= hsync_start && raster_x < hsync_end;
-   vSync <= (
-   ((raster_y == vblank_start & raster_x >= hsync_start) | raster_y > vblank_start) &
-   (raster_y < vblank_end | (raster_y == vblank_end & raster_x < hsync_end))
-   );
-   native_active <= ~(
-   (raster_x >= hvisible_end & raster_x < hvisible_start) |
-   (
-      ((raster_y == vvisible_end & raster_x >= hvisible_end) | raster_y > vvisible_end) &
-      ((raster_y == vvisible_start & raster_x <= hvisible_start) | raster_y < vvisible_start)
-   )
-   );
+    hSync <= raster_x >= hsync_start && raster_x < hsync_end;
+    vSync <= (
+              ((raster_y == vblank_start & raster_x >= hsync_start) | raster_y > vblank_start) &
+              (raster_y < vblank_end | (raster_y == vblank_end & raster_x < hsync_end))
+          );
+    native_active <= ~(
+                      (raster_x >= hvisible_end & raster_x < hvisible_start) |
+                      (
+                          ((raster_y == vvisible_end & raster_x >= hvisible_end) | raster_y > vvisible_end) &
+                          ((raster_y == vvisible_start & raster_x <= hvisible_start) | raster_y < vvisible_start)
+                      )
+                  );
 end
 
 // NTSC: Each x is ~122.2 ns (.1222 us)
@@ -153,31 +153,31 @@ begin
     if (rst)
         luma <= 6'd0;
     else begin
-    case(raster_y)
-        vblank_start:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
-        vblank_start+1:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
-        vblank_start+2:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
-        vblank_start+3:	luma <= ~SE ? `BLANKING_LEVEL : 6'd0;
-        vblank_start+4:	luma <= ~SE ? `BLANKING_LEVEL : 6'd0;
-        vblank_start+5:	luma <= ~SE ? `BLANKING_LEVEL : 6'd0;
-        vblank_start+6:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
-        vblank_start+7:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
-        vblank_start+8:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
-        default: begin
+        case(raster_y)
+            vblank_start:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
+            vblank_start+1:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
+            vblank_start+2:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
+            vblank_start+3:	luma <= ~SE ? `BLANKING_LEVEL : 6'd0;
+            vblank_start+4:	luma <= ~SE ? `BLANKING_LEVEL : 6'd0;
+            vblank_start+5:	luma <= ~SE ? `BLANKING_LEVEL : 6'd0;
+            vblank_start+6:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
+            vblank_start+7:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
+            vblank_start+8:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
+            default: begin
         `ifdef AVERAGE_LUMAS
-            // Average luma over 4 ticks to smooth out transitions
-            next_luma = ~hSync ? (~native_active ? `BLANKING_LEVEL : lumareg_o) : 6'd0;
-				add_luma = {2'b0,next_luma} + {2'b0,prev_luma} + {2'b0,prev_luma2} + {2'b0,prev_luma3}; // add them
-				luma <= add_luma[7:2];  // div 4
-				prev_luma <= next_luma;
-				prev_luma2 <= prev_luma;
-				prev_luma3 <= prev_luma2;
+                // Average luma over 4 ticks to smooth out transitions
+                next_luma = ~hSync ? (~native_active ? `BLANKING_LEVEL : lumareg_o) : 6'd0;
+                add_luma = {2'b0,next_luma} + {2'b0,prev_luma} + {2'b0,prev_luma2} + {2'b0,prev_luma3}; // add them
+                luma <= add_luma[7:2];  // div 4
+                prev_luma <= next_luma;
+                prev_luma2 <= prev_luma;
+                prev_luma3 <= prev_luma2;
         `else
-		      luma <= ~hSync ? (~native_active ? `BLANKING_LEVEL : lumareg_o) : 6'd0;
+                luma <= ~hSync ? (~native_active ? `BLANKING_LEVEL : lumareg_o) : 6'd0;
         `endif
-        end	
-    endcase
-	 end
+            end
+        endcase
+    end
 end
 
 // Phase counter forms the first 4 bits of the index into our
@@ -249,31 +249,31 @@ wire [8:0] chroma9;
 always @(posedge clk_col16x)
 begin
     if (raster_y_16 != prev_raster_y) begin
-       need_burst = 1;
+        need_burst = 1;
     end
     prev_raster_y <= raster_y_16;
 
     if (raster_x_16 >= burst_start && need_burst)
-       in_burst = 1;
+        in_burst = 1;
 
     if (in_burst)
     begin
-       burstCount <= burstCount + 1'b1;
-       if (burstCount == 144) begin // 9 periods * 16 samples for one period
-          in_burst = 0;
-			 need_burst = 0;
-			 burstCount <= 0;
-       end
+        burstCount <= burstCount + 1'b1;
+        if (burstCount == 144) begin // 9 periods * 16 samples for one period
+            in_burst = 0;
+            need_burst = 0;
+            burstCount <= 0;
+        end
     end
 
     // Use amplitude from table lookup inside active region.  For burst, use
     // 4'b0100. Otherwise, amplitude should be 4'b0000 representing no
     // modulation.
     amplitude2 = vSync_16 ?
-                 `NO_MODULATION :
-                 (native_active_16 ?
-                     amplitudereg_16 :
-                     (in_burst ? `BURST_AMPLITUDE : `NO_MODULATION));
+               `NO_MODULATION :
+               (native_active_16 ?
+                amplitudereg_16 :
+                (in_burst ? `BURST_AMPLITUDE : `NO_MODULATION));
 
     amplitude3 <= amplitude2;
     amplitude4 <= amplitude3;
@@ -282,16 +282,16 @@ begin
     // For PAL: Burst phase alternates between 135 and -135 (96 & 160 offsets).
     /* verilator lint_off WIDTH */
     sineWaveAddr = {phaseCounter, 4'b0} +
-    (
-        native_active_16 ?
-            (chip[0] ?
-                (oddline ? 9'd256 - phasereg_16 :  phasereg_16) : /* pal */
-                phasereg_16) :                                   /* ntsc */
-            (chip[0] == 0 ?
-                8'd128 :                                         /* ntsc */
-                (oddline ? 8'd160 : 8'd96)                       /* pal */
-        )
-    );
+                 (
+                     native_active_16 ?
+                     (chip[0] ?
+                      (oddline ? 9'd256 - phasereg_16 :  phasereg_16) : /* pal */
+                      phasereg_16) :                                   /* ntsc */
+                     (chip[0] == 0 ?
+                      8'd128 :                                         /* ntsc */
+                      (oddline ? 8'd160 : 8'd96)                       /* pal */
+                     )
+                 );
     /* verilator lint_on WIDTH */
     // Prefix with amplitude selector. This is our ROM address.
     sineROMAddr <= {amplitude2, sineWaveAddr };

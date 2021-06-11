@@ -89,10 +89,10 @@ wire [5:0] blue;
 // on the chip model by using a BUFGMUX. 1=PAL, 0 = NTSC
 wire clk_col4x;
 BUFGMUX colmux(
-   .I0(clk_col4x_ntsc),
-   .I1(clk_col4x_pal),
-	.O(clk_col4x),
-   .S(chip[0]));	
+            .I0(clk_col4x_ntsc),
+            .I1(clk_col4x_pal),
+            .O(clk_col4x),
+            .S(chip[0]));
 
 // From the 4x color clock, generate an 8x color clock
 // This is necessary to meet the minimum frequency of
@@ -101,16 +101,16 @@ BUFGMUX colmux(
 wire clk_col8x;
 wire clk_col16x;
 x2_clockgen x2_clockgen(
-   .clk_in(clk_col4x),
-   .clk_out_x2(clk_col8x), // for PLL to gen dot4x
-   .clk_out_x4(clk_col16x), // for LUMA/CHROMA gen
-   .reset(1'b0));
+                .clk_in(clk_col4x),
+                .clk_out_x2(clk_col8x), // for PLL to gen dot4x
+                .clk_out_x4(clk_col16x), // for LUMA/CHROMA gen
+                .reset(1'b0));
 `endif
 
 `ifdef WITH_DVI
- wire tx0_pclkx10;
- wire tx0_pclkx2;
- wire tx0_serdesstrobe;
+wire tx0_pclkx10;
+wire tx0_pclkx2;
+wire tx0_serdesstrobe;
 `endif
 
 // dot4x clock generator
@@ -135,7 +135,7 @@ clockgen mojo_clockgen(
              .tx0_pclkx2(tx0_pclkx2),
              .tx0_serdesstrobe(tx0_serdesstrobe)
 `endif
-        );
+         );
 
 `ifdef WITH_DVI
 // Scale from 6 bits to 8 for DVI
@@ -146,19 +146,19 @@ assign red_scaled = red * 255 / 63;
 assign green_scaled = green * 255 / 63;
 assign blue_scaled = blue * 255 / 63;
 dvi_encoder_top dvi_tx0 (
-    .pclk        (clk_dot4x),
-    .pclkx2      (tx0_pclkx2),
-    .pclkx10     (tx0_pclkx10),
-    .serdesstrobe(tx0_serdesstrobe),
-    .rstin       (1'b0),
-    .blue_din    (blue_scaled[7:0]),
-    .green_din   (green_scaled[7:0]),
-    .red_din     (red_scaled[7:0]),
-    .hsync       (hsync),
-    .vsync       (vsync),
-    .de          (active),
-    .TMDS        (TX0_TMDS),
-    .TMDSB       (TX0_TMDSB));
+                    .pclk        (clk_dot4x),
+                    .pclkx2      (tx0_pclkx2),
+                    .pclkx10     (tx0_pclkx10),
+                    .serdesstrobe(tx0_serdesstrobe),
+                    .rstin       (1'b0),
+                    .blue_din    (blue_scaled[7:0]),
+                    .green_din   (green_scaled[7:0]),
+                    .red_din     (red_scaled[7:0]),
+                    .hsync       (hsync),
+                    .vsync       (vsync),
+                    .de          (active),
+                    .TMDS        (TX0_TMDS),
+                    .TMDSB       (TX0_TMDSB));
 `endif
 
 // https://www.xilinx.com/support/answers/35032.html
@@ -197,12 +197,12 @@ vicii vic_inst(
           .rst(rst),
           .chip(chip),
           .cpu_reset_i(cpu_reset_i),
-	  .standard_sw(standard_sw),
+          .standard_sw(standard_sw),
 `ifdef HAVE_EEPROM
-            .D(eeprom_d),
-            .Q(eeprom_q),
-            .C(eeprom_clk),
-            .S(eeprom_cs),
+          .D(eeprom_d),
+          .Q(eeprom_q),
+          .C(eeprom_clk),
+          .S(eeprom_cs),
 `endif
           .clk_dot4x(clk_dot4x),
           .clk_phi(clk_phi),

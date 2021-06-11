@@ -48,13 +48,13 @@ dot4x_12_pal_clockgen dot4x_12_pal_clockgen(
                           .clk_dot4x(clk_dot4x),      // generated 4x dot clock
                           .locked(locked)
                       );
-                      
+
 // Generate a 16x color clock. See vicii.v for values.
 color16x_12_pal_clockgen color16x_12_pal_clockgen(
-                           .clk_in12mhz(src_clockb), // external 12 Mhz clock
-                           .reset(1'b0),
-                           .clk_col16x(clk_col16x)     // generated 4x col clock
-                       );
+                             .clk_in12mhz(src_clockb), // external 12 Mhz clock
+                             .reset(1'b0),
+                             .clk_col16x(clk_col16x)     // generated 4x col clock
+                         );
 
 `endif
 
@@ -80,10 +80,10 @@ dot4x_12_ntsc_clockgen dot4x_12_ntsc_clockgen(
 
 // Generate a 16x color clock. See vicii.v for values.
 color16x_12_ntsc_clockgen color16x_12_ntsc_clockgen(
-                           .clk_in12mhz(src_clockb),    // external 12 Mhz clock
-                           .reset(1'b0),
-                           .clk_col16x(clk_col16x)     // generated 4x col clock
-                      );
+                              .clk_in12mhz(src_clockb),    // external 12 Mhz clock
+                              .reset(1'b0),
+                              .clk_col16x(clk_col16x)     // generated 4x col clock
+                          );
 `endif
 
 // Use an external clock for pal.

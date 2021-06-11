@@ -121,7 +121,7 @@ begin
     // Pixels are delayed so they first become valid precicely
     // when cycle_bit == 0.  So when xscroll == 0, pixels start
     // to render at the first pixel of a 8x8 cell.  This means
-    // we have 8 possible start positions that xscroll controls 
+    // we have 8 possible start positions that xscroll controls
     // within each cell (as expected).
     if (phi_phase_start_dav) begin
         pixels_read_delayed0 <= pixels_read;
@@ -258,66 +258,66 @@ begin
 `ifdef PIXEL_LOG
         $display("PV:%02x FROM %02x", pixel_value, pixels_shifting);
 `endif
-       if (main_border_stage0)
-          pixel_color1 = ec_d2;
-       else begin
-        case (pixel_value[4:2])
-            `MODE_STANDARD_CHAR:
-                pixel_color1 = pixel_value[1] ? char_shifting[11:8]:b0c_d2;
-            `MODE_MULTICOLOR_CHAR:
-                if (char_shifting[11])
+        if (main_border_stage0)
+            pixel_color1 = ec_d2;
+        else begin
+            case (pixel_value[4:2])
+                `MODE_STANDARD_CHAR:
+                    pixel_color1 = pixel_value[1] ? char_shifting[11:8]:b0c_d2;
+                `MODE_MULTICOLOR_CHAR:
+                    if (char_shifting[11])
+                    case (pixel_value[1:0])
+                        2'b00: pixel_color1 = b0c_d2;
+                        2'b01: pixel_color1 = b1c_d2;
+                        2'b10: pixel_color1 = b2c_d2;
+                        2'b11: pixel_color1 = {1'b0, char_shifting[10:8]};
+                    endcase
+                    else
+                        pixel_color1 = pixel_value[1] ? {1'b0,char_shifting[10:8]}:b0c_d2;
+                `MODE_STANDARD_BITMAP:
+                    pixel_color1 = pixel_value[1] ? char_shifting[7:4]:char_shifting[3:0];
+                `MODE_MULTICOLOR_BITMAP:
                 case (pixel_value[1:0])
                     2'b00: pixel_color1 = b0c_d2;
-                    2'b01: pixel_color1 = b1c_d2;
-                    2'b10: pixel_color1 = b2c_d2;
-                    2'b11: pixel_color1 = {1'b0, char_shifting[10:8]};
+                    2'b01: pixel_color1 = char_shifting[7:4];
+                    2'b10: pixel_color1 = char_shifting[3:0];
+                    2'b11: pixel_color1 = char_shifting[11:8];
                 endcase
-                else
-                    pixel_color1 = pixel_value[1] ? {1'b0,char_shifting[10:8]}:b0c_d2;
-            `MODE_STANDARD_BITMAP:
-                pixel_color1 = pixel_value[1] ? char_shifting[7:4]:char_shifting[3:0];
-            `MODE_MULTICOLOR_BITMAP:
-            case (pixel_value[1:0])
-                2'b00: pixel_color1 = b0c_d2;
-                2'b01: pixel_color1 = char_shifting[7:4];
-                2'b10: pixel_color1 = char_shifting[3:0];
-                2'b11: pixel_color1 = char_shifting[11:8];
+                `MODE_EXTENDED_BG_COLOR:
+                case ({pixel_value[1], char_shifting[7:6]})
+                    3'b000: pixel_color1 = b0c_d2;
+                    3'b001: pixel_color1 = b1c_d2;
+                    3'b010: pixel_color1 = b2c_d2;
+                    3'b011: pixel_color1 = b3c_d2;
+                    default: pixel_color1 = char_shifting[11:8];
+                endcase
+                `MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR:
+                    pixel_color1 = `BLACK;
+                `MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
+                    pixel_color1 = `BLACK;
+                `MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP:
+                    pixel_color1 = `BLACK;
             endcase
-            `MODE_EXTENDED_BG_COLOR:
-            case ({pixel_value[1], char_shifting[7:6]})
-                3'b000: pixel_color1 = b0c_d2;
-                3'b001: pixel_color1 = b1c_d2;
-                3'b010: pixel_color1 = b2c_d2;
-                3'b011: pixel_color1 = b3c_d2;
-                default: pixel_color1 = char_shifting[11:8];
-            endcase
-            `MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR:
-                pixel_color1 = `BLACK;
-            `MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
-                pixel_color1 = `BLACK;
-            `MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP:
-                pixel_color1 = `BLACK;
-        endcase
-		  
-		  // sprites overwrite pixels
-        // The comparisons of background pixel and sprite pixels must be
-        // on the same delay 'schedule' here.  Also, the pri, mmc and colors
-        // need to be delayed so they split this properly on reg changes.
-        if (active_sprite_d[3]) begin
-            if (!sprite_pri_d[active_sprite_d[2:0]] || is_background_pixel0) begin
-                if (sprite_mmc_d[active_sprite_d[2:0]]) begin  // multi-color mode ?
-                    case(sprite_cur_pixel[active_sprite_d[2:0]])
-                        2'b00:  ;
-                        2'b01:  pixel_color1 = sprite_mc0_d2;
-                        2'b10:  pixel_color1 = sprite_col_d2[active_sprite_d[2:0]];
-                        2'b11:  pixel_color1 = sprite_mc1_d2;
-                    endcase
-                end else if (sprite_cur_pixel[active_sprite_d[2:0]][1]) begin
-                    pixel_color1 = sprite_col_d2[active_sprite_d[2:0]];
+
+            // sprites overwrite pixels
+            // The comparisons of background pixel and sprite pixels must be
+            // on the same delay 'schedule' here.  Also, the pri, mmc and colors
+            // need to be delayed so they split this properly on reg changes.
+            if (active_sprite_d[3]) begin
+                if (!sprite_pri_d[active_sprite_d[2:0]] || is_background_pixel0) begin
+                    if (sprite_mmc_d[active_sprite_d[2:0]]) begin  // multi-color mode ?
+                        case(sprite_cur_pixel[active_sprite_d[2:0]])
+                            2'b00:  ;
+                            2'b01:  pixel_color1 = sprite_mc0_d2;
+                            2'b10:  pixel_color1 = sprite_col_d2[active_sprite_d[2:0]];
+                            2'b11:  pixel_color1 = sprite_mc1_d2;
+                        endcase
+                    end else if (sprite_cur_pixel[active_sprite_d[2:0]][1]) begin
+                        pixel_color1 = sprite_col_d2[active_sprite_d[2:0]];
+                    end
                 end
             end
         end
-       end
     end
 end
 

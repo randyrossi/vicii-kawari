@@ -8,13 +8,13 @@
 // new flag and data to the dot4x domain as fast as
 // data arrives off the wire.
 module serial_cross(
-        input in_clk,
-        input out_clk,
-        input [7:0] in_data,
-        input new_in_data,
-        output reg [7:0] out_data,
-	     output reg new_out_data
-);
+           input in_clk,
+           input out_clk,
+           input [7:0] in_data,
+           input new_in_data,
+           output reg [7:0] out_data,
+           output reg new_out_data
+       );
 
 reg request_in;
 reg[7:0] data_in;
@@ -61,8 +61,8 @@ begin
     end else begin
         // Ensures new_data_out will be high on only 1 tick
         new_out_data <= 1'b0;
-		  if (!request_in_out)
-		      ack_out <= 1'b0;
+        if (!request_in_out)
+            ack_out <= 1'b0;
     end
 end
 

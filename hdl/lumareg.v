@@ -5,21 +5,21 @@
 // Ram to hold 6-bit luma, 8-bit phase and 4-bit amplitude values for
 // 16 color registers.
 module LUMA_REGS
-#(
-    parameter addr_width = 4,
-              data_width = 18
-)
-(
-    input wire clk,
-    input wire we_a,
-    input wire [addr_width-1:0] addr_a,
-    input wire [data_width-1:0] din_a,
-    output reg [data_width-1:0] dout_a,
-    input wire we_b,
-    input wire [addr_width-1:0] addr_b,
-    input wire [data_width-1:0] din_b,
-    output reg [data_width-1:0] dout_b
-);
+       #(
+           parameter addr_width = 4,
+           data_width = 18
+       )
+       (
+           input wire clk,
+           input wire we_a,
+           input wire [addr_width-1:0] addr_a,
+           input wire [data_width-1:0] din_a,
+           output reg [data_width-1:0] dout_a,
+           input wire we_b,
+           input wire [addr_width-1:0] addr_b,
+           input wire [data_width-1:0] din_b,
+           output reg [data_width-1:0] dout_b
+       );
 
 (* ram_style = "block" *) reg [data_width-1:0] ram_dual_port[2**addr_width-1:0];
 

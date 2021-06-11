@@ -5,17 +5,17 @@
 
 // A block ram module to hold a single raster line of pixel colors
 module linebuf_RAM
-#(
-    parameter addr_width = 11, // covers max width of 520
-              data_width = 4   // 4 bit color index
-)
-(
-    input wire clk,
-    input wire we,
-    input wire [addr_width-1:0] addr,
-    input wire [data_width-1:0] din,
-    output reg [data_width-1:0] dout
-);
+       #(
+           parameter addr_width = 11, // covers max width of 520
+           data_width = 4   // 4 bit color index
+       )
+       (
+           input wire clk,
+           input wire we,
+           input wire [addr_width-1:0] addr,
+           input wire [data_width-1:0] din,
+           output reg [data_width-1:0] dout
+       );
 
 (* ram_style = "block" *) reg [data_width-1:0] ram_single_port[2**addr_width-1:0];
 
@@ -26,57 +26,57 @@ begin
     dout <= ram_single_port[addr];
 end
 
-endmodule 
+endmodule
 
-// This module manages a double buffer of raster lines. It stores the current
-// pixel_color3 value into one buffer using raster_x as the address.  It reads
-// pixels from the other buffer using h_count as the address.  h_count increments
-// at 2x the rate of raster_x but each line is 'drawn' twice.  So v_count also
-// increments at 2x the rate as raster_y.  We are always one raster line behind.
-// The buffers are swapped after drawing a single input raster line so that we
-// are always filling one buffer while reading from the other.
-module hires_vga_sync(
-           input wire clk_dot4x,
-           input [3:0] dot_rising,
-           input is_native_y_in,
-           input is_native_x_in,
-           input hpolarity,
-           input vpolarity,
-           input enable_csync,
+    // This module manages a double buffer of raster lines. It stores the current
+    // pixel_color3 value into one buffer using raster_x as the address.  It reads
+    // pixels from the other buffer using h_count as the address.  h_count increments
+    // at 2x the rate of raster_x but each line is 'drawn' twice.  So v_count also
+    // increments at 2x the rate as raster_y.  We are always one raster line behind.
+    // The buffers are swapped after drawing a single input raster line so that we
+    // are always filling one buffer while reading from the other.
+    module hires_vga_sync(
+        input wire clk_dot4x,
+        input [3:0] dot_rising,
+        input is_native_y_in,
+        input is_native_x_in,
+        input hpolarity,
+        input vpolarity,
+        input enable_csync,
 `ifdef CONFIGURABLE_TIMING
-            input timing_change_in,
-            input [7:0] timing_h_blank_ntsc,
-            input [7:0] timing_h_fporch_ntsc,
-            input [7:0] timing_h_sync_ntsc,
-            input [7:0] timing_h_bporch_ntsc,
-            input [7:0] timing_v_blank_ntsc,
-            input [7:0] timing_v_fporch_ntsc,
-            input [7:0] timing_v_sync_ntsc,
-            input [7:0] timing_v_bporch_ntsc,
-            input [7:0] timing_h_blank_pal,
-            input [7:0] timing_h_fporch_pal,
-            input [7:0] timing_h_sync_pal,
-            input [7:0] timing_h_bporch_pal,
-            input [7:0] timing_v_blank_pal,
-            input [7:0] timing_v_fporch_pal,
-            input [7:0] timing_v_sync_pal,
-            input [7:0] timing_v_bporch_pal,
+        input timing_change_in,
+        input [7:0] timing_h_blank_ntsc,
+        input [7:0] timing_h_fporch_ntsc,
+        input [7:0] timing_h_sync_ntsc,
+        input [7:0] timing_h_bporch_ntsc,
+        input [7:0] timing_v_blank_ntsc,
+        input [7:0] timing_v_fporch_ntsc,
+        input [7:0] timing_v_sync_ntsc,
+        input [7:0] timing_v_bporch_ntsc,
+        input [7:0] timing_h_blank_pal,
+        input [7:0] timing_h_fporch_pal,
+        input [7:0] timing_h_sync_pal,
+        input [7:0] timing_h_bporch_pal,
+        input [7:0] timing_v_blank_pal,
+        input [7:0] timing_v_fporch_pal,
+        input [7:0] timing_v_sync_pal,
+        input [7:0] timing_v_bporch_pal,
 `endif
-           input wire rst,
-           input [1:0] chip,
-           input [9:0] raster_x, // native res counters
-           input [8:0] raster_y, // native res counters
-           input [9:0] xpos,
+        input wire rst,
+        input [1:0] chip,
+        input [9:0] raster_x, // native res counters
+        input [8:0] raster_y, // native res counters
+        input [9:0] xpos,
 `ifdef HIRES_MODES
-           input [10:0] hires_raster_x,
+        input [10:0] hires_raster_x,
 `endif
-           input [3:0] pixel_color3,
-           output wire hsync,             // horizontal sync
-           output wire vsync,             // vertical sync
-           output wire active,
-           output reg [3:0] pixel_color4,
-           output reg half_bright
-       );
+        input [3:0] pixel_color3,
+        output wire hsync,             // horizontal sync
+        output wire vsync,             // vertical sync
+        output wire active,
+        output reg [3:0] pixel_color4,
+        output reg half_bright
+    );
 
 reg [10:0] max_width; // compared to hcount which can be 2x
 reg [9:0] max_height; // compared to vcount which can be 2y
@@ -111,9 +111,9 @@ wire csync_int;
 // too soon if hs_sta is > 0.
 assign hsync_ah = ((h_count >= hs_sta) & (h_count <= hs_end));
 assign vsync_ah = (
-   ((v_count == vs_sta & h_count >= hs_sta) | v_count > vs_sta) &
-   (v_count < vs_end | (v_count == vs_end & h_count < hs_end))
-);
+           ((v_count == vs_sta & h_count >= hs_sta) | v_count > vs_sta) &
+           (v_count < vs_end | (v_count == vs_end & h_count < hs_end))
+       );
 assign csync_ah = hsync_ah | vsync_ah;
 
 // Turn to active low if poliarity flag says so
@@ -129,8 +129,8 @@ assign vsync = enable_csync ? 1'b0 : vsync_int;
 // Find the union within the range vae<->vas and hae<->has and negate it.
 //
 //            ae as
-//             |  |  
-// xxxxxxxxxxxxx  xxx 
+//             |  |
+// xxxxxxxxxxxxx  xxx
 // xxxxxxxxxxxxx  xxx
 // xxxxxxxxxxxxx  xxx
 // xxxxxxxxxxxxx  xxx
@@ -144,12 +144,12 @@ assign vsync = enable_csync ? 1'b0 : vsync_int;
 // to treat first and last active lines special so we don't start active
 // too soon or end it too early when ha_end > 0
 assign active = ~(
-   (h_count >= ha_end & h_count <= ha_sta) |
-   (
-      ((v_count == va_end & h_count >= ha_end) | v_count > va_end) &
-      ((v_count == va_sta & h_count < ha_sta) | v_count < va_sta)
-   )
-);
+           (h_count >= ha_end & h_count <= ha_sta) |
+           (
+               ((v_count == va_end & h_count >= ha_end) | v_count > va_end) &
+               ((v_count == va_sta & h_count < ha_sta) | v_count < va_sta)
+           )
+       );
 
 
 
@@ -158,9 +158,9 @@ assign active = ~(
 // the table below for more info.
 wire advance;
 assign advance = (!is_native_y && !is_native_x) ||
-                 (is_native_y && !is_native_x && (ff == 2'b01 || ff == 2'b11)) ||
-                 (!is_native_y && is_native_x && (ff == 2'b01 || ff == 2'b11)) ||
-                 (is_native_y && is_native_x && ff == 2'b01);
+       (is_native_y && !is_native_x && (ff == 2'b01 || ff == 2'b11)) ||
+       (!is_native_y && is_native_x && (ff == 2'b01 || ff == 2'b11)) ||
+       (is_native_y && is_native_x && ff == 2'b01);
 
 always @ (posedge clk_dot4x)
 begin
@@ -175,7 +175,7 @@ begin
         set_params();
 `endif
     end else begin
-	    // Resolution | advance on counter | pixel clock       | case
+        // Resolution | advance on counter | pixel clock       | case
         // -------------------------------------------------------------------------
         // 2xX & 2xY  | 0,1,2,3            | 4x DIV 1          | !native_y && !native_x
         // 2xX & 1xY  | 1,3                | 4x DIV 2          | native_y && !native_x
@@ -202,17 +202,17 @@ begin
 
             if (is_native_x_in != is_native_x || is_native_y_in != is_native_y
 `ifdef CONFIGURABLE_TIMING
-				|| timing_change_in != timing_change
+                    || timing_change_in != timing_change
 `endif
-				)
+               )
             begin
-               is_native_x = is_native_x_in;
-               is_native_y = is_native_y_in;
+                is_native_x = is_native_x_in;
+                is_native_y = is_native_y_in;
 `ifdef CONFIGURABLE_TIMING
-               timing_change <= timing_change_in;
-               set_params_configurable();
+                timing_change <= timing_change_in;
+                set_params_configurable();
 `else
-               set_params();
+                set_params();
 `endif
             end
         end
@@ -291,23 +291,23 @@ task set_params();
                 va_end=10'd11;  // start  11
                 vs_sta=10'd19;  // fporch   8
                 vs_end=10'd22;  // sync   3
-                va_sta=10'd24;  // bporch   2 
+                va_sta=10'd24;  // bporch   2
                 max_height <= is_native_y ? 10'd261 : 10'd523;
                 max_width <= is_native_x ? 11'd511 : 11'd1023;
             end
         endcase
         // Adjust for 2x or 2y timing
         if (!is_native_x) begin
-          ha_end = { ha_end[9:0], 1'b0 };
-          hs_sta = { hs_sta[9:0], 1'b0 };
-          hs_end = { hs_end[9:0], 1'b0 };
-          ha_sta = { ha_sta[9:0], 1'b0 };
+            ha_end = { ha_end[9:0], 1'b0 };
+            hs_sta = { hs_sta[9:0], 1'b0 };
+            hs_end = { hs_end[9:0], 1'b0 };
+            ha_sta = { ha_sta[9:0], 1'b0 };
         end
         if (!is_native_y) begin
-          va_end = { va_end[8:0], 1'b0 };
-          vs_sta = { vs_sta[8:0], 1'b0 };
-          vs_end = { vs_end[8:0], 1'b0 };
-          va_sta = { va_sta[8:0], 1'b0 };
+            va_end = { va_end[8:0], 1'b0 };
+            vs_sta = { vs_sta[8:0], 1'b0 };
+            vs_end = { vs_end[8:0], 1'b0 };
+            va_sta = { va_sta[8:0], 1'b0 };
         end
     end
 endtask
@@ -328,17 +328,17 @@ task set_params_configurable();
                 // HEIGHT 312
                 max_height <= is_native_y ? 10'd311 : 10'd623;
                 max_width <= is_native_x ? 11'd503 : 11'd1007;
-// Use this to generate code for static settings above
-/*
-$display("ha_end=11'd%d;  // start %d", ha_end, timing_h_blank_pal);
-$display("hs_sta=11'd%d;  // fporch %d", hs_sta, timing_h_fporch_pal);
-$display("hs_end=11'd%d;  // sync %d", hs_end, timing_h_sync_pal);
-$display("ha_sta=11'd%d;  // bporch %d", ha_sta, timing_h_bporch_pal);
-$display("va_end=10'd%d;  // start %d", va_end, timing_v_blank_pal);
-$display("vs_sta=10'd%d;  // fporch %d", vs_sta, timing_v_fporch_pal);
-$display("vs_end=10'd%d;  // sync %d", vs_end, timing_v_sync_pal);
-$display("va_sta=10'd%d;  // bporch %d ", va_sta, timing_v_bporch_pal);
-*/
+                // Use this to generate code for static settings above
+                /*
+                $display("ha_end=11'd%d;  // start %d", ha_end, timing_h_blank_pal);
+                $display("hs_sta=11'd%d;  // fporch %d", hs_sta, timing_h_fporch_pal);
+                $display("hs_end=11'd%d;  // sync %d", hs_end, timing_h_sync_pal);
+                $display("ha_sta=11'd%d;  // bporch %d", ha_sta, timing_h_bporch_pal);
+                $display("va_end=10'd%d;  // start %d", va_end, timing_v_blank_pal);
+                $display("vs_sta=10'd%d;  // fporch %d", vs_sta, timing_v_fporch_pal);
+                $display("vs_end=10'd%d;  // sync %d", vs_end, timing_v_sync_pal);
+                $display("va_sta=10'd%d;  // bporch %d ", va_sta, timing_v_bporch_pal);
+                */
             end
             `CHIP6567R8: begin
                 ha_end = {3'b000, timing_h_blank_ntsc};
@@ -352,17 +352,17 @@ $display("va_sta=10'd%d;  // bporch %d ", va_sta, timing_v_bporch_pal);
                 // HEIGHT 263
                 max_height <= is_native_y ? 10'd262 : 10'd525;
                 max_width <= is_native_x ? 11'd519 : 11'd1039;
-// Use this to generate code for static settings above
-/*
-$display("ha_end=11'd%d;  // start %d", ha_end, timing_h_blank_ntsc);
-$display("hs_sta=11'd%d;  // fporch %d", hs_sta, timing_h_fporch_ntsc);
-$display("hs_end=11'd%d;  // sync %d", hs_end, timing_h_sync_ntsc);
-$display("ha_sta=11'd%d;  // bporch %d", ha_sta, timing_h_bporch_ntsc);
-$display("va_end=10'd%d;  // start %d", va_end, timing_v_blank_ntsc);
-$display("vs_sta=10'd%d;  // fporch %d", vs_sta, timing_v_fporch_ntsc);
-$display("vs_end=10'd%d;  // sync %d", vs_end, timing_v_sync_ntsc);
-$display("va_sta=10'd%d;  // bporch %d ", va_sta, timing_v_bporch_ntsc);
-*/
+                // Use this to generate code for static settings above
+                /*
+                $display("ha_end=11'd%d;  // start %d", ha_end, timing_h_blank_ntsc);
+                $display("hs_sta=11'd%d;  // fporch %d", hs_sta, timing_h_fporch_ntsc);
+                $display("hs_end=11'd%d;  // sync %d", hs_end, timing_h_sync_ntsc);
+                $display("ha_sta=11'd%d;  // bporch %d", ha_sta, timing_h_bporch_ntsc);
+                $display("va_end=10'd%d;  // start %d", va_end, timing_v_blank_ntsc);
+                $display("vs_sta=10'd%d;  // fporch %d", vs_sta, timing_v_fporch_ntsc);
+                $display("vs_end=10'd%d;  // sync %d", vs_end, timing_v_sync_ntsc);
+                $display("va_sta=10'd%d;  // bporch %d ", va_sta, timing_v_bporch_ntsc);
+                */
             end
             `CHIP6567R56A: begin
                 ha_end = {3'b000, timing_h_blank_ntsc};
@@ -377,31 +377,31 @@ $display("va_sta=10'd%d;  // bporch %d ", va_sta, timing_v_bporch_ntsc);
                 // HEIGHT 262
                 max_height <= is_native_y ? 10'd261 : 10'd523;
                 max_width <= is_native_x ? 11'd511 : 11'd1023;
-// Use this to generate code for static settings above
-/*
-$display("ha_end=11'd%d;  // start %d", ha_end, timing_h_blank_ntsc);
-$display("hs_sta=11'd%d;  // fporch %d", hs_sta, timing_h_fporch_ntsc);
-$display("hs_end=11'd%d;  // sync %d", hs_end, timing_h_sync_ntsc);
-$display("ha_sta=11'd%d;  // bporch %d", ha_sta, timing_h_bporch_ntsc);
-$display("va_end=10'd%d;  // start %d", va_end, timing_v_blank_ntsc);
-$display("vs_sta=10'd%d;  // fporch %d", vs_sta, timing_v_fporch_ntsc);
-$display("vs_end=10'd%d;  // sync %d", vs_end, timing_v_sync_ntsc);
-$display("va_sta=10'd%d;  // bporch %d ", va_sta, timing_v_bporch_ntsc);
-*/
+                // Use this to generate code for static settings above
+                /*
+                $display("ha_end=11'd%d;  // start %d", ha_end, timing_h_blank_ntsc);
+                $display("hs_sta=11'd%d;  // fporch %d", hs_sta, timing_h_fporch_ntsc);
+                $display("hs_end=11'd%d;  // sync %d", hs_end, timing_h_sync_ntsc);
+                $display("ha_sta=11'd%d;  // bporch %d", ha_sta, timing_h_bporch_ntsc);
+                $display("va_end=10'd%d;  // start %d", va_end, timing_v_blank_ntsc);
+                $display("vs_sta=10'd%d;  // fporch %d", vs_sta, timing_v_fporch_ntsc);
+                $display("vs_end=10'd%d;  // sync %d", vs_end, timing_v_sync_ntsc);
+                $display("va_sta=10'd%d;  // bporch %d ", va_sta, timing_v_bporch_ntsc);
+                */
             end
         endcase
         // Adjust for 2x or 2y timing
         if (!is_native_x) begin
-          ha_end = { ha_end[9:0], 1'b0 };
-          hs_sta = { hs_sta[9:0], 1'b0 };
-          hs_end = { hs_end[9:0], 1'b0 };
-          ha_sta = { ha_sta[9:0], 1'b0 };
+            ha_end = { ha_end[9:0], 1'b0 };
+            hs_sta = { hs_sta[9:0], 1'b0 };
+            hs_end = { hs_end[9:0], 1'b0 };
+            ha_sta = { ha_sta[9:0], 1'b0 };
         end
         if (!is_native_y) begin
-          va_end = { va_end[8:0], 1'b0 };
-          vs_sta = { vs_sta[8:0], 1'b0 };
-          vs_end = { vs_end[8:0], 1'b0 };
-          va_sta = { va_sta[8:0], 1'b0 };
+            va_end = { va_end[8:0], 1'b0 };
+            vs_sta = { vs_sta[8:0], 1'b0 };
+            vs_end = { vs_end[8:0], 1'b0 };
+            va_sta = { va_sta[8:0], 1'b0 };
         end
     end
 endtask

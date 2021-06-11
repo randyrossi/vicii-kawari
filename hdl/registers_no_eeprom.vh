@@ -6,7 +6,7 @@
 `define RESET_CTR_INC 21'd1
 `define RESET_LIFT_POINT 21'b011111111111111111111
 `else
-// For simluator, have a much shorter reset period 
+// For simluator, have a much shorter reset period
 `define RESET_CTR_TOP_BIT 7
 `define RESET_CTR_INC 7'd1
 `define RESET_LIFT_POINT 8'b01111111

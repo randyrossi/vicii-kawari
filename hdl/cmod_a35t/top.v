@@ -24,10 +24,10 @@ module top(
            output [5:0] blue,   // blue out for VGA/DVI or Composite Encoder
 `endif
 `ifdef HAVE_EEPROM
-        output D,
-        input  Q,
-        output C,
-        output S,
+           output D,
+           input  Q,
+           output C,
+           output S,
 `endif
            inout tri [5:0] adl, // address (lower 6 bits)
            output tri [5:0] adh,// address (high 6 bits)
@@ -76,7 +76,7 @@ clockgen a35t_clockgen(
              .clk_dot4x(clk_dot4x),
              .clk_col16x(clk_col16x),
              .chip(chip)
-        );
+         );
 
 // This is a reset line for the CPU which would have to be
 // connected with a jumper.  It holds the CPU in reset
@@ -114,10 +114,10 @@ vicii vic_inst(
           .blue(blue),
 `endif
 `ifdef HAVE_EEPROM
-            .D(D),
-            .Q(Q),
-            .C(C),
-            .S(S),
+          .D(D),
+          .Q(Q),
+          .C(C),
+          .S(S),
 `endif
           .clk_col16x(clk_col16x),
           .luma(luma),

@@ -7,7 +7,7 @@
 `define RESET_CHIP_LATCH_POINT 21'b010000000000000000000
 `define RESET_LIFT_POINT 21'b010000000000000000000
 `else
-// For simluator, have a much shorter reset period 
+// For simluator, have a much shorter reset period
 `define RESET_CTR_TOP_BIT 7
 `define RESET_CTR_INC 7'd1
 `define RESET_CHIP_LATCH_POINT 8'b01000000

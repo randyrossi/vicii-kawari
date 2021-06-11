@@ -70,19 +70,19 @@ module registers(
            output reg emmc,
            output reg embc,
            output reg erst,
-       // pixel_color3 is from native res pixel sequencer and should be used
-       // to look up luma/phase/chroma values (prefixed with palette select bit)
-       input [3:0] pixel_color3,
-	   // pixel_color4 is from the scan doubler and should be used to look up
-	   // RGB color register ram prefixed with the palette select
-	   // bit, so 5 bit address.
+           // pixel_color3 is from native res pixel sequencer and should be used
+           // to look up luma/phase/chroma values (prefixed with palette select bit)
+           input [3:0] pixel_color3,
+           // pixel_color4 is from the scan doubler and should be used to look up
+           // RGB color register ram prefixed with the palette select
+           // bit, so 5 bit address.
 `ifdef NEED_RGB
-	   input [3:0] pixel_color4,
-	   input half_bright,
-	   input active,
-	   output reg[5:0] red,
-	   output reg[5:0] green,
-	   output reg[5:0] blue,
+           input [3:0] pixel_color4,
+           input half_bright,
+           input active,
+           output reg[5:0] red,
+           output reg[5:0] green,
+           output reg[5:0] blue,
            // Current settings
            output reg last_raster_lines, // for dvi/vga only
            output reg last_is_native_y, // for dvi/vga only
@@ -92,12 +92,12 @@ module registers(
            output reg last_vpolarity, // for vga only
 `endif
 `ifdef HAVE_MCU_EEPROM
-	   // When we poke our custom regs that change config,
-	   // we set the new config byte and raise new data flag
-	   // for the MCU to pick up over serial.
-	   input [1:0] chip_ext,
-	   output reg [7:0] tx_data_4x,
-	   output reg tx_new_data_4x,
+           // When we poke our custom regs that change config,
+           // we set the new config byte and raise new data flag
+           // for the MCU to pick up over serial.
+           input [1:0] chip_ext,
+           output reg [7:0] tx_data_4x,
+           output reg tx_new_data_4x,
            input tx_busy_4x,
            // When rx_new_data goes high, interpret the next byte
            // in the command data stream from the AVR
@@ -106,52 +106,52 @@ module registers(
 `endif
 
 `ifdef GEN_LUMA_CHROMA
-        output reg [5:0] lumareg_o,
-		output reg [7:0] phasereg_o,
-		output reg [3:0] amplitudereg_o,
+           output reg [5:0] lumareg_o,
+           output reg [7:0] phasereg_o,
+           output reg [3:0] amplitudereg_o,
 `ifdef CONFIGURABLE_LUMAS
-		output reg [5:0] blanking_level,
-		output reg [3:0] burst_amplitude,
+           output reg [5:0] blanking_level,
+           output reg [3:0] burst_amplitude,
 `endif
 `endif
 
 `ifdef CONFIGURABLE_TIMING
-        output reg timing_change,
-        output reg [7:0] timing_h_blank_ntsc,
-        output reg [7:0] timing_h_fporch_ntsc,
-        output reg [7:0] timing_h_sync_ntsc,
-        output reg [7:0] timing_h_bporch_ntsc,
-        output reg [7:0] timing_v_blank_ntsc,
-        output reg [7:0] timing_v_fporch_ntsc,
-        output reg [7:0] timing_v_sync_ntsc,
-        output reg [7:0] timing_v_bporch_ntsc,
-        output reg [7:0] timing_h_blank_pal,
-        output reg [7:0] timing_h_fporch_pal,
-        output reg [7:0] timing_h_sync_pal,
-        output reg [7:0] timing_h_bporch_pal,
-        output reg [7:0] timing_v_blank_pal,
-        output reg [7:0] timing_v_fporch_pal,
-        output reg [7:0] timing_v_sync_pal,
-        output reg [7:0] timing_v_bporch_pal,
+           output reg timing_change,
+           output reg [7:0] timing_h_blank_ntsc,
+           output reg [7:0] timing_h_fporch_ntsc,
+           output reg [7:0] timing_h_sync_ntsc,
+           output reg [7:0] timing_h_bporch_ntsc,
+           output reg [7:0] timing_v_blank_ntsc,
+           output reg [7:0] timing_v_fporch_ntsc,
+           output reg [7:0] timing_v_sync_ntsc,
+           output reg [7:0] timing_v_bporch_ntsc,
+           output reg [7:0] timing_h_blank_pal,
+           output reg [7:0] timing_h_fporch_pal,
+           output reg [7:0] timing_h_sync_pal,
+           output reg [7:0] timing_h_bporch_pal,
+           output reg [7:0] timing_v_blank_pal,
+           output reg [7:0] timing_v_fporch_pal,
+           output reg [7:0] timing_v_sync_pal,
+           output reg [7:0] timing_v_bporch_pal,
 `endif
-        input [14:0] video_ram_addr_b,
-        output [7:0] video_ram_data_out_b,
+           input [14:0] video_ram_addr_b,
+           output [7:0] video_ram_data_out_b,
 `ifdef HIRES_MODES
-        output reg [2:0] hires_char_pixel_base,
-        output reg [3:0] hires_matrix_base,
-        output reg [3:0] hires_color_base,
-        output reg hires_enabled,
-        output reg [1:0] hires_mode,
-        output reg [7:0] hires_cursor_hi,
-        output reg [7:0] hires_cursor_lo,
+           output reg [2:0] hires_char_pixel_base,
+           output reg [3:0] hires_matrix_base,
+           output reg [3:0] hires_color_base,
+           output reg hires_enabled,
+           output reg [1:0] hires_mode,
+           output reg [7:0] hires_cursor_hi,
+           output reg [7:0] hires_cursor_lo,
 `endif
 `ifdef HAVE_EEPROM
-        output reg    D,
-        input         Q,
-        output reg    C = 1'b1,
-        output reg    S = 1'b1,
+           output reg    D,
+           input         Q,
+           output reg    C = 1'b1,
+           output reg    S = 1'b1,
 `endif
-        output reg [1:0] chip
+           output reg [1:0] chip
        );
 
 reg[7:0] magic_1;
@@ -293,20 +293,20 @@ VIDEO_RAM video_ram(clk_dot4x,
                     video_ram_addr_b,
                     8'b0,          // Video can only read
                     video_ram_data_out_b
-                    );
+                   );
 
 `ifdef NEED_RGB
 `ifdef CONFIGURABLE_RGB
 COLOR_REGS color_regs(clk_dot4x,
-                    color_regs_wr_a, // write to color ram
-                    color_regs_addr_a, // addr for color ram read/write
-                    color_regs_data_in_a,
-                    color_regs_data_out_a,
-                    1'b0, // we never write to port b
-                    { palette_select, pixel_color4}, // read addr for color lookups
-                    24'b0, // we never write to port b
-                    color_regs_data_out_b // read value for color lookups
-                    );
+                      color_regs_wr_a, // write to color ram
+                      color_regs_addr_a, // addr for color ram read/write
+                      color_regs_data_in_a,
+                      color_regs_data_out_a,
+                      1'b0, // we never write to port b
+                      { palette_select, pixel_color4}, // read addr for color lookups
+                      24'b0, // we never write to port b
+                      color_regs_data_out_b // read value for color lookups
+                     );
 `endif
 `endif
 
@@ -320,7 +320,7 @@ LUMA_REGS luma_regs(clk_dot4x,
                     pixel_color3, // read addr for luma lookups
                     18'b0, // we never write to port b
                     luma_regs_data_out_b // read value for luma lookups
-                    );
+                   );
 `endif
 
 // --- END EXTENSIONS ----
@@ -385,8 +385,8 @@ always @(posedge clk_dot4x)
         //handle_sprite_crunch <= `FALSE;
 
 `ifdef CONFIGURABLE_LUMAS
-		  blanking_level <= 6'd12;
-		  burst_amplitude <= 4'd12;
+        blanking_level <= 6'd12;
+        burst_amplitude <= 4'd12;
 `endif
 `ifdef CONFIGURABLE_TIMING
         timing_change <= 1'b0;
@@ -407,24 +407,24 @@ always @(posedge clk_dot4x)
         timing_v_sync_pal <= 2;
         timing_v_bporch_pal <= 20;
 `endif
-   // --- BEGIN EXTENSIONS ----
-   extra_regs_activation_ctr <= 2'b0;
+        // --- BEGIN EXTENSIONS ----
+        extra_regs_activation_ctr <= 2'b0;
 
-	// Latch these config registers during reset
+        // Latch these config registers during reset
 `ifdef NEED_RGB
-	last_raster_lines <= 1'b0;
-	last_is_native_y <= 1'b0;
-	last_is_native_x <= 1'b0;
-	last_enable_csync <= 1'b0;
-    last_hpolarity <= 1'b0;
-    last_vpolarity <= 1'b0;
+        last_raster_lines <= 1'b0;
+        last_is_native_y <= 1'b0;
+        last_is_native_x <= 1'b0;
+        last_enable_csync <= 1'b0;
+        last_hpolarity <= 1'b0;
+        last_vpolarity <= 1'b0;
 `endif
-    video_ram_flag_port_1_auto <= 2'b0;
-	video_ram_flag_port_2_auto <= 2'b0;
-	video_ram_flag_regs_overlay <= 1'b0;
-	video_ram_flag_persist <= 1'b0;
+        video_ram_flag_port_1_auto <= 2'b0;
+        video_ram_flag_port_2_auto <= 2'b0;
+        video_ram_flag_regs_overlay <= 1'b0;
+        video_ram_flag_persist <= 1'b0;
 `ifdef HAVE_MCU_EEPROM
-	rx_new_data_ff <= 1'b0;
+        rx_new_data_ff <= 1'b0;
 `endif
 `ifdef SIMULATOR_BOARD
         extra_regs_activated <= 0'b1;
@@ -468,26 +468,26 @@ always @(posedge clk_dot4x)
 	`endif
 `endif // HIRES_MODES
 `else
-   extra_regs_activated <= 1'b0;
+        extra_regs_activated <= 1'b0;
 `ifdef HIRES_MODES
-    hires_mode <= 2'b00;
-    hires_enabled <= 1'b0;
-    hires_char_pixel_base <= 3'b0;
-    hires_matrix_base <= 4'b0000; // ignored
-    hires_color_base <= 4'b0000; // ignored
-    hires_cursor_hi <= 8'b0;
-    hires_cursor_lo <= 8'b0;
+        hires_mode <= 2'b00;
+        hires_enabled <= 1'b0;
+        hires_char_pixel_base <= 3'b0;
+        hires_matrix_base <= 4'b0000; // ignored
+        hires_color_base <= 4'b0000; // ignored
+        hires_cursor_hi <= 8'b0;
+        hires_cursor_lo <= 8'b0;
 `endif
 `endif // SIMULATOR_BOARD
 
     end else
     begin
 
-     handle_persist(1'b0);
-	 
-     //if (!cpu_reset_i) begin
-     // TODO : Reset hires registers when reset line detected active
-     //end
+        handle_persist(1'b0);
+
+        //if (!cpu_reset_i) begin
+        // TODO : Reset hires registers when reset line detected active
+        //end
 
         if (phi_phase_start_dav_plus_1) begin
             if (!clk_phi) begin
@@ -645,99 +645,99 @@ always @(posedge clk_dot4x)
 
                     `VIDEO_MEM_1_IDX:
                         if (extra_regs_activated)
-                           dbo[7:0] <= video_ram_idx_1;
+                            dbo[7:0] <= video_ram_idx_1;
                         else
-                           dbo[7:0] <= 8'hFF;
+                            dbo[7:0] <= 8'hFF;
                     `VIDEO_MEM_2_IDX:
                         if (extra_regs_activated)
-                           dbo[7:0] <= video_ram_idx_2;
+                            dbo[7:0] <= video_ram_idx_2;
                         else
-                           dbo[7:0] <= 8'hFF;
+                            dbo[7:0] <= 8'hFF;
                     `VIDEO_MODE1:
                         if (extra_regs_activated)
 `ifdef HIRES_MODES
-                           dbo[7:0] <= { 1'b0,
-                                         hires_mode,
-                                         hires_enabled,
-                                         palette_select,
-                                         hires_char_pixel_base };
+                            dbo[7:0] <= { 1'b0,
+                                          hires_mode,
+                                          hires_enabled,
+                                          palette_select,
+                                          hires_char_pixel_base };
 `else
-                           dbo[7:0] <= { 1'b0,
-                                         2'b0,
-                                         1'b0,
-                                         palette_select,
-                                         3'b0 };
+                            dbo[7:0] <= { 1'b0,
+                                          2'b0,
+                                          1'b0,
+                                          palette_select,
+                                          3'b0 };
 `endif
                         else
-                           dbo[7:0] <= 8'hFF;
+                            dbo[7:0] <= 8'hFF;
                     `VIDEO_MODE2:
                         if (extra_regs_activated)
 `ifdef HIRES_MODES
-                           dbo[7:0] <= { hires_color_base, hires_matrix_base };
+                            dbo[7:0] <= { hires_color_base, hires_matrix_base };
 `else
-                           dbo[7:0] <= { 4'b0, 4'b0 };
+                            dbo[7:0] <= { 4'b0, 4'b0 };
 `endif
                         else
-                           dbo[7:0] <= 8'hFF;
+                            dbo[7:0] <= 8'hFF;
                     `VIDEO_MEM_1_HI:
                         if (extra_regs_activated)
-                           dbo[7:0] <= video_ram_hi_1;
+                            dbo[7:0] <= video_ram_hi_1;
                         else
-                           dbo[7:0] <= 8'hFF;
+                            dbo[7:0] <= 8'hFF;
                     `VIDEO_MEM_1_LO:
                         if (extra_regs_activated)
-                           dbo[7:0] <= video_ram_lo_1;
+                            dbo[7:0] <= video_ram_lo_1;
                         else
-                           dbo[7:0] <= 8'hFF;
+                            dbo[7:0] <= 8'hFF;
                     `VIDEO_MEM_1_VAL:
                         if (extra_regs_activated) begin
-                          // reg overlay or video mem
-                          auto_ram_sel <= 0;
-                          read_ram(
-                           .overlay(video_ram_flag_regs_overlay),
-                           .ram_lo(video_ram_lo_1),
-                           .ram_hi(video_ram_hi_1),
-                           .ram_idx(video_ram_idx_1));
+                            // reg overlay or video mem
+                            auto_ram_sel <= 0;
+                            read_ram(
+                                .overlay(video_ram_flag_regs_overlay),
+                                .ram_lo(video_ram_lo_1),
+                                .ram_hi(video_ram_hi_1),
+                                .ram_idx(video_ram_idx_1));
                         end else
-                          dbo[7:0] <= 8'hFF;
+                            dbo[7:0] <= 8'hFF;
                     `VIDEO_MEM_2_HI:
                         if (extra_regs_activated)
-                          dbo[7:0] <= video_ram_hi_2;
+                            dbo[7:0] <= video_ram_hi_2;
                         else
-                           dbo[7:0] <= 8'hFF;
+                            dbo[7:0] <= 8'hFF;
                     `VIDEO_MEM_2_LO:
                         if (extra_regs_activated)
-                          dbo[7:0] <= video_ram_lo_2;
+                            dbo[7:0] <= video_ram_lo_2;
                         else
-                           dbo[7:0] <= 8'hFF;
+                            dbo[7:0] <= 8'hFF;
                     `VIDEO_MEM_2_VAL:
                         if (extra_regs_activated) begin
-                          // reg overlay or video mem
-                          auto_ram_sel <= 1;
-                          read_ram(
-                           .overlay(video_ram_flag_regs_overlay),
-                           .ram_lo(video_ram_lo_2),
-                           .ram_hi(video_ram_hi_2),
-                           .ram_idx(video_ram_idx_2));
+                            // reg overlay or video mem
+                            auto_ram_sel <= 1;
+                            read_ram(
+                                .overlay(video_ram_flag_regs_overlay),
+                                .ram_lo(video_ram_lo_2),
+                                .ram_hi(video_ram_hi_2),
+                                .ram_idx(video_ram_idx_2));
                         end else
-                          dbo[7:0] <= 8'hFF;
+                            dbo[7:0] <= 8'hFF;
                     /* 0x3F */ `VIDEO_MEM_FLAGS:
                         if (extra_regs_activated)
-                           dbo[7:0] <= { 1'b0,
-                                         video_ram_flag_persist,
-                                         video_ram_flag_regs_overlay,
+                            dbo[7:0] <= { 1'b0,
+                                          video_ram_flag_persist,
+                                          video_ram_flag_regs_overlay,
 `ifdef HAVE_MCU_EEPROM
-                                         tx_busy_4x, // serial link busy
+                                          tx_busy_4x, // serial link busy
 `elsif HAVE_EEPROM
-                                         eeprom_busy, // eeprom busy
+                                          eeprom_busy, // eeprom busy
 `else
-                                         1'b0,
+                                          1'b0,
 `endif
-                                         video_ram_flag_port_2_auto,
-                                         video_ram_flag_port_1_auto
-                                       };
+                                          video_ram_flag_port_2_auto,
+                                          video_ram_flag_port_1_auto
+                                        };
                         else
-                           dbo[7:0] <= 8'hFF;
+                            dbo[7:0] <= 8'hFF;
 
                     // --- END EXTENSIONS ----
 
@@ -873,126 +873,126 @@ always @(posedge clk_dot4x)
                     // --- BEGIN EXTENSIONS ----
                     `VIDEO_MEM_1_IDX:
                         if (extra_regs_activated)
-                           video_ram_idx_1 <= dbi;
+                            video_ram_idx_1 <= dbi;
                     `VIDEO_MEM_2_IDX:
                         if (extra_regs_activated)
-                           video_ram_idx_2 <= dbi;
-		    `VIDEO_MODE1:
+                            video_ram_idx_2 <= dbi;
+                    `VIDEO_MODE1:
                         if (extra_regs_activated) begin
 `ifdef HIRES_MODES
-                          hires_mode <= dbi[6:5];
-                          hires_enabled <= dbi[`HIRES_ENABLE];
-                          hires_char_pixel_base <= dbi[2:0];
+                            hires_mode <= dbi[6:5];
+                            hires_enabled <= dbi[`HIRES_ENABLE];
+                            hires_char_pixel_base <= dbi[2:0];
 `endif
-                          palette_select <= dbi[`PALETTE_SELECT_BIT];
+                            palette_select <= dbi[`PALETTE_SELECT_BIT];
                         end
-		    `VIDEO_MODE2:
-                       if (extra_regs_activated) begin
+                    `VIDEO_MODE2:
+                        if (extra_regs_activated) begin
 `ifdef HIRES_MODES
-                        hires_matrix_base <= dbi[3:0];
-                        hires_color_base <= dbi[7:4];
+                            hires_matrix_base <= dbi[3:0];
+                            hires_color_base <= dbi[7:4];
 `endif
-                       end
+                        end
 
                     /* 0x3f */ `VIDEO_MEM_FLAGS:
                         if (~extra_regs_activated) begin
-                        case (dbi[7:0])
-                        /* "V" */ 8'd86:
-                            if (extra_regs_activation_ctr == 2'd0)
-                                 extra_regs_activation_ctr <= extra_regs_activation_ctr + 2'b1;
-                        /* "I" */ 8'd73:
-                            if (extra_regs_activation_ctr == 2'd1)
-                                 extra_regs_activation_ctr <= extra_regs_activation_ctr + 2'b1;
-                            else
-                                 extra_regs_activation_ctr <= 2'd0;
-                        /* "C" */ 8'd67:
-                            if (extra_regs_activation_ctr == 2'd2)
-                                extra_regs_activation_ctr <= extra_regs_activation_ctr + 2'b1;
-                            else
-                                extra_regs_activation_ctr <= 2'd0;
-                        /* "2" */ 8'd50:
-                            if (extra_regs_activation_ctr == 2'd3)
-                                extra_regs_activated <= 1'b1;
-                            else
-                                extra_regs_activation_ctr <= 2'd0;
-                        default:
-                            extra_regs_activation_ctr <= 2'd0;
-                        endcase
+                            case (dbi[7:0])
+                                /* "V" */ 8'd86:
+                                    if (extra_regs_activation_ctr == 2'd0)
+                                        extra_regs_activation_ctr <= extra_regs_activation_ctr + 2'b1;
+                                /* "I" */ 8'd73:
+                                    if (extra_regs_activation_ctr == 2'd1)
+                                        extra_regs_activation_ctr <= extra_regs_activation_ctr + 2'b1;
+                                    else
+                                        extra_regs_activation_ctr <= 2'd0;
+                                /* "C" */ 8'd67:
+                                    if (extra_regs_activation_ctr == 2'd2)
+                                        extra_regs_activation_ctr <= extra_regs_activation_ctr + 2'b1;
+                                    else
+                                        extra_regs_activation_ctr <= 2'd0;
+                                /* "2" */ 8'd50:
+                                    if (extra_regs_activation_ctr == 2'd3)
+                                        extra_regs_activated <= 1'b1;
+                                    else
+                                        extra_regs_activation_ctr <= 2'd0;
+                                default:
+                                    extra_regs_activation_ctr <= 2'd0;
+                            endcase
                         end else begin
                             video_ram_flag_port_1_auto <= dbi[`VMEM_FLAG_PORT1_FUNCTION];
                             video_ram_flag_port_2_auto <= dbi[`VMEM_FLAG_PORT2_FUNCTION];
                             video_ram_flag_regs_overlay <= dbi[`VMEM_FLAG_REGS_OVERLAY_BIT];
                             video_ram_flag_persist <= dbi[`VMEM_FLAG_PERSIST_BIT];
                             if (dbi[`VMEM_FLAG_DISABLE_BIT])
-                               extra_regs_activated <= 1'b0;
+                                extra_regs_activated <= 1'b0;
                         end
                     `VIDEO_MEM_1_HI:
                         if (extra_regs_activated)
-                           video_ram_hi_1 <= dbi[7:0];
+                            video_ram_hi_1 <= dbi[7:0];
                     `VIDEO_MEM_1_LO:
                         if (extra_regs_activated)
-                           video_ram_lo_1 <= dbi[7:0];
+                            video_ram_lo_1 <= dbi[7:0];
                     `VIDEO_MEM_1_VAL:
                         if (extra_regs_activated) begin
-                          if (!video_ram_flag_regs_overlay &&
-                              video_ram_flag_port_1_auto == 2'b11 &&
-                              video_ram_flag_port_2_auto == 2'b11)
-                          begin
-                             // block copy or fill operation
-                             if (dbi[0]) begin
-                                // copy low to high
-                                video_ram_copy_dst <= { video_ram_hi_1, video_ram_lo_1 };
-                                video_ram_copy_src <= { video_ram_hi_2, video_ram_lo_2 };
-                                video_ram_copy_num <= { video_ram_idx_2, video_ram_idx_1 };
-                                video_ram_copy_state <= 2'b0;
-                                video_ram_copy_dir <= 1'b0;
-                                video_ram_copy_done <= 1'b0;
-                             end else if (dbi[1]) begin
-                                // copy high to low
-                                video_ram_copy_dst <= { video_ram_hi_1, video_ram_lo_1 } + { video_ram_idx_2, video_ram_idx_1 } - 1'b1;
-                                video_ram_copy_src <= { video_ram_hi_2, video_ram_lo_2 } + { video_ram_idx_2, video_ram_idx_1 } - 1'b1;
-                                video_ram_copy_num <= { video_ram_idx_2, video_ram_idx_1 };
-                                video_ram_copy_state <= 2'b0;
-                                video_ram_copy_dir <= 1'b1;
-                                video_ram_copy_done <= 1'b0;
-                             end else if (dbi[2]) begin
-                                // fill
-                                video_ram_fill_dst <= { video_ram_hi_1, video_ram_lo_1 };
-                                video_ram_fill_num <= { video_ram_idx_2, video_ram_idx_1 };
-                                video_ram_fill_val <= video_ram_lo_2;
-                                video_ram_fill_done <= 1'b0;
-                             end
-                          end else begin
-                             // reg overlay or video mem
-                             auto_ram_sel <= 0;
-                             write_ram(
-                              .overlay(video_ram_flag_regs_overlay),
-                              .ram_lo(video_ram_lo_1),
-                              .ram_hi(video_ram_hi_1),
-                              .ram_idx(video_ram_idx_1),
-                              .data(dbi),
-                              .from_cpu(1'b1),
-                              .do_tx(video_ram_flag_persist));
-                          end
+                            if (!video_ram_flag_regs_overlay &&
+                                    video_ram_flag_port_1_auto == 2'b11 &&
+                                    video_ram_flag_port_2_auto == 2'b11)
+                            begin
+                                // block copy or fill operation
+                                if (dbi[0]) begin
+                                    // copy low to high
+                                    video_ram_copy_dst <= { video_ram_hi_1, video_ram_lo_1 };
+                                    video_ram_copy_src <= { video_ram_hi_2, video_ram_lo_2 };
+                                    video_ram_copy_num <= { video_ram_idx_2, video_ram_idx_1 };
+                                    video_ram_copy_state <= 2'b0;
+                                    video_ram_copy_dir <= 1'b0;
+                                    video_ram_copy_done <= 1'b0;
+                                end else if (dbi[1]) begin
+                                    // copy high to low
+                                    video_ram_copy_dst <= { video_ram_hi_1, video_ram_lo_1 } + { video_ram_idx_2, video_ram_idx_1 } - 1'b1;
+                                    video_ram_copy_src <= { video_ram_hi_2, video_ram_lo_2 } + { video_ram_idx_2, video_ram_idx_1 } - 1'b1;
+                                    video_ram_copy_num <= { video_ram_idx_2, video_ram_idx_1 };
+                                    video_ram_copy_state <= 2'b0;
+                                    video_ram_copy_dir <= 1'b1;
+                                    video_ram_copy_done <= 1'b0;
+                                end else if (dbi[2]) begin
+                                    // fill
+                                    video_ram_fill_dst <= { video_ram_hi_1, video_ram_lo_1 };
+                                    video_ram_fill_num <= { video_ram_idx_2, video_ram_idx_1 };
+                                    video_ram_fill_val <= video_ram_lo_2;
+                                    video_ram_fill_done <= 1'b0;
+                                end
+                            end else begin
+                                // reg overlay or video mem
+                                auto_ram_sel <= 0;
+                                write_ram(
+                                    .overlay(video_ram_flag_regs_overlay),
+                                    .ram_lo(video_ram_lo_1),
+                                    .ram_hi(video_ram_hi_1),
+                                    .ram_idx(video_ram_idx_1),
+                                    .data(dbi),
+                                    .from_cpu(1'b1),
+                                    .do_tx(video_ram_flag_persist));
+                            end
                         end
                     `VIDEO_MEM_2_HI:
                         if (extra_regs_activated)
-                           video_ram_hi_2 <= dbi[7:0];
+                            video_ram_hi_2 <= dbi[7:0];
                     `VIDEO_MEM_2_LO:
                         if (extra_regs_activated)
-                           video_ram_lo_2 <= dbi[7:0];
+                            video_ram_lo_2 <= dbi[7:0];
                     `VIDEO_MEM_2_VAL:
                         if (extra_regs_activated) begin
-                          // reg overlay or video mem
-                          auto_ram_sel <= 1;
-                          write_ram(
-                           .overlay(video_ram_flag_regs_overlay),
-                           .ram_lo(video_ram_lo_2),
-                           .ram_hi(video_ram_hi_2),
-                           .ram_idx(video_ram_idx_2),
-                           .data(dbi),
-                           .from_cpu(1'b1),
-                           .do_tx(video_ram_flag_persist));
+                            // reg overlay or video mem
+                            auto_ram_sel <= 1;
+                            write_ram(
+                                .overlay(video_ram_flag_regs_overlay),
+                                .ram_lo(video_ram_lo_2),
+                                .ram_hi(video_ram_hi_2),
+                                .ram_idx(video_ram_idx_2),
+                                .data(dbi),
+                                .from_cpu(1'b1),
+                                .do_tx(video_ram_flag_persist));
                         end
                     // --- END EXTENSIONS ----
 
@@ -1012,22 +1012,22 @@ always @(posedge clk_dot4x)
         // CPU write to color register ram
         if (color_regs_pre_wr2_a) begin
             color_regs_pre_wr_a <= 1'b1;
-				color_regs_pre_wr2_a <= 1'b0;
+            color_regs_pre_wr2_a <= 1'b0;
         end
         if (color_regs_pre_wr_a) begin
             // Now we can do the write
             color_regs_pre_wr_a <= 1'b0;
             color_regs_wr_a <= 1'b1;
-				color_regs_aw <= 1'b1;
+            color_regs_aw <= 1'b1;
             case (color_regs_wr_nibble)
-               2'b00:
-                   color_regs_data_in_a <= {color_regs_wr_value, color_regs_data_out_a[17:0]};
-               2'b01:
-                   color_regs_data_in_a <= {color_regs_data_out_a[23:18] , color_regs_wr_value, color_regs_data_out_a[11:0]};
-               2'b10:
-                   color_regs_data_in_a <= {color_regs_data_out_a[23:12], color_regs_wr_value, color_regs_data_out_a[5:0]};
-               2'b11:
-                   color_regs_data_in_a <= {color_regs_data_out_a[23:6], color_regs_wr_value}; // never used
+                2'b00:
+                    color_regs_data_in_a <= {color_regs_wr_value, color_regs_data_out_a[17:0]};
+                2'b01:
+                    color_regs_data_in_a <= {color_regs_data_out_a[23:18] , color_regs_wr_value, color_regs_data_out_a[11:0]};
+                2'b10:
+                    color_regs_data_in_a <= {color_regs_data_out_a[23:12], color_regs_wr_value, color_regs_data_out_a[5:0]};
+                2'b11:
+                    color_regs_data_in_a <= {color_regs_data_out_a[23:6], color_regs_wr_value}; // never used
             endcase
         end
 `endif
@@ -1037,7 +1037,7 @@ always @(posedge clk_dot4x)
         // CPU write to luma register ram
         if (luma_regs_pre_wr2_a) begin
             luma_regs_pre_wr_a <= 1'b1;
-				luma_regs_pre_wr2_a <= 1'b0;
+            luma_regs_pre_wr2_a <= 1'b0;
         end
         if (luma_regs_pre_wr_a) begin
             // Now we can do the write
@@ -1046,14 +1046,14 @@ always @(posedge clk_dot4x)
             luma_regs_aw <= 1'b1;
             // 18-bits : llllllppppppppaaaa
             case (luma_regs_wr_nibble)
-               2'b00: //luma
-                   luma_regs_data_in_a <= {luma_regs_wr_value[5:0], luma_regs_data_out_a[11:0]};
-               2'b01: // phase
-                   luma_regs_data_in_a <= {luma_regs_data_out_a[17:12] , luma_regs_wr_value[7:0], luma_regs_data_out_a[3:0]};
-               2'b10: // amplitude
-                   luma_regs_data_in_a <= {luma_regs_data_out_a[17:4], luma_regs_wr_value[3:0]};
-               default:
-					    ;
+                2'b00: //luma
+                    luma_regs_data_in_a <= {luma_regs_wr_value[5:0], luma_regs_data_out_a[11:0]};
+                2'b01: // phase
+                    luma_regs_data_in_a <= {luma_regs_data_out_a[17:12] , luma_regs_wr_value[7:0], luma_regs_data_out_a[3:0]};
+                2'b10: // amplitude
+                    luma_regs_data_in_a <= {luma_regs_data_out_a[17:4], luma_regs_wr_value[3:0]};
+                default:
+                    ;
             endcase
         end
 `endif
@@ -1063,10 +1063,10 @@ always @(posedge clk_dot4x)
         // CPU read from color regs
         if (color_regs_r) begin
             case (color_regs_r_nibble)
-               2'b00: dbo[7:0] <= { 2'b0, color_regs_data_out_a[23:18] };
-               2'b01: dbo[7:0] <= { 2'b0, color_regs_data_out_a[17:12] };
-               2'b10: dbo[7:0] <= { 2'b0, color_regs_data_out_a[11:6] };
-               2'b11: dbo[7:0] <= { 2'b0, color_regs_data_out_a[5:0] };
+                2'b00: dbo[7:0] <= { 2'b0, color_regs_data_out_a[23:18] };
+                2'b01: dbo[7:0] <= { 2'b0, color_regs_data_out_a[17:12] };
+                2'b10: dbo[7:0] <= { 2'b0, color_regs_data_out_a[11:6] };
+                2'b11: dbo[7:0] <= { 2'b0, color_regs_data_out_a[5:0] };
             endcase
         end
 `endif
@@ -1076,52 +1076,52 @@ always @(posedge clk_dot4x)
         // CPU read from luma regs
         if (luma_regs_r) begin
             case (luma_regs_r_nibble)
-               2'b00: dbo[7:0] <= { 2'b0, luma_regs_data_out_a[17:12] };
-               2'b01: dbo[7:0] <= luma_regs_data_out_a[11:4];
-               2'b10: dbo[7:0] <= { 4'b0, luma_regs_data_out_a[3:0] };
-               default: ;
+                2'b00: dbo[7:0] <= { 2'b0, luma_regs_data_out_a[17:12] };
+                2'b01: dbo[7:0] <= luma_regs_data_out_a[11:4];
+                2'b10: dbo[7:0] <= { 4'b0, luma_regs_data_out_a[3:0] };
+                default: ;
             endcase
         end
 `endif
 
         // Only need 1 tick to write to video ram
         if (video_ram_wr_a)
-		     video_ram_wr_a <= 1'b0;
+            video_ram_wr_a <= 1'b0;
 
 `ifdef NEED_RGB
 `ifdef CONFIGURABLE_RGB
         // Only need 1 tick to write to color ram
         if (color_regs_wr_a)
-		     color_regs_wr_a <= 1'b0;
+            color_regs_wr_a <= 1'b0;
 `endif
 `endif
 
 `ifdef CONFIGURABLE_LUMAS
         // Only need 1 tick to write to color ram
         if (luma_regs_wr_a)
-		     luma_regs_wr_a <= 1'b0;
+            luma_regs_wr_a <= 1'b0;
 `endif
 
         // Near the start of the low cycle, handle auto increment of
-		  // our vram pointers.
+        // our vram pointers.
         if (~clk_phi && phi_phase_start_dav_plus_2) begin
             // Always clear both flags and propagate r to r2 here.
             video_ram_r <= 0;
             video_ram_r2 <= video_ram_r;
-				video_ram_aw <= 1'b0;
+            video_ram_aw <= 1'b0;
 
 `ifdef NEED_RGB
 `ifdef CONFIGURABLE_RGB
             color_regs_r <= 0;
             color_regs_r2 <= color_regs_r;
-				color_regs_aw <= 1'b0;
+            color_regs_aw <= 1'b0;
 `endif
 `endif
 
 `ifdef CONFIGURABLE_LUMAS
             luma_regs_r <= 0;
             luma_regs_r2 <= luma_regs_r;
-				luma_regs_aw <= 1'b0;
+            luma_regs_aw <= 1'b0;
 `endif
 
             // We propagated r to r2 on reads so that we auto increment
@@ -1132,87 +1132,87 @@ always @(posedge clk_dot4x)
             if (video_ram_r2 || video_ram_aw
 `ifdef NEED_RGB
 `ifdef CONFIGURABLE_RGB
-				    || color_regs_r2 || color_regs_aw
+                    || color_regs_r2 || color_regs_aw
 `endif
 `endif
 `ifdef CONFIGURABLE_LUMAS
-				    || luma_regs_r2 || luma_regs_aw
+                    || luma_regs_r2 || luma_regs_aw
 `endif
-            ) begin
+               ) begin
                 // Handle auto increment /decrement after port access
                 if (auto_ram_sel == 0) begin // loc 1 of port a
                     case(video_ram_flag_port_1_auto) // auto inc port a
-                    2'd1: begin
-                        if (video_ram_lo_1 < 8'hff)
-                            video_ram_lo_1 <= video_ram_lo_1 + 8'b1;
-                        else begin
-                             video_ram_lo_1 <= 8'h00;
-                             video_ram_hi_1 <= video_ram_hi_1 + 8'b1;
-                         end
-                    end
-                    2'd2: begin
-                       if (video_ram_lo_1 > 8'h00)
-                            video_ram_lo_1 <= video_ram_lo_1 - 8'b1;
-                       else begin
-                            video_ram_lo_1 <= 8'hff;
-                            video_ram_hi_1 <= video_ram_hi_1 - 8'b1;
-                       end
-                    end
-                    default:
-                       ;
+                        2'd1: begin
+                            if (video_ram_lo_1 < 8'hff)
+                                video_ram_lo_1 <= video_ram_lo_1 + 8'b1;
+                            else begin
+                                video_ram_lo_1 <= 8'h00;
+                                video_ram_hi_1 <= video_ram_hi_1 + 8'b1;
+                            end
+                        end
+                        2'd2: begin
+                            if (video_ram_lo_1 > 8'h00)
+                                video_ram_lo_1 <= video_ram_lo_1 - 8'b1;
+                            else begin
+                                video_ram_lo_1 <= 8'hff;
+                                video_ram_hi_1 <= video_ram_hi_1 - 8'b1;
+                            end
+                        end
+                        default:
+                            ;
                     endcase
                 end else begin // loc 2 of port a
                     case(video_ram_flag_port_2_auto) // auto inc port b
-                    2'd1: begin
-                       if (video_ram_lo_2 < 8'hff)
-                           video_ram_lo_2 <= video_ram_lo_2 + 8'b1;
-                       else begin
-                            video_ram_lo_2 <= 8'h00;
-                            video_ram_hi_2 <= video_ram_hi_2 + 8'b1;
+                        2'd1: begin
+                            if (video_ram_lo_2 < 8'hff)
+                                video_ram_lo_2 <= video_ram_lo_2 + 8'b1;
+                            else begin
+                                video_ram_lo_2 <= 8'h00;
+                                video_ram_hi_2 <= video_ram_hi_2 + 8'b1;
+                            end
                         end
-                    end
-                    2'd2: begin
-                       if (video_ram_lo_2 > 8'h00)
-                            video_ram_lo_2 <= video_ram_lo_2 - 8'b1;
-                       else begin
-                            video_ram_lo_2 <= 8'hff;
-                            video_ram_hi_2 <= video_ram_hi_2 - 8'b1;
-                       end
-                    end
-                    default:
-                       ;
+                        2'd2: begin
+                            if (video_ram_lo_2 > 8'h00)
+                                video_ram_lo_2 <= video_ram_lo_2 - 8'b1;
+                            else begin
+                                video_ram_lo_2 <= 8'hff;
+                                video_ram_hi_2 <= video_ram_hi_2 - 8'b1;
+                            end
+                        end
+                        default:
+                            ;
                     endcase
                 end
             end
         end
-        
+
         // Handle block copy here
         if (video_ram_copy_num > 0) begin
-           if (video_ram_copy_state == 2'b0) begin
-              // read
-              video_ram_wr_a <= 1'b0;
-              video_ram_addr_a <= video_ram_copy_src[14:0];
-           end else if (video_ram_copy_state == 2'b10) begin
-              // write 
-              video_ram_wr_a <= 1'b1;
-              video_ram_addr_a <= video_ram_copy_dst[14:0];
-              video_ram_data_in_a <= video_ram_data_out_a;
-              video_ram_copy_num <= video_ram_copy_num - 16'b1;
-              if (video_ram_copy_dir) begin
-                 video_ram_copy_src <= video_ram_copy_src - 16'b1;
-                 video_ram_copy_dst <= video_ram_copy_dst - 16'b1;
-              end else begin
-                 video_ram_copy_src <= video_ram_copy_src + 16'b1;
-                 video_ram_copy_dst <= video_ram_copy_dst + 16'b1;
-              end
-           end
-           video_ram_copy_state <= video_ram_copy_state + 2'b1;
+            if (video_ram_copy_state == 2'b0) begin
+                // read
+                video_ram_wr_a <= 1'b0;
+                video_ram_addr_a <= video_ram_copy_src[14:0];
+            end else if (video_ram_copy_state == 2'b10) begin
+                // write
+                video_ram_wr_a <= 1'b1;
+                video_ram_addr_a <= video_ram_copy_dst[14:0];
+                video_ram_data_in_a <= video_ram_data_out_a;
+                video_ram_copy_num <= video_ram_copy_num - 16'b1;
+                if (video_ram_copy_dir) begin
+                    video_ram_copy_src <= video_ram_copy_src - 16'b1;
+                    video_ram_copy_dst <= video_ram_copy_dst - 16'b1;
+                end else begin
+                    video_ram_copy_src <= video_ram_copy_src + 16'b1;
+                    video_ram_copy_dst <= video_ram_copy_dst + 16'b1;
+                end
+            end
+            video_ram_copy_state <= video_ram_copy_state + 2'b1;
         end
         else if (video_ram_copy_num == 0 && !video_ram_copy_done) begin
-           video_ram_copy_done <= 1'b1;
-           video_ram_wr_a <= 1'b0;
-           video_ram_idx_1 <= 8'b0; // signal done
-           video_ram_idx_2 <= 8'b0;
+            video_ram_copy_done <= 1'b1;
+            video_ram_wr_a <= 1'b0;
+            video_ram_idx_1 <= 8'b0; // signal done
+            video_ram_idx_2 <= 8'b0;
         end
         // Handle block fill here
         if (video_ram_fill_num > 0) begin
@@ -1223,12 +1223,12 @@ always @(posedge clk_dot4x)
             video_ram_fill_num <= video_ram_fill_num - 16'b1;
         end
         else if (video_ram_fill_num == 0 && !video_ram_fill_done) begin
-           video_ram_fill_done <= 1'b1;
-           video_ram_wr_a <= 1'b0;
-           video_ram_idx_1 <= 8'b0; // signal done
-           video_ram_idx_2 <= 8'b0;
+            video_ram_fill_done <= 1'b1;
+            video_ram_wr_a <= 1'b0;
+            video_ram_idx_1 <= 8'b0; // signal done
+            video_ram_idx_2 <= 8'b0;
         end
-        
+
         // --- END EXTENSIONS ----
     end
 
@@ -1241,60 +1241,60 @@ begin
     if (active) begin
 `endif
 `ifdef CONFIGURABLE_RGB
-       if (half_bright) begin
-          red <= {1'b0, color_regs_data_out_b[23:19]};
-          green <= {1'b0, color_regs_data_out_b[17:13]};
-          blue <= {1'b0, color_regs_data_out_b[11:7]};
-       end else begin
-          red <= color_regs_data_out_b[23:18];
-          green <= color_regs_data_out_b[17:12];
-          blue <= color_regs_data_out_b[11:6];
-       end
+        if (half_bright) begin
+            red <= {1'b0, color_regs_data_out_b[23:19]};
+            green <= {1'b0, color_regs_data_out_b[17:13]};
+            blue <= {1'b0, color_regs_data_out_b[11:7]};
+        end else begin
+            red <= color_regs_data_out_b[23:18];
+            green <= color_regs_data_out_b[17:12];
+            blue <= color_regs_data_out_b[11:6];
+        end
 `else
-  if (half_bright)
-    case (pixel_color4)
-        `BLACK:{red, green, blue} <= {6'h00, 6'h00, 6'h00};
-        `WHITE:{red, green, blue} <= {6'h3f, 6'h3f, 6'h3f};
-        `RED:{red, green, blue} <= {6'h2b, 6'h0a, 6'h0a};
-        `CYAN:{red, green, blue} <= {6'h18, 6'h36, 6'h33};
-        `PURPLE:{red, green, blue} <= {6'h2c, 6'h0f, 6'h2d};
-        `GREEN:{red, green, blue} <= {6'h12, 6'h31, 6'h12};
-        `BLUE:{red, green, blue} <= {6'h0d, 6'h0e, 6'h31};
-        `YELLOW:{red, green, blue} <= {6'h39, 6'h3b, 6'h13};
-        `ORANGE:{red, green, blue} <= {6'h2d, 6'h16, 6'h07};
-        `BROWN:{red, green, blue} <= {6'h1a, 6'h0e, 6'h02};
-        `PINK:{red, green, blue} <= {6'h3a, 6'h1d, 6'h1b};
-        `DARK_GREY:{red, green, blue} <= {6'h13, 6'h13, 6'h13};
-        `GREY:{red, green, blue} <= {6'h21, 6'h21, 6'h21};
-        `LIGHT_GREEN:{red, green, blue} <= {6'h29, 6'h3e, 6'h27};
-        `LIGHT_BLUE:{red, green, blue} <= {6'h1c, 6'h1f, 6'h39};
-        `LIGHT_GREY:{red, green, blue} <= {6'h2d, 6'h2d, 6'h2d};
-    endcase
-  else
-    case (pixel_color4)
-        `BLACK:{red, green, blue} <= {6'h00, 6'h00, 6'h00};
-        `WHITE:{red, green, blue} <= {6'h1f, 6'h1f, 6'h1f};
-        `RED:{red, green, blue} <= {6'h15, 6'h05, 6'h05};
-        `CYAN:{red, green, blue} <= {6'h0c, 6'h1b, 6'h19};
-        `PURPLE:{red, green, blue} <= {6'h16, 6'h07, 6'h16};
-        `GREEN:{red, green, blue} <= {6'h09, 6'h18, 6'h09};
-        `BLUE:{red, green, blue} <= {6'h06, 6'h07, 6'h18};
-        `YELLOW:{red, green, blue} <= {6'h1c, 6'h1d, 6'h09};
-        `ORANGE:{red, green, blue} <= {6'h16, 6'h0b, 6'h03};
-        `BROWN:{red, green, blue} <= {6'h0d, 6'h07, 6'h01};
-        `PINK:{red, green, blue} <= {6'h1d, 6'h0e, 6'h0d};
-        `DARK_GREY:{red, green, blue} <= {6'h09, 6'h09, 6'h09};
-        `GREY:{red, green, blue} <= {6'h10, 6'h10, 6'h10};
-        `LIGHT_GREEN:{red, green, blue} <= {6'h14, 6'h1f, 6'h13};
-        `LIGHT_BLUE:{red, green, blue} <= {6'h0e, 6'h0f, 6'h1c};
-        `LIGHT_GREY:{red, green, blue} <= {6'h16, 6'h16, 6'h16};
-    endcase
+        if (half_bright)
+        case (pixel_color4)
+            `BLACK:{red, green, blue} <= {6'h00, 6'h00, 6'h00};
+            `WHITE:{red, green, blue} <= {6'h3f, 6'h3f, 6'h3f};
+            `RED:{red, green, blue} <= {6'h2b, 6'h0a, 6'h0a};
+            `CYAN:{red, green, blue} <= {6'h18, 6'h36, 6'h33};
+            `PURPLE:{red, green, blue} <= {6'h2c, 6'h0f, 6'h2d};
+            `GREEN:{red, green, blue} <= {6'h12, 6'h31, 6'h12};
+            `BLUE:{red, green, blue} <= {6'h0d, 6'h0e, 6'h31};
+            `YELLOW:{red, green, blue} <= {6'h39, 6'h3b, 6'h13};
+            `ORANGE:{red, green, blue} <= {6'h2d, 6'h16, 6'h07};
+            `BROWN:{red, green, blue} <= {6'h1a, 6'h0e, 6'h02};
+            `PINK:{red, green, blue} <= {6'h3a, 6'h1d, 6'h1b};
+            `DARK_GREY:{red, green, blue} <= {6'h13, 6'h13, 6'h13};
+            `GREY:{red, green, blue} <= {6'h21, 6'h21, 6'h21};
+            `LIGHT_GREEN:{red, green, blue} <= {6'h29, 6'h3e, 6'h27};
+            `LIGHT_BLUE:{red, green, blue} <= {6'h1c, 6'h1f, 6'h39};
+            `LIGHT_GREY:{red, green, blue} <= {6'h2d, 6'h2d, 6'h2d};
+        endcase
+        else
+        case (pixel_color4)
+            `BLACK:{red, green, blue} <= {6'h00, 6'h00, 6'h00};
+            `WHITE:{red, green, blue} <= {6'h1f, 6'h1f, 6'h1f};
+            `RED:{red, green, blue} <= {6'h15, 6'h05, 6'h05};
+            `CYAN:{red, green, blue} <= {6'h0c, 6'h1b, 6'h19};
+            `PURPLE:{red, green, blue} <= {6'h16, 6'h07, 6'h16};
+            `GREEN:{red, green, blue} <= {6'h09, 6'h18, 6'h09};
+            `BLUE:{red, green, blue} <= {6'h06, 6'h07, 6'h18};
+            `YELLOW:{red, green, blue} <= {6'h1c, 6'h1d, 6'h09};
+            `ORANGE:{red, green, blue} <= {6'h16, 6'h0b, 6'h03};
+            `BROWN:{red, green, blue} <= {6'h0d, 6'h07, 6'h01};
+            `PINK:{red, green, blue} <= {6'h1d, 6'h0e, 6'h0d};
+            `DARK_GREY:{red, green, blue} <= {6'h09, 6'h09, 6'h09};
+            `GREY:{red, green, blue} <= {6'h10, 6'h10, 6'h10};
+            `LIGHT_GREEN:{red, green, blue} <= {6'h14, 6'h1f, 6'h13};
+            `LIGHT_BLUE:{red, green, blue} <= {6'h0e, 6'h0f, 6'h1c};
+            `LIGHT_GREY:{red, green, blue} <= {6'h16, 6'h16, 6'h16};
+        endcase
 `endif
 `ifndef HIDE_SYNC
     end else begin
-          red <= 6'b0;
-          green <= 6'b0;
-          blue <= 6'b0;
+        red <= 6'b0;
+        green <= 6'b0;
+        blue <= 6'b0;
     end
 `endif
 end
@@ -1335,28 +1335,28 @@ begin
         `LIGHT_GREEN: lumareg_o <= 6'h2b;
         `LIGHT_BLUE:  lumareg_o <= 6'h1c;
         `LIGHT_GREY:  lumareg_o <= 6'h24;
-   endcase
+    endcase
 
-   case (pixel_color3)
-          `BLACK:       phasereg_o <= 8'd0;  // unmodulated
-          `WHITE:       phasereg_o <= 8'd0;  // unmodulated
-          `RED:         phasereg_o <= 8'd80; // 112.5 deg
-          `CYAN:        phasereg_o <= 8'd208; // 292.5 deg
-          `PURPLE:      phasereg_o <= 8'd32; // 45 deg
-          `GREEN:       phasereg_o <= 8'd160; // 225 deg
-          `BLUE:        phasereg_o <= 8'd0; // 0 deg
-          `YELLOW:      phasereg_o <= 8'd128; // 180 deg
-          `ORANGE:      phasereg_o <= 8'd96; // 135 deg
-          `BROWN:       phasereg_o <= 8'd112; // 157.5 deg
-          `PINK:        phasereg_o <= 8'd80; // 112.5 deg
-          `DARK_GREY:   phasereg_o <= 8'd0;  // unmodulated
-          `GREY:        phasereg_o <= 8'd0;  // unmodulated
-          `LIGHT_GREEN: phasereg_o <= 8'd160; // 225 deg
-          `LIGHT_BLUE:  phasereg_o <= 8'd0; // 0 deg
-          `LIGHT_GREY:  phasereg_o <= 8'd0;  // unmodulated
-   endcase
+    case (pixel_color3)
+        `BLACK:       phasereg_o <= 8'd0;  // unmodulated
+        `WHITE:       phasereg_o <= 8'd0;  // unmodulated
+        `RED:         phasereg_o <= 8'd80; // 112.5 deg
+        `CYAN:        phasereg_o <= 8'd208; // 292.5 deg
+        `PURPLE:      phasereg_o <= 8'd32; // 45 deg
+        `GREEN:       phasereg_o <= 8'd160; // 225 deg
+        `BLUE:        phasereg_o <= 8'd0; // 0 deg
+        `YELLOW:      phasereg_o <= 8'd128; // 180 deg
+        `ORANGE:      phasereg_o <= 8'd96; // 135 deg
+        `BROWN:       phasereg_o <= 8'd112; // 157.5 deg
+        `PINK:        phasereg_o <= 8'd80; // 112.5 deg
+        `DARK_GREY:   phasereg_o <= 8'd0;  // unmodulated
+        `GREY:        phasereg_o <= 8'd0;  // unmodulated
+        `LIGHT_GREEN: phasereg_o <= 8'd160; // 225 deg
+        `LIGHT_BLUE:  phasereg_o <= 8'd0; // 0 deg
+        `LIGHT_GREY:  phasereg_o <= 8'd0;  // unmodulated
+    endcase
 
-   case (pixel_color3)
+    case (pixel_color3)
         `BLACK:       amplitudereg_o <= 4'b0000; // no modulation
         `WHITE:       amplitudereg_o <= 4'b0000; // no modulation
         `RED:         amplitudereg_o <= 4'b1010;
@@ -1373,7 +1373,7 @@ begin
         `LIGHT_GREEN: amplitudereg_o <= 4'b1010;
         `LIGHT_BLUE:  amplitudereg_o <= 4'b1010;
         `LIGHT_GREY:  amplitudereg_o <= 4'b0000; // no modulation
-   endcase
+    endcase
 `endif
 end
 `endif

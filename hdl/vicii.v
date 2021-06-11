@@ -24,46 +24,46 @@
 // clk_phi        1.02272 Mhz NTSC, .985248 Mhz PAL
 
 module vicii(
-      output [1:0] chip,               // exported from registers
-      input cpu_reset_i,
-      input standard_sw,
-      output rst,
-      input clk_dot4x,
+           output [1:0] chip,               // exported from registers
+           input cpu_reset_i,
+           input standard_sw,
+           output rst,
+           input clk_dot4x,
 `ifdef CMOD_BOARD
-      input [1:0] btn,
-      output [1:0] led,
+           input [1:0] btn,
+           output [1:0] led,
 `endif
 `ifdef HAVE_MCU_EEPROM
-      input [1:0] chip_ext,           // config from MC
-      output[7:0] tx_data_4x,         // from regs module
-      output tx_new_data_4x,          // from regs module
-      input tx_busy_4x,
-      input [7:0] rx_data_4x,         // from serial_rx
-      input rx_new_data_4x,           // from serial_rx
+           input [1:0] chip_ext,           // config from MC
+           output[7:0] tx_data_4x,         // from regs module
+           output tx_new_data_4x,          // from regs module
+           input tx_busy_4x,
+           input [7:0] rx_data_4x,         // from serial_rx
+           input rx_new_data_4x,           // from serial_rx
 `endif
-      output clk_phi,
+           output clk_phi,
 
 `ifdef HAVE_COLOR_CLOCKS
-      input clk_col16x,
+           input clk_col16x,
 `ifdef GEN_LUMA_CHROMA
-      output [5:0] luma,
-      output [5:0] chroma,
+           output [5:0] luma,
+           output [5:0] chroma,
 `endif
 `endif  // HAVE_COLOR_CLOCKS
 `ifdef HAVE_EEPROM
-        output D,
-        input  Q,
-        output C,
-        output S,
+           output D,
+           input  Q,
+           output C,
+           output S,
 `endif
 
 `ifdef NEED_RGB
-	   output active,
-	   output hsync,
-	   output vsync,
-	   output [5:0] red,
-	   output [5:0] green,
-	   output [5:0] blue,
+           output active,
+           output hsync,
+           output vsync,
+           output [5:0] red,
+           output [5:0] green,
+           output [5:0] blue,
 `endif
            output [11:0] ado,
            input [5:0] adi,
@@ -119,9 +119,9 @@ wire [9:0] sprite_raster_x;
 
 // Set limits for chips
 `ifdef SIMULATOR_BOARD
-	// Ugly hack for simulator. Verilator is not letting us
-	// change chip from driver. So perform this at every
-	// clock edge.
+// Ugly hack for simulator. Verilator is not letting us
+// change chip from driver. So perform this at every
+// clock edge.
 always @(posedge clk_dot4x)
 `else
 always @(chip)
@@ -407,10 +407,10 @@ begin
 
         if (raster_line == 248
 `ifdef HIRES_MODES
-            // Extra condition to disable bad lines when hires mode is enabled.
-            || hires_enabled 
+                // Extra condition to disable bad lines when hires mode is enabled.
+                || hires_enabled
 `endif
-        )
+           )
             allow_bad_lines = `FALSE;
 
         badline = `FALSE;
@@ -578,18 +578,18 @@ matrix vic_matrix(
 
 `ifdef HIRES_MODES
 hires_matrix vic_hires_matrix(
-           .rst(rst),
-           .clk_phi(clk_phi),
-           .clk_dot4x(clk_dot4x),
-           .phi_phase_start_1(phi_phase_start[1]),
-           .phi_phase_start_14(phi_phase_start[14]),
-           .cycle_num(cycle_num),
-           .raster_line(raster_line),
-           .hires_badline(hires_badline),
-           .hires_vc(hires_vc),
-           .hires_fvc(hires_fvc),
-           .hires_rc(hires_rc)
-       );
+                 .rst(rst),
+                 .clk_phi(clk_phi),
+                 .clk_dot4x(clk_dot4x),
+                 .phi_phase_start_1(phi_phase_start[1]),
+                 .phi_phase_start_14(phi_phase_start[14]),
+                 .cycle_num(cycle_num),
+                 .raster_line(raster_line),
+                 .hires_badline(hires_badline),
+                 .hires_vc(hires_vc),
+                 .hires_fvc(hires_fvc),
+                 .hires_rc(hires_rc)
+             );
 `endif
 
 // Handle when ba should go low due to c-access. We can use xpos
@@ -725,8 +725,8 @@ assign vic_write_db = rw && ~ce;
 reg aec2;
 reg aec3;
 always @(posedge clk_dot4x) begin
-   aec2 <= aec;
-   aec3 <= aec2;
+    aec2 <= aec;
+    aec3 <= aec2;
 end
 
 // AEC low means we own the address bus so we can write to it.
@@ -790,23 +790,23 @@ addressgen vic_addressgen(
 
 `ifdef HIRES_MODES
 hires_addressgen vic_hires_addressgen(
-           .clk_dot4x(clk_dot4x),
-           .clk_phi(clk_phi),
-           .phi_phase_start(phi_phase_start),
-           .cycle_num(cycle_num),
-	   .hires_mode(hires_mode),
-           .matrix_base(hires_matrix_base),
-           .char_pixel_base(hires_char_pixel_base),
-           .color_base(hires_color_base),
-           .rc(hires_rc),
-           .vc(hires_vc),
-           .fvc(hires_fvc),
-           .char_case(cb[0]),
-           .video_mem_addr(video_ram_addr_b),
-	   .video_mem_data(video_ram_data_out_b),
-	   .hires_pixel_data(hires_pixel_data),
-	   .hires_color_data(hires_color_data)
-       );
+                     .clk_dot4x(clk_dot4x),
+                     .clk_phi(clk_phi),
+                     .phi_phase_start(phi_phase_start),
+                     .cycle_num(cycle_num),
+                     .hires_mode(hires_mode),
+                     .matrix_base(hires_matrix_base),
+                     .char_pixel_base(hires_char_pixel_base),
+                     .color_base(hires_color_base),
+                     .rc(hires_rc),
+                     .vc(hires_vc),
+                     .fvc(hires_fvc),
+                     .char_case(cb[0]),
+                     .video_mem_addr(video_ram_addr_b),
+                     .video_mem_data(video_ram_data_out_b),
+                     .hires_pixel_data(hires_pixel_data),
+                     .hires_color_data(hires_color_data)
+                 );
 `endif
 
 // Handle set/get registers
@@ -930,10 +930,10 @@ registers vic_registers(
               .pixel_color4(pixel_color4_vga), // from scan doubler
               .active(active),
               .half_bright(is_native_y ? 1'b0 :
-                     (show_raster_lines & half_bright)),
-	      .red(red), // out
-	      .green(green), // out
-	      .blue(blue), // out
+                           (show_raster_lines & half_bright)),
+              .red(red), // out
+              .green(green), // out
+              .blue(blue), // out
               .last_is_native_y(is_native_y), // current setting out
               .last_is_native_x(is_native_x), // current setting out
               .last_raster_lines(show_raster_lines), // current setting out
@@ -942,60 +942,60 @@ registers vic_registers(
               .last_vpolarity(vpolarity),
 `endif
 `ifdef HAVE_MCU_EEPROM
-         .chip_ext(chip_ext),
-         .tx_data_4x(tx_data_4x),
-         .tx_new_data_4x(tx_new_data_4x),
-         .tx_busy_4x(tx_busy_4x),
-         .rx_data_4x(rx_data_4x),
-         .rx_new_data_4x(rx_new_data_4x),
+              .chip_ext(chip_ext),
+              .tx_data_4x(tx_data_4x),
+              .tx_new_data_4x(tx_new_data_4x),
+              .tx_busy_4x(tx_busy_4x),
+              .rx_data_4x(rx_data_4x),
+              .rx_new_data_4x(rx_new_data_4x),
 `endif
 `ifdef GEN_LUMA_CHROMA
-            .lumareg_o(lumareg_o),
-			.phasereg_o(phasereg_o),
-			.amplitudereg_o(amplitudereg_o),
+              .lumareg_o(lumareg_o),
+              .phasereg_o(phasereg_o),
+              .amplitudereg_o(amplitudereg_o),
 `ifdef CONFIGURABLE_LUMAS
-			.blanking_level(blanking_level),
-			.burst_amplitude(burst_amplitude),
+              .blanking_level(blanking_level),
+              .burst_amplitude(burst_amplitude),
 `endif
 `endif
 `ifdef CONFIGURABLE_TIMING
-            .timing_change(timing_change),
-            .timing_h_blank_ntsc(timing_h_blank_ntsc),
-            .timing_h_fporch_ntsc(timing_h_fporch_ntsc),
-            .timing_h_sync_ntsc(timing_h_sync_ntsc),
-            .timing_h_bporch_ntsc(timing_h_bporch_ntsc),
-            .timing_v_blank_ntsc(timing_v_blank_ntsc),
-            .timing_v_fporch_ntsc(timing_v_fporch_ntsc),
-            .timing_v_sync_ntsc(timing_v_sync_ntsc),
-            .timing_v_bporch_ntsc(timing_v_bporch_ntsc),
-            .timing_h_blank_pal(timing_h_blank_pal),
-            .timing_h_fporch_pal(timing_h_fporch_pal),
-            .timing_h_sync_pal(timing_h_sync_pal),
-            .timing_h_bporch_pal(timing_h_bporch_pal),
-            .timing_v_blank_pal(timing_v_blank_pal),
-            .timing_v_fporch_pal(timing_v_fporch_pal),
-            .timing_v_sync_pal(timing_v_sync_pal),
-            .timing_v_bporch_pal(timing_v_bporch_pal),
+              .timing_change(timing_change),
+              .timing_h_blank_ntsc(timing_h_blank_ntsc),
+              .timing_h_fporch_ntsc(timing_h_fporch_ntsc),
+              .timing_h_sync_ntsc(timing_h_sync_ntsc),
+              .timing_h_bporch_ntsc(timing_h_bporch_ntsc),
+              .timing_v_blank_ntsc(timing_v_blank_ntsc),
+              .timing_v_fporch_ntsc(timing_v_fporch_ntsc),
+              .timing_v_sync_ntsc(timing_v_sync_ntsc),
+              .timing_v_bporch_ntsc(timing_v_bporch_ntsc),
+              .timing_h_blank_pal(timing_h_blank_pal),
+              .timing_h_fporch_pal(timing_h_fporch_pal),
+              .timing_h_sync_pal(timing_h_sync_pal),
+              .timing_h_bporch_pal(timing_h_bporch_pal),
+              .timing_v_blank_pal(timing_v_blank_pal),
+              .timing_v_fporch_pal(timing_v_fporch_pal),
+              .timing_v_sync_pal(timing_v_sync_pal),
+              .timing_v_bporch_pal(timing_v_bporch_pal),
 `endif
 
-            .video_ram_addr_b(video_ram_addr_b),
-            .video_ram_data_out_b(video_ram_data_out_b),
+              .video_ram_addr_b(video_ram_addr_b),
+              .video_ram_data_out_b(video_ram_data_out_b),
 `ifdef HIRES_MODES
-            .hires_char_pixel_base(hires_char_pixel_base),
-            .hires_matrix_base(hires_matrix_base),
-            .hires_color_base(hires_color_base),
-            .hires_enabled(hires_enabled),
-            .hires_mode(hires_mode),
-            .hires_cursor_hi(hires_cursor_hi),
-            .hires_cursor_lo(hires_cursor_lo),
+              .hires_char_pixel_base(hires_char_pixel_base),
+              .hires_matrix_base(hires_matrix_base),
+              .hires_color_base(hires_color_base),
+              .hires_enabled(hires_enabled),
+              .hires_mode(hires_mode),
+              .hires_cursor_hi(hires_cursor_hi),
+              .hires_cursor_lo(hires_cursor_lo),
 `endif
 `ifdef HAVE_EEPROM
-            .D(D),
-            .Q(Q),
-            .C(C),
-            .S(S),
+              .D(D),
+              .Q(Q),
+              .C(C),
+              .S(S),
 `endif
-            .chip(chip) // config out
+              .chip(chip) // config out
           );
 
 // at the start of every high phase, store current reg11 for delayed fetch
@@ -1017,8 +1017,8 @@ end
 reg [13:0] test_pattern_addr;
 wire [3:0] test_pattern_pixel;
 TEST_PATTERN vic_testpattern(.clk(clk_dot4x),
-                         .addr(test_pattern_addr),
-                         .dout(test_pattern_pixel));
+                             .addr(test_pattern_addr),
+                             .dout(test_pattern_pixel));
 `endif
 
 // Select between hires and lores
@@ -1032,13 +1032,13 @@ wire hires_stage1;
 always @(posedge clk_dot4x)
 begin
 `ifdef TEST_PATTERN
-	test_pattern_addr =
-		(({5'b0, raster_line} - {14'd51})*14'd320) +({4'b0,raster_x} - 14'd136);
-        if (raster_line >=51 && raster_line < 251 &&
-		raster_x >= 136 && raster_x < 456)
-            pixel_color3 <= test_pattern_pixel; //raster_x[7:4] + 4'd8;
-	else
-            pixel_color3 <= pixel_color1;
+    test_pattern_addr =
+        (({5'b0, raster_line} - {14'd51})*14'd320) +({4'b0,raster_x} - 14'd136);
+    if (raster_line >=51 && raster_line < 251 &&
+            raster_x >= 136 && raster_x < 456)
+        pixel_color3 <= test_pattern_pixel; //raster_x[7:4] + 4'd8;
+    else
+        pixel_color3 <= pixel_color1;
 `else
 
 `ifdef HIRES_MODES
@@ -1046,8 +1046,8 @@ begin
         pixel_color3 <= hires_pixel_color1;
     else
 `endif
-    if (stage1)
-        pixel_color3 <= pixel_color1;
+        if (stage1)
+            pixel_color3 <= pixel_color1;
 `endif
 end
 
@@ -1095,30 +1095,30 @@ wire hires_cursor;
 assign hires_cursor = ({hires_matrix_base, hires_vc} == {hires_cursor_hi[6:0] , hires_cursor_lo});
 
 hires_pixel_sequencer vic_hires_pixel_sequencer(
-                    .clk_dot4x(clk_dot4x),
-                    .clk_phi(clk_phi),
-                    .dot_rising(dot_rising),
-                    .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
-                    .phi_phase_start_pl(phi_phase_start[`PIXEL_LATCH]),
-                    .phi_phase_start_10(phi_phase_start[10]),
-                    .cycle_bit(raster_x[2:0]),
-                    .hires_cycle_bit(hires_raster_x[2:0]),
-                    .cycle_num(cycle_num),
-                    .xscroll(xscroll),
-		    .blink_ctr(blink_ctr),
-                    .b0c(b0c),
-                    .ec(ec),
-                    .main_border(main_border_d5),
-                    .vborder(top_bot_border_d5),
-                    .hires_pixel_color1(hires_pixel_color1),
-                    .hires_stage1(hires_stage1),
-		    .hires_enabled(hires_enabled),
-		    .hires_mode(hires_mode),
-		    .hires_pixel_data(hires_pixel_data),
-		    .hires_color_data(hires_color_data),
-		    .hires_rc(hires_rc),
-		    .hires_cursor(hires_cursor)
-                );
+                          .clk_dot4x(clk_dot4x),
+                          .clk_phi(clk_phi),
+                          .dot_rising(dot_rising),
+                          .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
+                          .phi_phase_start_pl(phi_phase_start[`PIXEL_LATCH]),
+                          .phi_phase_start_10(phi_phase_start[10]),
+                          .cycle_bit(raster_x[2:0]),
+                          .hires_cycle_bit(hires_raster_x[2:0]),
+                          .cycle_num(cycle_num),
+                          .xscroll(xscroll),
+                          .blink_ctr(blink_ctr),
+                          .b0c(b0c),
+                          .ec(ec),
+                          .main_border(main_border_d5),
+                          .vborder(top_bot_border_d5),
+                          .hires_pixel_color1(hires_pixel_color1),
+                          .hires_stage1(hires_stage1),
+                          .hires_enabled(hires_enabled),
+                          .hires_mode(hires_mode),
+                          .hires_pixel_data(hires_pixel_data),
+                          .hires_color_data(hires_color_data),
+                          .hires_rc(hires_rc),
+                          .hires_cursor(hires_cursor)
+                      );
 `endif
 
 // -------------------------------------------------------------
@@ -1143,7 +1143,7 @@ comp_sync vic_comp_sync(
 `endif  // CONFIGURABLE_LUMAS
 `endif // GEN_LUMA_CHROMA
               .chip(chip)
-);
+          );
 `endif  // HAVE_COLOR_CLOCKS
 
 // -------------------------------------------------------------
@@ -1152,47 +1152,47 @@ comp_sync vic_comp_sync(
 // -------------------------------------------------------------
 `ifdef NEED_RGB
 hires_vga_sync vic_vga_sync(
-             .rst(rst),
-             .clk_dot4x(clk_dot4x),
-             .dot_rising(dot_rising),
-             .is_native_y_in(is_native_y),
-             .is_native_x_in(is_native_x),
-             .enable_csync(enable_csync),
-             .hpolarity(hpolarity),
-             .vpolarity(vpolarity),
+                   .rst(rst),
+                   .clk_dot4x(clk_dot4x),
+                   .dot_rising(dot_rising),
+                   .is_native_y_in(is_native_y),
+                   .is_native_x_in(is_native_x),
+                   .enable_csync(enable_csync),
+                   .hpolarity(hpolarity),
+                   .vpolarity(vpolarity),
 `ifdef CONFIGURABLE_TIMING
-            .timing_change_in(timing_change),
-            .timing_h_blank_ntsc(timing_h_blank_ntsc),
-            .timing_h_fporch_ntsc(timing_h_fporch_ntsc),
-            .timing_h_sync_ntsc(timing_h_sync_ntsc),
-            .timing_h_bporch_ntsc(timing_h_bporch_ntsc),
-            .timing_v_blank_ntsc(timing_v_blank_ntsc),
-            .timing_v_fporch_ntsc(timing_v_fporch_ntsc),
-            .timing_v_sync_ntsc(timing_v_sync_ntsc),
-            .timing_v_bporch_ntsc(timing_v_bporch_ntsc),
-            .timing_h_blank_pal(timing_h_blank_pal),
-            .timing_h_fporch_pal(timing_h_fporch_pal),
-            .timing_h_sync_pal(timing_h_sync_pal),
-            .timing_h_bporch_pal(timing_h_bporch_pal),
-            .timing_v_blank_pal(timing_v_blank_pal),
-            .timing_v_fporch_pal(timing_v_fporch_pal),
-            .timing_v_sync_pal(timing_v_sync_pal),
-            .timing_v_bporch_pal(timing_v_bporch_pal),
+                   .timing_change_in(timing_change),
+                   .timing_h_blank_ntsc(timing_h_blank_ntsc),
+                   .timing_h_fporch_ntsc(timing_h_fporch_ntsc),
+                   .timing_h_sync_ntsc(timing_h_sync_ntsc),
+                   .timing_h_bporch_ntsc(timing_h_bporch_ntsc),
+                   .timing_v_blank_ntsc(timing_v_blank_ntsc),
+                   .timing_v_fporch_ntsc(timing_v_fporch_ntsc),
+                   .timing_v_sync_ntsc(timing_v_sync_ntsc),
+                   .timing_v_bporch_ntsc(timing_v_bporch_ntsc),
+                   .timing_h_blank_pal(timing_h_blank_pal),
+                   .timing_h_fporch_pal(timing_h_fporch_pal),
+                   .timing_h_sync_pal(timing_h_sync_pal),
+                   .timing_h_bporch_pal(timing_h_bporch_pal),
+                   .timing_v_blank_pal(timing_v_blank_pal),
+                   .timing_v_fporch_pal(timing_v_fporch_pal),
+                   .timing_v_sync_pal(timing_v_sync_pal),
+                   .timing_v_bporch_pal(timing_v_bporch_pal),
 `endif
-             .raster_x(raster_x),
-             .raster_y(raster_line),
-             .xpos(xpos),
+                   .raster_x(raster_x),
+                   .raster_y(raster_line),
+                   .xpos(xpos),
 `ifdef HIRES_MODES
-             .hires_raster_x(hires_raster_x),
+                   .hires_raster_x(hires_raster_x),
 `endif
-             .chip(chip),
-             .pixel_color3(pixel_color3),
-             .hsync(hsync),
-             .vsync(vsync),
-             .active(active),
-             .pixel_color4(pixel_color4_vga),
-             .half_bright(half_bright)
-         );
+                   .chip(chip),
+                   .pixel_color3(pixel_color3),
+                   .hsync(hsync),
+                   .vsync(vsync),
+                   .active(active),
+                   .pixel_color4(pixel_color4_vga),
+                   .half_bright(half_bright)
+               );
 `endif
 
 endmodule : vicii

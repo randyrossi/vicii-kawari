@@ -23,9 +23,9 @@ module hires_pixel_sequencer(
            input [2:0] hires_cycle_bit,
            input [7:0] hires_pixel_data,
            input [7:0] hires_color_data,
-	   input [2:0] hires_rc,
-	   input [5:0] blink_ctr,
-	   input hires_cursor
+           input [2:0] hires_rc,
+           input [5:0] blink_ctr,
+           input hires_cursor
        );
 
 integer n;
@@ -175,13 +175,13 @@ begin
                     // Bit 5 = underline
                     // Bit 4 = blink
                     hires_pixel_color1 <=
-                     ((hires_color_shifting[`HIRES_BLNK_BIT] && blink_ctr[`HIRES_BLINK_FREQ]) |
-                       ~hires_color_shifting[`HIRES_BLNK_BIT]) ?
-                         ((hires_color_shifting[`HIRES_UNDR_BIT] && hires_rc == 3'd7) ?
-                           hires_color_shifting[3:0] :
-                             (hires_pixel_value[1] ^
-                               (hires_color_shifting[`HIRES_RVRS_BIT] | hires_cursor_delayed)) ?
-                                     hires_color_shifting[3:0] : b0c_d2) : b0c_d2;
+                    ((hires_color_shifting[`HIRES_BLNK_BIT] && blink_ctr[`HIRES_BLINK_FREQ]) |
+                     ~hires_color_shifting[`HIRES_BLNK_BIT]) ?
+                    ((hires_color_shifting[`HIRES_UNDR_BIT] && hires_rc == 3'd7) ?
+                     hires_color_shifting[3:0] :
+                     (hires_pixel_value[1] ^
+                      (hires_color_shifting[`HIRES_RVRS_BIT] | hires_cursor_delayed)) ?
+                     hires_color_shifting[3:0] : b0c_d2) : b0c_d2;
                 end
                 2'b01:
                     // 640x200 16 color bitmap. Uses only lower 4 bits of color...
@@ -191,11 +191,11 @@ begin
                     // 320x200 16 color planar
                     if (hires_ff)
                         hires_pixel_color1 <= { hires_pixel_value2[1:0],
-                                               hires_pixel_value[1:0] };
+                                                hires_pixel_value[1:0] };
                 2'b11:
                     // 640x200 4 color planar
                     hires_pixel_color1 <= { 2'b0, hires_pixel_value2[1],
-                                           hires_pixel_value[1] };
+                                            hires_pixel_value[1] };
             endcase
             // TODO: Do sprites here on stage0_0 (then repeat for 1?)
         end

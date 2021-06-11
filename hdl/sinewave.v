@@ -7,15 +7,15 @@
 // Each sine wave is 256 entries in length.
 // The sine waves are 9 bits centered at 256.
 module SINE_WAVES
-#(
-    parameter addr_width = 12,
-              data_width = 9
-)
-(
-    input wire clk,
-    input wire [addr_width-1:0] addr,
-    output reg [data_width-1:0] dout
-);
+       #(
+           parameter addr_width = 12,
+           data_width = 9
+       )
+       (
+           input wire clk,
+           input wire [addr_width-1:0] addr,
+           output reg [data_width-1:0] dout
+       );
 
 (* ram_style = "block" *) reg [data_width-1:0] sine_rom[2**addr_width-1:0];
 
