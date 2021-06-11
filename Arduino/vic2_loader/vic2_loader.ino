@@ -186,6 +186,16 @@ void restoreSettings() {
      // Restore some select registers
      Serial_SendByte(DISPLAY_FLAGS_ADDR);
      Serial_SendByte(last_regs[DISPLAY_FLAGS_ADDR]);
+
+     // Put magic
+     Serial_SendByte(0xfc);
+     Serial_SendByte(magic_1);
+     Serial_SendByte(0xfd);
+     Serial_SendByte(magic_2);
+     Serial_SendByte(0xfe);
+     Serial_SendByte(magic_3);
+     Serial_SendByte(0xff);
+     Serial_SendByte(magic_4);
   }
 }
 
@@ -524,6 +534,14 @@ void uartTask() {
               EEPROM.write(cfg_reg_num, cfg_byte);
               last_regs[cfg_reg_num] = cfg_byte;
            }
+           if (cfg_reg_num == 0xfc)
+              magic_1 = cfg_byte;
+           if (cfg_reg_num == 0xfd)
+              magic_2 = cfg_byte;
+           if (cfg_reg_num == 0xfe)
+              magic_3 = cfg_byte;
+           if (cfg_reg_num == 0xff)
+              magic_4 = cfg_byte;
            cfg_byte_ff = 0;
        }
 
