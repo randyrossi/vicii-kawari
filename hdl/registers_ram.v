@@ -16,10 +16,9 @@ task persist_eeprom(input do_tx, input [7:0] reg_num, input [7:0] reg_val);
     // This version writes to the eeprom
     if (do_tx) begin
        eeprom_busy <= 1'b1;
-       eeprom_state <= `EEPROM_WRITE;
        eeprom_w_addr <= reg_num;
        eeprom_w_value <= reg_val;
-       state_ctr <= 15'd0;
+       state_ctr_reset_for_write <= 1'b1;
     end
 endtask
 `else
@@ -174,6 +173,8 @@ task read_ram(
                 8'hdf:
                 dbo <= timing_v_bporch_pal;
 `endif
+8'hfb:
+dbo <= remove_me;
                 8'hfc:
                    dbo <= magic_1;
                 8'hfd:
@@ -346,15 +347,23 @@ task write_ram(
                 8'hdf:
                 timing_v_bporch_pal <= data;
 `endif
-                8'hfc:
+                8'hfc: begin
                    magic_1 <= data;
-                8'hfd:
+                   persist_eeprom(do_tx, 8'hfc, data);
+                end
+                8'hfd: begin
                    magic_2 <= data;
-                8'hfe:
+                   persist_eeprom(do_tx, 8'hfd, data);
+                end
+                8'hfe: begin
                    magic_3 <= data;
-                8'hff:
+                   persist_eeprom(do_tx, 8'hfe, data);
+                end
+                8'hff: begin
                    magic_4 <= data;
-                 default: ;
+                   persist_eeprom(do_tx, 8'hff, data);
+                end
+                default: ;
               endcase
            end
         end else begin

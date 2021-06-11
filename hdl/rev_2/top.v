@@ -22,6 +22,7 @@ module top(
 `endif  // HAVE_COLOR_CLOCKS
            input standard_sw,
            input cfg_reset,
+           output flash_cs,
 `ifdef HAVE_EEPROM
            output eeprom_d,
            input  eeprom_q,
@@ -66,6 +67,8 @@ wire active;
 wire rst;
 wire clk_dot4x;
 wire [1:0] chip;
+
+assign flash_cs = 1'b1;
 
 // The rev1/rev2 boards can invert the ntsc/pal bit of the chip
 // register with a physical switch.

@@ -1,9 +1,19 @@
 // Header for register_eeprom.v
 
+// We need a 'warm up' flag so we don't try to
+// talk to the EEPROM immediately after the bistream
+// has landed. When warm_up cycle is HIGH, the first
+// EEPROM_READ iteration over all 256 addresses of the
+// EEPROM will do no operations.  This take about
+// 5ms which makes the entire reset about 10ms.
+reg eeprom_warm_up_cycle = 1;
+
 // Every 64 ticks of state_ctr cycles through all 256
 // EEPROM addresses and performs the operation as indicated
 // by eeprom_state (READ, WRITE)
 reg [14:0] state_ctr = 15'b0;
+
+reg state_ctr_reset_for_write;
 
 // clk_div divides dot4x by 4 to give us approx 8Mhz clock
 // for EEPROM access.
@@ -41,12 +51,3 @@ reg [7:0] eeprom_w_addr = 8'd0;
 reg [7:0] eeprom_w_value;
 reg eeprom_busy = 1'b0;
 
-`ifdef CMOD_BOARD
-assign led[0] = magic == 4;  // indicates we successfully read magic bytes
-assign led[1] = eeprom_state == `EEPROM_WRITE; // indicates our r/w mode
-reg [7:0] wreg = 8'hfc;
-`endif
-
-`ifdef SIMULATOR_BOAD
-reg test_init;
-`endif
