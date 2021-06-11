@@ -26,6 +26,7 @@ module top(
 `endif
            output cpu_reset,    // reset for 6510 CPU
 	   input cpu_reset_i,
+	   input standard_sw,   // video standard toggle switch
            output clk_phi,      // output phi clock for CPU
            output clk_dot4x,    // pixel clock
 `ifdef GEN_RGB
@@ -142,6 +143,7 @@ vicii vic_inst(
           .rst(rst),
           .chip(chip),
 	  .cpu_reset_i(cpu_reset_i),
+	  .standard_sw(standard_sw),
 `ifdef HAVE_MCU_EEPROM
           .chip_ext(chip_ext),
           .tx_data_4x(tx_data_4x),

@@ -20,7 +20,6 @@ module top(
 `endif
 
 `endif  // HAVE_COLOR_CLOCKS
-           input standard_sw,
            input cfg_reset,
            output flash_cs,
 `ifdef HAVE_EEPROM
@@ -29,8 +28,9 @@ module top(
            output eeprom_clk,
            output eeprom_cs,
 `endif
-           output cpu_reset,    // reset for 6510 CPU
-           input cpu_reset_i,
+           output cpu_reset,    // for pulling 6510 reset LOW
+           input cpu_reset_i,   // for listening to 6510 reset
+           input standard_sw,   // video standard toggle switch
            output clk_phi,      // output phi clock for CPU
 `ifdef GEN_RGB
            output clk_dot4x_ext,// pixel clock for VGA/DVI
@@ -69,15 +69,6 @@ wire clk_dot4x;
 wire [1:0] chip;
 
 assign flash_cs = 1'b1;
-
-// The rev1/rev2 boards can invert the ntsc/pal bit of the chip
-// register with a physical switch.
-// TODO: Must make sure chip is only exported by registers and
-// vicii, then here we assign chip2 based on it and pass it back
-// down to vicii for it to be used everywhere.  For not, the
-// physical switch does nothing.
-//wire [1:0] chip2;
-//assign chip2 = {chip[1], ~standard_sw ? chip[0] : ~chip[0]};
 
 `ifndef GEN_RGB
 // When we're not exporting these signals, we still need
@@ -206,6 +197,7 @@ vicii vic_inst(
           .rst(rst),
           .chip(chip),
           .cpu_reset_i(cpu_reset_i),
+	  .standard_sw(standard_sw),
 `ifdef HAVE_EEPROM
             .D(eeprom_d),
             .Q(eeprom_q),

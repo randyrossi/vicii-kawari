@@ -21,15 +21,15 @@ module top(
 
 `endif  // HAVE_COLOR_CLOCKS
            input [1:0] chip_ext, // chip config from MCU
-           input standard_sw,
+           input standard_sw,    // video standard toggle switch
 `ifdef HAVE_MCU_EEPROM
            output tx,           // to mcm
            input rx,            // from mcm
            input rx_busy,       // from mcm (indicates receive buffer is full)
            input cclk,          // from mcm
 `endif
-           output cpu_reset,    // reset for 6510 CPU
-           input cpu_reset_i,
+           output cpu_reset,    // for pulling 6510 reset low
+           input cpu_reset_i,   // for listening to reset from 6510 CPU
            output clk_phi,      // output phi clock for CPU
 `ifdef GEN_RGB
            output clk_dot4x_ext,// pixel clock for VGA/DVI
@@ -66,12 +66,6 @@ wire active;
 wire rst;
 wire clk_dot4x;
 wire [1:0] chip;
-
-// The rev1 board can invert the ntsc/pal bit of the incoming
-// chip lines with a physical switch. So we use chip_ext2 for
-// vicii module.
-wire [1:0] chip_ext2;
-assign chip_ext2 = {chip_ext[1], ~standard_sw ? chip_ext[0] : ~chip_ext[0]};
 
 `ifndef GEN_RGB
 // When we're not exporting these signals, we still need
@@ -208,8 +202,9 @@ vicii vic_inst(
           .rst(rst),
           .chip(chip),
           .cpu_reset_i(cpu_reset_i),
+	  .standard_sw(standard_sw),
 `ifdef HAVE_MCU_EEPROM
-          .chip_ext(chip_ext2),
+          .chip_ext(chip_ext),
           .tx_data_4x(tx_data_4x),
           .tx_new_data_4x(tx_new_data_4x),
           .tx_busy_4x(tx_busy_4x | rx_busy),

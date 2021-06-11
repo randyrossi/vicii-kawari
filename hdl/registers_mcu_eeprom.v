@@ -22,7 +22,8 @@ begin
         rstcntr <= rstcntr + `RESET_CTR_INC;
     if (rstcntr == `RESET_CHIP_LATCH_POINT) begin
         $display("chip <= %d", chip_ext);
-        chip <= chip_ext;
+	// Flip the standard if the switch is LOW
+        chip <= {chip_ext[1], standard_sw ? chip_ext[0] : ~chip_ext[0]};
     end
     if (rstcntr == `RESET_LIFT_POINT) begin
 	rst <= 0;

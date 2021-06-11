@@ -162,7 +162,9 @@ task handle_persist(input is_reset);
                               // For 1st pass, set chip (during reset) so
                               // everything inits to the right chip model
                               if (is_reset && addr_lo == `EXT_REG_CHIP_MODEL) begin
-                                 chip <= data[1:0];
+                                 // Flip the video standard if the switch
+				 // is LOW.
+                                 chip <= {data[1], standard_sw ? data[0] : ~data[0]};
                               end else begin
                                 // For 2nd pass, write to registers
                                 write_ram(
