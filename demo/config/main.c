@@ -13,9 +13,10 @@ void main()
        INIT_COLORS();
 
        while (1) {
-          if (have_magic())
+          if (have_magic()) {
              main_menu();
-          else
+	     break;
+	  } else
              if (!first_init())
                 break;
        }

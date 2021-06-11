@@ -79,7 +79,7 @@ void main_menu(void)
     printf ("A to apply new timing\n");
     printf ("R to revert changes\n");
     printf ("D for defaults\n");
-    printf ("Q to quit changes\n\n");
+    printf ("Q to quit\n\n");
     printf ("If applying a change makes the display\n");
     printf ("drop out, press R to revert to last\n");
     printf ("saved values and then A to apply them\n");

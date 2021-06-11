@@ -11,12 +11,16 @@
 #define CRSR_LEFT 157
 #define CRSR_RIGHT 29
 
+// Poll persist busy bit and don't perform poke
+// until it is 0
+void safe_poke(long addr, char val);
+
 // This checks the busy status flag before poking. Intended
 // to safely POKE into VMEM_VAL registers while the persist
 // bit it set so that we don't overflow the MCU's serial
 // buffer.  Used by config programs when saving many registers
 // back to back in a loop.
-#define SAFE_POKE(addr, val) while (PEEK(53311L) & 16) {} POKE(addr,val);
+#define SAFE_POKE(addr, val) safe_poke(addr, val)
 
 // Turn off hires bit
 #define HIRES_OFF() POKE(53303L, PEEK(53303L) & 239)

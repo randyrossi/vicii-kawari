@@ -90,7 +90,7 @@ void main_menu(void)
     printf ("S to save changes    %c to switch sides\n",95);
     printf ("R to revert changes  B inc brd color\n");
     printf ("N for next preset    G inc bg color\n");
-    printf ("Q to quit changes\n");
+    printf ("Q to quit\n");
 
     for (;;) {
 

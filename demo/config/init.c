@@ -40,7 +40,7 @@ int colors[] = {0,0,0,0,
                 45,45,45,0 };
 
 int luma[] = {
-   5,0,0,
+   12,0,0,
    58,0,0,
    19,80,10,
    36,208,10,
@@ -80,9 +80,13 @@ void do_init(int chip_model) {
    }
 
    // Luma/Chroma
-   for (reg=0xa0;reg<=0xcf;reg++) {
-      POKE(VIDEO_MEM_1_LO, reg);
-      SAFE_POKE(VIDEO_MEM_1_VAL, luma[reg-0xa0]);
+   for (reg=0;reg<16;reg++) {
+      POKE(VIDEO_MEM_1_LO, reg+0xa0);
+      SAFE_POKE(VIDEO_MEM_1_VAL, luma[reg*3]); // luma
+      POKE(VIDEO_MEM_1_LO, reg+0xb0);
+      SAFE_POKE(VIDEO_MEM_1_VAL, luma[reg*3+1]); // phase
+      POKE(VIDEO_MEM_1_LO, reg+0xc0);
+      SAFE_POKE(VIDEO_MEM_1_VAL, luma[reg*3+2]); // amplitude
    }
 
    // Black level
@@ -116,12 +120,14 @@ void do_init(int chip_model) {
 
 int first_init()
 {
+   POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
+
    CLRSCRN;
    printf ("Kawari config must be initialized.\n");
 
-   printf ("Press P to initialize for PAL");
-   printf ("Press N to initialize for NTSC");
-   printf ("Press Q to quit");
+   printf ("Press P to initialize for PAL\n");
+   printf ("Press N to initialize for NTSC\n");
+   printf ("Press Q to quit\n");
 
    WAITKEY;    
 

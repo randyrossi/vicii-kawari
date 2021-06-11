@@ -96,7 +96,7 @@ void main_menu(void)
     printf ("Press S to save changes\n");
     printf ("Press R to revert changes\n");
     printf ("Press N for next preset\n");
-    printf ("Press Q to quit changes\n");
+    printf ("Press Q to quit\n");
 
     for (;;) {
 
