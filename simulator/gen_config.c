@@ -9,6 +9,7 @@ void test_pattern_0() { printf ("`define TEST_PATTERN 1\n"); }
 void have_color_clocks_0() { printf ("`define HAVE_COLOR_CLOCKS 1\n"); }
 void have_sys_clock_0() { printf ("`define HAVE_SYS_CLOCK 1\n"); }
 void gen_luma_chroma_0() { printf ("`define GEN_LUMA_CHROMA 1\n"); }
+void configurable_rgb_0() { printf ("`define CONFIGURABLE_RGB 1\n"); }
 void configurable_lumas_0() { printf ("`define CONFIGURABLE_LUMAS 1\n"); }
 void configurable_timing_0() { printf ("`define CONFIGURABLE_TIMING 1\n"); }
 void average_lumas_0() { printf ("`define AVERAGE_LUMAS 1\n"); }
@@ -24,6 +25,7 @@ void test_pattern_1() { printf ("-DTEST_PATTERN=1 "); }
 void have_color_clocks_1() { printf ("-DHAVE_COLOR_CLOCKS=1 "); }
 void have_sys_clock_1() { printf ("-DHAVE_SYS_CLOCK=1 "); }
 void gen_luma_chroma_1() { printf ("-DGEN_LUMA_CHROMA=1 "); }
+void configurable_rgb_1() { printf ("-DCONFIGURABLE_RGB=1 "); }
 void configurable_lumas_1() { printf ("-DCONFIGURABLE_LUMAS=1 "); }
 void configurable_timing_1() { printf ("-DCONFIGURABLE_TIMING=1 "); }
 void average_lumas_1() { printf ("-DAVERAGE_LUMAS=1 "); }
@@ -42,6 +44,7 @@ void main(int argc, char* argv[]) {
 	def_func have_color_clocks;
 	def_func have_sys_clock;
 	def_func gen_luma_chroma;
+	def_func configurable_rgb;
 	def_func configurable_lumas;
 	def_func configurable_timing;
 	def_func average_lumas;
@@ -64,6 +67,7 @@ void main(int argc, char* argv[]) {
     have_color_clocks = have_color_clocks_0;
     have_sys_clock = have_sys_clock_0;
     gen_luma_chroma = gen_luma_chroma_0;
+    configurable_rgb = configurable_rgb_0;
     configurable_lumas = configurable_lumas_0;
     configurable_timing  = configurable_timing_0;
     average_lumas = average_lumas_0;
@@ -80,6 +84,7 @@ void main(int argc, char* argv[]) {
         have_color_clocks = have_color_clocks_1;
         have_sys_clock = have_sys_clock;
         gen_luma_chroma = gen_luma_chroma_1;
+        configurable_rgb = configurable_rgb_1;
         configurable_lumas = configurable_lumas_1;
         configurable_timing  = configurable_timing_1;
         average_lumas = average_lumas_1;
@@ -134,6 +139,7 @@ void main(int argc, char* argv[]) {
 		    have_color_clocks();
 		    gen_luma_chroma();
 		    gen_rgb();
+		    configurable_rgb();
 		    configurable_lumas();
 		    configurable_timing();
 		    break;
