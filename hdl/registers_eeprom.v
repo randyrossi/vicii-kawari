@@ -60,7 +60,7 @@ task handle_persist(input is_reset);
                     `EEPROM_WAIT:
                         // 9-16 : STATUS 8 bit value
                         if (state_val >= 9 && state_val <= 16)
-                            status <= { status[6:0], Q };
+                            data <= { data[6:0], Q };
                     default:
                         ;
                 endcase
@@ -308,7 +308,7 @@ task handle_persist(input is_reset);
 			else if (state_val == 17) begin
                             C <= 1;
                             S <= 1;
-                            if (!status[0]) begin
+                            if (!data[0]) begin
                                 $display("NOT BUSY");
                                 eeprom_state <= `EEPROM_IDLE;   
 				                eeprom_busy <= 1'b0;

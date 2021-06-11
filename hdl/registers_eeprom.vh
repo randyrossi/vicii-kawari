@@ -38,7 +38,6 @@ wire [7:0] addr_lo = state_ctr[13:6] - 8'd4;
 reg [7:0] instr; // Instruction shift register
 reg [15:0] addr; // Address shift register
 reg [7:0] data; // Data shift reigster
-reg [7:0] status; // Status shift reigster
 
 reg [2:0] magic = 3'd0;
 
