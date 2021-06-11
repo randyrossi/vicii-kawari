@@ -103,7 +103,7 @@ public class GenConstraints
                 }
 
 		if (!flags[HAVE_EEPROM]) {
-                   if (t6.startsWith("eeprom_flash")) continue;
+                   if (t6.startsWith("eeprom_cs")) continue;
                    if (t6.startsWith("eeprom_q")) continue;
                    if (t6.startsWith("eeprom_d")) continue;
                    if (t6.startsWith("eeprom_clk")) continue;
