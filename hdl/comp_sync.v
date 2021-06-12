@@ -247,7 +247,7 @@ always @(posedge clk_col16x) amplitudereg_16 <= amplitudereg_o2;
 reg [9:0] burst_start_o2;
 reg [9:0] burst_start16;
 always @(posedge clk_col16x) burst_start_o2 <=  burst_start;
-always @(posedge clk_col16x) burst_start16 <= burst_start16;
+always @(posedge clk_col16x) burst_start16 <= burst_start_o2;
 
 reg chip0_o2;
 reg chip0_16;
