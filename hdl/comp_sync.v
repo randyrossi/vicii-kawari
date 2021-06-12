@@ -243,8 +243,18 @@ reg [3:0] amplitudereg_o2;
 reg [3:0] amplitudereg_16;
 always @(posedge clk_col16x) amplitudereg_o2 <=  amplitudereg_o;
 always @(posedge clk_col16x) amplitudereg_16 <= amplitudereg_o2;
-wire [8:0] chroma9;
 
+reg [9:0] burst_start_o2;
+reg [9:0] burst_start16;
+always @(posedge clk_col16x) burst_start_o2 <=  burst_start;
+always @(posedge clk_col16x) burst_start16 <= burst_start16;
+
+reg chip0_o2;
+reg chip0_16;
+always @(posedge clk_col16x) chip0_o2 <= chip[0];
+always @(posedge clk_col16x) chip0_16 <= chip0_o2;;
+
+wire [8:0] chroma9;
 
 always @(posedge clk_col16x)
 begin
@@ -253,7 +263,7 @@ begin
     end
     prev_raster_y <= raster_y_16;
 
-    if (raster_x_16 >= burst_start && need_burst)
+    if (raster_x_16 >= burst_start16 && need_burst)
         in_burst = 1;
 
     if (in_burst)
@@ -284,10 +294,10 @@ begin
     sineWaveAddr = {phaseCounter, 4'b0} +
                  (
                      native_active_16 ?
-                     (chip[0] ?
+                     (chip0_16 ?
                       (oddline ? 9'd256 - phasereg_16 :  phasereg_16) : /* pal */
                       phasereg_16) :                                   /* ntsc */
-                     (chip[0] == 0 ?
+                     (chip0_16 == 0 ?
                       8'd128 :                                         /* ntsc */
                       (oddline ? 8'd160 : 8'd96)                       /* pal */
                      )

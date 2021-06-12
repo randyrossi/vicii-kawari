@@ -81,6 +81,12 @@ wire [5:0] blue;
 `endif
 
 `ifdef HAVE_COLOR_CLOCKS
+
+reg chip_mux1;
+reg chip_mux2;
+always @(posedge clk_col4x_ntsc) chip_mux1 <= chip[0];
+always @(posedge clk_col4x_ntsc) chip_mux2 <= chip_mux1;
+
 // When we have color clocks available, we select which
 // one we want to enter the 2x clock gen (below) based
 // on the chip model by using a BUFGMUX. 1=PAL, 0 = NTSC
@@ -89,7 +95,7 @@ BUFGMUX colmux(
             .I0(clk_col4x_ntsc),
             .I1(clk_col4x_pal),
             .O(clk_col4x),
-            .S(chip[0]));
+            .S(chip_mux2));
 
 // From the 4x color clock, generate an 8x color clock
 // This is necessary to meet the minimum frequency of
