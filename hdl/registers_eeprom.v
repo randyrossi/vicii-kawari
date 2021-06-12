@@ -136,26 +136,26 @@ task handle_persist(input is_reset);
                                     8'hfc: begin
                                         if (data == 8'd86) // V
                                             magic <= magic + 1;
+                                        magic_1 <= data;
                                     end
                                     8'hfd: begin
                                         if (data == 8'd73) // I
                                             magic <= magic + 1;
+                                        magic_2 <= data;
                                     end
                                     8'hfe: begin
                                         if (data == 8'd67) // C
                                             magic <= magic + 1;
+                                        magic_3 <= data;
                                     end
                                     8'hff: begin
                                         if (data == 8'd50) // 2
                                             magic <= magic + 1;
+                                        magic_4 <= data;
                                     end
                                     default:
                                         ;
                                 endcase
-
-                                // NOTE: Unless we have magic, none of the
-                                // magic bytes will actually be set in the
-                                // magic registers.
 
                                 // Only restore settings if we have magic
                                 if (magic == 4) begin
