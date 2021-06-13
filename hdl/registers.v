@@ -6,7 +6,9 @@ module registers(
            output reg rst = 1'b1,
            input cpu_reset_i,
            input standard_sw,
+`ifdef HAVE_EEPROM
            input cfg_reset,
+`endif
 `ifdef CMOD_BOARD
            input [1:0] btn,
            output [1:0] led,

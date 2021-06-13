@@ -762,6 +762,8 @@ int main(int argc, char** argv, char** env) {
 
     // Video standard toggle switch should be HIGH simulating PULLUP
     top->standard_sw = 1;
+    // cfg reset is held HIGH simulating pullup
+    top->cfg_reset = 1;
 #if HAVE_MCU_EEPROM
     // When we have the serial link (MCU), set the chip select lines
     top->V_CHIP_EXT = chip;
