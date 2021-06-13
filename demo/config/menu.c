@@ -79,16 +79,16 @@ void show_chip_model()
     if  (line == 0) printf ("%c",146);
 }
 
-void show_display_bit(int bit, int y)
+void show_display_bit(int bit, int y, int label)
 {
     int next_val = next_display_flags & bit;
     int current_val = current_display_flags & bit;
     TOXY(17,y);
     if  (line == y-6) printf ("%c",18);
     if (next_val) {
-       printf ("ON ");
+       if (label) printf ("HI "); else printf ("ON ");
     } else {
-       printf ("OFF");
+       if (label) printf ("LO "); else printf ("OFF ");
     }
 
     if (current_val != next_val) {
@@ -97,6 +97,43 @@ void show_display_bit(int bit, int y)
        printf ("          ");
     }
     if  (line == y-6) printf ("%c",146);
+}
+
+void show_info_line(void) {
+    TOXY(0,21);
+    printf ("----------------------------------------");
+    if (line == 0) {
+        printf ("A change to this setting will take      ");
+        printf ("effect on the next cold boot.           ");
+    }
+    else if (line == 1) {
+        printf ("Simulates raster lines for RGB based    ");
+        printf ("video. Has no effect on composite video ");
+    }
+    else if (line == 2) {
+        printf ("Change vertical refresh to 15khz. NOTE  ");
+        printf ("your monitor must accept this frequency.");
+    }
+    else if (line == 3) {
+        printf ("Use native horizontal resolution. NOTE  ");
+        printf ("hires modes will not work if set.       ");
+    }
+    else if (line == 4) {
+        printf ("Ouput CSYNC on the HSYNC analog RGB pin.");
+        printf ("NOTE: Your monitor must support this.   ");
+    }
+    else if (line == 5) {
+        printf ("Set polarity on H pin of analog RGB     ");
+        printf ("header. Active LO or Active HI.         ");
+    }
+    else if (line == 6) {
+        printf ("Set polarity on V pin of analog RGB     ");
+        printf ("header. Active LO or Active HI.         ");
+    }
+    else if (line == 7) {
+        printf ("Apply old luma levels (5 instead of 9)  ");
+        printf ("when using OLD chip models.             ");
+    }
 }
 
 void save_changes(void)
@@ -132,31 +169,31 @@ void main_menu(void)
     printf ("\n");
     printf ("Chip Model     :\n");
     printf ("Raster Lines   :\n");
-    printf ("DVI/RGB 15khz  :\n");
+    printf ("RGB 15khz      :\n");
     printf ("DVI/RGB 1xWidth:\n");
     printf ("RGB CSYNC      :\n");
+    printf ("VSync polarity :\n");
+    printf ("HSync polarity :\n");
     printf ("\n");
 
     get_chip_model();
     get_display_flags();
 
-    printf ("NOTE: Any changes to chip model will\n");
-    printf ("take effect on next cold boot.\n\n");
-
-    printf ("Use CRSR to select a setting\n");
-    printf ("Press SPACE to change setting\n");
-    printf ("Press S to save\n");
-    printf ("Press D for defaults\n");
-    printf ("Press Q to quit\n");
+    printf ("CRSR to navigate | SPACE to change\n");
+    printf ("S to save        | D for defaults\n");
+    printf ("Q to quit\n");
 
     need_refresh = 1;
     for (;;) {
        if (need_refresh) {
           show_chip_model();
-          show_display_bit(DISPLAY_SHOW_RASTER_LINES_BIT, 7);
-          show_display_bit(DISPLAY_IS_NATIVE_Y_BIT, 8);
-          show_display_bit(DISPLAY_IS_NATIVE_X_BIT, 9);
-          show_display_bit(DISPLAY_ENABLE_CSYNC_BIT, 10);
+          show_display_bit(DISPLAY_SHOW_RASTER_LINES_BIT, 7, 0);
+          show_display_bit(DISPLAY_IS_NATIVE_Y_BIT, 8, 0);
+          show_display_bit(DISPLAY_IS_NATIVE_X_BIT, 9, 0);
+          show_display_bit(DISPLAY_ENABLE_CSYNC_BIT, 10, 0);
+          show_display_bit(DISPLAY_VPOLARITY_BIT, 11, 1);
+          show_display_bit(DISPLAY_HPOLARITY_BIT, 12, 1);
+	  show_info_line();
           need_refresh = 0;
        }
 
@@ -173,25 +210,33 @@ void main_menu(void)
 	  }
           else if (line == 1) {
              next_display_flags ^= DISPLAY_SHOW_RASTER_LINES_BIT;
-             show_display_bit(DISPLAY_SHOW_RASTER_LINES_BIT, 7);
+             show_display_bit(DISPLAY_SHOW_RASTER_LINES_BIT, 7, 0);
 	  }
           else if (line == 2) {
              next_display_flags ^= DISPLAY_IS_NATIVE_Y_BIT;
-             show_display_bit(DISPLAY_IS_NATIVE_Y_BIT, 8);
+             show_display_bit(DISPLAY_IS_NATIVE_Y_BIT, 8, 0);
 	  }
           else if (line == 3) {
              next_display_flags ^= DISPLAY_IS_NATIVE_X_BIT;
-             show_display_bit(DISPLAY_IS_NATIVE_X_BIT, 9);
+             show_display_bit(DISPLAY_IS_NATIVE_X_BIT, 9, 0);
 	  }
           else if (line == 4) {
              next_display_flags ^= DISPLAY_ENABLE_CSYNC_BIT;
-             show_display_bit(DISPLAY_ENABLE_CSYNC_BIT, 10);
+             show_display_bit(DISPLAY_ENABLE_CSYNC_BIT, 10, 0);
+	  }
+          else if (line == 5) {
+             next_display_flags ^= DISPLAY_VPOLARITY_BIT;
+             show_display_bit(DISPLAY_VPOLARITY_BIT, 11, 1);
+	  }
+          else if (line == 6) {
+             next_display_flags ^= DISPLAY_HPOLARITY_BIT;
+             show_display_bit(DISPLAY_HPOLARITY_BIT, 12, 1);
 	  }
        } else if (r.a == 's') {
           save_changes();
           need_refresh=1;
        } else if (r.a == CRSR_DOWN) {
-          line++; if (line > 4) line = 4;
+          line++; if (line > 6) line = 6;
           need_refresh=1;
        } else if (r.a == CRSR_UP) {
           line--; if (line < 0) line = 0;
