@@ -276,15 +276,16 @@ task write_ram(
                     begin
 `ifdef NEED_RGB
                         last_raster_lines <= data[`SHOW_RASTER_LINES_BIT];
-                        if (!from_cpu) begin // protect from CPU
-                            last_is_native_y <= data[`IS_NATIVE_Y_BIT]; // 15khz
-                            last_is_native_x <= data[`IS_NATIVE_X_BIT];
-                            last_enable_csync <= data[`ENABLE_CSYNC_BIT];
-                            last_hpolarity <= data[`HPOLARITY_BIT];
-                            last_vpolarity <= data[`VPOLARITY_BIT];
-                        end
+                        last_is_native_y <= data[`IS_NATIVE_Y_BIT]; // 15khz
+                        last_is_native_x <= data[`IS_NATIVE_X_BIT];
+                        last_enable_csync <= data[`ENABLE_CSYNC_BIT];
+                        last_hpolarity <= data[`HPOLARITY_BIT];
+                        last_vpolarity <= data[`VPOLARITY_BIT];
                         persist_eeprom(do_tx, `EXT_REG_DISPLAY_FLAGS,
-                                       {4'b0,
+                                       {
+                                        2'b0,
+                                        data[`VPOLARITY_BIT],
+                                        data[`HPOLARITY_BIT],
                                         data[`ENABLE_CSYNC_BIT],
                                         data[`IS_NATIVE_X_BIT],
                                         data[`IS_NATIVE_Y_BIT],

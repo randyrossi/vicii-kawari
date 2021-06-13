@@ -203,6 +203,7 @@ vicii vic_inst(
           .chip(chip),
           .cpu_reset_i(cpu_reset_i),
           .standard_sw(standard_sw),
+          .cfg_reset(cfg_reset),
 `ifdef HAVE_EEPROM
           .D(eeprom_d),
           .Q(eeprom_q),

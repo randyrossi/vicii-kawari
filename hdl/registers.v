@@ -6,6 +6,7 @@ module registers(
            output reg rst = 1'b1,
            input cpu_reset_i,
            input standard_sw,
+           input cfg_reset,
 `ifdef CMOD_BOARD
            input [1:0] btn,
            output [1:0] led,
@@ -485,9 +486,24 @@ always @(posedge clk_dot4x)
 
         handle_persist(1'b0);
 
-        //if (!cpu_reset_i) begin
-        // TODO : Reset hires registers when reset line detected active
-        //end
+`ifdef HIRES_MODES
+        if (!cpu_reset_i && hires_enabled) begin
+           rst <= 1'b1;
+`ifdef HAVE_EEPROM
+           state_ctr <= 15'b0;
+           eeprom_state <= `EEPROM_READ;
+`endif
+        end
+`endif
+
+`ifdef HAVE_EEPROM
+     if (!cfg_reset && !eeprom_busy) begin
+        eeprom_busy <= 1'b1;
+        eeprom_w_addr <= 8'hfc;
+        eeprom_w_value <= 8'h00;
+        state_ctr_reset_for_write <= 1'b1;
+     end
+`endif
 
         if (phi_phase_start_dav_plus_1) begin
             if (!clk_phi) begin
