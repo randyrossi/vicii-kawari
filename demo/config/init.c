@@ -18,10 +18,6 @@ static struct regs r;
 //    burst amplitude
 //    display flags
 
-#define DEFAULT_BLANKING_LEVEL 12
-#define DEFAULT_BURST_AMPLITUDE 12
-#define DEFAULT_DISPLAY_FLAGS 0
-
 int colors[] = {0,0,0,0,
                 63,63,63,0,
                 43,10,10,0,
@@ -60,6 +56,8 @@ int luma[] = {
 
 void do_init(int chip_model) {
    int reg;
+
+   printf ("\nInitializing....");
 
    // Enable persistence
    POKE(VIDEO_MEM_FLAGS, PEEK(VIDEO_MEM_FLAGS) | VMEM_FLAG_PERSIST_BIT);
@@ -123,13 +121,17 @@ int first_init()
    POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
 
    CLRSCRN;
-   printf ("Kawari config must be initialized.\n");
+   printf ("--------------------------------------\n");
+   printf ("Your VICII-Kawari EEPROM must be\n");
+   printf ("initialized to factory defaults before\n");
+   printf ("settings can be changed.\n");
+   printf ("--------------------------------------\n\n");
 
-   printf ("Press P to initialize for PAL\n");
-   printf ("Press N to initialize for NTSC\n");
+   printf ("Press P to initialize as PAL\n");
+   printf ("Press N to initialize as NTSC\n");
    printf ("Press Q to quit\n");
 
-   WAITKEY;    
+   WAITKEY;
 
    for (;;) {
        if (r.a == 'q') {
@@ -138,11 +140,16 @@ int first_init()
        }
        else if (r.a == 'p') {
           do_init(1);
-	  return 1;
+	  break;
        }
        else if (r.a == 'n') {
           do_init(0);
-	  return 1;
+	  break;
        }
    }
+   printf ("complete\n\n");
+   printf ("       Press any key to continue\n");
+
+   WAITKEY;
+   return 1;
 }

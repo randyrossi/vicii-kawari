@@ -5,6 +5,7 @@
 #include "util.h"
 #include "kawari.h"
 #include "menu.h"
+#include "init.h"
 
 static struct regs r;
 static int next_model=0;
@@ -15,6 +16,8 @@ static int current_display_flags=0;
 
 static int version;
 static char variant[16];
+
+static int line = 0;
 
 void get_chip_model(void)
 {
@@ -49,9 +52,10 @@ void get_variant(void)
    variant[t] = 0;
 }
 
-void show_chip_model(void)
+void show_chip_model()
 {
     TOXY(17,6);
+    if  (line == 0) printf ("%c",18);
     switch (next_model) {
         case 0:
             printf ("6567R8  ");   
@@ -72,24 +76,27 @@ void show_chip_model(void)
     } else {
        printf ("          ");
     }
+    if  (line == 0) printf ("%c",146);
 }
 
-void show_raster_lines(void)
+void show_display_bit(int bit, int y)
 {
-    int next_raster_lines = next_display_flags & DISPLAY_SHOW_RASTER_LINES_BIT;
-    int current_raster_lines = current_display_flags & DISPLAY_SHOW_RASTER_LINES_BIT;
-    TOXY(17,7);
-    if (next_raster_lines) {
+    int next_val = next_display_flags & bit;
+    int current_val = current_display_flags & bit;
+    TOXY(17,y);
+    if  (line == y-6) printf ("%c",18);
+    if (next_val) {
        printf ("ON ");
     } else {
        printf ("OFF");
     }
 
-    if (current_raster_lines != next_raster_lines) {
+    if (current_val != next_val) {
        printf (" (changed)");
     } else {
        printf ("          ");
     }
+    if  (line == y-6) printf ("%c",146);
 }
 
 void save_changes(void)
@@ -125,6 +132,9 @@ void main_menu(void)
     printf ("\n");
     printf ("Chip Model     :\n");
     printf ("Raster Lines   :\n");
+    printf ("DVI/RGB 15khz  :\n");
+    printf ("DVI/RGB 1xWidth:\n");
+    printf ("RGB CSYNC      :\n");
     printf ("\n");
 
     get_chip_model();
@@ -133,16 +143,20 @@ void main_menu(void)
     printf ("NOTE: Any changes to chip model will\n");
     printf ("take effect on next cold boot.\n\n");
 
-    printf ("Press M to change chip model\n");
-    printf ("Press R to toggle raster lines\n");
-    printf ("Press S to save changes\n");
+    printf ("Use CRSR to select a setting\n");
+    printf ("Press SPACE to change setting\n");
+    printf ("Press S to save\n");
+    printf ("Press D for defaults\n");
     printf ("Press Q to quit\n");
 
     need_refresh = 1;
     for (;;) {
        if (need_refresh) {
           show_chip_model();
-          show_raster_lines();
+          show_display_bit(DISPLAY_SHOW_RASTER_LINES_BIT, 7);
+          show_display_bit(DISPLAY_IS_NATIVE_Y_BIT, 8);
+          show_display_bit(DISPLAY_IS_NATIVE_X_BIT, 9);
+          show_display_bit(DISPLAY_ENABLE_CSYNC_BIT, 10);
           need_refresh = 0;
        }
 
@@ -151,15 +165,39 @@ void main_menu(void)
        if (r.a == 'q') {
           CLRSCRN;
           return;
-       } else if (r.a == 'm') {
-          next_model=next_model+1;
-          if (next_model > 3) next_model=0;
-          show_chip_model();
-       } else if (r.a == 'r') {
-          next_display_flags ^= DISPLAY_SHOW_RASTER_LINES_BIT;
-          show_raster_lines();
+       } else if (r.a == ' ') {
+          if (line == 0) {
+             next_model=next_model+1;
+             if (next_model > 3) next_model=0;
+             show_chip_model();
+	  }
+          else if (line == 1) {
+             next_display_flags ^= DISPLAY_SHOW_RASTER_LINES_BIT;
+             show_display_bit(DISPLAY_SHOW_RASTER_LINES_BIT, 7);
+	  }
+          else if (line == 2) {
+             next_display_flags ^= DISPLAY_IS_NATIVE_Y_BIT;
+             show_display_bit(DISPLAY_IS_NATIVE_Y_BIT, 8);
+	  }
+          else if (line == 3) {
+             next_display_flags ^= DISPLAY_IS_NATIVE_X_BIT;
+             show_display_bit(DISPLAY_IS_NATIVE_X_BIT, 9);
+	  }
+          else if (line == 4) {
+             next_display_flags ^= DISPLAY_ENABLE_CSYNC_BIT;
+             show_display_bit(DISPLAY_ENABLE_CSYNC_BIT, 10);
+	  }
        } else if (r.a == 's') {
           save_changes();
+          need_refresh=1;
+       } else if (r.a == CRSR_DOWN) {
+          line++; if (line > 4) line = 4;
+          need_refresh=1;
+       } else if (r.a == CRSR_UP) {
+          line--; if (line < 0) line = 0;
+          need_refresh=1;
+       } else if (r.a == 'd') {
+          next_display_flags = DEFAULT_DISPLAY_FLAGS;
           need_refresh=1;
        }
    }
