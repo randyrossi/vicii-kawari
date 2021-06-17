@@ -110,9 +110,10 @@ task handle_persist(input is_reset);
             end
         end
         // Set C,D,S so they become valid on [0] for device
-        else if (clk_div[3] && !state_ctr[14])
+        else if (clk_div[3])
         begin
             clk8 <= ~clk8;
+            if (!state_ctr[14])
             // This block handles the LOW phase of clk8
             // which is basically setting things up for
             // the LOW edge of C. We also trigger restoration
@@ -314,9 +315,10 @@ task handle_persist(input is_reset);
                                 $display("NOT BUSY");
                                 eeprom_state <= `EEPROM_IDLE;
                                 eeprom_busy <= 1'b0;
+                                state_ctr <= 15'b100000000000000;
                             end else begin
                                 $display("STILL BUSY");
-                                state_ctr <= 0;
+                                state_ctr <= 15'b000000001111111;
                             end
                         end
                     default:
