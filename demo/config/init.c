@@ -98,6 +98,11 @@ void do_init(int chip_model) {
    POKE(VIDEO_MEM_1_LO, reg);
    SAFE_POKE(VIDEO_MEM_1_VAL, DEFAULT_BURST_AMPLITUDE);
 
+   // Turn off vic roll register
+   reg = 0xfb;
+   POKE(VIDEO_MEM_1_LO, reg);
+   SAFE_POKE(VIDEO_MEM_1_VAL, 0);
+
    // Install magic bytes indicating we have good data
    reg = 0xfc;
    POKE(VIDEO_MEM_1_LO, reg);
