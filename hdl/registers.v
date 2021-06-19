@@ -154,9 +154,10 @@ module registers(
            output reg    C = 1'b1,
            output reg    S = 1'b1,
 `endif
-           output reg [1:0] chip = { 1'b0, ~standard_sw }
+           output reg [1:0] chip
        );
 
+reg chip_initialized = 1'b0;
 reg[7:0] magic_1;
 reg[7:0] magic_2;
 reg[7:0] magic_3;
@@ -482,6 +483,11 @@ always @(posedge clk_dot4x)
         hires_cursor_lo <= 8'b0;
 `endif
 `endif // SIMULATOR_BOARD
+
+        if (~chip_initialized) begin
+            chip <= {1'b0, ~standard_sw};
+            chip_initialized <= 1'b1;
+        end
 
     end else
     begin
