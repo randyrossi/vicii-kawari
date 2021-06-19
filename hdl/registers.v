@@ -154,7 +154,7 @@ module registers(
            output reg    C = 1'b1,
            output reg    S = 1'b1,
 `endif
-           output reg [1:0] chip
+           output reg [1:0] chip = { 1'b0, ~standard_sw }
        );
 
 reg[7:0] magic_1;
