@@ -2,13 +2,13 @@
 
 `include "common.vh"
 
-// Ram to hold 18-bit RGB values for 16 color registers and 2 palettes.
+// Ram to hold 18-bit RGB values for 16 color registers.
 // Even though we only need 16 bits for RGB, we use 24 bit wide
 // entries because that makes mapping our register space to mem
 // address simple.  The least significant bits (0-5) are unused.
 module COLOR_REGS
        #(
-           parameter addr_width = 5,
+           parameter addr_width = 4,
            data_width = 24
        )
        (

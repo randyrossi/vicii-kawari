@@ -1,6 +1,3 @@
-`timescale 1ns / 1ps
-
-`include "common.vh"
 
 `ifdef HAVE_MCU_EEPROM
 task persist_eeprom(input do_tx, input [7:0] reg_num, input [7:0] reg_val);
@@ -53,7 +50,7 @@ task read_ram(
 `ifdef CONFIGURABLE_RGB
                 color_regs_r <= 1'b1;
                 color_regs_r_nibble <= ram_lo[1:0];
-                color_regs_addr_a <= ram_lo[6:2];
+                color_regs_addr_a <= ram_lo[5:2];
 `endif
 `endif
             end
@@ -225,7 +222,7 @@ task write_ram(
                 color_regs_pre_wr2_a <= 1'b1;
                 color_regs_wr_value <= data[5:0];
                 color_regs_wr_nibble <= ram_lo[1:0];
-                color_regs_addr_a <= ram_lo[6:2];
+                color_regs_addr_a <= ram_lo[5:2];
                 persist_eeprom(do_tx, ram_lo, {2'b0, data[5:0]});
 `endif
 `endif

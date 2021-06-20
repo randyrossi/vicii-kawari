@@ -74,11 +74,10 @@ module registers(
            output reg embc,
            output reg erst,
            // pixel_color3 is from native res pixel sequencer and should be used
-           // to look up luma/phase/chroma values (prefixed with palette select bit)
+           // to look up luma/phase/chroma values
            input [3:0] pixel_color3,
            // pixel_color4 is from the scan doubler and should be used to look up
-           // RGB color register ram prefixed with the palette select
-           // bit, so 5 bit address.
+           // RGB color register ram, 4 bit address.
 `ifdef NEED_RGB
            input [3:0] pixel_color4,
            input half_bright,
@@ -211,8 +210,6 @@ reg [1:0] luma_regs_wr_nibble;
 
 reg auto_ram_sel; // which pointer are we auto incrementing?
 
-reg palette_select;
-
 reg [1:0] video_ram_flag_port_1_auto;
 reg [1:0] video_ram_flag_port_2_auto;
 // bit 4 is tx busy flag
@@ -253,7 +250,7 @@ reg video_ram_fill_done;
 `ifdef NEED_RGB
 `ifdef CONFIGURABLE_RGB
 // For CPU/MCU register read/write to color regs
-reg [4:0] color_regs_addr_a; // 16 regs + palette select bit
+reg [3:0] color_regs_addr_a; // 16 regs
 reg color_regs_wr_a;
 reg color_regs_pre_wr_a;
 reg color_regs_pre_wr2_a;
@@ -307,7 +304,7 @@ COLOR_REGS color_regs(clk_dot4x,
                       color_regs_data_in_a,
                       color_regs_data_out_a,
                       1'b0, // we never write to port b
-                      { palette_select, pixel_color4}, // read addr for color lookups
+                      pixel_color4, // read addr for color lookups
                       24'b0, // we never write to port b
                       color_regs_data_out_b // read value for color lookups
                      );
@@ -683,13 +680,13 @@ always @(posedge clk_dot4x)
                             dbo[7:0] <= { 1'b0,
                                           hires_mode,
                                           hires_enabled,
-                                          palette_select,
+                                          1'b0,
                                           hires_char_pixel_base };
 `else
                             dbo[7:0] <= { 1'b0,
                                           2'b0,
                                           1'b0,
-                                          palette_select,
+                                          1'b0,
                                           3'b0 };
 `endif
                         else
@@ -908,7 +905,6 @@ always @(posedge clk_dot4x)
                             hires_enabled <= dbi[`HIRES_ENABLE];
                             hires_char_pixel_base <= dbi[2:0];
 `endif
-                            palette_select <= dbi[`PALETTE_SELECT_BIT];
                         end
                     `VIDEO_MODE2:
                         if (extra_regs_activated) begin

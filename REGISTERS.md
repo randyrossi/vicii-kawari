@@ -73,7 +73,7 @@ When BIT 7 is 1, changes to some registers (like color palette, composite luma, 
 VIDEO_MODE1 | Description
 ------------|------------
 BIT 1-3     | CHAR_PIXEL_BASE
-BIT 4       | PALETTE SELECT
+BIT 4       | UNUSED
 BIT 5       | HIRES ENABLE
 BIT 6-7     | HIRES MODE (0=TEXT, 1=640x200, 2=320x200, 3=640x200)
 BIT 8       | UNUSED
@@ -298,15 +298,13 @@ functions.
 
 VICII-Kawari has a configurable color palette. The 16 colors can be selected
 from a palette of 262144 colors by specifying three 6-bit RGB values. (The
-upper 2 bits in each byte are ignored).  The palette is also double buffered
-to allow changing all colors instantaneously with the palette select bit in
-register VIDEO_MODE1. Palette 0 is located at 0x0000. Palette 1 is located at
-0x0040.
+upper 2 bits in each byte are ignored).  The RGB palette is located at 0x00
+in the extended registers page.
 
 Location | Name | Description | Capability Requirement
 ---------|------|-------------|-----------------------
-0x00 - 0x3f | PAL0_RGB | 4x16 array of RGBx for palette 0 (4th byte unused) | CONFIG_RGB
-0x40 - 0x7f | PAL1_RGB | 4x16 array of RGBx for palette 1 (4th byte unused) | CONFIG_RGB
+0x00 - 0x3f | PAL0_RGB | 4x16 array of RGBx (4th byte unused) | CONFIG_RGB
+0x40 - 0x7f | UNUSED | Unused | NONE
 0x80 | BLACK_LEVEL | Composite black level (0-63) | CONFIG_COMPOSITE
 0x81 | BURST_AMPLITUDE | Composite color burst amplitude (1-15, 0 = no color burst) | CONFIG_COMPOSITE
 0x82 | CHIP_MODEL | Chip Model Select (0=6567R8, 1=6569, 2=6567R56A) | NONE
