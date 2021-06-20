@@ -2,6 +2,7 @@
 
 `include "../common.vh"
 
+`ifdef HAVE_SYSCLOCK
 // A clock gen module that takes a 50 Mhz system clock
 // and generates a ntsc or pal dot4x clock.  The PLL
 // used is dynamically configured at startup to use
@@ -194,6 +195,7 @@ pll_drp #(
             .RST_PLL(rst_pll)
         );
 endmodule
+`endif
 
 `ifdef WITH_DVI
     // A clock gen module for our DVI module.  Accepts a
