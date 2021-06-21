@@ -3,12 +3,13 @@
 
 #define BINARY 0
 #define DECIMAL 1
-#define CHARS 2
+#define HEX 2
+#define CHARS 3
 
 static int output_type = BINARY;
 
 unsigned int luma[16] ={
-        0x05,
+        0x0c,
         0x3a,
         0x13,
         0x24,
@@ -85,5 +86,7 @@ int main(int argc, char *argv[]) {
        printf ("%s%s%s\n",bin(0,luma[i],6,32), bin(1,phase[i],8,128), bin(2,amplitude[i],4,8));
     else if (output_type == DECIMAL)
        printf ("%d,%d,%d,\n",luma[i], phase[i], amplitude[i]);
+    else if (output_type == HEX)
+       printf ("%02x,%02x,%02x,\n",luma[i], phase[i], amplitude[i]);
   } 
 }
