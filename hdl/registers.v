@@ -1339,7 +1339,7 @@ begin
     amplitudereg_o <= luma_regs_data_out_b[3:0];
 `else
     case (pixel_color3)
-        `BLACK:       lumareg_o <= 6'h05;
+        `BLACK:       lumareg_o <= 6'h0c;
         `WHITE:       lumareg_o <= 6'h3a;
         `RED:         lumareg_o <= 6'h13;
         `CYAN:        lumareg_o <= 6'h24;
