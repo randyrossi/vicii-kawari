@@ -43,7 +43,7 @@ task read_ram(
         input [7:0] ram_idx);
     begin
         if (overlay) begin
-            if (ram_lo < 8'h80) begin
+            if (ram_lo < 8'h40) begin
                 // _r_nibble stores which 6-bit-nibble within the 24 bit
                 // lookup value we want.  The lowest 6-bits are never used.
 `ifdef NEED_RGB
@@ -213,7 +213,7 @@ task write_ram(
         input do_tx);
     begin
         if (overlay) begin
-            if (ram_lo < 8'h80) begin
+            if (ram_lo < 8'h40) begin
                 // In order to write to individual 6 bit
                 // values within the 24 bit register, we
                 // have to read it first, then write.
