@@ -22,6 +22,8 @@ module top(
 `endif  // HAVE_COLOR_CLOCKS
            input cfg_reset,
            output flash_cs,
+           output flash_d1,
+           output flash_d2,
 `ifdef HAVE_EEPROM
            output eeprom_d,
            input  eeprom_q,
@@ -68,7 +70,8 @@ wire rst;
 wire clk_dot4x;
 wire [1:0] chip;
 
-assign flash_cs = 1'b1;
+assign flash_d1 = 1'b1;
+assign flash_d2 = 1'b1;
 
 `ifndef GEN_RGB
 // When we're not exporting these signals, we still need
@@ -203,8 +206,9 @@ vicii vic_inst(
           .chip(chip),
           .cpu_reset_i(cpu_reset_i),
           .standard_sw(standard_sw),
-`ifdef HAVE_EEPROM
           .cfg_reset(cfg_reset),
+          .flash_cs(flash_cs),
+`ifdef HAVE_EEPROM
           .D(eeprom_d),
           .Q(eeprom_q),
           .C(eeprom_clk),

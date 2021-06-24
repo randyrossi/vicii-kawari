@@ -91,6 +91,8 @@ P7     CHROMA   chroma[2]       O   QUIETIO 2 LVCMOS33
 P8     CHROMA   chroma[1]       O   QUIETIO 2 LVCMOS33
 P9     CHROMA   chroma[0]       O   QUIETIO 2 LVCMOS33
 
+P61    D1        flash_d1                 O QUIETIO 2 LVCMOS33
+P62    D2        flash_d2                 O QUIETIO 2 LVCMOS33
 P38    FLASH_CS  flash_cs                 O  QUIETIO  2 LVCMOS33
 P46    EEPROM_CS  eeprom_cs               O  QUIETIO  2 LVCMOS33
 P70    EEPROM_CLK eeprom_clk              O  QUIETIO  2 LVCMOS33
