@@ -29,8 +29,8 @@ reg [7:0] badline_hist;
 always @(posedge clk_dot4x)
     if (rst)
     begin
-        hires_vc_base <= 11'd0;
-        hires_vc <= 11'd0;
+        //hires_vc_base <= 11'd0;
+        //hires_vc <= 11'd0;
         hires_rc <= 3'd7;
         idle = `TRUE;
     end

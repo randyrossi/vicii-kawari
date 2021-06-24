@@ -9,7 +9,6 @@
 // p-access - sprite pointer reads
 // s-access - sprite bitmap graphics reads
 module bus_access(
-           input rst,
            input clk_dot4x,
            input phi_phase_start_dav,
            input [3:0] cycle_type,
@@ -39,13 +38,7 @@ assign sprite_ptr_o = {sprite_ptr[0], sprite_ptr[1], sprite_ptr[2], sprite_ptr[3
 
 // c-access reads
 always @(posedge clk_dot4x)
-    if (rst) begin
-        char_buf_counter <= 0;
-        //        char_next = 12'b0;
-        //        for (n = 0; n < 39; n = n + 1) begin
-        //            char_buf[n] <= 12'hff;
-        //        end
-    end else
+begin
         if (phi_phase_start_dav) begin
             case (cycle_type)
                 `VIC_HRC, `VIC_HGC: begin // badline c-access
@@ -71,27 +64,19 @@ always @(posedge clk_dot4x)
                 default: ;
             endcase
         end
+end
 
 // g-access reads
 always @(posedge clk_dot4x)
 begin
-    if (rst) begin
-        pixels_read <= 8'd0;
-        char_read <= 12'd0;
-    end else
-        if (!aec && phi_phase_start_dav && cycle_type == `VIC_LG) begin
-            pixels_read <= dbi[7:0];
-            char_read <= idle ? 12'd0 : char_next;
-        end
+    if (!aec && phi_phase_start_dav && cycle_type == `VIC_LG) begin
+        pixels_read <= dbi[7:0];
+        char_read <= idle ? 12'd0 : char_next;
+    end
 end
 
 // p-access reads
 always @(posedge clk_dot4x)
-    if (rst) begin
-        for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-            sprite_ptr[n] <= 8'd0;
-        end
-    end else
     begin
         if (!aec && phi_phase_start_dav) begin
             case (cycle_type)

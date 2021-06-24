@@ -42,14 +42,14 @@ assign cycle_bit = raster_x[2:0];
 always @(posedge clk_dot4x)
     if (rst)
     begin
-        raster_x <= 10'b0;
-`ifdef HIRES_MODES
-        hires_raster_x <= 11'b0;
-`endif
-        raster_line <= 9'b0;
-        raster_line_d <= 9'b0;
-        start_of_line = 0;
-        start_of_frame = 0;
+        //raster_x <= 10'b0;
+//`ifdef HIRES_MODES
+//        hires_raster_x <= 11'b0;
+//`endif
+        //raster_line <= 9'b0;
+        //raster_line_d <= 9'b0;
+        //start_of_line = 0;
+        //start_of_frame = 0;
         case(chip)
             `CHIP6567R56A: begin
                 xpos <= 10'h19c;

@@ -51,7 +51,7 @@ always @(posedge clk_dot4x)
             idle_cnt <= 3'd3;
         end
         sprite_cnt <= 3'd3;
-        refresh_cnt <= 3'd0;
+        //refresh_cnt <= 3'd0;
         // TODO: This could be pusehd to [0] since badline
         // is available.  That would let cycle type get
         // set one cycle earlier.

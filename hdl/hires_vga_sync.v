@@ -166,8 +166,8 @@ always @ (posedge clk_dot4x)
 begin
     if (rst)
     begin
-        h_count <= 0;
-        v_count <= 0;
+        //h_count <= 0;
+        //v_count <= 0;
         ff <= 2'b01;
 `ifdef CONFIGURABLE_TIMING
         set_params_configurable();

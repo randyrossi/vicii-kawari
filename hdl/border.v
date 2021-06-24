@@ -4,7 +4,6 @@
 
 // border on/off logic
 module border(
-           input rst,
            input clk_dot4x,
            input clk_phi,
            input [6:0] cycle_num,
@@ -22,12 +21,7 @@ reg set_vborder;
 
 always @(posedge clk_dot4x)
 begin
-    if (rst) begin
-        set_vborder = `FALSE;
-        main_border = `FALSE;
-        vborder = `FALSE;
-        // Do this on rising edge of a pixel
-    end else if (dot_rising) begin
+    if (dot_rising) begin
         // check hborder - lands on 16 & 17 at the right pixels
         if ((xpos == 38 && csel == `FALSE) ||
                 (xpos == 31 && csel == `TRUE)) begin

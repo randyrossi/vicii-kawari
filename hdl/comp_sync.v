@@ -14,7 +14,6 @@
 // the signals were passed to an additional 74LVC4245 transceiver
 // before being passed to the resistor ladder.
 module comp_sync(
-           input rst,
            input clk_dot4x,
            input clk_col16x,
            input [9:0] raster_x,
@@ -150,9 +149,7 @@ reg [5:0] next_luma;
 
 always @(posedge clk_dot4x)
 begin
-    if (rst)
-        luma <= 6'd0;
-    else begin
+    begin
         case(raster_y)
             vblank_start:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
             vblank_start+1:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;

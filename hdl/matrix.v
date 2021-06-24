@@ -23,8 +23,8 @@ reg [9:0] vc_base;
 always @(posedge clk_dot4x)
     if (rst)
     begin
-        vc_base <= 10'd0;
-        vc <= 10'd0;
+        //vc_base <= 10'd0;
+        //vc <= 10'd0;
         rc <= 3'd7;
         idle = `TRUE;
     end

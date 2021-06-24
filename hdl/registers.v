@@ -359,10 +359,10 @@ always @(posedge clk_dot4x)
         //ecm <= `FALSE;
         //res <= `FALSE;
         //mcm <= `FALSE;
-        irst_clr <= `FALSE;
-        imbc_clr <= `FALSE;
-        immc_clr <= `FALSE;
-        ilp_clr <= `FALSE;
+        //irst_clr <= `FALSE;
+        //imbc_clr <= `FALSE;
+        //immc_clr <= `FALSE;
+        //ilp_clr <= `FALSE;
         //raster_irq_compare <= 9'b0;
         //sprite_en <= 8'b0;
         //sprite_xe <= 8'b0;
@@ -378,10 +378,10 @@ always @(posedge clk_dot4x)
         // end
         //m2m_clr <= `FALSE;
         //m2d_clr <= `FALSE;
-        erst <= `FALSE;
-        embc <= `FALSE;
-        emmc <= `FALSE;
-        elp <= `FALSE;
+        //erst <= `FALSE;
+        //embc <= `FALSE;
+        //emmc <= `FALSE;
+        //elp <= `FALSE;
         //dbo[7:0] <= 8'd0;
         //handle_sprite_crunch <= `FALSE;
 

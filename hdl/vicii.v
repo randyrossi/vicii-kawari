@@ -497,7 +497,6 @@ reg top_bot_border_d4;
 reg top_bot_border_d5;
 
 border vic_border(
-           .rst(rst),
            .clk_dot4x(clk_dot4x),
            .clk_phi(clk_phi),
            .cycle_num(cycle_num),
@@ -532,7 +531,6 @@ wire [7:0] lpy;
 
 lightpen vic_lightpen(
              .clk_dot4x(clk_dot4x),
-             .rst(rst),
              .ilp_clr(ilp_clr),
              .raster_line(raster_line),
              .raster_y_max(raster_y_max),
@@ -745,7 +743,6 @@ assign ls245_addr_dir = aec;
 
 // Handle cycles that perform data bus accesses
 bus_access vic_bus_access(
-               .rst(rst),
                .clk_dot4x(clk_dot4x),
                .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
                .cycle_type(cycle_type),
@@ -1132,7 +1129,6 @@ hires_pixel_sequencer vic_hires_pixel_sequencer(
 // -------------------------------------------------------------
 `ifdef HAVE_COLOR_CLOCKS
 comp_sync vic_comp_sync(
-              .rst(rst),
               .clk_dot4x(clk_dot4x),
               .clk_col16x(clk_col16x),
               .raster_x(raster_x),

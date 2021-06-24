@@ -4,7 +4,6 @@
 
 module lightpen(
            input clk_dot4x,
-           input rst,
            input ilp_clr,
            input [8:0] raster_line,
            input [8:0] raster_y_max,
@@ -18,10 +17,7 @@ module lightpen(
 reg light_pen_triggered;
 always @(posedge clk_dot4x)
 begin
-    if (rst) begin
-        ilp <= `FALSE;
-        light_pen_triggered <= `FALSE;
-    end else begin
+    begin
         if (ilp_clr)
             ilp <= `FALSE;
         if (raster_line == raster_y_max)

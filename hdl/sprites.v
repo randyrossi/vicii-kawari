@@ -164,7 +164,7 @@ always @(posedge clk_dot4x)
             sprite_mc[n] <= 6'd63;
             sprite_mcbase[n] <= 6'd63;
             sprite_ye_ff[n] <= 1;
-            sprite_dma[n] <= 0;
+            //sprite_dma[n] <= 0;
         end
     end else begin
         // update mcbase
