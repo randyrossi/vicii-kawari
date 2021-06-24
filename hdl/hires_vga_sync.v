@@ -143,15 +143,19 @@ assign vsync = enable_csync ? 1'b0 : vsync_int;
 // Same logic as above for h/v sync except for active ranges.  Also need
 // to treat first and last active lines special so we don't start active
 // too soon or end it too early when ha_end > 0
+// For PAL, we have to invert the range because the blanking region crosses
+// 0. (See va_sta and va_end for PAL)
+wire vactive;
+assign vactive =
+               ((v_count == va_end & h_count >= ha_end) | v_count > va_end) &
+               ((v_count == va_sta & h_count < ha_sta) | v_count < va_sta);
+
+// NOTE: For PAL, we invert the vactive because the blanking region crosses
+// 0. So consider va_sta and va_end as opposites of their names.
 assign active = ~(
            (h_count >= ha_end & h_count <= ha_sta) |
-           (
-               ((v_count == va_end & h_count >= ha_end) | v_count > va_end) &
-               ((v_count == va_sta & h_count < ha_sta) | v_count < va_sta)
-           )
+           (chip[0] ? ~vactive : vactive)
        );
-
-
 
 // These conditions determine whether we advance our h/v counts
 // based whether we are doubling X/Y resolutions or not.  See
@@ -258,14 +262,18 @@ task set_params();
         case (chip)
             `CHIP6569R1, `CHIP6569R5: begin
                 // WIDTH 504  HEIGHT 312
+                // NOTE: For PAL, we invert the range va_sta and va_end
+		// because the blanking region crosses 0.  So va_sta is
+		// really active end and va_end is really active start.
                 ha_end=11'd0;  // start   0
                 hs_sta=11'd10;  // fporch  10
                 hs_end=11'd70;  // sync  60
                 ha_sta=11'd90;  // bporch  20
-                va_end=10'd284;  // start  28 (+256)
+                va_end=10'd20;  // INVERTED above so actually va_sta
+                va_sta=10'd284;  // INVERTED above so actually va_end
                 vs_sta=10'd289;  // fporch   5
                 vs_end=10'd291;  // sync   2
-                va_sta=10'd311;  // bporch  20
+		                 // bporch 40 takes us to 311 + 20
                 max_height <= is_native_y ? 10'd311 : 10'd623;
                 max_width <= is_native_x ? 11'd503 : 11'd1007;
             end
@@ -321,10 +329,13 @@ task set_params_configurable();
                 hs_end = hs_sta + {3'b000, timing_h_sync_pal};
                 ha_sta = hs_end + {3'b000, timing_h_bporch_pal};
                 // WIDTH 504
-                va_end = {2'b01, timing_v_blank_pal}; // starts at 256
-                vs_sta = va_end + {2'b00, timing_v_fporch_pal};
+                // NOTE: For PAL, we invert the range va_sta and va_end
+		// because the blanking region crosses 0.  So va_sta is
+		// really active end and va_end is really active start.
+                va_sta = {2'b01, timing_v_blank_pal}; // starts at 256
+                vs_sta = va_sta + {2'b00, timing_v_fporch_pal};
                 vs_end = vs_sta + {2'b00, timing_v_sync_pal};
-                va_sta = vs_end + {2'b00, timing_v_bporch_pal};
+                va_end = vs_end + {2'b00, timing_v_bporch_pal} - 10'd311;
                 // HEIGHT 312
                 max_height <= is_native_y ? 10'd311 : 10'd623;
                 max_width <= is_native_x ? 11'd503 : 11'd1007;
