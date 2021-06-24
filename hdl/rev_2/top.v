@@ -70,6 +70,7 @@ wire rst;
 wire clk_dot4x;
 wire [1:0] chip;
 
+assign flash_cs = 1'b1;
 assign flash_d1 = 1'b1;
 assign flash_d2 = 1'b1;
 
@@ -207,7 +208,6 @@ vicii vic_inst(
           .cpu_reset_i(cpu_reset_i),
           .standard_sw(standard_sw),
           .cfg_reset(cfg_reset),
-          .flash_cs(flash_cs),
 `ifdef HAVE_EEPROM
           .D(eeprom_d),
           .Q(eeprom_q),
