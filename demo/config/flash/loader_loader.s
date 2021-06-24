@@ -11,6 +11,12 @@ _load_loader:
         ldx #$00  ; ignored
         ldy #$90  ; ignored
         jsr $FFD5 ; do LOAD
+        bcs error
+        ldx #0
+        rts
+
+error:
+        ldx #1
         rts
 
 DRIVENUM:

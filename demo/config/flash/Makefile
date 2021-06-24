@@ -5,8 +5,12 @@ OBJS=main.o menu.o ../util.o ../init.o
 # Make an info file for flash program to read
 info_file: load_bytes
 	./load_bytes > info
-	# version
+	# flash format version
 	echo "1" >> info
+	# name
+	echo "kawari" >> info
+	# version string
+	echo "1.0" >> info
 	# size of image
 	echo "458752" >> info
 	# start address of image
@@ -18,9 +22,9 @@ load_bytes: load_bytes.c
 
 # DEL ME LATER
 
-flash.prg: main.o menu.o ../util.o ../init.o crt0.o loader_loader.o
+flash.prg: main.o menu.o ../util.o ../init.o crt0.o loader_loader.o copy.o
 	#cl65 -o flash.prg main.o menu.o loader_loader.o ../util.o ../init.o
-	ld65 -o flash.prg main.o menu.o crt0.o loader_loader.o \
+	ld65 -o flash.prg main.o menu.o crt0.o loader_loader.o copy.o \
 		../util.o ../init.o /usr/share/cc65/lib/c64.lib \
 		-C /usr/share/cc65/cfg/c64.cfg
 
@@ -41,6 +45,9 @@ loader.prg: loader.s
 
 loader_loader.o: loader_loader.s
 	ca65 loader_loader.s -o loader_loader.o
+
+copy.o: copy.s
+	ca65 copy.s -o copy.o
 
 run:
 	x64sc flash.prg

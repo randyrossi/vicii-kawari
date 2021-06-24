@@ -8,8 +8,18 @@
 `define EEPROM_WAIT  2'd2
 `define EEPROM_IDLE  2'd3
 
+`define FLASH_IDLE   2'd0
+`define FLASH_WRITE  2'd1 // Write and verify 16k block 
+`define FLASH_UNUSED1  2'd2
+`define FLASH_UNUSED2  2'd3
+
+`define FLASH_CMD_WREN     2'd0
+`define FLASH_CMD_WRITE    2'd1
+`define FLASH_CMD_WAIT     2'd2
+`define FLASH_CMD_VERIFY   2'd3
+
 // Do some sanity checks
-// If we'er exporting RGB signals, we need RGB
+// If we're exporting RGB signals, we need RGB
 `ifdef GEN_RGB
 `ifndef NEED_RGB
 `define NEED_RGB 1
@@ -173,9 +183,6 @@
 `define REG_UNUSED3                   6'h31
 `define REG_UNUSED4                   6'h32
 `define REG_UNUSED5                   6'h33
-`define REG_UNUSED6                   6'h34
-`define REG_UNUSED7                   6'h35
-`define REG_UNUSED8                   6'h36
 
 // --- BEGIN EXTENSIONS ---
 `define VMEM_FLAG_PORT1_FUNCTION 1:0
@@ -185,6 +192,7 @@
 `define VMEM_FLAG_PERSIST_BIT 6
 `define VMEM_FLAG_DISABLE_BIT 7
 
+`define SPI_REG                       6'h34
 `define VIDEO_MEM_1_IDX               6'h35
 `define VIDEO_MEM_2_IDX               6'h36
 `define VIDEO_MODE1                   6'h37

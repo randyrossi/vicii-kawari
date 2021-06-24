@@ -8,9 +8,11 @@
 #include "kawari.h"
 #include "menu.h"
 
-// The max version of the image file we can understand
+// The max version of the image file format we can understand.
 #define MAX_VERSION 1
 #define MAX_VERSION_STR "1"
+
+// We won't write below this address in flash mem.
 #define MIN_WRITE_ADDR 512000L
 
 static struct regs r;
@@ -28,7 +30,7 @@ static struct regs r;
 // Bit 7 : unused
 // Bit 8 : Write/Verify 16k block from 0x00000 video ram (*)
 //
-// * 24-bit write address set from 0x35,0x36,0x39
+// * 24-bit write address set from 0x35,0x36,0x3a
 //
 // (Read)
 // Bit 1 - SPI Q
@@ -40,8 +42,9 @@ static struct regs r;
 // Bit 7 - unused
 // Bit 8 - unused
 
-#define SPI_REG 0x34
+#define SPI_REG 0xD034L
 
+// All combinations of D/C/S bits
 #define D1_C1_S1 7
 #define D1_C1_S0 6
 #define D1_C0_S1 5
@@ -63,18 +66,28 @@ static struct regs r;
 #define BLOCK_ERASE_64K_INSTR 0xd8
 #define WRITE_INSTR           0x02
 
-#define SMPRINTF_1(format, arg) sprintf (scratch, format, arg); \
-	mprintf(scratch);
-#define SMPRINTF_2(format, arg1, arg2) sprintf (scratch, format, arg1, arg2);\
-	mprintf(scratch);
+unsigned char smp_tmp[40];
+#define SMPRINTF_1(format, arg)\
+        snprintf (smp_tmp, 39, format, arg); \
+	mprintf(smp_tmp);
+#define SMPRINTF_2(format, arg1, arg2)\
+        snprintf (smp_tmp, 39, format, arg1, arg2);\
+	mprintf(smp_tmp);
+#define SMPRINTF_3(format, arg1, arg2, arg3)\
+        snprintf (smp_tmp, 39, format, arg1, arg2, arg3);\
+	mprintf(smp_tmp);
 
 unsigned char data_out[256];
 unsigned char data_in[256];
 
+#define SCRATCH_SIZE 32
 unsigned char filename[16];
-unsigned char scratch[16];
+unsigned char scratch[SCRATCH_SIZE];
+
+unsigned char use_fast_loader;
 
 void load_loader(void);
+void copy_4000_0000(void);
 
 // Output a single character using kernel BSOUT routine.
 void bsout(unsigned char c) {
@@ -84,7 +97,7 @@ void bsout(unsigned char c) {
 }
 
 // For some odd reason, the fast loader will not install
-// if we use printf.  So we have to build our own print
+// if we use printf. So we have to build our own print
 // routine based on bsout.
 void mprintf(unsigned char* text) {
    int n;
@@ -122,13 +135,36 @@ unsigned long read_decimal(unsigned long* addr) {
     return val;
 }
 
+// Read a petscii string from addr. Advance addr
+// to after the 0x0a terminator.  Max SCRATCH_SIZE char
+// string will get placed in 'scratch' global var.
+void read_string(unsigned long* addr) {
+    unsigned n = 0;
+    unsigned char c;
+
+    scratch[0] = '\0';
+    do {
+       c = PEEK(*addr);
+       if (c != 0x0a && n < SCRATCH_SIZE-1) {
+           scratch[n++] = c;
+       }
+       *addr = *addr + 1;
+    } while (c != 0x0a);
+
+    if (n < SCRATCH_SIZE)
+       scratch[n] = '\0';
+    else
+       scratch[SCRATCH_SIZE-1] = '\0';
+}
+
 // Load the fast loader into $9000
-void slow_load(void) {
+unsigned char slow_load(void) {
     r.pc = (unsigned) &load_loader;
     r.x = (unsigned char)(&filename[0]);
     r.y = (unsigned)(&filename[0]) >> 8;
     r.a = (unsigned char)strlen(filename);
     _sys(&r);
+    return r.x;
 }
 
 // Call the fast loader's initialization routine
@@ -147,14 +183,24 @@ unsigned char fast_load() {
     return r.a;
 }
 
+unsigned char load() {
+   if (use_fast_loader)
+      return fast_load();
+   else
+      return slow_load();
+}
+
 // Helper to read 8 bits from SPI device
 void read8() {
-   int b;
-   unsigned char value;
+   unsigned char b;
+   unsigned char value = 0;
+   unsigned int bit;
    for (b=128;b>=1;b=b/2) {
         SET(D0_C0_S0);
         SET(D0_C1_S0);
-        value |= PEEK(SPI_REG) ? b : 0;
+        bit = PEEK(SPI_REG) & 1;
+        if (bit)
+	   value = value + b;
    }
    data_in[0] = value;
 }
@@ -170,16 +216,16 @@ void talk(unsigned char instr,
 	  unsigned char close)
 {
     unsigned char value;
-    int b;
+    unsigned long b;
     int n;
-    int bit;
+    unsigned long bit;
 
     asm("sei");
     SET(D1_C1_S1);
     SET(D0_C1_S0);
 
     // 8 bit instruction
-    for (b=128;b>=1;b=b/2) {
+    for (b=128L;b>=1L;b=b/2L) {
        bit = instr & b;
        if (bit) {
 	       SET(D1_C0_S0);
@@ -193,7 +239,7 @@ void talk(unsigned char instr,
     // Should we shift a 24 bit address now?
     if (with_addr) {
        // 24 bit address
-       for (b=8388608;b>=1;b=b/2) {
+       for (b=8388608L;b>=1L;b=b/2L) {
           bit = addr & b;
           if (bit) {
 	       SET(D1_C0_S0);
@@ -206,7 +252,7 @@ void talk(unsigned char instr,
     }
 
     for (n=0;n<write_count;n++) {
-       for (b=128;b>=1;b=b/2) {
+       for (b=128L;b>=1L;b=b/2L) {
           bit = data_out[n] & b;
           if (bit) {
 	       SET(D1_C0_S0);
@@ -222,16 +268,18 @@ void talk(unsigned char instr,
     for (n=0;n<read_count;n++) {
        // 8 bit data
        value = 0;
-       for (b=128;b>=1;b=b/2) {
+       for (b=128L;b>=1L;b=b/2L) {
 	   SET(D0_C0_S0);
 	   SET(D0_C1_S0);
-	   value |= PEEK(SPI_REG) ? b : 0;
+           bit = PEEK(SPI_REG) & 1;
+           if (bit)
+	      value = value + b;
        }
        data_in[n] = value;
     }    
 
     if (close) {
-       SET(D0_C0_S0); // final clock low tick
+       SET(D0_C1_S0); // leave clock high before S high
        SET(D1_C1_S1); // drive S high again
     }
 
@@ -248,23 +296,23 @@ void read_device(void) {
 	 1 /* close */);
 }
 
-//void read_page(unsigned long addr) {
-//    // INSTR + 24 bit addr + 256 read bytes + CLOSE
-//    talk(READ_INSTR,
-//	1 /* withaddr */, addr,
-//	256 /* read 256 */,
-//	0 /* write 0 */,
-//	1 /* close */);
-//}
+void read_page(unsigned long addr) {
+    // INSTR + 24 bit addr + 256 read bytes + CLOSE
+    talk(READ_INSTR,
+	1 /* withaddr */, addr,
+	256 /* read 256 */,
+	0 /* write 0 */,
+	1 /* close */);
+}
 
-//void write_page(unsigned long addr) {
-//    // INSTR + 24 bit addr + 256 write bytes + CLOSE
-//    talk(READ_INSTR,
-//	1 /* withaddr */, addr,
-//	0 /* read 0 */,
-//	256 /* write 256 */,
-//	1 /* close */);
-//}
+void write_page(unsigned long addr) {
+    // INSTR + 24 bit addr + 256 write bytes + CLOSE
+    talk(WRITE_INSTR,
+	1 /* withaddr */, addr,
+	0 /* read 0 */,
+	256 /* write 256 */,
+	1 /* close */);
+}
 
 // Write enable
 void wren(void) {
@@ -299,7 +347,7 @@ void wait_busy(void) {
 // Erase a 64k segment starting at addr
 void erase_64k(unsigned long addr) {
     // INSTR + 24 bit 0 + 2 READ BYTES + CLOSE
-    talk(DEVICE_ID_INSTR,
+    talk(BLOCK_ERASE_64K_INSTR,
          1 /* withaddr */, addr,
 	 0 /* read 0 */,
 	 0 /* write 0 */,
@@ -310,9 +358,7 @@ void erase_64k(unsigned long addr) {
 unsigned wait_verify(void) {
    unsigned char v;
    // Keep checking bit 2 for write busy flag
-   do {
-       v = PEEK(SPI_REG);
-   } while (v&2);
+   do { v = PEEK(SPI_REG); } while (v & 2);
    // Done? Check verify bit
    return v & 4;
 }
@@ -323,6 +369,7 @@ void begin_flash(unsigned long num_to_write, unsigned long start_addr) {
     unsigned long src_addr;
     unsigned char disknum;
     unsigned char filenum;
+    unsigned char tmp;
 
     if (start_addr < MIN_WRITE_ADDR) {
        mprintf("Can't write to protected address\n");
@@ -330,35 +377,39 @@ void begin_flash(unsigned long num_to_write, unsigned long start_addr) {
        return;
     }
 
-    mprintf ("LOAD LOADER...");
-    strcpy (filename,"loader");
-    slow_load();
-    mprintf ("DONE\n\n");
+    if (use_fast_loader) {
+       mprintf ("LOAD LOADER...");
+       strcpy (filename,"loader");
+       while (slow_load()) {
+          printf ("Can't read fast loader prg\n");
+          printf ("Press any key to try again\n");
+          WAITKEY;
+       }
+       mprintf ("DONE\n\n");
 
-    mprintf ("INIT LOADER...");
-    init_fast_loader();
-    mprintf ("DONE\n\n");
+       mprintf ("INIT LOADER...");
+       init_fast_loader();
+       mprintf ("DONE\n\n");
+    }
 
     mprintf ("ERASE FLASH");
     for (src_addr=start_addr;src_addr<start_addr+512000L;src_addr+=65536) {
         mprintf (".");
         wren();
         erase_64k(src_addr);
-        //wait_busy();
+        wait_busy();
     }
     mprintf ("DONE\n\n");
 
-    // Set port 1 to auto inc, no overlay
-    POKE(53311L, 1);
-
     filenum = 0;
     disknum = 0;
+
     while (num_to_write > 0) {
        // Set next filename
        sprintf (filename,"%c%d", 'a'+disknum, filenum);
        SMPRINTF_2("%ld:READ %s,", num_to_write, filename);
 
-       while (fast_load()) {
+       while (load()) {
             mprintf("\nFile not found.\nPress any key to try again\n");
 	    WAITKEY;
             SMPRINTF_2("%ld:READ %s,", num_to_write, filename);
@@ -367,19 +418,13 @@ void begin_flash(unsigned long num_to_write, unsigned long start_addr) {
        mprintf ("COPY,");
 
        // Transfer $4000 - $7fff into video memory @ $0000
-       // TODO: Replace this with assembler routine to be faster
-       POKE(53301L,0); // IDX 1
-       POKE(53302L,0); // IDX 2
-       POKE(53305L,0); // LO
-       POKE(53306L,0); // HI
-       for (src_addr=0x4000L;src_addr<0x8000L;src_addr++) {
-           POKE(53307L,PEEK(src_addr));
-       }
+       copy_4000_0000();
 
        // Tell kawari to flash it
+       POKE(53311L, 0);
        POKE(53301L,(start_addr >> 16) & 0xff);
        POKE(53302L,(start_addr >> 8) & 0xff);
-       POKE(53305L,(start_addr & 0xff));
+       POKE(53306L,(start_addr & 0xff));
        mprintf ("FLASH,");
        POKE(SPI_REG, 128);
 
@@ -408,7 +453,6 @@ void begin_flash(unsigned long num_to_write, unsigned long start_addr) {
 
 void main_menu(void)
 {
-    int key;
     unsigned long version;
     unsigned long num_to_write;
     unsigned long start_addr;
@@ -430,60 +474,83 @@ void main_menu(void)
     // Garbage at top of screen is normal.
 
     // Identify flash device
-    mprintf ("Identifying flash...");
-    read_device();
-    SMPRINTF_2 ("MID=%02x DID=%02x\n", data_in[0], data_in[1]);
+    do {
+      mprintf ("Identifying flash...");
+      read_device();
+      SMPRINTF_2 ("MID=%02x DID=%02x\n", data_in[0], data_in[1]);
 
-    // TODO check for expected MID and DID and bail if not expected
+      // TODO check for expected MID and DID and bail if not expected
  
-    mprintf ("\nInsert update disk and press SPACE.\n");
+      mprintf ("\nInsert update disk and press SPACE.\n");
 
-    for (;;) {
-       WAITKEY;
-       if (r.a == ' ')  {break;}
-       if (r.a == 'q')  {return;}
-    }
+      for (;;) {
+         WAITKEY;
+         if (r.a == ' ' || r.a == 'r')  {break;}
+         if (r.a == 'q')  {return;}
+      }
+    } while (r.a == 'r');
 
-    mprintf ("Read info\n");
+    mprintf ("\nREAD IMAGE INFO\n");
     strcpy (filename,"info");
-    slow_load();
+    while (slow_load()) {
+       printf ("Can't read info file.\n");
+       printf ("Press any key to try again\n");
+       WAITKEY;
+    }
 
     // Info is now at $9000
     tmp_addr=0x9000;
     version = read_decimal(&tmp_addr);
-    num_to_write = read_decimal(&tmp_addr);
-    start_addr = read_decimal(&tmp_addr);
-
-    SMPRINTF_1 ("\nImage version is %ld\n", version);
+    SMPRINTF_1 ("File Format  :v%ld\n", version);
 
     if (version > MAX_VERSION) {
-       mprintf ("This util can only read version " MAX_VERSION_STR);
+       mprintf ("\nThis util can only read version " MAX_VERSION_STR);
        mprintf ("\nPress any key to exit.\n");
        WAITKEY;
        return;
     }
 
-    SMPRINTF_1 ("\nImage is %ld bytes\n", num_to_write);
-    SMPRINTF_1 ("Dest addr is %ld \n", start_addr);
+    read_string(&tmp_addr);
+    SMPRINTF_1 ("Image name   :%s\n", scratch);
+    read_string(&tmp_addr);
+    SMPRINTF_1 ("Image version:%s\n", scratch);
+    num_to_write = read_decimal(&tmp_addr);
+    SMPRINTF_1 ("Size         :%ld bytes\n", num_to_write);
+    start_addr = read_decimal(&tmp_addr);
+    SMPRINTF_1 ("Start Address:%lx \n", start_addr);
 
     if ((num_to_write % 16384) != 0) {
-        mprintf ("Image is not properly padded.\n");
-        mprintf ("Press any key to exit.\n");
+        mprintf ("Image is not properly padded to\n");
+        mprintf ("a multiple of 16384. Press any\n");
+        mprintf ("key to exit.\n");
         WAITKEY;
         return;
     }
+
+    mprintf ("\nUse fast loader (Y/n) ?");
+
+    use_fast_loader = 1;
+    for (;;) {
+       WAITKEY;
+       if (r.a == 'y' || r.a == 0x0a) break;
+       if (r.a == 'n') { use_fast_loader = 0; break; }
+    }
+
+    if (use_fast_loader)
+       mprintf ("Y\n");
+    else
+       mprintf ("N\n");
 
     mprintf ("\nPress SPACE to begin programming\n");
 
     for (;;) {
 
        WAITKEY;
-       key = r.a;
 
-       if (key == ' ')  {
+       if (r.a == ' ')  {
            begin_flash(num_to_write, start_addr);
            return;
-       } else if (key == 'q')  {
+       } else if (r.a == 'q')  {
            return;
        }
     }

@@ -6,6 +6,7 @@ module registers(
            output reg rst = 1'b1,
            input cpu_reset_i,
            input standard_sw,
+           output reg flash_s = 1'b1,
 `ifdef HAVE_EEPROM
            input cfg_reset,
 `endif
@@ -147,11 +148,11 @@ module registers(
            output reg [7:0] hires_cursor_hi,
            output reg [7:0] hires_cursor_lo,
 `endif
+           output reg    spi_d,
+           input         spi_q,
+           output reg    spi_c = 1'b1,
 `ifdef HAVE_EEPROM
-           output reg    D,
-           input         Q,
-           output reg    C = 1'b1,
-           output reg    S = 1'b1,
+           output reg    eeprom_s = 1'b1,
 `endif
            output reg [1:0] chip
        );
@@ -334,6 +335,8 @@ LUMA_REGS luma_regs(clk_dot4x,
 `include "registers_no_eeprom.vh"
 `endif
 
+`include "registers_flash.vh"
+
 // Master process block for registers
 always @(posedge clk_dot4x)
     if (rst) begin
@@ -345,6 +348,7 @@ always @(posedge clk_dot4x)
         b0c <= `BLUE;
         den <= `TRUE;
 `endif
+        flash_busy <= 1'b0;
         //ec <= `BLACK;
         //b0c <= `BLACK;
         //den <= `FALSE;
@@ -468,6 +472,21 @@ always @(posedge clk_dot4x)
         hires_color_base <= 4'b0000; // ignored
 	`endif
 `endif // HIRES_MODES
+
+
+
+/*
+       //FOR TESTING FLASH WRITE IN SIM
+       flash_begin <= 1'b1;
+       // Grab the write address from 0x35,0x36,0x3a
+       flash_read_addr <= 15'b0;
+       flash_write_addr <= 24'h7d000;
+       flash_command_ctr <= `FLASH_CMD_WREN;
+       flash_bit_ctr <= 6'd0;
+       flash_busy <= 1'b1;
+       flash_verify_error <= 1'b0;
+*/
+
 `else
         extra_regs_activated <= 1'b0;
 `ifdef HIRES_MODES
@@ -479,6 +498,8 @@ always @(posedge clk_dot4x)
         hires_cursor_hi <= 8'b0;
         hires_cursor_lo <= 8'b0;
 `endif
+
+
 `endif // SIMULATOR_BOARD
 
         if (~chip_initialized) begin
@@ -490,6 +511,7 @@ always @(posedge clk_dot4x)
     begin
 
         handle_persist(1'b0);
+        handle_flash();
 
 `ifdef HIRES_MODES
         if (!cpu_reset_i && hires_enabled) begin
@@ -663,7 +685,14 @@ always @(posedge clk_dot4x)
                         dbo[7:0] <= {4'b1111, sprite_col[7]};
 
                     // --- BEGIN EXTENSIONS ----
-
+                    `SPI_REG:
+                        if (extra_regs_activated)
+                           dbo[7:0] <= {5'b0,
+                                  flash_verify_error,
+                                  flash_busy,
+                                  spi_q};
+                        else
+                           dbo[7:0] <= 8'hFF;
                     `VIDEO_MEM_1_IDX:
                         if (extra_regs_activated)
                             dbo[7:0] <= video_ram_idx_1;
@@ -892,6 +921,34 @@ always @(posedge clk_dot4x)
                         sprite_col[7] <= dbi[3:0];
 
                     // --- BEGIN EXTENSIONS ----
+                    /* 0x34 */ `SPI_REG:
+                        if (extra_regs_activated)
+                        begin
+                            if (dbi[7]) begin
+                              if (!flash_busy) begin
+                                // This is a command to bulk write from
+                                // memory. Source data is at 0x0000 in video
+                                // ram.
+                                flash_begin_write <= 1'b1;
+                                // Grab the write address from 0x35,0x36,0x3a
+                                flash_read_addr <= 15'b0;
+                                flash_write_addr <=
+                                    {video_ram_idx_1,
+                                     video_ram_idx_2,
+                                     video_ram_hi_1};
+                                flash_command_ctr <= `FLASH_CMD_WREN;
+                                flash_bit_ctr <= 6'd0;
+                                flash_busy <= 1'b1;
+                                flash_verify_error <= 1'b0;
+                                $display("start flash");
+                              end
+                            end else begin
+                               // Directly set SPI lines
+                               flash_s <= dbi[0];
+                               spi_c <= dbi[1];
+                               spi_d <= dbi[2];
+                            end
+                        end
                     `VIDEO_MEM_1_IDX:
                         if (extra_regs_activated)
                             video_ram_idx_1 <= dbi;
@@ -913,7 +970,6 @@ always @(posedge clk_dot4x)
                             hires_color_base <= dbi[7:4];
 `endif
                         end
-
                     /* 0x3f */ `VIDEO_MEM_FLAGS:
                         if (~extra_regs_activated) begin
                             case (dbi[7:0])
@@ -1411,5 +1467,7 @@ end
 `else
 `include "registers_no_eeprom.v"
 `endif
+
+`include "registers_flash.v"
 
 endmodule

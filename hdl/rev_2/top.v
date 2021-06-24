@@ -21,14 +21,14 @@ module top(
 
 `endif  // HAVE_COLOR_CLOCKS
            input cfg_reset,
-           output flash_cs,
+           output flash_s,
            output flash_d1,
            output flash_d2,
+           output spi_d,
+           input  spi_q,
+           output spi_c,
 `ifdef HAVE_EEPROM
-           output eeprom_d,
-           input  eeprom_q,
-           output eeprom_clk,
-           output eeprom_cs,
+           output eeprom_s,
 `endif
            output cpu_reset,    // for pulling 6510 reset LOW
            input cpu_reset_i,   // for listening to 6510 reset
@@ -70,7 +70,6 @@ wire rst;
 wire clk_dot4x;
 wire [1:0] chip;
 
-assign flash_cs = 1'b1;
 assign flash_d1 = 1'b1;
 assign flash_d2 = 1'b1;
 
@@ -208,11 +207,12 @@ vicii vic_inst(
           .cpu_reset_i(cpu_reset_i),
           .standard_sw(standard_sw),
           .cfg_reset(cfg_reset),
+          .flash_s(flash_s),
+          .spi_d(spi_d),
+          .spi_q(spi_q),
+          .spi_c(spi_c),
 `ifdef HAVE_EEPROM
-          .D(eeprom_d),
-          .Q(eeprom_q),
-          .C(eeprom_clk),
-          .S(eeprom_cs),
+          .eeprom_s(eeprom_s),
 `endif
           .clk_dot4x(clk_dot4x),
           .clk_phi(clk_phi),

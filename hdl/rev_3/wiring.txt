@@ -91,13 +91,13 @@ F1     CHROMA   chroma[2]       O   QUIETIO 2 LVCMOS33
 G1     CHROMA   chroma[1]       O   QUIETIO 2 LVCMOS33
 H2     CHROMA   chroma[0]       O   QUIETIO 2 LVCMOS33
 
-N12    D1        flash_d1                 O QUIETIO 2 LVCMOS33
-P12    D2        flash_d2                 O QUIETIO 2 LVCMOS33
-T3    FLASH_CS  flash_cs                 O  QUIETIO  2 LVCMOS33
-T9    EEPROM_CS  eeprom_cs               O  QUIETIO  2 LVCMOS33
-R11    EEPROM_CLK eeprom_clk              O  QUIETIO  2 LVCMOS33
-T10    EEPROM_D   eeprom_d                O  QUIETIO  2 LVCMOS33
-P10    EEPROM_Q   eeprom_q                I  NA NA LVCMOS33
+N12    D1        flash_d1       O QUIETIO 2 LVCMOS33
+P12    D2        flash_d2       O QUIETIO 2 LVCMOS33
+T3     FLASH_S   flash_s        O QUIETIO 2 LVCMOS33
+T9     EEPROM_S  eeprom_s       O QUIETIO 2 LVCMOS33
+R11    SPI_C     spi_c          O QUIETIO 2 LVCMOS33
+T10    SPI_D     spi_d          O QUIETIO 2 LVCMOS33
+P10    SPI_D     spi_q          I  NA NA LVCMOS33
 
 # 0 = BLUE
 # 1 = RED

@@ -56,11 +56,11 @@ task handle_persist(input is_reset);
                     `EEPROM_READ:
                         // 25-32 : DATA 8 bit value
                         if (state_val >= 25 && state_val <= 32)
-                            data <= { data[6:0], Q };
+                            data <= { data[6:0], spi_q };
                     `EEPROM_WAIT:
                         // 9-16 : STATUS 8 bit value
                         if (state_val >= 9 && state_val <= 16)
-                            data <= { data[6:0], Q };
+                            data <= { data[6:0], spi_q };
                     default:
                         ;
                 endcase
@@ -129,7 +129,7 @@ task handle_persist(input is_reset);
                             // 25-32 : 8 bit value read
                             // 33 : extra for C to go low again
                             if (state_val >= 1 && state_val <= 33)
-                                C <= clk8;
+                                spi_c <= clk8;
                             else if (state_val == 34) begin
                                 $display("GOT %d for ADDR %d (magic %d)",
                                          data, addr_lo, magic);
@@ -188,14 +188,14 @@ task handle_persist(input is_reset);
                             // 1-8 : 8 bit instruction
                             // 9 : extra for C to go low again
                             if (state_val >= 1 && state_val <= 9)
-                                C <= clk8;
+                                spi_c <= clk8;
                             // 10 : setup
                             // 11-18 : 8 bit instruction
                             // 19-34 : 16 bit address
                             // 35-42 : 8 bit value
                             // 43 : extra for C to go low again
                             if (state_val > 10 && state_val <= 43)
-                                C <= clk8;
+                                spi_c <= clk8;
                         end
                     `EEPROM_WAIT:
                     begin
@@ -204,7 +204,7 @@ task handle_persist(input is_reset);
                         // 9-16 : 8 bit value
                         // 17 : extra for C to go low again
                         if (state_val >= 1 && state_val <= 17)
-                            C <= clk8;
+                            spi_c <= clk8;
                     end
                     default:
                         ;
@@ -218,29 +218,29 @@ task handle_persist(input is_reset);
                     `EEPROM_READ:
                         if (!eeprom_warm_up_cycle) begin
                             if (state_val == 0) begin
-                                S <= 0;
-                                C <= 1;
+                                eeprom_s <= 0;
+                                spi_c <= 1;
                                 instr <= 8'b00000011; // READ
                                 addr <= {8'b0, addr_lo};
                             end
                             else if (state_val >= 1 && state_val <= 8) begin
                                 // Shift in the instruction - 8 bits
-                                D <= instr[7];
-                                C <= clk8;
+                                spi_d <= instr[7];
+                                spi_c <= clk8;
                                 instr <= {instr[6:0], 1'b0};
                             end
                             else if (state_val >= 9 && state_val <= 24) begin
                                 // Shift in the address - 16 bits
-                                D <= addr[15];
+                                spi_d <= addr[15];
                                 addr <= {addr[14:0], 1'b0};
-                                C <= clk8;
+                                spi_c <= clk8;
                             end
                             else if (state_val >= 25 && state_val <= 32) begin
-                                C <= clk8;
+                                spi_c <= clk8;
                             end
                             else if (state_val == 33) begin
-                                S <= 1;
-                                C <= 1;
+                                eeprom_s <= 1;
+                                spi_c <= 1;
                             end
                         end
                     `EEPROM_WRITE:
@@ -248,69 +248,69 @@ task handle_persist(input is_reset);
                         if (addr_lo == eeprom_w_addr)
                         begin
                             if (state_val == 0) begin
-                                S <= 0;
-                                C <= 1;
+                                eeprom_s <= 0;
+                                spi_c <= 1;
                                 instr <= 8'b00000110; // WREN
                             end
                             else if (state_val >= 1 && state_val <= 8) begin
                                 // Shift in the instruction - 8 bits
-                                D <= instr[7];
-                                C <= clk8;
+                                spi_d <= instr[7];
+                                spi_c <= clk8;
                                 instr <= {instr[6:0], 1'b0};
                             end
                             else if (state_val == 9) begin
-                                S <= 1;
-                                C <= 1;
+                                eeprom_s <= 1;
+                                spi_c <= 1;
                             end
                             else if (state_val == 10) begin
-                                S <= 0;
-                                C <= 1;
+                                eeprom_s <= 0;
+                                spi_c <= 1;
                                 instr <= 8'b00000010; // WRITE
                                 addr <= {8'b0, addr_lo};
                                 data <= eeprom_w_value;
                             end
                             else if (state_val >= 11 && state_val <= 18) begin
                                 // Shift in the instruction - 8 bits
-                                D <= instr[7];
-                                C <= clk8;
+                                spi_d <= instr[7];
+                                spi_c <= clk8;
                                 instr <= {instr[6:0], 1'b0};
                             end
                             else if (state_val >= 19 && state_val <= 34) begin
                                 // Shift in the address - 16 bits
-                                D <= addr[15];
+                                spi_d <= addr[15];
                                 addr <= {addr[14:0], 1'b0};
-                                C <= clk8;
+                                spi_c <= clk8;
                             end
                             else if (state_val >= 35 && state_val <= 42) begin
                                 // Shift out the data - 8 bits
-                                D <= data[7];
-                                C <= clk8;
+                                spi_d <= data[7];
+                                spi_c <= clk8;
                                 data <= {data[6:0], 1'b0};
                             end
                             else if (state_val == 43) begin
-                                C <= 1;
-                                S <= 1;
+                                spi_c <= 1;
+                                eeprom_s <= 1;
                                 $display("WROTE for ADDR %d", addr_lo);
                             end
                         end
                     `EEPROM_WAIT:
                         if (state_val == 0) begin
-                            S <= 0;
-                            C <= 1;
+                            eeprom_s <= 0;
+                            spi_c <= 1;
                             instr <= 8'b00000101; // RDSR
                         end
                         else if (state_val >= 1 && state_val <= 8) begin
                             // Shift in the instruction - 8 bits
-                            D <= instr[7];
-                            C <= clk8;
+                            spi_d <= instr[7];
+                            spi_c <= clk8;
                             instr <= {instr[6:0], 1'b0};
                         end
                         else if (state_val >= 9 && state_val <= 16) begin
-                            C <= clk8;
+                            spi_c <= clk8;
                         end
                         else if (state_val == 17) begin
-                            C <= 1;
-                            S <= 1;
+                            spi_c <= 1;
+                            eeprom_s <= 1;
                             if (!data[0]) begin
                                 $display("NOT BUSY");
                                 eeprom_state <= `EEPROM_IDLE;

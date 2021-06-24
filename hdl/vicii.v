@@ -27,6 +27,7 @@ module vicii(
            output [1:0] chip,               // exported from registers
            input cpu_reset_i,
            input standard_sw,
+           output flash_s,
 `ifdef HAVE_EEPROM
            input cfg_reset,
 `endif
@@ -53,11 +54,11 @@ module vicii(
            output [5:0] chroma,
 `endif
 `endif  // HAVE_COLOR_CLOCKS
+           output spi_d,
+           input  spi_q,
+           output spi_c,
 `ifdef HAVE_EEPROM
-           output D,
-           input  Q,
-           output C,
-           output S,
+           output eeprom_s,
 `endif
 
 `ifdef NEED_RGB
@@ -861,6 +862,7 @@ registers vic_registers(
               .led(led),
 `endif
               .cpu_reset_i(cpu_reset_i),
+              .flash_s(flash_s),
               .standard_sw(standard_sw),
 `ifdef HAVE_EEPROM
               .cfg_reset(cfg_reset),
@@ -992,11 +994,11 @@ registers vic_registers(
               .hires_cursor_hi(hires_cursor_hi),
               .hires_cursor_lo(hires_cursor_lo),
 `endif
+              .spi_d(spi_d),
+              .spi_q(spi_q),
+              .spi_c(spi_c),
 `ifdef HAVE_EEPROM
-              .D(D),
-              .Q(Q),
-              .C(C),
-              .S(S),
+              .eeprom_s(eeprom_s),
 `endif
               .chip(chip) // config out
           );

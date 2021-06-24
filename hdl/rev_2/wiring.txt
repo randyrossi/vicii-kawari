@@ -91,13 +91,13 @@ P7     CHROMA   chroma[2]       O   QUIETIO 2 LVCMOS33
 P8     CHROMA   chroma[1]       O   QUIETIO 2 LVCMOS33
 P9     CHROMA   chroma[0]       O   QUIETIO 2 LVCMOS33
 
-P61    D1        flash_d1                 O QUIETIO 2 LVCMOS33
-P62    D2        flash_d2                 O QUIETIO 2 LVCMOS33
-P38    FLASH_CS  flash_cs                 O  QUIETIO  2 LVCMOS33
-P46    EEPROM_CS  eeprom_cs               O  QUIETIO  2 LVCMOS33
-P70    EEPROM_CLK eeprom_clk              O  QUIETIO  2 LVCMOS33
-P64    EEPROM_D   eeprom_d                O  QUIETIO  2 LVCMOS33
-P65    EEPROM_Q   eeprom_q                I  NA NA LVCMOS33
+P61    D1        flash_d1       O  QUIETIO 2 LVCMOS33
+P62    D2        flash_d2       O  QUIETIO 2 LVCMOS33
+P38    FLASH_S   flash_s        O  QUIETIO 2 LVCMOS33
+P46    EEPROM_S  eeprom_s       O  QUIETIO 2 LVCMOS33
+P70    SPI_C     spi_c          O  QUIETIO 2 LVCMOS33
+P64    SPI_D     spi_d          O  QUIETIO 2 LVCMOS33
+P65    SPI_Q     spi_q          I  NA NA LVCMOS33
 
 # Clock
 P56    CLK      sys_clock       I     NA NA NA

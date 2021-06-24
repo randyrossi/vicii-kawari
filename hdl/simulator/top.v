@@ -48,11 +48,12 @@ ERROR_NEED_SIMULATOR_BOARD_DEFINED See common.vh
 
 `endif  // HAVE_COLOR_CLOCKS
 
+                                       output flash_s,
+                                       output spi_d,
+                                       input  spi_q,
+                                       output spi_c,
 `ifdef HAVE_EEPROM
-                                       output D,
-                                       input  Q,
-                                       output C,
-                                       output S,
+                                       output eeprom_s,
 `endif
 
                                        // Verilog doesn't support inout/tri so this section is
@@ -173,11 +174,12 @@ vicii vic_inst(
           .chroma(chroma),
 `endif
 `endif  // HAVE_COLOR_CLOCKS
+          .flash_s(flash_s),
+          .spi_d(spi_d),
+          .spi_q(spi_q),
+          .spi_c(spi_c),
 `ifdef HAVE_EEPROM
-          .D(D),
-          .Q(Q),
-          .C(C),
-          .S(S),
+          .eeprom_s(eeprom_s),
 `endif
           .adi(adl[5:0]),
           .ado(ado),
