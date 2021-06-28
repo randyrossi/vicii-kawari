@@ -1,0 +1,113 @@
+# Bi-directional address bus
+T4     A0       adl[0]  IO    QUIETIO 2 LVCMOS33
+N5     A1       adl[1]  IO    QUIETIO 2 LVCMOS33
+P4     A2       adl[2]  IO    QUIETIO 2 LVCMOS33
+N4     A3       adl[3]  IO    QUIETIO 2 LVCMOS33
+R2     A4       adl[4]  IO    QUIETIO 2 LVCMOS33
+R1     A5       adl[5]  IO    QUIETIO 2 LVCMOS33
+P1     A6       adh[0]  IO    QUIETIO 2 LVCMOS33
+P2     A7       adh[1]  IO    QUIETIO 2 LVCMOS33
+N1     A8       adh[2]  IO    QUIETIO 2 LVCMOS33
+M3     A9       adh[3]  IO    QUIETIO 2 LVCMOS33
+M1     A10      adh[4]  IO    QUIETIO 2 LVCMOS33
+P5     A11      adh[5]  IO    QUIETIO 2 LVCMOS33
+
+# Bi-directional databus
+B12     D7       dbl[7]  IO   QUIETIO 2 LVCMOS33
+A12     D6       dbl[6]  IO   QUIETIO 2 LVCMOS33
+A11     D5       dbl[5]  IO   QUIETIO 2 LVCMOS33
+C10     D4       dbl[4]  IO   QUIETIO 2 LVCMOS33
+A10     D3       dbl[3]  IO   QUIETIO 2 LVCMOS33
+C9     D2       dbl[2]  IO   QUIETIO 2 LVCMOS33
+B10     D1       dbl[1]  IO   QUIETIO 2 LVCMOS33
+A8     D0       dbl[0]  IO   QUIETIO 2 LVCMOS33
+
+# Read only lines
+B1    D8       dbh[0]  I     NA NA LVCMOS33
+B2    D9       dbh[1]  I     NA NA LVCMOS33
+C1    D10      dbh[2]  I     NA NA LVCMOS33
+D1    D11      dbh[3]  I     NA NA LVCMOS33
+E4    RW       rw      I     NA NA LVCMOS33
+C2    CE       ce      I     NA NA LVCMOS33
+D3    LP       lp      I     NA NA LVCMOS33
+A2    CPURI    cpu_reset_i   I NA NA LVCMOS33
+
+# Write only lines
+R7      CAS      cas     O    QUIETIO 2 LVCMOS33
+T7      RAS      ras     O    QUIETIO 2 LVCMOS33
+N6      PHI      clk_phi O    QUIETIO 2 LVCMOS33
+T6      AEC      aec     O    QUIETIO 2 LVCMOS33
+P6      BA       ba      O    QUIETIO 2 LVCMOS33
+B3     IRQ      irq     O    SLOW 2 LVCMOS33
+
+# Control ines
+H1     addr_dir  ls245_addr_dir O    SLOW 4 LVCMOS33
+A3    data_dir  ls245_data_dir O    SLOW 4 LVCMOS33
+A7      RESET     cpu_reset      O    SLOW 4 LVCMOS33
+R9     switch    standard_sw    I    NA NA LVCMOS33
+T8     CFG_RESET cfg_reset      I    NA NA LVCMOS33
+
+# RGB Video output
+L14    HEAD   red[0]          O   QUIETIO 2 LVCMOS33
+L16    HEAD   red[1]          O   QUIETIO 2 LVCMOS33
+K15    HEAD   red[2]          O   QUIETIO 2 LVCMOS33
+N16    HEAD   red[3]          O   QUIETIO 2 LVCMOS33
+M16    HEAD   red[4]          O   QUIETIO 2 LVCMOS33
+K16    HEAD   red[5]          O   QUIETIO 2 LVCMOS33
+
+G16    HEAD    green[0]        O   QUIETIO 2 LVCMOS33
+F15    HEAD    green[1]        O   QUIETIO 2 LVCMOS33
+F16    HEAD    green[2]        O   QUIETIO 2 LVCMOS33
+H15    HEAD    green[3]        O   QUIETIO 2 LVCMOS33
+H16    HEAD    green[4]        O   QUIETIO 2 LVCMOS33
+E15    HEAD    green[5]        O   QUIETIO 2 LVCMOS33
+
+C15    HEAD   blue[0]         O   QUIETIO 2 LVCMOS33
+C16    HEAD   blue[1]         O   QUIETIO 2 LVCMOS33
+B15    HEAD   blue[2]         O   QUIETIO 2 LVCMOS33
+E16    HEAD   blue[3]         O   QUIETIO 2 LVCMOS33
+D16    HEAD   blue[4]         O   QUIETIO 2 LVCMOS33
+B16   HEAD   blue[5]         O   QUIETIO 2 LVCMOS33
+
+A13   HEAD   clk_dot4x_ext   O   SLOW 4 LVCMOS33
+B14   HEAD   hsync           O   SLOW 4 LVCMOS33
+A14   HEAD   vsync           O   SLOW 4 LVCMOS33
+
+# Only included if have_color_clocks is true
+J14    HEAD     clk_col4x_pal   I   NA NA LVCMOS33
+J16    HEAD     clk_col4x_ntsc  I   NA NA LVCMOS33
+
+# Only included if gen_luma_chroma is true
+H3    LUMA     luma[5]         O   QUIETIO 2 LVCMOS33
+J1    LUMA     luma[4]         O   QUIETIO 2 LVCMOS33
+K2    LUMA     luma[3]         O   QUIETIO 2 LVCMOS33
+K1    LUMA     luma[2]         O   QUIETIO 2 LVCMOS33
+L1    LUMA     luma[1]         O   QUIETIO 2 LVCMOS33
+M2    LUMA     luma[0]         O   QUIETIO 2 LVCMOS33
+E2     CHROMA   chroma[5]       O   QUIETIO 2 LVCMOS33
+E1     CHROMA   chroma[4]       O   QUIETIO 2 LVCMOS33
+F2     CHROMA   chroma[3]       O   QUIETIO 2 LVCMOS33
+F1     CHROMA   chroma[2]       O   QUIETIO 2 LVCMOS33
+G1     CHROMA   chroma[1]       O   QUIETIO 2 LVCMOS33
+H2     CHROMA   chroma[0]       O   QUIETIO 2 LVCMOS33
+
+N12    D1        flash_d1                 O QUIETIO 2 LVCMOS33
+P12    D2        flash_d2                 O QUIETIO 2 LVCMOS33
+T3    FLASH_CS  flash_cs                 O  QUIETIO  2 LVCMOS33
+T9    EEPROM_CS  eeprom_cs               O  QUIETIO  2 LVCMOS33
+R11    EEPROM_CLK eeprom_clk              O  QUIETIO  2 LVCMOS33
+T10    EEPROM_D   eeprom_d                O  QUIETIO  2 LVCMOS33
+P10    EEPROM_Q   eeprom_q                I  NA NA LVCMOS33
+
+# 0 = BLUE
+# 1 = RED
+# 2 = GREEN
+# 3 = CLOCK
+C4    TX0_TMDS3 TX0_TMDS[2] O NA NA TMDS_33
+A4    TX0_TMDS3 TX0_TMDSB[2] O NA NA TMDS_33
+B5    TX0_TMDS3 TX0_TMDS[1] O NA NA TMDS_33
+A5    TX0_TMDS3 TX0_TMDSB[1] O NA NA TMDS_33
+D5    TX0_TMDS3 TX0_TMDS[0] O NA NA TMDS_33
+C5    TX0_TMDS3 TX0_TMDSB[0] O NA NA TMDS_33
+B6    TX0_TMDS3 TX0_TMDS[3] O NA NA TMDS_33
+A6    TX0_TMDS3 TX0_TMDSB[3] O NA NA TMDS_33
