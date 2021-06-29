@@ -79,7 +79,8 @@ task read_ram(
                         dbo <= {6'b0, chip};
                     `EXT_REG_DISPLAY_FLAGS:
 `ifdef NEED_RGB
-                        dbo <= {2'b0,
+                        dbo <= {1'b0, // reserved
+                                ~standard_sw,
                                 last_hpolarity,
                                 last_vpolarity,
                                 last_enable_csync,
@@ -87,7 +88,9 @@ task read_ram(
                                 last_is_native_y,
                                 last_raster_lines};
 `else
-                        dbo <= 8'b0;
+                        dbo <= 1'b0, // reserved
+                               ~standard_sw,
+                               6'b0);
 `endif
 `ifdef HIRES_MODES
                     `EXT_REG_CURSOR_LO:

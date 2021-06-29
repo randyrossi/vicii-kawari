@@ -355,7 +355,7 @@ Bit 3        | Use native x resolution rather than double (1=native, 0=doubled)
 Bit 4        | Enable CSYNC on HSYNC pin (VSYNC held low)
 Bit 5        | VSync Polarity (0=active low, 1=active high)
 Bit 6        | HSync Polarity (0=active low, 1=active high)
-Bit 7        | Reserved
+Bit 7        | External switch state (0=not inverting saved chip, 1=inverting saved chip)
 Bit 8        | Reserved
 
 * Double x resolution is required for 80 column mode or any hires mode.
