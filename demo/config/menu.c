@@ -54,6 +54,7 @@ void get_variant(void)
 
 void show_chip_model()
 {
+    int flip;
     TOXY(17,6);
     if  (line == 0) printf ("%c",18);
     switch (next_model) {
@@ -76,6 +77,14 @@ void show_chip_model()
     } else {
        printf ("          ");
     }
+    POKE(53305L,DISPLAY_FLAGS);
+    flip=PEEK(53307L) & DISPLAY_CHIP_INVERT_SWITCH;
+
+    if (flip)
+	    printf ("INV");
+    else
+	    printf ("   ");
+
     if  (line == 0) printf ("%c",146);
 }
 
@@ -83,6 +92,11 @@ void show_display_bit(int bit, int y, int label)
 {
     int next_val = next_display_flags & bit;
     int current_val = current_display_flags & bit;
+
+    // Always show actual value of switch
+    if (bit == DISPLAY_CHIP_INVERT_SWITCH)
+        next_val = current_display_flags & bit;
+
     TOXY(17,y);
     if  (line == y-6) printf ("%c",18);
     if (next_val) {
@@ -131,8 +145,8 @@ void show_info_line(void) {
         printf ("header. Active LO or Active HI.         ");
     }
     else if (line == 7) {
-        printf ("Apply old luma levels (5 instead of 9)  ");
-        printf ("when using OLD chip models.             ");
+        printf ("CHIP toggle switch. If ON, CHIP will be ");
+        printf ("opposite video standard of saved value. ");
     }
 }
 
@@ -155,6 +169,7 @@ void save_changes(void)
 void main_menu(void)
 {
     int need_refresh = 0;
+    unsigned char sw;
 
     POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
     get_version();
@@ -174,6 +189,7 @@ void main_menu(void)
     printf ("RGB CSYNC      :\n");
     printf ("VSync polarity :\n");
     printf ("HSync polarity :\n");
+    printf ("External Switch::\n");
     printf ("\n");
 
     get_chip_model();
@@ -193,11 +209,12 @@ void main_menu(void)
           show_display_bit(DISPLAY_ENABLE_CSYNC_BIT, 10, 0);
           show_display_bit(DISPLAY_VPOLARITY_BIT, 11, 1);
           show_display_bit(DISPLAY_HPOLARITY_BIT, 12, 1);
+          show_display_bit(DISPLAY_CHIP_INVERT_SWITCH, 13, 0);
 	  show_info_line();
           need_refresh = 0;
        }
 
-       WAITKEY;
+       r.a = wait_key_or_switch();
 
        if (r.a == 'q') {
           CLRSCRN;
@@ -236,13 +253,17 @@ void main_menu(void)
           save_changes();
           need_refresh=1;
        } else if (r.a == CRSR_DOWN) {
-          line++; if (line > 6) line = 6;
+          line++; if (line > 7) line = 7;
           need_refresh=1;
        } else if (r.a == CRSR_UP) {
           line--; if (line < 0) line = 0;
           need_refresh=1;
        } else if (r.a == 'd') {
           next_display_flags = DEFAULT_DISPLAY_FLAGS;
+          need_refresh=1;
+       } else if (r.a == '*') {
+          // external switch has changed
+          get_display_flags();
           need_refresh=1;
        }
    }
