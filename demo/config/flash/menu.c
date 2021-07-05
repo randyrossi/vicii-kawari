@@ -11,6 +11,7 @@
 // The max version of the image file we can understand
 #define MAX_VERSION 1
 #define MAX_VERSION_STR "1"
+#define MIN_WRITE_ADDR 512000L
 
 static struct regs r;
 
@@ -31,8 +32,8 @@ static struct regs r;
 //
 // (Read)
 // Bit 1 - SPI Q
-// Bit 2 - Write busy
-// Bit 3 - Verify error
+// Bit 2 - Write busy : 1=BUSY, 0=DONE
+// Bit 3 - Verify error : 1=ERROR, 0=OK
 // Bit 4 - unused
 // Bit 5 - unused
 // Bit 6 - unused
@@ -305,12 +306,29 @@ void erase_64k(unsigned long addr) {
 	 1 /* close */);
 }
 
+// Return > 0 on verify error
+unsigned wait_verify(void) {
+   unsigned char v;
+   // Keep checking bit 2 for write busy flag
+   do {
+       v = PEEK(SPI_REG);
+   } while (v&2);
+   // Done? Check verify bit
+   return v & 4;
+}
+
 // Flash files are spread across 4 disks
 // This routine erases the flash 
 void begin_flash(unsigned long num_to_write, unsigned long addr) {
     unsigned long src_addr;
     unsigned char disknum;
     unsigned char filenum;
+
+    if (addr < MIN_WRITE_ADDR) {
+       mprintf("Can't write to protected address\n");
+       SMPRINTF_1("(%ld). Address too low.\n",addr);
+       return;
+    }
 
     mprintf ("LOAD LOADER...");
     strcpy (filename,"loader");
@@ -339,14 +357,15 @@ void begin_flash(unsigned long num_to_write, unsigned long addr) {
     while (num_to_write > 0) {
        // Set next filename
        sprintf (filename,"%c%d", 'a'+disknum, filenum);
-       SMPRINTF_2("READ %s (%ld remaining)...", filename, num_to_write);
+       SMPRINTF_2("%ld:READ %s,", num_to_write, filename);
 
        while (fast_load()) {
             mprintf("\nFile not found.\nPress any key to try again\n");
 	    WAITKEY;
+            SMPRINTF_2("%ld:READ %s,", num_to_write, filename);
        }
 
-       mprintf ("WRITE\n");
+       mprintf ("COPY,");
 
        // Transfer $4000 - $7fff into video memory @ $0000
        // TODO: Replace this with assembler routine to be faster
@@ -357,20 +376,26 @@ void begin_flash(unsigned long num_to_write, unsigned long addr) {
        }
 
        // Tell kawari to flash it
-       POKE(SPI_REG, 0);
+       mprintf ("FLASH,");
+       POKE(SPI_REG, 128);
 
        // Wait for flash to be done and verified
-       //wait_busy();
-	       
-       addr += 16384;
-       num_to_write -= 16384;
+       mprintf ("VERIFY,");
+       if (wait_verify()) {
+          mprintf("\nVERIFY ERROR: Press any key to try again.\n");
+	  WAITKEY;
+       } else {
+          mprintf ("OK\n");
+          addr += 16384;
+          num_to_write -= 16384;
 
-       filenum++;
-       if (disknum < 3 && filenum == 8) {
-	   filenum = 0;
-	   disknum++;
-	   SMPRINTF_1("Insert disk %d and press any key\n", disknum+1);
-	   WAITKEY;
+          filenum++;
+          if (disknum < 3 && filenum == 8) {
+	      filenum = 0;
+	      disknum++;
+	      SMPRINTF_1("Insert disk %d and press any key\n", disknum+1);
+	      WAITKEY;
+          }
        }
     }
     mprintf ("FINISHED. Press any key.\n");

@@ -10,7 +10,7 @@ info_file: load_bytes
 	# size of image
 	echo "458752" >> info
 	# start address of image
-	echo "1234" >> info
+	echo "512000" >> info
 
 # Util to output 2 load bytes
 load_bytes: load_bytes.c
