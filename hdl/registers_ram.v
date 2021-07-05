@@ -88,9 +88,9 @@ task read_ram(
                                 last_is_native_y,
                                 last_raster_lines};
 `else
-                        dbo <= 1'b0, // reserved
+                        dbo <= {1'b0, // reserved
                                ~standard_sw,
-                               6'b0);
+                               6'b0};
 `endif
 `ifdef HIRES_MODES
                     `EXT_REG_CURSOR_LO:
