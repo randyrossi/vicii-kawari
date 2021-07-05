@@ -28,7 +28,7 @@ static struct regs r;
 // Bit 7 : unused
 // Bit 8 : Write/Verify 16k block from 0x00000 video ram (*)
 //
-// * 24-bit write address set from 0x3c,0x3d,0x3e
+// * 24-bit write address set from 0x35,0x36,0x39
 //
 // (Read)
 // Bit 1 - SPI Q
@@ -319,14 +319,14 @@ unsigned wait_verify(void) {
 
 // Flash files are spread across 4 disks
 // This routine erases the flash 
-void begin_flash(unsigned long num_to_write, unsigned long addr) {
+void begin_flash(unsigned long num_to_write, unsigned long start_addr) {
     unsigned long src_addr;
     unsigned char disknum;
     unsigned char filenum;
 
-    if (addr < MIN_WRITE_ADDR) {
+    if (start_addr < MIN_WRITE_ADDR) {
        mprintf("Can't write to protected address\n");
-       SMPRINTF_1("(%ld). Address too low.\n",addr);
+       SMPRINTF_1("(%ld). Address too low.\n",start_addr);
        return;
     }
 
@@ -340,7 +340,7 @@ void begin_flash(unsigned long num_to_write, unsigned long addr) {
     mprintf ("DONE\n\n");
 
     mprintf ("ERASE FLASH");
-    for (src_addr=addr;src_addr<addr+512000L;src_addr+=65536) {
+    for (src_addr=start_addr;src_addr<start_addr+512000L;src_addr+=65536) {
         mprintf (".");
         wren();
         erase_64k(src_addr);
@@ -353,7 +353,6 @@ void begin_flash(unsigned long num_to_write, unsigned long addr) {
 
     filenum = 0;
     disknum = 0;
-    addr = 0;
     while (num_to_write > 0) {
        // Set next filename
        sprintf (filename,"%c%d", 'a'+disknum, filenum);
@@ -369,13 +368,18 @@ void begin_flash(unsigned long num_to_write, unsigned long addr) {
 
        // Transfer $4000 - $7fff into video memory @ $0000
        // TODO: Replace this with assembler routine to be faster
-       POKE(53305L,0);
-       POKE(53306L,0);
+       POKE(53301L,0); // IDX 1
+       POKE(53302L,0); // IDX 2
+       POKE(53305L,0); // LO
+       POKE(53306L,0); // HI
        for (src_addr=0x4000L;src_addr<0x8000L;src_addr++) {
            POKE(53307L,PEEK(src_addr));
        }
 
        // Tell kawari to flash it
+       POKE(53301L,(start_addr >> 16) & 0xff);
+       POKE(53302L,(start_addr >> 8) & 0xff);
+       POKE(53305L,(start_addr & 0xff));
        mprintf ("FLASH,");
        POKE(SPI_REG, 128);
 
@@ -386,7 +390,7 @@ void begin_flash(unsigned long num_to_write, unsigned long addr) {
 	  WAITKEY;
        } else {
           mprintf ("OK\n");
-          addr += 16384;
+          start_addr += 16384;
           num_to_write -= 16384;
 
           filenum++;
