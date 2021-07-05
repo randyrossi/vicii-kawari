@@ -1,6 +1,20 @@
-all: flash.prg loader.prg disk
+all: disk
 
 OBJS=main.o menu.o ../util.o ../init.o
+
+# Make an info file for flash program to read
+info_file: load_bytes
+	./load_bytes > info
+	# version
+	echo "1" >> info
+	# size of image
+	echo "458752" >> info
+	# start address of image
+	echo "1234" >> info
+
+# Util to output 2 load bytes
+load_bytes: load_bytes.c
+	gcc load_bytes.c -o load_bytes
 
 # DEL ME LATER
 
@@ -34,10 +48,11 @@ run:
 clean:
 	rm -f *.o *.prg *.d64
 
-disk:
+disk: info_file flash.prg loader.prg
 	truncate -s 174848 flash.d64
 	c1541 -attach flash.d64 -format "vicii-flash",0
 	c1541 -attach flash.d64 -write flash.prg flash
+	c1541 -attach flash.d64 -write info info
 	c1541 -attach flash.d64 -write datafile a0
 	c1541 -attach flash.d64 -write datafile a1
 	c1541 -attach flash.d64 -write datafile a2

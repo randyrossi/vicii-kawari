@@ -8,6 +8,10 @@
 #include "kawari.h"
 #include "menu.h"
 
+// The max version of the image file we can understand
+#define MAX_VERSION 1
+#define MAX_VERSION_STR "1"
+
 static struct regs r;
 
 // SPI_REG - Used for both direct (slow) access to SPI devices
@@ -85,9 +89,33 @@ void mprintf(unsigned char* text) {
    }
 }
 
+unsigned long read_decimal(unsigned long* addr) {
+    unsigned long val = 0;
+    unsigned char buf[16];
+    unsigned n = 0;
+    unsigned t = 0;
+    unsigned long base;
+    unsigned digit_val;
+
+    do {
+       buf[n] = PEEK(*addr);
+       if(buf[n] == 0x0a) break;
+       n++;
+       *addr = *addr + 1;
+    } while (n < 16);
+    *addr = *addr + 1;
+
+    base = 1;
+    for (t=n;t>=1;t--) {
+	    digit_val = buf[t-1] - '0';
+	    val = val + digit_val * base;
+	    base = base * 10;
+    }
+    return val;
+}
+
 // Load the fast loader into $9000
-void do_load_loader() {
-    strcpy (filename,"loader");
+void slow_load(void) {
     r.pc = (unsigned) &load_loader;
     r.x = (unsigned char)(&filename[0]);
     r.y = (unsigned)(&filename[0]) >> 8;
@@ -95,14 +123,14 @@ void do_load_loader() {
     _sys(&r);
 }
 
-void init_loader() {
+void init_fast_loader(void) {
     r.pc = 36864L;
     _sys(&r);
 }
 
-// Load next 16k segment into $4000-$8000
+// Fast load next 16k segment into $4000-$8000
 // Return non-zero on failure to load file.
-unsigned char load_file() {
+unsigned char fast_load() {
     r.pc = 36867L;
     r.x = (unsigned char)(&filename[0]);
     r.y = (unsigned)(&filename[0]) >> 8;
@@ -266,18 +294,18 @@ void erase_64k(unsigned long addr) {
 }
 
 // Flash files are spread across 4 disks
-void begin_flash(unsigned long num_to_write) {
-    unsigned long addr;
+void begin_flash(unsigned long num_to_write, unsigned long addr) {
     unsigned long src_addr;
     unsigned char disknum;
     unsigned char filenum;
 
     mprintf ("LOAD LOADER...");
-    do_load_loader();
+    strcpy (filename,"loader");
+    slow_load();
     mprintf ("DONE\n\n");
 
     mprintf ("INIT LOADER...");
-    init_loader();
+    init_fast_loader();
     mprintf ("DONE\n\n");
 
     mprintf ("ERASE FLASH");
@@ -289,6 +317,9 @@ void begin_flash(unsigned long num_to_write) {
     }
     mprintf ("DONE\n\n");
 
+    // Set port 1 to auto inc, no overlay
+    POKE(53311L, 1);
+
     filenum = 0;
     disknum = 0;
     addr = 0;
@@ -297,7 +328,7 @@ void begin_flash(unsigned long num_to_write) {
        sprintf (filename,"%c%d", 'a'+disknum, filenum);
        SMPRINTF_2("READ %s (%ld remaining)...", filename, num_to_write);
 
-       while (load_file()) {
+       while (fast_load()) {
             mprintf("\nFile not found.\nPress any key to try again\n");
 	    WAITKEY;
        }
@@ -305,6 +336,7 @@ void begin_flash(unsigned long num_to_write) {
        mprintf ("WRITE\n");
 
        // Transfer $4000 - $7fff into video memory @ $0000
+       // TODO: Replace this with assembler routine to be faster
        POKE(53305L,0);
        POKE(53306L,0);
        for (src_addr=0x4000L;src_addr<0x8000L;src_addr++) {
@@ -314,7 +346,7 @@ void begin_flash(unsigned long num_to_write) {
        // Tell kawari to flash it
        POKE(SPI_REG, 0);
 
-       // Wait for flash to be done
+       // Wait for flash to be done and verified
        //wait_busy();
 	       
        addr += 16384;
@@ -335,7 +367,10 @@ void begin_flash(unsigned long num_to_write) {
 void main_menu(void)
 {
     int key;
+    unsigned long version;
     unsigned long num_to_write;
+    unsigned long start_addr;
+    unsigned long tmp_addr;
 
     clrscr();
 
@@ -367,9 +402,27 @@ void main_menu(void)
        if (r.a == 'q')  {return;}
     }
 
-    // TODO Read size and confirm this is an image disk
-    num_to_write = 458752;
+    mprintf ("Read info\n");
+    strcpy (filename,"info");
+    slow_load();
+
+    // Info is now at $9000
+    tmp_addr=0x9000;
+    version = read_decimal(&tmp_addr);
+    num_to_write = read_decimal(&tmp_addr);
+    start_addr = read_decimal(&tmp_addr);
+
+    SMPRINTF_1 ("\nImage version is %ld\n", version);
+
+    if (version > MAX_VERSION) {
+       mprintf ("This util can only read version " MAX_VERSION_STR);
+       mprintf ("\nPress any key to exit.\n");
+       WAITKEY;
+       return;
+    }
+
     SMPRINTF_1 ("\nImage is %ld bytes\n", num_to_write);
+    SMPRINTF_1 ("Dest addr is %ld \n", start_addr);
 
     if ((num_to_write % 16384) != 0) {
         mprintf ("Image is not properly padded.\n");
@@ -378,7 +431,7 @@ void main_menu(void)
         return;
     }
 
-    mprintf ("Press SPACE to begin programming\n");
+    mprintf ("\nPress SPACE to begin programming\n");
 
     for (;;) {
 
@@ -386,7 +439,7 @@ void main_menu(void)
        key = r.a;
 
        if (key == ' ')  {
-           begin_flash(num_to_write);
+           begin_flash(num_to_write, start_addr);
            return;
        } else if (key == 'q')  {
            return;

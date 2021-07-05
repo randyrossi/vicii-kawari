@@ -5,11 +5,11 @@ _load_loader:
         jsr $FFBD ; SETNAM
         lda #4    ; logical num
         ldx DRIVENUM
-        ldy #1    ; secondary
+        ldy #1    ; secondary - 1=use location bytes, 0=don't
         jsr $FFBA ; SETLFS
         lda #0    ; LOAD = 0, VERIFY = 1
-        ldx #$00
-        ldy #$90
+        ldx #$00  ; ignored
+        ldy #$90  ; ignored
         jsr $FFD5 ; do LOAD
         rts
 
