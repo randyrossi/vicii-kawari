@@ -75,12 +75,16 @@ unsigned char scratch[16];
 
 void load_loader(void);
 
+// Output a single character using kernel BSOUT routine.
 void bsout(unsigned char c) {
     r.pc = (unsigned) 0xFFD2;
     r.a = c;
     _sys(&r);
 }
 
+// For some odd reason, the fast loader will not install
+// if we use printf.  So we have to build our own print
+// routine based on bsout.
 void mprintf(unsigned char* text) {
    int n;
    for (n=0;n<strlen(text);n++) {
@@ -89,6 +93,9 @@ void mprintf(unsigned char* text) {
    }
 }
 
+// Read a decimal value terminated with 0x0a from memory
+// starting at addr.  Advance addr to after the 0x0a and
+// return the decimal value as an unsigned long.
 unsigned long read_decimal(unsigned long* addr) {
     unsigned long val = 0;
     unsigned char buf[16];
@@ -123,6 +130,7 @@ void slow_load(void) {
     _sys(&r);
 }
 
+// Call the fast loader's initialization routine
 void init_fast_loader(void) {
     r.pc = 36864L;
     _sys(&r);
@@ -138,9 +146,8 @@ unsigned char fast_load() {
     return r.a;
 }
 
-
-void read8()
-{
+// Helper to read 8 bits from SPI device
+void read8() {
    int b;
    unsigned char value;
    for (b=128;b>=1;b=b/2) {
@@ -151,6 +158,7 @@ void read8()
    data_in[0] = value;
 }
 
+// Generic routine to talk to SPI device
 // 8-bit instruction
 // optional 24 bit address
 // write_count num bytes to write (from data[] array)
@@ -229,6 +237,7 @@ void talk(unsigned char instr,
     asm("cli");
 }
 
+// Read the flash device id bytes
 void read_device(void) {
     // INSTR + 24 bit 0 + 2 READ BYTES + CLOSE
     talk(DEVICE_ID_INSTR,
@@ -256,6 +265,7 @@ void read_device(void) {
 //	1 /* close */);
 //}
 
+// Write enable
 void wren(void) {
     // INSTR + CLOSE
     talk(WREN_INSTR,
@@ -265,6 +275,7 @@ void wren(void) {
 	1 /* close */);
 }
 
+// Wait for flash device to be ready
 void wait_busy(void) {
     // INSTR + 1 BYTE READ + NO CLOSE
     talk(READ_STATUS1_INSTR,
@@ -284,6 +295,7 @@ void wait_busy(void) {
     // TODO - Retrieve result byte
 }
 
+// Erase a 64k segment starting at addr
 void erase_64k(unsigned long addr) {
     // INSTR + 24 bit 0 + 2 READ BYTES + CLOSE
     talk(DEVICE_ID_INSTR,
@@ -294,6 +306,7 @@ void erase_64k(unsigned long addr) {
 }
 
 // Flash files are spread across 4 disks
+// This routine erases the flash 
 void begin_flash(unsigned long num_to_write, unsigned long addr) {
     unsigned long src_addr;
     unsigned char disknum;
@@ -309,10 +322,10 @@ void begin_flash(unsigned long num_to_write, unsigned long addr) {
     mprintf ("DONE\n\n");
 
     mprintf ("ERASE FLASH");
-    for (addr=0;addr<512000;addr+=65536) {
+    for (src_addr=addr;src_addr<addr+512000L;src_addr+=65536) {
         mprintf (".");
         wren();
-        erase_64k(addr);
+        erase_64k(src_addr);
         //wait_busy();
     }
     mprintf ("DONE\n\n");
