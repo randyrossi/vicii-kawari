@@ -45,7 +45,8 @@ task handle_persist(input is_reset);
         // D - device latches on rising edge of C
         // Q - we read on rising edge of C
         //
-        // We set D,S on clk8_HIGH_div[3] to be ready by next C_HIGH edge on div[0]
+        // We set D,S on clk8_HIGH_div[3] to be ready by next C_HIGH edge
+        // on div[0]
         // We read Q on clk8_LOW_div[0] which is C_HIGH edge
 
         // This block handles READs on HIGH edge of C
@@ -127,8 +128,7 @@ task handle_persist(input is_reset);
                             // 1-8 : 8 bit instruction
                             // 9-24 : 16 bit address
                             // 25-32 : 8 bit value read
-                            // 33 : extra for C to go low again
-                            if (state_val >= 1 && state_val <= 33)
+                            if (state_val >= 1 && state_val <= 32)
                                 spi_c <= clk8;
                             else if (state_val == 34) begin
                                 $display("GOT %d for ADDR %d (magic %d)",
@@ -186,15 +186,13 @@ task handle_persist(input is_reset);
                         begin
                             // 0 : setup
                             // 1-8 : 8 bit instruction
-                            // 9 : extra for C to go low again
-                            if (state_val >= 1 && state_val <= 9)
+                            if (state_val >= 1 && state_val <= 8)
                                 spi_c <= clk8;
                             // 10 : setup
                             // 11-18 : 8 bit instruction
                             // 19-34 : 16 bit address
                             // 35-42 : 8 bit value
-                            // 43 : extra for C to go low again
-                            if (state_val > 10 && state_val <= 43)
+                            if (state_val > 10 && state_val <= 42)
                                 spi_c <= clk8;
                         end
                     `EEPROM_WAIT:
@@ -202,8 +200,7 @@ task handle_persist(input is_reset);
                         // 0 : setup
                         // 1-8 : 8 bit instruction
                         // 9-16 : 8 bit value
-                        // 17 : extra for C to go low again
-                        if (state_val >= 1 && state_val <= 17)
+                        if (state_val >= 1 && state_val <= 16)
                             spi_c <= clk8;
                     end
                     default:
