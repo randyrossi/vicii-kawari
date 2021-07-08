@@ -29,7 +29,7 @@ void get_chip_model(void)
 void get_display_flags(void)
 {
    POKE(VIDEO_MEM_1_LO,DISPLAY_FLAGS);
-   current_display_flags = PEEK(VIDEO_MEM_1_VAL) & 1;
+   current_display_flags = PEEK(VIDEO_MEM_1_VAL);
    next_display_flags = current_display_flags;
 }
 
@@ -214,7 +214,8 @@ void main_menu(void)
           need_refresh = 0;
        }
 
-       r.a = wait_key_or_switch();
+       r.a = wait_key_or_switch(
+          current_display_flags & DISPLAY_CHIP_INVERT_SWITCH);
 
        if (r.a == 'q') {
           CLRSCRN;

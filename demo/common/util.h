@@ -35,4 +35,4 @@ int enable_kawari(void);
 // Returns 1 if we detected magic bytes for settings.
 int have_magic(void);
 
-unsigned char wait_key_or_switch(void);
+unsigned char wait_key_or_switch(unsigned char current_switch_val);
