@@ -1,17 +1,17 @@
 
 `ifdef HAVE_MCU_EEPROM
-task persist_eeprom(input do_tx, input [7:0] reg_num, input [7:0] reg_val);
+task persist_eeprom(input do_persist, input [7:0] reg_num, input [7:0] reg_val);
     // This version sends the change bytes to the MCU via serial link
-    if (do_tx) begin
+    if (do_persist) begin
         tx_cfg_change_1 <= reg_num;
         tx_cfg_change_2 <= reg_val;
         tx_new_data_start = 1'b1;
     end
 endtask
 `elsif HAVE_EEPROM
-task persist_eeprom(input do_tx, input [7:0] reg_num, input [7:0] reg_val);
+task persist_eeprom(input do_persist, input [7:0] reg_num, input [7:0] reg_val);
     // This version writes to the eeprom
-    if (do_tx) begin
+    if (do_persist) begin
         eeprom_busy <= 1'b1;
         eeprom_w_addr <= reg_num;
         eeprom_w_value <= reg_val;
@@ -19,7 +19,7 @@ task persist_eeprom(input do_tx, input [7:0] reg_num, input [7:0] reg_val);
     end
 endtask
 `else
-task persist_eeprom(input do_tx, input [7:0] reg_num, input [7:0] reg_val);
+task persist_eeprom(input do_persist, input [7:0] reg_num, input [7:0] reg_val);
     ; // noop
 endtask
 `endif
@@ -205,7 +205,7 @@ endtask
 // If overlay is on, ram_hi and ram_idx are ignored and it will never
 // trigger a vram write.
 //
-// If do_tx is 1, we transmit this change to the MCU for persistence.
+// If do_persist is 1, we transmit this change to the MCU for persistence.
 task write_ram(
         input overlay,
         input [7:0] ram_lo,
@@ -213,7 +213,7 @@ task write_ram(
         input [7:0] ram_idx,
         input [7:0] data,
         input from_cpu,
-        input do_tx);
+        input do_persist);
     begin
         if (overlay) begin
             if (ram_lo < 8'h40) begin
@@ -226,7 +226,7 @@ task write_ram(
                 color_regs_wr_value <= data[5:0];
                 color_regs_wr_nibble <= ram_lo[1:0];
                 color_regs_addr_a <= ram_lo[5:2];
-                persist_eeprom(do_tx, ram_lo, {2'b0, data[5:0]});
+                persist_eeprom(do_persist, ram_lo, {2'b0, data[5:0]});
 `endif
 `endif
             end
@@ -237,21 +237,21 @@ task write_ram(
                 luma_regs_wr_value <= {2'b0, data[5:0]};
                 luma_regs_wr_nibble <= 2'b00; // luma
                 luma_regs_addr_a <= ram_lo[3:0];
-                persist_eeprom(do_tx, ram_lo, {2'b0, data[5:0]});
+                persist_eeprom(do_persist, ram_lo, {2'b0, data[5:0]});
             end
             else if (ram_lo >= `EXT_REG_PHASE0 && ram_lo <= `EXT_REG_PHASE15) begin
                 luma_regs_pre_wr2_a <= 1'b1;
                 luma_regs_wr_value <= data[7:0];
                 luma_regs_wr_nibble <= 2'b01; // phase
                 luma_regs_addr_a <= ram_lo[3:0];
-                persist_eeprom(do_tx, ram_lo, data[7:0]);
+                persist_eeprom(do_persist, ram_lo, data[7:0]);
             end
             else if (ram_lo >= `EXT_REG_AMPL0 && ram_lo <= `EXT_REG_AMPL15) begin
                 luma_regs_pre_wr2_a <= 1'b1;
                 luma_regs_wr_value <= {4'b0, data[3:0]};
                 luma_regs_wr_nibble <= 2'b10; // amplitude
                 luma_regs_addr_a <= ram_lo[3:0];
-                persist_eeprom(do_tx, ram_lo, {4'b0, data[3:0]});
+                persist_eeprom(do_persist, ram_lo, {4'b0, data[3:0]});
             end
             /* verilator lint_on WIDTH */
 `endif
@@ -270,7 +270,7 @@ task write_ram(
                         // We never change chip register from CPU. Only
                         // init sequence will set it either from MCU lines
                         // or EEPROM data.
-                        persist_eeprom(do_tx, `EXT_REG_CHIP_MODEL, {6'b0, data[1:0]});
+                        persist_eeprom(do_persist, `EXT_REG_CHIP_MODEL, {6'b0, data[1:0]});
                     end
                     `EXT_REG_DISPLAY_FLAGS:
                     begin
@@ -281,7 +281,7 @@ task write_ram(
                         last_enable_csync <= data[`ENABLE_CSYNC_BIT];
                         last_hpolarity <= data[`HPOLARITY_BIT];
                         last_vpolarity <= data[`VPOLARITY_BIT];
-                        persist_eeprom(do_tx, `EXT_REG_DISPLAY_FLAGS,
+                        persist_eeprom(do_persist, `EXT_REG_DISPLAY_FLAGS,
                                        {
                                         2'b0,
                                         data[`VPOLARITY_BIT],
@@ -302,11 +302,11 @@ task write_ram(
 `ifdef CONFIGURABLE_LUMAS
                     `EXT_REG_BLANKING: begin
                         blanking_level <= data[5:0];
-                        persist_eeprom(do_tx, ram_lo, {2'b0, data[5:0]});
+                        persist_eeprom(do_persist, ram_lo, {2'b0, data[5:0]});
                     end
                     `EXT_REG_BURSTAMP: begin
                         burst_amplitude <= data[3:0];
-                        persist_eeprom(do_tx, ram_lo, {4'b0, data[3:0]});
+                        persist_eeprom(do_persist, ram_lo, {4'b0, data[3:0]});
                     end
 `endif
 `ifdef CONFIGURABLE_TIMING
@@ -348,19 +348,19 @@ task write_ram(
 `endif
                     8'hfc: begin
                         magic_1 <= data;
-                        persist_eeprom(do_tx, 8'hfc, data);
+                        persist_eeprom(do_persist, 8'hfc, data);
                     end
                     8'hfd: begin
                         magic_2 <= data;
-                        persist_eeprom(do_tx, 8'hfd, data);
+                        persist_eeprom(do_persist, 8'hfd, data);
                     end
                     8'hfe: begin
                         magic_3 <= data;
-                        persist_eeprom(do_tx, 8'hfe, data);
+                        persist_eeprom(do_persist, 8'hfe, data);
                     end
                     8'hff: begin
                         magic_4 <= data;
-                        persist_eeprom(do_tx, 8'hff, data);
+                        persist_eeprom(do_persist, 8'hff, data);
                     end
                     default: ;
                 endcase

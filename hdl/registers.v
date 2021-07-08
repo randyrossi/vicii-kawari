@@ -12,6 +12,9 @@ module registers(
 `ifdef HAVE_EEPROM
            input cfg_reset,
 `endif
+           input spi_lock,
+           input extensions_lock,
+           input persistence_lock,
 `ifdef CMOD_BOARD
            input [1:0] btn,
            output [1:0] led,
@@ -481,18 +484,20 @@ always @(posedge clk_dot4x)
 	`endif
 `endif // HIRES_MODES
 
-
-
 /*
+`ifdef HAVE_FLASH
        //FOR TESTING FLASH WRITE IN SIM
-       flash_begin <= 1'b1;
-       // Grab the write address from 0x35,0x36,0x3a
-       flash_read_addr <= 15'b0;
-       flash_write_addr <= 24'h7d000;
-       flash_command_ctr <= `FLASH_CMD_WREN;
-       flash_bit_ctr <= 6'd0;
-       flash_busy <= 1'b1;
-       flash_verify_error <= 1'b0;
+       if (~spi_lock) begin
+         flash_begin <= 1'b1;
+         // Grab the write address from 0x35,0x36,0x3a
+         flash_read_addr <= 15'b0;
+         flash_write_addr <= 24'h7d000;
+         flash_command_ctr <= `FLASH_CMD_WREN;
+         flash_bit_ctr <= 6'd0;
+         flash_busy <= 1'b1;
+         flash_verify_error <= 1'b0;
+       end
+`endif
 */
 
 `else
@@ -699,7 +704,10 @@ always @(posedge clk_dot4x)
                     `SPI_REG:
                         if (extra_regs_activated)
                            dbo[7:0] <= {
-                                  5'b0,
+                                  2'b0,
+                                  spi_lock,
+                                  extensions_lock,
+                                  persistence_lock,
 `ifdef HAVE_FLASH
                                   flash_verify_error,
                                   flash_busy,
@@ -948,7 +956,8 @@ always @(posedge clk_dot4x)
                         begin
                             if (dbi[7]) begin
 `ifdef HAVE_FLASH
-                              if (!flash_busy) begin
+                              // spi_lock must be shorted for SPI access
+                              if (!flash_busy && ~spi_lock) begin
                                 // This is a command to bulk write from
                                 // memory. Source data is at 0x0000 in video
                                 // ram.
@@ -968,13 +977,19 @@ always @(posedge clk_dot4x)
 `endif
                             end else begin
                                // Directly set SPI lines
+                               // spi_lock must be shorted for SPI access
+                               if (~spi_lock) begin
 `ifdef HAVE_FLASH
-                               flash_s <= dbi[0];
+                                  flash_s <= dbi[0];
 `endif
 `ifdef WITH_SPI
-                               spi_c <= dbi[1];
-                               spi_d <= dbi[2];
+                                  spi_c <= dbi[1];
+                                  spi_d <= dbi[2];
 `endif
+`ifdef HAVE_EEPROM
+                                  eeprom_s <= dbi[3];
+`endif
+                               end
                             end
                         end
                     `VIDEO_MEM_1_IDX:
@@ -1015,7 +1030,8 @@ always @(posedge clk_dot4x)
                                     else
                                         extra_regs_activation_ctr <= 2'd0;
                                 /* "2" */ 8'd50:
-                                    if (extra_regs_activation_ctr == 2'd3)
+                                    // extensions_lock must open
+                                    if (extra_regs_activation_ctr == 2'd3 && extensions_lock)
                                         extra_regs_activated <= 1'b1;
                                     else
                                         extra_regs_activation_ctr <= 2'd0;
@@ -1068,6 +1084,7 @@ always @(posedge clk_dot4x)
                                 end
                             end else begin
                                 // reg overlay or video mem
+                                // persistence lock must be open to allow
                                 auto_ram_sel <= 0;
                                 write_ram(
                                     .overlay(video_ram_flag_regs_overlay),
@@ -1076,7 +1093,7 @@ always @(posedge clk_dot4x)
                                     .ram_idx(video_ram_idx_1),
                                     .data(dbi),
                                     .from_cpu(1'b1),
-                                    .do_tx(video_ram_flag_persist));
+                                    .do_persist(video_ram_flag_persist & persistence_lock));
                             end
                         end
                     `VIDEO_MEM_2_HI:
@@ -1088,6 +1105,7 @@ always @(posedge clk_dot4x)
                     `VIDEO_MEM_2_VAL:
                         if (extra_regs_activated) begin
                             // reg overlay or video mem
+                            // persistence lock must be open to allow
                             auto_ram_sel <= 1;
                             write_ram(
                                 .overlay(video_ram_flag_regs_overlay),
@@ -1096,7 +1114,7 @@ always @(posedge clk_dot4x)
                                 .ram_idx(video_ram_idx_2),
                                 .data(dbi),
                                 .from_cpu(1'b1),
-                                .do_tx(video_ram_flag_persist));
+                                .do_persist(video_ram_flag_persist & persistence_lock));
                         end
                     // --- END EXTENSIONS ----
 

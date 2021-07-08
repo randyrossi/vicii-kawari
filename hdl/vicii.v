@@ -33,6 +33,9 @@ module vicii(
 `ifdef HAVE_EEPROM
            input cfg_reset,
 `endif
+           input spi_lock,
+           input extensions_lock,
+           input persistence_lock,
            output rst,
            input clk_dot4x,
 `ifdef CMOD_BOARD
@@ -873,6 +876,9 @@ registers vic_registers(
 `ifdef HAVE_EEPROM
               .cfg_reset(cfg_reset),
 `endif
+              .spi_lock(spi_lock),
+              .extensions_lock(extensions_lock),
+              .persistence_lock(persistence_lock),
               .clk_dot4x(clk_dot4x),
               .clk_phi(clk_phi),
               .phi_phase_start_dav_plus_2(phi_phase_start[`DATA_DAV_PLUS_2]),

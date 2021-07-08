@@ -38,7 +38,7 @@ REG    | Name | Description
 0xd031 |      | Reserved
 0xd032 |      | Reserved
 0xd033 |      | Reserved
-0xd034 |      | Reserved
+0xd034 | SPI_REG | SPI Programming Register / Status Register
 0xd035 | VIDEO_MEM_1_IDX | Video Memory Index Port A (RAM only)
 0xd036 | VIDEO_MEM_2_IDX | Video Memory Index Port B (RAM only)
 0xd037 | VIDEO_MODE1 | See below
@@ -50,6 +50,53 @@ REG    | Name | Description
 0xd03d | VIDEO_MEM_2_HI | Video Memory Addr Hi Port B
 0xd03e | VIDEO_MEM_2_VAL | Video Memory Read/Write Value Port B
 0xd03f | VIDEO_MEM_FLAGS | Video Memory Op Flags (see below)
+
+## SPI Programming Register / Status Register ($d034)
+
+This register is used by config/flash programs to
+update the FPGA bitstream.
+
+On Write:
+
+Bit          | Bit 8=0 | Bit 8=1
+-------------|---------|-------------
+Bit 1        | Flash SPI Select Line  | Bulk Flash Op
+Bit 2        | SPI Clock Line         | Bulk Flash Op
+Bit 3        | SPI Data Out Line      | Bulk Flash Op
+Bit 4        | EEPROM SPI Select Line | Bulk Flash Op
+Bit 5        | Unused                 | Bulk Flash Op
+Bit 6        | Unused                 | Bulk Flash Op
+Bit 7        | Unused                 | Bulk Flash Op
+Bit 8        | 0=SPI Lines, 1=Bulk SPI Operation
+
+On Read:
+
+Bit          | Bit 8=0
+-------------|---------
+Bit 1        | Spi Data In Line
+Bit 2        | Bulk Flash Operation Busy
+Bit 3        | Bulk Flash Operation Verify Error
+Bit 4        | Persistence Lock Status
+Bit 5        | Extensions Lock Status
+Bit 6        | SPI Lock Status
+Bit 7        | Unused
+Bit 8        | Unused
+
+## Hardware Locks
+
+By default, all config lock pins are left OPEN (pulled high).
+
+PCB Pin      | Name | Function 
+-------------|---------------------------
+CFG1         | SPI Lock | OPEN=DISALLOW SPI PROGRAMMING, SHORT=ALLOW SPI PROGRAMMING
+CFG2         | Extensions Lock | OPEN=ALLOW EXTENSIONS, SHORT=DISALLOW EXTENSIONS
+CFG3         | Persistence Lock | OPEN=ALLOW PERSISTENCE, SHORT=DISALLOW PERSISTENCE
+
+CFG1/SPI Lock must be shorted for flash updates to work.
+
+CFG2/Extensions Lock can be shorted to prevent any access to extra extensions. This effectively turns VIC-II Kawari into a normal 6567/6569 chip with no extra features accessible. 
+
+CFG3/Persistence Lock can be shorted to disallow overwriting existing saved settings (chip select, rasterlines, colors, hdmi/vga/settings, etc).
 
 ## Video Memory
 
@@ -347,7 +394,7 @@ NOTES
     Care must be taken so that no value exceeds the resolution.
     For composite output, color burst and sync pulses begin/end are hard coded to NTSC or PAL video standards and are relative to blank start.
 
-DISPLAY_FLAGS|Function
+DISPLAY_FLAGS| Function
 -------------|-------
 Bit 1        | Raster lines visible(1) or invisible(0)
 Bit 2        | Use native y resolution rather than double (1=15khz, 0=31khz)

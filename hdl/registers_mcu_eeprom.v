@@ -50,7 +50,7 @@ task handle_persist(input is_reset);
                         .ram_idx(8'b0), // ignored
                         .data(rx_data_4x), // 2nd byte from rx
                         .from_cpu(1'b0), // this is from the MCU
-                        .do_tx(1'b0) // no tx
+                        .do_persist(1'b0) // never from here
                     );
             end
         end

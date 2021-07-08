@@ -156,6 +156,9 @@ vicii vic_inst(
 `ifdef HAVE_EEPROM
           .cfg_reset(cfg_reset),
 `endif
+          .spi_lock(cfg1),
+          .extensions_lock(cfg2),
+          .persistence_lock(cfg3),
 `ifdef HAVE_MCU_EEPROM
           .chip_ext(chip_ext),
           .tx_data_4x(tx_data_4x),

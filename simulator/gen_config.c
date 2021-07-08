@@ -115,6 +115,7 @@ void main(int argc, char* argv[]) {
 		    have_mcu_eeprom();
 		    gen_rgb();
 		    hires_modes();
+have_flash();
 		    break;
 	    case 1:
 		    // Use this config for generating test results
