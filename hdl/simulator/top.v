@@ -27,6 +27,9 @@ ERROR_NEED_SIMULATOR_BOARD_DEFINED See common.vh
                                        output cpu_reset,    // reset for 6510 CPU
                                        input cpu_reset_i,
                                        input cfg_reset,
+                                       input cfg1,
+                                       input cfg2,
+                                       input cfg3,
                                        input standard_sw,   // video standard toggle switch
                                        output clk_phi,      // output phi clock for CPU
                                        output clk_dot4x,    // pixel clock
@@ -48,10 +51,14 @@ ERROR_NEED_SIMULATOR_BOARD_DEFINED See common.vh
 
 `endif  // HAVE_COLOR_CLOCKS
 
+`ifdef HAVE_FLASH
                                        output flash_s,
+`endif
+`ifdef WITH_SPI
                                        output spi_d,
                                        input  spi_q,
                                        output spi_c,
+`endif
 `ifdef HAVE_EEPROM
                                        output eeprom_s,
 `endif
@@ -174,10 +181,14 @@ vicii vic_inst(
           .chroma(chroma),
 `endif
 `endif  // HAVE_COLOR_CLOCKS
+`ifdef HAVE_FLASH
           .flash_s(flash_s),
+`endif
+`ifdef WITH_SPI
           .spi_d(spi_d),
           .spi_q(spi_q),
           .spi_c(spi_c),
+`endif
 `ifdef HAVE_EEPROM
           .eeprom_s(eeprom_s),
 `endif

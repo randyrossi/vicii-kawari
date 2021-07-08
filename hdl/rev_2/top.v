@@ -6,10 +6,6 @@
 //
 // Color clocks, DVI + RGB out.
 module top(
-`ifdef HAVE_SYS_CLOCK
-           input sys_clock,
-`endif
-`ifdef HAVE_COLOR_CLOCKS
            input clk_col4x_pal,
            input clk_col4x_ntsc,
 
@@ -19,17 +15,17 @@ module top(
            output [5:0] chroma,  // chroma out
 `endif
 
-`endif  // HAVE_COLOR_CLOCKS
            input cfg_reset,
+           input cfg1,
+           input cfg2,
+           input cfg3,
            output flash_s,
            output flash_d1,
            output flash_d2,
            output spi_d,
            input  spi_q,
            output spi_c,
-`ifdef HAVE_EEPROM
            output eeprom_s,
-`endif
            output cpu_reset,    // for pulling 6510 reset LOW
            input cpu_reset_i,   // for listening to 6510 reset
            input standard_sw,   // video standard toggle switch
@@ -91,7 +87,6 @@ reg chip_mux2;
 always @(posedge clk_col4x_ntsc) chip_mux1 <= chip[0];
 always @(posedge clk_col4x_ntsc) chip_mux2 <= chip_mux1;
 
-`ifdef HAVE_COLOR_CLOCKS
 // When we have color clocks available, we select which
 // one we want to enter the 2x clock gen (below) based
 // on the chip model by using a BUFGMUX. 1=PAL, 0 = NTSC
@@ -113,7 +108,6 @@ x2_clockgen x2_clockgen(
                 .clk_out_x2(clk_col8x), // for PLL to gen dot4x
                 .clk_out_x4(clk_col16x), // for LUMA/CHROMA gen
                 .reset(1'b0));
-`endif
 
 `ifdef WITH_DVI
 wire tx0_pclkx10;
@@ -128,13 +122,7 @@ wire tx0_serdesstrobe;
 // and we use a dynamically configured PLL to get us
 // as close as possible.
 clockgen mojo_clockgen(
-`ifdef HAVE_COLOR_CLOCKS
              .src_clock(clk_col8x),  // with color clocks, we generate dot4x from clk_col8x
-`elsif HAVE_SYS_CLOCK
-             .src_clock(sys_clock),  // without color clocks, we generate dot4x from 50mhz
-`else
-             error Need HAVE_COLOR_CLOCKS OR SYS_CLOCK
-`endif
              .clk_dot4x(clk_dot4x),
              .chip(chip)
 `ifdef WITH_DVI
@@ -211,9 +199,7 @@ vicii vic_inst(
           .spi_d(spi_d),
           .spi_q(spi_q),
           .spi_c(spi_c),
-`ifdef HAVE_EEPROM
           .eeprom_s(eeprom_s),
-`endif
           .clk_dot4x(clk_dot4x),
           .clk_phi(clk_phi),
 `ifdef NEED_RGB
@@ -224,12 +210,10 @@ vicii vic_inst(
           .green(green),
           .blue(blue),
 `endif
-`ifdef HAVE_COLOR_CLOCKS
           .clk_col16x(clk_col16x),
 `ifdef GEN_LUMA_CHROMA
           .luma(luma),
           .chroma(chroma),
-`endif
 `endif
           .adi(adl[5:0]),
           .ado(ado),

@@ -99,6 +99,11 @@ R11    SPI_C     spi_c          O QUIETIO 2 LVCMOS33
 T10    SPI_D     spi_d          O QUIETIO 2 LVCMOS33
 P10    SPI_D     spi_q          I  NA NA LVCMOS33
 
+# Config
+R16    CFG1      cfg1           I PULLUP NA NA
+P15    CFG2      cfg2           I PULLUP NA NA
+R15    CFG3      cfg3           I PULLUP NA NA
+
 # 0 = BLUE
 # 1 = RED
 # 2 = GREEN

@@ -392,14 +392,23 @@ error CAN'T HAVE HAVE_MCU_EEPROM AND HAVE_EEPROM together
 `endif
 `endif
 
-// Serial link implies we have sys_clock
+// MCU_EEPROM implies we have sys_clock for serial
+// EEPROM implies WITH_SPI
 `ifdef HAVE_MCU_EEPROM
 `define HAS_PERSIST_CAP 1'b1
 `define HAVE_SYS_CLOCK 1
 `elsif HAVE_EEPROM
 `define HAS_PERSIST_CAP 1'b1
+`define WITH_SPI 1
 `else
 `define HAS_PERSIST_CAP 1'b0
+`endif
+
+// FLASH implises WITH_SPI
+`ifdef HAVE_FLASH
+`ifndef WITH_SPI
+`define WITH_SPI 1
+`endif
 `endif
 
 `endif // common_vh_

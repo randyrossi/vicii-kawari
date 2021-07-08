@@ -123,6 +123,8 @@ public class GenConstraints
 		      System.out.println("NET \""+t6+"\" IOSTANDARD="+iostand+";");
                 }
                 if (t7.equals("I")) {
+                   if (slew.equals("PULLUP") || slew.equals("PULLDOWN"))
+		      System.out.println("NET \""+t6+"\" "+slew+";");
                    if (!iostand.equals("NA"))
 		      System.out.println("NET \""+t6+"\" IOSTANDARD="+iostand+";");
                 }

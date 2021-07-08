@@ -6,7 +6,9 @@ module registers(
            output reg rst = 1'b1,
            input cpu_reset_i,
            input standard_sw,
+`ifdef HAVE_FLASH
            output reg flash_s = 1'b1,
+`endif
 `ifdef HAVE_EEPROM
            input cfg_reset,
 `endif
@@ -148,9 +150,11 @@ module registers(
            output reg [7:0] hires_cursor_hi,
            output reg [7:0] hires_cursor_lo,
 `endif
+`ifdef WITH_SPI
            output reg    spi_d,
            input         spi_q,
            output reg    spi_c = 1'b1,
+`endif
 `ifdef HAVE_EEPROM
            output reg    eeprom_s = 1'b1,
 `endif
@@ -335,7 +339,9 @@ LUMA_REGS luma_regs(clk_dot4x,
 `include "registers_no_eeprom.vh"
 `endif
 
+`ifdef HAVE_FLASH
 `include "registers_flash.vh"
+`endif
 
 // Master process block for registers
 always @(posedge clk_dot4x)
@@ -348,7 +354,9 @@ always @(posedge clk_dot4x)
         b0c <= `BLUE;
         den <= `TRUE;
 `endif
+`ifdef HAVE_FLASH
         flash_busy <= 1'b0;
+`endif
         //ec <= `BLACK;
         //b0c <= `BLACK;
         //den <= `FALSE;
@@ -511,7 +519,10 @@ always @(posedge clk_dot4x)
     begin
 
         handle_persist(1'b0);
+
+`ifdef HAVE_FLASH
         handle_flash();
+`endif
 
 `ifdef HIRES_MODES
         if (!cpu_reset_i && hires_enabled) begin
@@ -687,10 +698,21 @@ always @(posedge clk_dot4x)
                     // --- BEGIN EXTENSIONS ----
                     `SPI_REG:
                         if (extra_regs_activated)
-                           dbo[7:0] <= {5'b0,
+                           dbo[7:0] <= {
+                                  5'b0,
+`ifdef HAVE_FLASH
                                   flash_verify_error,
                                   flash_busy,
-                                  spi_q};
+`else
+                                  1'b0,
+                                  1'b0,
+`endif
+`ifdef WITH_SPI
+                                  spi_q
+`else
+                                  1'b0
+`endif
+                           };
                         else
                            dbo[7:0] <= 8'hFF;
                     `VIDEO_MEM_1_IDX:
@@ -925,6 +947,7 @@ always @(posedge clk_dot4x)
                         if (extra_regs_activated)
                         begin
                             if (dbi[7]) begin
+`ifdef HAVE_FLASH
                               if (!flash_busy) begin
                                 // This is a command to bulk write from
                                 // memory. Source data is at 0x0000 in video
@@ -942,11 +965,16 @@ always @(posedge clk_dot4x)
                                 flash_verify_error <= 1'b0;
                                 $display("start flash");
                               end
+`endif
                             end else begin
                                // Directly set SPI lines
+`ifdef HAVE_FLASH
                                flash_s <= dbi[0];
+`endif
+`ifdef WITH_SPI
                                spi_c <= dbi[1];
                                spi_d <= dbi[2];
+`endif
                             end
                         end
                     `VIDEO_MEM_1_IDX:
@@ -1468,6 +1496,8 @@ end
 `include "registers_no_eeprom.v"
 `endif
 
+`ifdef HAVE_FLASH
 `include "registers_flash.v"
+`endif
 
 endmodule

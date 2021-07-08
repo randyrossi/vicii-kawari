@@ -102,6 +102,11 @@
 // Uncomment if board has EEPROM for persistence
 //`define HAVE_EEPROM 1
 
+// HAVE_FLASH
+// Uncomment if board has FLASH directly connected
+// to FPGA via SPI
+//`define HAVE_FLASH 1
+
 // NEED_RGB
 // --------
 // Uncomment if RGB signals are needed internally for
