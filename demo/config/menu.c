@@ -8,16 +8,17 @@
 #include "init.h"
 
 static struct regs r;
-static int next_model=0;
-static int current_model=0;
+static unsigned int next_model = 0;
+static unsigned int current_model = 0;
 
-static int next_display_flags=0;
-static int current_display_flags=0;
+static unsigned int next_display_flags = 0;
+static unsigned int current_display_flags = 0;
+static unsigned int current_lock_bits = 0;
 
-static int version;
-static char variant[16];
+static unsigned int version = 0;
+static unsigned char variant[16];
 
-static int line = 0;
+static unsigned int line = 0;
 
 void get_chip_model(void)
 {
@@ -31,6 +32,11 @@ void get_display_flags(void)
    POKE(VIDEO_MEM_1_LO,DISPLAY_FLAGS);
    current_display_flags = PEEK(VIDEO_MEM_1_VAL);
    next_display_flags = current_display_flags;
+}
+
+void get_lock_bits(void)
+{
+   current_lock_bits = PEEK(0xd034L);
 }
 
 void get_version(void)
@@ -88,7 +94,7 @@ void show_chip_model()
     if  (line == 0) printf ("%c",146);
 }
 
-void show_display_bit(int bit, int y, int label)
+void show_display_bit(unsigned int bit, int y, int label)
 {
     int next_val = next_display_flags & bit;
     int current_val = current_display_flags & bit;
@@ -102,7 +108,7 @@ void show_display_bit(int bit, int y, int label)
     if (next_val) {
        if (label) printf ("HI "); else printf ("ON ");
     } else {
-       if (label) printf ("LO "); else printf ("OFF ");
+       if (label) printf ("LO "); else printf ("OFF");
     }
 
     if (current_val != next_val) {
@@ -111,6 +117,17 @@ void show_display_bit(int bit, int y, int label)
        printf ("          ");
     }
     if  (line == y-6) printf ("%c",146);
+}
+
+void show_lock_bits(int y)
+{
+    TOXY(17,y);
+    if (current_lock_bits & 8)
+       printf ("FLASH ");
+    if (~(current_lock_bits & 16))
+       printf ("EXTENSIONS "); // this should be impossible to see
+    if (~(current_lock_bits & 32))
+       printf ("PERSIST ");
 }
 
 void show_info_line(void) {
@@ -189,11 +206,13 @@ void main_menu(void)
     printf ("RGB CSYNC      :\n");
     printf ("VSync polarity :\n");
     printf ("HSync polarity :\n");
-    printf ("External Switch::\n");
+    printf ("External Switch:\n");
+    printf ("Locked Func    :\n");
     printf ("\n");
 
     get_chip_model();
     get_display_flags();
+    get_lock_bits();
 
     printf ("CRSR to navigate | SPACE to change\n");
     printf ("S to save        | D for defaults\n");
@@ -210,6 +229,7 @@ void main_menu(void)
           show_display_bit(DISPLAY_VPOLARITY_BIT, 11, 1);
           show_display_bit(DISPLAY_HPOLARITY_BIT, 12, 1);
           show_display_bit(DISPLAY_CHIP_INVERT_SWITCH, 13, 0);
+          show_lock_bits(14);
 	  show_info_line();
           need_refresh = 0;
        }
