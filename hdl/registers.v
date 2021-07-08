@@ -952,7 +952,7 @@ always @(posedge clk_dot4x)
                                 // This is a command to bulk write from
                                 // memory. Source data is at 0x0000 in video
                                 // ram.
-                                flash_begin_write <= 1'b1;
+                                flash_begin <= 1'b1;
                                 // Grab the write address from 0x35,0x36,0x3a
                                 flash_read_addr <= 15'b0;
                                 flash_write_addr <=

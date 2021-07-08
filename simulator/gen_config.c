@@ -14,7 +14,9 @@ void configurable_lumas_0() { printf ("`define CONFIGURABLE_LUMAS 1\n"); }
 void configurable_timing_0() { printf ("`define CONFIGURABLE_TIMING 1\n"); }
 void average_lumas_0() { printf ("`define AVERAGE_LUMAS 1\n"); }
 void have_mcu_eeprom_0() { printf ("`define HAVE_MCU_EEPROM 1\n"); have_sys_clock_0(); }
-void have_eeprom_0() { printf ("`define HAVE_EEPROM 1\n"); }
+void with_spi_0() { printf ("`define WITH_SPI 1\n"); }
+void have_eeprom_0() { printf ("`define HAVE_EEPROM 1\n"); with_spi_0(); }
+void have_flash_0() { printf ("`define HAVE_FLASH 1\n"); with_spi_0(); }
 void need_rgb_0() { printf ("`define NEED_RGB 1\n"); }
 void gen_rgb_0() { printf ("`define GEN_RGB 1\n"); need_rgb_0(); }
 void with_dvi_0() { printf ("`define WITH_DVI 1\n"); need_rgb_0(); }
@@ -30,7 +32,9 @@ void configurable_lumas_1() { printf ("-DCONFIGURABLE_LUMAS=1 "); }
 void configurable_timing_1() { printf ("-DCONFIGURABLE_TIMING=1 "); }
 void average_lumas_1() { printf ("-DAVERAGE_LUMAS=1 "); }
 void have_mcu_eeprom_1() { printf ("-DHAVE_MCU_EEPROM=1 "); have_sys_clock_1(); }
-void have_eeprom_1() { printf ("-DHAVE_EEPROM=1 "); }
+void with_spi_1() { printf ("-DWITH_SPI=1 "); }
+void have_eeprom_1() { printf ("-DHAVE_EEPROM=1 "); with_spi_1(); }
+void have_flash_1() { printf ("-DHAVE_FLASH=1 "); with_spi_1(); }
 void need_rgb_1() { printf ("-DNEED_RGB=1 "); }
 void gen_rgb_1() { printf ("-DGEN_RGB=1 "); need_rgb_1(); }
 void with_dvi_1() { printf ("-DWITH_DVI=1 "); need_rgb_1(); }
@@ -50,6 +54,7 @@ void main(int argc, char* argv[]) {
 	def_func average_lumas;
 	def_func have_mcu_eeprom;
 	def_func have_eeprom;
+	def_func have_flash;
 	def_func need_rgb;
 	def_func gen_rgb;
 	def_func hires_modes;
@@ -73,6 +78,7 @@ void main(int argc, char* argv[]) {
     average_lumas = average_lumas_0;
     have_mcu_eeprom = have_mcu_eeprom_0;
     have_eeprom = have_eeprom_0;
+    have_flash = have_flash_0;
     need_rgb = need_rgb_0;
     gen_rgb = gen_rgb_0;
     hires_modes = hires_modes_0;
@@ -90,6 +96,7 @@ void main(int argc, char* argv[]) {
         average_lumas = average_lumas_1;
         have_mcu_eeprom = have_mcu_eeprom_1;
         have_eeprom = have_eeprom_1;
+        have_flash = have_flash_1;
         need_rgb = need_rgb_1;
         gen_rgb = gen_rgb_1;
         hires_modes = hires_modes_1;
@@ -114,7 +121,7 @@ void main(int argc, char* argv[]) {
 		    // since it hides sync lines.
 		    have_color_clocks();
 		    gen_luma_chroma();
-		    have_mcu_eeprom();
+		    have_flash();
 		    with_dvi();
 		    hires_modes();
 		    hide_sync();
