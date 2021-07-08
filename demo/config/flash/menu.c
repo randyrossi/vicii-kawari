@@ -8,6 +8,12 @@
 #include "kawari.h"
 #include "menu.h"
 
+// Use a combination of direct SPI access and bulk
+// SPI write operations provided by hardware to flash
+// an updated bitstream to the device.  Flash (2Mb) is
+// partitioned into header + golden master at 0x000000
+// while 'current' bistream is located at 0x07d000.
+
 // The max version of the image file format we can understand.
 #define MAX_VERSION 1
 #define MAX_VERSION_STR "1"
@@ -21,10 +27,10 @@ static struct regs r;
 //           and bulk SPI operation for Kawari to execute.
 //
 // (Write)
-// Bit 1 : FLASH S
-// Bit 2 : SPI C
-// Bit 3 : SPI D
-// Bit 4 : unused
+// Bit 1 : FLASH Select
+// Bit 2 : SPI Clock
+// Bit 3 : SPI Data Out
+// Bit 4 : EEPROM Select
 // Bit 5 : unused
 // Bit 6 : unused
 // Bit 7 : unused
@@ -33,26 +39,28 @@ static struct regs r;
 // * 24-bit write address set from 0x35,0x36,0x3a
 //
 // (Read)
-// Bit 1 - SPI Q
+// Bit 1 - SPI Data In
 // Bit 2 - Write busy : 1=BUSY, 0=DONE
 // Bit 3 - Verify error : 1=ERROR, 0=OK
-// Bit 4 - unused
-// Bit 5 - unused
-// Bit 6 - unused
+// Bit 4 - SPI lock status
+// Bit 5 - Extensions lock status
+// Bit 6 - Persistence lock status
 // Bit 7 - unused
 // Bit 8 - unused
 
 #define SPI_REG 0xD034L
 
-// All combinations of D/C/S bits
-#define D1_C1_S1 7
-#define D1_C1_S0 6
-#define D1_C0_S1 5
-#define D1_C0_S0 4
-#define D0_C1_S1 3
-#define D0_C1_S0 2
-#define D0_C0_S1 1
-#define D0_C0_S0 0
+// All combinations of D/C/S bits for Flash
+// programming. Make sure EEPROM select (Bit 4)
+// is always held high.
+#define D1_C1_S1 15 // 1111
+#define D1_C1_S0 14 // 1110
+#define D1_C0_S1 13 // 1101
+#define D1_C0_S0 12 // 1100
+#define D0_C1_S1 11 // 1011
+#define D0_C1_S0 10 // 1010
+#define D0_C0_S1 9  // 1001
+#define D0_C0_S0 8  // 1000
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
