@@ -1,15 +1,16 @@
 Prerequisites
 
-    verilator
+    verilator (synced to hash 7bbce51f7bcb41cdd2d6d4f6e4fccd462dd6098b)
     sudo apt-get install gtkwave
 
     PATH=$VICII_HOME/bin:$PATH
 
 Build
 
-    make       - verilate fpga design
-    make logic - show logic analyser on simulation trace
-    make view  - show a frame
+    make             - verilate fpga design
+    make logic       - show logic analyser on simulation trace
+    make view        - show a frame
+    make config_test - run through config permutations
 
 Usage
 
@@ -17,14 +18,13 @@ Usage
    our modified VICE-3.4 code to shadow it's vic.  See vicii-vice-3.4
    repo.
 
-    vicsim -z -v
+       vicsim -z -w    (wait for IPC, show window)
 
    Then run the modified VICE code to act as the sender.
 
    Capture can be started by poking $d3ff to set capture flags.
 
    POKE 54271,1 - Set bit 1 enables FPGA sync
-   POKE 54271,3 - Set bit 2 disables FPGA sync (auto clears bit 1)
 
    When sync is enabled, VICE will single step the fpga design 16 half cycles
    after every CPU cycle.  If a write or read to/from a VIC register happens,
@@ -38,6 +38,6 @@ Usage
 
    POKE 54270,0 - Disable sync trigger by POKE, only monitor can enable
 
-   From Monitor: f d3ff,d3ff,1 - to enable sync
+   From VICE's monitor: f d3ff,d3ff,1 - to enable sync
 
    vicsim -h  for other options

@@ -583,9 +583,9 @@ int main(int argc, char** argv, char** env) {
         printf ("  -z        : single step eval for shadow vic via ipc\n");
         printf ("  -b        : render each cycle, waiting for key press after each one\n");
         printf ("  -c <chip> : 0=CHIP6567R8, 1=CHIP6569R5 2=CHIP6567R56A 3=CHIP6569R1\n");
-        printf ("  -h        : start under reset\n");
         printf ("  -l        : log level\n");
         printf ("  -q        : hide scanline\n");
+        printf ("  -t        : enable tracing to session.vcd\n");
         printf ("  -x        : sync with VICE and save a frame before exiting\n");
         exit(0);
       case 'x':

@@ -1,8 +1,8 @@
-# VICII-Kawari Forking Guide
+# VIC-II Kawari Forking Guide
 
-## What do I need to know about forking VICII-Kawari?
+## What do I need to know about forking VIC-II Kawari?
 
-The VICII-Kawari project supports developers who want to alter VICII-Kawari to provide new features or interesting extensions. If you do plan on forking VICII-Kawari, we ask that you follow this guide so that users who install your fork can use the upstream config utility to at least display the variant name, version and capability strings your variant offers.
+The VIC-II Kawari project supports developers who want to alter VIC-II Kawari to provide new features or interesting extensions. If you do plan on forking VIC-II Kawari, we ask that you follow this guide so that users who install your fork can use the upstream config utility to at least display the variant name and version.
 
 We ask that all forks do the following:
 
@@ -26,7 +26,7 @@ No. It's your fork. You can do whatever you want. You can design a new graphics 
 
 ## Can my feature be upstreamed into the official variant?
 
-If your feature is a good fit for being upstreamed, it will be considered.  It would have to be a feature that should be common to all variants.  Bug fixes should almost always be upstreamed so if you find any, please submit a pull request with a good description of the issue and the fix.
+If your feature is a good fit for being upstreamed, it will be considered. Bug fixes should almost always be upstreamed so if you find any, please submit a pull request with a good description of the issue and the fix.
 
 ## What are some things I can do in my fork?
 
@@ -66,6 +66,6 @@ Here are some possibilities:
 
 8. Write to memory from the VIC
 
-   A real VICII chip cannot write to memory since it can't set the WR line LOW.  VICII-Kawari, however, can set WR LOW so this is theoretically possible.
+   A real VICII chip cannot write to memory since it can't set the WR line LOW.  VIC-II Kawari, however, can set WR LOW so this is theoretically possible.  Using idle cycles to execute instructions and write to DRAM (limited to 16k bank) should be possible.
 
 
