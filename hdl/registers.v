@@ -487,7 +487,7 @@ always @(posedge clk_dot4x)
 /*
 `ifdef HAVE_FLASH
        //FOR TESTING FLASH WRITE IN SIM
-       if (~spi_lock) begin
+       if (spi_lock) begin
          flash_begin <= 1'b1;
          // Grab the write address from 0x35,0x36,0x3a
          flash_read_addr <= 15'b0;
@@ -956,8 +956,8 @@ always @(posedge clk_dot4x)
                         begin
                             if (dbi[7]) begin
 `ifdef HAVE_FLASH
-                              // spi_lock must be shorted for SPI access
-                              if (!flash_busy && ~spi_lock) begin
+                              // spi_lock must be OPEN for SPI access
+                              if (!flash_busy && spi_lock) begin
                                 // This is a command to bulk write from
                                 // memory. Source data is at 0x0000 in video
                                 // ram.
@@ -977,8 +977,8 @@ always @(posedge clk_dot4x)
 `endif
                             end else begin
                                // Directly set SPI lines
-                               // spi_lock must be shorted for SPI access
-                               if (~spi_lock) begin
+                               // spi_lock must be OPEN for SPI access
+                               if (spi_lock) begin
 `ifdef HAVE_FLASH
                                   flash_s <= dbi[0];
 `endif
@@ -1030,8 +1030,9 @@ always @(posedge clk_dot4x)
                                     else
                                         extra_regs_activation_ctr <= 2'd0;
                                 /* "2" */ 8'd50:
-                                    // extensions_lock must open
-                                    if (extra_regs_activation_ctr == 2'd3 && extensions_lock)
+                                    // extensions_lock must CLOSED
+                                    if (extra_regs_activation_ctr == 2'd3
+                                            && ~extensions_lock)
                                         extra_regs_activated <= 1'b1;
                                     else
                                         extra_regs_activation_ctr <= 2'd0;
@@ -1093,7 +1094,7 @@ always @(posedge clk_dot4x)
                                     .ram_idx(video_ram_idx_1),
                                     .data(dbi),
                                     .from_cpu(1'b1),
-                                    .do_persist(video_ram_flag_persist & persistence_lock));
+                                    .do_persist(video_ram_flag_persist));
                             end
                         end
                     `VIDEO_MEM_2_HI:
@@ -1114,7 +1115,7 @@ always @(posedge clk_dot4x)
                                 .ram_idx(video_ram_idx_2),
                                 .data(dbi),
                                 .from_cpu(1'b1),
-                                .do_persist(video_ram_flag_persist & persistence_lock));
+                                .do_persist(video_ram_flag_persist));
                         end
                     // --- END EXTENSIONS ----
 

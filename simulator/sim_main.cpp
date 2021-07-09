@@ -764,10 +764,10 @@ int main(int argc, char** argv, char** env) {
     top->standard_sw = 1;
     // cfg reset is held HIGH simulating pullup
     top->cfg_reset = 1;
-    // simulate pullups for config pins
-    top->cfg1 = 1; // spi_lock
-    top->cfg2 = 1; // extensions_lock
-    top->cfg3 = 1; // persistence_lock
+    // simulate SHORTED for config pins
+    top->cfg1 = 0; // spi_lock
+    top->cfg2 = 0; // extensions_lock
+    top->cfg3 = 0; // persistence_lock
     // cpu_reset_i is held HIGH simulating pullup
     top->cpu_reset_i = 1;
 #if HAVE_MCU_EEPROM

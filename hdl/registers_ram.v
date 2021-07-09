@@ -3,19 +3,27 @@
 task persist_eeprom(input do_persist, input [7:0] reg_num, input [7:0] reg_val);
     // This version sends the change bytes to the MCU via serial link
     if (do_persist) begin
-        tx_cfg_change_1 <= reg_num;
-        tx_cfg_change_2 <= reg_val;
-        tx_new_data_start = 1'b1;
+        // persistence_lock must be CLOSED to allow
+        // chip model is exempt
+        if (~persistence_lock || reg_num == `EXT_REG_CHIP_MODEL) begin
+           tx_cfg_change_1 <= reg_num;
+           tx_cfg_change_2 <= reg_val;
+           tx_new_data_start = 1'b1;
+        end
     end
 endtask
 `elsif HAVE_EEPROM
 task persist_eeprom(input do_persist, input [7:0] reg_num, input [7:0] reg_val);
     // This version writes to the eeprom
     if (do_persist) begin
-        eeprom_busy <= 1'b1;
-        eeprom_w_addr <= reg_num;
-        eeprom_w_value <= reg_val;
-        state_ctr_reset_for_write <= 1'b1;
+        // persistence_lock must be CLOSED to allow
+        // chip model is exempt
+        if (~persistence_lock || reg_num == `EXT_REG_CHIP_MODEL) begin
+           eeprom_busy <= 1'b1;
+           eeprom_w_addr <= reg_num;
+           eeprom_w_value <= reg_val;
+           state_ctr_reset_for_write <= 1'b1;
+        end
     end
 endtask
 `else

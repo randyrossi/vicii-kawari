@@ -365,28 +365,28 @@ Location | Name | Description | Capability Requirement
 0x86 | CURSOR_HI | Hires Cursor hi byte | HIRES_MODES
 0x87 | CAP_LO    | Capability Bits lo byte (Read Only)| NONE
 0x88 | CAP_HI    | Capability Bits hi byte (Read Only)| NONE
-0x89 | TIMING_CHANGE | HDMI/VGA Timing change signal - Bit 1  | CONFIG_RGB
+0x89 | TIMING_CHANGE | HDMI/VGA Timing change signal - Bit 1  | CONFIG_TIMING
 0x8a - 0x8f | Reserved | Reserved | NONE
 0x90 - 0x9f | VARIANT_NAME | Variant Name | NONE
 0xa0 - 0xaf | LUMA_LEVELS | Composite luma levels for colors (0-63) | CONFIG_COMPOSITE
 0xb0 - 0xbf | PHASE_VALUES | Composite phase values for colors (0-255 representing 0-359 degrees) | CONFIG_COMPOSITE
 0xc0 - 0xcf | AMPL_VALUES | Composite amplitude values for colors (1-15, 0 = no modulation) | CONFIG_COMPOSITE
-0xd0 | VGA_HBLANK | HDMI/VGA NTSC H blank start | CONFIG_RGB
-0xd1 | VGA_FPORCH | HDMI/VGA NTSC H front porch | CONFIG_RGB
-0xd2 | VGA_SPULSE | HDMI/VGA NTSC H sync pulse | CONFIG_RGB
-0xd3 | VGA_BPORCH | HDMI/VGA NTSC H back porch | CONFIG_RGB
-0xd4 | VGA_VBLANK | HDMI/VGA NTSC V blank start | CONFIG_RGB
-0xd5 | VGA_FPORCH | HDMI/VGA NTSC V front porch | CONFIG_RGB
-0xd6 | VGA_SPULSE | HDMI/VGA NTSC V sync pulse | CONFIG_RGB
-0xd7 | VGA_BPORCH | HDMI/VGA NTSC V back porch | CONFIG_RGB
-0xd8 | VGA_HBLANK | HDMI/VGA PAL H blank start | CONFIG_RGB
-0xd9 | VGA_FPORCH | HDMI/VGA PAL H front porch | CONFIG_RGB
-0xda | VGA_SPULSE | HDMI/VGA PAL H sync pulse | CONFIG_RGB
-0xdb | VGA_BPORCH | HDMI/VGA PAL H back porch | CONFIG_RGB
-0xdc | VGA_VBLANK | HDMI/VGA PAL V blank start | CONFIG_RGB
-0xdd | VGA_FPORCH | HDMI/VGA PAL V front porch | CONFIG_RGB
-0xde | VGA_SPULSE | HDMI/VGA PAL V sync pulse | CONFIG_RGB
-0xdf | VGA_BPORCH | HDMI/VGA PAL V back porch | CONFIG_RGB
+0xd0 | VGA_HBLANK | HDMI/VGA NTSC H blank start | CONFIG_TIMING
+0xd1 | VGA_FPORCH | HDMI/VGA NTSC H front porch | CONFIG_TIMING
+0xd2 | VGA_SPULSE | HDMI/VGA NTSC H sync pulse | CONFIG_TIMING
+0xd3 | VGA_BPORCH | HDMI/VGA NTSC H back porch | CONFIG_TIMING
+0xd4 | VGA_VBLANK | HDMI/VGA NTSC V blank start | CONFIG_TIMING
+0xd5 | VGA_FPORCH | HDMI/VGA NTSC V front porch | CONFIG_TIMING
+0xd6 | VGA_SPULSE | HDMI/VGA NTSC V sync pulse | CONFIG_TIMING
+0xd7 | VGA_BPORCH | HDMI/VGA NTSC V back porch | CONFIG_TIMING
+0xd8 | VGA_HBLANK | HDMI/VGA PAL H blank start | CONFIG_TIMING
+0xd9 | VGA_FPORCH | HDMI/VGA PAL H front porch | CONFIG_TIMING
+0xda | VGA_SPULSE | HDMI/VGA PAL H sync pulse | CONFIG_TIMING
+0xdb | VGA_BPORCH | HDMI/VGA PAL H back porch | CONFIG_TIMING
+0xdc | VGA_VBLANK | HDMI/VGA PAL V blank start | CONFIG_TIMING
+0xdd | VGA_FPORCH | HDMI/VGA PAL V front porch | CONFIG_TIMING
+0xde | VGA_SPULSE | HDMI/VGA PAL V sync pulse | CONFIG_TIMING
+0xdf | VGA_BPORCH | HDMI/VGA PAL V back porch | CONFIG_TIMING
 0xfc - 0xff | MAGIC BYTES 'VIC2' for EEPROM
 
 NOTES
