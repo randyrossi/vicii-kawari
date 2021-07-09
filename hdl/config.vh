@@ -71,10 +71,9 @@
 
 // CONFIGURABLE_RGB
 // ------------------
-// Uncomment to activate registers 0x00-0x7f to control
+// Uncomment to activate registers 0x00-0x3f to control
 // 18-bit RGB values for the 16 colors.  If RGB is not
-// configurable, a single static  palette is used and palette
-// select bit does nothing.
+// configurable, a single static palette is used.
 //`define CONFIGURABLE_RGB 1
 
 // CONFIGURABLE_TIMING
@@ -100,11 +99,12 @@
 // HAVE_EEPROM
 // ----------------
 // Uncomment if board has EEPROM for persistence
+// via connected SPI bus.
 //`define HAVE_EEPROM 1
 
 // HAVE_FLASH
 // Uncomment if board has FLASH directly connected
-// to FPGA via SPI
+// to FPGA via SPI bus.
 //`define HAVE_FLASH 1
 
 // NEED_RGB

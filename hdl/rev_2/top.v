@@ -75,7 +75,6 @@ assign flash_d2 = 1'b1;
 `ifdef NEED_RGB
 wire hsync;
 wire vsync;
-wire active;
 wire [5:0] red;
 wire [5:0] green;
 wire [5:0] blue;
