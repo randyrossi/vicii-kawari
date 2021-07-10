@@ -13,7 +13,7 @@ static unsigned int current_model = 0;
 
 static unsigned int next_display_flags = 0;
 static unsigned int current_display_flags = 0;
-static unsigned int current_lock_bits = 0;
+static unsigned char current_lock_bits = 0;
 
 static unsigned int version = 0;
 static unsigned char variant[16];
@@ -32,11 +32,6 @@ void get_display_flags(void)
    POKE(VIDEO_MEM_1_LO,DISPLAY_FLAGS);
    current_display_flags = PEEK(VIDEO_MEM_1_VAL);
    next_display_flags = current_display_flags;
-}
-
-void get_lock_bits(void)
-{
-   current_lock_bits = PEEK(0xd034L);
 }
 
 void get_variant(void)
@@ -105,10 +100,14 @@ void show_display_bit(unsigned int bit, int y, int label)
        if (label) printf ("LO "); else printf ("OFF");
     }
 
-    if (current_val != next_val) {
-       printf (" (changed)");
+    if (bit != DISPLAY_CHIP_INVERT_SWITCH && (current_lock_bits & 32)) {
+       printf (" (locked) ");
     } else {
-       printf ("          ");
+       if (current_val != next_val) {
+              printf (" (changed)");
+           } else {
+              printf ("          ");
+           }
     }
     if  (line == y-6) printf ("%c",146);
 }
@@ -116,11 +115,11 @@ void show_display_bit(unsigned int bit, int y, int label)
 void show_lock_bits(int y)
 {
     TOXY(17,y);
-    if (current_lock_bits & 8)
+    if (!(current_lock_bits & 8))
        printf ("FLASH ");
-    if (~(current_lock_bits & 16))
-       printf ("EXTENSIONS "); // this should be impossible to see
-    if (~(current_lock_bits & 32))
+    if (current_lock_bits & 16)
+       printf ("EXTRA ");
+    if (current_lock_bits & 32)
        printf ("PERSIST ");
 }
 
@@ -180,7 +179,7 @@ void save_changes(void)
 void main_menu(void)
 {
     int need_refresh = 0;
-    unsigned char sw;
+    unsigned char can_save = 1;
 
     POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
     version = get_version();
@@ -206,7 +205,7 @@ void main_menu(void)
 
     get_chip_model();
     get_display_flags();
-    get_lock_bits();
+    current_lock_bits = get_lock_bits();
 
     printf ("CRSR to navigate | SPACE to change\n");
     printf ("S to save        | D for defaults\n");
@@ -229,38 +228,40 @@ void main_menu(void)
        }
 
        r.a = wait_key_or_switch(
-          current_display_flags & DISPLAY_CHIP_INVERT_SWITCH);
+          current_display_flags & DISPLAY_CHIP_INVERT_SWITCH,
+          current_lock_bits);
 
        if (r.a == 'q') {
           CLRSCRN;
           return;
        } else if (r.a == ' ') {
+          can_save = !(current_lock_bits & 32);
           if (line == 0) {
              next_model=next_model+1;
              if (next_model > 3) next_model=0;
              show_chip_model();
 	  }
-          else if (line == 1) {
+          else if (line == 1 && can_save) {
              next_display_flags ^= DISPLAY_SHOW_RASTER_LINES_BIT;
              show_display_bit(DISPLAY_SHOW_RASTER_LINES_BIT, 7, 0);
 	  }
-          else if (line == 2) {
+          else if (line == 2 && can_save) {
              next_display_flags ^= DISPLAY_IS_NATIVE_Y_BIT;
              show_display_bit(DISPLAY_IS_NATIVE_Y_BIT, 8, 0);
 	  }
-          else if (line == 3) {
+          else if (line == 3 && can_save) {
              next_display_flags ^= DISPLAY_IS_NATIVE_X_BIT;
              show_display_bit(DISPLAY_IS_NATIVE_X_BIT, 9, 0);
 	  }
-          else if (line == 4) {
+          else if (line == 4 && can_save) {
              next_display_flags ^= DISPLAY_ENABLE_CSYNC_BIT;
              show_display_bit(DISPLAY_ENABLE_CSYNC_BIT, 10, 0);
 	  }
-          else if (line == 5) {
+          else if (line == 5 && can_save) {
              next_display_flags ^= DISPLAY_VPOLARITY_BIT;
              show_display_bit(DISPLAY_VPOLARITY_BIT, 11, 1);
 	  }
-          else if (line == 6) {
+          else if (line == 6 && can_save) {
              next_display_flags ^= DISPLAY_HPOLARITY_BIT;
              show_display_bit(DISPLAY_HPOLARITY_BIT, 12, 1);
 	  }
@@ -279,6 +280,10 @@ void main_menu(void)
        } else if (r.a == '*') {
           // external switch has changed
           get_display_flags();
+          need_refresh=1;
+       } else if (r.a == '%') {
+          // lock bits changed
+          current_lock_bits = get_lock_bits();
           need_refresh=1;
        }
    }

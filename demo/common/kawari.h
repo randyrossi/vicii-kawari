@@ -1,3 +1,4 @@
+#define SPI_REG 0xd034L
 #define VIDEO_MEM_1_IDX 0xd035L
 #define VIDEO_MEM_2_IDX 0xd036L
 #define VIDEO_MODE1 0xd037L

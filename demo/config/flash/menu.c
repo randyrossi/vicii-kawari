@@ -51,8 +51,7 @@ static struct regs r;
 // Bit 7 - unused
 // Bit 8 - unused
 
-#define SPI_REG 0xD034L
-
+// SPI_REG
 // All combinations of D/C/S bits for Flash
 // programming. Make sure EEPROM select (Bit 4)
 // is always held high.

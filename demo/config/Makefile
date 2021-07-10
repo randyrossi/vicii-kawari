@@ -24,6 +24,7 @@ subdirs:
 	$(MAKE) -C rgbed
 	$(MAKE) -C comped
 	$(MAKE) -C timeed
+	$(MAKE) -C flash
 
 clean:
 	$(MAKE) -C rgbed clean
