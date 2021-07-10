@@ -18,7 +18,7 @@ static unsigned int current_lock_bits = 0;
 static unsigned int version = 0;
 static unsigned char variant[16];
 
-static unsigned int line = 0;
+static int line = 0;
 
 void get_chip_model(void)
 {
@@ -37,12 +37,6 @@ void get_display_flags(void)
 void get_lock_bits(void)
 {
    current_lock_bits = PEEK(0xd034L);
-}
-
-void get_version(void)
-{
-   POKE(VIDEO_MEM_1_LO,VERSION);
-   version = PEEK(VIDEO_MEM_1_VAL);
 }
 
 void get_variant(void)
@@ -189,7 +183,7 @@ void main_menu(void)
     unsigned char sw;
 
     POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
-    get_version();
+    version = get_version();
     get_variant();
 
     CLRSCRN;

@@ -57,3 +57,9 @@ unsigned char wait_key_or_switch(unsigned char current_switch_val)
         if (current_switch_val != v) return '*';
     }
 }
+
+unsigned int get_version(void)
+{
+   POKE(VIDEO_MEM_1_LO,VERSION);
+   return PEEK(VIDEO_MEM_1_VAL);
+}

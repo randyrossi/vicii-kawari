@@ -36,3 +36,5 @@ int enable_kawari(void);
 int have_magic(void);
 
 unsigned char wait_key_or_switch(unsigned char current_switch_val);
+
+unsigned int get_version(void);

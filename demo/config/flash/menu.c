@@ -8,6 +8,9 @@
 #include "kawari.h"
 #include "menu.h"
 
+#define FLASH_VERSION_MAJOR 1
+#define FLASH_VERSION_MINOR 0
+
 // Use a combination of direct SPI access and bulk
 // SPI write operations provided by hardware to flash
 // an updated bitstream to the device.  Flash (2Mb) is
@@ -74,6 +77,11 @@ static struct regs r;
 #define BLOCK_ERASE_64K_INSTR 0xd8
 #define WRITE_INSTR           0x02
 
+#define TO_EXIT 0
+#define TO_CONTINUE 1
+#define TO_TRY_AGAIN 2
+#define TO_NOTHING 2
+
 unsigned char smp_tmp[40];
 #define SMPRINTF_1(format, arg)\
         snprintf (smp_tmp, 39, format, arg); \
@@ -113,6 +121,15 @@ void mprintf(unsigned char* text) {
        unsigned char c = text[n];
        bsout(c);
    }
+}
+
+void press_any_key(int code) {
+   mprintf ("Press any key");
+   if (code == TO_CONTINUE) mprintf (" to continue.\n");
+   if (code == TO_EXIT) mprintf (" to exit.\n");
+   if (code == TO_TRY_AGAIN) mprintf (" try again.\n");
+   if (code == TO_NOTHING) mprintf (".\n");
+   WAITKEY;
 }
 
 // Read a decimal value terminated with 0x0a from memory
@@ -377,7 +394,6 @@ void begin_flash(unsigned long num_to_write, unsigned long start_addr) {
     unsigned long src_addr;
     unsigned char disknum;
     unsigned char filenum;
-    unsigned char tmp;
 
     if (start_addr < MIN_WRITE_ADDR) {
        mprintf("Can't write to protected address\n");
@@ -390,8 +406,7 @@ void begin_flash(unsigned long num_to_write, unsigned long start_addr) {
        strcpy (filename,"loader");
        while (slow_load()) {
           printf ("Can't read fast loader prg\n");
-          printf ("Press any key to try again\n");
-          WAITKEY;
+          press_any_key(TO_TRY_AGAIN);
        }
        mprintf ("DONE\n\n");
 
@@ -418,8 +433,8 @@ void begin_flash(unsigned long num_to_write, unsigned long start_addr) {
        SMPRINTF_2("%ld:READ %s,", num_to_write, filename);
 
        while (load()) {
-            mprintf("\nFile not found.\nPress any key to try again\n");
-	    WAITKEY;
+            mprintf("\nFile not found.\n");
+            press_any_key(TO_TRY_AGAIN);
             SMPRINTF_2("%ld:READ %s,", num_to_write, filename);
        }
 
@@ -439,8 +454,8 @@ void begin_flash(unsigned long num_to_write, unsigned long start_addr) {
        // Wait for flash to be done and verified
        mprintf ("VERIFY,");
        if (wait_verify()) {
-          mprintf("\nVERIFY ERROR: Press any key to try again.\n");
-	  WAITKEY;
+          mprintf("\nVERIFY ERROR\n");
+          press_any_key(TO_TRY_AGAIN);
        } else {
           mprintf ("OK\n");
           start_addr += 16384;
@@ -455,8 +470,8 @@ void begin_flash(unsigned long num_to_write, unsigned long start_addr) {
           }
        }
     }
-    mprintf ("FINISHED. Press any key.\n");
-    WAITKEY;
+    mprintf ("FINISHED");
+    press_any_key(TO_NOTHING);
 }
 
 void main_menu(void)
@@ -471,38 +486,48 @@ void main_menu(void)
     mprintf ("VIC-II Kawari Update Util\n\n");
 
     // TODO - Grab versions
-    SMPRINTF_2 ("Update Util Version: %d.%d\n", 0, 0);
-    SMPRINTF_2 ("Current Firmware Version: %d.%d\n", 0, 0);
+    SMPRINTF_2 ("Update Util Version: %d.%d\n",
+        FLASH_VERSION_MAJOR, FLASH_VERSION_MINOR);
+
+    version = get_version();
+    SMPRINTF_2 ("Current Firmware Version: %d.%d\n",
+        version >> 4, version & 15);
     mprintf ("\n");
 
-    // TODO: Show instructions.
-    // Warning. If your machine loses power during flash, there is a chance
-    // the device will not boot.
-    // Remove any fast loader cartridges
-    // Garbage at top of screen is normal.
+    //        ----------------------------------------
+    mprintf ("This utility will flash an update to\n");
+    mprintf ("your VICII-Kawari device. Do not turn\n");
+    mprintf ("off the machine until the update is\n");
+    mprintf ("complete. When using the fast loader,\n");
+    mprintf ("the garbage at the top of the screen is\n");
+    mprintf ("normal. If you have your own fast\n");
+    mprintf ("loader cartridge, select N when\n");
+    mprintf ("prompted.\n\n");
 
+    press_any_key(TO_CONTINUE);
+  
     // Identify flash device
-    do {
+    for (;;) {
       mprintf ("Identifying flash...");
       read_device();
       SMPRINTF_2 ("MID=%02x DID=%02x\n", data_in[0], data_in[1]);
 
-      // TODO check for expected MID and DID and bail if not expected
- 
-      mprintf ("\nInsert update disk and press SPACE.\n");
-
-      for (;;) {
-         WAITKEY;
-         if (r.a == ' ' || r.a == 'r')  {break;}
-         if (r.a == 'q')  {return;}
+      if (data_in[0] != 0xef || data_in[1] != 0x14) {
+         mprintf ("Unknown flash device.\n");
+         press_any_key(TO_TRY_AGAIN);
+      } else {
+         break;
       }
-    } while (r.a == 'r');
+    }
+
+    mprintf ("\nInsert update disk and press any key.\n");
+    WAITKEY;
 
     mprintf ("\nREAD IMAGE INFO\n");
     strcpy (filename,"info");
     while (slow_load()) {
        printf ("Can't read info file.\n");
-       printf ("Press any key to try again\n");
+       press_any_key(TO_TRY_AGAIN);
        WAITKEY;
     }
 
@@ -512,8 +537,8 @@ void main_menu(void)
     SMPRINTF_1 ("File Format  :v%ld\n", version);
 
     if (version > MAX_VERSION) {
-       mprintf ("\nThis util can only read version " MAX_VERSION_STR);
-       mprintf ("\nPress any key to exit.\n");
+       mprintf ("\nThis util can only read version " MAX_VERSION_STR "\n");
+       press_any_key(TO_EXIT);
        WAITKEY;
        return;
     }
@@ -529,8 +554,8 @@ void main_menu(void)
 
     if ((num_to_write % 16384) != 0) {
         mprintf ("Image is not properly padded to\n");
-        mprintf ("a multiple of 16384. Press any\n");
-        mprintf ("key to exit.\n");
+        mprintf ("a multiple of 16384.\n");
+        press_any_key(TO_EXIT);
         WAITKEY;
         return;
     }
@@ -545,21 +570,11 @@ void main_menu(void)
     }
 
     if (use_fast_loader)
-       mprintf ("Y\n");
+       mprintf ("Y\n\n");
     else
-       mprintf ("N\n");
+       mprintf ("N\n\n");
 
-    mprintf ("\nPress SPACE to begin programming\n");
+    press_any_key(TO_CONTINUE);
 
-    for (;;) {
-
-       WAITKEY;
-
-       if (r.a == ' ')  {
-           begin_flash(num_to_write, start_addr);
-           return;
-       } else if (r.a == 'q')  {
-           return;
-       }
-    }
+    begin_flash(num_to_write, start_addr);
 }
