@@ -69,6 +69,13 @@ void main_menu(void)
     color_name[14] = "l.blue ";
     color_name[15] = "l.gray ";
 
+    if (SAVES_LOCKED) {
+        printf ("\nWARNING: Lock bit is set on PCB!\n");
+        printf ("Changes cannot be saved.\n");
+        printf ("Press any key to continue.\n");
+        WAITKEY;
+    }
+
     CLRSCRN;
     printf ("VIC-II Kawari Composite Settings Editor\n\n");
  

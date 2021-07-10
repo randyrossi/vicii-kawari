@@ -79,7 +79,7 @@ static struct regs r;
 #define TO_EXIT 0
 #define TO_CONTINUE 1
 #define TO_TRY_AGAIN 2
-#define TO_NOTHING 2
+#define TO_NOTHING 3
 
 unsigned char smp_tmp[40];
 #define SMPRINTF_1(format, arg)\
@@ -507,9 +507,16 @@ void main_menu(void)
   
     // Identify flash device
     for (;;) {
-      mprintf ("Identifying flash...");
+      mprintf ("\nIdentifying flash...");
       read_device();
       SMPRINTF_2 ("MID=%02x DID=%02x\n", data_in[0], data_in[1]);
+
+      if (FLASH_LOCKED) {
+         mprintf ("\nERROR: FLASH lock bit is enabled!\n");
+         mprintf ("SPI functions are not available.\n");
+         mprintf ("Please remove FLASH lock jumper\n");
+         mprintf ("to continue.\n\n");
+      }
 
       if (data_in[0] != 0xef || data_in[1] != 0x14) {
          mprintf ("Unknown flash device.\n");

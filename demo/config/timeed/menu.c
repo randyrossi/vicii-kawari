@@ -61,6 +61,13 @@ void main_menu(void)
     int res;
     int timing_changed = 0;
 
+    if (SAVES_LOCKED) {
+        printf ("\nWARNING: Lock bit is set on PCB!\n");
+        printf ("Changes cannot be saved.\n");
+        printf ("Press any key to continue.\n");
+        WAITKEY;
+    }
+
     CLRSCRN;
     printf ("VIC-II Kawari HDMI/VGA Timing Editor\n\n");
  

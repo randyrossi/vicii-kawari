@@ -29,6 +29,10 @@ void safe_poke(long addr, char val);
 
 #define INIT_COLORS() POKE(53280L,6); POKE(53281L,14); POKE(646,1);
 
+#define FLASH_LOCKED !(get_lock_bits() & 8)
+#define EXTRA_LOCKED (get_lock_bits() & 16)
+#define SAVES_LOCKED (get_lock_bits() & 32)
+
 // Returns 1 if Kawari was successfully enabled.
 int enable_kawari(void);
 

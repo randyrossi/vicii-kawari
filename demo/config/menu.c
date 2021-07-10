@@ -115,12 +115,12 @@ void show_display_bit(unsigned int bit, int y, int label)
 void show_lock_bits(int y)
 {
     TOXY(17,y);
-    if (!(current_lock_bits & 8))
+    if (FLASH_LOCKED)
        printf ("FLASH ");
-    if (current_lock_bits & 16)
+    if (EXTRA_LOCKED)
        printf ("EXTRA ");
-    if (current_lock_bits & 32)
-       printf ("PERSIST ");
+    if (SAVES_LOCKED)
+       printf ("SAVES ");
 }
 
 void show_info_line(void) {
@@ -235,7 +235,7 @@ void main_menu(void)
           CLRSCRN;
           return;
        } else if (r.a == ' ') {
-          can_save = !(current_lock_bits & 32);
+          can_save = !(SAVES_LOCKED);
           if (line == 0) {
              next_model=next_model+1;
              if (next_model > 3) next_model=0;
