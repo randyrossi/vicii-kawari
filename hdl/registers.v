@@ -705,9 +705,9 @@ always @(posedge clk_dot4x)
                         if (extra_regs_activated)
                            dbo[7:0] <= {
                                   2'b0,
-                                  spi_lock,
-                                  extensions_lock,
                                   persistence_lock,
+                                  extensions_lock,
+                                  spi_lock,
 `ifdef HAVE_FLASH
                                   flash_verify_error,
                                   flash_busy,
