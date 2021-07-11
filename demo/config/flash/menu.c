@@ -101,6 +101,7 @@ unsigned char filename[16];
 unsigned char scratch[SCRATCH_SIZE];
 
 unsigned char use_fast_loader;
+unsigned char is_expert = 0;
 
 void load_loader(void);
 void copy_4000_0000(void);
@@ -418,7 +419,8 @@ unsigned long input_int(void) {
 void expert(void) {
    unsigned long start_addr;
    unsigned int n;
-   mprintf ("Expert mode\n");
+   mprintf ("\nExpert mode\n");
+   is_expert = 1;
    do {
       mprintf ("\n> ");
       WAITKEY;
@@ -445,6 +447,21 @@ void expert(void) {
          }
          wren();
          write_page(start_addr);
+      } else if (r.a == 'm') {
+         mprintf ("\nEnter VMEM address:");
+         start_addr = input_int();
+         SMPRINTF_1 ("READ 256 vmem bytes from %ld:", start_addr);
+         POKE(VIDEO_MEM_FLAGS, 1);
+         POKE(53301L,0);
+         POKE(53302L,0);
+         POKE(53305L,start_addr & 0xff);
+         POKE(53306L,start_addr >> 8);
+         for (n=0;n<256;n++) {
+            SMPRINTF_1("%02x ",PEEK(53307L));
+         }
+         POKE(VIDEO_MEM_FLAGS, 0);
+      } else if (r.a == 'c') {
+         copy_4000_0000();
       }
    } while (r.a != 'q');
 }
@@ -513,6 +530,10 @@ void begin_flash(long num_to_write, unsigned long start_addr) {
        POKE(53306L,(start_addr & 0xff));
        mprintf ("FLASH,");
        POKE(SPI_REG, 128);
+
+       if (is_expert) {
+          expert();
+       }
 
        // Wait for flash to be done and verified
        mprintf ("VERIFY,");
@@ -587,12 +608,12 @@ void main_menu(void)
          mprintf ("to continue.\n\n");
       }
 
-      /*if (data_in[0] != 0xef || data_in[1] != 0x14) {
+      if (data_in[0] != 0xef || data_in[1] != 0x14) {
          mprintf ("Unknown flash device.\n");
          press_any_key(TO_TRY_AGAIN);
-      } else { */
+      } else {
          break;
-      /*}*/
+      }
     }
 
     mprintf ("\nInsert update disk and press any key.\n");

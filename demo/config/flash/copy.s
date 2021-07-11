@@ -25,13 +25,12 @@ _copy_4000_0000:
 
         lda #$00    ; we're going to copy it to video ram $0000
         sta VMEM_A_IDX
-        sta VMEM_B_IDX
         sta VMEM_A_HI
         sta VMEM_A_LO
         lda #1      ; use auto increment
         sta KAWARI_PORT
 
-        ldx #$10    ; we loop 64 times (64x256 = 16Kb)
+        ldx #$40    ; we loop 64 times (64x256 = 16Kb)
 loop:
         lda ($fb),y ; read byte from src $fb/$fc
         sta VMEM_A_VAL   ; write byte to dest video ram
