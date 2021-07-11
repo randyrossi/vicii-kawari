@@ -64,6 +64,8 @@ unsigned char wait_key_or_switch(unsigned char current_switch_val,
 
 unsigned int get_version(void)
 {
+   POKE(53301L,0);
+   POKE(53302L,0);
    POKE(VIDEO_MEM_1_LO,VERSION);
    return PEEK(VIDEO_MEM_1_VAL);
 }

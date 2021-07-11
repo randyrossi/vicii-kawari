@@ -3,6 +3,7 @@
 #include <peekpoke.h>
 #include <conio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "util.h"
 #include "kawari.h"
@@ -310,44 +311,6 @@ void talk(unsigned char instr,
     asm("cli");
 }
 
-// Read the flash device id bytes
-void read_device(void) {
-    // INSTR + 24 bit 0 + 2 READ BYTES + CLOSE
-    talk(DEVICE_ID_INSTR,
-         1 /* withaddr */, 0,
-	 2 /* read 2 */,
-	 0 /* write 0 */,
-	 1 /* close */);
-}
-
-void read_page(unsigned long addr) {
-    // INSTR + 24 bit addr + 256 read bytes + CLOSE
-    talk(READ_INSTR,
-	1 /* withaddr */, addr,
-	256 /* read 256 */,
-	0 /* write 0 */,
-	1 /* close */);
-}
-
-void write_page(unsigned long addr) {
-    // INSTR + 24 bit addr + 256 write bytes + CLOSE
-    talk(WRITE_INSTR,
-	1 /* withaddr */, addr,
-	0 /* read 0 */,
-	256 /* write 256 */,
-	1 /* close */);
-}
-
-// Write enable
-void wren(void) {
-    // INSTR + CLOSE
-    talk(WREN_INSTR,
-	0, 0L /* no addr */,
-	0 /* read 0 */,
-	0 /* write 0 */,
-	1 /* close */);
-}
-
 // Wait for flash device to be ready
 void wait_busy(void) {
     // INSTR + 1 BYTE READ + NO CLOSE
@@ -368,14 +331,67 @@ void wait_busy(void) {
     // TODO - Retrieve result byte
 }
 
+// Read the flash device id bytes
+void read_device(void) {
+    // INSTR + 24 bit 0 + 2 READ BYTES + CLOSE
+    talk(DEVICE_ID_INSTR,
+         1 /* withaddr */, 0,
+	 2 /* read 2 */,
+	 0 /* write 0 */,
+	 1 /* close */);
+}
+
+void read_page(unsigned long addr) {
+    // INSTR + 24 bit addr + 256 read bytes + CLOSE
+    talk(READ_INSTR,
+	1 /* withaddr */, addr,
+	256 /* read 256 */,
+	0 /* write 0 */,
+	1 /* close */);
+}
+
+void write_page(unsigned long addr) {
+    if (addr < MIN_WRITE_ADDR) {
+       mprintf("Can't write to protected address\n");
+       SMPRINTF_1("(%ld). Address too low.\n",addr);
+       return;
+    }
+
+    // INSTR + 24 bit addr + 256 write bytes + CLOSE
+    talk(WRITE_INSTR,
+	1 /* withaddr */, addr,
+	0 /* read 0 */,
+	256 /* write 256 */,
+	1 /* close */);
+
+    wait_busy();
+}
+
+// Write enable
+void wren(void) {
+    // INSTR + CLOSE
+    talk(WREN_INSTR,
+	0, 0L /* no addr */,
+	0 /* read 0 */,
+	0 /* write 0 */,
+	1 /* close */);
+}
+
 // Erase a 64k segment starting at addr
 void erase_64k(unsigned long addr) {
+    if (addr < MIN_WRITE_ADDR) {
+       mprintf("Can't write to protected address\n");
+       SMPRINTF_1("(%ld). Address too low.\n",addr);
+       return;
+    }
+
     // INSTR + 24 bit 0 + 2 READ BYTES + CLOSE
     talk(BLOCK_ERASE_64K_INSTR,
          1 /* withaddr */, addr,
 	 0 /* read 0 */,
 	 0 /* write 0 */,
 	 1 /* close */);
+    wait_busy();
 }
 
 // Return > 0 on verify error
@@ -387,6 +403,52 @@ unsigned wait_verify(void) {
    return v & 4;
 }
 
+unsigned long input_int(void) {
+   unsigned n = 0;
+   for (;;) {
+      WAITKEY;
+      SMPRINTF_1("%c",r.a);
+      if (r.a == 0x0d) break;
+      scratch[n++] = r.a;
+   } 
+   scratch[n] = '\0';
+   return atol(scratch);
+}
+
+void expert(void) {
+   unsigned long start_addr;
+   unsigned int n;
+   mprintf ("Expert mode\n");
+   do {
+      mprintf ("\n> ");
+      WAITKEY;
+      if (r.a == 'r') {
+         mprintf ("\nEnter READ address:");
+         start_addr = input_int();
+         SMPRINTF_1 ("Read 256 bytes from %ld:", start_addr);
+         read_page(start_addr);
+         for (n=0;n<256;n++) {
+            SMPRINTF_1 ("%02x:", data_in[n]);
+         }
+      } else if (r.a == 'e') {
+         mprintf ("\nEnter ERASE address:");
+         start_addr = input_int();
+         SMPRINTF_1 ("ERASE 64k @ %ld:", start_addr);
+         wren();
+         erase_64k(start_addr);
+      } else if (r.a == 'w') {
+         mprintf ("\nEnter WRITE address:");
+         start_addr = input_int();
+         SMPRINTF_1 ("WRITE 256 bytes to %ld:", start_addr);
+         for (n=0;n<256;n++) {
+            data_out[n] = n;
+         }
+         wren();
+         write_page(start_addr);
+      }
+   } while (r.a != 'q');
+}
+
 // Flash files are spread across 4 disks
 // This routine erases the flash 
 void begin_flash(unsigned long num_to_write, unsigned long start_addr) {
@@ -394,11 +456,6 @@ void begin_flash(unsigned long num_to_write, unsigned long start_addr) {
     unsigned char disknum;
     unsigned char filenum;
 
-    if (start_addr < MIN_WRITE_ADDR) {
-       mprintf("Can't write to protected address\n");
-       SMPRINTF_1("(%ld). Address too low.\n",start_addr);
-       return;
-    }
 
     if (use_fast_loader) {
        mprintf ("LOAD LOADER...");
@@ -419,7 +476,6 @@ void begin_flash(unsigned long num_to_write, unsigned long start_addr) {
         mprintf (".");
         wren();
         erase_64k(src_addr);
-        wait_busy();
     }
     mprintf ("DONE\n\n");
 
@@ -475,7 +531,7 @@ void begin_flash(unsigned long num_to_write, unsigned long start_addr) {
 
 void main_menu(void)
 {
-    unsigned long version;
+    unsigned int version;
     unsigned long num_to_write;
     unsigned long start_addr;
     unsigned long tmp_addr;
@@ -488,7 +544,11 @@ void main_menu(void)
     SMPRINTF_2 ("Update Util Version: %d.%d\n",
         FLASH_VERSION_MAJOR, FLASH_VERSION_MINOR);
 
+    // Turn on regs overlay to get version
+    POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
     version = get_version();
+    POKE(VIDEO_MEM_FLAGS, 0);
+
     SMPRINTF_2 ("Current Firmware Version: %d.%d\n",
         version >> 4, version & 15);
     mprintf ("\n");
@@ -518,16 +578,20 @@ void main_menu(void)
          mprintf ("to continue.\n\n");
       }
 
-      if (data_in[0] != 0xef || data_in[1] != 0x14) {
+      /*if (data_in[0] != 0xef || data_in[1] != 0x14) {
          mprintf ("Unknown flash device.\n");
          press_any_key(TO_TRY_AGAIN);
-      } else {
+      } else { */
          break;
-      }
+      /*}*/
     }
 
     mprintf ("\nInsert update disk and press any key.\n");
+
     WAITKEY;
+    if (r.a == 'x') {
+       expert();
+    } 
 
     mprintf ("\nREAD IMAGE INFO\n");
     strcpy (filename,"info");
