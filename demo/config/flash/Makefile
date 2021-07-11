@@ -3,6 +3,8 @@
 # bistream size).
 # Expects: kawari_multiboot.bit with the image bitstream
 
+SOURCE_IMG=kawari_multiboot_1.0.bit
+
 FILENUMS=00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
 DISKNUMS=0 1 2 3
 
@@ -68,7 +70,7 @@ clean:
 # Then we split the files int 16k chunks
 # Then prefix each file with load bytes
 image_files:
-	dd skip=1 bs=88 if=kawari_multiboot.bit > stripped.bit
+	dd skip=1 bs=88 if=$(SOURCE_IMG) > stripped.bit
 	split -d -b 16384 stripped.bit img_
 	for NUM in $(FILENUMS); do \
            if [ -e img_$$NUM ]; then \
