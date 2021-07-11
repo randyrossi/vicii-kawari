@@ -451,11 +451,12 @@ void expert(void) {
 
 // Flash files are spread across 4 disks
 // This routine erases the flash 
-void begin_flash(unsigned long num_to_write, unsigned long start_addr) {
+void begin_flash(long num_to_write, unsigned long start_addr) {
     unsigned long src_addr;
     unsigned char disknum;
     unsigned char filenum;
-
+    unsigned char abs_filenum;
+    unsigned int n;
 
     if (use_fast_loader) {
        mprintf ("LOAD LOADER...");
@@ -480,11 +481,12 @@ void begin_flash(unsigned long num_to_write, unsigned long start_addr) {
     mprintf ("DONE\n\n");
 
     filenum = 0;
+    abs_filenum = 0;
     disknum = 0;
 
     while (num_to_write > 0) {
        // Set next filename
-       sprintf (filename,"%c%d", 'a'+disknum, filenum);
+       sprintf (filename,"i%02d", abs_filenum);
        SMPRINTF_2("%ld:READ %s,", num_to_write, filename);
 
        while (load()) {
@@ -494,6 +496,12 @@ void begin_flash(unsigned long num_to_write, unsigned long start_addr) {
        }
 
        mprintf ("COPY,");
+
+       if (num_to_write < 16384) {
+           for (n=num_to_write; n < 16384; n++) {
+              POKE(0x4000L+n, 0xff);
+           }
+       }
 
        // Transfer $4000 - $7fff into video memory @ $0000
        copy_4000_0000();
@@ -516,6 +524,7 @@ void begin_flash(unsigned long num_to_write, unsigned long start_addr) {
           start_addr += 16384;
           num_to_write -= 16384;
 
+          abs_filenum++;
           filenum++;
           if (disknum < 3 && filenum == 8) {
 	      filenum = 0;
@@ -532,7 +541,7 @@ void begin_flash(unsigned long num_to_write, unsigned long start_addr) {
 void main_menu(void)
 {
     unsigned int version;
-    unsigned long num_to_write;
+    long num_to_write;
     unsigned long start_addr;
     unsigned long tmp_addr;
 
@@ -621,14 +630,6 @@ void main_menu(void)
     SMPRINTF_1 ("Size         :%ld bytes\n", num_to_write);
     start_addr = read_decimal(&tmp_addr);
     SMPRINTF_1 ("Start Address:%lx \n", start_addr);
-
-    if ((num_to_write % 16384) != 0) {
-        mprintf ("Image is not properly padded to\n");
-        mprintf ("a multiple of 16384.\n");
-        press_any_key(TO_EXIT);
-        WAITKEY;
-        return;
-    }
 
     mprintf ("\nUse fast loader (Y/n) ?");
 

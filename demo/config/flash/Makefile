@@ -1,10 +1,18 @@
-all: disk
+# Makes a Kawari flash update disk set
+# Up to 4 disks and 28 files (covers Spartan6 X16
+# bistream size).
+# Expects: kawari_multiboot.bit with the image bitstream
+
+FILENUMS=00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+DISKNUMS=0 1 2 3
+
+all: disks
 
 OBJS=main.o menu.o ../util.o ../init.o
 
 # Make an info file for flash program to read
 info_file: load_bytes
-	./load_bytes > info
+	./load_bytes 0 144 > info
 	# flash format version
 	echo "1" >> info
 	# name
@@ -12,7 +20,7 @@ info_file: load_bytes
 	# version string
 	echo "1.0" >> info
 	# size of image
-	echo "458752" >> info
+	wc -c stripped.bit | sed 's/ .*//' >> info
 	# start address of image
 	echo "512000" >> info
 
@@ -53,49 +61,37 @@ run:
 	x64sc flash.prg
 
 clean:
-	rm -f *.o *.prg *.d64
+	rm -rf *.o *.prg *.d64 img_* stripped.bit
 
-disk: info_file flash.prg loader.prg
-	truncate -s 174848 flash.d64
-	c1541 -attach flash.d64 -format "vicii-flash",0
-	c1541 -attach flash.d64 -write flash.prg flash
-	c1541 -attach flash.d64 -write info info
-	c1541 -attach flash.d64 -write datafile a0
-	c1541 -attach flash.d64 -write datafile a1
-	c1541 -attach flash.d64 -write datafile a2
-	c1541 -attach flash.d64 -write datafile a3
-	c1541 -attach flash.d64 -write datafile a4
-	c1541 -attach flash.d64 -write datafile a5
-	c1541 -attach flash.d64 -write datafile a6
-	c1541 -attach flash.d64 -write datafile a7
-	c1541 -attach flash.d64 -write loader.prg loader
-	c1541 -attach flash.d64 -list
-	truncate -s 174848 flash2.d64
-	c1541 -attach flash2.d64 -format "vicii-flash",0
-	c1541 -attach flash2.d64 -write datafile b0
-	c1541 -attach flash2.d64 -write datafile b1
-	c1541 -attach flash2.d64 -write datafile b2
-	c1541 -attach flash2.d64 -write datafile b3
-	c1541 -attach flash2.d64 -write datafile b4
-	c1541 -attach flash2.d64 -write datafile b5
-	c1541 -attach flash2.d64 -write datafile b6
-	c1541 -attach flash2.d64 -write datafile b7
-	c1541 -attach flash2.d64 -list
-	truncate -s 174848 flash3.d64
-	c1541 -attach flash3.d64 -format "vicii-flash",0
-	c1541 -attach flash3.d64 -write datafile c0
-	c1541 -attach flash3.d64 -write datafile c1
-	c1541 -attach flash3.d64 -write datafile c2
-	c1541 -attach flash3.d64 -write datafile c3
-	c1541 -attach flash3.d64 -write datafile c4
-	c1541 -attach flash3.d64 -write datafile c5
-	c1541 -attach flash3.d64 -write datafile c6
-	c1541 -attach flash3.d64 -write datafile c7
-	c1541 -attach flash3.d64 -list
-	truncate -s 174848 flash4.d64
-	c1541 -attach flash4.d64 -format "vicii-flash",0
-	c1541 -attach flash4.d64 -write datafile d0
-	c1541 -attach flash4.d64 -write datafile d1
-	c1541 -attach flash4.d64 -write datafile d2
-	c1541 -attach flash4.d64 -write datafile d3
-	c1541 -attach flash4.d64 -list
+
+# Skips over first 88 bytes for the header
+# Then we split the files int 16k chunks
+# Then prefix each file with load bytes
+image_files:
+	dd skip=1 bs=88 if=kawari_multiboot.bit > stripped.bit
+	split -d -b 16384 stripped.bit img_
+	for NUM in $(FILENUMS); do \
+           if [ -e img_$$NUM ]; then \
+	   ./load_bytes 0 64 > img_d64_$$NUM; \
+	   cat img_$$NUM >> img_d64_$$NUM; \
+	   fi \
+	done
+
+
+disks: flash.prg loader.prg image_files info_file
+	for NUM in $(DISKNUMS); do \
+	   truncate -s 174848 flash$$NUM.d64; \
+	   c1541 -attach flash$$NUM.d64 -format "vicii-flash$$NUM",0; \
+	   if [ "$$NUM" = "0" ]; then \
+	      c1541 -attach flash$$NUM.d64 -write flash.prg flash; \
+	      c1541 -attach flash$$NUM.d64 -write loader.prg loader; \
+	      c1541 -attach flash$$NUM.d64 -write info info; \
+	   fi \
+	done
+	for NUM in $(FILENUMS); do \
+           if [ -e img_$$NUM ]; then \
+		DN=`echo $$NUM / 8 | bc`; \
+		c1541 -attach flash$$DN.d64 -write img_d64_$$NUM i$$NUM; \
+	   fi \
+	done	
+	rm -f img_*
