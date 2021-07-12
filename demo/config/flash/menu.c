@@ -101,7 +101,9 @@ unsigned char filename[16];
 unsigned char scratch[SCRATCH_SIZE];
 
 unsigned char use_fast_loader;
+#ifdef EXPERT
 unsigned char is_expert = 0;
+#endif
 
 void load_loader(void);
 void copy_4000_0000(void);
@@ -351,6 +353,7 @@ void read_page(unsigned long addr) {
 	1 /* close */);
 }
 
+#ifdef EXPERT
 void write_page(unsigned long addr) {
     if (addr < MIN_WRITE_ADDR) {
        mprintf("Can't write to protected address\n");
@@ -367,6 +370,7 @@ void write_page(unsigned long addr) {
 
     wait_busy();
 }
+#endif 
 
 // Write enable
 void wren(void) {
@@ -416,6 +420,7 @@ unsigned long input_int(void) {
    return atol(scratch);
 }
 
+#ifdef EXPERT
 void expert(void) {
    unsigned long start_addr;
    unsigned int n;
@@ -465,6 +470,7 @@ void expert(void) {
       }
    } while (r.a != 'q');
 }
+#endif
 
 // Flash files are spread across 4 disks
 // This routine erases the flash 
@@ -531,9 +537,11 @@ void begin_flash(long num_to_write, unsigned long start_addr) {
        mprintf ("FLASH,");
        POKE(SPI_REG, 128);
 
+#ifdef EXPERT
        if (is_expert) {
           expert();
        }
+#endif
 
        // Wait for flash to be done and verified
        mprintf ("VERIFY,");
@@ -619,9 +627,11 @@ void main_menu(void)
     mprintf ("\nInsert update disk and press any key.\n");
 
     WAITKEY;
+#ifdef EXPERT
     if (r.a == 'x') {
        expert();
     } 
+#endif
 
     mprintf ("\nREAD IMAGE INFO\n");
     strcpy (filename,"info");
