@@ -593,13 +593,14 @@ void main_menu(void)
 
     //        ----------------------------------------
     mprintf ("This utility will flash an update to\n");
-    mprintf ("your VICII-Kawari device. Do not turn\n");
-    mprintf ("off the machine until the update is\n");
-    mprintf ("complete. When using the fast loader,\n");
-    mprintf ("the garbage at the top of the screen is\n");
-    mprintf ("normal. If you have your own fast\n");
-    mprintf ("loader cartridge, select N when\n");
-    mprintf ("prompted.\n\n");
+    mprintf ("your VICII-Kawari. Do not turn off the\n");
+    mprintf ("machine until the update is complete.\n");
+    mprintf ("When using the fast loader, the garbage\n");
+    mprintf ("at the top of the screen is normal. If\n");
+    mprintf ("you have your own fast loader cartridge\n");
+    mprintf ("select N when prompted. If you are\n");
+    mprintf ("using a Pi1541, remember to add ALL\n");
+    mprintf ("disks to your queue.\n\n");
 
     press_any_key(TO_CONTINUE);
   

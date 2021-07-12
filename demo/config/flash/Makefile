@@ -1,11 +1,23 @@
-# Makes a Kawari flash update disk set
-# Up to 4 disks and 28 files (covers Spartan6 X16
-# bistream size).
-# Expects: kawari_multiboot.bit with the image bitstream
+# Makes a VIC-II Kawari flash update disk set
+# from a multiboot bitstream. Up to 4 disks and
+# 28 files (covers Spartan6 X16 bistream size).
+#
+# Expects: kawari_multiboot_$(VERSION).bit
+# Requires: dasm and cc65
 
-SOURCE_IMG=kawari_multiboot_1.0.bit
+# Stuff to potentially edit
+FLASH_FORMAT=1
+NAME=kawari
+VERSION=1.0
+START_ADDRESS=512000
 
+# Do not edit below this line
+
+SOURCE_IMG=kawari_multiboot_$(VERSION).bit
+
+# Max 28 disks to cover size of SpX16
 FILENUMS=00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+# Max 4 disks
 DISKNUMS=0 1 2 3
 
 all: disks
@@ -13,24 +25,23 @@ all: disks
 OBJS=main.o menu.o ../util.o ../init.o
 
 # Make an info file for flash program to read
+# $9000 dest
 info_file: load_bytes
 	./load_bytes 0 144 > info
 	# flash format version
-	echo "1" >> info
+	echo $(FLASH_FORMAT) >> info
 	# name
-	echo "kawari" >> info
+	echo $(NAME) >> info
 	# version string
-	echo "1.0" >> info
+	echo $(VERSION) >> info
 	# size of image
 	wc -c stripped.bit | sed 's/ .*//' >> info
 	# start address of image
-	echo "512000" >> info
+	echo $(START_ADDRESS) >> info
 
 # Util to output 2 load bytes
 load_bytes: load_bytes.c
 	gcc load_bytes.c -o load_bytes
-
-# DEL ME LATER
 
 flash.prg: main.o menu.o ../util.o ../init.o crt0.o loader_loader.o copy.o
 	#cl65 -o flash.prg main.o menu.o loader_loader.o ../util.o ../init.o
@@ -69,6 +80,7 @@ clean:
 # Skips over first 88 bytes for the header
 # Then we split the files int 16k chunks
 # Then prefix each file with load bytes
+# $4000 dest for every chunk
 image_files:
 	dd skip=1 bs=88 if=$(SOURCE_IMG) > stripped.bit
 	split -d -b 16384 stripped.bit img_
@@ -80,6 +92,8 @@ image_files:
 	done
 
 
+# Put together disk images based on what chunks
+# we created.
 disks: flash.prg loader.prg image_files info_file
 	for NUM in $(DISKNUMS); do \
 	   truncate -s 174848 flash$$NUM.d64; \
