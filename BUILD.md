@@ -2,6 +2,11 @@
 
 Build instructions/notes.
 
+### Generate constraints
+
+    Edit hdl/config.vh and select options.
+    java GenConstraints rev_X/wiring.txt config.vh > rev_X/top.ucf
+
 ## Making full Header/Golden/Multiboot images
 
 ### Golden image

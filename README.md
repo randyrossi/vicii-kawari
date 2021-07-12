@@ -145,21 +145,29 @@ NOTE: Strain relief is important!
 
 NOTE: You can get away without removing the RF modulator but then you will have the challenge of getting the cable out of a closed machine.  I don't recommend drilling holes but this is an option. Another option is to fish the cable out the user port opening, if you don't plan on using any user port connections.
 
-## Limitations
+## Limitations/Caveats
 
 # Cartridges that use DOT clock pin (pin 6)
 
 Any cartridge that uses the DOT clock signal on pin 6 will likely not function with VIC-II Kawari. This is because VIC-II Kawari bypasses the motherboard's clock circuit.  The signal that reaches pin 6 of the cartridge port comes from that circuit. It will therefore be out of sync/phase with the clock that is driving the CPU and data on the bus.  I'm not aware of any specific cartridges that use this pin but if there are any, they would be specialty cartridges (like SuperCPU, REU, etc).  As cartridges that do not function are discovered, they will be added to a list here.
 
-# Mallicious apps
+# Function Lock Jumpers
 
-VIC-II Kawari was built to be detected, flashed and re-configured from the C64 main CPU. However, there is nothing stopping a mallicious program from attempting to 'brick' your VIC-II Kawari (i.e. erasing the flash memory) or making it look like your VIC-II Kawari has died (i.e. setting all colors to black or chaning VGA resolution that your monitor doesn't support).  For this reason, there are 3 'lock' bits that can be configured via jumpers.  
+VIC-II Kawari was built to be detected, flashed and re-configured from the C64 main CPU. To prevent a program from (intentionally or accidentally) 'bricking' your VIC-II Kawari, some functions can be locked from programmatic access.  
 
-See [REGISTERS.md](REGISTERS.md) for a description of the lock bits.
+See [REGISTERS.md](REGISTERS.md) for a description of the lock jumpers.
 
-By default, flash operations are disabled. This means in order to allow the flash program to work, you must physically add a jumper to Pin 1. It is recommended you remove it after you've flashed the device.
+By default, flash operations are disabled. This means you must physically remove jumper on Pin 1 to allow the flash utility to work.  (It is recommended you put the jumper back after you've flashed the device.)
 
-By default, persistence (extended register changes surviving between reboots) is enabled.  Once you've set your preferred color scheme or other preferences with the config apps, you can place a jumper on Pin 2 to prevent any program changing them without your knowledge.
+Also by default, persistence (extended register changes surviving between reboots) is enabled. Once you've set your preferred color scheme or other preferences with the config apps, you can place a jumper on Pin 2 to prevent any program changing them without your knowledge/permission. Programs will still be able to change colors, for example. But they won't be able to save them.
 
-Access to extensions registers (access to extended features) are enabled. If you want your VIC-II Kawari to function as a normal 6567/6569 and be undetectable to any program (including Kawari config apps) then shorting the extension lock will do that. (NOTE: That includes being able to software switch the video standard. However, a hardware switch will still function.)
+Access to extensions registers (access to extended features) are enabled by default. If you want your VIC-II Kawari to function as a regular 6567/6569 and be undetectable to any program (including Kawari config apps) then removing the extension lock jumper will do that. (NOTE: That includes being able to software switch the video standard. However, a hardware switch will still work.)
+
+Without the lock jumpers, here are some ways a misbehaving program can make it look like your VIC-II Kawari has died:
+
+A program can:
+
+1. erase the flash memory making the device un-bootable
+2. change all colors to black and save them, making it look like a black screen fault
+3. change the hires modes to a resolution incompatible with your monitor, again making it look like a black screen fault
 
