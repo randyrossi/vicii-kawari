@@ -514,7 +514,7 @@ int main(int argc, char** argv, char** env) {
     struct vicii_state* state;
     bool capture = false;
 
-    int chip = CHIP6569R5;
+    int chip = CHIP6569R3;
     bool isNtsc = false;
 
     bool captureByTime = true;
@@ -582,7 +582,7 @@ int main(int argc, char** argv, char** env) {
         printf ("  -w        : show SDL2 window\n");
         printf ("  -z        : single step eval for shadow vic via ipc\n");
         printf ("  -b        : render each cycle, waiting for key press after each one\n");
-        printf ("  -c <chip> : 0=CHIP6567R8, 1=CHIP6569R5 2=CHIP6567R56A 3=CHIP6569R1\n");
+        printf ("  -c <chip> : 0=CHIP6567R8, 1=CHIP6569R3 2=CHIP6567R56A 3=CHIP6569R1\n");
         printf ("  -l        : log level\n");
         printf ("  -q        : hide scanline\n");
         printf ("  -t        : enable tracing to session.vcd\n");
@@ -642,9 +642,9 @@ int main(int argc, char** argv, char** env) {
           printf ("CHIP: 6569R1\n");
           printf ("VIDEO: PAL\n");
           break;
-       case CHIP6569R5:
+       case CHIP6569R3:
           isNtsc = false;
-          printf ("CHIP: 6569R5\n");
+          printf ("CHIP: 6569R3\n");
           printf ("VIDEO: PAL\n");
           break;
        default:
@@ -675,7 +675,7 @@ int main(int argc, char** argv, char** env) {
              durationTicks = US_TO_TICKS(16700L);
              break;
           case CHIP6569R1:
-          case CHIP6569R5:
+          case CHIP6569R3:
              durationTicks = US_TO_TICKS(20000L);
              break;
           default:
@@ -708,7 +708,7 @@ int main(int argc, char** argv, char** env) {
        half4XDotPS = PAL_HALF_4X_DOT_PS;
        switch (chip) {
           case CHIP6569R1:
-          case CHIP6569R5:
+          case CHIP6569R3:
              screenWidth = PAL_6569_MAX_DOT_X+1;
              screenHeight = PAL_6569_MAX_DOT_Y+1;
              lastXPos = PAL_6569_LAST_XPOS;
@@ -974,7 +974,7 @@ int main(int argc, char** argv, char** env) {
                CHECK (top, top->V_XPOS == 0, __LINE__); // rollover
 
              if (top->V_CYCLE_NUM == 0 && top->V_CYCLE_BIT == 0)
-               if (chip == CHIP6569R1 || chip == CHIP6569R5)
+               if (chip == CHIP6569R1 || chip == CHIP6569R3)
                   CHECK (top, top->V_XPOS == 0x194, __LINE__); // reset
                else
                   CHECK (top, top->V_XPOS == 0x19c, __LINE__); // reset

@@ -89,7 +89,7 @@ case(chip)
         vblank_end = vblank_start + 9'd8;
         vvisible_start = vblank_end + 9'd1;
     end
-    `CHIP6569R1, `CHIP6569R5:
+    `CHIP6569R1, `CHIP6569R3:
     begin
         hvisible_end = 10'd0;
         hsync_start = hvisible_end + 10'd7;  // +7*.1269 = ~1us

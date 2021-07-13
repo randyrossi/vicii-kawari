@@ -8,7 +8,7 @@
 #define VCD_TIMESCALE "$timescale 1ns $end"
 
 #define CHIP6567R8   0
-#define CHIP6569R5   1
+#define CHIP6569R3   1
 #define CHIP6567R56A 2
 #define CHIP6569R1   3
 

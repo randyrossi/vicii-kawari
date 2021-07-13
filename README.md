@@ -47,7 +47,7 @@ The DVI/RGB video modes are not standard and may not work with older monitors/TV
 TODO : xrandr or windows equiv to test monitor
 
 ## What chip models can this replace?
-It can replace the 6567R8(NTSC),6567R56A(NTSC),6569R5(PAL-B),6569R1(PAL-B) models. It can assume the functionality of either video standard with a simple configuration change followed by a cold boot. This means your C64 can be both an NTSC and PAL machine. (PAL-N / PAL-M are not supported but if someone wants to do the work, it can be added.)
+It can replace the 6567R8(NTSC),6567R56A(NTSC),6569R3(PAL-B),6569R1(PAL-B) models. It can assume the functionality of either video standard with a simple configuration change followed by a cold boot. This means your C64 can be both an NTSC and PAL machine. (PAL-N / PAL-M are not supported but if someone wants to do the work, it can be added.)
 
 ## Will this work in C64-C (short board) models?
 It will function if plugged into a C64-C 'short' board. The VDD pin is not connected so there is no voltage compatibility issue like with the real 8562/8565 models. Keep in mind that the board will behave as a 6567/6569 even when replacing a 8562/8565.
@@ -91,7 +91,7 @@ If you need a VIC-II to replace a broken one, you should just buy one off eBay. 
 * No need for a working clock circuit
 * Can software switch between NTSC and PAL
 * Optional NTSC/PAL hardware switch available
-* Four chip models supported (6567R56A, 6567R8, 6569R1, 6569R5)
+* Four chip models supported (6567R56A, 6567R8, 6569R1, 6569R3)
 * An 80 column mode and new graphics modes
 * An 80 column Novaterm driver
 * It's not an almost 40 year old device that may fail at any time

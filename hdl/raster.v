@@ -57,7 +57,7 @@ always @(posedge clk_dot4x)
             end `CHIP6567R8: begin
                 xpos <= 10'h19c;
                 sprite_raster_x <= 80; // 520 - 55*8
-            end `CHIP6569R1, `CHIP6569R5: begin
+            end `CHIP6569R1, `CHIP6569R3: begin
                 xpos <= 10'h194;
                 sprite_raster_x <= 72; // 504 - 54*8
             end
@@ -104,7 +104,7 @@ always @(posedge clk_dot4x)
                             xpos <= 10'h0;
                         else
                             xpos <= xpos + 10'd1;
-                    `CHIP6569R1, `CHIP6569R5:
+                    `CHIP6569R1, `CHIP6569R3:
                         if (cycle_num == 7'd0 && cycle_bit == 3'd0)
                             xpos <= 10'h195;
                         else if (cycle_num == 7'd12 && cycle_bit == 3'd3)
@@ -125,7 +125,7 @@ always @(posedge clk_dot4x)
                 case(chip)
                     `CHIP6567R56A, `CHIP6567R8:
                         xpos <= 10'h19c;
-                    `CHIP6569R1, `CHIP6569R5:
+                    `CHIP6569R1, `CHIP6569R3:
                         xpos <= 10'h194;
                 endcase
 

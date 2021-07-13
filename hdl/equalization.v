@@ -25,7 +25,7 @@ case (chip)
             (raster_x < 10'd276)
         )
         ;
-    `CHIP6569R1, `CHIP6569R5:
+    `CHIP6569R1, `CHIP6569R3:
         EQ =           //  4% tH equalization width
         (raster_x < 10'd20) ||   // 4%
         (

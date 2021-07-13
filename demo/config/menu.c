@@ -54,16 +54,16 @@ void show_chip_model()
     if  (line == 0) printf ("%c",18);
     switch (next_model) {
         case 0:
-            printf ("6567R8  ");   
+            printf ("6567R8  ");
             break;
         case 1:
-            printf ("6569R5  ");   
+            printf ("6569R3  ");
             break;
         case 2:
-            printf ("6567R56A");   
+            printf ("6567R56A");
             break;
         default:
-            printf ("6569R1  ");   
+            printf ("6569R1  ");
             break;
     }
 
@@ -187,7 +187,7 @@ void main_menu(void)
 
     CLRSCRN;
     printf ("VIC-II Kawari Config Utility\n\n");
- 
+
     printf ("Utility Version: %s\n",UTILITY_VERSION);
     printf ("Kawari Version : %d.%d\n",version >> 4, version & 15);
     printf ("Variant        : %s\n",variant);

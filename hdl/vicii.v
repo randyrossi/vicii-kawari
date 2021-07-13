@@ -162,7 +162,7 @@ case(chip)
         chars_ba_start = 'h1f4;
         chars_ba_end = 'h14c;
     end
-    `CHIP6569R1, `CHIP6569R5:
+    `CHIP6569R1, `CHIP6569R3:
     begin
         raster_x_max = 10'd503;     // 504 pixels
         raster_y_max = 9'd311;      // 312

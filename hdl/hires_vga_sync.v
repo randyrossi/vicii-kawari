@@ -260,7 +260,7 @@ end
 task set_params();
     begin
         case (chip)
-            `CHIP6569R1, `CHIP6569R5: begin
+            `CHIP6569R1, `CHIP6569R3: begin
                 // WIDTH 504  HEIGHT 312
                 // NOTE: For PAL, we invert the range va_sta and va_end
 		// because the blanking region crosses 0.  So va_sta is
@@ -323,7 +323,7 @@ endtask
 task set_params_configurable();
     begin
         case (chip)
-            `CHIP6569R1, `CHIP6569R5: begin
+            `CHIP6569R1, `CHIP6569R3: begin
                 ha_end = {3'b000, timing_h_blank_pal};
                 hs_sta = ha_end + {3'b000, timing_h_fporch_pal};
                 hs_end = hs_sta + {3'b000, timing_h_sync_pal};
