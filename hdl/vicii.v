@@ -536,12 +536,15 @@ end
 
 wire [7:0] lpx;
 wire [7:0] lpy;
-
+wire start_of_frame;
 lightpen vic_lightpen(
              .clk_dot4x(clk_dot4x),
+             .chip(chip),
              .ilp_clr(ilp_clr),
              .raster_line(raster_line),
              .raster_y_max(raster_y_max),
+             .cycle_num(cycle_num),
+             .start_of_frame(start_of_frame),
              .lp(lp),
              .xpos_div_2(xpos[8:1]),
              .lpx(lpx),
@@ -557,6 +560,7 @@ raster vic_raster(
            .dot_rising_0(dot_rising[0]),
            .chip(chip),
            .cycle_num(cycle_num),
+           .start_of_frame(start_of_frame),
            .raster_x_max(raster_x_max),
            .raster_y_max(raster_y_max),
            .xpos(xpos),

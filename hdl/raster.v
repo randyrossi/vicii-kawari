@@ -21,7 +21,8 @@ module raster(
            output reg [9:0] raster_x,
            output reg [9:0] sprite_raster_x,
            output reg [8:0] raster_line,
-           output reg [8:0] raster_line_d
+           output reg [8:0] raster_line_d,
+           output reg start_of_frame
        );
 
 // sprite_raster_x is positioned such that the first cycle for
@@ -29,7 +30,6 @@ module raster(
 // has sprite_raster_x==0.  This lets us do a simple interval
 // comparison without having to worry about wrap around conditions.
 reg start_of_line;
-reg start_of_frame;
 
 // cycle_bit : The pixel number within the cycle.
 // 0-7
