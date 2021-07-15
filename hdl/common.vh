@@ -341,6 +341,7 @@
 `define CAP_CONFIG_LUMA_BIT 4
 `define CAP_CONFIG_TIMING_BIT 5
 `define CAP_PERSIST_BIT 6
+`define CAP_HIRES_BIT 7
 
 `ifdef GEN_RGB
 `define HAS_RGB_CAP 1'b1
@@ -376,6 +377,12 @@
 `define HAS_CONFIG_TIMING_CAP 1'b1
 `else
 `define HAS_CONFIG_TIMING_CAP 1'b0
+`endif
+
+`ifdef HIRES_MODES
+`define HAS_HIRES_CAP 1'b1
+`else
+`define HAS_HIRES_CAP 1'b0
 `endif
 
 // Can't have both serial link and eeprom

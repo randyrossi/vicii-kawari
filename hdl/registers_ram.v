@@ -142,6 +142,7 @@ task read_ram(
                         dbo[`CAP_CONFIG_LUMA_BIT] <= `HAS_CONFIG_LUMA_CAP;
                         dbo[`CAP_CONFIG_TIMING_BIT] <= `HAS_CONFIG_TIMING_CAP;
                         dbo[`CAP_PERSIST_BIT] <= `HAS_PERSIST_CAP;
+                        dbo[`CAP_HIRES_BIT] <= `HAS_HIRES_CAP;
                     end
                     `EXT_REG_CAP_HI:
                         dbo <= 8'b0; // reserved for now
