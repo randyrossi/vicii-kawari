@@ -1074,6 +1074,10 @@ begin
 `endif
 end
 
+`ifdef HIRES_MODES
+wire [4:0] hires_sprite_pixel_color;
+`endif
+
 // Pixel sequencer - outputs stage 3 pixel_color3
 pixel_sequencer vic_pixel_sequencer(
                     .clk_dot4x(clk_dot4x),
@@ -1110,6 +1114,9 @@ pixel_sequencer vic_pixel_sequencer(
                     .stage0(stage0),
                     .stage1(stage1),
                     .pixel_color1(pixel_color1),
+`ifdef HIRES_MODES
+                    .hires_sprite_pixel_color(hires_sprite_pixel_color),
+`endif
                     .active_sprite_d(active_sprite_d)
                 );
 
@@ -1134,6 +1141,7 @@ hires_pixel_sequencer vic_hires_pixel_sequencer(
                           .main_border(main_border_d5),
                           .vborder(top_bot_border_d5),
                           .hires_pixel_color1(hires_pixel_color1),
+                          .hires_sprite_pixel_color(hires_sprite_pixel_color),
                           .hires_stage1(hires_stage1),
                           .hires_enabled(hires_enabled),
                           .hires_mode(hires_mode),

@@ -37,6 +37,12 @@ module pixel_sequencer(
            output reg stage0,
            output reg stage1,
            output reg [3:0] pixel_color1,
+`ifdef HIRES_MODES
+           // Added to let low res sprites 'shine through' to hires sequencer. Easy
+           // hack to get sprites on hires modes (with limitations).  Bit 4 represents
+           // whether sprite pixel should be active according to lowres rules.
+           output reg [4:0] hires_sprite_pixel_color,
+`endif
            input [3:0] active_sprite_d
        );
 
@@ -303,17 +309,38 @@ begin
             // The comparisons of background pixel and sprite pixels must be
             // on the same delay 'schedule' here.  Also, the pri, mmc and colors
             // need to be delayed so they split this properly on reg changes.
+`ifdef HIRES_MODES
+            hires_sprite_pixel_color[4] = 1'b0;
+`endif
             if (active_sprite_d[3]) begin
                 if (!sprite_pri_d[active_sprite_d[2:0]] || is_background_pixel0) begin
                     if (sprite_mmc_d[active_sprite_d[2:0]]) begin  // multi-color mode ?
                         case(sprite_cur_pixel[active_sprite_d[2:0]])
-                            2'b00:  ;
-                            2'b01:  pixel_color1 = sprite_mc0_d2;
-                            2'b10:  pixel_color1 = sprite_col_d2[active_sprite_d[2:0]];
-                            2'b11:  pixel_color1 = sprite_mc1_d2;
+                            2'b00: ;
+                            2'b01:  begin
+                                pixel_color1 = sprite_mc0_d2;
+`ifdef HIRES_MODES
+                                hires_sprite_pixel_color = {1'b1, sprite_mc0_d2};
+`endif
+                            end
+                            2'b10:  begin
+                                pixel_color1 = sprite_col_d2[active_sprite_d[2:0]];
+`ifdef HIRES_MODES
+                                hires_sprite_pixel_color = {1'b1, sprite_col_d2[active_sprite_d[2:0]]};
+`endif
+                            end
+                            2'b11:  begin
+                                pixel_color1 = sprite_mc1_d2;
+`ifdef HIRES_MODES
+                                hires_sprite_pixel_color = {1'b1, sprite_mc1_d2};
+`endif
+                            end
                         endcase
                     end else if (sprite_cur_pixel[active_sprite_d[2:0]][1]) begin
                         pixel_color1 = sprite_col_d2[active_sprite_d[2:0]];
+`ifdef HIRES_MODES
+                        hires_sprite_pixel_color = {1'b1, sprite_col_d2[active_sprite_d[2:0]]};
+`endif
                     end
                 end
             end

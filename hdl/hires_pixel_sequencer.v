@@ -17,6 +17,7 @@ module hires_pixel_sequencer(
            input main_border,
            input vborder,
            output reg [3:0] hires_pixel_color1,
+           input [4:0] hires_sprite_pixel_color,
            output reg hires_stage1,
            input hires_enabled,
            input [1:0] hires_mode,
@@ -167,6 +168,9 @@ begin
         if (main_border_stage0)
             hires_pixel_color1 <= ec_d2;
         else begin
+            if (hires_sprite_pixel_color[4])
+                hires_pixel_color1 <= hires_sprite_pixel_color[3:0];
+            else
             case (hires_mode)
                 2'b00: begin
                     // Text mode.
@@ -197,7 +201,6 @@ begin
                     hires_pixel_color1 <= { 2'b0, hires_pixel_value2[1],
                                             hires_pixel_value[1] };
             endcase
-            // TODO: Do sprites here on stage0_0 (then repeat for 1?)
         end
     end
 end
