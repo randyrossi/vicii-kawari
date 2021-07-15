@@ -23,28 +23,32 @@ begin
     begin
         if (ilp_clr)
             ilp <= `FALSE;
-        if (raster_line == raster_y_max && cycle_num > 0)
+        if (start_of_frame)
             light_pen_triggered <= `FALSE;
-        else if (!light_pen_triggered && lp == `FALSE) begin
+        if (!light_pen_triggered && lp == `FALSE) begin
             light_pen_triggered <= `TRUE;
             lpy <= raster_line[7:0];
 
-            // Simulate lp irq bug on 6569r1/6567r56a
-            if (start_of_frame && cycle_num == 7'b0) begin
-               if (chip == `CHIP6569R1 || chip == `CHIP6567R56A) begin
-                  ilp <= `TRUE;
-               end
-            end
+            if (raster_line != raster_y_max || cycle_num == 0) 
+            begin
+
+              // Simulate lp irq bug on 6569r1/6567r56a
+              if (start_of_frame && cycle_num == 7'b0) begin
+                 if (chip == `CHIP6569R1 || chip == `CHIP6567R56A) begin
+                    ilp <= `TRUE;
+                 end
+              end
 
 `ifdef SIMULATOR_BOARD
-            lpx <= xpos_div_2 + 2; // 6567/6569 offset to keep VICE happy
+              lpx <= xpos_div_2 + 2; // 6567/6569 offset to keep VICE happy
 `else
-            lpx <= xpos_div_2; // passes lp-trigger/test1.prg & test2.prg
+              lpx <= xpos_div_2; // passes lp-trigger/test1.prg & test2.prg
 `endif
 
-            // Simulate lp irq bug on 6569r1/6567r56a
-            if (chip != `CHIP6569R1 && chip != `CHIP6567R56A)
-               ilp <= `TRUE;
+              // Simulate lp irq bug on 6569r1/6567r56a
+              if (chip != `CHIP6569R1 && chip != `CHIP6567R56A)
+                 ilp <= `TRUE;
+            end
         end
     end
 end
