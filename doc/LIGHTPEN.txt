@@ -1,0 +1,26 @@
+Looking at the die pictures (6569R1 and 8565R2), the only difference
+I see is that the 6569R1 triggers ILP on the rising edge of the
+(cooked) LP input, while the newer chip is level triggered.  The
+cooking is the same for both: it outputs a single ~250ns pulse when
+the LP pin is asserted for the first time in a frame (except the first
+1us cycle I think?)
+
+Anyway, the way that extra edge detect on the 6569R1 is implemented
+is buggy: it can only trigger during the second half of any 1us cycle.
+
+The test does:
+
+Clear ILP, wait for raster line 0x136;
+Set the LP line (via the CIAs);
+If that set ILP, it's not a 6569R1;
+Wait for raster line 2;
+If ILP is set now, it is a 6569R1.
+
+So it seems that the pulse you get from triggering the LP input (via
+the CIAs) is always missed on the 6569R1, and the pulse from having
+it enabled when a new frame starts is always recognised.  Or  
+something :-)
+
+Either way, the 6569R1 light pen circuit would fail to trigger the
+interrupt correctly; the test is detecting this bug.
+

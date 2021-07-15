@@ -68,4 +68,4 @@ Here are some possibilities:
 
    A real VICII chip cannot write to memory since it can't set the WR line LOW.  VIC-II Kawari, however, can set WR LOW so this is theoretically possible.  Using idle cycles to execute instructions and write to DRAM (limited to 16k bank) should be possible.
 
-
+9. A GEOS driver for hires modes

@@ -24,7 +24,7 @@ The core supports these video options:
 
 The core can be configured to support all three or any subset of these options. 
 
-By default, the DVI/RGB signals double the horizontal frequency from ~15.7khz to ~31.4khz (for 2X native height). The horizontal resolution is also doubled to support the 80 column mode.  However, the resolution scaling can be turned off for both width and height if desired.
+By default, the DVI/RGB signals double the horizontal frequency from ~15.7khz to ~31.4khz (for 2X native height). The horizontal resolution is also doubled to support the 80 column mode.  However, the resolution scaling can be turned off for both width and height.
 
 Video        |Width|Height|Horiz Freq |Vert Freq  |Pixel Clock  |Suitable for
 -------------|-----|------|-----------|-----------|-------------|---------------
@@ -47,7 +47,7 @@ The DVI/RGB video modes are not standard and may not work with older monitors/TV
 TODO : xrandr or windows equiv to test monitor
 
 ## What chip models can this replace?
-It can replace the 6567R8(NTSC),6567R56A(NTSC),6569R3(PAL-B),6569R1(PAL-B) models. It can assume the functionality of either video standard with a simple configuration change followed by a cold boot. This means your C64 can be both an NTSC and PAL machine. (PAL-N / PAL-M are not supported but if someone wants to do the work, it can be added.)
+It can replace the 6567R8(NTSC),6567R56A(NTSC),6569R3(PAL-B),6569R1(PAL-B) models. It can assume the functionality of either video standard with a simple configuration change followed by a cold boot. This means your C64 can be both an NTSC and PAL machine. (PAL-N / PAL-M are not supported but it can be added with some hardware modifications.)
 
 ## Will this work in C64-C (short board) models?
 It will function if plugged into a C64-C 'short' board. The VDD pin is not connected so there is no voltage compatibility issue like with the real 8562/8565 models. Keep in mind that the board will behave as a 6567/6569 even when replacing a 8562/8565.
@@ -55,11 +55,11 @@ It will function if plugged into a C64-C 'short' board. The VDD pin is not conne
 ## Isn't the quality of 6567R56A composite video bad?
 The 6567R56A composite signal is known to be worse than the 6567R8. The cycle schedule (and hence timing) is slighly different in the 6567R56A. It generates a composite signal slightly out of range from the expected 15.734khz horizontal frequency for NTSC (it generates 15.980khz instead). Some composite LCD monitors don't like this and even the real chips produced unwanted artifacts on those types of displays. You will get the same unwanted artifacts from a VIC-II Kawari producing composite video when configured as a 6567R56A. CRTs, however, are more forgiving and you may not notice the difference. When using DVI or VGA output, this is of no concern as long as your monitor can handle the frequency (the image will look just as good as any other mode). There may be _some_ NTSC programs that depend on 6567R56A to run properly due to the cycle schedule but I'm not aware of any.
 
-## What about the 6569R3/R4?
-There are subtle differences between the PAL revisions mostly to do with luminance levels. I included the 6569R1 as an option since it has 5 luminance levels instead of 8.
+## What about the 6569R4/R5?
+There are subtle differences between the PAL revisions mostly to do with luminance levels. I included the 6569R1 as an option but keep in mind it has only 5 luminance levels instead of 8 and also has alight pen irq trigger bug.
 
 ## Do I need a functioning clock circuit on my motherboard?
-No. The clock input pins (color and dot) are not connected. The board comes with its own clock and can switch between PAL and NTSC timing with a configuration change. (So if your C64 has died due to a malfunctioning clock circuit, this is an option to get your machine back to a working state).
+No. The clock input pins (color and dot) are not connected. The board comes with its own clock and can switch between PAL and NTSC timing with a configuration change. (So if your C64 has died due to a malfunctioning clock circuit, this is an option to get your machine back to a working state). Please see [Limitations/Caveats](#limitationscaveats) below regarding pin 6 of the cartridge port.
 
 ## Do I need to modify my C64 motherboard?
 The board will function without any modifications to the motherboard. If you can find a way to get a video cable out of the machine, there is no reason to modify the machine. However, it is much easier if the RF modulator is removed. The hole previously used for the composite jack may then be used for an HDMI or VGA cable. Otherwise, there is no practical way for a video cable to exit the machine unless you drill a hole or fish the cable out the casette or user port space.
@@ -67,7 +67,7 @@ The board will function without any modifications to the motherboard. If you can
 NOTE: Strain relief on the cable is VERY important as it exits the machine.  No matter the solution, it is imperative the cable not be allowed to pull on the board while it is in the socket.
 
 ## How accurate is it?
-To measure accuracy, I use the same suite of programs VICE (The Versatile Commodore Emulator) uses to catch regressions in their releases. Out of a total of 280 VIC-II tests, 280 are passing.
+To measure accuracy, I use the same suite of programs VICE (The Versatile Commodore Emulator) uses to catch regressions in their releases. Out of a total of 280 VIC-II tests, 280 are passing (at least by visual comparison).
 
 I can't test every program but it supports all the graphics tricks programmers used in their demos/games. It is safe to say it is a faithful reproduction of the original chips.
 
@@ -87,7 +87,7 @@ Yes. However, light pens will only work using a real CRT with composite. (LCD/DV
 If you need a VIC-II to replace a broken one, you should just buy one off eBay. This project is for fun/interest and would certainly cost more than just buying the real thing. However, there are some advantages to using VIC-II Kawari:
 
 * No 'VSP' bug
-* Configurable color palette (262144 RGB color space, 32768 HSV color space)
+* Configurable color palette (262144 RGB color space, 262144 HSV color space)
 * No need for a working clock circuit
 * Can software switch between NTSC and PAL
 * Optional NTSC/PAL hardware switch available
@@ -102,26 +102,42 @@ Also, since the core is open source, hobbyests can add their own interesting new
 
 ### A configurable color palette
 
-Each of the Commodore 64's 16 colors can be changed.  For RGB based video (DVI/VGA), an 18-bit color space is available (262144 colors).  For composite (luma/chroma) video, a 15-bit HSV color space is available (32768 colors).  The color palette can be saved and restored on a cold boot.
+Each of the Commodore 64's 16 colors can be changed.  For RGB based video (DVI/VGA), an 18-bit color space is available (262144 colors).  For composite (luma/chroma) video, a 18-bit HSV color space is available (262144 colors).  The color palette can be saved and restored on a cold boot.
 
 ### An 80 column text mode
 
 A true 16 color 80 column text mode is available. This is NOT a soft-80 mode that uses bitmap graphics but rather a true text mode. Each character cell is a full 8x8 pixels. An 80 colum text screen occupies 4k of kawari video memory space (+4k character definition data). A small program (2k resident at $c800) can enable this for the basic programming environment. The basic text editor operates exactly as the 40 column mode does since the input/output routines are simply copies of the normal kernel routines compiled with new limits. This mode also takes advantage of hardware accelerated block copy/fill features of VIC-II Kawari so scrolling/clearing the text is fast.
 
-There is also a novaterm 9.6 video driver available.
+There is also a novaterm 9.6 80 column video driver available.
 
 ### New graphics modes
 
-In addition to the 80 column text mode, three bitmap modes have been
-added for you to experiment with:
+In addition to the 80 column text mode, three bitmap modes have been added for you to experiment with:
 
     640x200 16 color - Every 8x8 cell can be one of 16 foreground colors or the background color.
     320x200 16 color - Every pixel can be set to one of 16 colors.
     640x200 4 colors - Every pixel can be set to one of 4 colors.
 
+#### Notes about sprites in hires-modes
+
+Low-res sprites will show up on the hi-res modes. However, they behave according to low-res mode rules. That means their x-positions are still low resolution and will be shifted half a pixel to the left from the low-res mode. (This is due to the way the hires pixel sequencer works). Also, background collisions will trigger based on low-res screen data, even though it is not visible. Sprite to sprite collisions should work as expected. This was a compromise chosen between adding new hires sprite support (taking up a lot of FPGA space) and having nothing at all.
+
 ### Software switch between PAL and NTSC
 
 A configuration utility is provided which allows you to change the chip model at any time. Changes to the chip model will be reflected on the next cold boot. This means you can switch your C64 between NTSC and PAL with ease AND without opeing up your machine!
+
+The full featured config utility takes longer to load, so a smaller quick switch program dedicated to changing the chip is also included.
+
+### Hardware switch between PAL and NTSC
+
+The 'switch' header on the PCB will toggle the chip model between the saved standard (switch open) and the opposite standard (switch closed).  Please note that the 'older' revisions and 'newer' revisions will switch with each other.
+
+Saved       | Swith OPEN | Switch CLOSED
+------------|------------|--------------
+6567R8 NTSC      | 6567R8 NTSC     | 6569R5 PAL
+6567R56A NTSC    | 656756A NTSC    | 6569R1 PAL
+6569R5 PAL      | 6569R5 PAL    | 6567R8 NTSC
+6569R1 PAL    | 6569R1 PAL    | 6567R56A NTSC
 
 ## What are the installation options?
 
@@ -157,17 +173,16 @@ VIC-II Kawari was built to be detected, flashed and re-configured from the C64 m
 
 See [REGISTERS.md](REGISTERS.md) for a description of the lock jumpers.
 
-By default, flash operations are disabled. This means you must physically remove jumper on Pin 1 to allow the flash utility to work.  (It is recommended you put the jumper back after you've flashed the device.)
+By default, flash operations are disabled. This means you must physically remove the jumper on Pin 1 to allow the flash utility to work.  (It is recommended you put the jumper back after you've flashed the device.)
 
-Also by default, persistence (extended register changes surviving between reboots) is enabled. Once you've set your preferred color scheme or other preferences with the config apps, you can place a jumper on Pin 2 to prevent any program changing them without your knowledge/permission. Programs will still be able to change colors, for example. But they won't be able to save them.
+Also by default, persistence (extended register changes persisting between reboots) is enabled. Once you've set your preferred color scheme or other preferences with the config apps, you can remove the jumper on Pin 2 to prevent any program changing them without your knowledge/permission. Programs will still be able to change colors, for example. But they won't be able to save them.
 
-Access to extensions registers (access to extended features) are enabled by default. If you want your VIC-II Kawari to function as a regular 6567/6569 and be undetectable to any program (including Kawari config apps) then removing the extension lock jumper will do that. (NOTE: That includes being able to software switch the video standard. However, a hardware switch will still work.)
+Access to extension registers (extended features) are enabled by default. If you want your VIC-II Kawari to function as a regular 6567/6569 and be undetectable to any program (including Kawari config apps) then removing the extension lock jumper on Pin 3 will do that. (NOTE: That includes being able to software switch the video standard. However, a hardware switch will still work.)
 
 Without the lock jumpers, here are some ways a misbehaving program can make it look like your VIC-II Kawari has died:
 
-A program can:
+1. erase the flash memory making the device un-bootable (must be restored via JTAG)
+2. change all colors to black and save them, making it look like a black screen fault (restored by shorting CFG jumper pad)
+3. change the hires modes to a resolution incompatible with your monitor, again making it look like a black screen fault (restored by shorting CFG jumper pad)
 
-1. erase the flash memory making the device un-bootable
-2. change all colors to black and save them, making it look like a black screen fault
-3. change the hires modes to a resolution incompatible with your monitor, again making it look like a black screen fault
 
