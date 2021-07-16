@@ -488,14 +488,31 @@ always @(posedge clk_dot4x)
 `ifdef HAVE_FLASH
        //FOR TESTING FLASH WRITE IN SIM
        if (spi_lock) begin
-         flash_begin <= 1'b1;
+         flash_begin <= `FLASH_WRITE;
          // Grab the write address from 0x35,0x36,0x3a
-         flash_read_addr <= 15'b0;
-         flash_write_addr <= 24'h7d000;
+         flash_vmem_addr <= 15'b0;
+         flash_addr <= 24'h7d000;
          flash_command_ctr <= `FLASH_CMD_WREN;
          flash_bit_ctr <= 6'd0;
          flash_busy <= 1'b1;
          flash_verify_error <= 1'b0;
+         flash_page_ctr = 6'b0;
+       end
+`endif
+*/
+/*
+`ifdef HAVE_FLASH
+       //FOR TESTING FLASH READ IN SIM
+       if (spi_lock) begin
+         flash_begin <= `FLASH_READ;
+         // Grab the write address from 0x35,0x36,0x3a
+         flash_vmem_addr <= 15'b0;
+         flash_addr <= 24'h7d000;
+         flash_command_ctr <= `FLASH_CMD_READ;
+         flash_bit_ctr <= 6'd0;
+         flash_busy <= 1'b1;
+         flash_verify_error <= 1'b0;
+         flash_page_ctr = 6'b0;
        end
 `endif
 */
@@ -958,20 +975,26 @@ always @(posedge clk_dot4x)
 `ifdef HAVE_FLASH
                               // spi_lock must be OPEN for SPI access
                               if (!flash_busy && spi_lock) begin
-                                // This is a command to bulk write from
-                                // memory. Source data is at 0x0000 in video
-                                // ram.
-                                flash_begin <= 1'b1;
-                                // Grab the write address from 0x35,0x36,0x3a
-                                flash_read_addr <= 15'b0;
-                                flash_write_addr <=
+                                // This is a bulk flash command. Last two
+                                // bits of dbi represent the operation.
+                                // FLASH_WRITE 01
+                                // FLASH_READ  10
+                                flash_begin <= dbi[1:0];
+                                // Greb vmem address
+                                flash_vmem_addr <= {video_ram_hi_2[6:0], video_ram_lo_2};
+                                // Grab the flash write address
+                                flash_addr <=
                                     {video_ram_idx_1,
-                                     video_ram_idx_2,
-                                     video_ram_hi_1};
-                                flash_command_ctr <= `FLASH_CMD_WREN;
+                                     video_ram_hi_1,
+                                     video_ram_lo_1};
+                                if (dbi[1:0] == `FLASH_WRITE)
+                                   flash_command_ctr <= `FLASH_CMD_WREN;
+                                else
+                                   flash_command_ctr <= `FLASH_CMD_READ;
                                 flash_bit_ctr <= 6'd0;
                                 flash_busy <= 1'b1;
                                 flash_verify_error <= 1'b0;
+                                flash_page_ctr = 6'b0;
                                 $display("start flash");
                               end
 `endif

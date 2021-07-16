@@ -19,7 +19,7 @@
 // while 'current' bistream is located at 0x07d000.
 
 // The max version of the image file format we can understand.
-#define MAX_VERSION 1
+#define MAX_VERSION 1L
 #define MAX_VERSION_STR "1"
 
 // We won't write below this address in flash mem.
@@ -101,6 +101,7 @@ unsigned char filename[16];
 unsigned char scratch[SCRATCH_SIZE];
 
 unsigned char use_fast_loader;
+
 #ifdef EXPERT
 unsigned char is_expert = 0;
 #endif
@@ -304,7 +305,7 @@ void talk(unsigned char instr,
 	      value = value + b;
        }
        data_in[n] = value;
-    }    
+    }
 
     if (close) {
        SET(D0_C1_S0); // leave clock high before S high
@@ -370,7 +371,7 @@ void write_page(unsigned long addr) {
 
     wait_busy();
 }
-#endif 
+#endif
 
 // Write enable
 void wren(void) {
@@ -415,7 +416,7 @@ unsigned long input_int(void) {
       SMPRINTF_1("%c",r.a);
       if (r.a == 0x0d) break;
       scratch[n++] = r.a;
-   } 
+   }
    scratch[n] = '\0';
    return atol(scratch);
 }
@@ -429,22 +430,22 @@ void expert(void) {
    do {
       mprintf ("\n> ");
       WAITKEY;
-      if (r.a == 'r') {
-         mprintf ("\nEnter READ address:");
+      if (r.a == 'r') { // read flash (slow)
+         mprintf ("\nEnter FLASH READ address:");
          start_addr = input_int();
-         SMPRINTF_1 ("Read 256 bytes from %ld:", start_addr);
+         SMPRINTF_1 ("READ 256 bytes from FLASH (slow) %ld:", start_addr);
          read_page(start_addr);
          for (n=0;n<256;n++) {
             SMPRINTF_1 ("%02x:", data_in[n]);
          }
-      } else if (r.a == 'e') {
-         mprintf ("\nEnter ERASE address:");
+      } else if (r.a == 'e') { // erase flash
+         mprintf ("\nEnter FLASH ERASE address:");
          start_addr = input_int();
-         SMPRINTF_1 ("ERASE 64k @ %ld:", start_addr);
+         SMPRINTF_1 ("ERASE FLASH 64k @ %ld:", start_addr);
          wren();
          erase_64k(start_addr);
-      } else if (r.a == 'w') {
-         mprintf ("\nEnter WRITE address:");
+      } else if (r.a == 'w') { // write from vmem
+         mprintf ("\nEnter FLASH WRITE (slow) address:");
          start_addr = input_int();
          SMPRINTF_1 ("WRITE 256 bytes to %ld:", start_addr);
          for (n=0;n<256;n++) {
@@ -452,19 +453,32 @@ void expert(void) {
          }
          wren();
          write_page(start_addr);
-      } else if (r.a == 'm') {
-         mprintf ("\nEnter VMEM address:");
+      } else if (r.a == 'm') { // read vmem
+         mprintf ("\nEnter VMEM read address:");
          start_addr = input_int();
          SMPRINTF_1 ("READ 256 vmem bytes from %ld:", start_addr);
          POKE(VIDEO_MEM_FLAGS, 1);
-         POKE(53301L,0);
-         POKE(53302L,0);
-         POKE(53305L,start_addr & 0xff);
-         POKE(53306L,start_addr >> 8);
+         POKE(VIDEO_MEM_1_IDX,0);
+         POKE(VIDEO_MEM_2_IDX,0);
+         POKE(VIDEO_MEM_1_LO,start_addr & 0xff);
+         POKE(VIDEO_MEM_1_HI,start_addr >> 8);
          for (n=0;n<256;n++) {
             SMPRINTF_1("%02x ",PEEK(53307L));
          }
          POKE(VIDEO_MEM_FLAGS, 0);
+      } else if (r.a == 'f') { // read vmem
+         mprintf ("\nEnter FLASH read address:");
+         start_addr = input_int();
+         SMPRINTF_1 ("READ 16k from FLASH (bulk) %ld:", start_addr);
+         POKE(VIDEO_MEM_FLAGS, 0);
+         // From flash start_addr
+         POKE(VIDEO_MEM_1_IDX,(start_addr >> 16) & 0xff);
+         POKE(VIDEO_MEM_1_HI,(start_addr >> 8) & 0xff);
+         POKE(VIDEO_MEM_1_LO,(start_addr & 0xff));
+         // To video mem 0x0000
+         POKE(VIDEO_MEM_2_HI, 0);
+         POKE(VIDEO_MEM_2_LO, 0);
+         POKE(SPI_REG, FLASH_BULK_OP | FLASH_BULK_READ);
       } else if (r.a == 'c') {
          copy_4000_0000();
       }
@@ -473,7 +487,7 @@ void expert(void) {
 #endif
 
 // Flash files are spread across 4 disks
-// This routine erases the flash 
+// Thi,s routine erases the flash
 void begin_flash(long num_to_write, unsigned long start_addr) {
     unsigned long src_addr;
     unsigned char disknum;
@@ -529,13 +543,15 @@ void begin_flash(long num_to_write, unsigned long start_addr) {
        // Transfer $4000 - $7fff into video memory @ $0000
        copy_4000_0000();
 
-       // Tell kawari to flash it
-       POKE(53311L, 0);
-       POKE(53301L,(start_addr >> 16) & 0xff);
-       POKE(53302L,(start_addr >> 8) & 0xff);
-       POKE(53306L,(start_addr & 0xff));
+       // Tell kawari to flash it from vmem 0x0000 to the flash address
+       POKE(VIDEO_MEM_FLAGS, 0);
+       POKE(VIDEO_MEM_1_IDX,(start_addr >> 16) & 0xff);
+       POKE(VIDEO_MEM_1_HI,(start_addr >> 8) & 0xff);
+       POKE(VIDEO_MEM_1_LO,(start_addr & 0xff));
+       POKE(VIDEO_MEM_2_HI, 0);
+       POKE(VIDEO_MEM_2_LO, 0);
        mprintf ("FLASH,");
-       POKE(SPI_REG, 128);
+       POKE(SPI_REG, FLASH_BULK_OP | FLASH_BULK_WRITE);
 
 #ifdef EXPERT
        if (is_expert) {
@@ -569,7 +585,8 @@ void begin_flash(long num_to_write, unsigned long start_addr) {
 
 void main_menu(void)
 {
-    unsigned int version;
+    unsigned int firmware_version;
+    unsigned long disk_format_version;
     long num_to_write;
     unsigned long start_addr;
     unsigned long tmp_addr;
@@ -584,11 +601,11 @@ void main_menu(void)
 
     // Turn on regs overlay to get version
     POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
-    version = get_version();
+    firmware_version = get_version();
     POKE(VIDEO_MEM_FLAGS, 0);
 
     SMPRINTF_2 ("Current Firmware Version: %d.%d\n",
-        version >> 4, version & 15);
+        firmware_version >> 4, firmware_version & 15);
     mprintf ("\n");
 
     //        ----------------------------------------
@@ -603,7 +620,7 @@ void main_menu(void)
     mprintf ("disks to your queue.\n\n");
 
     press_any_key(TO_CONTINUE);
-  
+
     // Identify flash device
     for (;;) {
       mprintf ("\nIdentifying flash...");
@@ -618,7 +635,7 @@ void main_menu(void)
       }
 
       if (data_in[0] != 0xef || data_in[1] != 0x14) {
-         mprintf ("Unknown flash device.\n");
+         mprintf ("Can't identify flash device.\n");
          press_any_key(TO_TRY_AGAIN);
       } else {
          break;
@@ -631,7 +648,7 @@ void main_menu(void)
 #ifdef EXPERT
     if (r.a == 'x') {
        expert();
-    } 
+    }
 #endif
 
     mprintf ("\nREAD IMAGE INFO\n");
@@ -644,10 +661,10 @@ void main_menu(void)
 
     // Info is now at $9000
     tmp_addr=0x9000;
-    version = read_decimal(&tmp_addr);
-    SMPRINTF_1 ("File Format  :v%ld\n", version);
+    disk_format_version = read_decimal(&tmp_addr);
+    SMPRINTF_1 ("File Format  :v%ld\n", disk_format_version);
 
-    if (version > MAX_VERSION) {
+    if (disk_format_version > MAX_VERSION) {
        mprintf ("\nThis util can only read version " MAX_VERSION_STR "\n");
        press_any_key(TO_EXIT);
        WAITKEY;

@@ -58,8 +58,8 @@ This register is used by config/flash programs to update the FPGA bitstream.
 
 On Write:
 
-Bit          | Bit 8=0 | Bit 8=1
--------------|---------|-------------
+Bit          | Bit 8=0                | Bit 8=1
+-------------|------------------------|-------------
 Bit 1        | Flash SPI Select Line  | Bulk Flash Op
 Bit 2        | SPI Clock Line         | Bulk Flash Op
 Bit 3        | SPI Data Out Line      | Bulk Flash Op
@@ -67,7 +67,16 @@ Bit 4        | EEPROM SPI Select Line | Bulk Flash Op
 Bit 5        | Unused                 | Bulk Flash Op
 Bit 6        | Unused                 | Bulk Flash Op
 Bit 7        | Unused                 | Bulk Flash Op
-Bit 8        | 0=SPI Lines, 1=Bulk SPI Operation
+Bit 8        | 0=Set SPI Lines, 1=Bulk SPI Operation
+
+Bulk Flash Op | Operation
+--------------|------------
+0000001       | BULK WRITE
+0000010       | BULK READ
+
+### For bulk flash operations
+    24 bit Flash Address = { VIDEO_MEM_1_IDX, VIDEO_MEM_1_HI, VIDEO_MEM_1_LO }
+    16 bit VMEM Address = { VIDEO_MEM_2_HI, VIDEO_MEM_2_LO }
 
 On Read:
 
@@ -84,19 +93,17 @@ Bit 8        | Unused
 
 ## Hardware Locks
 
-By default, all config lock pins are left OPEN (pulled high).
-
-Jumper | Name | Function 
+Jumper | Name | Function
 -------|------|---------
-1 | SPI Lock | OPEN=DISALLOW SPI PROGRAMMING, SHORT=ALLOW SPI PROGRAMMING
-2 | Extensions Lock | OPEN=ALLOW EXTENSIONS, SHORT=DISALLOW EXTENSIONS
-3 | Persistence Lock | OPEN=ALLOW PERSISTENCE, SHORT=DISALLOW PERSISTENCE
+1 | SPI Lock | OPEN=ALLOW SPI PROGRAMMING, SHORT=DISALLOW SPI PROGRAMMING
+2 | Extensions Lock | OPEN=DISALLOW EXTENSIONS, SHORT=ALLOW EXTENSIONS
+3 | Persistence Lock | OPEN=DISALLOW PERSISTENCE, SHORT=ALLOW PERSISTENCE
 
-Pin 1 - SPI Lock must be shorted for flash updates to work.
+Pin 1 - SPI Lock must be OPEN for flash updates to work.
 
-Pin 2 - Extensions Lock can be shorted to prevent any access to extra extensions. This effectively turns VIC-II Kawari into a normal 6567/6569 chip with no extra features accessible. 
+Pin 2 - Extensions Lock can be left OPEN to prevent any access to extra extensions. This effectively turns VIC-II Kawari into a normal 6567/6569 chip with no extra features accessible.
 
-Pin 3 - Persistence Lock can be shorted to disallow overwriting existing saved settings (chip select, rasterlines, colors, hdmi/vga/settings, etc).
+Pin 3 - Persistence Lock can be left OPEN to prevent overwriting existing saved settings (rasterlines, colors, hdmi/vga/settings, etc). (Chip model is exempt from this lock)
 
 ## Video Memory
 
@@ -131,7 +138,7 @@ BIT 1-4     | MATRIX_BASE
 BIT 4-8     | COLOR_BASE
 
 ## Color Memory
-For the 80 column text mode, each byte stores color information as well as display attributes. 
+For the 80 column text mode, each byte stores color information as well as display attributes.
 
 BIT        | Description
 -----------|-------------
@@ -220,6 +227,8 @@ You can perform high speed block copy operations by setting the vmem
 port 1 and 2 functions to COPYSRC/FILL and COPYDST/FILLVAL respectively.
 NOTE: Both port 1 and 2 must be configured for COPY/FILL function.
 
+Register       | Meaning
+---------------|--------------
 VIDEO_MEM_1_LO | Dest Lo Byte
 VIDEO_MEM_1_HI | Dest Hi Byte
 VIDEO_MEM_2_LO | Src Lo Byte
@@ -231,30 +240,30 @@ VIDEO_MEM_2_VAL | Unused
 
 ### Copy Example
 
-    LDA <SRC_ADDR
-    STA VIDEO_MEM_A_HI
-    LDA >SRC_ADDR
-    STA VIDEO_MEM_A_LO
+        LDA <SRC_ADDR
+        STA VIDEO_MEM_A_HI
+        LDA >SRC_ADDR
+        STA VIDEO_MEM_A_LO
 
-    LDA <DEST_ADDR
-    STA VIDEO_MEM_B_HI
-    LDA >DEST_ADDR
-    STA VIDEO_MEM_B_LO
+        LDA <DEST_ADDR
+        STA VIDEO_MEM_B_HI
+        LDA >DEST_ADDR
+        STA VIDEO_MEM_B_LO
 
-    LDA #15               ; Port 1 copy src, Port 2 copy dest
-    STA VIDEO_MEM_FLAGS
+        LDA #15               ; Port 1 copy src, Port 2 copy dest
+        STA VIDEO_MEM_FLAGS
 
-    LDA #00
-    STA VIDEO_MEM_1_IDX
-    LDA #02
-    STA VIDEO_MEM_2_IDX   ; 512 bytes
+        LDA #00
+        STA VIDEO_MEM_1_IDX
+        LDA #02
+        STA VIDEO_MEM_2_IDX   ; 512 bytes
 
-    LDA #1
-    STA VIDEO_MEM_1_VAL   ; Perform copy (start to end)
+        LDA #1
+        STA VIDEO_MEM_1_VAL   ; Perform copy (start to end)
 
-waitdone
-    LDA VIDEO_MEM_2_IDX   ; wait for done
-    bne waitdone
+    waitdone
+        LDA VIDEO_MEM_2_IDX   ; wait for done
+        bne waitdone
 
 * Copy is finished when VIDEO_MEM_1_IDX == 0 && VIDEO_MEM_2_IDX == 0
 * These values do not change while copy is performed so just checking
@@ -269,6 +278,8 @@ port 1 and 2 functions to COPYSRC/FILL and COPYDST/FILLVAL respectively.
 
 ### Fill
 
+Register       | Meaning
+---------------|--------------
 VIDEO_MEM_1_LO | Start Lo Byte
 VIDEO_MEM_1_HI | Start Hi Byte
 VIDEO_MEM_1_IDX | Num Bytes Lo
@@ -280,28 +291,28 @@ VIDEO_MEM_2_VAL | Unused
 
 ### Fill Example
 
-    LDA <DST_ADDR
-    STA VIDEO_MEM_A_HI
-    LDA >DST_ADDR
-    STA VIDEO_MEM_A_LO
+        LDA <DST_ADDR
+        STA VIDEO_MEM_A_HI
+        LDA >DST_ADDR
+        STA VIDEO_MEM_A_LO
 
-    LDA #15               ; Port 1 fill dst, Port 2 fill val
-    STA VIDEO_MEM_FLAGS
+        LDA #15               ; Port 1 fill dst, Port 2 fill val
+        STA VIDEO_MEM_FLAGS
 
-    LDA #00
-    STA VIDEO_MEM_1_IDX
-    LDA #02
-    STA VIDEO_MEM_2_IDX   ; 512 bytes
+        LDA #00
+        STA VIDEO_MEM_1_IDX
+        LDA #02
+        STA VIDEO_MEM_2_IDX   ; 512 bytes
 
-    LDA #ff               ; Byte for fill
-    STA VIDEO_MEM_2_LO
+        LDA #ff               ; Byte for fill
+        STA VIDEO_MEM_2_LO
 
-    LDA #4
-    STA VIDEO_MEM_1_VAL   ; Perform fill
+        LDA #4
+        STA VIDEO_MEM_1_VAL   ; Perform fill
 
-waitdone
-    LDA VIDEO_MEM_2_IDX   ; wait for done
-    bne waitdone
+    waitdone
+        LDA VIDEO_MEM_2_IDX   ; wait for done
+        bne waitdone
 
 * Fill is finished when VIDEO_MEM_1_IDX == 0 && VIDEO_MEM_2_IDX == 0
 * These values do not change while copy is performed so just checking
@@ -353,7 +364,7 @@ Colors generated by the luma/chroma generator can also be modified by changing r
 
 ### All registers
 
-Location | Name | Description | Capability Requirement | Can be saved? 
+Location | Name | Description | Capability Requirement | Can be saved?
 ---------|------|-------------|------------------------|---------------------
 0x00 - 0x3f | PAL_RGB | 4x16 array of RGBx (4th byte unused) | CONFIG_RGB | Y
 0x40 - 0x7f | UNUSED | Unused | NONE | N/A
@@ -366,7 +377,7 @@ Location | Name | Description | Capability Requirement | Can be saved?
 0x86 | CURSOR_HI | Hires Cursor hi byte | HIRES_MODES | N/A
 0x87 | CAP_LO    | Capability Bits lo byte (Read Only)| NONE | N/A
 0x88 | CAP_HI    | Capability Bits hi byte (Read Only)| NONE | N/A
-0x89 | TIMING_CHANGE | HDMI/VGA Timing change signal - Bit 1  | CONFIG_TIMING | N 
+0x89 | TIMING_CHANGE | HDMI/VGA Timing change signal - Bit 1  | CONFIG_TIMING | N
 0x8a - 0x8f | Reserved | Reserved | NONE | N/A
 0x90 - 0x9f | VARIANT_NAME | Variant Name | NONE | N/A
 0xa0 - 0xaf | LUMA_LEVELS | Composite luma levels for colors (0-63) | CONFIG_COMPOSITE
@@ -388,7 +399,7 @@ Location | Name | Description | Capability Requirement | Can be saved?
 0xdd | VGA_FPORCH | HDMI/VGA PAL V front porch | CONFIG_TIMING | N
 0xde | VGA_SPULSE | HDMI/VGA PAL V sync pulse | CONFIG_TIMING | N
 0xdf | VGA_BPORCH | HDMI/VGA PAL V back porch | CONFIG_TIMING | N
-0xfc - 0xff | MAGIC BYTES 'VIC2' for EEPROM | Y
+0xfc - 0xff | MAGIC BYTES | EEPROM Magic Bytes | N/A | Y
 
 NOTES
     Blanking start/end values are absolute values compared to the native resolution raster line (vertical) or xpos (horizontal) internal counters.
@@ -422,7 +433,7 @@ Bit 4 | Has configurable RGB palette
 Bit 5 | Has configurable Luma/Chroma/Amplitude
 Bit 6 | Has configurable analog/digital RGB timing params
 Bit 7 | Has configuration persistance
-Bit 8 | Reserved
+Bit 8 | Has hires modes available
 
 CAP_HI|Description
 ------|--------

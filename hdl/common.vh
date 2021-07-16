@@ -10,13 +10,21 @@
 
 `define FLASH_IDLE   2'd0
 `define FLASH_WRITE  2'd1 // Write and verify 16k block 
-`define FLASH_UNUSED1  2'd2
+`define FLASH_READ   2'd2
 `define FLASH_UNUSED2  2'd3
 
+// For FLASH_WRITE bulk op
 `define FLASH_CMD_WREN     2'd0
 `define FLASH_CMD_WRITE    2'd1
 `define FLASH_CMD_WAIT     2'd2
 `define FLASH_CMD_VERIFY   2'd3
+
+// For FLASH_READ bulk op
+`define FLASH_CMD_READ     2'd3  // must share with FLASH_CMD_VERIFY for read
+
+`define FLASH_OP_NONE                  2'b0;
+`define FLASH_OP_WRITE_AND_VERIFY      2'b1;
+`define FLASH_OP_READ                  2'b2;
 
 // Do some sanity checks
 // If we're exporting RGB signals, we need RGB

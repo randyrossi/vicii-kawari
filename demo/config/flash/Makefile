@@ -93,10 +93,16 @@ image_files:
 	   fi \
 	done
 
+SIZE=$(shell du -b flash.prg | cut -f1)
+
+checksize:
+	if [ $(SIZE) -gt 14330 ]; then \
+	    echo "ERROR: flash.prg too large" ; exit 1 ; \
+	fi
 
 # Put together disk images based on what chunks
 # we created.
-disks: flash.prg third_party/covert/loader.prg image_files info_file
+disks: flash.prg checksize third_party/covert/loader.prg image_files info_file
 	for NUM in $(DISKNUMS); do \
 	   truncate -s 174848 flash$$NUM.d64; \
 	   c1541 -attach flash$$NUM.d64 -format "vicii-flash$$NUM",0; \

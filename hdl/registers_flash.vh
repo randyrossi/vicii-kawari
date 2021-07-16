@@ -1,13 +1,13 @@
 // Header for register_flash.v
 
-// Current video memory read addr
-reg [14:0] flash_read_addr;
+// Current video memory addr for flash op
+reg [14:0] flash_vmem_addr;
 
-// Current flash memory write addr
-reg [23:0] flash_write_addr;
+// Current flash memory addr
+reg [23:0] flash_addr;
 
-// Shifting flash memory write addr
-reg [23:0] flash_write_addr_s;
+// Shifting flash memory addr
+reg [23:0] flash_addr_s;
 
 // Byte shift register for data when writing to flash
 reg [7:0] flash_byte;
@@ -53,4 +53,4 @@ reg [5:0] flash_page_ctr;
 
 // Flip this register to 1 to start bulk flash
 // commands.
-reg flash_begin = 1'b0;
+reg [1:0] flash_begin = `FLASH_IDLE;
