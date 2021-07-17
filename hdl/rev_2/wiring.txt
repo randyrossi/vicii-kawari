@@ -99,9 +99,6 @@ P70    SPI_C     spi_c          O  QUIETIO 2 LVCMOS33
 P64    SPI_D     spi_d          O  QUIETIO 2 LVCMOS33
 P65    SPI_Q     spi_q          I  NA NA LVCMOS33
 
-# Clock
-P56    CLK      sys_clock       I  NA NA NA
-
 # Config
 P57    CFG1      cfg1           I  PULLUP NA NA
 P58    CFG2      cfg2           I  PULLUP NA NA

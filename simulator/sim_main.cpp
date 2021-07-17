@@ -267,9 +267,6 @@ static vluint64_t nextTick(Vtop* top) {
    top->V_DOT4X = ~top->V_DOT4X;
    top->V_COL4X = ~top->V_COL4X;
    top->V_COL16X = ~top->V_COL16X;
-#ifdef HAVE_SYS_CLOCK
-   top->sys_clock = ~top->sys_clock;
-#endif
    nextClkCnt = (nextClkCnt + 1) % 32;
    return ticks + diff1;
 }
@@ -770,16 +767,9 @@ int main(int argc, char** argv, char** env) {
     top->cfg3 = 0; // persistence_lock
     // cpu_reset_i is held HIGH simulating pullup
     top->cpu_reset_i = 1;
-#if HAVE_MCU_EEPROM
-    // When we have the serial link (MCU), set the chip select lines
-    top->V_CHIP_EXT = chip;
-#endif
 #ifdef HAVE_EEPROM
     // When we have an eeprom, just start off with the chip we have
     top->V_CHIP = chip;
-#endif
-#ifdef HAVE_MCU_EEPROM
-    top->cclk = 1; // hold high to simulate MCU ready
 #endif
 
     int cnt = 0;

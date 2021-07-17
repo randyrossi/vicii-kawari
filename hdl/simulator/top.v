@@ -4,26 +4,14 @@
 
 // Top level module for the simulator.
 //
-// sys_clock is simulated by verilog
-//
 `ifndef SIMULATOR_BOARD
 ERROR_NEED_SIMULATOR_BOARD_DEFINED See common.vh
 `endif
 
                                    module top(
-`ifdef HAVE_SYS_CLOCK
-                                       input sys_clock,     // driven by sim
-`endif
                                        input clk_col4x,     // driven by sim
                                        input clk_col16x,    // driven by sim
 
-`ifdef HAVE_MCU_EEPROM
-                                       input [1:0] chip_ext, // chip config pin from MCU
-                                       output tx,
-                                       input rx,
-                                       input rx_busy,
-                                       input cclk,
-`endif
                                        output cpu_reset,    // reset for 6510 CPU
                                        input cpu_reset_i,
                                        input cfg_reset,
@@ -42,14 +30,12 @@ ERROR_NEED_SIMULATOR_BOARD_DEFINED See common.vh
                                        output [5:0] blue,   // blue out
 `endif
 
-`ifdef HAVE_COLOR_CLOCKS
                                        // If we are generating luma/chroma, add outputs
 `ifdef GEN_LUMA_CHROMA
                                        output [5:0] luma,    // luma out
                                        output [5:0] chroma,  // chroma out
 `endif
 
-`endif  // HAVE_COLOR_CLOCKS
 
 `ifdef HAVE_FLASH
                                        output flash_s,
@@ -139,14 +125,6 @@ wire [11:0] ado;
 wire vic_write_ab;
 wire vic_write_db;
 
-`ifdef HAVE_MCU_EEPROM
-wire[7:0] tx_data_4x;
-wire tx_new_data_4x;
-reg tx_busy_4x;
-wire[7:0] rx_data_4x;
-wire rx_new_data_4x;
-`endif
-
 // Instantiate the vicii with our clocks and pins.
 vicii vic_inst(
           .rst(rst),
@@ -159,14 +137,6 @@ vicii vic_inst(
           .spi_lock(cfg1),
           .extensions_lock(cfg2),
           .persistence_lock(cfg3),
-`ifdef HAVE_MCU_EEPROM
-          .chip_ext(chip_ext),
-          .tx_data_4x(tx_data_4x),
-          .tx_new_data_4x(tx_new_data_4x),
-          .tx_busy_4x(tx_busy_4x | rx_busy),
-          .rx_data_4x(rx_data_4x),
-          .rx_new_data_4x(rx_new_data_4x),
-`endif
           .clk_dot4x(clk_dot4x),
           .clk_phi(clk_phi),
 `ifdef NEED_RGB
@@ -177,13 +147,11 @@ vicii vic_inst(
           .green(green),
           .blue(blue),
 `endif
-`ifdef HAVE_COLOR_CLOCKS
           .clk_col16x(clk_col16x),
 `ifdef GEN_LUMA_CHROMA
           .luma(luma),
           .chroma(chroma),
 `endif
-`endif  // HAVE_COLOR_CLOCKS
 `ifdef HAVE_FLASH
           .flash_s(flash_s),
 `endif
@@ -217,44 +185,5 @@ vicii vic_inst(
 assign ado_sim = ado;
 assign dbo_sim = dbo;
 // End diff
-
-`ifdef HAVE_MCU_EEPROM
-// NOTE: For the simulator, sys_clock is actually the same as
-// our dot4x clock.  But it's just for simulaion purposes to
-// check tx is working.
-// Propagate tx from 4x domain to sys_clock domain
-reg[7:0] tx_data_sys_pre;
-reg tx_new_data_sys_pre;
-reg[7:0] tx_data_sys;
-reg tx_new_data_sys;
-reg tx_busy_4x_pre;
-
-always @(posedge sys_clock) tx_data_sys_pre <= tx_data_4x;
-always @(posedge sys_clock) tx_data_sys<= tx_data_sys_pre;
-
-always @(posedge sys_clock) tx_new_data_sys_pre <= tx_new_data_4x;
-always @(posedge sys_clock) tx_new_data_sys <= tx_new_data_sys_pre;
-
-always @(posedge clk_dot4x) tx_busy_4x_pre <= tx_busy_sys;
-always @(posedge clk_dot4x) tx_busy_4x <= tx_busy_4x_pre;
-
-wire [7:0] rx_data;
-wire new_rx_data;
-wire tx_busy_sys;
-
-avr_interface mojo_avr_interface(
-                  .clk(sys_clock),
-                  .rst(rst),
-                  .cclk(cclk),
-                  .tx(tx),
-                  .tx_busy(tx_busy_sys),
-                  .rx(rx),
-                  .tx_data(tx_data_sys),
-                  .new_tx_data(tx_new_data_sys),
-                  .rx_data(rx_data),
-                  .new_rx_data(new_rx_data)
-              );
-
-`endif
 
 endmodule : top

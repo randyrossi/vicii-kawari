@@ -41,13 +41,6 @@
 `endif
 `endif
 
-// If we're generating luma/chroma, we need color clocks
-`ifdef GEN_LUMA_CHROMA
-`ifndef HAVE_COLOR_CLOCKS
-`define HAVE_COLOR_CLOCKS 1
-`endif
-`endif
-
 // DATA_DAV
 //
 // When to read from the data bus for both char/pixel and sprite dma
@@ -393,26 +386,8 @@
 `define HAS_HIRES_CAP 1'b0
 `endif
 
-// Can't have both serial link and eeprom
-`ifdef HAVE_MCU_EEPROM
+// EEPROM implies WITH_SPI and HAS_PERSIST_CAP
 `ifdef HAVE_EEPROM
-error CAN'T HAVE HAVE_MCU_EEPROM AND HAVE_EEPROM together
-`endif
-`endif
-
-// Can't have both serial link and eeprom
-`ifdef HAVE_EEPROM
-`ifdef HAVE_MCU_EEPROM
-error CAN'T HAVE HAVE_MCU_EEPROM AND HAVE_EEPROM together
-`endif
-`endif
-
-// MCU_EEPROM implies we have sys_clock for serial
-// EEPROM implies WITH_SPI
-`ifdef HAVE_MCU_EEPROM
-`define HAS_PERSIST_CAP 1'b1
-`define HAVE_SYS_CLOCK 1
-`elsif HAVE_EEPROM
 `define HAS_PERSIST_CAP 1'b1
 `define WITH_SPI 1
 `else

@@ -3,13 +3,10 @@ import java.util.*;
 
 public class GenConstraints
 {
-  final static int HAVE_COLOR_CLOCKS = 0;
   final static int WITH_DVI = 1;
   final static int GEN_LUMA_CHROMA = 2;
-  final static int HAVE_MCU_EEPROM = 3;
   final static int GEN_RGB = 4;
   final static int HAVE_EEPROM = 5;
-  final static int HAVE_SYS_CLOCK = 6;
 
   public static boolean[] read_config(String filename) throws Exception {
     File f = new File(filename);
@@ -22,20 +19,14 @@ public class GenConstraints
       String line = br.readLine();
       if (line == null) break;
 
-      if (line.startsWith("`define HAVE_COLOR_CLOCKS"))
-        flags[HAVE_COLOR_CLOCKS] = true;
-      else if (line.startsWith("`define WITH_DVI"))
+      if (line.startsWith("`define WITH_DVI"))
         flags[WITH_DVI] = true;
       else if (line.startsWith("`define GEN_LUMA_CHROMA"))
         flags[GEN_LUMA_CHROMA] = true;
-      else if (line.startsWith("`define HAVE_MCU_EEPROM"))
-        flags[HAVE_MCU_EEPROM] = true;
       else if (line.startsWith("`define GEN_RGB"))
         flags[GEN_RGB] = true;
       else if (line.startsWith("`define HAVE_EEPROM"))
         flags[HAVE_EEPROM] = true;
-      else if (line.startsWith("`define HAVE_SYS_CLOCK"))
-        flags[HAVE_SYS_CLOCK] = true;
     }
     return flags;
   }
@@ -69,27 +60,12 @@ public class GenConstraints
 		String strength = st.nextToken();
 		String iostand = st.nextToken();
 
-		if (!flags[HAVE_COLOR_CLOCKS]) {
-                   if (t6.equals("clk_col4x_pal")) continue;
-                   if (t6.equals("clk_col4x_ntsc")) continue;
-                   if (t6.startsWith("luma")) continue;
-                   if (t6.startsWith("chroma")) continue;
-                }
 		if (!flags[GEN_LUMA_CHROMA]) {
                    if (t6.startsWith("luma")) continue;
                    if (t6.startsWith("chroma")) continue;
                 }
                 if (!flags[WITH_DVI]) {
                    if (t6.startsWith("TX0_TMDS")) continue;
-                }
-
-		if (!flags[HAVE_MCU_EEPROM]) {
-                   if (t6.equals("chip_ext")) continue;
-                   if (t6.equals("tx")) continue;
-                   if (t6.equals("tx_busy")) continue;
-                   if (t6.equals("rx")) continue;
-                   if (t6.equals("rx_busy")) continue;
-                   if (t6.equals("cclk")) continue;
                 }
 
 		if (!flags[GEN_RGB]) {
@@ -107,10 +83,6 @@ public class GenConstraints
                    if (t6.startsWith("eeprom_q")) continue;
                    if (t6.startsWith("eeprom_d")) continue;
                    if (t6.startsWith("eeprom_clk")) continue;
-                }
-
-                if (!flags[HAVE_SYS_CLOCK]) {
-                   if (t6.startsWith("sys_clock")) continue;
                 }
 
 		System.out.println("NET \""+t6+"\" LOC="+t4+";");
@@ -132,32 +104,9 @@ public class GenConstraints
 		map.put(t4,1);
         }
 
-	// Our clock period constraint
-	if (flags[HAVE_SYS_CLOCK]) {
-           System.out.println("NET \"sys_clock\" TNM_NET = clk;");
-           System.out.println("TIMESPEC TS_sys_clock = PERIOD \"clk\" 50 MHz HIGH 50%;");
-        }
-
-	if (flags[HAVE_COLOR_CLOCKS]) {
-           System.out.println("NET \"clk_col4x_pal\" TNM_NET = color_clk_pal;");
-           System.out.println("TIMESPEC TS_color_clk_pal = PERIOD \"color_clk_pal\" 17.734475 MHz HIGH 50%;");
-           System.out.println("NET \"clk_col4x_ntsc\" TNM_NET = color_clk_ntsc;");
-           System.out.println("TIMESPEC TS_color_clk_ntsc = PERIOD \"color_clk_ntsc\" 14.318181 MHz HIGH 50%;");
-        }
-
-        // For the prototype hat with no color clocks attached, we have to work around
-        // some routing/placement issues. This seems to get things working but hopefully
-        // won't be required for the final pcb since we will have color clocks. Keeping
-        // this here in case color clocks don't work out for some reason.
-	if (!flags[HAVE_COLOR_CLOCKS]) {
-	  // Necessary to get around routing issue.
-          System.out.println("NET \"sys_clock\" CLOCK_DEDICATED_ROUTE = FALSE;");
-
-          // Add an exception (false path) for any clk_dot4x to sys_clock crossing
-          // We handle it with double FF's
-          System.out.println("NET \"clk_dot4x\" TNM_NET = FFS \"GRP_1\";");
-          System.out.println("NET \"sys_clock_IBUFG_BUFG\" TNM_NET = FFS \"GRP_2\";");
-          System.out.println("TIMESPEC TS_except1 = FROM \"GRP_1\" TO \"GRP_2\" TIG;");
-       }
+        System.out.println("NET \"clk_col4x_pal\" TNM_NET = color_clk_pal;");
+        System.out.println("TIMESPEC TS_color_clk_pal = PERIOD \"color_clk_pal\" 17.734475 MHz HIGH 50%;");
+        System.out.println("NET \"clk_col4x_ntsc\" TNM_NET = color_clk_ntsc;");
+        System.out.println("TIMESPEC TS_color_clk_ntsc = PERIOD \"color_clk_ntsc\" 14.318181 MHz HIGH 50%;");
      }
 }

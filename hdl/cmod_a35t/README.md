@@ -10,7 +10,6 @@ Use this in config.vh
 
 `define CMOD_BOARD 1
 `define TEST_PATTERN 1
-`define HAVE_COLOR_CLOCKS 1
 `define GEN_LUMA_CHROMA 1
 `define HAVE_EEPROM 1
 `define HIRES_MODES

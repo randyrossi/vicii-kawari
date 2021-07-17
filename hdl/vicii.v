@@ -42,23 +42,13 @@ module vicii(
            input [1:0] btn,
            output [1:0] led,
 `endif
-`ifdef HAVE_MCU_EEPROM
-           input [1:0] chip_ext,           // config from MC
-           output[7:0] tx_data_4x,         // from regs module
-           output tx_new_data_4x,          // from regs module
-           input tx_busy_4x,
-           input [7:0] rx_data_4x,         // from serial_rx
-           input rx_new_data_4x,           // from serial_rx
-`endif
            output clk_phi,
 
-`ifdef HAVE_COLOR_CLOCKS
            input clk_col16x,
 `ifdef GEN_LUMA_CHROMA
            output [5:0] luma,
            output [5:0] chroma,
 `endif
-`endif  // HAVE_COLOR_CLOCKS
 `ifdef WITH_SPI
            output spi_d,
            input  spi_q,
@@ -962,14 +952,6 @@ registers vic_registers(
               .last_hpolarity(hpolarity),
               .last_vpolarity(vpolarity),
 `endif
-`ifdef HAVE_MCU_EEPROM
-              .chip_ext(chip_ext),
-              .tx_data_4x(tx_data_4x),
-              .tx_new_data_4x(tx_new_data_4x),
-              .tx_busy_4x(tx_busy_4x),
-              .rx_data_4x(rx_data_4x),
-              .rx_new_data_4x(rx_new_data_4x),
-`endif
 `ifdef GEN_LUMA_CHROMA
               .lumareg_o(lumareg_o),
               .phasereg_o(phasereg_o),
@@ -1155,7 +1137,6 @@ hires_pixel_sequencer vic_hires_pixel_sequencer(
 // -------------------------------------------------------------
 // Luma/Chroma output
 // -------------------------------------------------------------
-`ifdef HAVE_COLOR_CLOCKS
 comp_sync vic_comp_sync(
               .clk_dot4x(clk_dot4x),
               .clk_col16x(clk_col16x),
@@ -1174,7 +1155,6 @@ comp_sync vic_comp_sync(
 `endif // GEN_LUMA_CHROMA
               .chip(chip)
           );
-`endif  // HAVE_COLOR_CLOCKS
 
 // -------------------------------------------------------------
 // VGA/HDMI output - hsync/vsync/active/half_bright/pixel_color4

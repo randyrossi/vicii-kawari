@@ -1,18 +1,5 @@
 
-`ifdef HAVE_MCU_EEPROM
-task persist_eeprom(input do_persist, input [7:0] reg_num, input [7:0] reg_val);
-    // This version sends the change bytes to the MCU via serial link
-    if (do_persist) begin
-        // persistence_lock must be CLOSED to allow
-        // chip model is exempt
-        if (~persistence_lock || reg_num == `EXT_REG_CHIP_MODEL) begin
-           tx_cfg_change_1 <= reg_num;
-           tx_cfg_change_2 <= reg_val;
-           tx_new_data_start = 1'b1;
-        end
-    end
-endtask
-`elsif HAVE_EEPROM
+`ifdef HAVE_EEPROM
 task persist_eeprom(input do_persist, input [7:0] reg_num, input [7:0] reg_val);
     // This version writes to the eeprom
     if (do_persist) begin
@@ -214,7 +201,7 @@ endtask
 // If overlay is on, ram_hi and ram_idx are ignored and it will never
 // trigger a vram write.
 //
-// If do_persist is 1, we transmit this change to the MCU for persistence.
+// If do_persist is 1, we save the change to eeprom.
 task write_ram(
         input overlay,
         input [7:0] ram_lo,
@@ -277,8 +264,9 @@ task write_ram(
                     `EXT_REG_CHIP_MODEL:
                     begin
                         // We never change chip register from CPU. Only
-                        // init sequence will set it either from MCU lines
-                        // or EEPROM data.
+                        // init sequence will set it after restoring it from
+                        // EEPROM, or if no EEPROM, it will be determined
+                        // by the default value + possibly h/w switch.
                         persist_eeprom(do_persist, `EXT_REG_CHIP_MODEL, {6'b0, data[1:0]});
                     end
                     `EXT_REG_DISPLAY_FLAGS:

@@ -99,19 +99,6 @@ module registers(
            output reg last_hpolarity, // for vga only
            output reg last_vpolarity, // for vga only
 `endif
-`ifdef HAVE_MCU_EEPROM
-           // When we poke our custom regs that change config,
-           // we set the new config byte and raise new data flag
-           // for the MCU to pick up over serial.
-           input [1:0] chip_ext,
-           output reg [7:0] tx_data_4x,
-           output reg tx_new_data_4x,
-           input tx_busy_4x,
-           // When rx_new_data goes high, interpret the next byte
-           // in the command data stream from the AVR
-           input [7:0] rx_data_4x,
-           input rx_new_data_4x,
-`endif
 
 `ifdef GEN_LUMA_CHROMA
            output reg [5:0] lumareg_o,
@@ -334,9 +321,7 @@ LUMA_REGS luma_regs(clk_dot4x,
 
 // --- END EXTENSIONS ----
 
-`ifdef HAVE_MCU_EEPROM
-`include "registers_mcu_eeprom.vh"
-`elsif HAVE_EEPROM
+`ifdef HAVE_EEPROM
 `include "registers_eeprom.vh"
 `else
 `include "registers_no_eeprom.vh"
@@ -439,9 +424,6 @@ always @(posedge clk_dot4x)
         video_ram_flag_port_2_auto <= 2'b0;
         video_ram_flag_regs_overlay <= 1'b0;
         video_ram_flag_persist <= 1'b0;
-`ifdef HAVE_MCU_EEPROM
-        rx_new_data_ff <= 1'b0;
-`endif
 `ifdef SIMULATOR_BOARD
         extra_regs_activated <= 0'b1;
 `ifdef HIRES_MODES
@@ -823,9 +805,7 @@ always @(posedge clk_dot4x)
                             dbo[7:0] <= { 1'b0,
                                           video_ram_flag_persist,
                                           video_ram_flag_regs_overlay,
-`ifdef HAVE_MCU_EEPROM
-                                          tx_busy_4x, // serial link busy
-`elsif HAVE_EEPROM
+`ifdef HAVE_EEPROM
                                           eeprom_busy, // eeprom busy
 `else
                                           1'b0,
@@ -1530,9 +1510,7 @@ end
 // Handle init and settings retrieval for boards
 // with MCU + SERIAL
 
-`ifdef HAVE_MCU_EEPROM
-`include "registers_mcu_eeprom.v"
-`elsif HAVE_EEPROM
+`ifdef HAVE_EEPROM
 `include "registers_eeprom.v"
 `else
 `include "registers_no_eeprom.v"

@@ -7,8 +7,7 @@
 // Pick a board.
 //`define SIMULATOR_BOARD 1
 //`define CMOD_BOARD 1
-`define REV_1_BOARD 1
-//`define REV_2_BOARD 1
+`define REV_2_BOARD 1
 
 // Notes on config permutations:
 //
@@ -19,16 +18,10 @@
 //
 // LUMA/CHROMA can work simultaneously with any other video output
 // method since it works off of pixel index values coming straight
-// out of the pixel sequencer.  It requires HAVE_COLOR_CLOCKS. This
-// video output mode ignores custom RGB palette registers. Instead,
-// it uses luma, phase, amplitude for each of the 16 colors.
+// out of the pixel sequencer.  This video output mode ignores
+// custom RGB palette registers. Instead it uses luma, phase,
+// amplitude for each of the 16 colors.
 //
-// VGA and DVI can work without HAVE_COLOR_CLOCKS but HAVE_SYS_CLOCK
-// must be present.  Luma/chroma can't be generated without color
-// clocks.
-//
-// If HAVE_COLOR_CLOCKS is defined, then GEN_LUMA_CHROMA can
-// be defined.
 
 // TEST_PATTERN
 // ------------
@@ -44,22 +37,9 @@
 // Enabling will automatically enable NEED_RGB.
 `define WITH_DVI 1
 
-// HAVE_COLOR_CLOCKS
-// -----------------
-// Uncomment if the board has both PAL and NTSC color clocks
-// available.
-`define HAVE_COLOR_CLOCKS 1
-
-// HAVE_SYS_CLOCK
-// -----------------
-// Uncomment if the board has a 50Mhz clock. If HAVE_MCU_EEPROM
-// is enabled, this must be present.
-`define HAVE_SYS_CLOCK 1
-
 // GEN_LUMA_CHROMA
 // ---------------
 // Uncomment if we shuold generate luma and chroma signals.
-// This requires HAVE_COLOR_CLOCKS to be defined.
 `define GEN_LUMA_CHROMA 1
 
 // CONFIGURABLE_LUMAS
@@ -89,12 +69,6 @@
 // Uncomment to average the luma values over 4 ticks of the
 // dot4x clock. This smooths out transitions between levels.
 //`define AVERAGE_LUMAS 1
-
-// HAVE_MCU_EEPROM
-// ----------------
-// Uncomment if board has serial link between MCU and FPGA
-// to save/restore settings on its EEPROM.
-`define HAVE_MCU_EEPROM 1
 
 // HAVE_EEPROM
 // ----------------
