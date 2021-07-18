@@ -15,12 +15,11 @@ If you intend to fork VIC-II Kawari to add your own features, please read [FORKI
 The core supports these video options:
 
     DVI (i.e. over an HDMI connector)
-    Analog RGB (i.e VGA or RGB for a 1084 monitor)
+    Analog RGB (i.e VGA or RGB for a 1084 monitor) using a custom cable
         R,G,B - .7Vp-p (75 ohm termination)
         H,V   - TTL
     Luma/Chroma (later mixed by the C64's RF modulator for composite video)
 
-    A CSYNC option can be enabled to output composite sync over the H output for some 1084-D monitors.
 
 The core can be configured to support all three or any subset of these options. 
 
@@ -28,9 +27,9 @@ By default, the DVI/RGB signals double the horizontal frequency from ~15.7khz to
 
 Video        |Width|Height|Horiz Freq |Vert Freq  |Pixel Clock  |Suitable for
 -------------|-----|------|-----------|-----------|-------------|---------------
-NTSC         |520  |263   |15.73khz   |59.82hz    |8.181 Mhz    |Composite/RGB
-NTSC(Old)    |512  |262   |15.98khz   |60.99hz    |8.181 Mhz    |Composite/RGB
-PAL          |504  |312   |15.63khz   |50.125hz   |7.881 Mhz    |Composite/RGB
+NTSC         |520  |263   |15.73khz   |59.82hz    |8.181 Mhz    |RGB
+NTSC(Old)    |512  |262   |15.98khz   |60.99hz    |8.181 Mhz    |RGB
+PAL          |504  |312   |15.63khz   |50.125hz   |7.881 Mhz    |RGB
 NTSC         |1040 |263   |15.73khz   |59.82hz    |16.363 Mhz   |RGB
 NTSC(Old)    |1024 |262   |15.98khz   |60.99hz    |16.363 Mhz   |RGB
 PAL          |1008 |312   |15.63khz   |50.125hz   |15.763 Mhz   |RGB
@@ -41,7 +40,46 @@ NTSC         |1040 |526   |31.46khz   |59.82hz    |32.727 Mhz   |RGB/DVI
 NTSC(Old)    |1024 |524   |31.96khz   |60.99hz    |32.727 Mhz   |RGB/DVI
 PAL          |1008 |624   |31.26khz   |50.125hz   |31.527 Mhz   |RGB/DVI
 
-The DVI/RGB video modes are not standard and may not work with older monitors/TVs or capture cards.  The 15khz modes require a monitor that can handle that horizontal refresh rate.  If the device is configured for 15khz RGB output, DVI will not work.
+### More video stuff
+
+The DVI/RGB video modes are not standard and may not work with older monitors/TVs or capture cards.  The 15khz modes require a monitor that can handle that horizontal refresh rate.  If the device is configured for 15khz, DVI will not work.
+
+The PCB has an unpopulated 10 pin analog header (1 +5V, 6 signal, 3 GND) that can wired to a monitor with a custom built cable.
+
+    +5V CLK GND RED GRN
+    GND VSY HSY BLU GND
+
+For 1080/1084-D monitors, a CSYNC option can be enabled to output composite sync over the horizontal sync pin.
+
+
+#### FEMALE 6-PIN PORT AS VIEWED FROM REAR OF 1084S
+
+       _______       Pin#      Signal
+      /   3   \      Pin 1     G  Green
+     / 2     4 \     Pin 2     HSYNC Horizontal Sync
+    |     6     |    Pin 3     GND Ground
+     \ 1  _  5 /     Pin 4     R  Red
+      \__/ \__/      Pin 5     B  Blue
+                     Pin 6     VSYNC Vertical Sync
+
+
+
+#### MALE 9-PIN PORT AS VIEWED FROM REAR OF 1080/1084-D (Analog RGB Mode)
+
+                     Pin  Name     Signal
+    _____________     1   GND      Ground
+    \ 1 2 3 4 5 /     2   GND      Ground
+     \_6_7_8_9_/      3   R        Red
+                      4   G        Green
+                      5   B        Blue
+                      6   I        not used
+                      7   CSYNC    Composite Sync (Enable CSYNC option in config)
+                      8   HSYNC    not used
+                      9   VSYNC    not used
+
+    The x2 native width video modes work on 1080/1084 monitors (requred for 80 column/hires modes).
+
+A SCART adapter should be possible but has not been tested.
 
 ## How can I find out if my VGA/DVI/HDMI monitor supports the video?
 TODO : xrandr or windows equiv to test monitor
@@ -56,7 +94,7 @@ It will function if plugged into a C64-C 'short' board. The VDD pin is not conne
 The 6567R56A composite signal is known to be worse than the 6567R8. The cycle schedule (and hence timing) is slighly different in the 6567R56A. It generates a composite signal slightly out of range from the expected 15.734khz horizontal frequency for NTSC (it generates 15.980khz instead). Some composite LCD monitors don't like this and even the real chips produced unwanted artifacts on those types of displays. You will get the same unwanted artifacts from a VIC-II Kawari producing composite video when configured as a 6567R56A. CRTs, however, are more forgiving and you may not notice the difference. When using DVI or VGA output, this is of no concern as long as your monitor can handle the frequency (the image will look just as good as any other mode). There may be _some_ NTSC programs that depend on 6567R56A to run properly due to the cycle schedule but I'm not aware of any.
 
 ## What about the 6569R4/R5?
-There are subtle differences between the PAL revisions mostly to do with luminance levels. I included the 6569R1 as an option but keep in mind it has only 5 luminance levels instead of 8 and also has alight pen irq trigger bug.
+There are subtle differences between the PAL revisions mostly to do with luminance levels. I included the 6569R1 as an option but keep in mind it has only 5 luminance levels instead of 8 and also has a light pen irq trigger bug.  Applying the 'old' luminance levels is optional.
 
 ## Do I need a functioning clock circuit on my motherboard?
 No. The clock input pins (color and dot) are not connected. The board comes with its own clock and can switch between PAL and NTSC timing with a configuration change. (So if your C64 has died due to a malfunctioning clock circuit, this is an option to get your machine back to a working state). Please see [Limitations/Caveats](#limitationscaveats) below regarding pin 6 of the cartridge port.
@@ -64,7 +102,7 @@ No. The clock input pins (color and dot) are not connected. The board comes with
 ## Do I need to modify my C64 motherboard?
 The board will function without any modifications to the motherboard. If you can find a way to get a video cable out of the machine, there is no reason to modify the machine. However, it is much easier if the RF modulator is removed. The hole previously used for the composite jack may then be used for an HDMI or VGA cable. Otherwise, there is no practical way for a video cable to exit the machine unless you drill a hole or fish the cable out the casette or user port space.
 
-NOTE: Strain relief on the cable is VERY important as it exits the machine.  No matter the solution, it is imperative the cable not be allowed to pull on the board while it is in the socket.
+NOTE: Strain relief on the cable is VERY important as it exits the machine.  No matter the solution, it is imperative the cable not be allowed to pull on the board while it is seated in the motherboard socket.
 
 ## How accurate is it?
 To measure accuracy, I use the same suite of programs VICE (The Versatile Commodore Emulator) uses to catch regressions in their releases. Out of a total of 280 VIC-II tests, 280 are passing (at least by visual comparison).
@@ -108,7 +146,9 @@ Each of the Commodore 64's 16 colors can be changed.  For RGB based video (DVI/V
 
 A true 16 color 80 column text mode is available. This is NOT a soft-80 mode that uses bitmap graphics but rather a true text mode. Each character cell is a full 8x8 pixels. An 80 colum text screen occupies 4k of kawari video memory space (+4k character definition data). A small program (2k resident at $c800) can enable this for the basic programming environment. The basic text editor operates exactly as the 40 column mode does since the input/output routines are simply copies of the normal kernel routines compiled with new limits. This mode also takes advantage of hardware accelerated block copy/fill features of VIC-II Kawari so scrolling/clearing the text is fast.
 
-There is also a novaterm 9.6 80 column video driver available.
+### Novaterm 9.6c 80 column driver
+
+A Novaterm 9.6c 80 column video driver is available.  Use this driver with a user port or cartridge modem and relive the 80's BBS experience in 80 columns on your C64!
 
 ### New graphics modes
 
