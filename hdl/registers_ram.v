@@ -104,14 +104,6 @@ task read_ram(
                     `EXT_REG_VARIANT_NAME4:
                         dbo <= `VARIANT_NAME4;
                     `EXT_REG_VARIANT_NAME5:
-                        dbo <= `VARIANT_NAME5;
-                    `EXT_REG_VARIANT_NAME6:
-                        dbo <= `VARIANT_NAME6;
-                    `EXT_REG_VARIANT_NAME7:
-                        dbo <= `VARIANT_NAME7;
-                    `EXT_REG_VARIANT_NAME8:
-                        dbo <= `VARIANT_NAME8;
-                    `EXT_REG_VARIANT_NAME9:
                         dbo <= 8'd0;
 `ifdef CONFIGURABLE_LUMAS
                     `EXT_REG_BLANKING:
