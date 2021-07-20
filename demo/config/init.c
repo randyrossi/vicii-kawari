@@ -35,24 +35,60 @@ int colors[] = {0,0,0,0,
                 28,31,57,0,
                 45,45,45,0 };
 
-int luma[] = {
-   12,0,0,
-   58,0,0,
-   19,80,10,
-   36,208,10,
-   22,32,12,
-   30,160,12,
-   14,0,10,
-   43,128,14,
-   22,96,14,
-   14,112,10,
-   30,80,10,
-   19,0,0,
-   28,0,0,
-   43,160,10,
-   28,0,10,
-   36,0,0,
+int luma[4][16] = {
+    // 6567R8   - 9 levels
+    {12,58,19,35,22,28,16,43,22,16,28,19,26,43,26,35},
+
+    // 6569R3   - 9 levels
+    {12,59,24,40,27,33,21,46,27,21,33,24,32,46,32,40},
+
+    // 6567R56A - 5 levels
+    {12,58,16,41,27,27,16,41,27,16,27,16,27,41,27,41},
+
+    // 6569R1   - 5 levels
+    {12,59,18,43,30,30,18,43,30,18,30,18,30,43,30,43},
 };
+
+int phase[4][16] = {
+   {0, 0, 80, 208, 32, 160, 0, 128, 96, 112, 80, 0, 0, 160, 0, 0},
+   {0, 0, 80, 208, 32, 160, 0, 128, 96, 112, 80, 0, 0, 160, 0, 0},
+   {0, 0, 80, 208, 32, 160, 0, 128, 96, 112, 80, 0, 0, 160, 0, 0},
+   {0, 0, 80, 208, 32, 160, 0, 128, 96, 112, 80, 0, 0, 160, 0, 0},
+};
+
+int amplitude[4][16] = {
+   {0, 0, 10, 10, 12, 12, 10, 14, 14, 10, 10, 0, 0, 10, 10, 0},
+   {0, 0, 10, 10, 12, 12, 10, 14, 14, 10, 10, 0, 0, 10, 10, 0},
+   {0, 0, 10, 10, 12, 12, 10, 14, 14, 10, 10, 0, 0, 10, 10, 0},
+   {0, 0, 10, 10, 12, 12, 10, 14, 14, 10, 10, 0, 0, 10, 10, 0},
+};
+
+void set_lumas(int chip_model) {
+   // Luma/Chroma
+   int reg;
+   for (reg=0;reg<16;reg++) {
+      POKE(VIDEO_MEM_1_LO, reg+0xa0);
+      SAFE_POKE(VIDEO_MEM_1_VAL, luma[chip_model][reg*3]);
+   }
+}
+
+void set_phases(int chip_model) {
+   // Phases
+   int reg;
+   for (reg=0;reg<16;reg++) {
+      POKE(VIDEO_MEM_1_LO, reg+0xb0);
+      SAFE_POKE(VIDEO_MEM_1_VAL, phase[chip_model][reg*3]);
+   }
+}
+
+void set_amplitudes(int chip_model) {
+   // Amplitudes
+   int reg;
+   for (reg=0;reg<16;reg++) {
+      POKE(VIDEO_MEM_1_LO, reg+0xc0);
+      SAFE_POKE(VIDEO_MEM_1_VAL, amplitude[chip_model][reg*3]);
+   }
+}
 
 void do_init(int chip_model) {
    int reg;
@@ -77,15 +113,9 @@ void do_init(int chip_model) {
       SAFE_POKE(VIDEO_MEM_1_VAL, colors[reg]);
    }
 
-   // Luma/Chroma
-   for (reg=0;reg<16;reg++) {
-      POKE(VIDEO_MEM_1_LO, reg+0xa0);
-      SAFE_POKE(VIDEO_MEM_1_VAL, luma[reg*3]); // luma
-      POKE(VIDEO_MEM_1_LO, reg+0xb0);
-      SAFE_POKE(VIDEO_MEM_1_VAL, luma[reg*3+1]); // phase
-      POKE(VIDEO_MEM_1_LO, reg+0xc0);
-      SAFE_POKE(VIDEO_MEM_1_VAL, luma[reg*3+2]); // amplitude
-   }
+   set_lumas(chip_model);
+   set_phases(chip_model);
+   set_amplitudes(chip_model);
 
    // Black level
    reg = BLACK_LEVEL;
@@ -144,11 +174,11 @@ int first_init()
 	  return 0;
        }
        else if (r.a == 'p') {
-          do_init(1);
+          do_init(CHIP6569R3);
 	  break;
        }
        else if (r.a == 'n') {
-          do_init(0);
+          do_init(CHIP6567R8);
 	  break;
        }
    }

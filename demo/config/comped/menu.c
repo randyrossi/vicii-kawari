@@ -2,6 +2,7 @@
 #include <6502.h>
 #include <peekpoke.h>
 
+#include "init.h"
 #include "util.h"
 #include "kawari.h"
 #include "menu.h"
@@ -18,7 +19,6 @@ int current_phase[16];
 int current_amplitude[16];
 int current_black_level;
 int current_color_burst;
-int preset_num = 0;
 
 void save_changes(void)
 {
@@ -94,10 +94,10 @@ void main_menu(void)
     }
 
     printf ("\n");
-    printf ("S to save changes    %c to switch sides\n",95);
-    printf ("R to revert changes  B inc brd color\n");
-    printf ("N for next preset    G inc bg color\n");
-    printf ("Q to quit\n");
+    printf ("S to save changes     %c to switch sides\n",95);
+    printf ("R to revert changes\n");
+    printf ("D default for chip    B inc brd color\n");
+    printf ("Q to quit             G inc bg color\n");
 
     for (;;) {
 
@@ -226,16 +226,11 @@ void main_menu(void)
 	    POKE(VIDEO_MEM_1_VAL, current_color_burst);
 	    refresh_all = 1;
        }
-       else if (key == 'n')  {
-            for (color=0; color < 16; color++) {
-	        POKE(VIDEO_MEM_1_LO, 0xa0+color);
-	        //POKE(VIDEO_MEM_1_VAL, preset_luma[preset_num][color];
-	        POKE(VIDEO_MEM_1_LO, 0xb0+color);
-	        //POKE(VIDEO_MEM_1_VAL, preset_phase[preset_num][color];
-	        POKE(VIDEO_MEM_1_LO, 0xc0+color);
-	        //POKE(VIDEO_MEM_1_VAL, preset_amplitude[preset_num][color];
-            }
-	    preset_num = (preset_num + 1) % NUM_PRESETS;
+       else if (key == 'd')  {
+            int model = get_chip_model();
+            set_lumas(model);
+            set_phases(model);
+            set_amplitudes(model);
 	    refresh_all = 1;
        }
        else if (key == 's')  {

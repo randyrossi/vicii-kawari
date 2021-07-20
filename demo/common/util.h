@@ -45,4 +45,4 @@ unsigned char wait_key_or_switch(unsigned char current_switch_val,
 
 unsigned int get_version(void);
 unsigned char get_lock_bits(void);
-
+unsigned char get_chip_model(void);

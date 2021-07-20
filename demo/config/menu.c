@@ -20,12 +20,6 @@ static unsigned char variant[16];
 
 static int line = 0;
 
-void get_chip_model(void)
-{
-   POKE(VIDEO_MEM_1_LO,CHIP_MODEL);
-   current_model = PEEK(VIDEO_MEM_1_VAL);
-   next_model = current_model;
-}
 
 void get_display_flags(void)
 {
@@ -172,6 +166,8 @@ void save_changes(void)
       POKE(VIDEO_MEM_1_LO, CHIP_MODEL);
       SAFE_POKE(VIDEO_MEM_1_VAL, next_model);
       current_model = next_model;
+
+      set_lumas(next_model);
    }
    POKE(VIDEO_MEM_FLAGS, PEEK(VIDEO_MEM_FLAGS) & ~VMEM_FLAG_PERSIST_BIT);
 }
@@ -203,7 +199,7 @@ void main_menu(void)
     printf ("Locked Func    :\n");
     printf ("\n");
 
-    get_chip_model();
+    current_model = next_model = get_chip_model();
     get_display_flags();
     current_lock_bits = get_lock_bits();
 

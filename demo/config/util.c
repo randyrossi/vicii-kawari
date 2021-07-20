@@ -47,7 +47,6 @@ void safe_poke(long addr, char value)
 unsigned char wait_key_or_switch(unsigned char current_switch_val,
                                  unsigned char current_lock_bits)
 {
-    unsigned char v_old; 
     unsigned char inv; 
     unsigned char lb; 
     struct regs r;
@@ -75,3 +74,8 @@ unsigned char get_lock_bits(void)
    return PEEK(0xd034L);
 }
 
+unsigned char get_chip_model(void)
+{
+   POKE(VIDEO_MEM_1_LO,CHIP_MODEL);
+   return PEEK(VIDEO_MEM_1_VAL);
+}

@@ -34,8 +34,11 @@ view_chargen: view_chargen.o
 make_colors: make_colors.o
 	gcc -o make_colors make_colors.o
 
-make_luma: make_luma.o
-	gcc -o make_luma make_luma.o
+make_luma_bin: make_luma_bin.o
+	gcc -o make_luma_bin make_luma_bin.o
+
+make_luma_levels: make_luma_levels.o
+	gcc -o make_luma_levels make_luma_levels.o
 
 clean:
 	rm -f *.class *.bin a.out hires *.hex

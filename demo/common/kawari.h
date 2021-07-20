@@ -1,3 +1,8 @@
+#define CHIP6567R8 0
+#define CHIP6569R3 1
+#define CHIP6567R56A 2
+#define CHIP6569R1 3
+
 #define SPI_REG 0xd034L
 #define VIDEO_MEM_1_IDX 0xd035L
 #define VIDEO_MEM_2_IDX 0xd036L
