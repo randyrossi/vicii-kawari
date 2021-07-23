@@ -134,22 +134,22 @@ task handle_persist(input is_reset);
                                 $display("GOT %d for ADDR %d (magic %d)",
                                          data, addr_lo, magic);
                                 case (addr_lo)
-                                    8'hfc: begin
+                                    `EXT_REG_MAGIC_0: begin
                                         if (data == 8'd86) // V
                                             magic <= magic + 1;
                                         magic_1 <= data;
                                     end
-                                    8'hfd: begin
+                                    `EXT_REG_MAGIC_1: begin
                                         if (data == 8'd73) // I
                                             magic <= magic + 1;
                                         magic_2 <= data;
                                     end
-                                    8'hfe: begin
+                                    `EXT_REG_MAGIC_2: begin
                                         if (data == 8'd67) // C
                                             magic <= magic + 1;
                                         magic_3 <= data;
                                     end
-                                    8'hff: begin
+                                    `EXT_REG_MAGIC_3: begin
                                         if (data == 8'd50) // 2
                                             magic <= magic + 1;
                                         magic_4 <= data;
@@ -166,6 +166,8 @@ task handle_persist(input is_reset);
                                         // Flip the video standard if the switch
                                         // is LOW.
                                         chip <= {data[1], standard_sw ? data[0] : ~data[0]};
+                                        // EEPROM bank always starts off same as chip
+                                        eeprom_bank <= {data[1], standard_sw ? data[0] : ~data[0]};
                                     end else begin
                                         // For 2nd pass, write to registers
                                         write_ram(
@@ -182,7 +184,7 @@ task handle_persist(input is_reset);
                             end
                         end
                     `EEPROM_WRITE:
-                        if (addr_lo == eeprom_w_addr)
+                        if (addr_lo == eeprom_w_addr[7:0])
                         begin
                             // 0 : setup
                             // 1-8 : 8 bit instruction
@@ -218,7 +220,10 @@ task handle_persist(input is_reset);
                                 eeprom_s <= 0;
                                 spi_c <= 1;
                                 instr <= 8'b00000011; // READ
-                                addr <= {8'b0, addr_lo};
+                                addr <= {6'b0,
+                                         addr_lo < `PER_CHIP_REG_START ?
+                                             2'b0 : eeprom_bank,
+                                         addr_lo};
                             end
                             else if (state_val >= 1 && state_val <= 8) begin
                                 // Shift in the instruction - 8 bits
@@ -242,7 +247,7 @@ task handle_persist(input is_reset);
                         end
                     `EEPROM_WRITE:
                         // If we hit the write address, then write now.
-                        if (addr_lo == eeprom_w_addr)
+                        if (addr_lo == eeprom_w_addr[7:0])
                         begin
                             if (state_val == 0) begin
                                 eeprom_s <= 0;
@@ -263,7 +268,10 @@ task handle_persist(input is_reset);
                                 eeprom_s <= 0;
                                 spi_c <= 1;
                                 instr <= 8'b00000010; // WRITE
-                                addr <= {8'b0, addr_lo};
+                                addr <= {6'b0,
+                                         addr_lo < `PER_CHIP_REG_START ?
+                                              2'b0 : eeprom_bank,
+                                         addr_lo};
                                 data <= eeprom_w_value;
                             end
                             else if (state_val >= 11 && state_val <= 18) begin

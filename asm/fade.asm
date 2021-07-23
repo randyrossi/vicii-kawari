@@ -36,6 +36,7 @@ mult1
         dey
         bne mult1
 
+        adc #64 ; color regs start at 64
         sta ec_idx
 
         sta VMEM_A_LO
@@ -59,6 +60,7 @@ mult2
         dey
         bne mult2
 
+        adc #64 ; color regs start at 64
         sta bg_idx
 
         sta VMEM_A_LO

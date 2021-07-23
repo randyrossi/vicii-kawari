@@ -42,7 +42,7 @@ void save_changes(void)
 {
    int reg;
    POKE(VIDEO_MEM_FLAGS, PEEK(VIDEO_MEM_FLAGS) | VMEM_FLAG_PERSIST_BIT);
-   for (reg=0;reg<64;reg++) {
+   for (reg=64;reg<128;reg++) {
       if (reg % 4 == 3) continue;
       POKE(VIDEO_MEM_1_LO, reg);
       SAFE_POKE(VIDEO_MEM_1_VAL, PEEK(VIDEO_MEM_1_VAL));
@@ -109,11 +109,11 @@ void main_menu(void)
 
         if (refresh_all) {
             for (color=0; color < 16; color++) {
-	        POKE(VIDEO_MEM_1_LO, color*4);
+	        POKE(VIDEO_MEM_1_LO, color*4+64);
 	        red = PEEK(VIDEO_MEM_1_VAL);
-	        POKE(VIDEO_MEM_1_LO, color*4+1);
+	        POKE(VIDEO_MEM_1_LO, color*4+1+64);
 	        green = PEEK(VIDEO_MEM_1_VAL);
-	        POKE(VIDEO_MEM_1_LO, color*4+2);
+	        POKE(VIDEO_MEM_1_LO, color*4+2+64);
 	        blue = PEEK(VIDEO_MEM_1_VAL);
                 TOXY(16,SL+color);
 	        printf ("%02x %02x %02x", red, green, blue);
@@ -127,7 +127,7 @@ void main_menu(void)
 	    store_current = 0;
        }
 
-       POKE(VIDEO_MEM_1_LO, color_cursor);
+       POKE(VIDEO_MEM_1_LO, color_cursor+64);
        v = PEEK(VIDEO_MEM_1_VAL);
 
        // Hi-lite cursor
@@ -171,22 +171,22 @@ void main_menu(void)
        }
        else if (key == 'r')  {
             for (color=0; color < 16; color++) {
-	        POKE(VIDEO_MEM_1_LO, color*4);
+	        POKE(VIDEO_MEM_1_LO, color*4+64);
 	        POKE(VIDEO_MEM_1_VAL, current_colors[color*4]);
-	        POKE(VIDEO_MEM_1_LO, color*4+1);
+	        POKE(VIDEO_MEM_1_LO, color*4+1+64);
 	        POKE(VIDEO_MEM_1_VAL, current_colors[color*4+1]);
-	        POKE(VIDEO_MEM_1_LO, color*4+2);
+	        POKE(VIDEO_MEM_1_LO, color*4+2+64);
 	        POKE(VIDEO_MEM_1_VAL, current_colors[color*4+2]);
             }
 	    refresh_all = 1;
        }
        else if (key == 'n')  {
             for (color=0; color < 16; color++) {
-	        POKE(VIDEO_MEM_1_LO, color*4);
+	        POKE(VIDEO_MEM_1_LO, color*4+64);
 	        POKE(VIDEO_MEM_1_VAL, preset[preset_num][color*4]>>2); // top6
-	        POKE(VIDEO_MEM_1_LO, color*4+1);
+	        POKE(VIDEO_MEM_1_LO, color*4+1+64);
 	        POKE(VIDEO_MEM_1_VAL, preset[preset_num][color*4+1]>>2); // top6
-	        POKE(VIDEO_MEM_1_LO, color*4+2);
+	        POKE(VIDEO_MEM_1_LO, color*4+2+64);
 	        POKE(VIDEO_MEM_1_VAL, preset[preset_num][color*4+2]>>2); // top6
             }
 	    preset_num = (preset_num + 1) % NUM_PRESETS;

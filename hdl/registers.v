@@ -406,7 +406,7 @@ always @(posedge clk_dot4x)
         timing_v_blank_pal <= 28; // represents 284 (284-256)
         timing_v_fporch_pal <= 5;
         timing_v_sync_pal <= 2;
-        timing_v_bporch_pal <= 40;
+        timing_v_bporch_pal <= 40; // NOTE: crosses 0, we sub 311 and invert sta/end
 `endif
         // --- BEGIN EXTENSIONS ----
         extra_regs_activation_ctr <= 2'b0;
@@ -516,6 +516,10 @@ always @(posedge clk_dot4x)
 
         if (~chip_initialized) begin
             chip <= {1'b0, ~standard_sw};
+`ifdef HAVE_EEPROM
+            // EEPROM bank always starts off same as chip
+            eeprom_bank <= {1'b0, ~standard_sw};
+`endif
             chip_initialized <= 1'b1;
         end
 
@@ -541,7 +545,7 @@ always @(posedge clk_dot4x)
 `ifdef HAVE_EEPROM
      if (!cfg_reset && !eeprom_busy) begin
         eeprom_busy <= 1'b1;
-        eeprom_w_addr <= 8'hfc;
+        eeprom_w_addr <= { 2'b0, `EXT_REG_MAGIC_0 };
         eeprom_w_value <= 8'h00;
         state_ctr_reset_for_write <= 1'b1;
      end

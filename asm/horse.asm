@@ -75,6 +75,7 @@ loop2   lda ($fb),y ; read byte from src $fb/$fc
 
         lda #0
         sta VMEM_A_HI
+        lda #64     ; color regs start at 64
         sta VMEM_A_LO
         lda #32
         sta KAWARI_PORT  ; make regs visible
@@ -104,7 +105,7 @@ wait
         sta KAWARI_PORT  ; make regs visible
 
         ; back to normal colors
-        lda #0
+        lda #64     ; color regs start at 64
         sta VMEM_A_LO
         lda #>ncolor
         sta $fc

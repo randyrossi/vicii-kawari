@@ -7,7 +7,13 @@ task persist_eeprom(input do_persist, input [7:0] reg_num, input [7:0] reg_val);
         // chip model is exempt
         if (~persistence_lock || reg_num == `EXT_REG_CHIP_MODEL) begin
            eeprom_busy <= 1'b1;
-           eeprom_w_addr <= reg_num;
+           // Registers < PER_CHIP_REG_START are cross-chip settings.
+           // For any register above PER_CHIP_REG_START, use eeprom_bank to
+           // select 1 of 4 256 byte banks to save into.
+           if (reg_num > `PER_CHIP_REG_START)
+               eeprom_w_addr <= {eeprom_bank, reg_num};
+           else
+               eeprom_w_addr <= {2'b0, reg_num};
            eeprom_w_value <= reg_val;
            state_ctr_reset_for_write <= 1'b1;
         end
@@ -38,7 +44,7 @@ task read_ram(
         input [7:0] ram_idx);
     begin
         if (overlay) begin
-            if (ram_lo < 8'h40) begin
+            if (ram_lo >= 8'h40 && ram_lo < 8'h80) begin
                 // _r_nibble stores which 6-bit-nibble within the 24 bit
                 // lookup value we want.  The lowest 6-bits are never used.
 `ifdef NEED_RGB
@@ -70,8 +76,20 @@ task read_ram(
 `endif
             else begin
                 case (ram_lo)
+                    `EXT_REG_MAGIC_0:
+                        dbo <= magic_1;
+                    `EXT_REG_MAGIC_1:
+                        dbo <= magic_2;
+                    `EXT_REG_MAGIC_2:
+                        dbo <= magic_3;
+                    `EXT_REG_MAGIC_3:
+                        dbo <= magic_4;
                     `EXT_REG_CHIP_MODEL:
                         dbo <= {6'b0, chip};
+`ifdef HAVE_EEPROM
+                    `EXT_REG_EEPROM_BANK:
+                        dbo <= {6'b0, eeprom_bank};
+`endif
                     `EXT_REG_DISPLAY_FLAGS:
 `ifdef NEED_RGB
                         dbo <= {1'b0, // reserved
@@ -161,14 +179,6 @@ task read_ram(
                     8'hdf:
                         dbo <= timing_v_bporch_pal;
 `endif
-                    8'hfc:
-                        dbo <= magic_1;
-                    8'hfd:
-                        dbo <= magic_2;
-                    8'hfe:
-                        dbo <= magic_3;
-                    8'hff:
-                        dbo <= magic_4;
                     default: ;
                 endcase
             end
@@ -204,16 +214,22 @@ task write_ram(
         input do_persist);
     begin
         if (overlay) begin
-            if (ram_lo < 8'h40) begin
+            if (ram_lo >= 8'h40 && ram_lo < 8'h80) begin
                 // In order to write to individual 6 bit
                 // values within the 24 bit register, we
                 // have to read it first, then write.
 `ifdef NEED_RGB
 `ifdef CONFIGURABLE_RGB
-                color_regs_pre_wr2_a <= 1'b1;
-                color_regs_wr_value <= data[5:0];
-                color_regs_wr_nibble <= ram_lo[1:0];
-                color_regs_addr_a <= ram_lo[5:2];
+`ifdef HAVE_EEPROM
+                if (eeprom_bank == chip) begin
+`endif
+                   color_regs_pre_wr2_a <= 1'b1;
+                   color_regs_wr_value <= data[5:0];
+                   color_regs_wr_nibble <= ram_lo[1:0];
+                   color_regs_addr_a <= ram_lo[5:2];
+`ifdef HAVE_EEPROM
+                end
+`endif
                 persist_eeprom(do_persist, ram_lo, {2'b0, data[5:0]});
 `endif
 `endif
@@ -221,24 +237,42 @@ task write_ram(
 `ifdef CONFIGURABLE_LUMAS
             /* verilator lint_off WIDTH */
             else if (ram_lo >= `EXT_REG_LUMA0 && ram_lo <= `EXT_REG_LUMA15) begin
-                luma_regs_pre_wr2_a <= 1'b1;
-                luma_regs_wr_value <= {2'b0, data[5:0]};
-                luma_regs_wr_nibble <= 2'b00; // luma
-                luma_regs_addr_a <= ram_lo[3:0];
+`ifdef HAVE_EEPROM
+                if (eeprom_bank == chip) begin
+`endif
+                   luma_regs_pre_wr2_a <= 1'b1;
+                   luma_regs_wr_value <= {2'b0, data[5:0]};
+                   luma_regs_wr_nibble <= 2'b00; // luma
+                   luma_regs_addr_a <= ram_lo[3:0];
+`ifdef HAVE_EEPROM
+                end
+`endif
                 persist_eeprom(do_persist, ram_lo, {2'b0, data[5:0]});
             end
             else if (ram_lo >= `EXT_REG_PHASE0 && ram_lo <= `EXT_REG_PHASE15) begin
-                luma_regs_pre_wr2_a <= 1'b1;
-                luma_regs_wr_value <= data[7:0];
-                luma_regs_wr_nibble <= 2'b01; // phase
-                luma_regs_addr_a <= ram_lo[3:0];
+`ifdef HAVE_EEPROM
+                if (eeprom_bank == chip) begin
+`endif
+                   luma_regs_pre_wr2_a <= 1'b1;
+                   luma_regs_wr_value <= data[7:0];
+                   luma_regs_wr_nibble <= 2'b01; // phase
+                   luma_regs_addr_a <= ram_lo[3:0];
+`ifdef HAVE_EEPROM
+                end
+`endif
                 persist_eeprom(do_persist, ram_lo, data[7:0]);
             end
             else if (ram_lo >= `EXT_REG_AMPL0 && ram_lo <= `EXT_REG_AMPL15) begin
-                luma_regs_pre_wr2_a <= 1'b1;
-                luma_regs_wr_value <= {4'b0, data[3:0]};
-                luma_regs_wr_nibble <= 2'b10; // amplitude
-                luma_regs_addr_a <= ram_lo[3:0];
+`ifdef HAVE_EEPROM
+                if (eeprom_bank == chip) begin
+`endif
+                   luma_regs_pre_wr2_a <= 1'b1;
+                   luma_regs_wr_value <= {4'b0, data[3:0]};
+                   luma_regs_wr_nibble <= 2'b10; // amplitude
+                   luma_regs_addr_a <= ram_lo[3:0];
+`ifdef HAVE_EEPROM
+                end
+`endif
                 persist_eeprom(do_persist, ram_lo, {4'b0, data[3:0]});
             end
             /* verilator lint_on WIDTH */
@@ -248,6 +282,22 @@ task write_ram(
                 // persist them according to persist_eeprom
                 // implementation.
                 case (ram_lo)
+                    `EXT_REG_MAGIC_0: begin
+                        magic_1 <= data;
+                        persist_eeprom(do_persist, `EXT_REG_MAGIC_0, data);
+                    end
+                    `EXT_REG_MAGIC_1: begin
+                        magic_2 <= data;
+                        persist_eeprom(do_persist, `EXT_REG_MAGIC_1, data);
+                    end
+                    `EXT_REG_MAGIC_2: begin
+                        magic_3 <= data;
+                        persist_eeprom(do_persist, `EXT_REG_MAGIC_2, data);
+                    end
+                    `EXT_REG_MAGIC_3: begin
+                        magic_4 <= data;
+                        persist_eeprom(do_persist, `EXT_REG_MAGIC_3, data);
+                    end
                     // Not safe to allow nativex/y to be changed from
                     // CPU. Already burned by this with accidental
                     // overwrite of this register. This can effectively
@@ -261,6 +311,13 @@ task write_ram(
                         // by the default value + possibly h/w switch.
                         persist_eeprom(do_persist, `EXT_REG_CHIP_MODEL, {6'b0, data[1:0]});
                     end
+`ifdef HAVE_EEPROM
+                    `EXT_REG_EEPROM_BANK:
+                    begin
+                        if (from_cpu)
+                            eeprom_bank <= data[1:0];
+                    end
+`endif
                     `EXT_REG_DISPLAY_FLAGS:
                     begin
 `ifdef NEED_RGB
@@ -290,11 +347,23 @@ task write_ram(
 `endif
 `ifdef CONFIGURABLE_LUMAS
                     `EXT_REG_BLANKING: begin
+`ifdef HAVE_EEPROM
+                if (eeprom_bank == chip) begin
+`endif
                         blanking_level <= data[5:0];
+`ifdef HAVE_EEPROM
+                end
+`endif
                         persist_eeprom(do_persist, ram_lo, {2'b0, data[5:0]});
                     end
                     `EXT_REG_BURSTAMP: begin
+`ifdef HAVE_EEPROM
+                if (eeprom_bank == chip) begin
+`endif
                         burst_amplitude <= data[3:0];
+`ifdef HAVE_EEPROM
+                end
+`endif
                         persist_eeprom(do_persist, ram_lo, {4'b0, data[3:0]});
                     end
 `endif
@@ -335,22 +404,6 @@ task write_ram(
                     8'hdf:
                         timing_v_bporch_pal <= data;
 `endif
-                    8'hfc: begin
-                        magic_1 <= data;
-                        persist_eeprom(do_persist, 8'hfc, data);
-                    end
-                    8'hfd: begin
-                        magic_2 <= data;
-                        persist_eeprom(do_persist, 8'hfd, data);
-                    end
-                    8'hfe: begin
-                        magic_3 <= data;
-                        persist_eeprom(do_persist, 8'hfe, data);
-                    end
-                    8'hff: begin
-                        magic_4 <= data;
-                        persist_eeprom(do_persist, 8'hff, data);
-                    end
                     default: ;
                 endcase
             end

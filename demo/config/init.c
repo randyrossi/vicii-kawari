@@ -8,9 +8,6 @@
 
 static struct regs r;
 
-// TODO: Move these to a place that can be shared
-// with MCU loader.
-//
 // Global definitions for default registers:
 //    colors
 //    luma/chroma
@@ -33,27 +30,27 @@ int colors[] = {0,0,0,0,
                 33,33,33,0,
                 41,62,39,0,
                 28,31,57,0,
-                45,45,45,0 };
+                45,45,45,0};
 
 int luma[4][16] = {
     // 6567R8   - 9 levels
-    {12,58,19,35,22,28,16,43,22,16,28,19,26,43,26,35},
+    {12,58+5,19+8,35+8,22+8,28+8,16+8,43+8,22+8,16+8,28+8,19+8,26+8,43+8,26+8,35+8},
 
     // 6569R3   - 9 levels
-    {12,59,24,40,27,33,21,46,27,21,33,24,32,46,32,40},
+    {12,59+4,24+8,40+8,27+8,33+8,21+8,46+8,27+8,21+8,33+8,24+8,32+8,46+8,32+8,40+8},
 
     // 6567R56A - 5 levels
-    {12,58,16,41,27,27,16,41,27,16,27,16,27,41,27,41},
+    {12,58+5,16+8,41+8,27+8,27+8,16+8,41+8,27+8,16+8,27+8,16+8,27+8,41+8,27+8,41+8},
 
     // 6569R1   - 5 levels
-    {12,59,18,43,30,30,18,43,30,18,30,18,30,43,30,43},
+    {12,59+4,18+8,43+8,30+8,30+8,18+8,43+8,30+8,18+8,30+8,18+8,30+8,43+8,30+8,43+8},
 };
 
 int phase[4][16] = {
-   {0, 0, 80, 208, 32, 160, 0, 128, 96, 112, 80, 0, 0, 160, 0, 0},
-   {0, 0, 80, 208, 32, 160, 0, 128, 96, 112, 80, 0, 0, 160, 0, 0},
-   {0, 0, 80, 208, 32, 160, 0, 128, 96, 112, 80, 0, 0, 160, 0, 0},
-   {0, 0, 80, 208, 32, 160, 0, 128, 96, 112, 80, 0, 0, 160, 0, 0},
+   {0, 0, 80, 208, 32, 160, 241, 128, 96, 112, 80, 0, 0, 160, 241, 0},
+   {0, 0, 80, 208, 32, 160, 241, 128, 96, 112, 80, 0, 0, 160, 241, 0},
+   {0, 0, 80, 208, 32, 160, 241, 128, 96, 112, 80, 0, 0, 160, 241, 0},
+   {0, 0, 80, 208, 32, 160, 241, 128, 96, 112, 80, 0, 0, 160, 241, 0},
 };
 
 int amplitude[4][16] = {
@@ -68,7 +65,7 @@ void set_lumas(int chip_model) {
    int reg;
    for (reg=0;reg<16;reg++) {
       POKE(VIDEO_MEM_1_LO, reg+0xa0);
-      SAFE_POKE(VIDEO_MEM_1_VAL, luma[chip_model][reg*3]);
+      SAFE_POKE(VIDEO_MEM_1_VAL, luma[chip_model][reg]);
    }
 }
 
@@ -77,7 +74,7 @@ void set_phases(int chip_model) {
    int reg;
    for (reg=0;reg<16;reg++) {
       POKE(VIDEO_MEM_1_LO, reg+0xb0);
-      SAFE_POKE(VIDEO_MEM_1_VAL, phase[chip_model][reg*3]);
+      SAFE_POKE(VIDEO_MEM_1_VAL, phase[chip_model][reg]);
    }
 }
 
@@ -86,12 +83,13 @@ void set_amplitudes(int chip_model) {
    int reg;
    for (reg=0;reg<16;reg++) {
       POKE(VIDEO_MEM_1_LO, reg+0xc0);
-      SAFE_POKE(VIDEO_MEM_1_VAL, amplitude[chip_model][reg*3]);
+      SAFE_POKE(VIDEO_MEM_1_VAL, amplitude[chip_model][reg]);
    }
 }
 
 void do_init(int chip_model) {
    int reg;
+   int chip;
 
    printf ("\nInitializing....");
 
@@ -106,44 +104,51 @@ void do_init(int chip_model) {
    POKE(VIDEO_MEM_1_LO, CHIP_MODEL);
    SAFE_POKE(VIDEO_MEM_1_VAL, chip_model);
 
-   // Colors
-   for (reg=0;reg<64;reg++) {
-      if (reg % 4 == 3) continue;
+   // Init colors and other regs for each chip
+   for (chip = 0; chip < 4; chip++) {
+      // Tell kawari which settings bank we want
+      POKE(VIDEO_MEM_1_LO, EEPROM_BANK);
+      POKE(VIDEO_MEM_1_VAL, chip);
+
+      // Colors - all chips get same RGB values
+      for (reg=64;reg<128;reg++) {
+         if (reg % 4 == 3) continue;
+         POKE(VIDEO_MEM_1_LO, reg);
+         SAFE_POKE(VIDEO_MEM_1_VAL, colors[reg-64]);
+      }
+
+      set_lumas(chip);
+      set_phases(chip);
+      set_amplitudes(chip);
+
+      // Black level
+      reg = BLACK_LEVEL;
       POKE(VIDEO_MEM_1_LO, reg);
-      SAFE_POKE(VIDEO_MEM_1_VAL, colors[reg]);
+      SAFE_POKE(VIDEO_MEM_1_VAL, DEFAULT_BLANKING_LEVEL);
+
+      // Burst amplitude
+      reg = BLACK_LEVEL;
+      reg = BURST_AMPLITUDE;
+      POKE(VIDEO_MEM_1_LO, reg);
+      SAFE_POKE(VIDEO_MEM_1_VAL, DEFAULT_BURST_AMPLITUDE);
+
+      // Turn off vic roll register
+      reg = 0xfb;
+      POKE(VIDEO_MEM_1_LO, reg);
+      SAFE_POKE(VIDEO_MEM_1_VAL, 0);
    }
 
-   set_lumas(chip_model);
-   set_phases(chip_model);
-   set_amplitudes(chip_model);
-
-   // Black level
-   reg = BLACK_LEVEL;
-   POKE(VIDEO_MEM_1_LO, reg);
-   SAFE_POKE(VIDEO_MEM_1_VAL, DEFAULT_BLANKING_LEVEL);
-
-   // Burst amplitude
-   reg = BLACK_LEVEL;
-   reg = BURST_AMPLITUDE;
-   POKE(VIDEO_MEM_1_LO, reg);
-   SAFE_POKE(VIDEO_MEM_1_VAL, DEFAULT_BURST_AMPLITUDE);
-
-   // Turn off vic roll register
-   reg = 0xfb;
-   POKE(VIDEO_MEM_1_LO, reg);
-   SAFE_POKE(VIDEO_MEM_1_VAL, 0);
-
    // Install magic bytes indicating we have good data
-   reg = 0xfc;
+   reg = MAGIC_0;
    POKE(VIDEO_MEM_1_LO, reg);
    SAFE_POKE(VIDEO_MEM_1_VAL, 86);
-   reg = 0xfd;
+   reg = MAGIC_1;
    POKE(VIDEO_MEM_1_LO, reg);
    SAFE_POKE(VIDEO_MEM_1_VAL, 73);
-   reg = 0xfe;
+   reg = MAGIC_2;
    POKE(VIDEO_MEM_1_LO, reg);
    SAFE_POKE(VIDEO_MEM_1_VAL, 67);
-   reg = 0xff;
+   reg = MAGIC_3;
    POKE(VIDEO_MEM_1_LO, reg);
    SAFE_POKE(VIDEO_MEM_1_VAL, 50);
 

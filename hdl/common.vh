@@ -212,11 +212,20 @@
 `define HIRES_TEXT_BITMAP             5
 `define HIRES_COLOR_2K_16K            6
 
+`define EXT_REG_MAGIC_0              8'h00
+`define EXT_REG_MAGIC_1              8'h01
+`define EXT_REG_MAGIC_2              8'h02
+`define EXT_REG_MAGIC_3              8'h03
+`define EXT_REG_DISPLAY_FLAGS        8'h04
+`define EXT_REG_EEPROM_BANK          8'h05
+`define EXT_REG_CHIP_MODEL           8'h1f
+
+// Registers above this value are per-chip registers
+`define PER_CHIP_REG_START           8'h20
+
 `define EXT_REG_BLANKING             8'h80
 `define EXT_REG_BURSTAMP             8'h81
-`define EXT_REG_CHIP_MODEL           8'h82
 `define EXT_REG_VERSION              8'h83
-`define EXT_REG_DISPLAY_FLAGS        8'h84
 `define EXT_REG_CURSOR_LO            8'h85
 `define EXT_REG_CURSOR_HI            8'h86
 `define EXT_REG_CAP_LO               8'h87

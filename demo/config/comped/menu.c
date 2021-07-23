@@ -49,6 +49,7 @@ void main_menu(void)
     int v;
     int refresh_all = 1;
     int store_current = 1;
+    int text = PEEK(646L);
     int border = PEEK(53280L);
     int background = PEEK(53281L);
 
@@ -95,7 +96,7 @@ void main_menu(void)
 
     printf ("\n");
     printf ("S to save changes     %c to switch sides\n",95);
-    printf ("R to revert changes\n");
+    printf ("R to revert changes   t inc text color\n");
     printf ("D default for chip    B inc brd color\n");
     printf ("Q to quit             G inc bg color\n");
 
@@ -245,7 +246,11 @@ void main_menu(void)
             CLRSCRN;
 	    return;
        }
-       else if (key == 'b')  {
+       else if (key == 't')  {
+            text = (text + 1) % 16;
+            POKE(646, text);
+	    refresh_all = 1;
+       } else if (key == 'b')  {
 	    border = (border + 1 ) % 16;
             POKE(53280L, border);
        }

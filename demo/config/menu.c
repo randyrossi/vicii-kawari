@@ -66,8 +66,8 @@ void show_chip_model()
     } else {
        printf ("          ");
     }
-    POKE(53305L,DISPLAY_FLAGS);
-    flip=PEEK(53307L) & DISPLAY_CHIP_INVERT_SWITCH;
+    POKE(VIDEO_MEM_1_LO,DISPLAY_FLAGS);
+    flip=PEEK(VIDEO_MEM_1_VAL) & DISPLAY_CHIP_INVERT_SWITCH;
 
     if (flip)
 	    printf ("INV");
@@ -166,8 +166,6 @@ void save_changes(void)
       POKE(VIDEO_MEM_1_LO, CHIP_MODEL);
       SAFE_POKE(VIDEO_MEM_1_VAL, next_model);
       current_model = next_model;
-
-      set_lumas(next_model);
    }
    POKE(VIDEO_MEM_FLAGS, PEEK(VIDEO_MEM_FLAGS) & ~VMEM_FLAG_PERSIST_BIT);
 }

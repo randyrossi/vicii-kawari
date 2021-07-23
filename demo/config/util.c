@@ -5,30 +5,37 @@
 #include "kawari.h"
 
 int enable_kawari(void) {
-    POKE(53311L,86);
-    POKE(53311L,73);
-    POKE(53311L,67);
-    POKE(53311L,50);
-    POKE(53311L,0);
+    POKE(VIDEO_MEM_FLAGS, 86);
+    POKE(VIDEO_MEM_FLAGS, 73);
+    POKE(VIDEO_MEM_FLAGS, 67);
+    POKE(VIDEO_MEM_FLAGS, 50);
+    POKE(VIDEO_MEM_FLAGS, 0);
     // Zero out IDX regs
-    POKE(53301L,0);
-    POKE(53302L,0);
-    return PEEK(53311L) == 0;
+    POKE(VIDEO_MEM_1_IDX, 0);
+    POKE(VIDEO_MEM_2_IDX, 0);
+    return PEEK(VIDEO_MEM_FLAGS) == 0;
 }
 
 int have_magic(void) {
     int m1,m2,m3,m4;
+    int chip;
 
     POKE(VIDEO_MEM_FLAGS, PEEK(VIDEO_MEM_FLAGS) | VMEM_FLAG_REGS_BIT);
 
-    POKE(53305L,0xfc);
-    m1 = PEEK(53307L);
-    POKE(53305L,0xfd);
-    m2 = PEEK(53307L);
-    POKE(53305L,0xfe);
-    m3 = PEEK(53307L);
-    POKE(53305L,0xff);
-    m4 = PEEK(53307L);
+    POKE(VIDEO_MEM_1_LO, MAGIC_0);
+    m1 = PEEK(VIDEO_MEM_1_VAL);
+    POKE(VIDEO_MEM_1_LO, MAGIC_1);
+    m2 = PEEK(VIDEO_MEM_1_VAL);
+    POKE(VIDEO_MEM_1_LO, MAGIC_2);
+    m3 = PEEK(VIDEO_MEM_1_VAL);
+    POKE(VIDEO_MEM_1_LO, MAGIC_3);
+    m4 = PEEK(VIDEO_MEM_1_VAL);
+
+    // Make sure eeprom bank matches current chip
+    POKE(VIDEO_MEM_1_LO, CHIP_MODEL);
+    chip = PEEK(VIDEO_MEM_1_VAL);
+    POKE(VIDEO_MEM_1_LO, EEPROM_BANK);
+    POKE(VIDEO_MEM_1_VAL, chip);
 
     return m1 == 86 && m2 == 73 && m3 == 67 && m4 == 50;
 }
@@ -37,7 +44,7 @@ int have_magic(void) {
 // until it is 0
 void safe_poke(long addr, char value)
 {
-    while (PEEK(53311L) & 16) { }
+    while (PEEK(VIDEO_MEM_FLAGS) & 16) { }
     POKE(addr,value);
 }
 
@@ -50,11 +57,11 @@ unsigned char wait_key_or_switch(unsigned char current_switch_val,
     unsigned char inv; 
     unsigned char lb; 
     struct regs r;
-    POKE(53305L,DISPLAY_FLAGS);
+    POKE(VIDEO_MEM_1_LO, DISPLAY_FLAGS);
     for(;;) {
         r.pc=0xF13E; _sys(&r);
 	if (r.a != 0) return r.a;
-        inv = PEEK(53307L) & DISPLAY_CHIP_INVERT_SWITCH;
+        inv = PEEK(VIDEO_MEM_1_VAL) & DISPLAY_CHIP_INVERT_SWITCH;
         lb = get_lock_bits() & 56;
         if (current_switch_val != inv) return '*';
         if (current_lock_bits != lb) return '%';
@@ -63,15 +70,15 @@ unsigned char wait_key_or_switch(unsigned char current_switch_val,
 
 unsigned int get_version(void)
 {
-   POKE(53301L,0);
-   POKE(53302L,0);
-   POKE(VIDEO_MEM_1_LO,VERSION);
+   POKE(VIDEO_MEM_1_IDX, 0);
+   POKE(VIDEO_MEM_2_IDX, 0);
+   POKE(VIDEO_MEM_1_LO, VERSION);
    return PEEK(VIDEO_MEM_1_VAL);
 }
 
 unsigned char get_lock_bits(void)
 {
-   return PEEK(0xd034L);
+   return PEEK(SPI_REG);
 }
 
 unsigned char get_chip_model(void)

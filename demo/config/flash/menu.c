@@ -463,7 +463,7 @@ void expert(void) {
          POKE(VIDEO_MEM_1_LO,start_addr & 0xff);
          POKE(VIDEO_MEM_1_HI,start_addr >> 8);
          for (n=0;n<256;n++) {
-            SMPRINTF_1("%02x ",PEEK(53307L));
+            SMPRINTF_1("%02x ",PEEK(VIDEO_MEM_1_VAL));
          }
          POKE(VIDEO_MEM_FLAGS, 0);
       } else if (r.a == 'f') { // read vmem

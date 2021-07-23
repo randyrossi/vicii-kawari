@@ -19,18 +19,26 @@
 #define VMEM_FLAG_REGS_BIT 32
 #define VMEM_FLAG_PERSIST_BIT 64
 
+#define MAGIC_0 0x00
+#define MAGIC_1 0x01
+#define MAGIC_2 0x02
+#define MAGIC_3 0x03
+#define DISPLAY_FLAGS 0x04
+#define EEPROM_BANK 0x05
+#define CHIP_MODEL 0x1f
+#define RGB_START 0x40
 #define BLACK_LEVEL 0x80
 #define BURST_AMPLITUDE 0x81
-#define CHIP_MODEL 0x82
 #define VERSION 0x83
-#define DISPLAY_FLAGS 0x84
 #define CURSOR_LO 0x85
 #define CURSOR_HI 0x86
 #define CAP_LO 0x87
 #define CAP_HI 0x88
 #define TIMING_CHANGE 0x89
-
 #define VARIANT 0x90
+#define LUMA_START 0xa0
+#define PHASE_START 0xb0
+#define AMPLITUDE_START 0xc0
 
 #define DISPLAY_SHOW_RASTER_LINES_BIT 1
 #define DISPLAY_IS_NATIVE_Y_BIT 2

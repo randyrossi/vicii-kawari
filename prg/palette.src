@@ -48,28 +48,28 @@ gosub l_blue
 next
 goto l_wait
 rem l_red
-if pa = 0 then poke 53305,t*4:poke53307,t*4:return
-if pa = 1 then poke 53305,t*4:poke53307,t*4:return
-if pa = 2 then poke 53305,t*4:poke53307,0:return
-if pa = 3 then poke 53305,t*4:poke53307,0:return
-if pa = 4 then poke 53305,t*4:poke53307,(15-t)*4:return
+if pa = 0 then poke 53305,t*4+64:poke53307,t*4:return
+if pa = 1 then poke 53305,t*4+64:poke53307,t*4:return
+if pa = 2 then poke 53305,t*4+64:poke53307,0:return
+if pa = 3 then poke 53305,t*4+64:poke53307,0:return
+if pa = 4 then poke 53305,t*4+64:poke53307,(15-t)*4:return
 return
 rem l_green
-if pa = 0 then poke 53305,t*4+1:poke53307,t*4:return
-if pa = 1 then poke 53305,t*4+1:poke53307,0:return
-if pa = 2 then poke 53305,t*4+1:poke53307,t*4:return
-if pa = 3 then poke 53305,t*4+1:poke53307,0:return
-if pa = 4 then poke 53305,t*4+1:poke53307,t*4:return
+if pa = 0 then poke 53305,t*4+1+64:poke53307,t*4:return
+if pa = 1 then poke 53305,t*4+1+64:poke53307,0:return
+if pa = 2 then poke 53305,t*4+1+64:poke53307,t*4:return
+if pa = 3 then poke 53305,t*4+1+64:poke53307,0:return
+if pa = 4 then poke 53305,t*4+1+64:poke53307,t*4:return
 return
 rem l_blue
-if pa = 0 then poke 53305,t*4+2:poke53307,t*4:return
-if pa = 1 then poke 53305,t*4+2:poke53307,0:return
-if pa = 2 then poke 53305,t*4+2:poke53307,0:return
-if pa = 3 then poke 53305,t*4+2:poke53307,t*4:return
-if pa = 4 then poke 53305,t*4+2:poke53307,(15-t)*4:return
+if pa = 0 then poke 53305,t*4+2+64:poke53307,t*4:return
+if pa = 1 then poke 53305,t*4+2+64:poke53307,0:return
+if pa = 2 then poke 53305,t*4+2+64:poke53307,0:return
+if pa = 3 then poke 53305,t*4+2+64:poke53307,t*4:return
+if pa = 4 then poke 53305,t*4+2+64:poke53307,(15-t)*4:return
 return
 rem l_done
-for t=0to63
+for t=64to127
 read a
 poke 53305,t:poke53307,a
 next

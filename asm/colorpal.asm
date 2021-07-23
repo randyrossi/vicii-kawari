@@ -51,9 +51,10 @@ BANDEND=160     ; Bottom raster line to switch back
   STA VMEM_A_HI
   STA VMEM_B_HI
 
-  LDA #56
+  ; light blue red and green register indices
+  LDA #120
   STA VMEM_A_LO
-  LDA #57
+  LDA #121
   STA VMEM_B_LO
   LDA #0
   STA $fc

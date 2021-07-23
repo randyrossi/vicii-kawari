@@ -30,4 +30,5 @@ clean:
 	$(MAKE) -C rgbed clean
 	$(MAKE) -C comped clean
 	$(MAKE) -C timeed clean
+	$(MAKE) -C flash clean
 	rm -f *.o config.prg
