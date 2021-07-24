@@ -98,7 +98,6 @@ void main(int argc, char* argv[]) {
 		    gen_luma_chroma();
 		    gen_rgb();
 		    hires_modes();
-have_flash();
 		    break;
 	    case 1:
 		    // Use this config for generating test results

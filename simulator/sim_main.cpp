@@ -767,10 +767,9 @@ int main(int argc, char** argv, char** env) {
     top->cfg3 = 0; // persistence_lock
     // cpu_reset_i is held HIGH simulating pullup
     top->cpu_reset_i = 1;
-#ifdef HAVE_EEPROM
-    // When we have an eeprom, just start off with the chip we have
+    
+    top->top__DOT__vic_inst__DOT__vic_registers__DOT__chip_initialized = 1;
     top->V_CHIP = chip;
-#endif
 
     int cnt = 0;
     while (top->V_RST) {
