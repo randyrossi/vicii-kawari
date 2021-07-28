@@ -16,14 +16,19 @@ int voltages[4][16] = {
    { 630, 1850, 900, 1560, 1260, 1260, 900, 1560, 1260, 900, 1260, 900, 1260, 1560, 1260, 1560 },
 };
 
+// https://www.dcode.fr/function-equation-finder
 // Using a real 6567R8, we matched the voltage levels on an
 // oscilloscope and came up with these DAC levels:
-// 12, 58, 19, 36, 22, 30, 14, 43, 22, 14, 30, 19, 28, 43, 28, 36,
+// Measured: 12 14 19 22 28 30 36 43 58
+// Adjusted: 12 20 25 28 34 36 42 49 64
 // 
 int get_luma(double voltage)
 {
    // Curve matching
-   double level = .0000154881d * voltage*voltage + .00103625d*voltage+4.62243;
+   //double level = .0000154881d * voltage*voltage +
+   //                     .00103625d*voltage+4.62243;
+   double level = .0000067367333d * voltage*voltage +
+                          .0254356d*voltage - 5.54123d;
    // Don't go below 12 for any color
    if (level < 12) level = 12;
    return level;

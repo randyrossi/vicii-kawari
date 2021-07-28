@@ -60,6 +60,7 @@ void main_menu(void)
     int store_current = 1;
     int res;
     int timing_changed = 0;
+    unsigned char model;
 
     if (SAVES_LOCKED) {
         printf ("\nWARNING: Lock bit is set on PCB!\n");
@@ -74,7 +75,17 @@ void main_menu(void)
     POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
 
     POKE(646,1);
-    printf ("             Start  Front  Sync   Back\n");
+
+    model = get_chip_model();
+    switch (model) {
+       case CHIP6567R8:   printf ("6567R8   "); break;
+       case CHIP6567R56A: printf ("6567R56A "); break;
+       case CHIP6569R3:   printf ("6569R3   "); break;
+       case CHIP6569R1:   printf ("6569R1   "); break;
+       default:           printf ("??????   "); break;
+    }
+
+    printf ("    Start  Front  Sync   Back\n");
     printf ("                    Porch  Pulse  Porch\n");
     printf ("NTSC Horiz\n");
     printf ("NTSC Vert\n");
@@ -83,14 +94,14 @@ void main_menu(void)
 
     printf ("\n");
     printf ("S to save changes\n");
-    printf ("A to apply new timing\n");
+    printf ("Y to apply new timing\n");
     printf ("R to revert changes\n");
-    printf ("D for defaults\n");
+    printf ("J for defaults\n");
     printf ("Q to quit\n\n");
     printf ("If applying a change makes the display\n");
     printf ("drop out, press R to revert to last\n");
-    printf ("saved values and then A to apply them\n");
-    printf ("Or press D for defaults, then A.\n");
+    printf ("saved values and then Y to apply them\n");
+    printf ("Or press J for defaults, then Y.\n");
 
     for (;;) {
 
@@ -175,12 +186,12 @@ void main_menu(void)
 	    store_current = 1;
 	    refresh_all = 1;
        }
-       else if (key == 'a')  {
+       else if (key == 'y')  {
 	    POKE(VIDEO_MEM_1_LO, TIMING_CHANGE);
 	    POKE(VIDEO_MEM_1_VAL, timing_changed);
 	    timing_changed = 1-timing_changed;
        }
-       else if (key == 'd')  {
+       else if (key == 'j')  {
             for (res=0; res < 16; res++) {
 	        POKE(VIDEO_MEM_1_LO, 0xd0+res);
 	        POKE(VIDEO_MEM_1_VAL, defaults[res]);

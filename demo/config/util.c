@@ -84,5 +84,5 @@ unsigned char get_lock_bits(void)
 unsigned char get_chip_model(void)
 {
    POKE(VIDEO_MEM_1_LO,CHIP_MODEL);
-   return PEEK(VIDEO_MEM_1_VAL);
+   return PEEK(VIDEO_MEM_1_VAL) & 3;
 }

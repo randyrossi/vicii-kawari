@@ -59,6 +59,7 @@ void main_menu(void)
     int v;
     int refresh_all = 1;
     int store_current = 1;
+    unsigned char model;
 
     color_name[0] = "black  ";
     color_name[1] = "white  ";
@@ -89,12 +90,22 @@ void main_menu(void)
  
     POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
 
-    printf ("                R  G  B\n");
+    printf ("CHIP:    ");
+    model = get_chip_model();
+    switch (model) {
+       case CHIP6567R8:   printf ("6567R8   "); break;
+       case CHIP6567R56A: printf ("6567R56A "); break;
+       case CHIP6569R3:   printf ("6569R3   "); break;
+       case CHIP6569R1:   printf ("6569R1   "); break;
+       default:           printf ("??????   "); break;
+    }
+
+    printf ("R  G  B\n");
     for (color=0; color < 16; color++) {
         POKE(646,1);
 	printf ("%s ", color_name[color]);
         POKE(646,color);
-	printf ("%c      %c", 18, 146);
+	printf ("%c        %c", 18, 146);
         POKE(646,1);
 	printf ("\n");
     }
@@ -115,7 +126,7 @@ void main_menu(void)
 	        green = PEEK(VIDEO_MEM_1_VAL);
 	        POKE(VIDEO_MEM_1_LO, color*4+2+64);
 	        blue = PEEK(VIDEO_MEM_1_VAL);
-                TOXY(16,SL+color);
+                TOXY(18,SL+color);
 	        printf ("%02x %02x %02x", red, green, blue);
 		if (store_current) {
 	           current_colors[color*4] = red;
@@ -131,14 +142,14 @@ void main_menu(void)
        v = PEEK(VIDEO_MEM_1_VAL);
 
        // Hi-lite cursor
-       TOXY(16+(color_cursor%4)*3,SL+color_cursor/4);
+       TOXY(18+(color_cursor%4)*3,SL+color_cursor/4);
        printf ("%c%02x%c",18,v,146);
 
        WAITKEY;
        key = r.a;
 
        // Un-hi-lite cursor
-       TOXY(16+(color_cursor%4)*3,SL+color_cursor/4);
+       TOXY(18+(color_cursor%4)*3,SL+color_cursor/4);
        printf ("%02x",v);
 
        if (key == CRSR_DOWN) {

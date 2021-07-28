@@ -52,6 +52,7 @@ void main_menu(void)
     int text = PEEK(646L);
     int border = PEEK(53280L);
     int background = PEEK(53281L);
+    unsigned char model;
 
     color_name[0] = "black  ";
     color_name[1] = "white  ";
@@ -82,22 +83,31 @@ void main_menu(void)
  
     POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
 
-    printf ("                Lu PH Amp  Black Color\n");
+    printf ("CHIP:   ");
+    model = get_chip_model();
+    switch (model) {
+       case CHIP6567R8:   printf ("6567R8    "); break;
+       case CHIP6567R56A: printf ("6567R56A  "); break;
+       case CHIP6569R3:   printf ("6569R3    "); break;
+       case CHIP6569R1:   printf ("6569R1    "); break;
+       default:           printf ("??????    "); break;
+    }
+    printf ("Lu PH Amp Black Color\n");
     for (color=0; color < 16; color++) {
         POKE(646,1);
 	printf ("%s ", color_name[color]);
         POKE(646,color);
-	printf ("%c      %c", 18, 146);
+	printf ("%c        %c", 18, 146);
         POKE(646,1);
 	if (color == 0)
-           printf ("             Level Burst");
+           printf ("            Level Burst");
 	printf ("\n");
     }
 
     printf ("\n");
     printf ("S to save changes     %c to switch sides\n",95);
     printf ("R to revert changes   t inc text color\n");
-    printf ("D default for chip    B inc brd color\n");
+    printf ("J default for chip    H inc brd color\n");
     printf ("Q to quit             G inc bg color\n");
 
     for (;;) {
@@ -110,7 +120,7 @@ void main_menu(void)
 	        phase = PEEK(VIDEO_MEM_1_VAL);
 	        POKE(VIDEO_MEM_1_LO, 0xc0 + color);
 	        amplitude = PEEK(VIDEO_MEM_1_VAL);
-                TOXY(16,SL+color);
+                TOXY(18,SL+color);
 	        printf ("%02x %02x %02x", luma, phase, amplitude);
 		if (store_current) {
 	           current_luma[color] = luma;
@@ -123,7 +133,7 @@ void main_menu(void)
             v = PEEK(VIDEO_MEM_1_VAL);
             if (store_current)
                current_black_level = v;
-            TOXY(27,4);
+            TOXY(28,4);
             printf ("%02x",v);
 
             POKE(VIDEO_MEM_1_LO, BURST_AMPLITUDE);
@@ -141,11 +151,11 @@ void main_menu(void)
        if (side == 0) {
           POKE(VIDEO_MEM_1_LO, 0xa0 + 16*(color_cursor%4) + color_cursor/4);
           v = PEEK(VIDEO_MEM_1_VAL);
-          TOXY(16+(color_cursor%4)*3,SL+color_cursor/4);
+          TOXY(18+(color_cursor%4)*3,SL+color_cursor/4);
        } else {
           POKE(VIDEO_MEM_1_LO, BLACK_LEVEL + other_cursor);
           v = PEEK(VIDEO_MEM_1_VAL);
-          TOXY(27+other_cursor*7,4);
+          TOXY(28+other_cursor*6,4);
        }
        printf ("%c%02x%c",18,v,146);
 
@@ -154,9 +164,9 @@ void main_menu(void)
 
        // un-hi-lite cursor
        if (side == 0) {
-          TOXY(16+(color_cursor%4)*3,SL+color_cursor/4);
+          TOXY(18+(color_cursor%4)*3,SL+color_cursor/4);
        } else {
-          TOXY(27+other_cursor*7,4);
+          TOXY(28+other_cursor*6,4);
        }
        printf ("%02x",v);
 
@@ -227,8 +237,8 @@ void main_menu(void)
 	    POKE(VIDEO_MEM_1_VAL, current_color_burst);
 	    refresh_all = 1;
        }
-       else if (key == 'd')  {
-            int model = get_chip_model();
+       else if (key == 'j')  {
+            model = get_chip_model();
             set_lumas(model);
             set_phases(model);
             set_amplitudes(model);
@@ -250,7 +260,7 @@ void main_menu(void)
             text = (text + 1) % 16;
             POKE(646, text);
 	    refresh_all = 1;
-       } else if (key == 'b')  {
+       } else if (key == 'h')  {
 	    border = (border + 1 ) % 16;
             POKE(53280L, border);
        }
