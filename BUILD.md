@@ -9,6 +9,10 @@ Build instructions/notes.
 
 ## Making full Header/Golden/Multiboot images
 
+### Generate top.prj
+
+    TODO: How to create top.prj relevant for config? Command line tool?
+
 ### Golden image
 
 The golden image should be built off the stable release branch matching version 0.15:

@@ -19,11 +19,15 @@ There are several ways to restore the device to known good settings:
    Press 'S'
    Power-cycle the machine.
 
+   You can do this 'blind' if the display isn't working.
+
 ### Option 2
+
    Briefly connect the two jumper pads on the VICII-Kawari board labeled 'CFG RESET'
    Power-cycle the machine.
 
 ### Option 3
+
    POKE 53311,86
    POKE 53311,73
    POKE 53311,67
@@ -33,3 +37,4 @@ There are several ways to restore the device to known good settings:
    POKE 53307,0
    Power-cycle the machine.
 
+   Again, this can be done 'blind' as long as you make typos.

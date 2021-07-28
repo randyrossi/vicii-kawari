@@ -1,10 +1,10 @@
 # Extra Features
 
-In addition to being compatible with a genuine VIC-II, VIC-II Kawari adds a number of new features for C64 and 8-bit hobbyests to experiment with.
+In addition to being compatible with a genuine VIC-II, VIC-II Kawari adds a number of new features.
 
 ## Extra Registers
 
-Extra registers are enabled through the activation port (0xd03f) by poking it with the PETSCII bytes "VIC2".  This prevents existing software from unintentionally triggering extra registers.  NOTE: If lock bit jumper #2 is removed, extra registers cannot be activated.
+Extra registers are enabled through the activation port (0xd03f) by poking it with the PETSCII bytes "VIC2". This prevents existing software from unintentionally triggering extra registers. NOTE: If lock bit jumper #2 is removed, extra registers cannot be activated.
 
 ### BASIC
     POKE 53311,ASC("V")

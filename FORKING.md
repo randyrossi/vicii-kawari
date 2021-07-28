@@ -6,9 +6,9 @@ The VIC-II Kawari project supports developers who want to alter VIC-II Kawari to
 
 We ask that all forks do the following:
 
-1. Keep the extra register activation [REGISTERS.md](REGISTERS.md) (i.e POKEing "VIC2" into 0x3f) functional along with the 'reserved' 0x3b-0x3f extra mem access mechanism. The extra mem registers 0x83, 0x90-0x9f should also remain functional. This will allow a single upstream configuration utilty to successfully talk to your variant and at least display the variant name and its version. You are free to use an additional extra register activation sequence for your own scheme.
+1. Keep the extra register activation [REGISTERS.md](REGISTERS.md) (i.e POKEing "VIC2" into 0x3f) functional along with the 'reserved' 0x3b-0x3f extra mem access mechanism. The extra mem registers 0x83 (VERSION), 0x90-0x9f (VARIANT) should also remain functional. This will allow a single upstream configuration utilty to successfully talk to your variant and at least display the variant name and its version. You are free to use an additional extra register activation sequence for your own scheme.
 
-2. Replace the 'official' variant identifier with your own unique string. This can be any name you wish as long as you do not use the word 'official'.  This value will be displayed to users by the configuration utility. It will point users to your fork where they can find a custom config utility for your variant (if needed).
+2. Replace the 'main' variant identifier with your own unique string. This can be any name you wish as long as you do not use the word 'main'.  This value will be displayed to users by the configuration utility. It will point users to your fork where they can find a custom config utility for your variant (if needed).
 
 3. Add any capability bits you need in registers CAP_LO/CAP_HI for new features your variant may add. For example, if your fork adds a math co-processor, you can add "MATHCO".  This will let the config utility display the extensions you've added.  It can also be used by programs to detect features.  So, in theory, a regular C64 program could detect the presence of a math co-processor and use different code to take advantage of that feature.
 
@@ -18,7 +18,7 @@ The variant identifier is found in common.vh file.  Your fork should change the 
 
 ## Versioning
 
-You should probably version your fork separately from the official version to avoid confusion.
+You should probably version your fork separately from the main version to avoid confusion.
 
 ## Do I have to maintain backwards compatibility with the VICII?
 
@@ -62,10 +62,10 @@ Here are some possibilities:
 
 7. Add another processor
 
-   Add another processor core. It may have to block on read/write until an idle cycle or unused sprite dma cycle is reached.  The addressable range would be limited to 16k and be confined to the same bank as the VIC but this could be interesting.
+   Add another processor core. It may have to block on memory read/write until an idle cycle or unused sprite dma cycle is reached.  The addressable range would be limited to 16k and be confined to the same bank as the VIC but this could be interesting.
 
 8. Write to memory from the VIC
 
    A real VICII chip cannot write to memory since it can't set the WR line LOW.  VIC-II Kawari, however, can set WR LOW so this is theoretically possible.  Using idle cycles to execute instructions and write to DRAM (limited to 16k bank) should be possible.
 
-9. A GEOS driver for hires modes
+9. Create a GEOS driver for the new hires mode
