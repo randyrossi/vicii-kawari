@@ -321,8 +321,9 @@ set_colors
 	lda #32
 	sta KAWARI_PORT ; make regs visible
 	lda #0
-	sta VMEM_A_LO
 	sta VMEM_A_HI
+	lda #64         ; start of color regs
+	sta VMEM_A_LO
 	ldy #0
 restcol
 	lda ($5d),y
