@@ -45,7 +45,7 @@ void show_chip_model()
 {
     int flip;
     TOXY(17,6);
-    if  (line == 0) printf ("%c",18);
+    if (line == 0) printf ("%c",18);
     switch (next_model) {
         case 0:
             printf ("6567R8  ");
@@ -74,7 +74,7 @@ void show_chip_model()
     else
 	    printf ("   ");
 
-    if  (line == 0) printf ("%c",146);
+    if (line == 0) printf ("%c",146);
 }
 
 void show_display_bit(unsigned int bit, int y, int label)
@@ -87,7 +87,7 @@ void show_display_bit(unsigned int bit, int y, int label)
         next_val = current_display_flags & bit;
 
     TOXY(17,y);
-    if  (line == y-6) printf ("%c",18);
+    if (line == y-6) printf ("%c",18);
     if (next_val) {
        if (label) printf ("HI "); else printf ("ON ");
     } else {
@@ -103,11 +103,12 @@ void show_display_bit(unsigned int bit, int y, int label)
               printf ("          ");
            }
     }
-    if  (line == y-6) printf ("%c",146);
+    if (line == y-6) printf ("%c",146);
 }
 
 void show_lock_bits(int y)
 {
+    if (line == 8) printf ("%c",18);
     TOXY(17,y);
     if (FLASH_LOCKED)
        printf ("FLASH ");
@@ -115,6 +116,7 @@ void show_lock_bits(int y)
        printf ("EXTRA ");
     if (SAVES_LOCKED)
        printf ("SAVES ");
+    if (line == 8) printf ("%c",146);
 }
 
 void show_info_line(void) {
@@ -137,7 +139,7 @@ void show_info_line(void) {
         printf ("hires modes will not work if set.       ");
     }
     else if (line == 4) {
-        printf ("Ouput CSYNC on the HSYNC analog RGB pin.");
+        printf ("Put CSYNC on the HSYNC analog RGB pin.  ");
         printf ("NOTE: Your monitor must support this.   ");
     }
     else if (line == 5) {
@@ -149,8 +151,12 @@ void show_info_line(void) {
         printf ("header. Active LO or Active HI.         ");
     }
     else if (line == 7) {
-        printf ("CHIP toggle switch. If ON, CHIP will be ");
-        printf ("opposite video standard of saved value. ");
+        printf ("Physical switch indicator. If ON, chip  ");
+        printf ("is opposite of saved video standard.    ");
+    }
+    else if (line == 8) {
+        printf ("Lock bits indicator. Shows locked funcs ");
+        printf ("according to jumper settings.           ");
     }
 }
 
@@ -263,7 +269,7 @@ void main_menu(void)
           save_changes();
           need_refresh=1;
        } else if (r.a == CRSR_DOWN) {
-          line++; if (line > 7) line = 7;
+          line++; if (line > 8) line = 8;
           need_refresh=1;
        } else if (r.a == CRSR_UP) {
           line--; if (line < 0) line = 0;
