@@ -25,10 +25,12 @@ subdirs:
 	$(MAKE) -C comped
 	$(MAKE) -C timeed
 	$(MAKE) -C flash
+	$(MAKE) -C quick
 
 clean:
 	$(MAKE) -C rgbed clean
 	$(MAKE) -C comped clean
 	$(MAKE) -C timeed clean
 	$(MAKE) -C flash clean
+	$(MAKE) -C quick clean
 	rm -f *.o config.prg
