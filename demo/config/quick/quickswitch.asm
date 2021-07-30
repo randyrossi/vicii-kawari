@@ -9,7 +9,22 @@ VMEM_A_HI = $d03a
 VMEM_A_LO = $d039
 VMEM_A_VAL = $d03b
 
+; Bytes to enable VICII-Kawari extensions
+CHAR_V = 86
+CHAR_I = 73
+CHAR_C = 67
+CHAR_2 = 50
+
 init:
+        LDA #CHAR_V
+        sta KAWARI_PORT
+        LDA #CHAR_I
+        sta KAWARI_PORT
+        LDA #CHAR_C
+        sta KAWARI_PORT
+        LDA #CHAR_2
+        sta KAWARI_PORT
+
 	; clear screen and print chip
         LDY     #$00
 printchip:
