@@ -26,6 +26,7 @@ subdirs:
 	$(MAKE) -C timeed
 	$(MAKE) -C flash
 	$(MAKE) -C quick
+	$(MAKE) -C test
 
 clean:
 	$(MAKE) -C rgbed clean
@@ -33,4 +34,5 @@ clean:
 	$(MAKE) -C timeed clean
 	$(MAKE) -C flash clean
 	$(MAKE) -C quick clean
+	$(MAKE) -C test clean
 	rm -f *.o config.prg
