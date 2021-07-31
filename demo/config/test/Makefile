@@ -7,7 +7,9 @@ OBJS=../main.o menu.o ../util.o ../init.o \
      test_auto_dec_vmem_b.o \
      test_noop_vmem.o \
      test_vmem.o \
-     test_vmem_idx.o
+     test_vmem_idx.o \
+     test_copy.o \
+     test_fill.o
 
 test.prg: $(OBJS)
 	cl65 -o test.prg $(OBJS)
