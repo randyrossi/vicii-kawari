@@ -37,6 +37,26 @@ void save_changes(void)
    POKE(VIDEO_MEM_FLAGS, PEEK(VIDEO_MEM_FLAGS) & ~VMEM_FLAG_PERSIST_BIT);
 }
 
+int handle_input(unsigned char key, unsigned char key_val,
+                 unsigned char input_state, unsigned char *input_char,
+                 unsigned char *input_val,
+                 int side, int color_cursor, int other_cursor) {
+   unsigned char final_val;
+   if (input_state == 0) {
+      *input_char = key; *input_val = key_val; input_state++;
+   } else if (input_state == 1) {
+      final_val = *input_val * 16 + key_val;
+      if (side == 0) {
+         POKE(VIDEO_MEM_1_LO, 0xa0 + 16*(color_cursor%4) + color_cursor/4);
+      } else {
+         POKE(VIDEO_MEM_1_LO, BLACK_LEVEL + other_cursor);
+      }
+      POKE(VIDEO_MEM_1_VAL, final_val);
+      input_state = 0;
+   }
+   return input_state;
+}
+
 void main_menu(void)
 {
     int key;
@@ -53,6 +73,9 @@ void main_menu(void)
     int border = PEEK(53280L);
     int background = PEEK(53281L);
     unsigned char model;
+    unsigned char input_state = 0;
+    unsigned char input_char;
+    unsigned char input_val;
 
     color_name[0] = "black  ";
     color_name[1] = "white  ";
@@ -80,7 +103,7 @@ void main_menu(void)
 
     CLRSCRN;
     printf ("VIC-II Kawari Composite Settings Editor\n\n");
- 
+
     POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
 
     printf ("CHIP:   ");
@@ -157,7 +180,12 @@ void main_menu(void)
           v = PEEK(VIDEO_MEM_1_VAL);
           TOXY(28+other_cursor*6,4);
        }
-       printf ("%c%02x%c",18,v,146);
+
+       if (input_state == 0) {
+          printf ("%c%02x%c",18,v,146);
+       } else if (input_state == 1) {
+          printf ("%c%c?%c",18,input_char,146);
+       }
 
        WAITKEY;
        key = r.a;
@@ -170,6 +198,7 @@ void main_menu(void)
        }
        printf ("%02x",v);
 
+     if (input_state == 0) {
        if (key == CRSR_DOWN) {
             if (side == 0) {
 	       color_cursor+=4;
@@ -268,5 +297,24 @@ void main_menu(void)
 	    background = (background + 1 ) % 16;
             POKE(53281L, background);
        }
+       else if (key >= '0' && key <= '9')  {
+           input_state = handle_input(key, key-'0', input_state, &input_char,
+                            &input_val, side, color_cursor, other_cursor);
+       }
+       else if (key >= 'a' && key <= 'f')  {
+           input_state = handle_input(key, key-'a'+10, input_state, &input_char,
+                            &input_val, side, color_cursor, other_cursor);
+       }
+     } else {
+       if (key >= '0' && key <= '9')  {
+           input_state = handle_input(key, key-'0', input_state, &input_char,
+                            &input_val, side, color_cursor, other_cursor);
+       } else if (key >= 'a' && key <= 'f')  {
+           input_state = handle_input(key, key-'a'+10, input_state, &input_char,
+                            &input_val, side, color_cursor, other_cursor);
+       } else if (key == 3) {
+           input_state = 0;
+       }
+     }
     }
 }

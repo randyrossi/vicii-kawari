@@ -50,6 +50,22 @@ void save_changes(void)
    POKE(VIDEO_MEM_FLAGS, PEEK(VIDEO_MEM_FLAGS) & ~VMEM_FLAG_PERSIST_BIT);
 }
 
+int handle_input(unsigned char key, unsigned char key_val,
+                 unsigned char input_state, unsigned char *input_char,
+                 unsigned char *input_val,
+                 int color_cursor) {
+   unsigned char final_val;
+   if (input_state == 0) {
+      *input_char = key; *input_val = key_val; input_state++;
+   } else if (input_state == 1) {
+      final_val = *input_val * 16 + key_val;
+      POKE(VIDEO_MEM_1_LO, color_cursor+64);
+      POKE(VIDEO_MEM_1_VAL, final_val);
+      input_state = 0;
+   }
+   return input_state;
+}
+
 void main_menu(void)
 {
     int key;
@@ -59,7 +75,16 @@ void main_menu(void)
     int v;
     int refresh_all = 1;
     int store_current = 1;
+    unsigned char text_color = 1;
+    unsigned char border;
+    unsigned char background;
     unsigned char model;
+    unsigned char input_state = 0;
+    unsigned char input_char;
+    unsigned char input_val;
+
+    border = PEEK(53280L);
+    background = PEEK(53281L);
 
     color_name[0] = "black  ";
     color_name[1] = "white  ";
@@ -111,14 +136,15 @@ void main_menu(void)
     }
 
     printf ("\n");
-    printf ("Press S to save changes\n");
-    printf ("Press R to revert changes\n");
-    printf ("Press N for next preset\n");
-    printf ("Press Q to quit\n");
+    printf ("S to save changes    T inc text color\n");
+    printf ("R to revert changes  H inc brd color\n");
+    printf ("N for next preset    G inc bg color\n");
+    printf ("Q to quit\n");
 
     for (;;) {
 
         if (refresh_all) {
+            POKE(646,text_color);
             for (color=0; color < 16; color++) {
 	        POKE(VIDEO_MEM_1_LO, color*4+64);
 	        red = PEEK(VIDEO_MEM_1_VAL);
@@ -143,7 +169,11 @@ void main_menu(void)
 
        // Hi-lite cursor
        TOXY(18+(color_cursor%4)*3,SL+color_cursor/4);
-       printf ("%c%02x%c",18,v,146);
+       if (input_state == 0) {
+          printf ("%c%02x%c",18,v,146);
+       } else {
+          printf ("%c%c?%c",18,input_char,146);
+       }
 
        WAITKEY;
        key = r.a;
@@ -152,6 +182,7 @@ void main_menu(void)
        TOXY(18+(color_cursor%4)*3,SL+color_cursor/4);
        printf ("%02x",v);
 
+     if (input_state == 0) {
        if (key == CRSR_DOWN) {
 	    color_cursor+=4;
 	    if (color_cursor > 62) color_cursor=62;
@@ -212,5 +243,37 @@ void main_menu(void)
             CLRSCRN;
 	    return;
        }
+       else if (key == 't')  {
+            text_color = (text_color + 1) % 16;
+            refresh_all = 1;
+       }
+       else if (key == 'h')  {
+            border = (border + 1) % 16;
+            POKE(53280L, border);
+       }
+       else if (key == 'g')  {
+            background = (background + 1) % 16;
+            POKE(53281L, background);
+       }
+       else if (key >= '0' && key <= '9')  {
+           input_state = handle_input(key, key-'0', input_state, &input_char,
+                            &input_val, color_cursor);
+       }
+       else if (key >= 'a' && key <= 'f')  {
+           input_state = handle_input(key, key-'a'+10, input_state, &input_char,
+                            &input_val, color_cursor);
+       }
+     } else {
+       if (key >= '0' && key <= '9')  {
+           input_state = handle_input(key, key-'0', input_state, &input_char,
+                            &input_val, color_cursor);
+       }
+       else if (key >= 'a' && key <= 'f')  {
+           input_state = handle_input(key, key-'a'+10, input_state, &input_char,
+                            &input_val, color_cursor);
+       } else if (key == 3) {
+           input_state = 0;
+       }
+     }
     }
 }
