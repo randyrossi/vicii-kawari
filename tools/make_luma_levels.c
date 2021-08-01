@@ -31,6 +31,7 @@ int get_luma(double voltage)
                           .0254356d*voltage - 5.54123d;
    // Don't go below 12 for any color
    if (level < 12) level = 12;
+   else if (level > 63) level = 64;
    return level;
 }
 
