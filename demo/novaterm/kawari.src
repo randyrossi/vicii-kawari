@@ -172,12 +172,12 @@ exit80	ldx 214
 
 +	inc update80
 
-	; install commodore colors
+	; put back previous colors
 	lda #>commodore
 	sta $5e
 	lda #<commodore
 	sta $5d
-	jsr set_colors
+	jsr load_colors
 
 	lda #0
         sta KAWARI_VMODE1
@@ -261,12 +261,18 @@ init_loop1
 	sta $01
 	cli
 
+        ; remember commodore colors
+	lda #>commodore
+	sta $5e
+	lda #<commodore
+	sta $5d
+	jsr save_colors
 	; install ANSI colors
 	lda #>ansi
 	sta $5e
 	lda #<ansi
 	sta $5d
-	jsr set_colors
+	jsr load_colors
 
 	ldx #0
 	jsr getloc
@@ -317,7 +323,7 @@ calcreg cpy #80
 +	jmp setcursor
 
 ; set colors from ($5d)
-set_colors
+load_colors
 	lda #32
 	sta KAWARI_PORT ; make regs visible
 	lda #0
@@ -325,14 +331,36 @@ set_colors
 	lda #64         ; start of color regs
 	sta VMEM_A_LO
 	ldy #0
-restcol
+lcol_loop
 	lda ($5d),y
 	sta VMEM_A_VAL
 	inc VMEM_A_LO
 	iny
 	tya
 	cmp #64
-	bne restcol
+	bne lcol_loop
+
+	lda #0
+	sta KAWARI_PORT ; no regs
+	rts
+
+; remember colors into ($5d)
+save_colors
+	lda #32
+	sta KAWARI_PORT ; make regs visible
+	lda #0
+	sta VMEM_A_HI
+	lda #64         ; start of color regs
+	sta VMEM_A_LO
+	ldy #0
+scol_loop
+	lda VMEM_A_VAL
+	sta ($5d),y
+	inc VMEM_A_LO
+	iny
+	tya
+	cmp #64
+	bne scol_loop
 
 	lda #0
 	sta KAWARI_PORT ; no regs
