@@ -21,23 +21,22 @@ The core supports these video options:
     Luma/Chroma (later mixed by the C64's RF modulator for composite video)
 
 The core can be configured to support all three or any subset of these options. 
-
 By default, the DVI/RGB signals double the horizontal frequency from ~15.7khz to ~31.4khz (for 2X native height). The horizontal resolution is also doubled to support the 80 column mode.  However, the resolution scaling can be turned off for both width and height.
 
 Video        |Width|Height|Horiz Freq |Vert Freq  |Pixel Clock  |Suitable for
 -------------|-----|------|-----------|-----------|-------------|---------------
 NTSC         |520  |263   |15.73khz   |59.82hz    |8.181 Mhz    |RGB
 NTSC(Old)    |512  |262   |15.98khz   |60.99hz    |8.181 Mhz    |RGB
-PAL          |504  |312   |15.63khz   |50.125hz   |7.881 Mhz    |RGB
+PAL-B        |504  |312   |15.63khz   |50.125hz   |7.881 Mhz    |RGB
 NTSC         |1040 |263   |15.73khz   |59.82hz    |16.363 Mhz   |RGB
 NTSC(Old)    |1024 |262   |15.98khz   |60.99hz    |16.363 Mhz   |RGB
-PAL          |1008 |312   |15.63khz   |50.125hz   |15.763 Mhz   |RGB
+PAL-B        |1008 |312   |15.63khz   |50.125hz   |15.763 Mhz   |RGB
 NTSC         |520  |526   |31.46khz   |59.82hz    |16.363 Mhz   |RGB/DVI
 NTSC(Old)    |512  |524   |31.96khz   |60.99hz    |16.363 Mhz   |RGB/DVI
-PAL          |504  |624   |31.26khz   |50.125hz   |15.763 Mhz   |RGB/DVI
+PAL-B        |504  |624   |31.26khz   |50.125hz   |15.763 Mhz   |RGB/DVI
 NTSC         |1040 |526   |31.46khz   |59.82hz    |32.727 Mhz   |RGB/DVI
 NTSC(Old)    |1024 |524   |31.96khz   |60.99hz    |32.727 Mhz   |RGB/DVI
-PAL          |1008 |624   |31.26khz   |50.125hz   |31.527 Mhz   |RGB/DVI
+PAL-B        |1008 |624   |31.26khz   |50.125hz   |31.527 Mhz   |RGB/DVI
 
 ### More video stuff
 
@@ -88,13 +87,35 @@ It can replace the 6567R8(NTSC),6567R56A(NTSC),6569R3(PAL-B),6569R1(PAL-B) model
 It will function if plugged into a C64-C 'short' board. The VDD pin is not connected so there is no voltage compatibility issue like with the real 8562/8565 models. Keep in mind that the board will behave as a 6567/6569 even when replacing a 8562/8565.
 
 ## Isn't the quality of 6567R56A composite video bad?
-The 6567R56A composite signal is known to be worse than the 6567R8. The cycle schedule (and hence timing) is slighly different in the 6567R56A. It generates a signal slightly out of range from the expected 15.734khz horizontal frequency for NTSC (it generates 15.980khz instead). Some composite LCD monitors don't like this and even the real chips produced unwanted artifacts on those types of displays. You will get the same unwanted artifacts from a VIC-II Kawari producing composite video when configured as a 6567R56A. Most CRTs, however, are more forgiving and you may not notice the difference. Some TVs still show a bad picture. When using DVI or VGA output, this is of no concern as long as your monitor can handle the frequency (the image will look just as good as any other mode). There may be _some_ NTSC programs that depend on 6567R56A to run properly due to the cycle schedule but I'm not aware of any.
+The 6567R56A composite signal is known to be worse than the 6567R8. The cycle schedule (and hence timing) is slighly different in the 6567R56A. It generates a signal slightly out of range from the expected 15.734khz horizontal frequency for NTSC (it generates 15.980khz instead). Some composite LCD monitors don't like this and even the real chips produced unwanted artifacts on those types of displays. You will get the same unwanted artifacts from a VIC-II Kawari producing composite video when configured as a 6567R56A. Most CRTs, however, are more forgiving and you may not notice the difference. Some TVs still show a bad picture. When using DVI or RGB output, this is of no concern as long as your monitor can handle the frequency (the image will look just as good as any other mode). There may be _some_ NTSC programs that depend on 6567R56A to run properly due to the cycle schedule but I'm not aware of any.
 
 ## What about the 6569R4/R5?
-There are subtle differences between the PAL revisions mostly to do with luminance levels. I included the 6569R1 as an option but keep in mind it has only 5 luminance levels instead of 8 and also has a light pen irq trigger bug.
+There are subtle differences between the PAL-B revisions mostly to do with luminance levels. I included the 6569R1 as an option but keep in mind it has only 5 luminance levels instead of 8 and also has a light pen irq trigger bug.
+
+## What about the 6572?
+It is, in theory, possible to re-purpose one of the video standards to be a 6572 (South America PAL-N). It would require a firmware change and the board would have to be configured to use the motherboard's clock (or one of the oscillators changed to match PAL-N frequency).  Either NTSC or PAL-B could be replaced with PAL-N. As far as I can tell, the only reason to do this would be to get real Argentinian CRTs/TVs to display a composite signal correctly while being (mostly) compatible with NTSC software. (This is a lower priority project but if someone else wants to take on the challenge, it could appear as a fork.)
 
 ## Do I need a functioning clock circuit on my motherboard?
-No. The clock input pins (color and dot) are not connected. The board comes with its own clock and can switch between PAL and NTSC timing with a configuration change. (So if your C64 has died due to a malfunctioning clock circuit, this is an option to get your machine back to a working state). Please see [Limitations/Caveats](#limitationscaveats) below regarding pin 6 of the cartridge port.
+This depends on how the VIC-II Kawari PCB has been populated and configured. VIC-II Kawari boards can come with on-board oscillators for both NTSC and PAL-B standards. In that case, the motherboard's clock circuit is not used. However, the board can be configured to use the motherboard's clock for the machine's 'native' standard. In that case, one of the two video standards can be driven by the motherboard's clock.  Please see [Limitations/Caveats](#limitationscaveats) below regarding pin 6 of the cartridge port.  Refer to the table below for C.SRC jumper settings.
+
+## How do the C.SRC jumpers work?
+
+The C.SRC jumpers let you select the clock source for the two video standards the board supports. By default, both video standards are driven by on-board oscillators (if the board has been populated with them).  However, you have the option of using the machine's 'native' clock source for one of the video standards.  This is an option in case some specialty cartridges require the use of Pin 6 on the cartridge port. See [Limitations/Caveats](#limitationscaveats)
+
+Here is a table describing the valid jumper configurations:
+
+PAL-B Jumper | NTSC Jumper | Description
+:--------:|:--------:|------------
+<span style="font-family:fixed;line-height:1em;">█<br><br>█<br>│<br>█</span>|<span style="font-family:courier;line-height:1em;">█<br>│<br>█<br> <br>█</span>|Uses on-board oscillators for both video standards.  Some specialty cartridges using Pin 6 of cartridge port may not work.
+
+PAL-B Jumper | NTSC Jumper | Description
+:--------:|:--------:|------------
+<span style="font-family:fixed;line-height:1em;">█<br>│<br>█<br><br>█</span>|<span style="font-family:courier;line-height:1em;">█<br>│<br>█<br> <br>█</span>|Uses on-board oscillator for NTSC, motherboard clock for PAL-B.  Board will only work in PAL-B mode on a PAL-B machine. Some specialty cartridges using Pin 6 of cartridge port may not work in NTSC mode.
+
+PAL-B Jumper | NTSC Jumper | Description
+:--------:|:--------:|------------
+<span style="font-family:fixed;line-height:1em;">█<br><br>█<br>│<br>█</span>|<span style="font-family:courier;line-height:1em;">█<br><br>█<br>│<br>█</span>|Uses on-board oscillator for PAL-B, motherboard clock for NTSC. Board will only work in NTSC mode on a NTSC machine.  Some speciality cartridges using Pin 6 of cartridge port may not work in PAL-B mode.
+
 
 ## Do I need to modify my C64 motherboard?
 The board will function without any modifications to the motherboard. If you can find a way to get a video cable out of the machine, there is no reason to modify the machine. However, it is much easier if the RF modulator is removed. The hole previously used for the composite jack may then be used for an HDMI or VGA cable. Otherwise, there is no practical way for a video cable to exit the machine unless you drill a hole or fish the cable out the casette or user port space.
@@ -124,8 +145,8 @@ If you need a VIC-II to replace a broken one, you should just buy one off eBay. 
 * No 'VSP' bug
 * Configurable color palette (262144 RGB color space, 262144 HSV color space)
 * No need for a working clock circuit
-* Can software switch between NTSC and PAL
-* Optional NTSC/PAL hardware switch available
+* Can software switch between NTSC and PAL-B
+* Optional NTSC/PAL-B hardware switch available
 * Four chip models supported (6567R56A, 6567R8, 6569R1, 6569R3)
 * An 80 column mode and new graphics modes
 * An 80 column Novaterm driver
@@ -159,22 +180,22 @@ In addition to the 80 column text mode, three bitmap modes have been added for y
 
 Low-res sprites will show up on the hi-res modes. However, they behave according to low-res mode rules. That means their x-positions are still low resolution and will be shifted half a pixel to the left from the low-res mode. (This is due to the way the hires pixel sequencer works). Also, background collisions will trigger based on low-res screen data, even though it is not visible. Sprite to sprite collisions should work as expected. This was a compromise chosen between adding new hires sprite support (taking up a lot of FPGA space) and having no sprites at all.
 
-### Software switch between PAL and NTSC
+### Software switch between PAL-B and NTSC
 
-A configuration utility is provided which allows you to change the chip model at any time. Changes to the chip model will be reflected on the next cold boot. This means you can switch your C64 between NTSC and PAL with ease AND without opening up your machine!
+A configuration utility is provided which allows you to change the chip model at any time. Changes to the chip model will be reflected on the next cold boot. This means you can switch your C64 between NTSC and PAL-B with ease AND without opening up your machine!
 
 The full featured config utility takes longer to load, so a smaller quick switch program dedicated to changing the chip is also included.
 
-### Hardware switch between PAL and NTSC
+### Hardware switch between PAL-B and NTSC
 
 The 'switch' header on the PCB will toggle the chip model between the saved standard (switch open) and the opposite standard (switch closed). Please note that the 'older' revisions and 'newer' revisions will switch with each other.
 
 What's Saved  | Swith OPEN   | Switch CLOSED
 --------------|--------------|--------------
-6567R8 NTSC   | 6567R8 NTSC  | 6569R5 PAL
-6567R56A NTSC | 656756A NTSC | 6569R1 PAL
-6569R5 PAL    | 6569R5 PAL   | 6567R8 NTSC
-6569R1 PAL    | 6569R1 PAL   | 6567R56A NTSC
+6567R8 NTSC   | 6567R8 NTSC  | 6569R5 PAL-B
+6567R56A NTSC | 656756A NTSC | 6569R1 PAL-B
+6569R5 PAL-B    | 6569R5 PAL-B   | 6567R8 NTSC
+6569R1 PAL-B    | 6569R1 PAL-B   | 6567R56A NTSC
 
 ## What are the installation options?
 
@@ -202,7 +223,7 @@ NOTE: You can get away without removing the RF modulator but then you will have 
 
 # Cartridges that use DOT clock pin (pin 6)
 
-Any cartridge that uses the DOT clock signal on pin 6 will likely not function with VIC-II Kawari. This is because VIC-II Kawari bypasses the motherboard's clock circuit. The signal that reaches pin 6 of the cartridge port comes from that circuit. It will therefore be out of sync/phase with the clock that is driving the CPU and data on the bus. I'm not aware of any specific cartridges that use this pin but if there are any, they would be specialty cartridges (like SuperCPU, REU, etc). As cartridges that do not function are discovered, they will be added to a list here.
+A cartridge that uses the DOT clock signal on pin 6 may not work when the clock source is set to the on-board oscillator. The signal that reaches pin 6 of the cartridge port comes from the motherboard clock circuit and will likely be out of phase/sync with the clock generated by the on-board oscillator. In this case, you can configure your Kawari to use the motherboard's 'native' clock instead of the on-board oscillator. Note, however, that only the machine's 'native' video standard will work with such a cartridge. I'm not aware of any cartridges
 
 # Function Lock Jumpers
 
