@@ -1,16 +1,30 @@
 
 #include <stdio.h>
+#include <math.h>
 
 #define BINARY 0
 #define DECIMAL 1
 #define CHARS 2
 #define CODE 3
+#define HEX 4
 
-static int output_type = CODE;
+#define max(a,b) \
+   ({ __typeof__ (a) _a = (a); \
+       __typeof__ (b) _b = (b); \
+     _a > _b ? _a : _b; })
+
+#define min(a,b) \
+   ({ __typeof__ (a) _a = (a); \
+       __typeof__ (b) _b = (b); \
+     _a < _b ? _a : _b; })
+
+static int output_type = DECIMAL;
 static int do_ntsc = 0;
 static int do_pal = 0;
-static int do_ansii = 0;
-static int do_community = 1;
+static int do_ansii = 1;
+static int do_community = 0;
+
+static int is_rgb = 0;
 
 static unsigned int community[] = {
   0x00,0x00,0x00, 0xff,0xff,0xff, 0xaf,0x2a,0x29, 0x62,0xd8,0xcc,
@@ -71,10 +85,59 @@ static char *name[] = {
         "LIGHT_GREY"
 };
 
+void rgb_to_hsv(double r, double g, double b, int *phase, int *amp, int *luma) {
+        // R, G, B values are divided by 255
+        // to change the range from 0..255 to 0..1
+        r = r / 255.0;
+        g = g / 255.0;
+        b = b / 255.0;
+ 
+        // h, s, v = hue, saturation, value
+        double cmax = max(r, max(g, b)); // maximum of r, g, b
+        double cmin = min(r, min(g, b)); // minimum of r, g, b
+        double diff = cmax - cmin; // diff of cmax and cmin.
+        double h = -1, s = -1;
+         
+        // if cmax and cmax are equal then h = 0
+        if (cmax == cmin)
+            h = 0;
+ 
+        // if cmax equal r then compute h
+        else if (cmax == r)
+            h = (int)((60 * ((g - b) / diff) + 360)) % 360;
+ 
+        // if cmax equal g then compute h
+        else if (cmax == g)
+            h = (int)((60 * ((b - r) / diff) + 120)) % 360;
+ 
+        // if cmax equal b then compute h
+        else if (cmax == b)
+            h = (int)((60 * ((r - g) / diff) + 240)) % 360;
+ 
+        // if cmax equal zero
+        if (cmax == 0)
+            s = 0;
+        else
+            s = (diff / cmax) * 100;
+ 
+        // compute v
+        double v = cmax * 100;
+
+        h=(int)(h+112.5d) % 360;
+
+        *phase = h * (256.0d/359.0d);
+        *amp = s*(15.0d/100.0d);
+        *luma = v*(63.0d/100.0d);
+        if (*amp == 0) *phase = 0;
+        if (*luma < 12) *luma = 12;
+        //printf("%f  %f %f %f\n", h,  h*(255.0d/359.0d), s*(15.0d/100.0d), v*(63.0d/100.0d));
+ 
+}
+
 char dst[3][16];
-char* bin(int n, int v) {
-   int bit=128;
-   for(int b=0;b<6;b++) {
+char* bin(int n, int sb, int nb, int v) {
+   int bit=sb;
+   for(int b=0;b<nb;b++) {
       if (v & bit) 
           dst[n][b] = '1';
       else  
@@ -88,61 +151,58 @@ char* bin(int n, int v) {
 // for colors.
 int main(int argc, char *argv[]) {
   int loc;
+  int R,G,B;
 
   if (output_type == CODE)
      printf ("    case (pixel_color4)\n");
 
-  if (do_ntsc) {
-    for (int i=0;i<16;i++) {
-       if (output_type == BINARY)
-          printf ("%s%s%s000000\n",bin(0,ntsc[i*3]), bin(1,ntsc[i*3+1]), bin(2,ntsc[i*3+2]));
-       else if (output_type == DECIMAL)
-          printf ("%d,%d,%d,0\n",ntsc[i*3]>>2, ntsc[i*3+1]>>2, ntsc[i*3+2]>>2);
-       else if (output_type == CHARS)
-          printf ("%c%c%c%c",ntsc[i*3]>>2, ntsc[i*3+1]>>2, ntsc[i*3+2]>>2, 0);
-       else if (output_type == CODE)
-	  printf ("        `%s:{red, green, blue} <= {6'h%02x, 6'h%02x, 6'h%02x};\n", name[i], 
-                        ntsc[i*3]>>2, ntsc[i*3+1]>>2, ntsc[i*3+2]>>2);
-    } 
-  }
-  if (do_pal) {
-    for (int i=0;i<16;i++) {
-       if (output_type == BINARY)
-          printf ("%s%s%s000000\n",bin(0,pal[i*3]), bin(1,pal[i*3+1]), bin(2,pal[i*3+2]));
-       else if (output_type == DECIMAL)
-          printf ("%d,%d,%d,0\n",pal[i*3]>>2, pal[i*3+1]>>2, pal[i*3+2]>>2);
-       else if (output_type == CHARS)
-          printf ("%c%c%c%c",pal[i*3]>>2, pal[i*3+1]>>2, pal[i*3+2]>>2, 0);
-       else if (output_type == CODE)
-	  printf ("        `%s:{red, green, blue} <= {6'h%02x, 6'h%02x, 6'h%02x};\n", name[i], 
-                        pal[i*3]>>2, pal[i*3+1]>>2, pal[i*3+2]>>2);
-    } 
-  }
-  if (do_ansii) {
-    for (int i=0;i<16;i++) {
-       if (output_type == BINARY)
-          printf ("%s%s%s000000\n",bin(0,ansii[i*3]), bin(1,ansii[i*3+1]), bin(2,ansii[i*3+2]));
-       else if (output_type == DECIMAL)
-          printf ("%d,%d,%d,0\n",ansii[i*3]>>2, ansii[i*3+1]>>2, ansii[i*3+2]>>2);
-       else if (output_type == CHARS)
-          printf ("%c%c%c%c",ansii[i*3]>>2, ansii[i*3+1]>>2, ansii[i*3+2]>>2, 0);
-       else if (output_type == CODE)
-	  printf ("        `%s:{red, green, blue} <= {6'h%02x, 6'h%02x, 6'h%02x};\n", name[i], 
-                        ansii[i*3]>>2, ansii[i*3+1]>>2, ansii[i*3+2]>>2);
-    } 
-  }
-  if (do_community) {
-    for (int i=0;i<16;i++) {
-       if (output_type == BINARY)
-          printf ("%s%s%s000000\n",bin(0,community[i*3]), bin(1,community[i*3+1]), bin(2,community[i*3+2]));
-       else if (output_type == DECIMAL)
-          printf ("%d,%d,%d,0\n",community[i*3]>>2, community[i*3+1]>>2, community[i*3+2]>>2);
-       else if (output_type == CHARS)
-          printf ("%c%c%c%c",community[i*3]>>2, community[i*3+1]>>2, community[i*3+2]>>2, 0);
-       else if (output_type == CODE)
-	  printf ("        `%s:{red, green, blue} <= {6'h%02x, 6'h%02x, 6'h%02x};\n", name[i], 
-                        community[i*3]>>2, community[i*3+1]>>2, community[i*3+2]>>2);
-    } 
+  for (int i=0;i<16;i++) {
+     if (do_ntsc) {
+       R=ntsc[i*3];
+       G=ntsc[i*3+1];
+       B=ntsc[i*3+2];
+     }
+     if (do_pal) {
+       R=pal[i*3];
+       G=pal[i*3+1];
+       B=pal[i*3+2];
+     }
+     if (do_ansii) {
+       R=ansii[i*3];
+       G=ansii[i*3+1];
+       B=ansii[i*3+2];
+     }
+     if (do_community) {
+       R=community[i*3];
+       G=community[i*3+1];
+       B=community[i*3+2];
+     }
+
+     if (is_rgb) {
+        if (output_type == BINARY)
+           printf ("%s%s%s000000\n",bin(0,128,6,R), bin(1,128,6,G), bin(2,128,6,B));
+        else if (output_type == DECIMAL)
+           printf ("%d,%d,%d,0\n",R>>2, G>>2, B>>2);
+        else if (output_type == HEX)
+           printf ("%02x,%02x,%02x,0\n",R>>2, G>>2, B>>2);
+        else if (output_type == CHARS)
+           printf ("%c%c%c%c",R>>2, G>>2, B>>2, 0);
+        else if (output_type == CODE)
+           printf ("        `%s:{red, green, blue} <= {6'h%02x, 6'h%02x, 6'h%02x};\n", name[i], R>>2, G>>2, B>>2);
+     } else {
+        int phase, amp, luma;
+        rgb_to_hsv(R,G,B, &phase, &amp, &luma);
+        if (output_type == BINARY)
+           printf ("%s%s%s\n",bin(0,32,6,luma), bin(1,128,8,phase), bin(2,8,4,amp));
+        else if (output_type == DECIMAL)
+           printf ("%d,%d,%d\n",luma, phase, amp);
+        else if (output_type == HEX)
+           printf ("%02x,%02x,%02x\n",luma, phase, amp);
+        else if (output_type == CHARS)
+           printf ("%c%c%c",luma, phase, amp);
+        else if (output_type == CODE)
+           printf ("        `%s:{luma, phase, amp} <= {6'h%02x, 6'h%02x, 6'h%02x};\n", name[i], luma, phase, amp);
+     }
   }
   if (output_type == CODE)
      printf ("    endcase\n");

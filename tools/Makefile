@@ -32,7 +32,7 @@ view_chargen: view_chargen.o
 	gcc -o view_chargen view_chargen.o
 
 make_colors: make_colors.o
-	gcc -o make_colors make_colors.o
+	gcc -o make_colors make_colors.o -lm
 
 make_luma_bin: make_luma_bin.o
 	gcc -o make_luma_bin make_luma_bin.o
