@@ -95,11 +95,6 @@ trow	.byt 0
 tcol	.byt 0
 attr	.byt 7
 
-; red,green,blue values for ANSII colors
-ansi .byt 0,0,0,0,51,0,0,0,19,38,1,0,49,40,0,0,28,39,51,0,29,20,30,0,1,38,38,0,52,53,51,0,21,21,20,0,59,10,10,0,34,56,13,0,63,58,19,0,12,43,63,0,43,31,42,0,13,56,56,0,63,63,63,0
-
-commodore .byt 0,0,0,0,63,63,63,0,26,13,10,0,28,41,44,0,27,15,33,0,22,35,16,0,13,10,30,0,46,49,27,0,27,19,9,0,16,14,0,0,38,25,22,0,17,17,17,0,27,27,27,0,38,52,33,0,27,23,45,0,37,37,37,0
-
 fonttmp .byte 0
 mapsave .byte 0
 fontcpycnt .byte 0
@@ -171,13 +166,6 @@ exit80	ldx 214
 	sta attr
 
 +	inc update80
-
-	; put back previous colors
-	lda #>commodore
-	sta $5e
-	lda #<commodore
-	sta $5d
-	jsr load_colors
 
 	lda #0
         sta KAWARI_VMODE1
@@ -261,19 +249,6 @@ init_loop1
 	sta $01
 	cli
 
-        ; remember commodore colors
-	lda #>commodore
-	sta $5e
-	lda #<commodore
-	sta $5d
-	jsr save_colors
-	; install ANSI colors
-	lda #>ansi
-	sta $5e
-	lda #<ansi
-	sta $5d
-	jsr load_colors
-
 	ldx #0
 	jsr getloc
 
@@ -321,50 +296,6 @@ calcreg cpy #80
 	bcc +
 	inc coloc+1
 +	jmp setcursor
-
-; set colors from ($5d)
-load_colors
-	lda #32
-	sta KAWARI_PORT ; make regs visible
-	lda #0
-	sta VMEM_A_HI
-	lda #64         ; start of color regs
-	sta VMEM_A_LO
-	ldy #0
-lcol_loop
-	lda ($5d),y
-	sta VMEM_A_VAL
-	inc VMEM_A_LO
-	iny
-	tya
-	cmp #64
-	bne lcol_loop
-
-	lda #0
-	sta KAWARI_PORT ; no regs
-	rts
-
-; remember colors into ($5d)
-save_colors
-	lda #32
-	sta KAWARI_PORT ; make regs visible
-	lda #0
-	sta VMEM_A_HI
-	lda #64         ; start of color regs
-	sta VMEM_A_LO
-	ldy #0
-scol_loop
-	lda VMEM_A_VAL
-	sta ($5d),y
-	inc VMEM_A_LO
-	iny
-	tya
-	cmp #64
-	bne scol_loop
-
-	lda #0
-	sta KAWARI_PORT ; no regs
-	rts
 
 insert  cpx sctop
         bcc delall2
