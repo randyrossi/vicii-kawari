@@ -42,7 +42,6 @@ public class Sine extends java.awt.Frame implements KeyListener {
       }
 
       for (int wave = 1; wave < NUM_WAVES; wave++) {
-	 System.err.println(amp);
          for (int x = 0; x < 256; x++) {
             int y = (int)(Math.sin(x/40.74366) * amp); // 256/(2*pi)
 	    sine_tables[p++] = y;
