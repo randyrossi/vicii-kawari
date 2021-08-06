@@ -9,7 +9,7 @@ Build
 
     make             - verilate fpga design
     make logic       - show logic analyser on simulation trace
-    make view        - show a frame
+    make view        - show a frame (vicsim -w)
     make config_test - run through config permutations
 
 Usage

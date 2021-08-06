@@ -50,10 +50,10 @@ SIM_CONFIG = 0
 # Use -DHIRES_TEXT -DHIRES_BITMAP1 -DHIRES_BITMAP2 -DHIRES_BITMAP3 for other modes
 obj_dir/Vtop: $(VTOP_DEPS) gen_config \
 	../hdl/registers_eeprom.v ../hdl/registers_ram.v
-	@(./gen_config $(SIM_CONFIG) > ../hdl/config.vh)
+	#@(./gen_config $(SIM_CONFIG) > ../hdl/config.vh)
 	$(VERILATOR) --top-module top --trace -cc  --exe \
 	    -I../hdl $(VERILOG_SOURCES) -I../hdl/dvi sim_main.cpp log.cpp \
-	    -CFLAGS "-g `./gen_config $(SIM_CONFIG) defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
+	    -CFLAGS "-g -DVIC_ROLL=1 `./gen_config $(SIM_CONFIG) defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
 
 default: obj_dir/Vtop
@@ -73,17 +73,8 @@ install: libvicii_ipc.so
 	sudo cp vicii_ipc.h /usr/include
 	sudo chmod oug+r /usr/include/vicii_ipc.h
 
-# Bring up the logic analyser on most recent session
-logic_fix:
-	vicrepair session.vcd
-	gtkwave session.vcd --script session.tcl
-
 logic:
 	gtkwave session.vcd --script session.tcl
-
-# Render a frame in the window
-view: obj_dir/Vtop
-	obj_dir/Vtop -w
 
 gen_config: gen_config.o
 	cc -o gen_config gen_config.o

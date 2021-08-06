@@ -18,13 +18,14 @@
        __typeof__ (b) _b = (b); \
      _a < _b ? _a : _b; })
 
-static int output_type = DECIMAL;
+static int output_type = CODE;
 static int do_ntsc = 0;
 static int do_pal = 0;
-static int do_ansii = 1;
-static int do_community = 0;
+static int do_ansii = 0;
+static int do_community = 1;
 
-static int is_rgb = 0;
+static int is_rgb = 1;
+static int is_half_bright = 0;
 
 static unsigned int community[] = {
   0x00,0x00,0x00, 0xff,0xff,0xff, 0xaf,0x2a,0x29, 0x62,0xd8,0xcc,
@@ -176,6 +177,12 @@ int main(int argc, char *argv[]) {
        R=community[i*3];
        G=community[i*3+1];
        B=community[i*3+2];
+     }
+
+     if (is_half_bright) {
+        R=R>>1;
+        G=G>>1;
+        B=B>>1;
      }
 
      if (is_rgb) {
