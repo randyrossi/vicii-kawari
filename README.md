@@ -84,13 +84,13 @@ TODO : xrandr or windows equiv to test monitor
 It can replace the 6567R8(NTSC),6567R56A(NTSC),6569R3(PAL-B),6569R1(PAL-B) models. It can assume the functionality of either video standard with a simple configuration change followed by a cold boot. This means your C64 can be both an NTSC and PAL machine. (PAL-N / PAL-M are not supported but it can be added with some hardware modifications.)
 
 ## Will this work in C64-C (short board) models?
-It will function if plugged into a C64-C 'short' board. The VDD pin is not connected so there is no voltage compatibility issue like with the real 8562/8565 models. Keep in mind that the board will behave as a 6567/6569 even when replacing a 8562/8565.
+It will function if plugged into a C64-C 'short' board. The VDD pin is not connected so there is no voltage compatibility issue like with the real 8562/8565 models. Keep in mind that the board will behave as a 6567/6569 even when replacing a 8562/8565 (the differences are minor).
 
 ## Isn't the quality of 6567R56A composite video bad?
-The 6567R56A composite signal is known to be worse than the 6567R8. The cycle schedule (and hence timing) is slighly different in the 6567R56A. It generates a signal slightly out of range from the expected 15.734khz horizontal frequency for NTSC (it generates 15.980khz instead). Some composite LCD monitors don't like this and even the real chips produced unwanted artifacts on those types of displays. You will get the same unwanted artifacts from a VIC-II Kawari producing composite video when configured as a 6567R56A. Most CRTs, however, are more forgiving and you may not notice the difference. Some TVs still show a bad picture. When using DVI or RGB output, this is of no concern as long as your monitor can handle the frequency (the image will look just as good as any other mode). There may be _some_ NTSC programs that depend on 6567R56A to run properly due to the cycle schedule but I'm not aware of any.
+The 6567R56A composite signal is known to be worse than the 6567R8. The cycle schedule (and hence timing) is slighly different in the 6567R56A. It generates a signal slightly out of range from the expected 15.734khz horizontal frequency for NTSC (it generates 15.980khz instead). Some composite LCD monitors don't like this and even the real chips produced unwanted artifacts on those types of displays. You will get the same unwanted artifacts from a VIC-II Kawari producing composite video when configured as a 6567R56A. Most CRTs, however, are more forgiving and you may not notice the difference. Some TVs still show a bad picture. When using DVI or RGB output, this is of no concern as long as your monitor can handle the frequency (the image will look just as good as any other mode). There may be _some_ NTSC programs that depend on 6567R56A to run properly due to the cycle schedule but I'm not aware of any.  The default config defines only 5 luminance levels for the 6567R56A.
 
 ## What about the 6569R4/R5?
-There are subtle differences between the PAL-B revisions mostly to do with luminance levels. I included the 6569R1 as an option but keep in mind it has only 5 luminance levels instead of 8 and also has a light pen irq trigger bug.
+There are subtle differences between the PAL-B revisions mostly to do with luminance levels. I included the 6569R1 as an option.  Keep in mind the default luma config has only 5 luminance levels instead of 8 and also has a light pen irq trigger bug. (There's nothing stopping you from defining 8 lumanance levels for the 6569R1 though).
 
 ## What about the 6572?
 It is, in theory, possible to re-purpose one of the video standards to be a 6572 (South America PAL-N). It would require a firmware change and the board would have to be configured to use the motherboard's clock (or one of the oscillators changed to match PAL-N frequency).  Either NTSC or PAL-B could be replaced with PAL-N. As far as I can tell, the only reason to do this would be to get real Argentinian CRTs/TVs to display a composite signal correctly while being (mostly) compatible with NTSC software. (This is a lower priority project but if someone else wants to take on the challenge, it could appear as a fork.)
@@ -106,15 +106,15 @@ Here is a table describing the valid jumper configurations:
 
 PAL-B Jumper | NTSC Jumper | Description
 :--------:|:--------:|------------
-<span style="font-family:fixed;line-height:1em;">█<br><br>█<br>│<br>█</span>|<span style="font-family:courier;line-height:1em;">█<br>│<br>█<br> <br>█</span>|Uses on-board oscillators for both video standards.  Some specialty cartridges using Pin 6 of cartridge port may not work.
+<span style="font-family:fixed;line-height:1em;">█<br><br>█<br>│<br>█</span>|<span style="font-family:courier;line-height:1em;">█<br><br>█<br>│<br>█</span>|Uses on-board oscillators for both video standards.  Some specialty cartridges using Pin 6 of cartridge port may not work.
 
 PAL-B Jumper | NTSC Jumper | Description
 :--------:|:--------:|------------
-<span style="font-family:fixed;line-height:1em;">█<br>│<br>█<br><br>█</span>|<span style="font-family:courier;line-height:1em;">█<br>│<br>█<br> <br>█</span>|Uses on-board oscillator for NTSC, motherboard clock for PAL-B.  Board will only work in PAL-B mode on a PAL-B machine. Some specialty cartridges using Pin 6 of cartridge port may not work in NTSC mode.
+<span style="font-family:fixed;line-height:1em;">█<br>│<br>█<br><br>█</span>|<span style="font-family:courier;line-height:1em;">█<br><br>█<br>│<br>█</span>|Uses on-board oscillator for NTSC, motherboard clock for PAL-B.  Board will only work in PAL-B mode on a PAL-B machine. Some specialty cartridges using Pin 6 of cartridge port may not work in NTSC mode.
 
 PAL-B Jumper | NTSC Jumper | Description
 :--------:|:--------:|------------
-<span style="font-family:fixed;line-height:1em;">█<br><br>█<br>│<br>█</span>|<span style="font-family:courier;line-height:1em;">█<br><br>█<br>│<br>█</span>|Uses on-board oscillator for PAL-B, motherboard clock for NTSC. Board will only work in NTSC mode on a NTSC machine.  Some speciality cartridges using Pin 6 of cartridge port may not work in PAL-B mode.
+<span style="font-family:fixed;line-height:1em;">█<br><br>█<br>│<br>█</span>|<span style="font-family:courier;line-height:1em;">█<br>│<br>█<br><br>█</span>|Uses on-board oscillator for PAL-B, motherboard clock for NTSC. Board will only work in NTSC mode on a NTSC machine.  Some speciality cartridges using Pin 6 of cartridge port may not work in PAL-B mode.
 
 
 ## Do I need to modify my C64 motherboard?
