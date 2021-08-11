@@ -50,7 +50,7 @@ SIM_CONFIG = 0
 # Use -DHIRES_TEXT -DHIRES_BITMAP1 -DHIRES_BITMAP2 -DHIRES_BITMAP3 for other modes
 obj_dir/Vtop: $(VTOP_DEPS) gen_config \
 	../hdl/registers_eeprom.v ../hdl/registers_ram.v
-	#@(./gen_config $(SIM_CONFIG) > ../hdl/config.vh)
+	@(./gen_config $(SIM_CONFIG) > ../hdl/config.vh)
 	$(VERILATOR) --top-module top --trace -cc  --exe \
 	    -I../hdl $(VERILOG_SOURCES) -I../hdl/dvi sim_main.cpp log.cpp \
 	    -CFLAGS "-g -DVIC_ROLL=1 `./gen_config $(SIM_CONFIG) defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
