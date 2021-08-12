@@ -21,7 +21,11 @@ module LUMA_REGS
            output reg [data_width-1:0] dout_b
        );
 
+`ifdef WITH_64K
+(* ram_style = "distributed" *) reg [data_width-1:0] ram_dual_port[2**addr_width-1:0];
+`else
 (* ram_style = "block" *) reg [data_width-1:0] ram_dual_port[2**addr_width-1:0];
+`endif
 
 initial $readmemb ("luma.bin", ram_dual_port);
 

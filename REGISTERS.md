@@ -125,7 +125,8 @@ BIT 8       | UNUSED
 VIDEO_MODE2 | Description
 ------------|------------
 BIT 1-4     | MATRIX_BASE
-BIT 4-8     | COLOR_BASE
+BIT 5-8     | COLOR_BASE
+
 
 ## Color Memory
 For the 80 column text mode, each byte stores color information as well as display attributes.
@@ -147,9 +148,71 @@ These bit controls the hires video mode.
 HIRES MODE | Description
 -----------|-------------
 0          | 80 Column Text 16 Colors (4K CharDef, 2K Matrix, 2K Color)
-1          | 640x200 Bitmap 16 Colors (16K Bitmap, 2K Color)
-2          | 320x200 Bitmap 16 Color 2 Planes (32K Bitmap)
-3          | 640x200 Bitmap 4 Color 2 Planes (32K Bitmap)
+1          | 640x200 Bitmap 16 Colors (16K Bitmap, 2K Color - 8x8 color cells)
+2          | 320x200 Bitmap 16 Color (32K Bitmap, packed pixels, 2 pixels per byte)
+3          | 640x200 Bitmap 4 Color (32K Bitmap, packed pixels, 4 pixels per byte)
+
+### Mode 0
+
+Base Pointer    | Description                                     | Range             | Restrictions
+----------------|-------------------------------------------------|-------------------|------------------
+CHAR_PIXEL_BASE | Points to a 4k block with character ROM data    | XXXXX000-XXXXX111 | lower 32k only
+MATRIX_BASE     | Points to a 2k block for 80x25 character matrix | XXXX0000-XXXX1111 | lower 32k only
+COLOR_BASE      | Points to a 2k block for 80x25 color matrix     | XXXX0000-XXXX1111 | lower 32k only
+
+    This works much like 40 column text mode except matrix bytes are fetched on both HIGH and LO
+    PHI cycles giving 80 bytes per line:
+
+    VC (11 bit matrix counter, repeats for 8 rows)
+    RC (3 bit row counter : 0-7)
+
+    Color Fetch Addr (15): COLOR_BASE(4) | VC(11)
+    Matrix Fetch Addr (15):  MATRIX_BASE(4) | VC(11)
+    Char Pixel Fetch Addr (15): CHAR_PIXEL_BASE(3) | CASE_BIT(1) | CHAR_NUM(8) | RC(3)
+
+### Mode 1
+
+Base Pointer    | Description                                     | Range             | Restrictions
+----------------|-------------------------------------------------|-------------------|--------------
+CHAR_PIXEL_BASE | Unused                                          |                   |
+MATRIX_BASE     | Points to a 16k block 640x200 pixel data        | XXXXXX00-XXXXXX11 |
+COLOR_BASE      | Points to a 2k block for 80x25 color matrix     | XXXX0000-XXXX1111 | lower 32k only
+
+    Pixel data represents either forground color (determined by cell color) or background color. One
+    byte is fetched each half cycle giving 80 bytes per line.
+
+    FVC (14 bit counter)
+    Color Fetch Addr (15): COLOR_BASE(4) | VC(11)
+    Pixel Fetch Addr (16): MATRIX_BASE[1:0](2) | FVC
+
+### Mode 2
+
+Base Pointer    | Description                                     | Range             | Restrictions
+----------------|-------------------------------------------------|-------------------|--------------
+CHAR_PIXEL_BASE | Unused                                          |                   |
+MATRIX_BASE     | Points to a 32k block 320x200 packed pixel data | XXXXXXX0-XXXXXXX1 |
+COLOR_BASE      | Unused                                          |                   |
+
+    Two bytes are fetched each half cycle giving 160 bytes each line. But each pixel color is
+    defined by a nibble (16 colors) so we get 2 pixels per byte, or 320 pixels each line.
+
+    FVC (15 bit counter)
+    Pixel Fetch Addr (16) : MATRIX_BASE[0](1) | HVC
+
+### Mode 3
+
+Base Pointer    | Description                                     | Range             | Restrictions
+----------------|-------------------------------------------------|-------------------|--------------
+CHAR_PIXEL_BASE | Unused                                          |                   |
+MATRIX_BASE     | Points to a 32k block 640x200 packed pixel data | XXXXXXX0-XXXXXXX1 |
+COLOR_BASE      | Color bank                                      | XXXXXX00-XXXXXX11 |
+
+    Two bytes are fetched each half cycle giving 160 bytes each line. But each pixel color is
+    defined by a 2 adjacent bits (4 colors), so we get 4 pixels per byte, or 640 pixels each line.
+    The bank of 4 colors within the available 16 are determined by the lower 2 bits of COLOR_BASE.
+
+    HVC (15 bit counter)
+    Pixel Fetch Addr (16) : MATRIX_BASE[0](1) | HVC
 
 ### Writing to video memory from main DRAM using auto increment
     LDA <ADDR

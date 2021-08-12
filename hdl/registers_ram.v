@@ -184,7 +184,7 @@ task read_ram(
             end
         end else begin
             video_ram_r <= 1;
-            video_ram_addr_a <= {ram_hi[6:0], ram_lo} + {7'b0, ram_idx};
+            video_ram_addr_a <= {ram_hi[`VIDEO_RAM_HI_RANGE], ram_lo} + {7'b0, ram_idx};
         end
     end
 endtask
@@ -411,7 +411,7 @@ task write_ram(
             video_ram_wr_a <= 1'b1;
             video_ram_aw <= 1'b1;
             video_ram_data_in_a <= data[7:0];
-            video_ram_addr_a <= {ram_hi[6:0], ram_lo} + {7'b0, ram_idx};
+            video_ram_addr_a <= {ram_hi[`VIDEO_RAM_HI_RANGE], ram_lo} + {7'b0, ram_idx};
         end
     end
 endtask

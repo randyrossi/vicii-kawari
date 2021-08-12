@@ -3,11 +3,9 @@
 `include "common.vh"
 
 // --- BEGIN EXTENSIONS ----
-// This is one 32k bank. Think about upping to 64k if we need it
-// but then all our block ran would be exhausted.
 module VIDEO_RAM
        #(
-           parameter addr_width = 15,
+           parameter addr_width = `VIDEO_RAM_WIDTH,
            data_width = 8
        )
        (

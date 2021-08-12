@@ -1,7 +1,7 @@
 // Header for register_flash.v
 
 // Current video memory addr for flash op
-reg [14:0] flash_vmem_addr;
+reg [ram_width-1:0] flash_vmem_addr;
 
 // Current flash memory addr
 reg [23:0] flash_addr;

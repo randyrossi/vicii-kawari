@@ -53,10 +53,8 @@ public class Conv640X200 {
         int height = img2.getHeight();
         int width = img2.getWidth();
 
-	FileOutputStream f = new FileOutputStream(new File("640x200_0.bin"));
-	FileOutputStream f2 = new FileOutputStream(new File("640x200_1.bin"));
+	FileOutputStream f = new FileOutputStream(new File("640x200.bin"));
 	DataOutputStream dos = new DataOutputStream(f);
-	DataOutputStream dos2 = new DataOutputStream(f2);
 
 	int p=0;
         for (int h=0;h< height;h++) {
@@ -72,7 +70,7 @@ public class Conv640X200 {
                 System.exit(0);
         }
 
-        for (int z=0;z<2;z++) {
+        for (int z=0;z<4;z++) {
            for (p=0;p<4;p++) {
            for (Color col : map.keySet()) {
                 if (map.get(col) == p) {
@@ -82,6 +80,11 @@ public class Conv640X200 {
                 int r2 = (r >> 2);
                 int g2 = (g >> 2);
                 int b2 = (b >> 2);
+                // Populate the upper color banks with RGB shades
+                // for testing the color_base for 4 col hires mode
+                if (z==1) {r2=0; g2=0;};
+                if (z==2) {b2=0; g2=0;};
+                if (z==3) {b2=0; r2=0;};
                 int v = (r2 << 12) | (g2 << 6) | b2;
 
 		if (binaryColors) {
@@ -99,33 +102,34 @@ public class Conv640X200 {
                 }
               }
             }
-        }
-        }
-
-	int b0=0; // byte for plane 0
-	int b1=0; // byte for plane 1
-        for (int h=0;h< height;h++) {
-          for (int w=0;w< width;w++) {
-                Color v = new Color(img2.getRGB(w, h));
-                int index = map.get(v);
-		//int r = v.getRed();
-		//int g = v.getGreen();
-		//int b = v.getBlue();
-                //int index = findBest(r,g,b);
-		b0 = b0 | ((index & 0b1) << (7-w%8));
-		b1 = b1 | (((index >> 1) & 0b1) << (7-w%8));
-
-		if (w%8 == 7) {
-                    dos.writeByte(b0); b0=0;
-                    dos2.writeByte(b1); b1=0;
-		}
           }
         }
-	for (int i=0;i<384;i++) {
-                    dos.writeByte(0);
-                    dos2.writeByte(0);
+
+	int b1=0;
+	int b2=0;
+	int b3=0;
+	int b4=0;
+        for (int h=0;h< height;h++) {
+          for (int w=0;w< width;w=w+4) {
+                Color v = new Color(img2.getRGB(w, h));
+                int index = map.get(v);
+                b1 = index & 0b11;
+                v = new Color(img2.getRGB(w+1, h));
+                index = map.get(v);
+                b2 = index & 0b11;
+                v = new Color(img2.getRGB(w+2, h));
+                index = map.get(v);
+                b3 = index & 0b11;
+                v = new Color(img2.getRGB(w+3, h));
+                index = map.get(v);
+                b4 = index & 0b11;
+
+                dos.writeByte(b1 << 6 | b2 << 4 | b3 << 2 | b4);
+          }
+        }
+	for (int i=0;i<384*2;i++) {
+           dos.writeByte(0);
 	}
 	dos.close();
-	dos2.close();
     }
 }

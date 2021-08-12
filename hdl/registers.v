@@ -2,7 +2,12 @@
 
 `include "common.vh"
 
-module registers(
+module registers
+    #(
+        parameter ram_width = `VIDEO_RAM_WIDTH,
+                  ram_hi_width = `VIDEO_RAM_HI_WIDTH
+    )
+    (
            output reg rst = 1'b1,
            input cpu_reset_i,
            input standard_sw,
@@ -129,7 +134,7 @@ module registers(
            output reg [7:0] timing_v_sync_pal,
            output reg [7:0] timing_v_bporch_pal,
 `endif
-           input [14:0] video_ram_addr_b,
+           input [ram_width-1:0] video_ram_addr_b,
            output [7:0] video_ram_data_out_b,
 `ifdef HIRES_MODES
            output reg [2:0] hires_char_pixel_base,
@@ -212,7 +217,7 @@ reg video_ram_flag_regs_overlay;
 reg video_ram_flag_persist;
 
 // Port A used for CPU access
-reg [14:0] video_ram_addr_a;
+reg [ram_width-1:0] video_ram_addr_a;
 reg video_ram_wr_a;
 reg [7:0] video_ram_hi_1;
 reg [7:0] video_ram_lo_1;
@@ -275,11 +280,6 @@ wire [17:0] luma_regs_data_out_b;
 // We defer read inc/dec until the following cycle in case it is immediately
 // followed by a write. This ensures increment happens after the CPU
 // instruction is complete.
-
-// We have enough block ram on the Mojo's Spartan6 for one bank of 64k. But
-// we're going to limit ourselves to 32k for video ram and leave another 32k
-// for other purposes. If using a different FPGA, the address constructed here
-// could add bank select lines here.
 VIDEO_RAM video_ram(clk_dot4x,
                     video_ram_wr_a, // CPU can read/write
                     video_ram_addr_a,
@@ -454,15 +454,15 @@ always @(posedge clk_dot4x)
         hires_enabled <= 1'b1;
         hires_mode <= 2'b10;
         hires_char_pixel_base <= 3'b0; // ignored
-        hires_matrix_base <= 4'b0000; // ignored
+        hires_matrix_base <= 4'b0000; // 32k bank
         hires_color_base <= 4'b0000; // ignored
 	`endif
 	`ifdef HIRES_BITMAP3
         hires_enabled <= 1'b1;
         hires_mode <= 2'b11;
         hires_char_pixel_base <= 3'b0; // ignored
-        hires_matrix_base <= 4'b0000; // ignored
-        hires_color_base <= 4'b0000; // ignored
+        hires_matrix_base <= 4'b0000; // 32k bank
+        hires_color_base <= 4'b0000; // 4 color bank
 	`endif
 `endif // HIRES_MODES
 
@@ -472,7 +472,7 @@ always @(posedge clk_dot4x)
        if (spi_lock) begin
          flash_begin <= `FLASH_WRITE;
          // Grab the write address from 0x35,0x36,0x3a
-         flash_vmem_addr <= 15'b0;
+         flash_vmem_addr <= 0;
          flash_addr <= 24'h7d000;
          flash_command_ctr <= `FLASH_CMD_WREN;
          flash_bit_ctr <= 6'd0;
@@ -488,7 +488,7 @@ always @(posedge clk_dot4x)
        if (spi_lock) begin
          flash_begin <= `FLASH_READ;
          // Grab the write address from 0x35,0x36,0x3a
-         flash_vmem_addr <= 15'b0;
+         flash_vmem_addr <= 0;
          flash_addr <= 24'h7d000;
          flash_command_ctr <= `FLASH_CMD_READ;
          flash_bit_ctr <= 6'd0;
@@ -965,7 +965,7 @@ always @(posedge clk_dot4x)
                                 // FLASH_READ  10
                                 flash_begin <= dbi[1:0];
                                 // Greb vmem address
-                                flash_vmem_addr <= {video_ram_hi_2[6:0], video_ram_lo_2};
+                                flash_vmem_addr <= {video_ram_hi_2[ram_hi_width-1:0], video_ram_lo_2};
                                 // Grab the flash write address
                                 flash_addr <=
                                     {video_ram_idx_1,
@@ -1321,11 +1321,11 @@ always @(posedge clk_dot4x)
             if (video_ram_copy_state == 2'b0) begin
                 // read
                 video_ram_wr_a <= 1'b0;
-                video_ram_addr_a <= video_ram_copy_src[14:0];
+                video_ram_addr_a <= video_ram_copy_src[ram_width-1:0];
             end else if (video_ram_copy_state == 2'b10) begin
                 // write
                 video_ram_wr_a <= 1'b1;
-                video_ram_addr_a <= video_ram_copy_dst[14:0];
+                video_ram_addr_a <= video_ram_copy_dst[ram_width-1:0];
                 video_ram_data_in_a <= video_ram_data_out_a;
                 video_ram_copy_num <= video_ram_copy_num - 16'b1;
                 if (video_ram_copy_dir) begin
@@ -1347,7 +1347,7 @@ always @(posedge clk_dot4x)
         // Handle block fill here
         if (video_ram_fill_num > 0) begin
             video_ram_wr_a <= 1'b1;
-            video_ram_addr_a <= video_ram_fill_dst[14:0];
+            video_ram_addr_a <= video_ram_fill_dst[ram_width-1:0];
             video_ram_data_in_a <= video_ram_fill_val;
             video_ram_fill_dst <= video_ram_fill_dst + 16'b1;
             video_ram_fill_num <= video_ram_fill_num - 16'b1;

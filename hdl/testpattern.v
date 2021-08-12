@@ -14,7 +14,11 @@ module TEST_PATTERN
            output reg [data_width-1:0] dout
        );
 
+`ifdef WITH_64K
+(* ram_style = "distributed" *) reg [data_width-1:0] pattern[2**addr_width-1:0];
+`else
 (* ram_style = "block" *) reg [data_width-1:0] pattern[2**addr_width-1:0];
+`endif
 
 initial $readmemb ("testpattern.bin", pattern);
 

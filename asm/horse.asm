@@ -91,7 +91,7 @@ loop3
         inc VMEM_A_LO
         iny
         tya
-        cmp #16
+        cmp #64
         bne loop3
 
 wait

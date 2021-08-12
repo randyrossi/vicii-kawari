@@ -23,7 +23,11 @@
 // clk_col16x     57.272720 Mhz NTSC, 70.9379 Mhz PAL
 // clk_phi        1.02272 Mhz NTSC, .985248 Mhz PAL
 
-module vicii(
+module vicii
+           #(
+           parameter ram_width = `VIDEO_RAM_WIDTH
+           )
+           (
            output [1:0] chip,               // exported from registers
            input cpu_reset_i,
            input standard_sw,
@@ -171,8 +175,8 @@ reg [31:0] phi_gen;
 
 // Used to detect rising edge of dot clock inside a dot4x always block
 // Sequence goes 1 2 3 0:
-//    [1] is first tick inside a single pixel
-//    [0] is last tick inside a single pixel
+//    [1] is first tick inside a single (standard fat 320x200) pixel
+//    [0] is last tick inside a single (standard fat 320x200) pixel
 reg [3:0] dot_rising;
 
 // Delayed raster line for irq comparison
@@ -251,12 +255,12 @@ reg raster_irq_triggered;
 wire [9:0] vc; // video counter
 wire [2:0] rc; // row counter
 
-wire [14:0] video_ram_addr_b;
+wire [ram_width-1:0] video_ram_addr_b;
 wire [7:0] video_ram_data_out_b;
 
 `ifdef HIRES_MODES
 wire [10:0] hires_vc; // hires video counter
-wire [13:0] hires_fvc; // hires video counter (for 16k bitmap)
+wire [14:0] hires_fvc; // hires video counter (for 16k or 32k bitmap modes)
 wire [2:0] hires_rc; // hires row counter
 wire [2:0] hires_char_pixel_base;
 wire [3:0] hires_matrix_base;
@@ -1122,6 +1126,7 @@ hires_pixel_sequencer vic_hires_pixel_sequencer(
                           .ec(ec),
                           .main_border(main_border_d5),
                           .vborder(top_bot_border_d5),
+                          .color_base(hires_color_base),
                           .hires_pixel_color1(hires_pixel_color1),
                           .hires_sprite_pixel_color(hires_sprite_pixel_color),
                           .hires_stage1(hires_stage1),

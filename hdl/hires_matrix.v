@@ -20,7 +20,7 @@ module hires_matrix(
            input hires_badline,
            output reg [10:0] hires_vc,
            output reg [2:0] hires_rc,
-           output reg [13:0] hires_fvc // a fast counter for 16k bitmap mode
+           output reg [14:0] hires_fvc // a fast counter for 16k or 32k bitmap modes
        );
 
 reg [10:0] hires_vc_base;
@@ -43,18 +43,26 @@ always @(posedge clk_dot4x)
             if (clk_phi && cycle_num == 1 && raster_line == 9'd0) begin
                 hires_vc_base <= 11'd0;
                 hires_vc <= 11'd0;
-                hires_fvc <= 14'd0;
+                hires_fvc <= 15'd0;
             end
 
             // Increment within the same range (but this happens at 2x)
-            // So hires_vc only increments by 80 every 8 rows (within the
-            // visible region) while fvc increments by 80 per raster line
-            // (within the visible region)
+            // hires_vc increments by 80 every 8 rows (within the
+            // visible region).  It repeats its count starting from base
+            // for 8 lines before base is set higher. It is used to
+            // fetch one byte per half PHI cycle for text mode.
+            //
+            // hires_fvc increments by 160 per raster line (within
+            // the visible region). It can be used to fetch two
+            // adjacent bytes per half cycle (PHI) for 32k of visible
+            // pixel data.  If divided by 2, it can be used to fetch
+            // one byte per half cycle (PHI) for 16k of visible pixel
+            // data.
             if (cycle_num > 14 && cycle_num < 55) begin
                 if (!idle)
                     hires_vc <= hires_vc + 1'b1;
                 if (badline_hist != 0)
-                    hires_fvc <= hires_fvc + 1'b1;
+                    hires_fvc <= hires_fvc + 15'd2;
             end
 
             if (clk_phi && cycle_num == 13) begin

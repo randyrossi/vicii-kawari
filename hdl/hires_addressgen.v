@@ -14,7 +14,11 @@
 // fetching the data read from video memory. The data is then handed
 // to the pixel sequencer.
 
-module hires_addressgen(
+module hires_addressgen
+           #(
+           parameter ram_width = `VIDEO_RAM_WIDTH
+           )
+           (
            input clk_dot4x,
            input clk_phi,
 	   input [15:0] phi_phase_start,
@@ -24,9 +28,9 @@ module hires_addressgen(
            input [3:0] color_base,
            input [2:0] rc,
            input [10:0] vc,
-           input [13:0] fvc,
+           input [14:0] fvc,
            input char_case, // this comes from the existing cb[0]
-           output reg [14:0] video_mem_addr, // extended video ram address
+           output reg [ram_width-1:0] video_mem_addr, // extended video ram address
 	   input [7:0] video_mem_data,
 	   input [1:0] hires_mode,
 	   output reg [7:0] hires_pixel_data,
@@ -47,15 +51,17 @@ begin
                 case (hires_mode)
 		2'b00:
 		   // TEXT mode
-                   video_mem_addr <= {color_base, vc};
+                   video_mem_addr <= {`BIT_EXT_64K color_base, vc};
                 2'b01:
-                   // Bitmap 2k color
-                   video_mem_addr <= {color_base, vc};
+                   // 16k Bitmap 2k color mode
+                   video_mem_addr <= {`BIT_EXT_64K color_base, vc};
                 2'b10, 2'b11:
-                   video_mem_addr <= {1'b1, fvc}; // 2nd plane
+                   // 32k Bitmap modes, 1st pixel data byte fetch
+                   video_mem_addr <= {`BIT_EXT2_64K fvc};
                 endcase
 	    else if (phi_phase_start[4]) begin
-                video_mem_addr <= {matrix_base, vc};
+                video_mem_addr <= {`BIT_EXT_64K matrix_base, vc};
+                // For modes 10 and 11, this is pixel data
 		hires_color_data <= video_mem_data;
             end else if (phi_phase_start[6]) begin
 		case (hires_mode)
@@ -63,13 +69,16 @@ begin
 		   // TEXT mode pixel fetch
                    // No need to store the char ptr. We fetch it every
 		   // time anyway.
-                   video_mem_addr <=
-                       {char_pixel_base, char_case | hires_color_data[`HIRES_ALTC_BIT], video_mem_data, rc};
+                   video_mem_addr <= {`BIT_EXT_64K char_pixel_base,
+                                      char_case |
+                                      hires_color_data[`HIRES_ALTC_BIT],
+                                      video_mem_data, rc};
                 2'b01:
-                   // BITMAP mode pixel fetch
-                   video_mem_addr <= {matrix_base[0], fvc};
+                   // 16k Bitmap mode pixel fetch. Take 14:1 for 16k counter.
+                   video_mem_addr <= {`BIT_EXT3_64K fvc[14:1]};
                 2'b10, 2'b11:
-                   video_mem_addr <= {1'b0, fvc}; // 1st plane
+                   // 32k Bitmap modes, 2nd byte pixel data fetch.
+                   video_mem_addr <= {`BIT_EXT2_64K fvc | 15'b1};
                 endcase
 	    end else if (phi_phase_start[8])
 		hires_pixel_data <= video_mem_data;  // ready by 10

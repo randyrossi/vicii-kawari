@@ -17,7 +17,11 @@ module linebuf_RAM
            output reg [data_width-1:0] dout
        );
 
+`ifdef WITH_64K
+(* ram_style = "distributed" *) reg [data_width-1:0] ram_single_port[2**addr_width-1:0];
+`else
 (* ram_style = "block" *) reg [data_width-1:0] ram_single_port[2**addr_width-1:0];
+`endif
 
 always @(posedge clk)
 begin

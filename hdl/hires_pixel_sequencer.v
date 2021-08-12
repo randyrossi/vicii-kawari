@@ -16,6 +16,7 @@ module hires_pixel_sequencer(
            input [3:0] ec,
            input main_border,
            input vborder,
+           input [3:0] color_base,
            output reg [3:0] hires_pixel_color1,
            input [4:0] hires_sprite_pixel_color,
            output reg hires_stage1,
@@ -58,8 +59,9 @@ reg [7:0] hires_color_data_delayed4;
 reg [7:0] hires_color_data_delayed;
 
 // pixels being shifted and the associated char (for color info)
-reg [7:0] hires_color_shifting; // really only 4 bits
+reg [7:0] hires_color_shifting; // not really shifted, just goes with pixels shifting
 reg [7:0] hires_pixels_shifting;
+reg [15:0] hires2_pixels_shifting; // for 32k bitmap modes
 
 reg [3:0] ec_d2;
 reg [3:0] b0c_d2;
@@ -121,8 +123,8 @@ begin
 
 end
 
-reg[1:0] hires_pixel_value;
-reg[1:0] hires_pixel_value2; // for 2nd plane
+reg hires_pixel_value; // for text or 16k bitmap modes
+reg[3:0] hires2_pixel_value; // for 32k bitmap modes, up to 4 bits to determine color
 reg hires_ff;
 reg main_border_stage0;
 always @(posedge clk_dot4x)
@@ -135,26 +137,42 @@ begin
 
         // load pixels when xscroll matches pixel 0-7
         if (xscroll_delayed == hires_cycle_bit) begin
-            hires_ff <= 1'b1;
+            hires_ff <= 1'b0;
             if (!vborder && visible_d) begin
-                hires_pixels_shifting = hires_pixel_data_delayed;
-                hires_color_shifting = hires_color_data_delayed;
+                if (hires_mode[1] == 1'b0) begin
+                   // Text or 16k bitmap mode
+                   hires_pixels_shifting = hires_pixel_data_delayed;
+                   hires_color_shifting = hires_color_data_delayed;
+                end else begin
+                   // 32k bitmap modes
+                   // Here we use the color register for byte 1 and the pixel register
+                   // for byte 2.
+                   hires2_pixels_shifting = {hires_color_data_delayed,
+                                             hires_pixel_data_delayed};
+                end
             end else begin
-                hires_pixels_shifting = 8'b0;
-                hires_color_shifting = 8'b0;
+                if (hires_mode[1] == 1'b0) begin
+                   // Text or 16k bitmap mode
+                   hires_pixels_shifting = 8'b0;
+                   hires_color_shifting = 8'b0;
+                end else begin
+                   // 32k bitmap modes
+                   hires2_pixels_shifting = 16'b0;
+                end
             end
         end
-        hires_pixel_value <= hires_pixels_shifting[7:6];
-        hires_pixels_shifting = {hires_pixels_shifting[6:0], 1'b0};
-        // For planar bitmap modes, we shift the 2nd plane
-        if (hires_mode[1] == 1'b1) begin
-            hires_pixel_value2 <= hires_color_shifting[7:6];
-            hires_color_shifting = {hires_color_shifting[6:0], 1'b0};
+        if (hires_mode[1] == 1'b0) begin
+           // Text or 16k bitmap mode
+           hires_pixel_value <= hires_pixels_shifting[7];
+           hires_pixels_shifting = {hires_pixels_shifting[6:0], 1'b0};
+        end else begin
+           // 32k bitmap modes
+           hires2_pixel_value <= hires2_pixels_shifting[15:12];
+           hires2_pixels_shifting = {hires2_pixels_shifting[13:0], 2'b0};
         end
-    end
 
-    if (dot_rising[0] || dot_rising[2])
         hires_ff <= ~hires_ff;
+    end
 end
 
 always @(posedge clk_dot4x)
@@ -178,28 +196,29 @@ begin
                     // Bit 6 = reverse video
                     // Bit 5 = underline
                     // Bit 4 = blink
+                    // 'shifting' here is not really shifting
                     hires_pixel_color1 <=
                     ((hires_color_shifting[`HIRES_BLNK_BIT] && blink_ctr[`HIRES_BLINK_FREQ]) |
                      ~hires_color_shifting[`HIRES_BLNK_BIT]) ?
                     ((hires_color_shifting[`HIRES_UNDR_BIT] && hires_rc == 3'd7) ?
                      hires_color_shifting[3:0] :
-                     (hires_pixel_value[1] ^
+                     (hires_pixel_value ^
                       (hires_color_shifting[`HIRES_RVRS_BIT] | hires_cursor_delayed)) ?
                      hires_color_shifting[3:0] : b0c_d2) : b0c_d2;
                 end
                 2'b01:
-                    // 640x200 16 color bitmap. Uses only lower 4 bits of color...
+                    // 640x200 16 color bitmap. Uses only lower 4 bits of color as
+                    // color index. 'shifting' here is not really shifting
                     hires_pixel_color1 <=
-                    hires_pixel_value[1] ? hires_color_shifting[3:0] : b0c_d2;
+                        hires_pixel_value ? hires_color_shifting[3:0] : b0c_d2;
                 2'b10:
-                    // 320x200 16 color planar
-                    if (hires_ff)
-                        hires_pixel_color1 <= { hires_pixel_value2[1:0],
-                                                hires_pixel_value[1:0] };
+                    // 320x200 32k packed pixel (16 col)
+                    if (hires_ff) begin
+                        hires_pixel_color1 <= hires2_pixel_value[3:0];
+                    end
                 2'b11:
-                    // 640x200 4 color planar
-                    hires_pixel_color1 <= { 2'b0, hires_pixel_value2[1],
-                                            hires_pixel_value[1] };
+                    // 640x200 32k packed pixel (4 col)
+                    hires_pixel_color1 <= {color_base[1:0], hires2_pixel_value[3:2]};
             endcase
         end
     end

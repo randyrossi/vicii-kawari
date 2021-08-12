@@ -52,10 +52,8 @@ public class Conv320X200 {
         int height = img2.getHeight();
         int width = img2.getWidth();
 
-	FileOutputStream f = new FileOutputStream(new File("320x200_0.bin"));
-	FileOutputStream f2 = new FileOutputStream(new File("320x200_1.bin"));
+	FileOutputStream f = new FileOutputStream(new File("320x200.bin"));
 	DataOutputStream dos = new DataOutputStream(f);
-	DataOutputStream dos2 = new DataOutputStream(f2);
 
 	int p=0;
         for (int h=0;h< height;h++) {
@@ -71,7 +69,6 @@ public class Conv320X200 {
 		System.exit(0);
 	}
 
-	for (int z=0;z<2;z++) {
 	   for (p=0;p<16;p++) {
 	   for (Color col : map.keySet()) {
 		if (map.get(col) == p) {
@@ -99,37 +96,24 @@ public class Conv320X200 {
             }
 	    }
 	}
-	}
 
-	int b0=0; // byte for plane 0
-	int b1=0; // byte for plane 1
+	int nhi=0; // upper nibble
+	int nlo=0; // lower nibble
         for (int h=0;h< height;h++) {
-          for (int w=0;w< width;w++) {
+          for (int w=0;w< width;w=w+2) {
                 Color v = new Color(img2.getRGB(w, h));
 		int index = map.get(v);
-		//int r = v.getRed();
-		//int g = v.getGreen();
-		//int b = v.getBlue();
-                //int index = findBest(r,g,b);
-
-		//index = w% 16;
-		//System.out.println("index = " + index);
-		b0 = b0 | ((index & 0b11) << (3-w%4)*2);
-		b1 = b1 | (((index >> 2) & 0b11) << (3-w%4)*2);
-		//System.out.println("b0 = " + b0);
-		//System.out.println("b1 = " + b1);
-
-		if (w%4 == 3) {
-                    dos.writeByte(b0); b0=0;
-                    dos2.writeByte(b1); b1=0;
-		}
+                nhi = index & 0b1111;
+                v = new Color(img2.getRGB(w+1, h));
+		index = map.get(v);
+                nlo = index & 0b1111;
+                
+                dos.writeByte(nhi << 4 | nlo);
           }
         }
-	for (int i=0;i<384;i++) {
+	for (int i=0;i<384*2;i++) {
            dos.writeByte(0);
-           dos2.writeByte(0);
 	}
 	dos.close();
-	dos2.close();
     }
 }
