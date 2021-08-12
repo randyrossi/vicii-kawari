@@ -7,7 +7,8 @@
 // Pick a board.
 //`define SIMULATOR_BOARD 1
 //`define CMOD_BOARD 1
-`define REV_2_BOARD 1
+//`define REV_2_BOARD 1
+`define REV_3_BOARD 1
 
 // Notes on config permutations:
 //
@@ -22,6 +23,14 @@
 // custom RGB palette registers. Instead it uses luma, phase,
 // amplitude for each of the 16 colors.
 //
+
+// WITH_64K
+// --------
+// Uncomment to use all block ram for video memory. This makes
+// some dual port ram use distributed mem rather than block
+// ram and increases LUT usage.  This will guarantee the core
+// will NOT fit on an X9.  The most we can get on X9 is 32k.
+`define WITH_64K 1
 
 // TEST_PATTERN
 // ------------
