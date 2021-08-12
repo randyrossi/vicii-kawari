@@ -13,6 +13,7 @@ static unsigned int current_model = 0;
 
 static unsigned int next_display_flags = 0;
 static unsigned int current_display_flags = 0;
+static unsigned int current_switch_val = 0;
 static unsigned char current_lock_bits = 0;
 
 static unsigned int version = 0;
@@ -26,6 +27,7 @@ void get_display_flags(void)
    POKE(VIDEO_MEM_1_LO,DISPLAY_FLAGS);
    current_display_flags = PEEK(VIDEO_MEM_1_VAL);
    next_display_flags = current_display_flags;
+   current_switch_val = current_display_flags & DISPLAY_CHIP_INVERT_SWITCH;
 }
 
 void get_variant(void)
@@ -67,7 +69,7 @@ void show_chip_model()
        printf ("          ");
     }
     POKE(VIDEO_MEM_1_LO,DISPLAY_FLAGS);
-    flip=PEEK(VIDEO_MEM_1_VAL) & DISPLAY_CHIP_INVERT_SWITCH;
+    flip=current_switch_val;
 
     if (flip)
 	    printf ("INV");
@@ -112,10 +114,16 @@ void show_lock_bits(int y)
     TOXY(17,y);
     if (FLASH_LOCKED)
        printf ("FLASH ");
+    else
+       printf ("      ");
     if (EXTRA_LOCKED)
        printf ("EXTRA ");
+    else
+       printf ("      ");
     if (SAVES_LOCKED)
        printf ("SAVES ");
+    else
+       printf ("      ");
     if (line == 8) printf ("%c",146);
 }
 
@@ -180,6 +188,8 @@ void main_menu(void)
 {
     int need_refresh = 0;
     unsigned char can_save = 1;
+    unsigned char new_switch_val;
+    unsigned char new_lock_bits;
 
     POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
     version = get_version();
@@ -227,9 +237,10 @@ void main_menu(void)
           need_refresh = 0;
        }
 
-       r.a = wait_key_or_switch(
-          current_display_flags & DISPLAY_CHIP_INVERT_SWITCH,
-          current_lock_bits);
+       r.a = wait_key_or_change(
+          current_switch_val,
+          current_lock_bits,
+          &new_switch_val, &new_lock_bits);
 
        if (r.a == 'q') {
           CLRSCRN;
@@ -279,11 +290,11 @@ void main_menu(void)
           need_refresh=1;
        } else if (r.a == '*') {
           // external switch has changed
-          get_display_flags();
+          current_switch_val = new_switch_val;
           need_refresh=1;
        } else if (r.a == '%') {
           // lock bits changed
-          current_lock_bits = get_lock_bits();
+          current_lock_bits = new_lock_bits;
           need_refresh=1;
        }
    }

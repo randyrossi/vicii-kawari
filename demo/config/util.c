@@ -51,8 +51,10 @@ void safe_poke(long addr, char value)
 // Wait for either a key press or a change in
 // the external switch state.  Returns '*' if
 // swith state changed.
-unsigned char wait_key_or_switch(unsigned char current_switch_val,
-                                 unsigned char current_lock_bits)
+unsigned char wait_key_or_change(unsigned char current_switch_val,
+                                 unsigned char current_lock_bits,
+                                 unsigned char *new_switch_val,
+                                 unsigned char *new_lock_bits)
 {
     unsigned char inv; 
     unsigned char lb; 
@@ -62,9 +64,15 @@ unsigned char wait_key_or_switch(unsigned char current_switch_val,
         r.pc=0xF13E; _sys(&r);
 	if (r.a != 0) return r.a;
         inv = PEEK(VIDEO_MEM_1_VAL) & DISPLAY_CHIP_INVERT_SWITCH;
-        lb = get_lock_bits() & 56;
-        if (current_switch_val != inv) return '*';
-        if (current_lock_bits != lb) return '%';
+        lb = get_lock_bits();
+        if (current_switch_val != inv) {
+            *new_switch_val = inv;
+            return '*';
+        }
+        if (current_lock_bits != lb) {
+            *new_lock_bits = lb;
+            return '%';
+        }
     }
 }
 
@@ -78,7 +86,7 @@ unsigned int get_version(void)
 
 unsigned char get_lock_bits(void)
 {
-   return PEEK(SPI_REG);
+   return PEEK(SPI_REG) & 56;
 }
 
 unsigned char get_chip_model(void)

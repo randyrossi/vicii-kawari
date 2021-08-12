@@ -40,8 +40,10 @@ int enable_kawari(void);
 int have_magic(void);
 
 // Wait for a key press or a change in switch or lock bit values
-unsigned char wait_key_or_switch(unsigned char current_switch_val,
-                                 unsigned char current_lock_bits);
+unsigned char wait_key_or_change(unsigned char current_switch_val,
+                                 unsigned char current_lock_bits,
+                                 unsigned char *new_switch_val,
+                                 unsigned char *new_lock_bits);
 
 unsigned int get_version(void);
 unsigned char get_lock_bits(void);
