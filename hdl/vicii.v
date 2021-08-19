@@ -414,8 +414,14 @@ begin
             allow_bad_lines = `FALSE;
 
         badline = `FALSE;
-        if (raster_line[2:0] == yscroll && allow_bad_lines == `TRUE &&
-                raster_line >= 48 && raster_line < 248)
+        if (raster_line[2:0] == yscroll &&
+`ifdef HIRES_MODES
+            // Effectively disables badlines when hires is enabled
+            (allow_bad_lines == `TRUE && !hires_enabled)
+`else
+            allow_bad_lines == `TRUE
+`endif
+               && raster_line >= 48 && raster_line < 248)
             badline = `TRUE;
 
 `ifdef HIRES_MODES
