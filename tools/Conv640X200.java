@@ -23,30 +23,7 @@ public class Conv640X200 {
       mapit(img);
     }
 
-    static int pal[] = {
-    0, 0, 0, 63, 63, 63, 127, 127, 127, 255, 255, 255,
-    };
-
     static HashMap<Color,Integer> map = new HashMap<Color,Integer>();
-
-
-    static int findBest(int r, int g, int b) {
-       int mini = 0;
-       int min = Integer.MAX_VALUE;
-       for (int p=0;p<4;p++) {
-	       int r2 = pal[p*3];
-	       int g2 = pal[p*3+1];
-	       int b2 = pal[p*3+2];
-	       int dist = (int)(Math.sqrt((r-r2)*(r-r2)+
-	                  (g-g2)*(g-g2)+
-	                  (b-b2)*(b-b2)));
-	       if (dist < min) {
-		       min = dist;
-		       mini = p;
-	       }
-       }
-       return mini;
-    }
 
     public static void mapit(BufferedImage img2) throws Exception {
 
