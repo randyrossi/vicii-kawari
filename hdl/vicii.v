@@ -410,12 +410,7 @@ begin
                     raster_line_d == 48))
             allow_bad_lines = `TRUE;
 
-        if (raster_line == 248
-`ifdef HIRES_MODES
-                // Extra condition to disable bad lines when hires mode is enabled.
-                || hires_enabled
-`endif
-           )
+        if (raster_line == 248)
             allow_bad_lines = `FALSE;
 
         badline = `FALSE;
