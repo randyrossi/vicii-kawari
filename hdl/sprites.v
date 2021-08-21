@@ -54,6 +54,10 @@ module sprites(
            input [7:0] raster_line, // top bit omitted for comparison to y
            input aec,
            input is_background_pixel,
+`ifdef HIRES_MODES
+           input hires_enabled,
+           input hires_is_background_pixel,
+`endif
            input stage0,
            input imbc_clr,
            input immc_clr,
@@ -551,7 +555,12 @@ always @(posedge clk_dot4x)
             for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
                 if (((sprite_mmc_d[n] && sprite_cur_pixel[n] != 0) || // multicolor
                         (!sprite_mmc_d[n] && sprite_cur_pixel[n][1] != 0)) & // non multicolor
-                        !is_background_pixel) begin
+`ifdef HIRES_MODES
+                        ((!hires_enabled && !is_background_pixel) || (hires_enabled && !hires_is_background_pixel))
+`else
+                        !is_background_pixel
+`endif
+                        ) begin
                     sprite_m2d[n] <= `TRUE;
                     if (!m2d_triggered) begin
                         m2d_triggered <= `TRUE;

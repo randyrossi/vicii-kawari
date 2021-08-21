@@ -178,7 +178,7 @@ In addition to the 80 column text mode, three bitmap modes have been added for y
 
 #### Notes about sprites in hires-modes
 
-Low-res sprites will show up on the hi-res modes. However, they behave according to low-res mode rules. That means their x-positions are still low resolution and will be shifted half a pixel to the left from the low-res mode. (This is due to the way the hires pixel sequencer works). Also, background collisions will trigger based on low-res screen data, even though it is not visible. Sprite to sprite collisions should work as expected. This was a compromise chosen between adding new hires sprite support (taking up a lot of FPGA space) and having no sprites at all.
+Low-res sprites will show up on the hi-res modes. However, they behave according to low-res mode rules. That means their x-positions are still low resolution. Background collisions will trigger based on hi-res screen data, but cannot detect collisions at the 'half' pixel resolution. Sprite to sprite collisions should work as expected. This was a compromise chosen between adding new hires sprite support (taking up a lot of FPGA space) and having no sprites at all.  For the 320x200 and 640x200 bitmap modes, a pixel is considered to be background if it matches the background color register value.  Otherwise, it is foreground.
 
 ### Software switch between PAL-B and NTSC
 

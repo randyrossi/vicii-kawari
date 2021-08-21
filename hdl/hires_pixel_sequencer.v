@@ -18,8 +18,8 @@ module hires_pixel_sequencer(
            input vborder,
            input [3:0] color_base,
            output reg [3:0] hires_pixel_color1,
-           input [4:0] hires_sprite_pixel_color,
            output reg hires_stage1,
+           output reg hires_is_background_pixel,
            input hires_enabled,
            input [1:0] hires_mode,
            input [2:0] hires_cycle_bit,
@@ -186,9 +186,6 @@ begin
         if (main_border_stage0)
             hires_pixel_color1 <= ec_d2;
         else begin
-            if (hires_sprite_pixel_color[4])
-                hires_pixel_color1 <= hires_sprite_pixel_color[3:0];
-            else
             case (hires_mode)
                 2'b00: begin
                     // Text mode.
@@ -205,20 +202,26 @@ begin
                      (hires_pixel_value ^
                       (hires_color_shifting[`HIRES_RVRS_BIT] | hires_cursor_delayed)) ?
                      hires_color_shifting[3:0] : b0c_d2) : b0c_d2;
+                    hires_is_background_pixel <= !hires_pixel_value;
                 end
-                2'b01:
+                2'b01: begin
                     // 640x200 16 color bitmap. Uses only lower 4 bits of color as
                     // color index. 'shifting' here is not really shifting
                     hires_pixel_color1 <=
                         hires_pixel_value ? hires_color_shifting[3:0] : b0c_d2;
+                    hires_is_background_pixel <= !hires_pixel_value;
+                end
                 2'b10:
                     // 320x200 32k packed pixel (16 col)
                     if (hires_ff) begin
                         hires_pixel_color1 <= hires2_pixel_value[3:0];
+                        hires_is_background_pixel <= (hires2_pixel_value != b0c_d2);
                     end
-                2'b11:
+                2'b11: begin
                     // 640x200 32k packed pixel (4 col)
                     hires_pixel_color1 <= {color_base[1:0], hires2_pixel_value[3:2]};
+                    hires_is_background_pixel <= ({color_base[1:0], hires2_pixel_value[3:2]} != b0c_d2);
+                end
             endcase
         end
     end

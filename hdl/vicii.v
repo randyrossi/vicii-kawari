@@ -290,6 +290,9 @@ wire mcm; // multi color mode
 
 wire stage0;
 wire is_background_pixel0;
+`ifdef HIRES_MODES
+wire hires_is_background_pixel;
+`endif
 
 // mostly used for iterating over sprites
 integer n;
@@ -690,6 +693,10 @@ sprites vic_sprites(
             .sprite_cnt(sprite_cnt),
             .aec(aec),
             .is_background_pixel(is_background_pixel0),
+`ifdef HIRES_MODES
+            .hires_enabled(hires_enabled),
+            .hires_is_background_pixel(hires_is_background_pixel),
+`endif
             .stage0(stage0),
             .imbc_clr(imbc_clr),
             .immc_clr(immc_clr),
@@ -1052,7 +1059,7 @@ begin
 `else
 
 `ifdef HIRES_MODES
-    if (hires_enabled && hires_stage1)
+    if (hires_enabled && !hires_sprite_active && hires_stage1)
         pixel_color3 <= hires_pixel_color1;
     else
 `endif
@@ -1062,7 +1069,7 @@ begin
 end
 
 `ifdef HIRES_MODES
-wire [4:0] hires_sprite_pixel_color;
+wire hires_sprite_active;
 `endif
 
 // Pixel sequencer - outputs stage 3 pixel_color3
@@ -1102,7 +1109,7 @@ pixel_sequencer vic_pixel_sequencer(
                     .stage1(stage1),
                     .pixel_color1(pixel_color1),
 `ifdef HIRES_MODES
-                    .hires_sprite_pixel_color(hires_sprite_pixel_color),
+                    .hires_sprite_active(hires_sprite_active),
 `endif
                     .active_sprite_d(active_sprite_d)
                 );
@@ -1129,14 +1136,14 @@ hires_pixel_sequencer vic_hires_pixel_sequencer(
                           .vborder(top_bot_border_d5),
                           .color_base(hires_color_base),
                           .hires_pixel_color1(hires_pixel_color1),
-                          .hires_sprite_pixel_color(hires_sprite_pixel_color),
                           .hires_stage1(hires_stage1),
                           .hires_enabled(hires_enabled),
                           .hires_mode(hires_mode),
                           .hires_pixel_data(hires_pixel_data),
                           .hires_color_data(hires_color_data),
                           .hires_rc(hires_rc),
-                          .hires_cursor(hires_cursor)
+                          .hires_cursor(hires_cursor),
+                          .hires_is_background_pixel(hires_is_background_pixel)
                       );
 `endif
 
