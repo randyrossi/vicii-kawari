@@ -131,6 +131,7 @@ void rgb_to_hsv(double r, double g, double b, int *phase, int *amp, int *luma) {
         *luma = v*(63.0d/100.0d);
         if (*amp == 0) *phase = 0;
         if (*luma < 12) *luma = 12;
+        if (*luma > 63) *luma = 63;
         //printf("%f  %f %f %f\n", h,  h*(255.0d/359.0d), s*(15.0d/100.0d), v*(63.0d/100.0d));
  
 }
