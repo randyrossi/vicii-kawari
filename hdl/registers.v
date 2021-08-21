@@ -533,6 +533,7 @@ always @(posedge clk_dot4x)
 `endif
 
 `ifdef HIRES_MODES
+`ifdef HIRES_RESET
         if (!cpu_reset_i && hires_enabled) begin
            rst <= 1'b1;
 `ifdef HAVE_EEPROM
@@ -540,6 +541,7 @@ always @(posedge clk_dot4x)
            eeprom_state <= `EEPROM_READ;
 `endif
         end
+`endif
 `endif
 
 `ifdef HAVE_EEPROM

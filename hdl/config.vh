@@ -112,4 +112,14 @@
 // this is enabled.
 `define HIRES_MODES
 
+// HIRES_RESET
+// ----------------------
+// Uncomment to reset the VIC if it is in hires mode
+// and the board detects the CPU reset line has gone
+// low. For this to work, the reset pin must be connected
+// to the CPU reset pin.  But since the reset pin is pulled
+// high there should be no issue with this enabled even if
+// there is no connection.
+`define HIRES_RESET
+
 `endif // config_vh_
