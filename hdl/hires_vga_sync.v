@@ -197,12 +197,13 @@ begin
                 h_count <= 0;
                 if (v_count < max_height) begin
                     v_count <= v_count + 9'b1;
-                    half_bright <= ~half_bright;
                 end else begin
                     v_count <= 0;
-                    // First line is always full brightness
-                    half_bright <= 0;
                 end
+                if (chip[0] ? vactive : ~vactive)
+                    half_bright <= ~half_bright;
+                else
+                    half_bright <= 0;
             end
         end
         if (raster_x == 0 && raster_y == 0) begin
