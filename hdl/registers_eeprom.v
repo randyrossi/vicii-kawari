@@ -75,6 +75,13 @@ task handle_persist(input is_reset);
                 eeprom_state <= `EEPROM_WRITE;
                 state_ctr_reset_for_write <= 1'b0;
             end
+            else if (state_ctr_reset_for_read) begin
+                state_ctr <= 15'b0;
+                eeprom_state <= `EEPROM_READ;
+                state_ctr_reset_for_read <= 1'b0;
+                magic <= 0;
+                eeprom_warm_up_cycle <= 1'b1;
+            end
             else if (~clk8 && !state_ctr[14])
                 state_ctr <= state_ctr + 15'b1;
             else if (state_ctr[14]) begin

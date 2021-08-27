@@ -14,6 +14,7 @@ reg eeprom_warm_up_cycle = 1;
 reg [14:0] state_ctr = 15'b0;
 
 reg state_ctr_reset_for_write;
+reg state_ctr_reset_for_read;
 
 // clk_div divides dot4x by 4 to give us approx 8Mhz clock
 // for EEPROM access.

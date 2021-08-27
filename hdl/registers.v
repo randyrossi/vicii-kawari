@@ -535,10 +535,15 @@ always @(posedge clk_dot4x)
 `ifdef HIRES_MODES
 `ifdef HIRES_RESET
         if (!cpu_reset_i && hires_enabled) begin
-           rst <= 1'b1;
+           hires_mode <= 2'b00;
+           hires_enabled <= 1'b0;
+           hires_char_pixel_base <= 3'b0;
+           hires_matrix_base <= 4'b0000;
+           hires_color_base <= 4'b0000;
+           hires_cursor_hi <= 8'b0;
+           hires_cursor_lo <= 8'b0;
 `ifdef HAVE_EEPROM
-           state_ctr <= 15'b0;
-           eeprom_state <= `EEPROM_READ;
+           state_ctr_reset_for_read <= 1;
 `endif
         end
 `endif
