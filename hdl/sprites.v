@@ -378,13 +378,13 @@ begin
                             if (sprite_xe_ff[n]) begin
                                 if (sprite_mmc_next[n]) begin
                                     if (sprite_mmc_ff[n]) begin
-                                        //$display("SPR %d got %d (dbl) FROM %06x",
+                                        //$display("SPR %d GOT %d (dbl) FROM %06x",
                                         //    n,sprite_pixels_shifting[n][23:22], sprite_pixels_shifting[n]);
                                         sprite_cur_pixel1[n] = sprite_pixels_shifting[n][23:22];
                                     end
                                     sprite_mmc_ff[n] = !sprite_mmc_ff[n];
                                 end else begin
-                                    //$display("SPR %d got %d (single) FROM %06x",n,
+                                    //$display("SPR %d GOT %d (single) FROM %06x",n,
                                     //    {sprite_pixels_shifting[n][23], 1'b0}, sprite_pixels_shifting[n]);
                                     sprite_cur_pixel1[n] = {sprite_pixels_shifting[n][23], 1'b0};
                                 end
@@ -429,6 +429,12 @@ begin
                             sprite_pixels_shifting[sprite_cnt] <=
                             {sprite_pixels_shifting[sprite_cnt][23:0], 8'hff};
                     end
+                // Apparently, the VIC always reads into sprite registers even
+                // when the cycle is idle. Without this, errata by emulamers
+                // part 3 does not work.
+                `VIC_LPI2, `VIC_HPI1, `VIC_HPI3:
+                    sprite_pixels_shifting[sprite_cnt] <=
+                        {sprite_pixels_shifting[sprite_cnt][23:0], dbi8[7:0]};
                 default: ;
             endcase
         end
