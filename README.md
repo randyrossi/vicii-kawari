@@ -125,7 +125,7 @@ IMPORTANT! Strain relief on the cable is VERY important as it exits the machine.
 ## How accurate is it?
 To measure accuracy, I use the same suite of programs VICE (The Versatile Commodore Emulator) uses to catch regressions in their releases. Out of a total of 280 VIC-II tests, 280 are passing (at least by visual comparison).
 
-I can't test every program but it supports all the graphics tricks programmers used in their demos/games. It is safe to say it is a faithful reproduction of the original chips.
+I can't test every program but it supports the graphics tricks programmers used in their demos/games. Refer to the [KNOWN_ISSUES.md](KNOWN_ISSUES.md) doc for a list of programs and/or demos that are known to have issues.  Although perhaps not perfect, it is safe to say it is a faithful reproduction of the original chips.
 
 ## Is this emulation?
 That's a matter of opinion. Some people consider an FPGA implementation that 'mimics' hardware to be emulation because some behavior is being re-implemented using a high level hardware description language. But it's important to note that the PCB is not 'running' a program like you would on a PC. The PCB is providing a real clock signal to drive the 6510 CPU. It's also generating real CAS/RAS timing signals to refresh DRAM. It is interacting with the same address and data bus that a genuine chip would.
