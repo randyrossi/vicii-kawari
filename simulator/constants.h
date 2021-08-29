@@ -92,7 +92,9 @@
 #define V_ILP_CLR top__DOT__vic_inst__DOT__ilp_clr
 #define V_RASTERCMP top__DOT__vic_inst__DOT__raster_irq_compare
 #define V_RASTERCMP_D top__DOT__vic_inst__DOT__raster_irq_compare_d
+#define V_VICADDR_SIM top__DOT__vic_inst__DOT__vic_addressgen__DOT__vic_addr_sim
 #define V_VICADDR top__DOT__vic_inst__DOT__vic_addressgen__DOT__vic_addr
+#define V_VICADDR_NOW top__DOT__vic_inst__DOT__vic_addressgen__DOT__vic_addr_now
 #define V_CB top__DOT__vic_inst__DOT__cb
 #define V_VM top__DOT__vic_inst__DOT__vm
 #define V_NEXTCHAR top__DOT__vic_inst__DOT__char_next
@@ -106,6 +108,7 @@
 #define V_CSEL top__DOT__vic_inst__DOT__csel
 #define V_DEN top__DOT__vic_inst__DOT__den
 #define V_BMM top__DOT__vic_inst__DOT__bmm
+#define V_BMM_DELAYED top__DOT__vic_inst__DOT__bmm_delayed
 #define V_ECM top__DOT__vic_inst__DOT__ecm
 #define V_MCM top__DOT__vic_inst__DOT__mcm
 #define V_RES top__DOT__vic_inst__DOT__vic_registers__DOT__res

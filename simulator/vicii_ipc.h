@@ -94,6 +94,10 @@ struct vicii_state {
   int dot4x;
   unsigned char lp;
   unsigned int light_pen_triggered;
+
+  // Used to adjust our address on bmm transition glitch
+  int vice_vbank_phi1;
+  int vice_vbank_phi2;
 };
 
 #define END1_PRODUCER_SIG_END2_CONSUME_OK 0

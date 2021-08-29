@@ -1095,7 +1095,32 @@ int main(int argc, char** argv, char** env) {
            state->badline = top->V_BADLINE;
            state->aec = top->aec;
            state->phi = top->clk_phi;
-	   state->addr_from_sim = top->V_VICADDR; // cheat
+	   state->addr_from_sim = top->V_VICADDR;
+
+           // We have to simulate the ROM glitch and keep VICE
+           // happy with address comparisons. I think VICE actually
+           // implemented the bitmap fetch incorrectly for this
+           // glitch when RAM->ROM does not happen.  They incorrectly
+           // use bmm_old | bmm_new to decide bmm value which doesn't
+           // make sense. So that's why we have V_VICADDR_SIM just for
+           // the simulator. It's to keep VICE happy but I don't think
+           // the actual hardware does this. The 2nd part of the glitch
+           // does produce the right values. See addressgen.v for the
+           // description of the glitch.
+           if (top->V_CYCLE_TYPE == VIC_LG) {
+	       state->addr_from_sim = top->V_VICADDR_SIM;
+               if (top->V_BMM_DELAYED != top->V_BMM) {
+                  uint16_t from_addr = top->V_VICADDR + state->vice_vbank_phi1;
+                  uint16_t to_addr = top->V_VICADDR_NOW + state->vice_vbank_phi1;
+                  // This is the same cheat VICE uses. But we implement the glitch
+                  // the 'real' way on the actual hardware.  This is just for VICE
+                  // sync comparison to keep address match happy.
+                  if ((from_addr & 0x7000) != 0x1000 && (to_addr & 0x7000) == 0x1000) {
+                      state->addr_from_sim = (top->V_VICADDR & 0xff) | (top->V_VICADDR_NOW & 0xff00);
+                  }
+               }
+           }
+
 	   state->cycle_num = top->V_CYCLE_NUM;
 	   state->xpos = top->V_XPOS;
 	   state->raster_line = top->V_RASTER_LINE;
