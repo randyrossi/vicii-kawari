@@ -1157,8 +1157,19 @@ int main(int argc, char** argv, char** env) {
            }
 
 	   if (cycleByCycle && top->clk_phi != last_phase) {
-               printf ("FINISHED PHASE %d (now cycle=%d, line=%d, xpos=%03x) VC=%d VCBASE=%d RC=%d XPOS=%d\n",
-                     last_phase+1, top->V_CYCLE_NUM, top->V_RASTER_LINE, top->V_XPOS, top->V_VC, top->V_VCBASE, top->V_RC, top->V_XPOS);
+               printf ("FINISHED PHASE %d (now cycle=%d, line=%d, xpos=%03x)\n",
+                     last_phase+1, top->V_CYCLE_NUM,
+                           top->V_RASTER_LINE, top->V_XPOS);
+
+               printf ("   VCBASE=%02d   VADDR=%04x\n", top->V_VCBASE, top->V_VICADDR);
+               printf ("   VC=%03d     CTYPE=%d\n", top->V_VC, top->V_CYCLE_TYPE);
+               printf ("   CB=%03d     CHARPTR=%02x\n", top->V_CB, top->V_NEXTCHAR);
+               printf ("   XPOS=%04d   RC=%d\n", top->V_XPOS, top->V_RC);
+               printf ("   BMM=%02d    SPRNUM=%d\n", top->V_BMM, top->V_SPRITE_CNT);
+               printf ("   MCM=%d\n", top->V_MCM);
+               printf ("   ECM=%d\n", top->V_ECM);
+               printf ("\n");
+
 	       last_phase = top->clk_phi;
 	   }
 

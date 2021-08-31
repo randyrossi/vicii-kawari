@@ -95,7 +95,7 @@
 #define V_VICADDR top__DOT__vic_inst__DOT__vic_addressgen__DOT__vic_addr
 #define V_CB top__DOT__vic_inst__DOT__cb
 #define V_VM top__DOT__vic_inst__DOT__vm
-#define V_NEXTCHAR top__DOT__next_char
+#define V_NEXTCHAR top__DOT__vic_inst__DOT__char_next
 #define V_BADLINE top__DOT__vic_inst__DOT__badline
 #define V_VC top__DOT__vic_inst__DOT__vc
 #define V_VCBASE top__DOT__vic_inst__DOT__vic_matrix__DOT__vc_base
@@ -113,6 +113,7 @@
 #define V_CYCLE_FINE_CTR top__DOT__cycle_fine_ctr
 #define V_IDLE top__DOT__vic_inst__DOT__idle
 #define V_CYCLE_TYPE top__DOT__vic_inst__DOT__cycle_type
+#define V_SPRITE_CNT top__DOT__vic_inst__DOT__sprite_cnt
 #define V_SPRITE_DMA top__DOT__vic_inst__DOT__sprite_dma
 #define V_SPRITE_EN top__DOT__vic_inst__DOT__sprite_en
 #define V_SPRITE_OFF top__DOT__vic_inst__DOT__sprite_off

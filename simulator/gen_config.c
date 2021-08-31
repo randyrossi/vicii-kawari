@@ -99,6 +99,9 @@ void main(int argc, char* argv[]) {
     }
 
     switch (config) {
+            // !!! When using simulator for cycle by cycle stepping,
+            // make sure to turn OFF RGB/HIRES so that native pixel sequencer
+            // values are used.
 	    case 0:
 		    gen_luma_chroma();
 		    configurable_rgb();
