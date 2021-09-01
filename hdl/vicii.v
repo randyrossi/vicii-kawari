@@ -667,12 +667,23 @@ wire [7:0] sprite_mmc_d;
 wire [7:0] sprite_pri_d;
 wire [3:0] active_sprite_d;
 
+// We use the same last_bus trick VICE uses because
+// it's easier to remember dbi or dbo depending on
+// whether the VIC was written to or read from. Also
+// we can't read the databus when AEC is high because
+// the tranceivers are set to output. So we init
+// this to 0xff at the start of every cycle and if
+// the VIC was read from/written to, we set the value
+// to be ready for sprite dma to use in sprites.v
+wire [7:0] last_bus;
+
 sprites vic_sprites(
             .rst(rst),
             .clk_dot4x(clk_dot4x),
             .clk_phi(clk_phi),
             .cycle_type(cycle_type),
             .dbi8(dbi[7:0]),
+            .last_bus(last_bus),
             .dot_rising_1(dot_rising[1]),
             .phi_phase_start_m2clr(phi_phase_start[`M2CLR_CHECK]),
             .phi_phase_start_1(phi_phase_start[1]),
@@ -938,6 +949,7 @@ registers vic_registers(
               .m2d_clr(m2d_clr),
               .handle_sprite_crunch(handle_sprite_crunch),
               .dbo(dbo),
+              .last_bus(last_bus),
               .cb(cb),
               .vm(vm),
               .elp(elp),

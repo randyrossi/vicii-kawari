@@ -78,6 +78,7 @@ module registers
            output reg m2d_clr,
            output reg handle_sprite_crunch,
            output reg [7:0] dbo,
+           output reg [7:0] last_bus,
            output reg [2:0] cb,
            output reg [3:0] vm,
            output reg elp,
@@ -180,6 +181,7 @@ reg res;
 reg [5:0] addr_latched;
 reg addr_latch_done;
 reg read_done;
+reg read_done2;
 
 // --- BEGIN EXTENSIONS ----
 reg [1:0] extra_regs_activation_ctr;
@@ -572,6 +574,8 @@ always @(posedge clk_dot4x)
 
             addr_latch_done <= `FALSE;
             read_done <= `FALSE;
+            read_done2 <= `FALSE;
+            last_bus <= 8'hff;
             // clear sprite crunch immediately after it may
             // have been used
             handle_sprite_crunch <= `FALSE;
@@ -599,6 +603,12 @@ always @(posedge clk_dot4x)
                     default: ;
                 endcase
             end
+
+            if (read_done && !read_done2) begin
+               last_bus <= dbo;
+               read_done2 <= `TRUE;
+            end
+
             if (rw && !read_done) begin
                 read_done <= `TRUE;
                 case (addr_latched[5:0])
@@ -835,6 +845,7 @@ always @(posedge clk_dot4x)
             end
             // WRITE to register
             else if (!rw && phi_phase_start_dav) begin
+                last_bus <= dbi;
                 case (addr_latched[5:0])
                     /* 0x00 */ `REG_SPRITE_X_0:
                         sprite_x[0][7:0] <= dbi[7:0];

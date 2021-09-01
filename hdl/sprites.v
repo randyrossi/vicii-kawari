@@ -34,6 +34,7 @@ module sprites(
            input clk_dot4x,
            input clk_phi,
            input [7:0] dbi8,
+           input [7:0] last_bus,
            input [3:0] cycle_type,
            input dot_rising_1,
            input phi_phase_start_m2clr,
@@ -412,23 +413,21 @@ begin
             end
         end
 
-        // s-access - This must be done here instead of bus_access because
+        // s-access - This must be done here instead of bus_access.v because
         // this is where the shifting logic resides.  NOTE: On
         // spriteenable2.prg test, sprite 0's first byte is accessed before
         // AEC had a chance to remain LOW due to d015 futzing just before the
-        // fetch cycle.  When AEC is low shift 0xff into the register since we
-        // can't read from dbi.
+        // fetch cycle.  When AEC is low, shift the last bus value into
+        // the register which is set from registers.v
         if (phi_phase_start_dav) begin
             case (cycle_type)
                 `VIC_HS1, `VIC_LS2, `VIC_HS3:
-                    if (sprite_dma[sprite_cnt]) begin
-                        if (!aec)
-                            sprite_pixels_shifting[sprite_cnt] <=
-                            {sprite_pixels_shifting[sprite_cnt][23:0], dbi8[7:0]};
-                        else
-                            sprite_pixels_shifting[sprite_cnt] <=
-                            {sprite_pixels_shifting[sprite_cnt][23:0], 8'hff};
-                    end
+                   if (!aec)
+                       sprite_pixels_shifting[sprite_cnt] <=
+                           {sprite_pixels_shifting[sprite_cnt][23:0], dbi8[7:0]};
+                   else
+                       sprite_pixels_shifting[sprite_cnt] <=
+                           {sprite_pixels_shifting[sprite_cnt][23:0], last_bus};
                 // Apparently, the VIC always reads into sprite registers even
                 // when the cycle is idle. Without this, errata by emulamers
                 // part 3 does not work.
