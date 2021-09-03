@@ -512,6 +512,7 @@ int main(int argc, char** argv, char** env) {
     bool capture = false;
 
     int chip = CHIP6569R3;
+    bool hideSync = false;
     bool isNtsc = false;
 
     bool captureByTime = true;
@@ -542,7 +543,7 @@ int main(int argc, char** argv, char** env) {
     int reti, reti2;
     char regex_buf[32];
 
-    while ((c = getopt (argc, argv, "c:hs:d:wi:zbl:r:gtxq")) != -1)
+    while ((c = getopt (argc, argv, "kc:hs:d:wi:zbl:r:gtxq")) != -1)
     switch (c) {
       case 'q':
         scanline = false;
@@ -566,6 +567,9 @@ int main(int argc, char** argv, char** env) {
       case 'w':
         showWindow = true;
         break;
+      case 'k':
+        hideSync = true;
+        break;
       case 's':
         startTicks = US_TO_TICKS(atol(optarg));
         break;
@@ -582,6 +586,7 @@ int main(int argc, char** argv, char** env) {
         printf ("  -c <chip> : 0=CHIP6567R8, 1=CHIP6569R3 2=CHIP6567R56A 3=CHIP6569R1\n");
         printf ("  -l        : log level\n");
         printf ("  -q        : hide scanline\n");
+        printf ("  -k        : hide sync lines\n");
         printf ("  -t        : enable tracing to session.vcd\n");
         printf ("  -x        : sync with VICE and save a frame before exiting\n");
         exit(0);
@@ -988,7 +993,7 @@ int main(int argc, char** argv, char** env) {
 			  (top->V_CLK_DOT == 2 || top->V_CLK_DOT == 8)) {
 #ifdef GEN_RGB
             // Show h/v sync in red
-            if (!top->hsync || !top->vsync)
+            if (!hideSync && (!top->hsync || !top->vsync))
              SDL_SetRenderDrawColor(ren,
                 0b11111111,
                 0b0,
@@ -1003,8 +1008,8 @@ int main(int argc, char** argv, char** env) {
 #else 
 #ifdef NEED_RGB
             // Show h/v sync in red
-            if (top->top__DOT__vic_inst__DOT__vic_vga_sync__DOT__hsync_ah ||
-                top->top__DOT__vic_inst__DOT__vic_vga_sync__DOT__vsync_ah)
+            if (!hideSync && (top->top__DOT__vic_inst__DOT__vic_vga_sync__DOT__hsync_ah ||
+                top->top__DOT__vic_inst__DOT__vic_vga_sync__DOT__vsync_ah))
              SDL_SetRenderDrawColor(ren,
                 0b11111111,
                 0b0,
@@ -1020,7 +1025,7 @@ int main(int argc, char** argv, char** env) {
 #ifdef GEN_LUMA_CHROMA
             // Fallback to native pixel sequencer's pixel3 value
 	    // and lookup colors.
-	    if (top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__native_active) {
+	    if (top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__native_active || hideSync) {
 	       int index = top->top__DOT__vic_inst__DOT__pixel_color3;
                SDL_SetRenderDrawColor(ren,
                 (native_rgb[index*3] << 2) | 0b11,

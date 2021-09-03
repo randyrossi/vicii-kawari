@@ -66,7 +66,7 @@ do
 	popd
 	sleep $delay
 	rm -f screenshot.bmp
-	../simulator/obj_dir/Vtop -q -w -z -x -c $chip
+	../simulator/obj_dir/Vtop -k -q -w -z -x -c $chip
 	sleep 1
 
 	mv /shared/Vivado/vicii-vice-3.4/stderr $k/vice_$j.log
