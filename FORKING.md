@@ -1,3 +1,5 @@
+Back to [README.md](README.md)
+
 # VIC-II Kawari Forking Guide
 
 ## What do I need to know about forking VIC-II Kawari?
@@ -9,8 +11,6 @@ We ask that all forks do the following:
 1. Keep the extra register activation [REGISTERS.md](REGISTERS.md) (i.e POKEing "VIC2" into 0x3f) functional along with the 'reserved' 0x3b-0x3f extra mem access mechanism. The extra mem registers 0x83 (VERSION), 0x90-0x9f (VARIANT) should also remain functional. This will allow a single upstream configuration utilty to successfully talk to your variant and at least display the variant name and its version. You are free to use an additional extra register activation sequence for your own scheme.
 
 2. Replace the 'main' variant identifier with your own unique string. This can be any name you wish as long as you do not use the word 'main'.  This value will be displayed to users by the configuration utility. It will point users to your fork where they can find a custom config utility for your variant (if needed).
-
-3. Add any capability bits you need in registers CAP_LO/CAP_HI for new features your variant may add. For example, if your fork adds a math co-processor, you can add "MATHCO".  This will let the config utility display the extensions you've added.  It can also be used by programs to detect features.  So, in theory, a regular C64 program could detect the presence of a math co-processor and use different code to take advantage of that feature.
 
 ## Variant Identifier
 
@@ -34,15 +34,11 @@ Here are some possibilities:
 
 1. Add a math co-processor
 
-   Repurpose some of the unused registers between 0x30 and 0x3c for a math
-   co-processor. Use the math co-processor to write some accelerated drawing
-   routines.
+   Repurpose some of the unused registers between 0x30 and 0x3c for a more sophisticated math co-processor. Use the math co-processor to write some accelerated drawing routines.
 
 2. Add a display address translator (DAT)
 
-   Provide a convenient x,y coordinate to memory location & bit function for
-   different graphics modes so the CPU doesn't have to make those computations.
-   This can make for much faster drawing routines.
+   Provide a convenient x,y coordinate to memory location & bit function for different graphics modes so the CPU doesn't have to make those computations.  This can make for much faster drawing routines.
 
 3. Add extra sprites
 
@@ -54,7 +50,7 @@ Here are some possibilities:
 
 5. Add a new video mode/more colors/half brightness mode
 
-   Turn one or more of the 'illegal' video modes into a working mode. There are some unused bits in certain modes which could be repurposed (brightness levels, for example).
+   Turn one or more of the legacy 'illegal' video modes into a working mode. There are some unused bits in certain modes which could be repurposed (brightness levels, for example).  You could also extend the hires pixel sequencer registers to 8 bits from 4 and add a 256 indexed color mode.
 
 6. Use idle cycles to execute instructions
 
@@ -69,3 +65,12 @@ Here are some possibilities:
    A real VICII chip cannot write to memory since it can't set the WR line LOW.  VIC-II Kawari, however, can set WR LOW so this is theoretically possible.  Using idle cycles to execute instructions and write to DRAM (limited to 16k bank) should be possible.
 
 9. Create a GEOS driver for the new hires mode
+
+10. Use the upper 1Mb of flash space as a drive
+
+  The flash chip's upper 1Mb of space is unused and can be written to/read from in 16k blocks by the 6510 (provided the SPI functions are not locked).  It might be possible to turn that space into a drive and use a custom loader.
+
+11. Repurpose the NTSC/PAL switch into a reset
+
+  After the device has booted, the physical NTSC/PAL has no use.  It could be used to reset the 6510 since Kawari can drive the RESET line low.
+

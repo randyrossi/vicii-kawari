@@ -219,6 +219,10 @@ NOTE: Strain relief is important!
 
 NOTE: You can get away without removing the RF modulator but then you will have the challenge of getting the cable out of a closed machine.  I don't recommend drilling holes but this is an option. Another option is to fish the cable out the user port opening, if you don't plan on using any user port connections.
 
+## Config RESET
+
+You can reset the board by temporarily shorting the jumper pads labeled 'Reset' while the device is powered on. Then cold boot. (It's difficult to tell whether you've shorted them so you may have to try a couple times.)  This will prevent the device from reading any persisted settings.  The default palette will be used for all models.  After a config reset, the next time you run any configuration utility, it will prompt you to initialize the device.
+
 ## Limitations/Caveats
 
 # Cartridges that use DOT clock pin (pin 6)
