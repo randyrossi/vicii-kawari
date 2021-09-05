@@ -119,7 +119,7 @@ When BIT 7 is 1, changes to some registers (like color palette, composite luma, 
 VIDEO_MODE1 | Description
 ------------|------------
 BIT 1-3     | CHAR_PIXEL_BASE
-BIT 4       | UNUSED
+BIT 4       | HIRES ALLOW BADLINES ON LORES MODES (0=no, 1=yes)
 BIT 5       | HIRES ENABLE
 BIT 6-7     | HIRES MODE (0=TEXT, 1=640x200, 2=320x200, 3=640x200)
 BIT 8       | UNUSED

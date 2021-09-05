@@ -142,6 +142,7 @@ module registers
            output reg [3:0] hires_matrix_base,
            output reg [3:0] hires_color_base,
            output reg hires_enabled,
+           output reg hires_allow_bad,
            output reg [1:0] hires_mode,
            output reg [7:0] hires_cursor_hi,
            output reg [7:0] hires_cursor_lo,
@@ -432,6 +433,7 @@ always @(posedge clk_dot4x)
 	`ifdef HIRES_TEXT
         // Test mode 0 : Text
         hires_enabled <= 1'b1;
+        hires_allow_bad <= 1'b0;
         hires_mode <= 2'b00;
         // char pixels @0000(4K)
         hires_char_pixel_base <= 3'b0;
@@ -445,6 +447,7 @@ always @(posedge clk_dot4x)
 	`endif
 	`ifdef HIRES_BITMAP1
         hires_enabled <= 1'b1;
+        hires_allow_bad <= 1'b0;
         hires_mode <= 2'b01;
         hires_char_pixel_base <= 3'b0; // ignored
         // pixels @0000(16k)
@@ -454,6 +457,7 @@ always @(posedge clk_dot4x)
 	`endif
 	`ifdef HIRES_BITMAP2
         hires_enabled <= 1'b1;
+        hires_allow_bad <= 1'b0;
         hires_mode <= 2'b10;
         hires_char_pixel_base <= 3'b0; // ignored
         hires_matrix_base <= 4'b0000; // 32k bank
@@ -461,6 +465,7 @@ always @(posedge clk_dot4x)
 	`endif
 	`ifdef HIRES_BITMAP3
         hires_enabled <= 1'b1;
+        hires_allow_bad <= 1'b0;
         hires_mode <= 2'b11;
         hires_char_pixel_base <= 3'b0; // ignored
         hires_matrix_base <= 4'b0000; // 32k bank
@@ -506,6 +511,7 @@ always @(posedge clk_dot4x)
 `ifdef HIRES_MODES
         hires_mode <= 2'b00;
         hires_enabled <= 1'b0;
+        hires_allow_bad <= 1'b0;
         hires_char_pixel_base <= 3'b0;
         hires_matrix_base <= 4'b0000; // ignored
         hires_color_base <= 4'b0000; // ignored
@@ -539,6 +545,7 @@ always @(posedge clk_dot4x)
         if (!cpu_reset_i && hires_enabled) begin
            hires_mode <= 2'b00;
            hires_enabled <= 1'b0;
+           hires_allow_bad <= 1'b0;
            hires_char_pixel_base <= 3'b0;
            hires_matrix_base <= 4'b0000;
            hires_color_base <= 4'b0000;
@@ -759,7 +766,7 @@ always @(posedge clk_dot4x)
                             dbo[7:0] <= { 1'b0,
                                           hires_mode,
                                           hires_enabled,
-                                          1'b0,
+                                          hires_allow_bad, 
                                           hires_char_pixel_base };
 `else
                             dbo[7:0] <= { 1'b0,
@@ -1028,6 +1035,7 @@ always @(posedge clk_dot4x)
 `ifdef HIRES_MODES
                             hires_mode <= dbi[6:5];
                             hires_enabled <= dbi[`HIRES_ENABLE];
+                            hires_allow_bad <= dbi[`HIRES_ALLOW_BAD];
                             hires_char_pixel_base <= dbi[2:0];
 `endif
                         end

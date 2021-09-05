@@ -271,6 +271,7 @@ wire [7:0] hires_color_data;
 wire [7:0] hires_cursor_hi;
 wire [7:0] hires_cursor_lo;
 wire hires_enabled;
+wire hires_allow_bad;
 wire [10:0] hires_raster_x;
 reg hires_badline;
 `endif
@@ -420,7 +421,7 @@ begin
         if (raster_line[2:0] == yscroll &&
 `ifdef HIRES_MODES
             // Effectively disables badlines when hires is enabled
-            (allow_bad_lines == `TRUE && !hires_enabled)
+            (allow_bad_lines == `TRUE && (!hires_enabled | hires_allow_bad))
 `else
             allow_bad_lines == `TRUE
 `endif
@@ -1012,6 +1013,7 @@ registers vic_registers(
               .hires_matrix_base(hires_matrix_base),
               .hires_color_base(hires_color_base),
               .hires_enabled(hires_enabled),
+              .hires_allow_bad(hires_allow_bad),
               .hires_mode(hires_mode),
               .hires_cursor_hi(hires_cursor_hi),
               .hires_cursor_lo(hires_cursor_lo),

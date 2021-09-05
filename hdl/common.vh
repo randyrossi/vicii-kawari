@@ -226,7 +226,7 @@
 `define VIDEO_MEM_FLAGS               6'h3F  // Extra Reg Activation Port
 
 // For VIDEO_MODE_1
-`define PALETTE_SELECT_BIT            3
+`define HIRES_ALLOW_BAD               3
 `define HIRES_ENABLE                  4
 `define HIRES_TEXT_BITMAP             5
 `define HIRES_COLOR_2K_16K            6
