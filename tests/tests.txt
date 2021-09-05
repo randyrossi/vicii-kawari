@@ -294,3 +294,11 @@ snapshots/uncensored_skihill.vsf	PAL	screenshot
 snapshots/uncensored_sprites.vsf	PAL	screenshot
 snapshots/weare.vsf	PAL	screenshot
 snapshots/xscroll2.vsf	PAL	screenshot
+glitches/glitch_4_0.prg	PAL	screenshot
+glitches/glitch_4_1.prg	PAL	screenshot
+glitches/glitch_4_2.prg	PAL	screenshot
+glitches/glitch_4_3.prg	PAL	screenshot
+glitches/glitch_8_0.prg	PAL	screenshot
+glitches/glitch_8_1.prg	PAL	screenshot
+glitches/glitch_8_2.prg	PAL	screenshot
+glitches/glitch_8_3.prg	PAL	screenshot

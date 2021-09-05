@@ -7,11 +7,13 @@ index.html: MakeReport.java
 list.txt:
 	find VICII -name '*.prg' -type f > list.txt
 	find . -name '*.vsf' -type f >> list.txt
+	find glitches -name '*.prg' -type f >> list.txt
 
 clean:
 	rm -f MakeReport.class
 	rm -f list.txt
 	rm -f index.html
+	cp ../hdl/sine.bin ../hdl/colors.bin .
 
 clean_results:
 	find . -name 'vice_*.png' -exec rm -f {} \;
@@ -21,8 +23,10 @@ clean_results:
 publish:
 	sudo mkdir -p /var/www/html/tests/VICII
 	sudo mkdir -p /var/www/html/tests/snapshots
+	sudo mkdir -p /var/www/html/tests/glitches
 	sudo cp -R VICII/* /var/www/html/tests/VICII
 	sudo cp -R snapshots/* /var/www/html/tests/snapshots
+	sudo cp -R glitches/* /var/www/html/tests/glitches
 	sudo cp index.html /var/www/html
 	sudo chown -R root:root  /var/www/html/*
 	sudo chmod -R oug+rw /var/www/html/*

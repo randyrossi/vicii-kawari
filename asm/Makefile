@@ -4,4 +4,8 @@ all: irq.prg xscroll.prg linecrunch.prg removevert.prg yscroll.prg pixel.prg mod
 	acme --cpu 6510 $<
 
 clean:
-	rm -f *.prg
+	rm -f *.prg glitch.asm
+
+glitches:
+	./make_glitch.sh
+

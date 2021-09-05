@@ -1,0 +1,185 @@
+!to "glitch.prg",cbm
+
+
+!macro bmm_off_on {
+  ldy #50
+
+again
+  lda $d011
+  ;and #223        ; bmm off
+  ora #$20
+  sta $d011
+
+  ;nop
+
+  lda $d011
+  ;ora #$20        ; bmm on
+  and #223
+  sta $d011
+
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+
+  dey
+  bne again
+
+}
+  ; sys 49152 - copy chargen to $2000
+  ; sys 49155 - start irq
+  ; poke 49162, CB - to set the 3 bits of CB
+  ; poke 49172, 3 = bank 0
+  ; poke 49172, 2 = bank 1
+  ; poke 49172, 1 = bank 2
+  ; poke 49172, 0 = bank 3
+
+  ; charfetch        cb[2:0] char[7:0] rc[2:0]          0x1000 base
+  ; bitmapfetch      cb[2] vc[9:0] rc[2:0]
+
+  ; cb = 010   -> 0x1000 charfetch , 0x0000 bitmapfetch
+  ; cb = 100   -> 0x2000 charfetch , 0x2000 bitmapfetch
+
+  *=$0801
+
+  ;jmp copy_chargen
+
+BASIC:  !BYTE $0B,$08,$01,$00,$9E,$32,$30,$36,$33,$00,$00,$00,$00,$00
+        ;Adds BASIC line: 1 SYS 2063
+
+  sei             ; Suspend interrupts during init
+
+  lda $d018  
+  and #255-8-4-2
+  ora #%CB%       ; cb=010   charptr $1000, cb=100 charptr $2000
+  sta $d018
+
+  lda 56576
+
+  and #255-2-1
+  
+  ora #%BANK%    ; bank 0   has char rom at $1000
+  ;ora #2    ; bank 1
+  ;ora #1    ; bank 2   has char rom at $1000
+  ;ora #0    ; bank 3
+
+  sta 56576
+
+  lda $d011
+  ;ora #$20        ; bmm on
+  and #223       ; bmm off
+  sta $d011
+
+
+irqinit:
+
+  lda #$7f        ; Disable CIA
+  sta $dc0d
+
+  lda $d01a       ; Enable raster interrupts
+  ora #$01
+  sta $d01a
+
+  lda $d011       ; High bit of raster line cleared, we're
+  and #$7f        ; only working within single byte ranges
+  sta $d011
+
+  lda #53
+  sta $d012
+  sta $fb
+
+  lda #<irq_routine    ; Push low and high byte of our routine into
+  sta $0314       ; IRQ vector addresses
+  lda #>irq_routine
+  sta $0315
+
+  cli             ; Enable interrupts again
+
+loop:
+  ldy #0
+  ldx #0
+  lda #0
+  jmp loop
+
+irq_routine:
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+  nop
+
+  +bmm_off_on
+
+  lda #$ff        ; Acknowlege IRQ 
+  sta $d019
+
+  pla
+  tay
+  pla
+  tax
+  pla
+  rti
+  
+prev_mem_map
+!byte 0
+
+; copy character rom into $2000
+copy_chargen
+  sei
+  lda $01
+  sta prev_mem_map
+  lda #$33    ; make the CPU see the Character Generator ROM...
+  sta $01     ; ...at $D000 by storing %00110011 into location $01
+
+  lda #$d0
+  sta $fc
+  lda #$00
+  sta $fb
+
+  lda #$20
+  sta $fe
+  lda #$00
+  sta $fd
+
+  ldx #16
+copy2
+  ldy #0
+copy
+  lda ($fb),y
+  sta ($fd),y
+  iny
+  bne copy
+  inc $fc
+  inc $fe
+  dex
+  bne copy2
+
+  lda prev_mem_map
+  sta $01
+  cli
+  rts
