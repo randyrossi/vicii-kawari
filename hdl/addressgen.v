@@ -127,7 +127,7 @@ begin
                     vic_addr_sim = {cb[2], vc, rc};
                 else
                     vic_addr_sim = {cb, char_ptr, rc};
-                if (ecm_old)
+                if (ecm_now)
                     vic_addr_sim[10:9] = 2'b00;
 `endif
                 if (bmm_old) // bmm at start of half cycle
