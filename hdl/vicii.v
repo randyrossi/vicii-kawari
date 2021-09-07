@@ -444,7 +444,8 @@ always @(posedge clk_dot4x) begin
         irst <= `FALSE;
         raster_irq_triggered <= `FALSE;
     end else begin
-        raster_irq_compare_d <= raster_irq_compare;
+        if (clk_phi)
+            raster_irq_compare_d <= raster_irq_compare;
         // To pass rasterirq_hold.prg, we have to make sure raster_irq_compare
         // is set along with the time raster_line_d changes.  This test
         // program 'chases' the raster line comparison test so that the VICII
@@ -452,7 +453,7 @@ always @(posedge clk_dot4x) begin
         // raster_irq_triggered remains true and only lines 16,17,18 should
         // trigger irq (for this particular test program).
         if (raster_line_d == raster_irq_compare_d) begin
-            if (!clk_phi && phi_phase_start[8] && !raster_irq_triggered) begin
+            if (clk_phi && phi_phase_start[1] && !raster_irq_triggered) begin
                 raster_irq_triggered <= `TRUE;
                 irst <= `TRUE;
             end
@@ -535,15 +536,16 @@ end
 
 wire [7:0] lpx;
 wire [7:0] lpy;
-wire start_of_frame;
 lightpen vic_lightpen(
              .clk_dot4x(clk_dot4x),
+             .clk_phi(clk_phi),
+             .phi_phase_start_sof(phi_phase_start[8]),
              .chip(chip),
              .ilp_clr(ilp_clr),
              .raster_line(raster_line),
+             .raster_line_d(raster_line_d),
              .raster_y_max(raster_y_max),
              .cycle_num(cycle_num),
-             .start_of_frame(start_of_frame),
              .lp(lp),
              .xpos_div_2(xpos[8:1]),
              .lpx(lpx),
@@ -556,10 +558,10 @@ raster vic_raster(
            .clk_phi(clk_phi),
            .clk_dot4x(clk_dot4x),
            .rst(rst),
+           .phi_phase_start_sof(phi_phase_start[0]),
            .dot_rising_0(dot_rising[0]),
            .chip(chip),
            .cycle_num(cycle_num),
-           .start_of_frame(start_of_frame),
            .raster_x_max(raster_x_max),
            .raster_y_max(raster_y_max),
            .xpos(xpos),

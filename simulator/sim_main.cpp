@@ -1115,7 +1115,7 @@ int main(int argc, char** argv, char** env) {
 
 	   state->cycle_num = top->V_CYCLE_NUM;
 	   state->xpos = top->V_XPOS;
-	   state->raster_line = top->V_RASTER_LINE;
+	   state->raster_line = top->V_RASTER_LINE_D;
            state->cycleByCycleStepping = cycleByCycle;
 	   state->idle = top->V_IDLE;
 	   state->allow_bad_lines = top->V_ALLOW_BAD_LINES;

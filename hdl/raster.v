@@ -7,6 +7,7 @@ module raster(
            input clk_phi,
            input clk_dot4x,
            input rst,
+           input phi_phase_start_sof,
            input dot_rising_0,
            input [1:0] chip,
            input [6:0] cycle_num,
@@ -21,8 +22,7 @@ module raster(
            output reg [9:0] raster_x,
            output reg [9:0] sprite_raster_x,
            output reg [8:0] raster_line,
-           output reg [8:0] raster_line_d,
-           output reg start_of_frame
+           output reg [8:0] raster_line_d
        );
 
 // sprite_raster_x is positioned such that the first cycle for
@@ -49,7 +49,6 @@ always @(posedge clk_dot4x)
         //raster_line <= 9'b0;
         //raster_line_d <= 9'b0;
         //start_of_line = 0;
-        //start_of_frame = 0;
         case(chip)
             `CHIP6567R56A: begin
                 xpos <= 10'h19c;
@@ -65,14 +64,14 @@ always @(posedge clk_dot4x)
     end
     else begin
 
-        if (!clk_phi && start_of_line) begin
+        if (clk_phi && start_of_line) begin
             raster_line_d <= raster_line_d + 9'd1;
             start_of_line = 0;
         end
 
-        if (!clk_phi && start_of_frame && cycle_num == 1) begin
+        if (raster_line == 0 &&
+                clk_phi && phi_phase_start_sof && cycle_num == 1) begin
             raster_line_d <= 9'd0;
-            start_of_frame = 0;
         end
 
         if (dot_rising_0) begin
@@ -134,7 +133,6 @@ always @(posedge clk_dot4x)
                     start_of_line = 1;
                 end else begin
                     raster_line <= 9'd0;
-                    start_of_frame = 1;
 
 `ifdef HIRES_MODES
                     // Used for hires blinking attribute
