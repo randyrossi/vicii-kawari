@@ -36,7 +36,8 @@
 // The reason this glitch doesn't affect RAM is because RAM has
 // already latched the old bmm generated address value.  The
 // address change happens after CAS so RAM always delivers the
-// first (old bmm) address.
+// first (old bmm) address. (The glitch can't happen too soon after
+// CAS falls because it is delayed to RAM.)
 
 // Address generation
 module addressgen(
@@ -74,10 +75,6 @@ module addressgen(
 wire [7:0] sprite_ptr[0:`NUM_SPRITES - 1];
 wire [5:0] sprite_mc[0:`NUM_SPRITES - 1];
 
-`ifdef SIMULATOR_BOARD
-reg [13:0] vic_addr_sim;
-`endif
-
 // VIC read address
 reg [13:0] vic_addr;
 // Used to implement the post CAS bmm transition glitch. See above.
@@ -113,30 +110,22 @@ begin
             if (idle) begin
                 vic_addr = ecm_now ? 14'h39FF : 14'h3FFF;
                 vic_addr_now = vic_addr;
-`ifdef SIMULATOR_BOARD
-                vic_addr_sim = vic_addr;
-`endif
             end else begin
-`ifdef SIMULATOR_BOARD
-                // This is how VICE calculates the address if
-                // the bitmap fetch RAM->ROM glitch does not happen.
-                // But I think it is wrong.  To keep VICE sync
-                // compare happy, we do this for the simulator, but
-                // the actual hardware will do it the 'right' way.
-                if (bmm_old | bmm_now)
-                    vic_addr_sim = {cb[2], vc, rc};
-                else
-                    vic_addr_sim = {cb, char_ptr, rc};
-                if (ecm_now)
-                    vic_addr_sim[10:9] = 2'b00;
-`endif
-                if (bmm_old) // bmm at start of half cycle
+                // This is a wierd calculation for the address using
+                // old/new bmm value but that seems to be how things
+                // work. I would have though this section should use
+                // old exclusively. But then we don't match VICE addresses
+                // in the sync and we're assuming VICE is right.
+                if (bmm_old | bmm_now) // bmm at start of half cycle
                     vic_addr = {cb[2], vc, rc}; // bitmap data
                 else
                     vic_addr = {cb, char_ptr, rc}; // character pixels
-                if (ecm_old) // ecm at start of half cycle
+                if (ecm_now) // ecm at start of half cycle
                     vic_addr[10:9] = 2'b00;
                 
+                // This section determines the address that the new
+                // bmm value (if it changed) determines and will be placed
+                // on the address bus shortly after CAS falls.
                 if (bmm_now) // bmm we transitioned to during the half cycle
                     vic_addr_now = {cb[2], vc, rc}; // bitmap data
                 else

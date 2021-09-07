@@ -809,7 +809,7 @@ addressgen vic_addressgen(
                .phi_phase_start_rhl(phi_phase_start[5]), // ras fall
                .phi_phase_start_clh(phi_phase_start[15]), // cas rise
                .phi_phase_start_chl(phi_phase_start[7]), // cas fall
-               .phi_phase_start_glitch(phi_phase_start[8]), // post cas glitch
+               .phi_phase_start_glitch(phi_phase_start[10]), // post cas glitch
                .phi_phase_start_row(phi_phase_start[3]), // after cycle_type is valid
                .phi_phase_start_col(phi_phase_start[6]), // mux between rhl and chl
                .ado(ado));
