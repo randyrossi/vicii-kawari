@@ -168,9 +168,9 @@ txt_6569r1:
 menutext:
         !PET    "1. 6567r8  "
         !BYTE   13
-        !PET    "2. 6567r56a"
+        !PET    "2. 6569r3"
         !BYTE   13
-        !PET    "3. 6569r3  "
+        !PET    "3. 6567r56a"
         !BYTE   13
         !PET    "4. 6569r1  "
         !BYTE   13

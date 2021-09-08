@@ -4,7 +4,7 @@ demo: subdirs
 	truncate -s 174848 demo.d64
 	c1541 -attach demo.d64 -format "vicii-kawaridemo",0
 	c1541 -attach demo.d64 -write config/config.prg config
-	c1541 -attach demo.d64 -write config/quick/quickswitch.prg quickswitch
+	c1541 -attach demo.d64 -write config/quick/quickswitch.prg qs
 	c1541 -attach demo.d64 -write config/rgbed/rgbed.prg rgbed
 	c1541 -attach demo.d64 -write config/comped/comped.prg comped
 	c1541 -attach demo.d64 -write config/timeed/timeed.prg timeed
