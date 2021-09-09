@@ -26,10 +26,31 @@ assign start_of_frame = raster_line == 0 && clk_phi &&
 // This delay was found by trial and error using
 // splittests/lightpen.prg.  If we 'process' the lp input too quickly,
 // we trigger on the wrong xpos.
-reg lp_delay_1;
-reg lp_delay_2;
-reg lp_delay_3;
-reg lp_delay_4;
+reg lp_delay_1 = 1'b1;
+reg lp_delay_2 = 1'b1;
+reg lp_delay_3 = 1'b1;
+
+`ifdef SIMULATOR_BOARD
+reg lp_delay_4 = 1'b1;
+reg lp_delay_5 = 1'b1;
+reg lp_delay_6 = 1'b1;
+reg lp_delay_7 = 1'b1;
+reg lp_delay_8 = 1'b1;
+reg lp_delay_9 = 1'b1;
+reg lp_delay_10 = 1'b1;
+reg lp_delay_11 = 1'b1;
+reg lp_delay_12 = 1'b1;
+`endif
+
+// Simualtor and real hardware use different delays.
+// This is just because the simulator hook drops lp
+// earlier than in the real universe and I'm too lazy
+// to change the simulator hooks.
+`ifdef SIMULATOR_BOARD
+`define LP_DELAY_REG lp_delay_12
+`else
+`define LP_DELAY_REG lp_delay_3
+`endif
 
 reg light_pen_triggered;
 always @(posedge clk_dot4x)
@@ -38,14 +59,24 @@ begin
         lp_delay_1 <= lp;
         lp_delay_2 <= lp_delay_1;
         lp_delay_3 <= lp_delay_2;
-        lp_delay_4 <= lp_delay_3;
  
+`ifdef SIMULATOR_BOARD
+        lp_delay_4 <= lp_delay_3;
+        lp_delay_5 <= lp_delay_4;
+        lp_delay_6 <= lp_delay_5;
+        lp_delay_7 <= lp_delay_6;
+        lp_delay_8 <= lp_delay_7;
+        lp_delay_9 <= lp_delay_8;
+        lp_delay_10 <= lp_delay_9;
+        lp_delay_11 <= lp_delay_10;
+        lp_delay_12 <= lp_delay_11;
+`endif
 
         if (ilp_clr)
             ilp <= `FALSE;
         if (start_of_frame)
             light_pen_triggered <= `FALSE;
-        if (!light_pen_triggered && lp_delay_4 == `FALSE) begin
+        if (!light_pen_triggered && `LP_DELAY_REG == `FALSE) begin
             light_pen_triggered <= `TRUE;
 
             if (raster_line_d != raster_y_max || cycle_num == 0) 
