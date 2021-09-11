@@ -1,9 +1,9 @@
-all: rgbed.prg
+all: eepromed.prg
 
 OBJS=../main.o menu.o ../util.o ../init.o
 
-rgbed.prg: ../main.o menu.o ../util.o ../init.o
-	cl65 -o rgbed.prg ../main.o menu.o ../util.o ../init.o
+eepromed.prg: ../main.o menu.o ../util.o ../init.o
+	cl65 -o eepromed.prg ../main.o menu.o ../util.o ../init.o
 
 ../main.o: ../main.c ../../common/util.h
 	cl65 --include-dir ../../common -c ../main.c -o ../main.o
@@ -18,7 +18,7 @@ menu.o: menu.c ../../common/util.h ../../common/kawari.h
 	cl65 --include-dir ../../common -c menu.c -o menu.o
 
 run:
-	x64sc rgbed.prg
+	x64sc eepromed.prg
 
 clean:
-	rm -f *.o rgbed.prg
+	rm -f *.o eepromed.prg

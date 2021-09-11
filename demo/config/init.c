@@ -127,7 +127,6 @@ void do_init(int chip_model) {
       SAFE_POKE(VIDEO_MEM_1_VAL, DEFAULT_BLANKING_LEVEL);
 
       // Burst amplitude
-      reg = BLACK_LEVEL;
       reg = BURST_AMPLITUDE;
       POKE(VIDEO_MEM_1_LO, reg);
       SAFE_POKE(VIDEO_MEM_1_VAL, DEFAULT_BURST_AMPLITUDE);
@@ -180,14 +179,16 @@ int first_init()
        }
        else if (r.a == 'p') {
           do_init(CHIP6569R3);
+          printf ("complete\n\n");
 	  break;
        }
        else if (r.a == 'n') {
           do_init(CHIP6567R8);
+          printf ("complete\n\n");
 	  break;
        }
    }
-   printf ("complete\n\n");
+
    printf ("       Press any key to continue\n");
 
    WAITKEY;
