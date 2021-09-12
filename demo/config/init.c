@@ -88,8 +88,9 @@ void set_amplitudes(int chip_model) {
 }
 
 void do_init(int chip_model) {
-   int reg;
-   int chip;
+   unsigned int reg;
+   unsigned int chip;
+   unsigned int bank;
 
    printf ("\nInitializing....");
 
@@ -103,6 +104,9 @@ void do_init(int chip_model) {
    // Chip model
    POKE(VIDEO_MEM_1_LO, CHIP_MODEL);
    SAFE_POKE(VIDEO_MEM_1_VAL, chip_model);
+
+   POKE(VIDEO_MEM_1_LO, EEPROM_BANK);
+   bank =  PEEK(VIDEO_MEM_1_VAL);
 
    // Init colors and other regs for each chip
    for (chip = 0; chip < 4; chip++) {
@@ -136,6 +140,10 @@ void do_init(int chip_model) {
       POKE(VIDEO_MEM_1_LO, reg);
       SAFE_POKE(VIDEO_MEM_1_VAL, 0);
    }
+
+   // Put bank back
+   POKE(VIDEO_MEM_1_LO, EEPROM_BANK);
+   POKE(VIDEO_MEM_1_VAL, bank);
 
    // Install magic bytes indicating we have good data
    reg = MAGIC_0;
