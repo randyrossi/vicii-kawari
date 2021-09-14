@@ -393,7 +393,7 @@ void erase_all(void)
         wren();
         write_page(addr);
     }
-}  
+}
 
 void read_all(void)
 {
@@ -411,6 +411,7 @@ void read_all(void)
            if (c ==7 || c==15 || c==23 || c==31) printf ("\n");
        }
        press_any_key(TO_CONTINUE);
+       if (r.a == 'q') break;
     }
 }
 
@@ -431,6 +432,7 @@ void verify(void)
     unsigned int bank;
     printf ("Checking...\n");
 
+    // First copy actual EEPROM data into data_all.
     for (addr = 0; addr < 1024; addr=addr+32) {
        read_page(addr);
 
@@ -438,6 +440,9 @@ void verify(void)
           data_all[addr+c] = data_in[c];
        }
     }
+
+    // Now verify we booted properly with what
+    // we should have read from EEPROM.
 
     // First check cross chip settings
     POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
@@ -447,26 +452,28 @@ void verify(void)
     check(0, MAGIC_3);
     check(0, DISPLAY_FLAGS);
 
-    // Now each bank
-    for (bank = 0 ; bank < 4; bank++) {
-      POKE(VIDEO_MEM_1_LO, EEPROM_BANK);
-      POKE(VIDEO_MEM_1_VAL, bank);
+    // Now the bank we booted on
+    POKE(VIDEO_MEM_1_LO, EEPROM_BANK);
+    bank = PEEK(VIDEO_MEM_1_VAL);
 
-      for (c=0;c<64;c++) {
-          if (c % 4 == 3) continue;
-          check(bank, RGB_START+c);
-      }
-      check(bank, BLACK_LEVEL);
-      check(bank, BURST_AMPLITUDE);
-      for (c=0;c<16;c++) {
-          check(bank, LUMA_START+c);
-          check(bank, PHASE_START+c);
-          check(bank, AMPLITUDE_START+c);
-      }
+    for (c=0;c<64;c++) {
+        if (c % 4 == 3) continue;
+        check(bank, RGB_START+c);
+    }
+    check(bank, BLACK_LEVEL);
+    check(bank, BURST_AMPLITUDE);
+    for (c=0;c<16;c++) {
+        check(bank, LUMA_START+c);
+        check(bank, PHASE_START+c);
+        check(bank, AMPLITUDE_START+c);
     }
 
     // Now to what known values should
-    // be after init.
+    // be after init.  These will only match
+    // after an init was done. But is also useful
+    // to verify only the settings that got
+    // changed in one of the editors actually
+    // got changed.
     for (addr=0;addr<1024;addr++) {
        if (addr == CHIP_MODEL || addr == EEPROM_BANK) continue;
 
@@ -477,9 +484,35 @@ void verify(void)
     }
 }
 
+
+void write_byte(void)
+{
+   unsigned long addr;
+   unsigned char value;
+
+   printf ("Location:");
+   addr = input_int();
+   printf ("\nValue:");
+   value = input_int();
+   printf ("\nWrite %d to %d? ", addr, value);
+   WAITKEY;
+   printf ("\n");
+   if (r.a == 'y') {
+      wren();
+      data_out[0] = value;
+      talk(WRITE_INSTR,
+	1 /* withaddr */, addr,
+	0 /* read 0 */,
+	1 /* write 1 */,
+	1 /* close */);
+      wait_busy();
+   } else {
+      printf ("Abort\n");
+   }
+}
+
 void main_menu(void)
 {
-
     clrscr();
 
     printf ("VIC-II Kawari EEPROM Test Util\n\n");
@@ -494,12 +527,14 @@ void main_menu(void)
        WAITKEY;
        printf ("%c\n",r.a);
        if (r.a == 'q') break;
-       if (r.a == 'r') read_all();
-       if (r.a == 'e') erase_all();
-       if (r.a == 'v') verify();
-       if (r.a == '?') {
+       else if (r.a == 'r') { read_all(); }
+       else if (r.a == 'e') { erase_all(); }
+       else if (r.a == 'v') { verify(); }
+       else if (r.a == 'w') { write_byte(); }
+       else if (r.a == '?') {
            printf ("q quit\n");
            printf ("r read all pages\n");
+           printf ("w write a byte\n");
            printf ("e erase all pages\n");
            printf ("v verify init\n");
        }

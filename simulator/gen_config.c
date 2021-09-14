@@ -20,6 +20,7 @@ void with_dvi_0() { printf ("`define WITH_DVI 1\n"); need_rgb_0(); }
 void hires_modes_0() { printf ("`define HIRES_MODES 1\n"); }
 void hide_sync_0() { printf ("`define HIDE_SYNC 1\n"); }
 void with_64k_0() { printf ("`define WITH_64K 1\n"); }
+void with_math_0() { printf ("`define WITH_MATH 1\n"); }
 
 void test_pattern_1() { printf ("-DTEST_PATTERN=1 "); }
 void gen_luma_chroma_1() { printf ("-DGEN_LUMA_CHROMA=1 "); }
@@ -36,6 +37,7 @@ void with_dvi_1() { printf ("-DWITH_DVI=1 "); need_rgb_1(); }
 void hires_modes_1() { printf ("-DHIRES_MODES=1 "); }
 void hide_sync_1() { printf ("-DHIDE_SYNC=1 "); }
 void with_64k_1() { printf ("-DWITH_64K=1 "); }
+void with_math_1() { printf ("-DWITH_MATH=1 "); }
 
 void main(int argc, char* argv[]) {
 
@@ -53,6 +55,7 @@ void main(int argc, char* argv[]) {
 	def_func hires_modes;
 	def_func hide_sync;
 	def_func with_64k;
+	def_func with_math;
 
     char defines[] = {
     };
@@ -75,6 +78,7 @@ void main(int argc, char* argv[]) {
     hires_modes = hires_modes_0;
     hide_sync = hide_sync_0;
     with_64k = with_64k_0;
+    with_math = with_math_0;
 
     if (argc > 2) {
         test_pattern = test_pattern_1;
@@ -91,6 +95,7 @@ void main(int argc, char* argv[]) {
         hires_modes = hires_modes_1;
         hide_sync = hide_sync_1;
         with_64k = with_64k_1;
+        with_math = with_math_1;
     }
     else {
        printf ("`define VERSION_MAJOR 4'd0\n");
@@ -131,6 +136,7 @@ void main(int argc, char* argv[]) {
 		    break;
 	    case 5:
 		    with_dvi();
+                    with_math();
 		    break;
 	    case 6:
 		    gen_luma_chroma();
@@ -142,6 +148,7 @@ void main(int argc, char* argv[]) {
 	    case 7:
 		    gen_luma_chroma();
 		    average_lumas();
+                    with_math();
 		    break;
 	    default:
 		    break;

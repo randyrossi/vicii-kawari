@@ -211,6 +211,25 @@ reg [1:0] luma_regs_r_nibble;
 reg [1:0] luma_regs_wr_nibble;
 `endif
 
+`ifdef WITH_MATH
+reg [31:0] result32;
+reg [15:0] u_op_1;
+reg [15:0] u_op_2;
+reg signed [15:0] s_op_1;
+reg signed [15:0] s_op_2;
+wire u_div_done;
+wire s_div_done;
+wire [15:0] u_quotient;
+wire [15:0] u_remain;
+wire [15:0] s_quotient;
+wire [15:0] s_remain;
+reg [7:0] operator;
+reg extra;
+reg overflow;
+reg underflow;
+reg divzero;
+`endif
+
 reg auto_ram_sel; // which pointer are we auto incrementing?
 
 reg [1:0] video_ram_flag_port_1_auto;
@@ -332,6 +351,95 @@ LUMA_REGS luma_regs(clk_dot4x,
 
 `ifdef HAVE_FLASH
 `include "registers_flash.vh"
+`endif
+
+`ifdef WITH_MATH
+
+divide u_divider(.clk(clk_dot4x),
+                 .sign(1'b0),
+                 .done(u_div_done),
+                 .dividend(u_op_1),
+                 .divider(u_op_2),
+                 .quotient(u_quotient),
+                 .remainder(u_remain));
+
+divide s_divider(.clk(clk_dot4x),
+                 .sign(1'b1),
+                 .done(s_div_done),
+                 .dividend(s_op_1),
+                 .divider(s_op_2),
+                 .quotient(s_quotient),
+                 .remainder(s_remain));
+
+always @(posedge clk_dot4x)
+begin
+    case (operator)
+       `U_MULT: begin
+           result32 = {16'b0, u_op_1} * {16'b0, u_op_2};
+           overflow  = 0;
+           underflow = 0;
+           divzero = 0;
+       end
+       `U_DIV: begin
+           overflow  = 0;
+           underflow = 0;
+           if (u_op_2 == 0)
+              divzero = 1;
+           else if (u_div_done) begin
+              result32[15:0] = u_quotient;
+              result32[31:16] = u_remain;
+              divzero = 0;
+           end
+       end
+       `U_ADD:  begin
+           {extra, result32[15:0]} = {1'b0, u_op_1} +
+                               {1'b0, u_op_2} ;
+           overflow = extra;
+           underflow = 1'b0;
+           divzero = 0;
+       end
+       `U_SUB: begin
+           {extra, result32[15:0]} = {1'b0, u_op_1} -
+                               {1'b0, u_op_2} ;
+           underflow = extra;
+           overflow = 1'b0;
+           divzero = 0;
+       end
+       `S_MULT: begin
+           result32 = {s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15], s_op_1[15:0]} * 
+                      {s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15], s_op_2[15:0]};
+           overflow  = 0;
+           underflow = 0;
+           divzero = 0;
+       end
+       `S_DIV: begin
+           overflow  = 0;
+           underflow = 0;
+           if (s_op_2 == 0)
+              divzero = 1;
+           else if (u_div_done) begin
+              result32[15:0] = s_quotient;
+              result32[31:16] = s_remain;
+              divzero = 0;
+           end
+       end
+       `S_ADD: begin
+           {extra, result32[15:0]} = {s_op_1[15], s_op_1} +
+                                {s_op_2[15], s_op_2} ;
+           overflow  = ({extra, result32[15]} == 2'b01 );
+           underflow = ({extra, result32[15]} == 2'b10 );
+           divzero = 0;
+       end
+       `S_SUB: begin
+           {extra, result32[15:0]} = {s_op_1[15], s_op_1} -
+                                {s_op_2[15], s_op_2} ;
+           overflow  = ({extra, result32[15]} == 2'b01 );
+           underflow = ({extra, result32[15]} == 2'b10 );
+           divzero = 0;
+       end
+       default: ;
+   endcase
+end
 `endif
 
 // Master process block for registers
@@ -728,6 +836,32 @@ always @(posedge clk_dot4x)
                         dbo[7:0] <= {4'b1111, sprite_col[7]};
 
                     // --- BEGIN EXTENSIONS ----
+`ifdef WITH_MATH
+                    /* 0x2f */ 6'h2f: begin
+                        if (extra_regs_activated) begin
+                          dbo[7:0] <= result32[31:24];
+                        end
+                    end
+                    /* 0x30 */ 6'h30: begin
+                        if (extra_regs_activated) begin
+                          dbo[7:0] <= result32[23:16];
+                        end
+                    end
+                    /* 0x31 */ 6'h31: begin
+                        if (extra_regs_activated) begin
+                          dbo[7:0] <= result32[15:8];
+                        end
+                    end
+                    /* 0x32 */ 6'h32: begin
+                        if (extra_regs_activated) begin
+                          dbo[7:0] <= result32[7:0];
+                        end
+                    end
+                    /* 0x33 */ 6'h33: begin
+                        if (extra_regs_activated)
+                           dbo[2:0] <= {divzero, overflow, underflow};
+                    end
+`endif
                     `SPI_REG:
                         if (extra_regs_activated)
                            dbo[7:0] <= {
@@ -977,6 +1111,28 @@ always @(posedge clk_dot4x)
                         sprite_col[7] <= dbi[3:0];
 
                     // --- BEGIN EXTENSIONS ----
+`ifdef WITH_MATH
+                    /* 0x2f */ 6'h2f: begin
+                        u_op_1[15:8] <= dbi[7:0];
+                        s_op_1[15:8] <= dbi[7:0];
+                    end
+                    /* 0x30 */ 6'h30: begin
+                        u_op_1[7:0] <= dbi[7:0];
+                        s_op_1[7:0] <= dbi[7:0];
+                    end
+                    /* 0x31 */ 6'h31: begin
+                        u_op_2[15:8] <= dbi[7:0];
+                        s_op_2[15:8] <= dbi[7:0];
+                    end
+                    /* 0x32 */ 6'h32: begin
+                        u_op_2[7:0] <= dbi[7:0];
+                        s_op_2[7:0] <= dbi[7:0];
+                    end
+                    /* 0x33 */ 6'h33: begin
+                        operator <= dbi[7:0];
+                    end
+`endif
+
                     /* 0x34 */ `SPI_REG:
                         if (extra_regs_activated)
                         begin

@@ -27,6 +27,7 @@ subdirs:
 	$(MAKE) -C flash
 	$(MAKE) -C quick
 	$(MAKE) -C test
+	$(MAKE) -C mathtest
 
 clean:
 	$(MAKE) -C rgbed clean
@@ -35,4 +36,5 @@ clean:
 	$(MAKE) -C flash clean
 	$(MAKE) -C quick clean
 	$(MAKE) -C test clean
+	$(MAKE) -C mathtest clean
 	rm -f *.o config.prg

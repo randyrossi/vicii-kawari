@@ -1,12 +1,12 @@
 all: eepromed.prg
 
-OBJS=../main.o menu.o ../util.o ../init.o
+OBJS=main.o menu.o ../util.o ../init.o
 
-eepromed.prg: ../main.o menu.o ../util.o ../init.o
-	cl65 -o eepromed.prg ../main.o menu.o ../util.o ../init.o
+eepromed.prg: main.o menu.o ../util.o ../init.o
+	cl65 -o eepromed.prg main.o menu.o ../util.o ../init.o
 
-../main.o: ../main.c ../../common/util.h
-	cl65 --include-dir ../../common -c ../main.c -o ../main.o
+main.o: main.c ../../common/util.h
+	cl65 --include-dir ../../common -c main.c -o main.o
 
 ../init.o: ../init.c ../../common/init.h
 	cl65 --include-dir ../../common -c ../init.c -o ../init.o

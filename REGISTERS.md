@@ -30,11 +30,11 @@ Once activated, registers 0xd02f - 0xd03f become available and may be used to ac
 
 REG    | Name | Description
 -------|------|-------------
-0xd02f |      | Reserved
-0xd030 |      | Reserved
-0xd031 |      | Reserved
-0xd032 |      | Reserved
-0xd033 |      | Reserved
+0xd02f | OP_1_HI/RESULT_HH | Operand 1 HI on write, Result 31-25
+0xd030 | OP_1_LO/RESULT_HL | Operand 1 LO on write, Result 24-16
+0xd031 | OP_2_HI/RESULT_LH | Operand 2 HI on write, Result 15-8
+0xd032 | OP_2_LO/RESULT_LL | Operand 2 LO on write, Result 7-0
+0xd033 | OPERATOR/OPERATOR_FLAGS | Operator on write, Operation Flags on read
 0xd034 | SPI_REG | SPI Programming Register / Status Register
 0xd035 | VIDEO_MEM_1_IDX | Video Memory Index Port A (RAM only)
 0xd036 | VIDEO_MEM_2_IDX | Video Memory Index Port B (RAM only)
@@ -47,6 +47,36 @@ REG    | Name | Description
 0xd03d | VIDEO_MEM_2_HI | Video Memory Addr Hi Port B
 0xd03e | VIDEO_MEM_2_VAL | Video Memory Read/Write Value Port B
 0xd03f | VIDEO_MEM_FLAGS | Video Memory Op Flags (see below)
+
+All math operands are 16-bit.
+
+OPERATOR    | Description
+------------|------------
+U_MULT      | Unsigned multiply OP_1 * OP_2
+U_DIV       | Unsigned divide OP_1 / OP_2
+U_ADD       | Unsigned add OP_1 + OP_2
+U_SUB       | Unsigned subtract OP_1 - OP_2
+S_MULT      | Signed multiply OP_1 * OP_2
+S_DIV       | Signed divide OP_1 / OP_2
+S_ADD       | Signed add OP_1 + OP_2
+S_SUB       | Signed subtract OP_1 - OP_2
+
+OPERATION   | Result Format
+------------|--------------
+U_MULT      | 32-bit unsigned in RESULT_HH RESULT_HL RESULT_LH RESULT_LL
+U_DIV       | 16-bit remainder in RESULT_HH RESULT_HL, 16-bit quotient in RESULT_LH RESULT_LL
+U_ADD       | 16-bit unsigned in RESULT_LH RESULT_LL
+U_SUB       | 16-bit unsigned in RESULT_LH RESULT_LL
+S_MULT      | 32-bit signed in RESULT_HH RESULT_HL RESULT_LH RESULT_LL
+S_DIV       | 16-bit remainder in RESULT_HH RESULT_HL, 16-bit quotient in RESULT_LH RESULT_LL
+S_ADD       | 16-bit signed in RESULT_LH RESULT_LL
+S_SUB       | 16-bit signed in RESULT_LH RESULT_LL
+
+OPERATOR_FLAGS | Description
+---------------|------------
+1              | Underflow
+2              | Overflow
+4              | Div By Zero
 
 ## SPI Programming Register / Status Register ($d034)
 

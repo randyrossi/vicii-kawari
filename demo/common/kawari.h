@@ -3,6 +3,25 @@
 #define CHIP6567R56A 2
 #define CHIP6569R1 3
 
+#define OP_1_HI 0xd02fL
+#define OP_1_LO 0xd030L
+#define OP_2_HI 0xd031L
+#define OP_2_LO 0xd032L
+#define OPER    0xd033L
+
+#define UMULT 0
+#define UDIV 1
+#define UADD 2
+#define USUB 3
+#define SMULT 4
+#define SDIV 5
+#define SADD 6
+#define SSUB 7
+
+#define INF 4
+#define OVERFLOW 2
+#define UNDERFLOW 1
+
 #define SPI_REG 0xd034L
 #define VIDEO_MEM_1_IDX 0xd035L
 #define VIDEO_MEM_2_IDX 0xd036L

@@ -10,6 +10,7 @@ demo: subdirs
 	c1541 -attach demo.d64 -write config/timeed/timeed.prg timeed
 	c1541 -attach demo.d64 -write config/eepromed/eepromed.prg eepromed
 	c1541 -attach demo.d64 -write config/test/test.prg test
+	c1541 -attach demo.d64 -write config/mathtest/mathtest.prg mathtest
 	c1541 -attach demo.d64 -write 80col/80col-51200.prg 80col-51200
 	c1541 -attach demo.d64 -write ../asm/fade.prg fade
 	c1541 -attach demo.d64 -write ../asm/grogu.prg img-grogu

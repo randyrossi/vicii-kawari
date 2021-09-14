@@ -122,4 +122,10 @@
 // there is no connection.
 `define HIRES_RESET
 
+// WITH_MATH
+// ---------
+// Uncomment to enable 16-bit signed and unsigned
+// math operations on registers 0x2f-0x33.
+`define WITH_MATH
+
 `endif // config_vh_
