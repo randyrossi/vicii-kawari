@@ -18,7 +18,7 @@
 #define SADD 6
 #define SSUB 7
 
-#define INF 4
+#define DIVZ 4
 #define OVERFLOW 2
 #define UNDERFLOW 1
 

@@ -5,6 +5,7 @@
 #include <kawari.h>
 #include <util.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 static unsigned long umult(unsigned short v1, unsigned short v2)
 {
@@ -24,34 +25,48 @@ static unsigned long umult(unsigned short v1, unsigned short v2)
 
 
 int umult_1(void) {
+   int t;
+   unsigned short o1;
+   unsigned short o2;
+   unsigned long a;
+
    EXPECT_EQ(umult(65535u,65535u) , 65535u*65535u);
-   EXPECT_EQ(PEEK(OPER) & INF, 0);
+   EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
    EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
    EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    EXPECT_EQ(umult(0,0) , 0);
-   EXPECT_EQ(PEEK(OPER) & INF, 0);
+   EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
    EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
    EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    EXPECT_EQ(umult(1,0) , 0);
-   EXPECT_EQ(PEEK(OPER) & INF, 0);
+   EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
    EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
    EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    EXPECT_EQ(umult(8,3) , 8*3);
-   EXPECT_EQ(PEEK(OPER) & INF, 0);
+   EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
    EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
    EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    EXPECT_EQ(umult(253,64) , 253*64);
-   EXPECT_EQ(PEEK(OPER) & INF, 0);
+   EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
    EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
    EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    EXPECT_EQ(umult(65535u,64) , 65535u*64);
-   EXPECT_EQ(PEEK(OPER) & INF, 0);
+   EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
    EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
    EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
-}
 
+   for (t=0;t<NUM_RAND_RUNS;t++) {
+      o1=(unsigned short) rand();
+      o2=(unsigned short) rand();
+      a = (unsigned long)(o1)*(unsigned long)(o2);
+      EXPECT_EQ(umult(o1,o2) , a);
+      EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
+      EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
+      EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
+   }
+}

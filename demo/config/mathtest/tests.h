@@ -12,3 +12,5 @@ int uadd_1(void);
 int sadd_1(void);
 int usub_1(void);
 int ssub_1(void);
+
+#define NUM_RAND_RUNS 256

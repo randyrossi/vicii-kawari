@@ -5,6 +5,7 @@
 #include <kawari.h>
 #include <util.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 static unsigned short udiv(unsigned short v1, unsigned short v2)
 {
@@ -21,34 +22,48 @@ static unsigned short udiv(unsigned short v1, unsigned short v2)
 }
 
 int udiv_1(void) {
+   unsigned short o1;
+   unsigned short o2;
+   int t;
+
    EXPECT_EQ(udiv(65535u,2) , 65535u/2);
-   EXPECT_EQ(PEEK(OPER) & INF, 0);
+   EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
    EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
    EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    EXPECT_EQ(udiv(0,1) , 0);
-   EXPECT_EQ(PEEK(OPER) & INF, 0);
+   EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
    EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
    EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    EXPECT_EQ(udiv(8,3) , 8/3);
-   EXPECT_EQ(PEEK(OPER) & INF, 0);
+   EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
    EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
    EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    EXPECT_EQ(udiv(253,64) , 253/64);
-   EXPECT_EQ(PEEK(OPER) & INF, 0);
+   EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
    EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
    EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    EXPECT_EQ(udiv(65535u,64) , 65535u/64);
-   EXPECT_EQ(PEEK(OPER) & INF, 0);
+   EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
    EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
    EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    udiv(5,0);
-   EXPECT_EQ(PEEK(OPER) & INF, INF);
+   EXPECT_EQ(PEEK(OPER) & DIVZ, DIVZ);
    EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
    EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
+
+   for (t=0;t<NUM_RAND_RUNS;t++) {
+      o1=(unsigned short) rand();
+      o2=(unsigned short) rand();
+      if (o2 == 0) o2 = 1;
+      EXPECT_EQ(udiv(o1,o2) , o1/o2);
+      EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
+      EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
+      EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
+   }
 }
 

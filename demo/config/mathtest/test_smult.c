@@ -5,6 +5,7 @@
 #include <kawari.h>
 #include <util.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 static signed long smult(signed short v1, signed short v2)
 {
@@ -25,34 +26,49 @@ static signed long smult(signed short v1, signed short v2)
 }
 
 int smult_1(void) {
+   signed short o1;
+   signed short o2;
+   signed long a;
+   int t;
+
    EXPECT_EQ(smult(-32767,32767), -32767*32767);
-   EXPECT_EQ(PEEK(OPER) & INF, 0);
+   EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
    EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
    EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    EXPECT_EQ(smult(0,0) , 0);
-   EXPECT_EQ(PEEK(OPER) & INF, 0);
+   EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
    EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
    EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    EXPECT_EQ(smult(1,0) , 0);
-   EXPECT_EQ(PEEK(OPER) & INF, 0);
+   EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
    EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
    EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    EXPECT_EQ(smult(-8,3) , -8*3);
-   EXPECT_EQ(PEEK(OPER) & INF, 0);
+   EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
    EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
    EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    EXPECT_EQ(smult(253,-64) , 253*-64);
-   EXPECT_EQ(PEEK(OPER) & INF, 0);
+   EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
    EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
    EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    EXPECT_EQ(smult(32767,64) , 32767*64);
-   EXPECT_EQ(PEEK(OPER) & INF, 0);
+   EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
    EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
    EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
+
+   for (t=0;t<NUM_RAND_RUNS;t++) {
+      o1=(signed short) rand();
+      o2=(signed short) rand();
+      a = (signed long)(o1)*(signed long)(o2);
+      EXPECT_EQ(smult(o1,o2) , a);
+      EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
+      EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
+      EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
+   }
 }
 
