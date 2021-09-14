@@ -15,13 +15,15 @@ Build instructions/notes.
 
 ### Golden image
 
-The golden image should be built off the stable release branch matching version 0.15:
+The golden image should be built off the stable release branch matching version 0.1:
 
     make clean golden
 
 This makes kawari_golden.bit which includes the SPIx4 multiboot programming header. Golden resides at 0x000044. Multiboot header points to 0x7d000.
 
 ### Multiboot image
+
+The multiboot image should be built off latest release branch matching version 1.0:
 
     make clean multiboot
 
@@ -45,7 +47,7 @@ Device's multiboot images can be updated directly from the C64 using demo/config
 
     cp kawari_multiboot.bit demo/config/flash/kawari_multiboot_#.#.bit
     cd demo/config/flash
-    EDIT Makefile and change SOURCE_IMG to point to the right .bit file
+    EDIT Makefile and change VERSION/SOURCE_IMG to point to the right .bit file
     make clean all
 
 Makes C64 disks flash0.d64, flash1.d64, etc
