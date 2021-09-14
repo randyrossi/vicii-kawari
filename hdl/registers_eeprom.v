@@ -101,6 +101,9 @@ task handle_persist(input is_reset);
                             // so leave eeprom_state set to EEPROM_READ
                             state_ctr <= 15'd0;
                             magic <= 0; // reset our magic counter again
+                            // We could do another warm up cycle before hitting
+                            // the eeprom again. But doesn't seem necessary.
+                            //eeprom_warm_up_cycle <= 1'b1;
                         end else begin
                             $display("registers restored");
                             eeprom_state <= `EEPROM_IDLE;
@@ -120,8 +123,8 @@ task handle_persist(input is_reset);
         // Set C,D,S so they become valid on [0] for device
         else if (clk_div[3])
         begin
-            clk8 <= ~clk8;
-            if (!state_ctr[14])
+          clk8 <= ~clk8;
+          if (!state_ctr[14]) begin
             // This block handles the LOW phase of clk8
             // which is basically setting things up for
             // the LOW edge of C. We also trigger restoration
@@ -169,12 +172,14 @@ task handle_persist(input is_reset);
                                 if (magic == 4) begin
                                     // For 1st pass, set chip (during reset) so
                                     // everything inits to the right chip model
-                                    if (is_reset && addr_lo == `EXT_REG_CHIP_MODEL) begin
+                                    if (is_reset) begin
+                                      if (addr_lo == `EXT_REG_CHIP_MODEL) begin
                                         // Flip the video standard if the switch
                                         // is LOW.
                                         chip <= {data[1], standard_sw ? data[0] : ~data[0]};
                                         // EEPROM bank always starts off same as chip
                                         eeprom_bank <= {data[1], standard_sw ? data[0] : ~data[0]};
+                                      end
                                     end else begin
                                         // For 2nd pass, write to registers
                                         write_ram(
@@ -246,6 +251,7 @@ task handle_persist(input is_reset);
                             end
                             else if (state_val >= 25 && state_val <= 32) begin
                                 spi_c <= clk8;
+                                spi_d <= 0;
                             end
                             else if (state_val == 33) begin
                                 eeprom_s <= 1;
@@ -337,6 +343,7 @@ task handle_persist(input is_reset);
                         ;
                 endcase
             end
+          end
         end
     end
 endtask
