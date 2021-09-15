@@ -29,6 +29,7 @@ subdirs:
 	$(MAKE) -C test
 	$(MAKE) -C mathtest
 	$(MAKE) -C rgbtest
+	$(MAKE) -C lumatest
 
 clean:
 	$(MAKE) -C rgbed clean
@@ -39,4 +40,5 @@ clean:
 	$(MAKE) -C test clean
 	$(MAKE) -C mathtest clean
 	$(MAKE) -C rgbtest clean
+	$(MAKE) -C lumatest clean
 	rm -f *.o config.prg
