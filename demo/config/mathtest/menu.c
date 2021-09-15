@@ -17,8 +17,4 @@ void main_menu(void)
     RUN_TEST(smult_1);
     RUN_TEST(udiv_1);
     RUN_TEST(sdiv_1);
-    RUN_TEST(uadd_1);
-    RUN_TEST(sadd_1);
-    RUN_TEST(usub_1);
-    RUN_TEST(ssub_1);
 }

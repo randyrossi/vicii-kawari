@@ -207,12 +207,8 @@
 // --- BEGIN EXTENSIONS ---
 `define U_MULT 0
 `define U_DIV  1
-`define U_ADD  2
-`define U_SUB  3
-`define S_MULT 4
-`define S_DIV  5
-`define S_ADD  6
-`define S_SUB  7
+`define S_MULT 2
+`define S_DIV  3
 
 `define VMEM_FLAG_PORT1_FUNCTION 1:0
 `define VMEM_FLAG_PORT2_FUNCTION 3:2

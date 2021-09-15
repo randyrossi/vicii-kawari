@@ -224,9 +224,6 @@ wire [15:0] u_remain;
 wire [15:0] s_quotient;
 wire [15:0] s_remain;
 reg [7:0] operator;
-reg extra;
-reg overflow;
-reg underflow;
 reg divzero;
 `endif
 
@@ -376,13 +373,9 @@ begin
     case (operator)
        `U_MULT: begin
            result32 = {16'b0, u_op_1} * {16'b0, u_op_2};
-           overflow  = 0;
-           underflow = 0;
            divzero = 0;
        end
        `U_DIV: begin
-           overflow  = 0;
-           underflow = 0;
            if (u_op_2 == 0)
               divzero = 1;
            else if (u_div_done) begin
@@ -391,30 +384,12 @@ begin
               divzero = 0;
            end
        end
-       `U_ADD:  begin
-           {extra, result32[15:0]} = {1'b0, u_op_1} +
-                               {1'b0, u_op_2} ;
-           overflow = extra;
-           underflow = 1'b0;
-           divzero = 0;
-       end
-       `U_SUB: begin
-           {extra, result32[15:0]} = {1'b0, u_op_1} -
-                               {1'b0, u_op_2} ;
-           underflow = extra;
-           overflow = 1'b0;
-           divzero = 0;
-       end
        `S_MULT: begin
            result32 = {s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15], s_op_1[15:0]} * 
                       {s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15], s_op_2[15:0]};
-           overflow  = 0;
-           underflow = 0;
            divzero = 0;
        end
        `S_DIV: begin
-           overflow  = 0;
-           underflow = 0;
            if (s_op_2 == 0)
               divzero = 1;
            else if (u_div_done) begin
@@ -422,20 +397,6 @@ begin
               result32[31:16] = s_remain;
               divzero = 0;
            end
-       end
-       `S_ADD: begin
-           {extra, result32[15:0]} = {s_op_1[15], s_op_1} +
-                                {s_op_2[15], s_op_2} ;
-           overflow  = ({extra, result32[15]} == 2'b01 );
-           underflow = ({extra, result32[15]} == 2'b10 );
-           divzero = 0;
-       end
-       `S_SUB: begin
-           {extra, result32[15:0]} = {s_op_1[15], s_op_1} -
-                                {s_op_2[15], s_op_2} ;
-           overflow  = ({extra, result32[15]} == 2'b01 );
-           underflow = ({extra, result32[15]} == 2'b10 );
-           divzero = 0;
        end
        default: ;
    endcase
@@ -859,7 +820,7 @@ always @(posedge clk_dot4x)
                     end
                     /* 0x33 */ 6'h33: begin
                         if (extra_regs_activated)
-                           dbo[2:0] <= {divzero, overflow, underflow};
+                           dbo[1] <= divzero;
                     end
 `endif
                     `SPI_REG:

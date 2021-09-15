@@ -11,16 +11,10 @@
 
 #define UMULT 0
 #define UDIV 1
-#define UADD 2
-#define USUB 3
-#define SMULT 4
-#define SDIV 5
-#define SADD 6
-#define SSUB 7
+#define SMULT 2
+#define SDIV 3
 
-#define DIVZ 4
-#define OVERFLOW 2
-#define UNDERFLOW 1
+#define DIVZ 1
 
 #define SPI_REG 0xd034L
 #define VIDEO_MEM_1_IDX 0xd035L

@@ -54,29 +54,19 @@ OPERATOR    | Description
 ------------|------------
 U_MULT      | Unsigned multiply OP_1 * OP_2
 U_DIV       | Unsigned divide OP_1 / OP_2
-U_ADD       | Unsigned add OP_1 + OP_2
-U_SUB       | Unsigned subtract OP_1 - OP_2
 S_MULT      | Signed multiply OP_1 * OP_2
 S_DIV       | Signed divide OP_1 / OP_2
-S_ADD       | Signed add OP_1 + OP_2
-S_SUB       | Signed subtract OP_1 - OP_2
 
 OPERATION   | Result Format
 ------------|--------------
 U_MULT      | 32-bit unsigned in RESULT_HH RESULT_HL RESULT_LH RESULT_LL
 U_DIV       | 16-bit remainder in RESULT_HH RESULT_HL, 16-bit quotient in RESULT_LH RESULT_LL
-U_ADD       | 16-bit unsigned in RESULT_LH RESULT_LL
-U_SUB       | 16-bit unsigned in RESULT_LH RESULT_LL
 S_MULT      | 32-bit signed in RESULT_HH RESULT_HL RESULT_LH RESULT_LL
 S_DIV       | 16-bit remainder in RESULT_HH RESULT_HL, 16-bit quotient in RESULT_LH RESULT_LL
-S_ADD       | 16-bit signed in RESULT_LH RESULT_LL
-S_SUB       | 16-bit signed in RESULT_LH RESULT_LL
 
 OPERATOR_FLAGS | Description
 ---------------|------------
-1              | Underflow
-2              | Overflow
-4              | Div By Zero
+1              | Div By Zero
 
 ## SPI Programming Register / Status Register ($d034)
 

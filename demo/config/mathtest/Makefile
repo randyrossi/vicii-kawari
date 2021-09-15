@@ -4,11 +4,7 @@ OBJS=../main.o menu.o ../util.o ../init.o \
      test_umult.o \
      test_smult.o \
      test_udiv.o \
-     test_sdiv.o \
-     test_uadd.o \
-     test_sadd.o \
-     test_usub.o \
-     test_ssub.o
+     test_sdiv.o
 
 mathtest.prg: $(OBJS)
 	cl65 -o mathtest.prg $(OBJS)
