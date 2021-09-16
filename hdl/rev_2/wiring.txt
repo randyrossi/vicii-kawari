@@ -100,6 +100,9 @@ P64    SPI_D     spi_d          O  QUIETIO 2 LVCMOS33
 P65    SPI_Q     spi_q          I  NA NA LVCMOS33
 
 # Config
+# To simulate JP2 and JP3 jumpers in place for rev_2
+# board that doesn't have these, set to PULLDOWN for
+# those io.
 P57    CFG1      cfg1           I  PULLUP NA NA
 P58    CFG2      cfg2           I  PULLUP NA NA
 P59    CFG3      cfg3           I  PULLUP NA NA

@@ -2,11 +2,10 @@
 `define config_vh_
 
 `define VERSION_MAJOR 4'd0
-`define VERSION_MINOR 4'd2
+`define VERSION_MINOR 4'd1
 
 // Pick a board.
 //`define SIMULATOR_BOARD 1
-//`define CMOD_BOARD 1
 //`define REV_2_BOARD 1
 `define REV_3_BOARD 1
 
@@ -56,14 +55,14 @@
 // Uncomment to activate registers 0xa0-0xcf and 0x80,0x81 to
 // control luma(a#), phase(0xb#) and amplitudes(0xc#) for the 16
 // colors as well as blanking level (0x80) and burst amplitude (0x81).
-//`define CONFIGURABLE_LUMAS 1
+`define CONFIGURABLE_LUMAS 1
 
 // CONFIGURABLE_RGB
 // ------------------
 // Uncomment to activate registers 0x00-0x3f to control
 // 18-bit RGB values for the 16 colors.  If RGB is not
 // configurable, a single static palette is used.
-//`define CONFIGURABLE_RGB 1
+`define CONFIGURABLE_RGB 1
 
 // CONFIGURABLE_TIMING
 // -------------------
@@ -83,12 +82,12 @@
 // ----------------
 // Uncomment if board has EEPROM for persistence
 // via connected SPI bus.
-//`define HAVE_EEPROM 1
+`define HAVE_EEPROM 1
 
 // HAVE_FLASH
 // Uncomment if board has FLASH directly connected
 // to FPGA via SPI bus.
-//`define HAVE_FLASH 1
+`define HAVE_FLASH 1
 
 // NEED_RGB
 // --------
