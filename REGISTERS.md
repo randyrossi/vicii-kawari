@@ -123,7 +123,7 @@ Pin 3 - Persistence Lock can be left OPEN to prevent overwriting existing saved 
 
 ## Video Memory
 
-VIC-II Kawari adds 32k of video memory to the C64. This memory can be directly accessed by VIC-II Kawari for new graphics modes and indirectly by the 6510 CPU. The registers 0xd039-0xd03f are used to read/write from/to video memory. (This space can also be used to store code but it would have to be copied back to main memory to be executed by the CPU.)
+VIC-II Kawari adds 64k of video memory to the C64. This memory can be directly accessed by VIC-II Kawari for new graphics modes and indirectly by the 6510 CPU. The registers 0xd039-0xd03f are used to read/write from/to video memory. (This space can also be used to store code but it would have to be copied back to main memory to be executed by the CPU.)
 
 VIDEO_MEM_FLAGS | Description
 ----------------|-------------
