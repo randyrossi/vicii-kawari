@@ -54,6 +54,10 @@
 #define WREN_INSTR            0x06
 #define READ_STATUS1_INSTR    0x05
 #define WRITE_INSTR           0x02
+#define ID_READ               0x83  // a10 = 0
+#define ID_WRITE              0x82  // a10 = 0
+#define ID_LOCK_READ          0x83  // a10 = 1
+#define ID_PERM_LOCK          0x82  // a10 = 1
 
 #define TO_EXIT 0
 #define TO_CONTINUE 1
@@ -321,8 +325,6 @@ void wait_busy(void) {
     // close
     SET(D0_C0_S0);
     SET(D1_C1_S1);
-
-    // TODO - Retrieve result byte
 }
 
 // Read the flash device id bytes
@@ -365,13 +367,21 @@ void wren(void) {
 	1 /* close */);
 }
 
-unsigned long input_int(void) {
+unsigned long input_string(void) {
    unsigned n = 0;
    for (;;) {
       WAITKEY;
       printf("%c",r.a);
-      if (r.a == 0x0d) break;
-      scratch[n++] = r.a;
+      if (r.a == 20 && n > 0) {
+         scratch[n-1] = '\0';
+         n--;
+      }
+      else if (r.a == 0x0d) {
+         break;
+      } else {
+         scratch[n++] = r.a;
+      }
+      if (n > 30) break;
    }
    scratch[n] = '\0';
    return atol(scratch);
@@ -415,16 +425,23 @@ void read_all(void)
     }
 }
 
+// This verifies we read the right value from eeprom into
+// the register at boot for a given chip model.
 void check(unsigned int bank, unsigned int reg) {
     unsigned char got;
     POKE(VIDEO_MEM_1_LO, reg);
 
     got = PEEK(VIDEO_MEM_1_VAL);
     if (data_all[256*bank+reg] != got) {
-        printf ("REG READ %02x != %02x, got %02x bank %d\n", reg, data_all[256*bank + reg], got, bank);
+        printf ("REG READ %02x != %02x, got %02x bank %d\n",
+                 reg, data_all[256*bank + reg], got, bank);
     }
 }
 
+// This first verifies things were read properly
+// for the chip, then compares all eeprom stored
+// values against known init values to make sure
+// init worked properly.
 void verify(void)
 {
     unsigned int addr;
@@ -491,9 +508,9 @@ void write_byte(void)
    unsigned char value;
 
    printf ("Location:");
-   addr = input_int();
+   addr = input_string(); // no type checking on this
    printf ("\nValue:");
-   value = input_int();
+   value = input_string(); // no type checking on this
    printf ("\nWrite %d to %d? ", addr, value);
    WAITKEY;
    printf ("\n");
@@ -509,6 +526,119 @@ void write_byte(void)
    } else {
       printf ("Abort\n");
    }
+}
+
+// Read the id page into data_in
+void read_id_page(void) {
+    // INSTR + 16 bit 0 + 32 READ BYTES + CLOSE
+    talk(ID_READ,
+         1 /* withaddr */, 0,
+	 32 /* read 32 */,
+	 0 /* write 0 */,
+	 1 /* close */);
+}
+
+// Write 32 byte id page from data_out
+void write_id_page(void) {
+    // INSTR + 16 bit 0 + 32 WRITE BYTES + CLOSE
+    talk(ID_WRITE,
+         1 /* withaddr */, 0,
+	 0 /* read 0 */,
+	 32 /* write 32 */,
+	 1 /* close */);
+}
+
+// Return 1 if locked, 0 otherwise
+unsigned char read_id_lock(void) {
+    // INSTR + 16 bit 0 + 32 READ BYTES + CLOSE
+    talk(ID_LOCK_READ,
+         1 /* withaddr */, 1024, // a10=1
+	 1 /* read 1 */,
+	 0 /* write 0 */,
+	 1 /* close */);
+    return data_in[0] & 1;
+}
+
+// Locks the id page permenantly
+void lock_id(void) {
+    // INSTR + 16 bit 0 + 1 WRITE BYTES + CLOSE
+    data_out[0] = 2;
+    talk(ID_PERM_LOCK,
+         1 /* withaddr */, 1024, // a10=1
+	 0 /* read 1 */,
+	 1 /* write 1 */,
+	 1 /* close */);
+}
+
+void show_id_page(void) {
+   int c;
+   read_id_page();
+   for (c=0;c<32;c++) {
+      if (c % 8 == 0) {
+         printf ("\n%04x: ", (int)(c));
+      }
+      printf ("%02x ", data_in[c]);
+   }
+   printf ("\n");
+}
+
+// Show null terminated string staring at 3
+void show_serial(void) {
+   int c;
+   printf ("Serial:");
+   read_id_page();
+   for (c=3;c<32;c++) {
+       if (data_in[c] == 0) break;
+       printf ("%c", data_in[c]);
+   }
+   printf ("\n");
+}
+
+void set_serial(void) {
+   int c;
+   int pad;
+   read_id_page();
+   // copy data_in to data_out
+   for (c=0;c<32;c++) { data_out[c] = data_in[c]; }
+   
+   printf ("Enter serial:");
+   input_string();
+   for (c=3;c<3+strlen(scratch);c++) {
+      data_out[c] = scratch[c-3];
+   }
+   for (pad=c;pad<32;pad++) {
+      data_out[pad] = 0;
+   }
+   printf ("Okay to set serial: %s\n");
+
+   input_string();
+   
+   if (strlen(scratch) == 3 && strcmp("yes", scratch) == 0) {
+      wren();
+      write_id_page();
+      printf ("\nWritten.\n");
+   } else {
+      printf ("\nAborted.\n");
+   }
+}
+
+void lock_serial(void) {
+  printf ("WARNING: This is permanent\n");
+  printf ("Proceed to lock ID page? (type yes):");
+  input_string();
+  printf ("\n");
+  if (strlen(scratch) == 3 && strcmp("yes", scratch) == 0) {
+     wren();
+     lock_id();
+     printf ("Done\n");
+  } else {
+     printf ("Aborted\n");
+  }
+}
+
+void get_lock_status(void) {
+  printf ("Lock status:");
+  if (read_id_lock()) printf ("LOCKED\n"); else printf ("UNLOCKED\n");
 }
 
 void main_menu(void)
@@ -531,12 +661,22 @@ void main_menu(void)
        else if (r.a == 'e') { erase_all(); }
        else if (r.a == 'v') { verify(); }
        else if (r.a == 'w') { write_byte(); }
+       else if (r.a == 'i') { show_id_page(); }
+       else if (r.a == 'g') { show_serial(); }
+       else if (r.a == 's') { set_serial(); }
+       else if (r.a == 'l') { lock_serial(); }
+       else if (r.a == 'o') { get_lock_status(); }
        else if (r.a == '?') {
            printf ("q quit\n");
            printf ("r read all pages\n");
            printf ("w write a byte\n");
            printf ("e erase all pages\n");
            printf ("v verify init\n");
+           printf ("i read id page\n");
+           printf ("g get serial\n");
+           printf ("s set serial\n");
+           printf ("l lock serial\n");
+           printf ("o lock status\n");
        }
     }
 }

@@ -331,8 +331,6 @@ void wait_busy(void) {
     // close
     SET(D0_C0_S0);
     SET(D1_C1_S1);
-
-    // TODO - Retrieve result byte
 }
 
 // Read the flash device id bytes
@@ -487,7 +485,7 @@ void expert(void) {
 #endif
 
 // Flash files are spread across 4 disks
-// Thi,s routine erases the flash
+// This routine erases the flash
 void begin_flash(long num_to_write, unsigned long start_addr) {
     unsigned long src_addr;
     unsigned char disknum;
@@ -510,7 +508,9 @@ void begin_flash(long num_to_write, unsigned long start_addr) {
     }
 
     mprintf ("ERASE FLASH");
-    for (src_addr=start_addr;src_addr<start_addr+512000L;src_addr+=65536) {
+    for (src_addr=start_addr;
+           src_addr<(start_addr+512000L) && src_addr < 2097152L;
+              src_addr+=65536) {
         mprintf (".");
         wren();
         erase_64k(src_addr);
@@ -595,7 +595,6 @@ void main_menu(void)
 
     mprintf ("VIC-II Kawari Update Util\n\n");
 
-    // TODO - Grab versions
     SMPRINTF_2 ("Update Util Version: %d.%d\n",
         FLASH_VERSION_MAJOR, FLASH_VERSION_MINOR);
 

@@ -7,7 +7,6 @@ demo: subdirs
 	c1541 -attach demo.d64 -write config/quick/quickswitch.prg qs
 	c1541 -attach demo.d64 -write config/rgbed/rgbed.prg rgbed
 	c1541 -attach demo.d64 -write config/comped/comped.prg comped
-	c1541 -attach demo.d64 -write config/timeed/timeed.prg timeed
 	c1541 -attach demo.d64 -write config/eepromed/eepromed.prg eepromed
 	c1541 -attach demo.d64 -write config/test/test.prg test
 	c1541 -attach demo.d64 -write config/mathtest/mathtest.prg mathtest

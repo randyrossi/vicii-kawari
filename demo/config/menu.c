@@ -291,6 +291,8 @@ void main_menu(void)
        } else if (r.a == '*') {
           // external switch has changed
           current_switch_val = new_switch_val;
+          current_display_flags &= ~DISPLAY_CHIP_INVERT_SWITCH;
+          current_display_flags |= new_switch_val;
           need_refresh=1;
        } else if (r.a == '%') {
           // lock bits changed
