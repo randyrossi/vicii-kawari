@@ -611,7 +611,12 @@ always @(posedge clk_dot4x)
 
 `ifdef HIRES_MODES
 `ifdef HIRES_RESET
+
+`ifdef HAVE_EEPROM
+        if (!cpu_reset_i && extra_regs_activated && !eeprom_busy) begin
+`else
         if (!cpu_reset_i && extra_regs_activated) begin
+`endif
            hires_mode <= 2'b00;
            hires_enabled <= 1'b0;
            hires_allow_bad <= 1'b0;
