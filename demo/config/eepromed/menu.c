@@ -420,8 +420,8 @@ void check(unsigned int bank, unsigned int reg) {
     POKE(VIDEO_MEM_1_LO, reg);
 
     got = PEEK(VIDEO_MEM_1_VAL);
-    if (data_all[reg] != got) {
-        printf ("REG READ %02x != %02x, got %02x bank %d\n", reg, data_all[reg], got, bank);
+    if (data_all[256*bank+reg] != got) {
+        printf ("REG READ %02x != %02x, got %02x bank %d\n", reg, data_all[256*bank + reg], got, bank);
     }
 }
 

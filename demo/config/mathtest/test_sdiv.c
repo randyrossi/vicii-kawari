@@ -28,33 +28,21 @@ int sdiv_1(void) {
 
    EXPECT_EQ(sdiv(32767,2) , 32767/2);
    EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
-   EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
-   EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    EXPECT_EQ(sdiv(0,1) , 0);
    EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
-   EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
-   EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    EXPECT_EQ(sdiv(8,3) , 8/3);
    EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
-   EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
-   EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    EXPECT_EQ(sdiv(-253,64) , (short)-253/(short)64);
    EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
-   EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
-   EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    EXPECT_EQ(sdiv(-32767,64) , (short)-32767/(short)64);
    EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
-   EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
-   EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    sdiv(5,0);
    EXPECT_EQ(PEEK(OPER) & DIVZ, DIVZ);
-   EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
-   EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    for (t=0;t<NUM_RAND_RUNS;t++) {
       o1=(signed short) rand();
@@ -62,8 +50,6 @@ int sdiv_1(void) {
       if (o2 == 0) o2 = 1;
       EXPECT_EQ(sdiv(o1,o2) , o1/o2);
       EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
-      EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
-      EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
    }
 }
 

@@ -32,33 +32,21 @@ int umult_1(void) {
 
    EXPECT_EQ(umult(65535u,65535u) , 65535u*65535u);
    EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
-   EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
-   EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    EXPECT_EQ(umult(0,0) , 0);
    EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
-   EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
-   EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    EXPECT_EQ(umult(1,0) , 0);
    EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
-   EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
-   EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    EXPECT_EQ(umult(8,3) , 8*3);
    EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
-   EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
-   EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    EXPECT_EQ(umult(253,64) , 253*64);
    EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
-   EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
-   EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    EXPECT_EQ(umult(65535u,64) , 65535u*64);
    EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
-   EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
-   EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
 
    for (t=0;t<NUM_RAND_RUNS;t++) {
       o1=(unsigned short) rand();
@@ -66,7 +54,5 @@ int umult_1(void) {
       a = (unsigned long)(o1)*(unsigned long)(o2);
       EXPECT_EQ(umult(o1,o2) , a);
       EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
-      EXPECT_EQ(PEEK(OPER) & OVERFLOW, 0);
-      EXPECT_EQ(PEEK(OPER) & UNDERFLOW, 0);
    }
 }
