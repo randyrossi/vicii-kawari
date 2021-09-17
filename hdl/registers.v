@@ -611,7 +611,7 @@ always @(posedge clk_dot4x)
 
 `ifdef HIRES_MODES
 `ifdef HIRES_RESET
-        if (!cpu_reset_i && hires_enabled) begin
+        if (!cpu_reset_i && extra_regs_activated) begin
            hires_mode <= 2'b00;
            hires_enabled <= 1'b0;
            hires_allow_bad <= 1'b0;
