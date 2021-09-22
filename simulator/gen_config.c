@@ -98,8 +98,8 @@ void main(int argc, char* argv[]) {
         with_math = with_math_1;
     }
     else {
-       printf ("`define VERSION_MAJOR 4'd0\n");
-       printf ("`define VERSION_MINOR 4'd2\n");
+       printf ("`define VERSION_MAJOR 8'd0\n");
+       printf ("`define VERSION_MINOR 8'd2\n");
        printf ("`define SIMULATOR_BOARD 1\n");
     }
 

@@ -45,6 +45,7 @@ unsigned char wait_key_or_change(unsigned char current_switch_val,
                                  unsigned char *new_switch_val,
                                  unsigned char *new_lock_bits);
 
-unsigned int get_version(void);
+unsigned char get_version_major(void);
+unsigned char get_version_minor(void);
 unsigned char get_lock_bits(void);
 unsigned char get_chip_model(void);

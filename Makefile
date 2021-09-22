@@ -35,12 +35,12 @@ compile:
 	par -w -intstyle ise -ol high -xe c -mt 4 top_map.ncd top.ncd top.pcf
 
 golden_version:
-	perl -pi.bak -e "s/VERSION_MAJOR.*/VERSION_MAJOR 4'd0/g" hdl/config.vh
-	perl -pi.bak -e "s/VERSION_MINOR.*/VERSION_MINOR 4'd1/g" hdl/config.vh
+	perl -pi.bak -e "s/VERSION_MAJOR.*/VERSION_MAJOR 8'd0/g" hdl/config.vh
+	perl -pi.bak -e "s/VERSION_MINOR.*/VERSION_MINOR 8'd1/g" hdl/config.vh
 
 multiboot_version:
-	perl -pi.bak -e "s/VERSION_MAJOR.*/VERSION_MAJOR 4'd1/g" hdl/config.vh
-	perl -pi.bak -e "s/VERSION_MINOR.*/VERSION_MINOR 4'd0/g" hdl/config.vh
+	perl -pi.bak -e "s/VERSION_MAJOR.*/VERSION_MAJOR 8'd1/g" hdl/config.vh
+	perl -pi.bak -e "s/VERSION_MINOR.*/VERSION_MINOR 8'd0/g" hdl/config.vh
 
 golden: clean golden_version compile
 	bitgen -intstyle ise -f kawari_golden.ut top.ncd

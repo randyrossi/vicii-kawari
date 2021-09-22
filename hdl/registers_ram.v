@@ -111,8 +111,10 @@ task read_ram(
                     `EXT_REG_CURSOR_HI:
                         dbo <= hires_cursor_hi;
 `endif
-                    `EXT_REG_VERSION:
-                        dbo <= {`VERSION_MAJOR, `VERSION_MINOR};
+                    `EXT_REG_VERSION_MAJOR:
+                        dbo <= `VERSION_MAJOR;
+                    `EXT_REG_VERSION_MINOR:
+                        dbo <= `VERSION_MINOR;
                     `EXT_REG_VARIANT_NAME1:
                         dbo <= `VARIANT_NAME1;
                     `EXT_REG_VARIANT_NAME2:

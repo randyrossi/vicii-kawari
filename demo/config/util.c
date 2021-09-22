@@ -76,11 +76,19 @@ unsigned char wait_key_or_change(unsigned char current_switch_val,
     }
 }
 
-unsigned int get_version(void)
+unsigned char get_version_major(void)
 {
    POKE(VIDEO_MEM_1_IDX, 0);
    POKE(VIDEO_MEM_2_IDX, 0);
-   POKE(VIDEO_MEM_1_LO, VERSION);
+   POKE(VIDEO_MEM_1_LO, VERSION_MAJOR);
+   return PEEK(VIDEO_MEM_1_VAL);
+}
+
+unsigned char get_version_minor(void)
+{
+   POKE(VIDEO_MEM_1_IDX, 0);
+   POKE(VIDEO_MEM_2_IDX, 0);
+   POKE(VIDEO_MEM_1_LO, VERSION_MINOR);
    return PEEK(VIDEO_MEM_1_VAL);
 }
 

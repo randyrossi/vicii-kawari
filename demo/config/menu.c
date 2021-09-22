@@ -16,7 +16,8 @@ static unsigned int current_display_flags = 0;
 static unsigned int current_switch_val = 0;
 static unsigned char current_lock_bits = 0;
 
-static unsigned int version = 0;
+static unsigned char version_major = 0;
+static unsigned char version_minor = 0;
 static unsigned char variant[16];
 
 static int line = 0;
@@ -192,14 +193,15 @@ void main_menu(void)
     unsigned char new_lock_bits;
 
     POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
-    version = get_version();
+    version_major = get_version_major();
+    version_minor = get_version_minor();
     get_variant();
 
     CLRSCRN;
     printf ("VIC-II Kawari Config Utility\n\n");
 
     printf ("Utility Version: %s\n",UTILITY_VERSION);
-    printf ("Kawari Version : %d.%d\n",version >> 4, version & 15);
+    printf ("Kawari Version : %d.%d\n",version_major, version_minor);
     printf ("Variant        : %s\n",variant);
     printf ("\n");
     printf ("Chip Model     :\n");

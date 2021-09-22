@@ -585,7 +585,8 @@ void begin_flash(long num_to_write, unsigned long start_addr) {
 
 void main_menu(void)
 {
-    unsigned int firmware_version;
+    unsigned char firmware_version_major;
+    unsigned char firmware_version_minor;
     unsigned long disk_format_version;
     long num_to_write;
     unsigned long start_addr;
@@ -600,11 +601,12 @@ void main_menu(void)
 
     // Turn on regs overlay to get version
     POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
-    firmware_version = get_version();
+    firmware_version_major = get_version_major();
+    firmware_version_minor = get_version_minor();
     POKE(VIDEO_MEM_FLAGS, 0);
 
     SMPRINTF_2 ("Current Firmware Version: %d.%d\n",
-        firmware_version >> 4, firmware_version & 15);
+        firmware_version_major, firmware_version_minor);
     mprintf ("\n");
 
     //        ----------------------------------------

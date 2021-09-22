@@ -42,7 +42,8 @@
 #define RGB_START 0x40
 #define BLACK_LEVEL 0x80
 #define BURST_AMPLITUDE 0x81
-#define VERSION 0x83
+#define VERSION_MAJOR 0x83
+#define VERSION_MINOR 0x84
 #define CURSOR_LO 0x85
 #define CURSOR_HI 0x86
 #define CAP_LO 0x87

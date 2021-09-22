@@ -1,8 +1,8 @@
 `ifndef config_vh_
 `define config_vh_
 
-`define VERSION_MAJOR 4'd0
-`define VERSION_MINOR 4'd1
+`define VERSION_MAJOR 8'd0
+`define VERSION_MINOR 8'd1
 
 // Pick a board.
 //`define SIMULATOR_BOARD 1

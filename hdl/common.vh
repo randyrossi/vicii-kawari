@@ -249,7 +249,8 @@
 
 `define EXT_REG_BLANKING             8'h80
 `define EXT_REG_BURSTAMP             8'h81
-`define EXT_REG_VERSION              8'h83
+`define EXT_REG_VERSION_MAJOR        8'h83
+`define EXT_REG_VERSION_MINOR        8'h84
 `define EXT_REG_CURSOR_LO            8'h85
 `define EXT_REG_CURSOR_HI            8'h86
 `define EXT_REG_CAP_LO               8'h87
