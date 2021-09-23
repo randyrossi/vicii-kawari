@@ -9,6 +9,13 @@
 #include "kawari.h"
 #include "menu.h"
 
+// Program starts at 0x801.
+// 0x5000-0x8fff is used for 16k flash load space
+// 0x9000 is used first as scratch space for into then fast loader
+// Program should not exceed ~14k to leave at least 4k heap space,
+// otherwise heap may get corrupted by flash tmp writes since it
+// wants to grow upwards starting from the end of the code.
+
 #define FLASH_VERSION_MAJOR 1
 #define FLASH_VERSION_MINOR 0
 
@@ -107,7 +114,7 @@ unsigned char is_expert = 0;
 #endif
 
 void load_loader(void);
-void copy_4000_0000(void);
+void copy_5000_0000(void);
 
 // Output a single character using kernel BSOUT routine.
 void bsout(unsigned char c) {
@@ -202,7 +209,7 @@ void init_fast_loader(void) {
     _sys(&r);
 }
 
-// Fast load next 16k segment into $4000-$8000
+// Fast load next 16k segment into $5000-$8FFF
 // Return non-zero on failure to load file.
 unsigned char fast_load() {
     r.pc = 36867L;
@@ -398,12 +405,12 @@ void erase_64k(unsigned long addr) {
     wait_busy();
 }
 
-// Return > 0 on verify error
+// Return > 0 on verify error.
 unsigned wait_verify(void) {
    unsigned char v;
-   // Keep checking bit 2 for write busy flag
+   // Keep checking bit 2 for write busy flag.
    do { v = PEEK(SPI_REG); } while (v & 2);
-   // Done? Check verify bit
+   // Done? Return verify bit.
    return v & 4;
 }
 
@@ -478,21 +485,13 @@ void expert(void) {
          POKE(VIDEO_MEM_2_LO, 0);
          POKE(SPI_REG, FLASH_BULK_OP | FLASH_BULK_READ);
       } else if (r.a == 'c') {
-         copy_4000_0000();
+         copy_5000_0000();
       }
    } while (r.a != 'q');
 }
 #endif
 
-// Flash files are spread across 4 disks
-// This routine erases the flash
-void begin_flash(long num_to_write, unsigned long start_addr) {
-    unsigned long src_addr;
-    unsigned char disknum;
-    unsigned char filenum;
-    unsigned char abs_filenum;
-    unsigned int n;
-
+void fast_start(void) {
     if (use_fast_loader) {
        mprintf ("LOAD LOADER...");
        strcpy (filename,"loader");
@@ -506,7 +505,18 @@ void begin_flash(long num_to_write, unsigned long start_addr) {
        init_fast_loader();
        mprintf ("DONE\n\n");
     }
+}
 
+// Flash files are spread across 4 disks
+// This routine erases the flash
+void begin_flash(long num_to_write, unsigned long start_addr) {
+    unsigned long src_addr;
+    unsigned char disknum;
+    unsigned char filenum;
+    unsigned char abs_filenum;
+    unsigned int n;
+
+    fast_start();
     mprintf ("ERASE FLASH");
     for (src_addr=start_addr;
            src_addr<(start_addr+512000L) && src_addr < 2097152L;
@@ -534,14 +544,15 @@ void begin_flash(long num_to_write, unsigned long start_addr) {
 
        mprintf ("COPY,");
 
+       // Pad remaining bytes
        if (num_to_write < 16384) {
            for (n=num_to_write; n < 16384; n++) {
-              POKE(0x4000L+n, 0xff);
+              POKE(0x5000L+n, 0xff);
            }
        }
 
-       // Transfer $4000 - $7fff into video memory @ $0000
-       copy_4000_0000();
+       // Transfer $5000 - $8fff into video memory @ $0000
+       copy_5000_0000();
 
        // Tell kawari to flash it from vmem 0x0000 to the flash address
        POKE(VIDEO_MEM_FLAGS, 0);
@@ -579,7 +590,88 @@ void begin_flash(long num_to_write, unsigned long start_addr) {
           }
        }
     }
-    mprintf ("FINISHED");
+    mprintf ("FINISHED\n");
+    press_any_key(TO_NOTHING);
+}
+
+void begin_verify(long num_to_read, unsigned long start_addr) {
+    unsigned char disknum;
+    unsigned char filenum;
+    unsigned char abs_filenum;
+    unsigned int n;
+    unsigned char okay;
+
+    filenum = 0;
+    abs_filenum = 0;
+    disknum = 0;
+
+    fast_start();
+
+    while (num_to_read > 0) {
+       // Set next filename
+       sprintf (filename,"i%02d", abs_filenum);
+       SMPRINTF_2("%ld:READ %s,", num_to_read, filename);
+
+       while (load()) {
+            mprintf("\nFile not found.\n");
+            press_any_key(TO_TRY_AGAIN);
+            SMPRINTF_2("%ld:READ %s,", num_to_read, filename);
+       }
+
+       // Tell kawari to read from flash to 0x0000
+       POKE(VIDEO_MEM_FLAGS, 0);
+       POKE(VIDEO_MEM_1_IDX,(start_addr >> 16) & 0xff);
+       POKE(VIDEO_MEM_1_HI,(start_addr >> 8) & 0xff);
+       POKE(VIDEO_MEM_1_LO,(start_addr & 0xff));
+       POKE(VIDEO_MEM_2_HI, 0);
+       POKE(VIDEO_MEM_2_LO, 0);
+       mprintf ("READ,");
+       POKE(SPI_REG, FLASH_BULK_OP | FLASH_BULK_READ);
+
+       // Just wait for busy to be done, don't check verify bit.
+       wait_verify();
+
+#ifdef EXPERT
+       if (is_expert) {
+          expert();
+       }
+#endif
+
+       // Wait for flash to be done and verified
+       mprintf ("VERIFY,");
+
+       okay = 1;
+       POKE(VIDEO_MEM_1_IDX, 0);
+       for (n=0; n < (num_to_read >= 16384 ? 16384 : num_to_read); n++) {
+          POKE(VIDEO_MEM_1_HI,(n >> 8) & 0xff);
+          POKE(VIDEO_MEM_1_LO,(n & 0xff));
+          if (PEEK(VIDEO_MEM_1_VAL) != PEEK(n+0x5000L)) {
+             okay = 0; break;
+          }
+       }
+
+       if (okay) {
+          mprintf ("OK\n");
+          start_addr += 16384;
+          num_to_read -= 16384;
+          abs_filenum++;
+          filenum++;
+          if (disknum < 3 && filenum == 8) {
+	     filenum = 0;
+	     disknum++;
+	     SMPRINTF_1("Insert disk %d and press any key\n", disknum+1);
+	     WAITKEY;
+          }
+       } else {
+	  mprintf("FAIL\n");
+          break;
+       }
+    }
+    if (okay)
+       mprintf ("FINISHED\n");
+    else
+       mprintf ("VERIFY FAILED\n");
+
     press_any_key(TO_NOTHING);
 }
 
@@ -643,8 +735,7 @@ void main_menu(void)
       }
     }
 
-    mprintf ("\nInsert update disk and press any key.\n");
-
+    mprintf ("\nInsert update disk #1 and press any key.\n");
     WAITKEY;
 #ifdef EXPERT
     if (r.a == 'x') {
@@ -695,7 +786,21 @@ void main_menu(void)
     else
        mprintf ("N\n\n");
 
-    press_any_key(TO_CONTINUE);
-
-    begin_flash(num_to_write, start_addr);
+    for (;;) {
+       mprintf ("F - Perform flash\n");
+       mprintf ("V - Perform verify\n");
+       mprintf ("Q - Quit\n");
+       WAITKEY;
+       if (r.a == 'f') {
+          mprintf ("\nMake sure disk #1 is in the drive.\n");
+          press_any_key(TO_CONTINUE);
+          begin_flash(num_to_write, start_addr);
+       } else if (r.a == 'v') {
+          mprintf ("\nMake sure disk #1 is in the drive.\n");
+          press_any_key(TO_CONTINUE);
+          begin_verify(num_to_write, start_addr);
+       } else if (r.a == 'q') {
+          break;
+       }
+    }
 }
