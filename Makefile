@@ -68,7 +68,7 @@ golden: clean golden_version compile
 multiboot: clean multiboot_version compile
 	mkdir -p build
 	bitgen -intstyle ise -f kawari_multiboot.ut top.ncd
-	mv top.bit kawari_multiboot_${MULTIBOOT_MAJOR}.${MULTIBOOT_MINOR}.bit
+	mv top.bit build/kawari_multiboot_${MULTIBOOT_MAJOR}.${MULTIBOOT_MINOR}.bit
 
 mcs:
 	mkdir -p build
