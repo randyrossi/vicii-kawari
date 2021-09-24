@@ -714,6 +714,11 @@ void main_menu(void)
 
     press_any_key(TO_CONTINUE);
 
+    // Activate SPI reg.
+    POKE(SPI_REG, 83);
+    POKE(SPI_REG, 80);
+    POKE(SPI_REG, 73);
+
     // Identify flash device
     for (;;) {
       mprintf ("\nIdentifying flash...");

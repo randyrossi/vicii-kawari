@@ -647,6 +647,11 @@ void main_menu(void)
 
     printf ("VIC-II Kawari EEPROM Test Util\n\n");
 
+    // Activate SPI reg.
+    POKE(SPI_REG, 83);
+    POKE(SPI_REG, 80);
+    POKE(SPI_REG, 73);
+
     read_device();
 
     printf ("MF=%02x SPI_FAM=%02x DENSITY=%02x\n\n",

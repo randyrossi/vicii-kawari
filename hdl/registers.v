@@ -187,6 +187,8 @@ reg read_done2;
 // --- BEGIN EXTENSIONS ----
 reg [1:0] extra_regs_activation_ctr;
 reg extra_regs_activated;
+reg [1:0] spi_reg_activation_ctr;
+reg spi_reg_activated;
 
 // Flags to govern read accesses causing auto inc/dec
 reg video_ram_r; // also used to trigger auto inc after read
@@ -612,6 +614,10 @@ always @(posedge clk_dot4x)
 `ifdef HIRES_MODES
 `ifdef HIRES_RESET
 
+        // This block will detect a reset (if the reset line is
+        // hooked up to the 6510 CPU reset pin) and reset hires
+        // registers and restore all extra regs as well if eeprom
+        // is included.
 `ifdef HAVE_EEPROM
         if (!cpu_reset_i && extra_regs_activated && !eeprom_busy) begin
 `else
@@ -625,8 +631,10 @@ always @(posedge clk_dot4x)
            hires_color_base <= 4'b0000;
            hires_cursor_hi <= 8'b0;
            hires_cursor_lo <= 8'b0;
+           spi_reg_activated <= 1'b0;
 `ifdef HAVE_EEPROM
            state_ctr_reset_for_read <= 1;
+           // TODO: Else, we should reset color regs from hardcoded values.
 `endif
         end
 `endif
@@ -1098,10 +1106,31 @@ always @(posedge clk_dot4x)
                         operator <= dbi[7:0];
                     end
 `endif
-
                     /* 0x34 */ `SPI_REG:
                         if (extra_regs_activated)
                         begin
+                          // As an extra precaution, the spi reg is guarded
+                          // by an addiional activation sequence.
+                          if (~spi_reg_activated)
+                              case (dbi[7:0])
+                                /* "S" */ 8'd83:
+                                    if (spi_reg_activation_ctr == 2'd0)
+                                        spi_reg_activation_ctr <= spi_reg_activation_ctr + 2'b1;
+                                /* "P" */ 8'd80:
+                                    if (spi_reg_activation_ctr == 2'd1)
+                                        spi_reg_activation_ctr <= spi_reg_activation_ctr + 2'b1;
+                                    else
+                                        spi_reg_activation_ctr <= 2'd0;
+                                /* "I" */ 8'd73:
+                                    if (spi_reg_activation_ctr == 2'd2)
+                                        spi_reg_activated <= 1'b1;
+                                    else
+                                        spi_reg_activation_ctr <= 2'd0;
+                                default:
+                                    spi_reg_activation_ctr <= 2'd0;
+                              endcase
+                          else begin
+                            // Bit 7 indicates bulk op
                             if (dbi[7]) begin
 `ifdef HAVE_FLASH
                               // spi_lock must be OPEN for SPI access
@@ -1145,6 +1174,7 @@ always @(posedge clk_dot4x)
 `endif
                                end
                             end
+                          end
                         end
                     `VIDEO_MEM_1_IDX:
                         if (extra_regs_activated)
