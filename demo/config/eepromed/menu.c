@@ -511,7 +511,7 @@ void write_byte(void)
    addr = input_string(); // no type checking on this
    printf ("\nValue:");
    value = input_string(); // no type checking on this
-   printf ("\nWrite %d to %d? ", addr, value);
+   printf ("\nWrite %d to %d? ", value, addr);
    WAITKEY;
    printf ("\n");
    if (r.a == 'y') {
@@ -609,7 +609,7 @@ void set_serial(void) {
    for (pad=c;pad<32;pad++) {
       data_out[pad] = 0;
    }
-   printf ("Okay to set serial: %s\n");
+   printf ("Set serial: %s ? (type yes):\n", scratch);
 
    input_string();
    
