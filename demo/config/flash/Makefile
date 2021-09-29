@@ -45,10 +45,11 @@ info_file: load_bytes
 load_bytes: load_bytes.c
 	gcc load_bytes.c -o load_bytes
 
-flash.prg: main.o menu.o ../util.o ../init.o crt0.o loader_loader.o copy.o
+flash.prg: main.o menu.o ../util.o ../init.o crt0.o loader_loader.o copy.o \
+           compare.o
 	#cl65 -o flash.prg main.o menu.o loader_loader.o ../util.o ../init.o
 	ld65 -o flash.prg main.o menu.o crt0.o loader_loader.o copy.o \
-		../util.o ../init.o /usr/share/cc65/lib/c64.lib \
+		compare.o ../util.o ../init.o /usr/share/cc65/lib/c64.lib \
 		-C /usr/share/cc65/cfg/c64.cfg
 
 main.o: main.c ../../common/util.h
@@ -71,6 +72,9 @@ loader_loader.o: loader_loader.s
 
 copy.o: copy.s
 	ca65 copy.s -o copy.o
+
+compare.o: compare.s
+	ca65 compare.s -o compare.o
 
 run:
 	x64sc flash.prg

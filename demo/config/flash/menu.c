@@ -115,6 +115,7 @@ unsigned char is_expert = 0;
 
 void load_loader(void);
 void copy_5000_0000(void);
+void compare(void);
 
 // Output a single character using kernel BSOUT routine.
 void bsout(unsigned char c) {
@@ -599,7 +600,6 @@ void begin_verify(long num_to_read, unsigned long start_addr) {
     unsigned char filenum;
     unsigned char abs_filenum;
     unsigned int n;
-    unsigned char okay;
 
     filenum = 0;
     abs_filenum = 0;
@@ -625,7 +625,7 @@ void begin_verify(long num_to_read, unsigned long start_addr) {
        POKE(VIDEO_MEM_1_LO,(start_addr & 0xff));
        POKE(VIDEO_MEM_2_HI, 0);
        POKE(VIDEO_MEM_2_LO, 0);
-       mprintf ("READ,");
+       mprintf ("READ FLASH,");
        POKE(SPI_REG, FLASH_BULK_OP | FLASH_BULK_READ);
 
        // Just wait for busy to be done, don't check verify bit.
@@ -640,17 +640,20 @@ void begin_verify(long num_to_read, unsigned long start_addr) {
        // Wait for flash to be done and verified
        mprintf ("VERIFY,");
 
-       okay = 1;
-       POKE(VIDEO_MEM_1_IDX, 0);
-       for (n=0; n < (num_to_read >= 16384 ? 16384 : num_to_read); n++) {
-          POKE(VIDEO_MEM_1_HI,(n >> 8) & 0xff);
-          POKE(VIDEO_MEM_1_LO,(n & 0xff));
-          if (PEEK(VIDEO_MEM_1_VAL) != PEEK(n+0x5000L)) {
-             okay = 0; break;
-          }
-       }
 
-       if (okay) {
+       // Set the number of bytes to compare
+       // vmem 0x0000 with mem 0x5000
+       n = num_to_read >= 16384 ? 16384 : num_to_read;
+
+// For testing in sim
+//copy_5000_0000();
+
+       POKE(0xfe,(n >> 8) & 0xff);
+       POKE(0xfd,(n & 0xff));
+
+       compare();
+
+       if (PEEK(0xfd) == 0) {
           mprintf ("OK\n");
           start_addr += 16384;
           num_to_read -= 16384;
@@ -663,11 +666,12 @@ void begin_verify(long num_to_read, unsigned long start_addr) {
 	     WAITKEY;
           }
        } else {
-	  mprintf("FAIL\n");
+	  SMPRINTF_1("FAIL @%d\n",
+             PEEK(VIDEO_MEM_1_LO) + PEEK(VIDEO_MEM_1_HI) * 256);
           break;
        }
     }
-    if (okay)
+    if (PEEK(0xfd) == 0)
        mprintf ("FINISHED\n");
     else
        mprintf ("VERIFY FAILED\n");
