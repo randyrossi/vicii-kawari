@@ -101,9 +101,9 @@ Bit          | Bit 8=0
 Bit 1        | Spi Data In Line
 Bit 2        | Bulk Flash Operation Busy
 Bit 3        | Bulk Flash Operation Verify Error
-Bit 4        | Persistence Lock Status
+Bit 4        | SPI Lock Status
 Bit 5        | Extensions Lock Status
-Bit 6        | SPI Lock Status
+Bit 6        | Persistence Lock Status
 Bit 7        | Unused
 Bit 8        | Unused
 
