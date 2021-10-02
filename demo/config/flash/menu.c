@@ -81,7 +81,7 @@ static struct regs r;
 #define READ_INSTR            0x03
 #define WREN_INSTR            0x06
 #define READ_STATUS1_INSTR    0x05
-#define BLOCK_ERASE_64K_INSTR 0xd8
+#define BLOCK_ERASE_4K_INSTR  0x20
 #define WRITE_INSTR           0x02
 
 #define TO_EXIT 0
@@ -108,10 +108,7 @@ unsigned char filename[16];
 unsigned char scratch[SCRATCH_SIZE];
 
 unsigned char use_fast_loader;
-
-#ifdef EXPERT
 unsigned char is_expert = 0;
-#endif
 
 void load_loader(void);
 void copy_5000_0000(void);
@@ -360,7 +357,6 @@ void read_page(unsigned long addr) {
 	1 /* close */);
 }
 
-#ifdef EXPERT
 void write_page(unsigned long addr) {
     if (addr < MIN_WRITE_ADDR) {
        mprintf("Can't write to protected address\n");
@@ -377,7 +373,6 @@ void write_page(unsigned long addr) {
 
     wait_busy();
 }
-#endif
 
 // Write enable
 void wren(void) {
@@ -389,8 +384,8 @@ void wren(void) {
 	1 /* close */);
 }
 
-// Erase a 64k segment starting at addr
-void erase_64k(unsigned long addr) {
+// Erase a 4k segment starting at addr
+void erase_4k(unsigned long addr) {
     if (addr < MIN_WRITE_ADDR) {
        mprintf("Can't write to protected address\n");
        SMPRINTF_1("(%ld). Address too low.\n",addr);
@@ -398,7 +393,7 @@ void erase_64k(unsigned long addr) {
     }
 
     // INSTR + 24 bit 0 + 2 READ BYTES + CLOSE
-    talk(BLOCK_ERASE_64K_INSTR,
+    talk(BLOCK_ERASE_4K_INSTR,
          1 /* withaddr */, addr,
 	 0 /* read 0 */,
 	 0 /* write 0 */,
@@ -427,70 +422,124 @@ unsigned long input_int(void) {
    return atol(scratch);
 }
 
-#ifdef EXPERT
 void expert(void) {
    unsigned long start_addr;
    unsigned int n;
-   mprintf ("\nExpert mode\n");
-   is_expert = 1;
+   unsigned char key;
+   mprintf ("\nExpert CMD\n");
    do {
       mprintf ("\n> ");
       WAITKEY;
-      if (r.a == 'r') { // read flash (slow)
-         mprintf ("\nEnter FLASH READ address:");
-         start_addr = input_int();
-         SMPRINTF_1 ("READ 256 bytes from FLASH (slow) %ld:", start_addr);
-         read_page(start_addr);
-         for (n=0;n<256;n++) {
-            SMPRINTF_1 ("%02x:", data_in[n]);
-         }
-      } else if (r.a == 'e') { // erase flash
-         mprintf ("\nEnter FLASH ERASE address:");
-         start_addr = input_int();
-         SMPRINTF_1 ("ERASE FLASH 64k @ %ld:", start_addr);
-         wren();
-         erase_64k(start_addr);
-      } else if (r.a == 'w') { // write from vmem
-         mprintf ("\nEnter FLASH WRITE (slow) address:");
-         start_addr = input_int();
-         SMPRINTF_1 ("WRITE 256 bytes to %ld:", start_addr);
-         for (n=0;n<256;n++) {
-            data_out[n] = n;
-         }
-         wren();
-         write_page(start_addr);
-      } else if (r.a == 'm') { // read vmem
-         mprintf ("\nEnter VMEM read address:");
-         start_addr = input_int();
-         SMPRINTF_1 ("READ 256 vmem bytes from %ld:", start_addr);
-         POKE(VIDEO_MEM_FLAGS, 1);
-         POKE(VIDEO_MEM_1_IDX,0);
-         POKE(VIDEO_MEM_2_IDX,0);
-         POKE(VIDEO_MEM_1_LO,start_addr & 0xff);
-         POKE(VIDEO_MEM_1_HI,start_addr >> 8);
-         for (n=0;n<256;n++) {
-            SMPRINTF_1("%02x ",PEEK(VIDEO_MEM_1_VAL));
-         }
-         POKE(VIDEO_MEM_FLAGS, 0);
-      } else if (r.a == 'f') { // read vmem
-         mprintf ("\nEnter FLASH read address:");
-         start_addr = input_int();
-         SMPRINTF_1 ("READ 16k from FLASH (bulk) %ld:", start_addr);
-         POKE(VIDEO_MEM_FLAGS, 0);
-         // From flash start_addr
-         POKE(VIDEO_MEM_1_IDX,(start_addr >> 16) & 0xff);
-         POKE(VIDEO_MEM_1_HI,(start_addr >> 8) & 0xff);
-         POKE(VIDEO_MEM_1_LO,(start_addr & 0xff));
-         // To video mem 0x0000
-         POKE(VIDEO_MEM_2_HI, 0);
-         POKE(VIDEO_MEM_2_LO, 0);
-         POKE(SPI_REG, FLASH_BULK_OP | FLASH_BULK_READ);
-      } else if (r.a == 'c') {
-         copy_5000_0000();
+      key = r.a;
+      mprintf ("\n");
+      switch(key) {
+        case '?':
+          mprintf ("R slow read 256 from flash\n");
+          mprintf ("e erase flash 4k\n");
+          mprintf ("w slow write 256 to flash\n");
+          mprintf ("m read 256 from vmem\n");
+          mprintf ("f bulk flash read to vmem\n");
+          mprintf ("g bulk flash write from vmem\n");
+          mprintf ("c copy 0x5000 dram to 0x0000 vmem\n");
+          mprintf ("l fill 16k vmem with pattern\n");
+          mprintf ("s get spi status reg\n");
+          mprintf ("z expert off\n");
+          mprintf ("q exit\n");
+          break;
+        case 'r': // SLOW READ 256 FROM FLASH
+          mprintf ("\nEnter FLASH READ address:");
+          start_addr = input_int();
+          SMPRINTF_1 ("READ 256 bytes from FLASH (slow) %ld\n", start_addr);
+          read_page(start_addr);
+          for (n=0;n<256;n++) {
+             SMPRINTF_1 ("%02x:", data_in[n]);
+          }
+          break;
+        case 'e': // ERASE FLASH 4K
+          mprintf ("\nEnter FLASH ERASE address:");
+          start_addr = input_int();
+          SMPRINTF_1 ("ERASE FLASH 4k @ %ld\n", start_addr);
+          wren();
+          erase_4k(start_addr);
+          break;
+        case 'w': // SLOW WRITE 256 TO FLASH
+          mprintf ("\nEnter FLASH WRITE address:");
+          start_addr = input_int();
+          SMPRINTF_1 ("WRITE 256 bytes to %ld (slow)\n", start_addr);
+          for (n=0;n<256;n++) {
+             data_out[n] = n;
+          }
+          wren();
+          write_page(start_addr);
+          break;
+        case 'm': // READ 256 FROM VMEM
+          mprintf ("\nEnter VMEM read address:");
+          start_addr = input_int();
+          SMPRINTF_1 ("READ 256 vmem bytes from %ld (slow)\n", start_addr);
+          POKE(VIDEO_MEM_FLAGS, 1);
+          POKE(VIDEO_MEM_1_IDX,0);
+          POKE(VIDEO_MEM_2_IDX,0);
+          POKE(VIDEO_MEM_1_LO,start_addr & 0xff);
+          POKE(VIDEO_MEM_1_HI,start_addr >> 8);
+          for (n=0;n<256;n++) {
+             SMPRINTF_1("%02x ",PEEK(VIDEO_MEM_1_VAL));
+          }
+          POKE(VIDEO_MEM_FLAGS, 0);
+          break;
+        case 'f': // BULK FLASH READ TO VMEM
+          mprintf ("\nEnter FLASH read address:");
+          start_addr = input_int();
+          SMPRINTF_1 ("READ 16k from FLASH (bulk) %ld to vmem 0x0000\n", start_addr);
+          POKE(VIDEO_MEM_FLAGS, 0);
+          // From flash start_addr
+          POKE(VIDEO_MEM_1_IDX,(start_addr >> 16) & 0xff);
+          POKE(VIDEO_MEM_1_HI,(start_addr >> 8) & 0xff);
+          POKE(VIDEO_MEM_1_LO,(start_addr & 0xff));
+          // To video mem 0x0000
+          POKE(VIDEO_MEM_2_HI, 0);
+          POKE(VIDEO_MEM_2_LO, 0);
+          POKE(SPI_REG, FLASH_BULK_OP | FLASH_BULK_READ);
+          break;
+        case 'g': // BULK FLASH WRITE FROM VMEM
+          mprintf ("\nEnter FLASH write address:");
+          start_addr = input_int();
+          SMPRINTF_1 ("WRITE 16k to FLASH (bulk) %ld\nfrom vmem 0x0000\n", start_addr);
+          POKE(VIDEO_MEM_FLAGS, 0);
+          // To flash start_addr
+          POKE(VIDEO_MEM_1_IDX,(start_addr >> 16) & 0xff);
+          POKE(VIDEO_MEM_1_HI,(start_addr >> 8) & 0xff);
+          POKE(VIDEO_MEM_1_LO,(start_addr & 0xff));
+          // From video mem 0x0000
+          POKE(VIDEO_MEM_2_HI, 0);
+          POKE(VIDEO_MEM_2_LO, 0);
+          POKE(SPI_REG, FLASH_BULK_OP | FLASH_BULK_WRITE);
+          SMPRINTF_1("VERIFY %d\n", wait_verify());
+          break;
+        case 'c': // COPY 0x5000 to vmem 0x000
+          mprintf ("\nCopy 0x5000 DRAM to 0x000 VMEM\n");
+          copy_5000_0000();
+          break;
+        case 'l': // FILL 16k vmem with pattern
+          POKE(VIDEO_MEM_FLAGS, 1);
+          POKE(VIDEO_MEM_1_IDX,0);
+          POKE(VIDEO_MEM_2_IDX,0);
+          POKE(VIDEO_MEM_1_LO,0);
+          POKE(VIDEO_MEM_1_HI,0);
+          for (n=0;n<16384;n++) {
+             POKE(VIDEO_MEM_1_VAL, n % 256);
+          }
+          POKE(VIDEO_MEM_FLAGS, 0);
+          break;
+        case 'z': // EXIT EXPERT
+          mprintf ("\nExpert off\n");
+          is_expert = 0;
+          break;
+        case 's': // GET SPI REG
+          SMPRINTF_1 ("\nSPI_REG=%d\n", PEEK(SPI_REG));
+          break;
       }
-   } while (r.a != 'q');
+   } while (key != 'q');
 }
-#endif
 
 void fast_start(void) {
     if (use_fast_loader) {
@@ -508,6 +557,12 @@ void fast_start(void) {
     }
 }
 
+// Zero indexed disk number
+void please_insert(int disk_num) {
+   SMPRINTF_1("\nInsert disk #%d in drive 8.\n", disk_num + 1);
+   press_any_key(TO_CONTINUE);
+}
+
 // Flash files are spread across 4 disks
 // This routine erases the flash
 void begin_flash(long num_to_write, unsigned long start_addr) {
@@ -517,14 +572,16 @@ void begin_flash(long num_to_write, unsigned long start_addr) {
     unsigned char abs_filenum;
     unsigned int n;
 
-    fast_start();
+    // If we had chosen a start address dividible by 64k, we
+    // could have used 64k page erase.  Oh well.  At least
+    // the address of our multiboot image is divisible by 4k.
     mprintf ("ERASE FLASH");
     for (src_addr=start_addr;
            src_addr<(start_addr+512000L) && src_addr < 2097152L;
-              src_addr+=65536) {
+              src_addr+=4096) {
         mprintf (".");
         wren();
-        erase_64k(src_addr);
+        erase_4k(src_addr);
     }
     mprintf ("DONE\n\n");
 
@@ -555,6 +612,10 @@ void begin_flash(long num_to_write, unsigned long start_addr) {
        // Transfer $5000 - $8fff into video memory @ $0000
        copy_5000_0000();
 
+       if (is_expert) {
+          expert();
+       }
+
        // Tell kawari to flash it from vmem 0x0000 to the flash address
        POKE(VIDEO_MEM_FLAGS, 0);
        POKE(VIDEO_MEM_1_IDX,(start_addr >> 16) & 0xff);
@@ -565,17 +626,16 @@ void begin_flash(long num_to_write, unsigned long start_addr) {
        mprintf ("FLASH,");
        POKE(SPI_REG, FLASH_BULK_OP | FLASH_BULK_WRITE);
 
-#ifdef EXPERT
        if (is_expert) {
           expert();
        }
-#endif
 
        // Wait for flash to be done and verified
        mprintf ("VERIFY,");
        if (wait_verify()) {
-          mprintf("\nVERIFY ERROR\n");
-          press_any_key(TO_TRY_AGAIN);
+          mprintf("\nVERIFY ERROR. RESTART FLASH TO TRY AGAIN.");
+          press_any_key(TO_CONTINUE);
+          break;
        } else {
           mprintf ("OK\n");
           start_addr += 16384;
@@ -590,6 +650,11 @@ void begin_flash(long num_to_write, unsigned long start_addr) {
 	      WAITKEY;
           }
        }
+
+       if (is_expert) {
+          expert();
+       }
+
     }
     mprintf ("FINISHED\n");
     press_any_key(TO_NOTHING);
@@ -605,7 +670,7 @@ void begin_verify(long num_to_read, unsigned long start_addr) {
     abs_filenum = 0;
     disknum = 0;
 
-    fast_start();
+    please_insert(disknum);
 
     while (num_to_read > 0) {
        // Set next filename
@@ -630,12 +695,6 @@ void begin_verify(long num_to_read, unsigned long start_addr) {
 
        // Just wait for busy to be done, don't check verify bit.
        wait_verify();
-
-#ifdef EXPERT
-       if (is_expert) {
-          expert();
-       }
-#endif
 
        // Wait for flash to be done and verified
        mprintf ("VERIFY,");
@@ -662,8 +721,7 @@ void begin_verify(long num_to_read, unsigned long start_addr) {
           if (disknum < 3 && filenum == 8) {
 	     filenum = 0;
 	     disknum++;
-	     SMPRINTF_1("Insert disk %d and press any key\n", disknum+1);
-	     WAITKEY;
+             please_insert(disknum);
           }
        } else {
 	  SMPRINTF_1("FAIL @%d\n",
@@ -744,20 +802,13 @@ void main_menu(void)
       }
     }
 
-    mprintf ("\nInsert update disk #1 and press any key.\n");
-    WAITKEY;
-#ifdef EXPERT
-    if (r.a == 'x') {
-       expert();
-    }
-#endif
+    please_insert(0);
 
     mprintf ("\nREAD IMAGE INFO\n");
     strcpy (filename,"info");
     while (slow_load()) {
        printf ("Can't read info file.\n");
        press_any_key(TO_TRY_AGAIN);
-       WAITKEY;
     }
 
     // Info is now at $9000
@@ -768,7 +819,6 @@ void main_menu(void)
     if (disk_format_version > MAX_VERSION) {
        mprintf ("\nThis util can only read version " MAX_VERSION_STR "\n");
        press_any_key(TO_EXIT);
-       WAITKEY;
        return;
     }
 
@@ -795,19 +845,21 @@ void main_menu(void)
     else
        mprintf ("N\n\n");
 
+    fast_start();
+
     for (;;) {
        mprintf ("F - Perform flash\n");
        mprintf ("V - Perform verify\n");
+       mprintf ("X - Expert\n");
        mprintf ("Q - Quit\n");
        WAITKEY;
        if (r.a == 'f') {
-          mprintf ("\nMake sure disk #1 is in the drive.\n");
-          press_any_key(TO_CONTINUE);
           begin_flash(num_to_write, start_addr);
        } else if (r.a == 'v') {
-          mprintf ("\nMake sure disk #1 is in the drive.\n");
-          press_any_key(TO_CONTINUE);
           begin_verify(num_to_write, start_addr);
+       } else if (r.a == 'x') {
+          is_expert = 1;
+          expert();
        } else if (r.a == 'q') {
           break;
        }

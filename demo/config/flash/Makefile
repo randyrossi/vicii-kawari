@@ -103,7 +103,7 @@ image_files:
 SIZE=$(shell du -b flash.prg | cut -f1)
 
 checksize:
-	if [ $(SIZE) -gt 14330 ]; then \
+	if [ $(SIZE) -gt 16384 ]; then \
 	    echo "ERROR: flash.prg too large" ; exit 1 ; \
 	fi
 

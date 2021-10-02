@@ -54,7 +54,6 @@ stop:
 	rts
 
 fail:
-        sta $d020
         lda #0
         sta KAWARI_PORT
 	lda #1
