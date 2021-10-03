@@ -14,7 +14,8 @@ reg eeprom_warm_up_cycle = 1;
 reg [14:0] state_ctr = 15'b0;
 
 reg state_ctr_reset_for_write;
-reg state_ctr_reset_for_read;
+// Start off reading existing eeprom data
+reg state_ctr_reset_for_read = 1'b1;
 
 // clk_div divides dot4x by 4 to give us approx 8Mhz clock
 // for EEPROM access.
@@ -42,8 +43,7 @@ reg [1:0] eeprom_bank;
 
 reg [2:0] magic = 3'd0;
 
-// Start off reading existing eeprom data
-reg [1:0] eeprom_state = `EEPROM_READ;
+reg [1:0] eeprom_state = `EEPROM_IDLE;
 
 // When in EEPROM_WRITE mode, what addr are we writing
 // to?

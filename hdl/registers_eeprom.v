@@ -70,12 +70,12 @@ task handle_persist(input is_reset);
         // Transition state counter so it becomes valid on [3]
         else if (clk_div[2])
         begin
-            if (state_ctr_reset_for_write) begin
+            if (clk8 && state_ctr_reset_for_write) begin
                 state_ctr <= 15'b0;
                 eeprom_state <= `EEPROM_WRITE;
                 state_ctr_reset_for_write <= 1'b0;
             end
-            else if (state_ctr_reset_for_read) begin
+            else if (clk8 && state_ctr_reset_for_read) begin
                 state_ctr <= 15'b0;
                 eeprom_state <= `EEPROM_READ;
                 state_ctr_reset_for_read <= 1'b0;

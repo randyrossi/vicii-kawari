@@ -36,7 +36,7 @@ begin
             end
     end
     else if (flash_clk_div[2]) begin
-        if (flash_begin != `FLASH_IDLE) begin
+        if (flash_clk8 && flash_begin != `FLASH_IDLE) begin
             // We only have one command but this could be extended
             // to initiate other bulk operation types.
             flash_begin <= `FLASH_IDLE;
