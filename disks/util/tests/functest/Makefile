@@ -1,0 +1,30 @@
+all: test.prg
+
+OBJS=../../common/main.o menu.o ../../common/util.o ../../common/init.o \
+     test_auto_inc_vmem_a.o \
+     test_auto_inc_vmem_b.o \
+     test_auto_dec_vmem_a.o \
+     test_auto_dec_vmem_b.o \
+     test_noop_vmem.o \
+     test_vmem.o \
+     test_vmem_idx.o \
+     test_copy.o \
+     test_fill.o
+
+test.prg: $(OBJS)
+	cl65 -o test.prg $(OBJS)
+
+menu.o: menu.c ../../include/util.h ../../include/kawari.h
+	cl65 --include-dir ../../include -c menu.c -o menu.o
+
+test_%.o: test_%.c
+	cl65 --include-dir ../../include -o $@ -c $<
+
+%.o: %.c
+	cl65 --include-dir ../../include -o $@ -c $<
+
+run:
+	x64sc test.prg
+
+clean:
+	rm -f *.o test.prg

@@ -1,0 +1,4 @@
+info
+kawari_multiboot*.bit
+load_bytes
+stripped.bit
