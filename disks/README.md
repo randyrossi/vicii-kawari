@@ -21,3 +21,7 @@ config/qs       | Quick switch utility. Fast to load and switch video standard.
 80col-51200     | Enable 80 column BASIC mode. 2k resides at $c800.
 novaterm        | Novaterm 9.6c 80 column driver. Copy 80col.kawari to novaterm disk.
 flash           | Flash disk builder utility.
+tests/regted    | Test suite for extended registers
+tests/rgbtest   | Test util to check analog RGB on oscilloscope
+tests/lumatest  | Test util to check luma signal on oscilloscope
+tests/mathtest  | Math function test suite

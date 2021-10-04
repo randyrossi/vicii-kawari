@@ -8,7 +8,7 @@ util: subdirs
 	c1541 -attach util.d64 -write config/rgbed/rgbed.prg rgbed
 	c1541 -attach util.d64 -write config/comped/comped.prg comped
 	c1541 -attach util.d64 -write config/eepromed/eepromed.prg eepromed
-	c1541 -attach util.d64 -write tests/functest/test.prg test
+	c1541 -attach util.d64 -write tests/regtest/regtest.prg regtest
 	c1541 -attach util.d64 -write tests/mathtest/mathtest.prg mathtest
 	c1541 -attach util.d64 -write tests/rgbtest/rgbtest.prg rgbtest
 	c1541 -attach util.d64 -write tests/lumatest/lumatest.prg lumatest
