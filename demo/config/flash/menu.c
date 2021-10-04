@@ -29,9 +29,6 @@
 #define MAX_VERSION 1L
 #define MAX_VERSION_STR "1"
 
-// We won't write below this address in flash mem.
-#define MIN_WRITE_ADDR 512000L
-
 static struct regs r;
 
 // SPI_REG - Used for both direct (slow) access to SPI devices
@@ -358,12 +355,6 @@ void read_page(unsigned long addr) {
 }
 
 void write_page(unsigned long addr) {
-    if (addr < MIN_WRITE_ADDR) {
-       mprintf("Can't write to protected address\n");
-       SMPRINTF_1("(%ld). Address too low.\n",addr);
-       return;
-    }
-
     // INSTR + 24 bit addr + 256 write bytes + CLOSE
     talk(WRITE_INSTR,
 	1 /* withaddr */, addr,
@@ -386,12 +377,6 @@ void wren(void) {
 
 // Erase a 4k segment starting at addr
 void erase_4k(unsigned long addr) {
-    if (addr < MIN_WRITE_ADDR) {
-       mprintf("Can't write to protected address\n");
-       SMPRINTF_1("(%ld). Address too low.\n",addr);
-       return;
-    }
-
     // INSTR + 24 bit 0 + 2 READ BYTES + CLOSE
     talk(BLOCK_ERASE_4K_INSTR,
          1 /* withaddr */, addr,
