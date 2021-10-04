@@ -1,4 +1,4 @@
-#VIC-II Kawari Demo/Util Disks
+# VIC-II Kawari Demo/Util Disks
 
 The programs on these disks require a VIC-II Kawari. They will not function on a stock C-64.
 
