@@ -835,17 +835,19 @@ void main_menu(void)
     for (;;) {
        mprintf ("F - Perform flash\n");
        mprintf ("V - Perform verify\n");
-       mprintf ("X - Expert\n");
+       //mprintf ("X - Expert\n");
        mprintf ("Q - Quit\n");
        WAITKEY;
        if (r.a == 'f') {
           begin_flash(num_to_write, start_addr);
        } else if (r.a == 'v') {
           begin_verify(num_to_write, start_addr);
-       } else if (r.a == 'x') {
-          is_expert = 1;
-          expert();
-       } else if (r.a == 'q') {
+       }
+       //else if (r.a == 'x') {
+       //   is_expert = 1;
+       //   expert();
+       //}
+       else if (r.a == 'q') {
           break;
        }
     }
