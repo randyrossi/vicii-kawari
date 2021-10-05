@@ -1,3 +1,8 @@
+# Download
+
+[Demo Disk 1](https://accentual.com/vicii-kawari/downloads/kawari_demo_1.d64)
+[Util Disk 1](https://accentual.com/vicii-kawari/downloads/kawari_util_1.d64)
+
 # VIC-II Kawari Demo/Util Disks
 
 The programs on these disks require a VIC-II Kawari. They will not function on a stock C-64.
@@ -9,7 +14,7 @@ Demo Program | Description
 demo/ball | A spinning ball using color cycling.
 demo/hires/grogu | A demonstration of the 320x200 16 color graphics mode 
 demo/hires/horse | A demonstration of the 640x200 4 color graphics mode 
-demo/split | Demonstration of hi/lo res split screen using IRQ handlers 
+demo/split | Demonstration of hi/lo res split screen using raster IRQ 
 
 Utility Program | Description
 ----------------|------------
