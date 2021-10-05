@@ -243,7 +243,7 @@ By default, flash operations are DISABLED. This means you must physically remove
 
 Also by default, persistence (extended register changes persisting between reboots) is ENABLED. Once you've set your preferred color scheme or other preferences with the config apps, you can remove the jumper on Pin 2 to prevent any program changing them without your knowledge/permission. Programs will still be able to change colors. But they won't be able to save them.
 
-Access to extension registers (extended features) are ENABLED by default. If you want your VIC-II Kawari to function as a regular 6567/6569 and be undetectable to any program (including Kawari config apps) then removing the extension lock jumper on Pin 3 will do that. (NOTE: That includes being able to software switch the video standard. However, a hardware switch will still work.)
+Access to extension registers (extended features) are ENABLED by default. If you want your VIC-II Kawari to function as a regular 6567/6569 and be undetectable to any program (including Kawari config apps) then removing the extension lock jumper on Pin 2 will do that. (NOTE: That includes being able to software switch the video standard. However, a hardware switch will still work.)
 
 Without the lock jumpers, here are some ways a misbehaving program can make it look like your VIC-II Kawari has died:
 
