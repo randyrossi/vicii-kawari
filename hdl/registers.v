@@ -812,28 +812,34 @@ always @(posedge clk_dot4x)
                     // --- BEGIN EXTENSIONS ----
 `ifdef WITH_MATH
                     /* 0x2f */ 6'h2f: begin
-                        if (extra_regs_activated) begin
+                        if (extra_regs_activated)
                           dbo[7:0] <= result32[31:24];
-                        end
+                        else
+                          dbo[7:0] <= 8'hFF;
                     end
                     /* 0x30 */ 6'h30: begin
-                        if (extra_regs_activated) begin
+                        if (extra_regs_activated)
                           dbo[7:0] <= result32[23:16];
-                        end
+                        else
+                          dbo[7:0] <= 8'hFF;
                     end
                     /* 0x31 */ 6'h31: begin
-                        if (extra_regs_activated) begin
+                        if (extra_regs_activated)
                           dbo[7:0] <= result32[15:8];
-                        end
+                        else
+                          dbo[7:0] <= 8'hFF;
                     end
                     /* 0x32 */ 6'h32: begin
-                        if (extra_regs_activated) begin
+                        if (extra_regs_activated)
                           dbo[7:0] <= result32[7:0];
-                        end
+                        else
+                          dbo[7:0] <= 8'hFF;
                     end
                     /* 0x33 */ 6'h33: begin
                         if (extra_regs_activated)
-                           dbo[1] <= divzero;
+                          dbo[1] <= divzero;
+                        else
+                          dbo[7:0] <= 8'hFF;
                     end
 `endif
                     `SPI_REG:
