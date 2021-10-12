@@ -837,7 +837,7 @@ always @(posedge clk_dot4x)
                     end
                     /* 0x33 */ 6'h33: begin
                         if (extra_regs_activated)
-                          dbo[1] <= divzero;
+                          dbo[7:0] <= {7'b0, divzero};
                         else
                           dbo[7:0] <= 8'hFF;
                     end
