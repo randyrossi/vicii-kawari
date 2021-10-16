@@ -124,6 +124,10 @@ void main_menu(void)
         POKE(646,1);
 	if (color == 0)
            printf ("            Level Burst");
+        else if (color == 3)
+           printf ("            + increase");
+        else if (color == 4)
+           printf ("            - decrease");
 	printf ("\n");
     }
 
