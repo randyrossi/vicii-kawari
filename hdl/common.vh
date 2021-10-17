@@ -431,4 +431,8 @@
 `endif
 `endif
 
+`ifdef REV_4_BOARD
+`define HAVE_LUMA_SINK 1
+`endif
+
 `endif // common_vh_

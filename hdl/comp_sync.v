@@ -1,26 +1,17 @@
 `include "common.vh"
 
-// A module that produces a luma/chroma signal. Was
-// also previously used to feed an external composite
-// encoder but that was removed.
-//
-// Luma/Chroma was tested with these resistor values:
-//
-//     MSB                 LSB
-//     499(1%) 1K 2K 4K 8K 16K
-//
-// Chroma can operate on 3.3V but Luma needs to be closer to 5V
-// to match the brightness of the genuine chips. For luma,
-// the signals were passed to an additional 74LVC4245 transceiver
-// before being passed to the resistor ladder.
+// A module that produces a luma/chroma signals.
 module comp_sync(
            input clk_dot4x,
            input clk_col16x,
            input [9:0] raster_x,
            input [8:0] raster_y,
 `ifdef GEN_LUMA_CHROMA
-           output reg [5:0] luma,
-           output reg [5:0] chroma,
+`ifdef HAVE_LUMA_SINK
+           output reg luma_sink,
+`endif
+           output [5:0] luma_out,
+           output reg [5:0] chroma_out,
            input [5:0] lumareg_o, // from registers base on pixel_color3
            input [7:0] phasereg_o, // from registers base on pixel_color3
            input [3:0] amplitudereg_o, // from registers base on pixel_color3
@@ -32,6 +23,7 @@ module comp_sync(
            input [1:0] chip
        );
 
+reg [5:0] luma;
 reg [9:0] hvisible_end;
 reg [9:0] hsync_start;
 reg [9:0] hsync_end;
@@ -44,6 +36,14 @@ reg [8:0] vvisible_start;
 reg hSync;
 reg vSync;
 reg native_active;
+
+`ifdef GEN_LUMA_CHROMA
+`ifdef HAVE_LUMA_SINK
+assign luma_out = ~luma;
+`else
+assign luma_out = luma;
+`endif
+`endif
 
 always @(posedge clk_dot4x)
 begin
@@ -132,14 +132,6 @@ SerrationPulse usep1
 
 `ifdef GEN_LUMA_CHROMA
 
-`ifdef AVERAGE_LUMAS
-reg [7:0] add_luma;
-reg [5:0] prev_luma;
-reg [5:0] prev_luma2;
-reg [5:0] prev_luma3;
-reg [5:0] next_luma;
-`endif
-
 // 18 is blanking level - approx 1.29V
 `ifdef CONFIGURABLE_LUMAS
 `define BLANKING_LEVEL blanking_level
@@ -151,27 +143,65 @@ always @(posedge clk_dot4x)
 begin
     begin
         case(raster_y)
-            vblank_start:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
-            vblank_start+1:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
-            vblank_start+2:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
-            vblank_start+3:	luma <= ~SE ? `BLANKING_LEVEL : 6'd0;
-            vblank_start+4:	luma <= ~SE ? `BLANKING_LEVEL : 6'd0;
-            vblank_start+5:	luma <= ~SE ? `BLANKING_LEVEL : 6'd0;
-            vblank_start+6:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
-            vblank_start+7:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
-            vblank_start+8:	luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
+            vblank_start: begin
+               luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
+`ifdef HAVE_LUMA_SINK
+               luma_sink <= EQ;
+`endif
+            end
+            vblank_start+1: begin
+               luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
+`ifdef HAVE_LUMA_SINK
+               luma_sink <= EQ;
+`endif
+            end
+            vblank_start+2: begin
+               luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
+`ifdef HAVE_LUMA_SINK
+               luma_sink <= EQ;
+`endif
+            end
+            vblank_start+3: begin
+               luma <= ~SE ? `BLANKING_LEVEL : 6'd0;
+`ifdef HAVE_LUMA_SINK
+               luma_sink <= SE;
+`endif
+            end
+            vblank_start+4: begin
+               luma <= ~SE ? `BLANKING_LEVEL : 6'd0;
+`ifdef HAVE_LUMA_SINK
+               luma_sink <= SE;
+`endif
+            end
+            vblank_start+5: begin
+               luma <= ~SE ? `BLANKING_LEVEL : 6'd0;
+`ifdef HAVE_LUMA_SINK
+               luma_sink <= SE;
+`endif
+            end
+            vblank_start+6: begin
+               luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
+`ifdef HAVE_LUMA_SINK
+               luma_sink <= EQ;
+`endif
+            end
+            vblank_start+7: begin
+               luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
+`ifdef HAVE_LUMA_SINK
+               luma_sink <= EQ;
+`endif
+            end
+            vblank_start+8: begin
+               luma <= ~EQ ? `BLANKING_LEVEL : 6'd0;
+`ifdef HAVE_LUMA_SINK
+               luma_sink <= EQ;
+`endif
+            end
             default: begin
-        `ifdef AVERAGE_LUMAS
-                // Average luma over 4 ticks to smooth out transitions
-                next_luma = ~hSync ? (~native_active ? `BLANKING_LEVEL : lumareg_o) : 6'd0;
-                add_luma = {2'b0,next_luma} + {2'b0,prev_luma} + {2'b0,prev_luma2} + {2'b0,prev_luma3}; // add them
-                luma <= add_luma[7:2];  // div 4
-                prev_luma <= next_luma;
-                prev_luma2 <= prev_luma;
-                prev_luma3 <= prev_luma2;
-        `else
                 luma <= ~hSync ? (~native_active ? `BLANKING_LEVEL : lumareg_o) : 6'd0;
-        `endif
+`ifdef HAVE_LUMA_SINK
+                luma_sink <= hSync;
+`endif
             end
         endcase
     end
@@ -307,7 +337,7 @@ begin
     // Make the decision to output chroma or zero level baseed on the amplitude that
     // was used to determine the chroma9 lookup (which was two ticks ago, one tick to set
     // the address and another to get the data)
-    chroma <= (amplitude4 == `NO_MODULATION) ? 6'd32 : chroma9[8:3];
+    chroma_out <= (amplitude4 == `NO_MODULATION) ? 6'd32 : chroma9[8:3];
 end
 
 // Retrieve wave value from addr calculated from amplitude, phaseCounter and

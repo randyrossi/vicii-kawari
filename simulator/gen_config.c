@@ -10,7 +10,7 @@ void gen_luma_chroma_0() { printf ("`define GEN_LUMA_CHROMA 1\n"); }
 void configurable_rgb_0() { printf ("`define CONFIGURABLE_RGB 1\n"); }
 void configurable_lumas_0() { printf ("`define CONFIGURABLE_LUMAS 1\n"); }
 void configurable_timing_0() { printf ("`define CONFIGURABLE_TIMING 1\n"); }
-void average_lumas_0() { printf ("`define AVERAGE_LUMAS 1\n"); }
+void luma_sink_0() { printf ("`define HAVE_LUMA_SINK 1\n"); }
 void with_spi_0() { printf ("`define WITH_SPI 1\n"); }
 void have_eeprom_0() { printf ("`define HAVE_EEPROM 1\n"); with_spi_0(); }
 void have_flash_0() { printf ("`define HAVE_FLASH 1\n"); with_spi_0(); }
@@ -27,7 +27,7 @@ void gen_luma_chroma_1() { printf ("-DGEN_LUMA_CHROMA=1 "); }
 void configurable_rgb_1() { printf ("-DCONFIGURABLE_RGB=1 "); }
 void configurable_lumas_1() { printf ("-DCONFIGURABLE_LUMAS=1 "); }
 void configurable_timing_1() { printf ("-DCONFIGURABLE_TIMING=1 "); }
-void average_lumas_1() { printf ("-DAVERAGE_LUMAS=1 "); }
+void luma_sink_1() { printf ("-DHAVE_LUMA_SINK=1 "); }
 void with_spi_1() { printf ("-DWITH_SPI=1 "); }
 void have_eeprom_1() { printf ("-DHAVE_EEPROM=1 "); with_spi_1(); }
 void have_flash_1() { printf ("-DHAVE_FLASH=1 "); with_spi_1(); }
@@ -47,7 +47,7 @@ void main(int argc, char* argv[]) {
 	def_func configurable_rgb;
 	def_func configurable_lumas;
 	def_func configurable_timing;
-	def_func average_lumas;
+	def_func luma_sink;
 	def_func have_eeprom;
 	def_func have_flash;
 	def_func need_rgb;
@@ -70,7 +70,7 @@ void main(int argc, char* argv[]) {
     configurable_rgb = configurable_rgb_0;
     configurable_lumas = configurable_lumas_0;
     configurable_timing  = configurable_timing_0;
-    average_lumas = average_lumas_0;
+    luma_sink = luma_sink_0;
     have_eeprom = have_eeprom_0;
     have_flash = have_flash_0;
     need_rgb = need_rgb_0;
@@ -87,7 +87,7 @@ void main(int argc, char* argv[]) {
         configurable_rgb = configurable_rgb_1;
         configurable_lumas = configurable_lumas_1;
         configurable_timing  = configurable_timing_1;
-        average_lumas = average_lumas_1;
+        luma_sink = luma_sink_1;
         have_eeprom = have_eeprom_1;
         have_flash = have_flash_1;
         need_rgb = need_rgb_1;
@@ -109,6 +109,7 @@ void main(int argc, char* argv[]) {
             // values are used.
 	    case 0:
 		    gen_luma_chroma();
+		    luma_sink();
 		    configurable_rgb();
 		    gen_rgb();
 		    hires_modes();
@@ -147,7 +148,7 @@ void main(int argc, char* argv[]) {
 		    break;
 	    case 7:
 		    gen_luma_chroma();
-		    average_lumas();
+		    luma_sink();
                     with_math();
 		    break;
 	    default:

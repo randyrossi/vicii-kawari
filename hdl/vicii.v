@@ -50,6 +50,9 @@ module vicii
 
            input clk_col16x,
 `ifdef GEN_LUMA_CHROMA
+`ifdef HAVE_LUMA_SINK
+           output luma_sink,
+`endif
            output [5:0] luma,
            output [5:0] chroma,
 `endif
@@ -1172,8 +1175,11 @@ comp_sync vic_comp_sync(
               .raster_x(raster_x),
               .raster_y(raster_line),
 `ifdef GEN_LUMA_CHROMA
-              .luma(luma),
-              .chroma(chroma),
+`ifdef HAVE_LUMA_SINK
+              .luma_sink(luma_sink),
+`endif
+              .luma_out(luma),
+              .chroma_out(chroma),
               .lumareg_o(lumareg_o),
               .phasereg_o(phasereg_o),
               .amplitudereg_o(amplitudereg_o),

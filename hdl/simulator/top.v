@@ -32,6 +32,9 @@ ERROR_NEED_SIMULATOR_BOARD_DEFINED See common.vh
 
                                        // If we are generating luma/chroma, add outputs
 `ifdef GEN_LUMA_CHROMA
+`ifdef HAVE_LUMA_SINK
+                                       output luma_sink,    // luma current sink
+`endif
                                        output [5:0] luma,    // luma out
                                        output [5:0] chroma,  // chroma out
 `endif
@@ -149,6 +152,9 @@ vicii vic_inst(
 `endif
           .clk_col16x(clk_col16x),
 `ifdef GEN_LUMA_CHROMA
+`ifdef HAVE_LUMA_SINK
+          .luma_sink(luma_sink),
+`endif
           .luma(luma),
           .chroma(chroma),
 `endif
