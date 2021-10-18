@@ -46,7 +46,7 @@ A3     data_dir  ls245_data_dir O    SLOW 4 LVCMOS33
 A7     RESET     cpu_reset      O    SLOW 4 LVCMOS33
 R9     switch    standard_sw    I    NA NA LVCMOS33
 T8     CFG_RESET cfg_reset      I    NA NA LVCMOS33
-C4     LUMA_SINK luma_sink      O    SLOW 4 LVCMOS44
+C3     LUMA_SINK luma_sink      O    SLOW 4 LVCMOS44
 
 # RGB Video output
 L14    HEAD   red[0]          O   QUIETIO 2 LVCMOS33
