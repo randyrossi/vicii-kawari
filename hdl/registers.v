@@ -3,11 +3,11 @@
 `include "common.vh"
 
 module registers
-    #(
-        parameter ram_width = `VIDEO_RAM_WIDTH,
-                  ram_hi_width = `VIDEO_RAM_HI_WIDTH
-    )
-    (
+       #(
+           parameter ram_width = `VIDEO_RAM_WIDTH,
+           ram_hi_width = `VIDEO_RAM_HI_WIDTH
+       )
+       (
            output reg rst = 1'b1,
            input cpu_reset_i,
            input standard_sw,
@@ -181,8 +181,6 @@ reg res;
 // Register Read/Write
 reg [5:0] addr_latched;
 reg addr_latch_done;
-reg read_done;
-reg read_done2;
 
 // --- BEGIN EXTENSIONS ----
 reg [1:0] extra_regs_activation_ctr;
@@ -373,35 +371,35 @@ divide s_divider(.clk(clk_dot4x),
 always @(posedge clk_dot4x)
 begin
     case (operator)
-       `U_MULT: begin
-           result32 = {16'b0, u_op_1} * {16'b0, u_op_2};
-           divzero = 0;
-       end
-       `U_DIV: begin
-           if (u_op_2 == 0)
-              divzero = 1;
-           else if (u_div_done) begin
-              result32[15:0] = u_quotient;
-              result32[31:16] = u_remain;
-              divzero = 0;
-           end
-       end
-       `S_MULT: begin
-           result32 = {s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15], s_op_1[15:0]} * 
-                      {s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15], s_op_2[15:0]};
-           divzero = 0;
-       end
-       `S_DIV: begin
-           if (s_op_2 == 0)
-              divzero = 1;
-           else if (u_div_done) begin
-              result32[15:0] = s_quotient;
-              result32[31:16] = s_remain;
-              divzero = 0;
-           end
-       end
-       default: ;
-   endcase
+        `U_MULT: begin
+            result32 = {16'b0, u_op_1} * {16'b0, u_op_2};
+            divzero = 0;
+        end
+        `U_DIV: begin
+            if (u_op_2 == 0)
+                divzero = 1;
+            else if (u_div_done) begin
+                result32[15:0] = u_quotient;
+                result32[31:16] = u_remain;
+                divzero = 0;
+            end
+        end
+        `S_MULT: begin
+            result32 = {s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15],s_op_1[15], s_op_1[15:0]} *
+            {s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15],s_op_2[15], s_op_2[15:0]};
+            divzero = 0;
+        end
+        `S_DIV: begin
+            if (s_op_2 == 0)
+                divzero = 1;
+            else if (u_div_done) begin
+                result32[15:0] = s_quotient;
+                result32[31:16] = s_remain;
+                divzero = 0;
+            end
+        end
+        default: ;
+    endcase
 end
 `endif
 
@@ -544,38 +542,38 @@ always @(posedge clk_dot4x)
 	`endif
 `endif // HIRES_MODES
 
-/*
-`ifdef HAVE_FLASH
-       //FOR TESTING FLASH WRITE IN SIM
-       if (spi_lock) begin
-         flash_begin <= `FLASH_WRITE;
-         // Grab the write address from 0x35,0x36,0x3a
-         flash_vmem_addr <= 0;
-         flash_addr <= 24'h7d000;
-         flash_command_ctr <= `FLASH_CMD_WREN;
-         flash_bit_ctr <= 6'd0;
-         flash_busy <= 1'b1;
-         flash_verify_error <= 1'b0;
-         flash_page_ctr = 6'b0;
-       end
-`endif
-*/
-/*
-`ifdef HAVE_FLASH
-       //FOR TESTING FLASH READ IN SIM
-       if (spi_lock) begin
-         flash_begin <= `FLASH_READ;
-         // Grab the write address from 0x35,0x36,0x3a
-         flash_vmem_addr <= 0;
-         flash_addr <= 24'h7d000;
-         flash_command_ctr <= `FLASH_CMD_READ;
-         flash_bit_ctr <= 6'd0;
-         flash_busy <= 1'b1;
-         flash_verify_error <= 1'b0;
-         flash_page_ctr = 6'b0;
-       end
-`endif
-*/
+        /*
+        `ifdef HAVE_FLASH
+               //FOR TESTING FLASH WRITE IN SIM
+               if (spi_lock) begin
+                 flash_begin <= `FLASH_WRITE;
+                 // Grab the write address from 0x35,0x36,0x3a
+                 flash_vmem_addr <= 0;
+                 flash_addr <= 24'h7d000;
+                 flash_command_ctr <= `FLASH_CMD_WREN;
+                 flash_bit_ctr <= 6'd0;
+                 flash_busy <= 1'b1;
+                 flash_verify_error <= 1'b0;
+                 flash_page_ctr = 6'b0;
+               end
+        `endif
+        */
+        /*
+        `ifdef HAVE_FLASH
+               //FOR TESTING FLASH READ IN SIM
+               if (spi_lock) begin
+                 flash_begin <= `FLASH_READ;
+                 // Grab the write address from 0x35,0x36,0x3a
+                 flash_vmem_addr <= 0;
+                 flash_addr <= 24'h7d000;
+                 flash_command_ctr <= `FLASH_CMD_READ;
+                 flash_bit_ctr <= 6'd0;
+                 flash_busy <= 1'b1;
+                 flash_verify_error <= 1'b0;
+                 flash_page_ctr = 6'b0;
+               end
+        `endif
+        */
 
 `else
         extra_regs_activated <= 1'b0;
@@ -623,30 +621,30 @@ always @(posedge clk_dot4x)
 `else
         if (!cpu_reset_i && extra_regs_activated) begin
 `endif
-           hires_mode <= 2'b00;
-           hires_enabled <= 1'b0;
-           hires_allow_bad <= 1'b0;
-           hires_char_pixel_base <= 3'b0;
-           hires_matrix_base <= 4'b0000;
-           hires_color_base <= 4'b0000;
-           hires_cursor_hi <= 8'b0;
-           hires_cursor_lo <= 8'b0;
-           spi_reg_activated <= 1'b0;
+            hires_mode <= 2'b00;
+            hires_enabled <= 1'b0;
+            hires_allow_bad <= 1'b0;
+            hires_char_pixel_base <= 3'b0;
+            hires_matrix_base <= 4'b0000;
+            hires_color_base <= 4'b0000;
+            hires_cursor_hi <= 8'b0;
+            hires_cursor_lo <= 8'b0;
+            spi_reg_activated <= 1'b0;
 `ifdef HAVE_EEPROM
-           state_ctr_reset_for_read <= 1;
-           // TODO: Else, we should reset color regs from hardcoded values.
+            state_ctr_reset_for_read <= 1;
+            // TODO: Else, we should reset color regs from hardcoded values.
 `endif
         end
 `endif
 `endif
 
 `ifdef HAVE_EEPROM
-     if (!cfg_reset && !eeprom_busy) begin
-        eeprom_busy <= 1'b1;
-        eeprom_w_addr <= { 2'b0, `EXT_REG_MAGIC_0 };
-        eeprom_w_value <= 8'h00;
-        state_ctr_reset_for_write <= 1'b1;
-     end
+        if (!cfg_reset && !eeprom_busy) begin
+            eeprom_busy <= 1'b1;
+            eeprom_w_addr <= { 2'b0, `EXT_REG_MAGIC_0 };
+            eeprom_w_value <= 8'h00;
+            state_ctr_reset_for_write <= 1'b1;
+        end
 `endif
 
         if (phi_phase_start_dav_plus_1) begin
@@ -662,8 +660,6 @@ always @(posedge clk_dot4x)
             end
 
             addr_latch_done <= `FALSE;
-            read_done <= `FALSE;
-            read_done2 <= `FALSE;
             last_bus <= 8'hff;
             // clear sprite crunch immediately after it may
             // have been used
@@ -693,13 +689,9 @@ always @(posedge clk_dot4x)
                 endcase
             end
 
-            if (read_done && !read_done2) begin
-               last_bus <= dbo;
-               read_done2 <= `TRUE;
-            end
+            if (rw) begin
+                last_bus <= dbo;
 
-            if (rw && !read_done) begin
-                read_done <= `TRUE;
                 case (addr_latched[5:0])
                     /* 0x00 */ `REG_SPRITE_X_0:
                         dbo[7:0] <= sprite_x[0][7:0];
@@ -808,79 +800,59 @@ always @(posedge clk_dot4x)
                         dbo[7:0] <= {4'b1111, sprite_col[6]};
                     /* 0x2e */ `REG_SPRITE_COLOR_7:
                         dbo[7:0] <= {4'b1111, sprite_col[7]};
-
-                    // --- BEGIN EXTENSIONS ----
+                    default:
+                        if (~extra_regs_activated)
+                            dbo[7:0] <= 8'hFF;
+                endcase
+                // --- BEGIN EXTENSIONS ----
+                if (extra_regs_activated) begin
+                    case (addr_latched[5:0])
 `ifdef WITH_MATH
-                    /* 0x2f */ 6'h2f: begin
-                        if (extra_regs_activated)
-                          dbo[7:0] <= result32[31:24];
-                        else
-                          dbo[7:0] <= 8'hFF;
-                    end
-                    /* 0x30 */ 6'h30: begin
-                        if (extra_regs_activated)
-                          dbo[7:0] <= result32[23:16];
-                        else
-                          dbo[7:0] <= 8'hFF;
-                    end
-                    /* 0x31 */ 6'h31: begin
-                        if (extra_regs_activated)
-                          dbo[7:0] <= result32[15:8];
-                        else
-                          dbo[7:0] <= 8'hFF;
-                    end
-                    /* 0x32 */ 6'h32: begin
-                        if (extra_regs_activated)
-                          dbo[7:0] <= result32[7:0];
-                        else
-                          dbo[7:0] <= 8'hFF;
-                    end
-                    /* 0x33 */ 6'h33: begin
-                        if (extra_regs_activated)
-                          dbo[7:0] <= {7'b0, divzero};
-                        else
-                          dbo[7:0] <= 8'hFF;
-                    end
+                        /* 0x2f */ 6'h2f: begin
+                            dbo[7:0] <= result32[31:24];
+                        end
+                        /* 0x30 */ 6'h30: begin
+                            dbo[7:0] <= result32[23:16];
+                        end
+                        /* 0x31 */ 6'h31: begin
+                            dbo[7:0] <= result32[15:8];
+                        end
+                        /* 0x32 */ 6'h32: begin
+                            dbo[7:0] <= result32[7:0];
+                        end
+                        /* 0x33 */ 6'h33: begin
+                            dbo[7:0] <= {7'b0, divzero};
+                        end
 `endif
-                    `SPI_REG:
-                        if (extra_regs_activated)
-                           dbo[7:0] <= {
-                                  2'b0,
-                                  persistence_lock,
-                                  extensions_lock,
-                                  spi_lock,
+                        `SPI_REG:
+                            dbo[7:0] <= {
+                                2'b0,
+                                persistence_lock,
+                                extensions_lock,
+                                spi_lock,
 `ifdef HAVE_FLASH
-                                  flash_verify_error,
-                                  flash_busy,
+                                flash_verify_error,
+                                flash_busy,
 `else
-                                  1'b0,
-                                  1'b0,
+                                1'b0,
+                                1'b0,
 `endif
 `ifdef WITH_SPI
-                                  spi_q
+                                spi_q
 `else
-                                  1'b0
+                                1'b0
 `endif
-                           };
-                        else
-                           dbo[7:0] <= 8'hFF;
-                    `VIDEO_MEM_1_IDX:
-                        if (extra_regs_activated)
+                            };
+                        `VIDEO_MEM_1_IDX:
                             dbo[7:0] <= video_ram_idx_1;
-                        else
-                            dbo[7:0] <= 8'hFF;
-                    `VIDEO_MEM_2_IDX:
-                        if (extra_regs_activated)
+                        `VIDEO_MEM_2_IDX:
                             dbo[7:0] <= video_ram_idx_2;
-                        else
-                            dbo[7:0] <= 8'hFF;
-                    `VIDEO_MODE1:
-                        if (extra_regs_activated)
+                        `VIDEO_MODE1: begin
 `ifdef HIRES_MODES
                             dbo[7:0] <= { 1'b0,
                                           hires_mode,
                                           hires_enabled,
-                                          hires_allow_bad, 
+                                          hires_allow_bad,
                                           hires_char_pixel_base };
 `else
                             dbo[7:0] <= { 1'b0,
@@ -889,29 +861,19 @@ always @(posedge clk_dot4x)
                                           1'b0,
                                           3'b0 };
 `endif
-                        else
-                            dbo[7:0] <= 8'hFF;
-                    `VIDEO_MODE2:
-                        if (extra_regs_activated)
+                        end
+                        `VIDEO_MODE2:
 `ifdef HIRES_MODES
                             dbo[7:0] <= { hires_color_base, hires_matrix_base };
 `else
                             dbo[7:0] <= { 4'b0, 4'b0 };
 `endif
-                        else
-                            dbo[7:0] <= 8'hFF;
-                    `VIDEO_MEM_1_HI:
-                        if (extra_regs_activated)
+                        `VIDEO_MEM_1_HI:
                             dbo[7:0] <= video_ram_hi_1;
-                        else
-                            dbo[7:0] <= 8'hFF;
-                    `VIDEO_MEM_1_LO:
-                        if (extra_regs_activated)
+                        `VIDEO_MEM_1_LO:
                             dbo[7:0] <= video_ram_lo_1;
-                        else
-                            dbo[7:0] <= 8'hFF;
-                    `VIDEO_MEM_1_VAL:
-                        if (extra_regs_activated) begin
+                        `VIDEO_MEM_1_VAL:
+                        begin
                             // reg overlay or video mem
                             auto_ram_sel <= 0;
                             read_ram(
@@ -919,20 +881,13 @@ always @(posedge clk_dot4x)
                                 .ram_lo(video_ram_lo_1),
                                 .ram_hi(video_ram_hi_1),
                                 .ram_idx(video_ram_idx_1));
-                        end else
-                            dbo[7:0] <= 8'hFF;
-                    `VIDEO_MEM_2_HI:
-                        if (extra_regs_activated)
+                        end
+                        `VIDEO_MEM_2_HI:
                             dbo[7:0] <= video_ram_hi_2;
-                        else
-                            dbo[7:0] <= 8'hFF;
-                    `VIDEO_MEM_2_LO:
-                        if (extra_regs_activated)
+                        `VIDEO_MEM_2_LO:
                             dbo[7:0] <= video_ram_lo_2;
-                        else
-                            dbo[7:0] <= 8'hFF;
-                    `VIDEO_MEM_2_VAL:
-                        if (extra_regs_activated) begin
+                        `VIDEO_MEM_2_VAL:
+                        begin
                             // reg overlay or video mem
                             auto_ram_sel <= 1;
                             read_ram(
@@ -940,10 +895,8 @@ always @(posedge clk_dot4x)
                                 .ram_lo(video_ram_lo_2),
                                 .ram_hi(video_ram_hi_2),
                                 .ram_idx(video_ram_idx_2));
-                        end else
-                            dbo[7:0] <= 8'hFF;
-                    /* 0x3F */ `VIDEO_MEM_FLAGS:
-                        if (extra_regs_activated)
+                        end
+                        /* 0x3F */ `VIDEO_MEM_FLAGS:
                             dbo[7:0] <= { 1'b0,
                                           video_ram_flag_persist,
                                           video_ram_flag_regs_overlay,
@@ -955,18 +908,16 @@ always @(posedge clk_dot4x)
                                           video_ram_flag_port_2_auto,
                                           video_ram_flag_port_1_auto
                                         };
-                        else
-                            dbo[7:0] <= 8'hFF;
-
-                    // --- END EXTENSIONS ----
-
-                    default:
-                        dbo[7:0] <= 8'hFF;
-                endcase
+                        default:;
+                    endcase
+                end
+                // --- END EXTENSIONS ----
             end
             // WRITE to register
-            else if (!rw && phi_phase_start_dav) begin
-                last_bus <= dbi;
+            else begin /* ~rw */
+                if (phi_phase_start_dav)
+                    last_bus <= dbi;
+
                 case (addr_latched[5:0])
                     /* 0x00 */ `REG_SPRITE_X_0:
                         sprite_x[0][7:0] <= dbi[7:0];
@@ -1089,123 +1040,18 @@ always @(posedge clk_dot4x)
                         sprite_col[6] <= dbi[3:0];
                     /* 0x2e */ `REG_SPRITE_COLOR_7:
                         sprite_col[7] <= dbi[3:0];
+                    default:;
+                endcase
 
-                    // --- BEGIN EXTENSIONS ----
-`ifdef WITH_MATH
-                    /* 0x2f */ 6'h2f: begin
-                        u_op_1[15:8] <= dbi[7:0];
-                        s_op_1[15:8] <= dbi[7:0];
-                    end
-                    /* 0x30 */ 6'h30: begin
-                        u_op_1[7:0] <= dbi[7:0];
-                        s_op_1[7:0] <= dbi[7:0];
-                    end
-                    /* 0x31 */ 6'h31: begin
-                        u_op_2[15:8] <= dbi[7:0];
-                        s_op_2[15:8] <= dbi[7:0];
-                    end
-                    /* 0x32 */ 6'h32: begin
-                        u_op_2[7:0] <= dbi[7:0];
-                        s_op_2[7:0] <= dbi[7:0];
-                    end
-                    /* 0x33 */ 6'h33: begin
-                        operator <= dbi[7:0];
-                    end
-`endif
-                    /* 0x34 */ `SPI_REG:
-                        if (extra_regs_activated)
-                        begin
-                          // As an extra precaution, the spi reg is guarded
-                          // by an addiional activation sequence.
-                          if (~spi_reg_activated)
-                              case (dbi[7:0])
-                                /* "S" */ 8'd83:
-                                    if (spi_reg_activation_ctr == 2'd0)
-                                        spi_reg_activation_ctr <= spi_reg_activation_ctr + 2'b1;
-                                /* "P" */ 8'd80:
-                                    if (spi_reg_activation_ctr == 2'd1)
-                                        spi_reg_activation_ctr <= spi_reg_activation_ctr + 2'b1;
-                                    else
-                                        spi_reg_activation_ctr <= 2'd0;
-                                /* "I" */ 8'd73:
-                                    if (spi_reg_activation_ctr == 2'd2)
-                                        spi_reg_activated <= 1'b1;
-                                    else
-                                        spi_reg_activation_ctr <= 2'd0;
-                                default:
-                                    spi_reg_activation_ctr <= 2'd0;
-                              endcase
-                          else begin
-                            // Bit 7 indicates bulk op
-                            if (dbi[7]) begin
-`ifdef HAVE_FLASH
-                              // spi_lock must be OPEN for SPI access
-                              if (!flash_busy && spi_lock) begin
-                                // This is a bulk flash command. Last two
-                                // bits of dbi represent the operation.
-                                // FLASH_WRITE 01
-                                // FLASH_READ  10
-                                flash_begin <= dbi[1:0];
-                                // Greb vmem address
-                                flash_vmem_addr <= {video_ram_hi_2[ram_hi_width-1:0], video_ram_lo_2};
-                                // Grab the flash write address
-                                flash_addr <=
-                                    {video_ram_idx_1,
-                                     video_ram_hi_1,
-                                     video_ram_lo_1};
-                                if (dbi[1:0] == `FLASH_WRITE)
-                                   flash_command_ctr <= `FLASH_CMD_WREN;
-                                else
-                                   flash_command_ctr <= `FLASH_CMD_READ;
-                                flash_bit_ctr <= 6'd0;
-                                flash_busy <= 1'b1;
-                                flash_verify_error <= 1'b0;
-                                flash_page_ctr = 6'b0;
-                                $display("start flash");
-                              end
-`endif
-                            end else begin
-                               // Directly set SPI lines
-                               // spi_lock must be OPEN for SPI access
-                               if (spi_lock) begin
-`ifdef HAVE_FLASH
-                                  flash_s <= dbi[0];
-`endif
-`ifdef WITH_SPI
-                                  spi_c <= dbi[1];
-                                  spi_d <= dbi[2];
-`endif
-`ifdef HAVE_EEPROM
-                                  eeprom_s <= dbi[3];
-`endif
-                               end
-                            end
-                          end
-                        end
-                    `VIDEO_MEM_1_IDX:
-                        if (extra_regs_activated)
-                            video_ram_idx_1 <= dbi;
-                    `VIDEO_MEM_2_IDX:
-                        if (extra_regs_activated)
-                            video_ram_idx_2 <= dbi;
-                    `VIDEO_MODE1:
-                        if (extra_regs_activated) begin
-`ifdef HIRES_MODES
-                            hires_mode <= dbi[6:5];
-                            hires_enabled <= dbi[`HIRES_ENABLE];
-                            hires_allow_bad <= dbi[`HIRES_ALLOW_BAD];
-                            hires_char_pixel_base <= dbi[2:0];
-`endif
-                        end
-                    `VIDEO_MODE2:
-                        if (extra_regs_activated) begin
-`ifdef HIRES_MODES
-                            hires_matrix_base <= dbi[3:0];
-                            hires_color_base <= dbi[7:4];
-`endif
-                        end
-                    /* 0x3f */ `VIDEO_MEM_FLAGS:
-                        if (~extra_regs_activated) begin
+                // --- BEGIN EXTENSIONS ----
+                // We have an extra condition to only do this write
+                // once for extended registers because we have counters
+                // and state machines that rely on that.
+                if (phi_phase_start_dav) begin
+                    if (~extra_regs_activated) begin
+                        case (addr_latched[5:0])
+                            // Handle activation sequence here.
+                            /* 0x3f */ `VIDEO_MEM_FLAGS:
                             case (dbi[7:0])
                                 /* "V" */ 8'd86:
                                     if (extra_regs_activation_ctr == 2'd0)
@@ -1230,93 +1076,204 @@ always @(posedge clk_dot4x)
                                 default:
                                     extra_regs_activation_ctr <= 2'd0;
                             endcase
-                        end else begin
-                            video_ram_flag_port_1_auto <= dbi[`VMEM_FLAG_PORT1_FUNCTION];
-                            video_ram_flag_port_2_auto <= dbi[`VMEM_FLAG_PORT2_FUNCTION];
-                            video_ram_flag_regs_overlay <= dbi[`VMEM_FLAG_REGS_OVERLAY_BIT];
-                            video_ram_flag_persist <= dbi[`VMEM_FLAG_PERSIST_BIT];
-                            if (dbi[`VMEM_FLAG_DISABLE_BIT])
-                                extra_regs_activated <= 1'b0;
-                        end
-                    `VIDEO_MEM_1_HI:
-                        if (extra_regs_activated)
-                            video_ram_hi_1 <= dbi[7:0];
-                    `VIDEO_MEM_1_LO:
-                        if (extra_regs_activated)
-                            video_ram_lo_1 <= dbi[7:0];
-                    `VIDEO_MEM_1_VAL:
-                        if (extra_regs_activated) begin
-                            if (!video_ram_flag_regs_overlay &&
-                                    video_ram_flag_port_1_auto == 2'b11 &&
-                                    video_ram_flag_port_2_auto == 2'b11)
+                            default:;
+                        endcase
+                    end else begin /* extra_regs_activated */
+                        case (addr_latched[5:0])
+`ifdef WITH_MATH
+                            /* 0x2f */ 6'h2f: begin
+                                u_op_1[15:8] <= dbi[7:0];
+                                s_op_1[15:8] <= dbi[7:0];
+                            end
+                            /* 0x30 */ 6'h30: begin
+                                u_op_1[7:0] <= dbi[7:0];
+                                s_op_1[7:0] <= dbi[7:0];
+                            end
+                            /* 0x31 */ 6'h31: begin
+                                u_op_2[15:8] <= dbi[7:0];
+                                s_op_2[15:8] <= dbi[7:0];
+                            end
+                            /* 0x32 */ 6'h32: begin
+                                u_op_2[7:0] <= dbi[7:0];
+                                s_op_2[7:0] <= dbi[7:0];
+                            end
+                            /* 0x33 */ 6'h33: begin
+                                operator <= dbi[7:0];
+                            end
+`endif
+                            /* 0x34 */ `SPI_REG:
                             begin
-                                // block copy or fill operation
-                                if (dbi[0]) begin
-                                    // copy low to high
-                                    video_ram_copy_dst <= { video_ram_hi_1, video_ram_lo_1 };
-                                    video_ram_copy_src <= { video_ram_hi_2, video_ram_lo_2 };
-                                    video_ram_copy_num <= { video_ram_idx_2, video_ram_idx_1 };
-                                    video_ram_copy_state <= 2'b0;
-                                    video_ram_copy_dir <= 1'b0;
-                                    video_ram_copy_done <= 1'b0;
-                                end else if (dbi[1]) begin
-                                    // copy high to low
-                                    video_ram_copy_dst <= { video_ram_hi_1, video_ram_lo_1 } + { video_ram_idx_2, video_ram_idx_1 } - 1'b1;
-                                    video_ram_copy_src <= { video_ram_hi_2, video_ram_lo_2 } + { video_ram_idx_2, video_ram_idx_1 } - 1'b1;
-                                    video_ram_copy_num <= { video_ram_idx_2, video_ram_idx_1 };
-                                    video_ram_copy_state <= 2'b0;
-                                    video_ram_copy_dir <= 1'b1;
-                                    video_ram_copy_done <= 1'b0;
-                                end else if (dbi[2]) begin
-                                    // fill
-                                    video_ram_fill_dst <= { video_ram_hi_1, video_ram_lo_1 };
-                                    video_ram_fill_num <= { video_ram_idx_2, video_ram_idx_1 };
-                                    video_ram_fill_val <= video_ram_lo_2;
-                                    video_ram_fill_done <= 1'b0;
+                                // As an extra precaution, the spi reg is guarded
+                                // by an addiional activation sequence.
+                                if (~spi_reg_activated)
+                                case (dbi[7:0])
+                                    /* "S" */ 8'd83:
+                                        if (spi_reg_activation_ctr == 2'd0)
+                                            spi_reg_activation_ctr <= spi_reg_activation_ctr + 2'b1;
+                                    /* "P" */ 8'd80:
+                                        if (spi_reg_activation_ctr == 2'd1)
+                                            spi_reg_activation_ctr <= spi_reg_activation_ctr + 2'b1;
+                                        else
+                                            spi_reg_activation_ctr <= 2'd0;
+                                    /* "I" */ 8'd73:
+                                        if (spi_reg_activation_ctr == 2'd2)
+                                            spi_reg_activated <= 1'b1;
+                                        else
+                                            spi_reg_activation_ctr <= 2'd0;
+                                    default:
+                                        spi_reg_activation_ctr <= 2'd0;
+                                endcase
+                                else begin
+                                    // Bit 7 indicates bulk op
+                                    if (dbi[7]) begin
+`ifdef HAVE_FLASH
+                                        // spi_lock must be OPEN for SPI access
+                                        if (!flash_busy && spi_lock) begin
+                                            // This is a bulk flash command. Last two
+                                            // bits of dbi represent the operation.
+                                            // FLASH_WRITE 01
+                                            // FLASH_READ  10
+                                            flash_begin <= dbi[1:0];
+                                            // Greb vmem address
+                                            flash_vmem_addr <= {video_ram_hi_2[ram_hi_width-1:0], video_ram_lo_2};
+                                            // Grab the flash write address
+                                            flash_addr <=
+                                            {video_ram_idx_1,
+                                             video_ram_hi_1,
+                                             video_ram_lo_1};
+                                            if (dbi[1:0] == `FLASH_WRITE)
+                                                flash_command_ctr <= `FLASH_CMD_WREN;
+                                            else
+                                                flash_command_ctr <= `FLASH_CMD_READ;
+                                            flash_bit_ctr <= 6'd0;
+                                            flash_busy <= 1'b1;
+                                            flash_verify_error <= 1'b0;
+                                            flash_page_ctr = 6'b0;
+                                            $display("start flash");
+                                        end
+`endif
+                                    end else begin
+                                        // Directly set SPI lines
+                                        // spi_lock must be OPEN for SPI access
+                                        if (spi_lock) begin
+`ifdef HAVE_FLASH
+                                            flash_s <= dbi[0];
+`endif
+`ifdef WITH_SPI
+                                            spi_c <= dbi[1];
+                                            spi_d <= dbi[2];
+`endif
+`ifdef HAVE_EEPROM
+                                            eeprom_s <= dbi[3];
+`endif
+                                        end
+                                    end
                                 end
-                            end else begin
+                            end
+                            `VIDEO_MEM_1_IDX:
+                                video_ram_idx_1 <= dbi;
+                            `VIDEO_MEM_2_IDX:
+                                video_ram_idx_2 <= dbi;
+                            `VIDEO_MODE1:
+                            begin
+`ifdef HIRES_MODES
+                                hires_mode <= dbi[6:5];
+                                hires_enabled <= dbi[`HIRES_ENABLE];
+                                hires_allow_bad <= dbi[`HIRES_ALLOW_BAD];
+                                hires_char_pixel_base <= dbi[2:0];
+`endif
+                            end
+                            `VIDEO_MODE2:
+                            begin
+`ifdef HIRES_MODES
+                                hires_matrix_base <= dbi[3:0];
+                                hires_color_base <= dbi[7:4];
+`endif
+                            end
+                            /* 0x3f */ `VIDEO_MEM_FLAGS:
+                            begin
+                                video_ram_flag_port_1_auto <= dbi[`VMEM_FLAG_PORT1_FUNCTION];
+                                video_ram_flag_port_2_auto <= dbi[`VMEM_FLAG_PORT2_FUNCTION];
+                                video_ram_flag_regs_overlay <= dbi[`VMEM_FLAG_REGS_OVERLAY_BIT];
+                                video_ram_flag_persist <= dbi[`VMEM_FLAG_PERSIST_BIT];
+                                if (dbi[`VMEM_FLAG_DISABLE_BIT])
+                                    extra_regs_activated <= 1'b0;
+                            end
+                            `VIDEO_MEM_1_HI:
+                                video_ram_hi_1 <= dbi[7:0];
+                            `VIDEO_MEM_1_LO:
+                                video_ram_lo_1 <= dbi[7:0];
+                            `VIDEO_MEM_1_VAL:
+                            begin
+                                if (!video_ram_flag_regs_overlay &&
+                                        video_ram_flag_port_1_auto == 2'b11 &&
+                                        video_ram_flag_port_2_auto == 2'b11)
+                                begin
+                                    // block copy or fill operation
+                                    if (dbi[0]) begin
+                                        // copy low to high
+                                        video_ram_copy_dst <= { video_ram_hi_1, video_ram_lo_1 };
+                                        video_ram_copy_src <= { video_ram_hi_2, video_ram_lo_2 };
+                                        video_ram_copy_num <= { video_ram_idx_2, video_ram_idx_1 };
+                                        video_ram_copy_state <= 2'b0;
+                                        video_ram_copy_dir <= 1'b0;
+                                        video_ram_copy_done <= 1'b0;
+                                    end else if (dbi[1]) begin
+                                        // copy high to low
+                                        video_ram_copy_dst <= { video_ram_hi_1, video_ram_lo_1 } + { video_ram_idx_2, video_ram_idx_1 } - 1'b1;
+                                        video_ram_copy_src <= { video_ram_hi_2, video_ram_lo_2 } + { video_ram_idx_2, video_ram_idx_1 } - 1'b1;
+                                        video_ram_copy_num <= { video_ram_idx_2, video_ram_idx_1 };
+                                        video_ram_copy_state <= 2'b0;
+                                        video_ram_copy_dir <= 1'b1;
+                                        video_ram_copy_done <= 1'b0;
+                                    end else if (dbi[2]) begin
+                                        // fill
+                                        video_ram_fill_dst <= { video_ram_hi_1, video_ram_lo_1 };
+                                        video_ram_fill_num <= { video_ram_idx_2, video_ram_idx_1 };
+                                        video_ram_fill_val <= video_ram_lo_2;
+                                        video_ram_fill_done <= 1'b0;
+                                    end
+                                end else begin
+                                    // reg overlay or video mem
+                                    // persistence lock must be open to allow
+                                    auto_ram_sel <= 0;
+                                    write_ram(
+                                        .overlay(video_ram_flag_regs_overlay),
+                                        .ram_lo(video_ram_lo_1),
+                                        .ram_hi(video_ram_hi_1),
+                                        .ram_idx(video_ram_idx_1),
+                                        .data(dbi),
+                                        .from_cpu(1'b1),
+                                        .do_persist(video_ram_flag_persist));
+                                end
+                            end
+                            `VIDEO_MEM_2_HI:
+                                video_ram_hi_2 <= dbi[7:0];
+                            `VIDEO_MEM_2_LO:
+                                video_ram_lo_2 <= dbi[7:0];
+                            `VIDEO_MEM_2_VAL:
+                            begin
                                 // reg overlay or video mem
                                 // persistence lock must be open to allow
-                                auto_ram_sel <= 0;
+                                auto_ram_sel <= 1;
                                 write_ram(
                                     .overlay(video_ram_flag_regs_overlay),
-                                    .ram_lo(video_ram_lo_1),
-                                    .ram_hi(video_ram_hi_1),
-                                    .ram_idx(video_ram_idx_1),
+                                    .ram_lo(video_ram_lo_2),
+                                    .ram_hi(video_ram_hi_2),
+                                    .ram_idx(video_ram_idx_2),
                                     .data(dbi),
                                     .from_cpu(1'b1),
                                     .do_persist(video_ram_flag_persist));
                             end
-                        end
-                    `VIDEO_MEM_2_HI:
-                        if (extra_regs_activated)
-                            video_ram_hi_2 <= dbi[7:0];
-                    `VIDEO_MEM_2_LO:
-                        if (extra_regs_activated)
-                            video_ram_lo_2 <= dbi[7:0];
-                    `VIDEO_MEM_2_VAL:
-                        if (extra_regs_activated) begin
-                            // reg overlay or video mem
-                            // persistence lock must be open to allow
-                            auto_ram_sel <= 1;
-                            write_ram(
-                                .overlay(video_ram_flag_regs_overlay),
-                                .ram_lo(video_ram_lo_2),
-                                .ram_hi(video_ram_hi_2),
-                                .ram_idx(video_ram_idx_2),
-                                .data(dbi),
-                                .from_cpu(1'b1),
-                                .do_persist(video_ram_flag_persist));
-                        end
-                    // --- END EXTENSIONS ----
-
-                    default:;
-                endcase
+                            default:;
+                        endcase
+                    end
+                end
             end
+            // --- END EXTENSIONS ----
         end
 
         // --- BEGIN EXTENSIONS ----
-
         // CPU read from video mem
         if (video_ram_r)
             dbo[7:0] <= video_ram_data_out_a;
