@@ -22,7 +22,7 @@ SOURCE_IMG=kawari_multiboot_$(VERSION).bit
 # Max 28 disks to cover size of SpX16
 FILENUMS=00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
 # Max 4 disks
-DISKNUMS=0 1 2 3
+DISKNUMS=1 2 3 4
 
 OBJS=main.o menu.o ../common/util.o ../common/init.o crt0.o loader_loader.o \
      copy.o compare.o
@@ -108,7 +108,7 @@ disks: flash.prg checksize third_party/covert/loader.prg image_files info_file
 	for NUM in $(DISKNUMS); do \
 	   truncate -s 174848 flash$$NUM.d64; \
 	   c1541 -attach flash$$NUM.d64 -format "vicii-flash$$NUM",0; \
-	   if [ "$$NUM" = "0" ]; then \
+	   if [ "$$NUM" = "1" ]; then \
 	      c1541 -attach flash$$NUM.d64 -write flash.prg flash; \
 	      c1541 -attach flash$$NUM.d64 -write third_party/covert/loader.prg loader; \
 	      c1541 -attach flash$$NUM.d64 -write info info; \
@@ -116,8 +116,11 @@ disks: flash.prg checksize third_party/covert/loader.prg image_files info_file
 	done
 	for NUM in $(FILENUMS); do \
            if [ -e img_$$NUM ]; then \
-		DN=`echo $$NUM / 8 | bc`; \
+		DN=`echo $$NUM / 8 + 1 | bc`; \
 		c1541 -attach flash$$DN.d64 -write img_d64_$$NUM i$$NUM; \
 	   fi \
 	done	
 	rm -f img_*
+
+zip:
+	zip kawari_flash_${VERSION}.zip flash1.d64 flash2.d64 flash3.d64 flash4.d64
