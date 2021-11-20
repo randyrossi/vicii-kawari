@@ -1,0 +1,41 @@
+It's possible to add two more output clocks for a dvi
+clock to be higher than our dot4x clock so that we can pad
+left/right borders with some extra pixels to get a better
+aspect ratio on HDMI output. The clocks below will generate the
+same refresh rate for NTSC and PAL but with a wider horizontal
+resolution. We can output clk_dvi_ntsc and clk_dvi_pal from here.
+   
+This is tricky, however, since we will have clock domain issues
+to deal with since one clock is used to populate the line buffer
+while the other reads. Can possibly use a dual clock dual port
+ram block for that.  But even then, the change is not trivial.
+
+            // NTSC with 40 extra pixels horizontally
+            // This dot clock gives same vertical refresh rate
+            .CLKOUT2_DIVIDE(13), 
+            .CLKOUT2_DUTY_CYCLE(0.5),
+            .CLKOUT2_PHASE(0.0),
+
+            // PAL with 63 extra pixels horizontally
+            // This dot clock gives same vertical refresh rate
+            .CLKOUT3_DIVIDE(16),
+            .CLKOUT3_DUTY_CYCLE(0.5),
+            .CLKOUT3_PHASE(0.0),
+
+Then in clockgen.v, we can mux these the same way we do
+dot4x and wire clk_dvi to the dvi encoder and the vga
+module (and likely a lot of other places). The horizontal
+and vertical counters in vga module would have to change
+for a wider h count and the line buffer would need to expand
+too.  The h and v sync would end up being the same timing
+as the dot4x clock. Some process blocks would switch to clk_dvi
+from clk_dot4x and that will cause a lot of clock domain crossing
+problems.
+
+   BUFGMUX colmux3(
+            .I0(clk_dvi_ntsc),
+            .I1(clk_dvi_pal),
+            .O(clk_dvi),
+            .S(chip[0]));
+
+See better_aspect branch for an attepmt to do this.
