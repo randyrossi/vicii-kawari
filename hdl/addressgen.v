@@ -171,7 +171,7 @@ always @(posedge clk_dot4x)
     else if (phi_phase_start_rhl)
         ras <= 1'b0;
 
-always @(negedge clk_dot4x)
+always @(posedge clk_dot4x)
     if (phi_phase_start_clh)
         cas <= 1'b1;
     else if (phi_phase_start_chl)
