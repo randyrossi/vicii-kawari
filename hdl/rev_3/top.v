@@ -15,17 +15,27 @@ module top(
            output [5:0] chroma,  // chroma out
 `endif
 
+`ifdef WITH_EXTENSIONS
            input cfg_reset,
            input cfg1,
            input cfg2,
            input cfg3,
+`ifdef HAVE_FLASH
            output flash_s,
-           output flash_d1,
-           output flash_d2,
+`endif
+`ifdef WITH_SPI
            output spi_d,
            input  spi_q,
            output spi_c,
+`endif
+`ifdef HAVE_EEPROM
            output eeprom_s,
+`endif
+`endif // WITH_EXTENSIONS
+
+           output flash_d1,
+           output flash_d2,
+
            output cpu_reset,    // for pulling 6510 reset LOW
            input cpu_reset_i,   // for listening to 6510 reset
            input standard_sw,   // video standard toggle switch
@@ -193,15 +203,23 @@ vicii vic_inst(
           .chip(chip),
           .cpu_reset_i(cpu_reset_i),
           .standard_sw(standard_sw),
-          .cfg_reset(cfg_reset),
+`ifdef HAVE_FLASH
           .flash_s(flash_s),
+`endif
+`ifdef HAVE_EEPROM
+          .eeprom_s(eeprom_s),
+`endif
+`ifdef WITH_SPI
           .spi_d(spi_d),
           .spi_q(spi_q),
           .spi_c(spi_c),
+`endif
+`ifdef WITH_EXTENSIONS
+          .cfg_reset(cfg_reset),
           .spi_lock(cfg1),
           .extensions_lock(cfg2),
           .persistence_lock(cfg3),
-          .eeprom_s(eeprom_s),
+`endif
           .clk_dot4x(clk_dot4x),
           .clk_phi(clk_phi),
 `ifdef NEED_RGB

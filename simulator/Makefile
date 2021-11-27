@@ -155,8 +155,18 @@ config_test_7: gen_config
 	               -CFLAGS "-g `./gen_config 7 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
 
+config_test_8: gen_config
+	@(./gen_config 8 > ../hdl/config.vh)
+	$(MAKE) clean
+	$(MAKE) vicii_ipc.o
+	$(VERILATOR) --top-module top --trace -cc  --exe \
+		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
+	               -CFLAGS "-g `./gen_config 8 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
+	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
+
 config_test: config_test_0 config_test_1 config_test_2 config_test_3 \
-	     config_test_4 config_test_5 config_test_6 config_test_7 
+	     config_test_4 config_test_5 config_test_6 config_test_7 \
+	     config_test_8
 
 ######################################################################
 

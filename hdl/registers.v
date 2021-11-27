@@ -11,15 +11,6 @@ module registers
            output reg rst = 1'b1,
            input cpu_reset_i,
            input standard_sw,
-`ifdef HAVE_FLASH
-           output reg flash_s = 1'b1,
-`endif
-`ifdef HAVE_EEPROM
-           input cfg_reset,
-`endif
-           input spi_lock,
-           input extensions_lock,
-           input persistence_lock,
 `ifdef CMOD_BOARD
            input [1:0] btn,
            output [1:0] led,
@@ -105,17 +96,30 @@ module registers
            output reg last_hpolarity, // for vga only
            output reg last_vpolarity, // for vga only
 `endif
-
 `ifdef GEN_LUMA_CHROMA
            output reg [5:0] lumareg_o,
            output reg [7:0] phasereg_o,
            output reg [3:0] amplitudereg_o,
+`endif
+
+`ifdef WITH_EXTENSIONS
+
+`ifdef HAVE_FLASH
+           output reg flash_s = 1'b1,
+`endif
+`ifdef HAVE_EEPROM
+           input cfg_reset,
+           output reg eeprom_s = 1'b1,
+`endif
+           input spi_lock,
+           input extensions_lock,
+           input persistence_lock,
+`ifdef GEN_LUMA_CHROMA
 `ifdef CONFIGURABLE_LUMAS
            output reg [5:0] blanking_level,
            output reg [3:0] burst_amplitude,
 `endif
 `endif
-
 `ifdef CONFIGURABLE_TIMING
            output reg timing_change,
            output reg [7:0] timing_h_blank_ntsc,
@@ -135,9 +139,9 @@ module registers
            output reg [7:0] timing_v_sync_pal,
            output reg [7:0] timing_v_bporch_pal,
 `endif
+`ifdef HIRES_MODES
            input [ram_width-1:0] video_ram_addr_b,
            output [7:0] video_ram_data_out_b,
-`ifdef HIRES_MODES
            output reg [2:0] hires_char_pixel_base,
            output reg [3:0] hires_matrix_base,
            output reg [3:0] hires_color_base,
@@ -152,17 +156,12 @@ module registers
            input         spi_q,
            output reg    spi_c = 1'b1,
 `endif
-`ifdef HAVE_EEPROM
-           output reg    eeprom_s = 1'b1,
-`endif
+`endif // WITH_EXTENSIONS
+
            output reg [1:0] chip
        );
 
 reg chip_initialized = 1'b0;
-reg[7:0] magic_1;
-reg[7:0] magic_2;
-reg[7:0] magic_3;
-reg[7:0] magic_4;
 
 // 2D arrays that need to be flattened for output
 reg [8:0] sprite_x[0:`NUM_SPRITES - 1];
@@ -182,7 +181,11 @@ reg res;
 reg [5:0] addr_latched;
 reg addr_latch_done;
 
-// --- BEGIN EXTENSIONS ----
+`ifdef WITH_EXTENSIONS
+reg[7:0] magic_1;
+reg[7:0] magic_2;
+reg[7:0] magic_3;
+reg[7:0] magic_4;
 reg [1:0] extra_regs_activation_ctr;
 reg extra_regs_activated;
 reg [1:0] spi_reg_activation_ctr;
@@ -292,6 +295,14 @@ wire [17:0] luma_regs_data_out_a;
 wire [17:0] luma_regs_data_out_b;
 `endif
 
+`ifndef HIRES_MODES
+// When extensions are enabled but we have no hires modes,
+// then nothing needs to read from port b of video ram.
+// So we have to define the wire/reg here.
+reg [ram_width-1:0] video_ram_addr_b;
+wire [7:0] video_ram_data_out_b;
+`endif
+
 // Auto increment/decrement of extra reg addr should happen on reads/writes
 // to the extra reg data port.  Some CPU instructions result in a single
 // read or write.  However, some CPU instructions address the
@@ -337,8 +348,7 @@ LUMA_REGS luma_regs(clk_dot4x,
                     luma_regs_data_out_b // read value for luma lookups
                    );
 `endif
-
-// --- END EXTENSIONS ----
+`endif // WITH_EXTENSIONS
 
 `ifdef HAVE_EEPROM
 `include "registers_eeprom.vh"
@@ -346,6 +356,7 @@ LUMA_REGS luma_regs(clk_dot4x,
 `include "registers_no_eeprom.vh"
 `endif
 
+`ifdef WITH_EXTENSIONS
 `ifdef HAVE_FLASH
 `include "registers_flash.vh"
 `endif
@@ -401,10 +412,13 @@ begin
         default: ;
     endcase
 end
-`endif
+`endif // WITH_MATH
+
+`endif // WITH_EXTENSIONS
 
 // Master process block for registers
 always @(posedge clk_dot4x)
+begin
     if (rst) begin
 
         handle_persist(1'b1);
@@ -457,6 +471,16 @@ always @(posedge clk_dot4x)
         //dbo[7:0] <= 8'd0;
         //handle_sprite_crunch <= `FALSE;
 
+`ifdef NEED_RGB
+        last_raster_lines <= 1'b0;
+        last_is_native_y <= 1'b0;
+        last_is_native_x <= 1'b0;
+        last_enable_csync <= 1'b0;
+        last_hpolarity <= 1'b0;
+        last_vpolarity <= 1'b0;
+`endif
+
+`ifdef WITH_EXTENSIONS
 `ifdef CONFIGURABLE_LUMAS
         blanking_level <= 6'd12;
         burst_amplitude <= 4'd12;
@@ -480,22 +504,14 @@ always @(posedge clk_dot4x)
         timing_v_sync_pal <= 2;
         timing_v_bporch_pal <= 40; // NOTE: crosses 0, we sub 311 and invert sta/end
 `endif
-        // --- BEGIN EXTENSIONS ----
+ 
         extra_regs_activation_ctr <= 2'b0;
 
-        // Latch these config registers during reset
-`ifdef NEED_RGB
-        last_raster_lines <= 1'b0;
-        last_is_native_y <= 1'b0;
-        last_is_native_x <= 1'b0;
-        last_enable_csync <= 1'b0;
-        last_hpolarity <= 1'b0;
-        last_vpolarity <= 1'b0;
-`endif
         video_ram_flag_port_1_auto <= 2'b0;
         video_ram_flag_port_2_auto <= 2'b0;
         video_ram_flag_regs_overlay <= 1'b0;
         video_ram_flag_persist <= 1'b0;
+
 `ifdef SIMULATOR_BOARD
         extra_regs_activated <= 0'b1;
 `ifdef HIRES_MODES
@@ -575,7 +591,7 @@ always @(posedge clk_dot4x)
         `endif
         */
 
-`else
+`else // SIMULATION_BOARD
         extra_regs_activated <= 1'b0;
 `ifdef HIRES_MODES
         hires_mode <= 2'b00;
@@ -586,10 +602,10 @@ always @(posedge clk_dot4x)
         hires_color_base <= 4'b0000; // ignored
         hires_cursor_hi <= 8'b0;
         hires_cursor_lo <= 8'b0;
-`endif
-
+`endif // HIRES_MODES
 
 `endif // SIMULATOR_BOARD
+`endif // WITH_EXTENSIONS
 
         if (~chip_initialized) begin
             chip <= {1'b0, ~standard_sw};
@@ -605,10 +621,10 @@ always @(posedge clk_dot4x)
 
         handle_persist(1'b0);
 
+`ifdef WITH_EXTENSIONS
 `ifdef HAVE_FLASH
         handle_flash();
 `endif
-
 `ifdef HIRES_MODES
 `ifdef HIRES_RESET
 
@@ -635,8 +651,8 @@ always @(posedge clk_dot4x)
             // TODO: Else, we should reset color regs from hardcoded values.
 `endif
         end
-`endif
-`endif
+`endif // HIRES_RESET
+`endif // HIRES_MODES
 
 `ifdef HAVE_EEPROM
         if (!cfg_reset && !eeprom_busy) begin
@@ -646,6 +662,7 @@ always @(posedge clk_dot4x)
             state_ctr_reset_for_write <= 1'b1;
         end
 `endif
+`endif // WITH_EXTENSIONS
 
         if (phi_phase_start_dav_plus_1) begin
             if (!clk_phi) begin
@@ -801,10 +818,17 @@ always @(posedge clk_dot4x)
                     /* 0x2e */ `REG_SPRITE_COLOR_7:
                         dbo[7:0] <= {4'b1111, sprite_col[7]};
                     default:
+// Make sure we qualify this with a check on extra regs
+// activated or not if we have extensions. We don't want to
+// set dbo here and then possibly again down below.
+`ifdef WITH_EXTENSIONS
                         if (~extra_regs_activated)
+`endif // WITH_EXTENSIONS
                             dbo[7:0] <= 8'hFF;
+
                 endcase
-                // --- BEGIN EXTENSIONS ----
+
+`ifdef WITH_EXTENSIONS
                 if (extra_regs_activated) begin
                     case (addr_latched[5:0])
 `ifdef WITH_MATH
@@ -911,7 +935,8 @@ always @(posedge clk_dot4x)
                         default:;
                     endcase
                 end
-                // --- END EXTENSIONS ----
+`endif // WITH_EXTENSIONS
+
             end
             // WRITE to register
             else begin /* ~rw */
@@ -1043,7 +1068,7 @@ always @(posedge clk_dot4x)
                     default:;
                 endcase
 
-                // --- BEGIN EXTENSIONS ----
+`ifdef WITH_EXTENSIONS
                 // We have an extra condition to only do this write
                 // once for extended registers because we have counters
                 // and state machines that rely on that.
@@ -1269,11 +1294,11 @@ always @(posedge clk_dot4x)
                         endcase
                     end
                 end
-            end
-            // --- END EXTENSIONS ----
-        end
+`endif // WITH_EXTENSIONS
+            end // rw or not
+        end // ready to handle r/w
 
-        // --- BEGIN EXTENSIONS ----
+`ifdef WITH_EXTENSIONS
         // CPU read from video mem
         if (video_ram_r)
             dbo[7:0] <= video_ram_data_out_a;
@@ -1499,9 +1524,9 @@ always @(posedge clk_dot4x)
             video_ram_idx_1 <= 8'b0; // signal done
             video_ram_idx_2 <= 8'b0;
         end
-
-        // --- END EXTENSIONS ----
-    end
+`endif // WITH_EXTENSIONS
+    end // rst or not
+end
 
 `ifdef NEED_RGB
 // At every pixel clock tick, set red,green,blue from color
@@ -1642,10 +1667,9 @@ end
 `endif
 
 // read_ram and write_ram task definitions
+`ifdef WITH_EXTENSIONS
 `include "registers_ram.v"
-
-// Handle init and settings retrieval for boards
-// with MCU + SERIAL
+`endif // WITH_EXTENSIONS
 
 `ifdef HAVE_EEPROM
 `include "registers_eeprom.v"
@@ -1653,8 +1677,10 @@ end
 `include "registers_no_eeprom.v"
 `endif
 
+`ifdef WITH_EXTENSIONS
 `ifdef HAVE_FLASH
 `include "registers_flash.v"
 `endif
+`endif // WITH_EXTENSIONS
 
 endmodule

@@ -28,18 +28,8 @@ module vicii
            parameter ram_width = `VIDEO_RAM_WIDTH
            )
            (
-           output [1:0] chip,               // exported from registers
            input cpu_reset_i,
            input standard_sw,
-`ifdef HAVE_FLASH
-           output flash_s,
-`endif
-`ifdef HAVE_EEPROM
-           input cfg_reset,
-`endif
-           input spi_lock,
-           input extensions_lock,
-           input persistence_lock,
            output rst,
            input clk_dot4x,
 `ifdef CMOD_BOARD
@@ -47,7 +37,6 @@ module vicii
            output [1:0] led,
 `endif
            output clk_phi,
-
            input clk_col16x,
 `ifdef GEN_LUMA_CHROMA
 `ifdef HAVE_LUMA_SINK
@@ -55,14 +44,6 @@ module vicii
 `endif
            output [5:0] luma,
            output [5:0] chroma,
-`endif
-`ifdef WITH_SPI
-           output spi_d,
-           input  spi_q,
-           output spi_c,
-`endif
-`ifdef HAVE_EEPROM
-           output eeprom_s,
 `endif
 
 `ifdef NEED_RGB
@@ -88,7 +69,25 @@ module vicii
            output ls245_data_dir,
            output ls245_addr_dir,
            output vic_write_db,
-           output vic_write_ab
+           output vic_write_ab,
+`ifdef WITH_EXTENSIONS
+`ifdef HAVE_FLASH
+           output flash_s,
+`endif
+`ifdef HAVE_EEPROM
+           input cfg_reset,
+           output eeprom_s,
+`endif
+           input spi_lock,
+           input extensions_lock,
+           input persistence_lock,
+`ifdef WITH_SPI
+           output spi_d,
+           input  spi_q,
+           output spi_c,
+`endif
+`endif // WITH_EXTENSIONS
+           output [1:0] chip               // exported from registers
        );
 
 wire [9:0] xpos;
@@ -258,10 +257,11 @@ reg raster_irq_triggered;
 wire [9:0] vc; // video counter
 wire [2:0] rc; // row counter
 
-wire [ram_width-1:0] video_ram_addr_b;
-wire [7:0] video_ram_data_out_b;
+`ifdef WITH_EXTENSIONS
 
 `ifdef HIRES_MODES
+wire [ram_width-1:0] video_ram_addr_b;
+wire [7:0] video_ram_data_out_b;
 wire [10:0] hires_vc; // hires video counter
 wire [14:0] hires_fvc; // hires video counter (for 16k or 32k bitmap modes)
 wire [2:0] hires_rc; // hires row counter
@@ -278,6 +278,7 @@ wire hires_allow_bad;
 wire [10:0] hires_raster_x;
 reg hires_badline;
 `endif
+`endif // WITH_EXTENSIONS
 
 wire idle;
 
@@ -436,7 +437,6 @@ begin
         if (raster_line[2:0] == yscroll && raster_line >= 48 && raster_line < 248)
             hires_badline = `TRUE;
 `endif
-
     end
 end
 
@@ -892,16 +892,7 @@ registers vic_registers(
               .led(led),
 `endif
               .cpu_reset_i(cpu_reset_i),
-`ifdef HAVE_FLASH
-              .flash_s(flash_s),
-`endif
               .standard_sw(standard_sw),
-`ifdef HAVE_EEPROM
-              .cfg_reset(cfg_reset),
-`endif
-              .spi_lock(spi_lock),
-              .extensions_lock(extensions_lock),
-              .persistence_lock(persistence_lock),
               .clk_dot4x(clk_dot4x),
               .clk_phi(clk_phi),
               .phi_phase_start_dav_plus_2(phi_phase_start[`DATA_DAV_PLUS_2]),
@@ -982,10 +973,24 @@ registers vic_registers(
               .last_hpolarity(hpolarity),
               .last_vpolarity(vpolarity),
 `endif
+
 `ifdef GEN_LUMA_CHROMA
               .lumareg_o(lumareg_o),
               .phasereg_o(phasereg_o),
               .amplitudereg_o(amplitudereg_o),
+`endif
+
+`ifdef WITH_EXTENSIONS
+`ifdef HAVE_FLASH
+              .flash_s(flash_s),
+`endif
+`ifdef HAVE_EEPROM
+              .cfg_reset(cfg_reset),
+`endif
+              .spi_lock(spi_lock),
+              .extensions_lock(extensions_lock),
+              .persistence_lock(persistence_lock),
+`ifdef GEN_LUMA_CHROMA
 `ifdef CONFIGURABLE_LUMAS
               .blanking_level(blanking_level),
               .burst_amplitude(burst_amplitude),
@@ -1010,10 +1015,9 @@ registers vic_registers(
               .timing_v_sync_pal(timing_v_sync_pal),
               .timing_v_bporch_pal(timing_v_bporch_pal),
 `endif
-
+`ifdef HIRES_MODES
               .video_ram_addr_b(video_ram_addr_b),
               .video_ram_data_out_b(video_ram_data_out_b),
-`ifdef HIRES_MODES
               .hires_char_pixel_base(hires_char_pixel_base),
               .hires_matrix_base(hires_matrix_base),
               .hires_color_base(hires_color_base),
@@ -1031,6 +1035,7 @@ registers vic_registers(
 `ifdef HAVE_EEPROM
               .eeprom_s(eeprom_s),
 `endif
+`endif // WITH_EXTENSIONS
               .chip(chip) // config out
           );
 

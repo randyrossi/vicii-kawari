@@ -3,10 +3,13 @@ import java.util.*;
 
 public class GenConstraints
 {
-  final static int WITH_DVI = 1;
-  final static int GEN_LUMA_CHROMA = 2;
-  final static int GEN_RGB = 4;
-  final static int HAVE_EEPROM = 5;
+  final static int WITH_DVI = 0;
+  final static int GEN_LUMA_CHROMA = 1;
+  final static int GEN_RGB = 2;
+  final static int HAVE_EEPROM = 3;
+  final static int HAVE_FLASH = 4;
+  final static int WITH_SPI = 5;
+  final static int WITH_EXTENSIONS = 6;
 
   public static boolean[] read_config(String filename) throws Exception {
     File f = new File(filename);
@@ -27,6 +30,12 @@ public class GenConstraints
         flags[GEN_RGB] = true;
       else if (line.startsWith("`define HAVE_EEPROM"))
         flags[HAVE_EEPROM] = true;
+      else if (line.startsWith("`define HAVE_FLASH"))
+        flags[HAVE_FLASH] = true;
+      else if (line.startsWith("`define WITH_SPI"))
+        flags[WITH_SPI] = true;
+      else if (line.startsWith("`define WITH_EXTENSIONS"))
+        flags[WITH_EXTENSIONS] = true;
     }
     return flags;
   }
@@ -79,10 +88,21 @@ public class GenConstraints
                 }
 
 		if (!flags[HAVE_EEPROM]) {
-                   if (t6.startsWith("eeprom_cs")) continue;
-                   if (t6.startsWith("eeprom_q")) continue;
-                   if (t6.startsWith("eeprom_d")) continue;
-                   if (t6.startsWith("eeprom_clk")) continue;
+                   if (t6.startsWith("eeprom_s")) continue;
+                }
+		if (!flags[HAVE_FLASH]) {
+                   if (t6.startsWith("flash_s")) continue;
+                }
+		if (!flags[WITH_SPI]) {
+                   if (t6.startsWith("spi_d")) continue;
+                   if (t6.startsWith("spi_q")) continue;
+                   if (t6.startsWith("spi_c")) continue;
+                }
+		if (!flags[WITH_EXTENSIONS]) {
+                   if (t6.startsWith("cfg_reset")) continue;
+                   if (t6.startsWith("cfg1")) continue;
+                   if (t6.startsWith("cfg2")) continue;
+                   if (t6.startsWith("cfg3")) continue;
                 }
 
 		System.out.println("NET \""+t6+"\" LOC="+t4+";");

@@ -394,24 +394,36 @@
 
 `ifdef CONFIGURABLE_RGB
 `define HAS_CONFIG_RGB_CAP 1'b1
+`ifndef WITH_EXTENSIONS
+`define WITH_EXTENSIONS 1'b1
+`endif
 `else
 `define HAS_CONFIG_RGB_CAP 1'b0
 `endif
 
 `ifdef CONFIGURABLE_LUMA
 `define HAS_CONFIG_LUMA_CAP 1'b1
+`ifndef WITH_EXTENSIONS
+`define WITH_EXTENSIONS 1'b1
+`endif
 `else
 `define HAS_CONFIG_LUMA_CAP 1'b0
 `endif
 
 `ifdef CONFIGURABLE_TIMING
 `define HAS_CONFIG_TIMING_CAP 1'b1
+`ifndef WITH_EXTENSIONS
+`define WITH_EXTENSIONS 1'b1
+`endif
 `else
 `define HAS_CONFIG_TIMING_CAP 1'b0
 `endif
 
 `ifdef HIRES_MODES
 `define HAS_HIRES_CAP 1'b1
+`ifndef WITH_EXTENSIONS
+`define WITH_EXTENSIONS 1'b1
+`endif
 `else
 `define HAS_HIRES_CAP 1'b0
 `endif
@@ -420,14 +432,20 @@
 `ifdef HAVE_EEPROM
 `define HAS_PERSIST_CAP 1'b1
 `define WITH_SPI 1
+`ifndef WITH_EXTENSIONS
+`define WITH_EXTENSIONS 1'b1
+`endif
 `else
 `define HAS_PERSIST_CAP 1'b0
 `endif
 
-// FLASH implises WITH_SPI
+// FLASH implies WITH_SPI
 `ifdef HAVE_FLASH
 `ifndef WITH_SPI
 `define WITH_SPI 1
+`ifndef WITH_EXTENSIONS
+`define WITH_EXTENSIONS 1'b1
+`endif
 `endif
 `endif
 

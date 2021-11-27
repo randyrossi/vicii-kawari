@@ -764,12 +764,14 @@ int main(int argc, char** argv, char** env) {
 
     // Video standard toggle switch should be HIGH simulating PULLUP
     top->standard_sw = 1;
+#if WITH_EXTENSIONS
     // cfg reset is held HIGH simulating pullup
     top->cfg_reset = 1;
     // simulate SHORTED for config pins
     top->cfg1 = 0; // spi_lock
     top->cfg2 = 0; // extensions_lock
     top->cfg3 = 0; // persistence_lock
+#endif
     // cpu_reset_i is held HIGH simulating pullup
     top->cpu_reset_i = 1;
     

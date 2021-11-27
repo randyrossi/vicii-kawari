@@ -1,103 +1,101 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int for_comp = 0;
+#define FOR_CONFIG 0
+#define FOR_COMPILE 1
 
-typedef void (*def_func)();
+struct _Define {
+   int id;
+   int defined_for_config;
+   int defined_for_compile;
+   char *name;
+};
 
-void test_pattern_0() { printf ("`define TEST_PATTERN 1\n"); }
-void gen_luma_chroma_0() { printf ("`define GEN_LUMA_CHROMA 1\n"); }
-void configurable_rgb_0() { printf ("`define CONFIGURABLE_RGB 1\n"); }
-void configurable_lumas_0() { printf ("`define CONFIGURABLE_LUMAS 1\n"); }
-void configurable_timing_0() { printf ("`define CONFIGURABLE_TIMING 1\n"); }
-void luma_sink_0() { printf ("`define HAVE_LUMA_SINK 1\n"); }
-void with_spi_0() { printf ("`define WITH_SPI 1\n"); }
-void have_eeprom_0() { printf ("`define HAVE_EEPROM 1\n"); with_spi_0(); }
-void have_flash_0() { printf ("`define HAVE_FLASH 1\n"); with_spi_0(); }
-void need_rgb_0() { printf ("`define NEED_RGB 1\n"); }
-void gen_rgb_0() { printf ("`define GEN_RGB 1\n"); need_rgb_0(); }
-void with_dvi_0() { printf ("`define WITH_DVI 1\n"); need_rgb_0(); }
-void hires_modes_0() { printf ("`define HIRES_MODES 1\n"); }
-void hide_sync_0() { printf ("`define HIDE_SYNC 1\n"); }
-void with_64k_0() { printf ("`define WITH_64K 1\n"); }
-void with_math_0() { printf ("`define WITH_MATH 1\n"); }
+typedef struct _Define Define;
 
-void test_pattern_1() { printf ("-DTEST_PATTERN=1 "); }
-void gen_luma_chroma_1() { printf ("-DGEN_LUMA_CHROMA=1 "); }
-void configurable_rgb_1() { printf ("-DCONFIGURABLE_RGB=1 "); }
-void configurable_lumas_1() { printf ("-DCONFIGURABLE_LUMAS=1 "); }
-void configurable_timing_1() { printf ("-DCONFIGURABLE_TIMING=1 "); }
-void luma_sink_1() { printf ("-DHAVE_LUMA_SINK=1 "); }
-void with_spi_1() { printf ("-DWITH_SPI=1 "); }
-void have_eeprom_1() { printf ("-DHAVE_EEPROM=1 "); with_spi_1(); }
-void have_flash_1() { printf ("-DHAVE_FLASH=1 "); with_spi_1(); }
-void need_rgb_1() { printf ("-DNEED_RGB=1 "); }
-void gen_rgb_1() { printf ("-DGEN_RGB=1 "); need_rgb_1(); }
-void with_dvi_1() { printf ("-DWITH_DVI=1 "); need_rgb_1(); }
-void hires_modes_1() { printf ("-DHIRES_MODES=1 "); }
-void hide_sync_1() { printf ("-DHIDE_SYNC=1 "); }
-void with_64k_1() { printf ("-DWITH_64K=1 "); }
-void with_math_1() { printf ("-DWITH_MATH=1 "); }
+enum DefineValues {
+   WITH_EXTENSIONS = 0,
+   TEST_PATTERN,
+   GEN_LUMA_CHROMA,
+   CONFIGURABLE_RGB,
+   CONFIGURABLE_LUMAS,
+   CONFIGURABLE_TIMING,
+   HAVE_LUMA_SINK,
+   WITH_SPI,
+   HAVE_EEPROM,
+   HAVE_FLASH,
+   NEED_RGB,
+   GEN_RGB,
+   WITH_DVI,
+   HIRES_MODES,
+   HIDE_SYNC,
+   WITH_64K,
+   WITH_MATH,
+};
 
-void main(int argc, char* argv[]) {
+Define defines[17] = {
+  {WITH_EXTENSIONS ,0,0,"WITH_EXTENSIONS"},
+  {TEST_PATTERN ,0,0,"TEST_PATTERN"},
+  {GEN_LUMA_CHROMA ,0,0,"GEN_LUMA_CHROMA"},
+  {CONFIGURABLE_RGB ,0,0,"CONFIGURABLE_RGB"},
+  {CONFIGURABLE_LUMAS ,0,0,"CONFIGURABLE_LUMAS"},
+  {CONFIGURABLE_TIMING ,0,0,"CONFIGURABLE_TIMING"},
+  {HAVE_LUMA_SINK ,0,0,"HAVE_LUMA_SINK"},
+  {WITH_SPI ,0,0,"WITH_SPI"},
+  {HAVE_EEPROM ,0,0,"HAVE_EEPROM"},
+  {HAVE_FLASH ,0,0,"HAVE_FLASH"},
+  {NEED_RGB ,0,0,"NEED_RGB"},
+  {GEN_RGB ,0,0,"GEN_RGB"},
+  {WITH_DVI ,0,0,"WITH_DVI"},
+  {HIRES_MODES ,0,0,"HIRES_MODES"},
+  {HIDE_SYNC ,0,0,"HIDE_SYNC"},
+  {WITH_64K ,0,0,"WITH_64K"},
+  {WITH_MATH ,0,0,"WITH_MATH"},
+};
 
-	def_func test_pattern;
-	def_func with_dvi;
-	def_func gen_luma_chroma;
-	def_func configurable_rgb;
-	def_func configurable_lumas;
-	def_func configurable_timing;
-	def_func luma_sink;
-	def_func have_eeprom;
-	def_func have_flash;
-	def_func need_rgb;
-	def_func gen_rgb;
-	def_func hires_modes;
-	def_func hide_sync;
-	def_func with_64k;
-	def_func with_math;
+void printcfg(int d, int def) {
+  if (d == FOR_CONFIG) {
+     if (!defines[def].defined_for_config) {
+       printf ("`define %s 1\n", defines[def].name); 
+       defines[def].defined_for_config = 1;
+     }
+  } else {
+    if (!defines[def].defined_for_config) {
+      printf ("-D%s=1 ", defines[def].name); 
+      defines[def].defined_for_compile = 1;
+    }
+  }
+}
 
-    char defines[] = {
-    };
+void with_ext(int d) { printcfg(d, WITH_EXTENSIONS); }
+void test_pattern(int d) { printcfg(d, TEST_PATTERN); }
+void gen_luma_chroma(int d) { printcfg(d, GEN_LUMA_CHROMA); }
+void configurable_rgb(int d) { printcfg(d, CONFIGURABLE_RGB);with_ext(d); }
+void configurable_lumas(int d) { printcfg(d, CONFIGURABLE_LUMAS);with_ext(d); }
+void configurable_timing(int d) { printcfg(d, CONFIGURABLE_TIMING); with_ext(d); }
+void luma_sink(int d) { printcfg(d, HAVE_LUMA_SINK); }
+void with_spi(int d) { printcfg(d, WITH_SPI);with_ext(d); }
+void have_eeprom(int d) { printcfg(d, HAVE_EEPROM);with_spi(d); }
+void have_flash(int d) { printcfg(d, HAVE_FLASH);with_spi(d); }
+void need_rgb(int d) { printcfg(d, NEED_RGB); }
+void gen_rgb(int d) { printcfg(d, GEN_RGB); need_rgb(d); }
+void with_dvi(int d) { printcfg(d, WITH_DVI);need_rgb(d); }
+void hires_modes(int d) { printcfg(d, HIRES_MODES);with_ext(d); }
+void hide_sync(int d) { printcfg(d, HIDE_SYNC); }
+void with_64k(int d) { printcfg(d, WITH_64K);  with_ext(d); }
+void with_math(int d) { printcfg(d, WITH_MATH); with_ext(d); }
+
+int main(int argc, char* argv[]) {
 
     int config = -1;
     if (argc > 1)
        config = atoi(argv[1]);
 
-    test_pattern = test_pattern_0;
-    with_dvi = with_dvi_0;
-    gen_luma_chroma = gen_luma_chroma_0;
-    configurable_rgb = configurable_rgb_0;
-    configurable_lumas = configurable_lumas_0;
-    configurable_timing  = configurable_timing_0;
-    luma_sink = luma_sink_0;
-    have_eeprom = have_eeprom_0;
-    have_flash = have_flash_0;
-    need_rgb = need_rgb_0;
-    gen_rgb = gen_rgb_0;
-    hires_modes = hires_modes_0;
-    hide_sync = hide_sync_0;
-    with_64k = with_64k_0;
-    with_math = with_math_0;
-
+    int d = FOR_CONFIG;
     if (argc > 2) {
-        test_pattern = test_pattern_1;
-        with_dvi = with_dvi_1;
-        gen_luma_chroma = gen_luma_chroma_1;
-        configurable_rgb = configurable_rgb_1;
-        configurable_lumas = configurable_lumas_1;
-        configurable_timing  = configurable_timing_1;
-        luma_sink = luma_sink_1;
-        have_eeprom = have_eeprom_1;
-        have_flash = have_flash_1;
-        need_rgb = need_rgb_1;
-        gen_rgb = gen_rgb_1;
-        hires_modes = hires_modes_1;
-        hide_sync = hide_sync_1;
-        with_64k = with_64k_1;
-        with_math = with_math_1;
-    }
-    else {
+        d = FOR_COMPILE;
+       printf ("-DSIMULATOR_BOARD=1 ");
+    } else {
        printf ("`define VERSION_MAJOR 8'd0\n");
        printf ("`define VERSION_MINOR 8'd2\n");
        printf ("`define SIMULATOR_BOARD 1\n");
@@ -108,51 +106,58 @@ void main(int argc, char* argv[]) {
             // make sure to turn OFF RGB/HIRES so that native pixel sequencer
             // values are used.
 	    case 0:
-		    gen_luma_chroma();
-		    luma_sink();
-		    configurable_rgb();
-		    gen_rgb();
-		    hires_modes();
-		    with_64k();
+		    gen_luma_chroma(d);
+		    luma_sink(d);
+		    configurable_rgb(d);
+		    gen_rgb(d);
+		    hires_modes(d);
+		    with_64k(d);
 		    break;
 	    case 1:
 		    // Use this config for generating test results
 		    // since it hides sync lines.
-		    gen_luma_chroma();
-		    have_flash();
-		    with_dvi();
-		    hires_modes();
-		    hide_sync();
+		    gen_luma_chroma(d);
+		    have_flash(d);
+		    with_dvi(d);
+		    hires_modes(d);
+		    hide_sync(d);
 		    break;
 	    case 2:
-		    gen_luma_chroma();
-		    have_eeprom();
+		    gen_luma_chroma(d);
+		    have_eeprom(d);
 		    break;
 	    case 3:
-		    with_dvi();
-		    gen_rgb();
+		    with_dvi(d);
+		    gen_rgb(d);
 		    break;
 	    case 4:
-		    test_pattern();
+		    test_pattern(d);
 		    break;
 	    case 5:
-		    with_dvi();
-                    with_math();
+                    // Test we don't have to output RGB to have DVI
+		    with_dvi(d);
 		    break;
 	    case 6:
-		    gen_luma_chroma();
-		    gen_rgb();
-		    configurable_rgb();
-		    configurable_lumas();
-		    configurable_timing();
+		    gen_luma_chroma(d);
+		    gen_rgb(d);
+		    configurable_rgb(d);
+		    configurable_lumas(d);
+		    configurable_timing(d);
 		    break;
 	    case 7:
-		    gen_luma_chroma();
-		    luma_sink();
-                    with_math();
+	            // Just a vic replacement config. No extensions.
+		    gen_luma_chroma(d);
+		    luma_sink(d);
+		    break;
+	    case 8:
+	            // Extensions but no other optional features enabled.
+		    gen_luma_chroma(d);
+		    with_ext(d);
+                    with_math(d);
 		    break;
 	    default:
 		    break;
 
     }
+    return 0;
 }
