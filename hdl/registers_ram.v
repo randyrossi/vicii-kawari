@@ -185,8 +185,12 @@ task read_ram(
                 endcase
             end
         end else begin
+`ifdef WITH_RAM
             video_ram_r <= 1;
             video_ram_addr_a <= {ram_hi[`VIDEO_RAM_HI_RANGE], ram_lo} + {7'b0, ram_idx};
+`else
+            ;
+`endif
         end
     end
 endtask
@@ -410,10 +414,14 @@ task write_ram(
                 endcase
             end
         end else begin
+`ifdef WITH_RAM
             video_ram_wr_a <= 1'b1;
             video_ram_aw <= 1'b1;
             video_ram_data_in_a <= data[7:0];
             video_ram_addr_a <= {ram_hi[`VIDEO_RAM_HI_RANGE], ram_lo} + {7'b0, ram_idx};
+`else
+            ;
+`endif
         end
     end
 endtask

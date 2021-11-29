@@ -15,6 +15,7 @@ typedef struct _Define Define;
 
 enum DefineValues {
    WITH_EXTENSIONS = 0,
+   WITH_RAM,
    TEST_PATTERN,
    GEN_LUMA_CHROMA,
    CONFIGURABLE_RGB,
@@ -33,8 +34,9 @@ enum DefineValues {
    WITH_MATH,
 };
 
-Define defines[17] = {
+Define defines[] = {
   {WITH_EXTENSIONS ,0,0,"WITH_EXTENSIONS"},
+  {WITH_RAM ,0,0,"WITH_RAM"},
   {TEST_PATTERN ,0,0,"TEST_PATTERN"},
   {GEN_LUMA_CHROMA ,0,0,"GEN_LUMA_CHROMA"},
   {CONFIGURABLE_RGB ,0,0,"CONFIGURABLE_RGB"},
@@ -60,7 +62,7 @@ void printcfg(int d, int def) {
        defines[def].defined_for_config = 1;
      }
   } else {
-    if (!defines[def].defined_for_config) {
+    if (!defines[def].defined_for_compile) {
       printf ("-D%s=1 ", defines[def].name); 
       defines[def].defined_for_compile = 1;
     }
@@ -68,6 +70,7 @@ void printcfg(int d, int def) {
 }
 
 void with_ext(int d) { printcfg(d, WITH_EXTENSIONS); }
+void with_ram(int d) { printcfg(d, WITH_MATH); with_ext(d); }
 void test_pattern(int d) { printcfg(d, TEST_PATTERN); }
 void gen_luma_chroma(int d) { printcfg(d, GEN_LUMA_CHROMA); }
 void configurable_rgb(int d) { printcfg(d, CONFIGURABLE_RGB);with_ext(d); }
@@ -76,11 +79,11 @@ void configurable_timing(int d) { printcfg(d, CONFIGURABLE_TIMING); with_ext(d);
 void luma_sink(int d) { printcfg(d, HAVE_LUMA_SINK); }
 void with_spi(int d) { printcfg(d, WITH_SPI);with_ext(d); }
 void have_eeprom(int d) { printcfg(d, HAVE_EEPROM);with_spi(d); }
-void have_flash(int d) { printcfg(d, HAVE_FLASH);with_spi(d); }
+void have_flash(int d) { printcfg(d, HAVE_FLASH);with_spi(d); with_ram(d); }
 void need_rgb(int d) { printcfg(d, NEED_RGB); }
 void gen_rgb(int d) { printcfg(d, GEN_RGB); need_rgb(d); }
 void with_dvi(int d) { printcfg(d, WITH_DVI);need_rgb(d); }
-void hires_modes(int d) { printcfg(d, HIRES_MODES);with_ext(d); }
+void hires_modes(int d) { printcfg(d, HIRES_MODES);with_ext(d); with_ram(d); }
 void hide_sync(int d) { printcfg(d, HIDE_SYNC); }
 void with_64k(int d) { printcfg(d, WITH_64K);  with_ext(d); }
 void with_math(int d) { printcfg(d, WITH_MATH); with_ext(d); }

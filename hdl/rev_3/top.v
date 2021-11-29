@@ -16,7 +16,6 @@ module top(
 `endif
 
 `ifdef WITH_EXTENSIONS
-           input cfg_reset,
            input cfg1,
            input cfg2,
            input cfg3,
@@ -29,6 +28,7 @@ module top(
            output spi_c,
 `endif
 `ifdef HAVE_EEPROM
+           input cfg_reset,
            output eeprom_s,
 `endif
 `endif // WITH_EXTENSIONS
@@ -203,10 +203,15 @@ vicii vic_inst(
           .chip(chip),
           .cpu_reset_i(cpu_reset_i),
           .standard_sw(standard_sw),
+`ifdef WITH_EXTENSIONS
+          .spi_lock(cfg1),
+          .extensions_lock(cfg2),
+          .persistence_lock(cfg3),
 `ifdef HAVE_FLASH
           .flash_s(flash_s),
 `endif
 `ifdef HAVE_EEPROM
+          .cfg_reset(cfg_reset),
           .eeprom_s(eeprom_s),
 `endif
 `ifdef WITH_SPI
@@ -214,12 +219,7 @@ vicii vic_inst(
           .spi_q(spi_q),
           .spi_c(spi_c),
 `endif
-`ifdef WITH_EXTENSIONS
-          .cfg_reset(cfg_reset),
-          .spi_lock(cfg1),
-          .extensions_lock(cfg2),
-          .persistence_lock(cfg3),
-`endif
+`endif // WITH_EXTENSIONS
           .clk_dot4x(clk_dot4x),
           .clk_phi(clk_phi),
 `ifdef NEED_RGB

@@ -36,7 +36,6 @@ module top(
 `endif
 
 `ifdef WITH_EXTENSIONS
-           input cfg_reset,
            input cfg1,
            input cfg2,
            input cfg3,
@@ -49,6 +48,7 @@ module top(
            output spi_c,
 `endif
 `ifdef HAVE_EEPROM
+           input cfg_reset,
            output eeprom_s,
 `endif
 `endif // WITH_EXTENSIONS

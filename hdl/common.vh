@@ -210,12 +210,12 @@
 `define S_MULT 2
 `define S_DIV  3
 
-`define VMEM_FLAG_PORT1_FUNCTION 1:0
-`define VMEM_FLAG_PORT2_FUNCTION 3:2
-`define VMEM_FLAG_PERSIST_BUSY 4
-`define VMEM_FLAG_REGS_OVERLAY_BIT 5
-`define VMEM_FLAG_PERSIST_BIT 6
-`define VMEM_FLAG_DISABLE_BIT 7
+`define FLAG_PORT1_FUNCTION 1:0
+`define FLAG_PORT2_FUNCTION 3:2
+`define FLAG_PERSIST_BUSY 4
+`define FLAG_REGS_OVERLAY_BIT 5
+`define FLAG_PERSIST_BIT 6
+`define FLAG_DISABLE_BIT 7
 
 `define SPI_REG                       6'h34
 `define VIDEO_MEM_1_IDX               6'h35
@@ -424,6 +424,9 @@
 `ifndef WITH_EXTENSIONS
 `define WITH_EXTENSIONS 1'b1
 `endif
+`ifndef WITH_RAM
+`define WITH_RAM 1'b1
+`endif
 `else
 `define HAS_HIRES_CAP 1'b0
 `endif
@@ -445,6 +448,9 @@
 `define WITH_SPI 1
 `ifndef WITH_EXTENSIONS
 `define WITH_EXTENSIONS 1'b1
+`endif
+`ifndef WITH_RAM
+`define WITH_RAM 1'b1
 `endif
 `endif
 `endif

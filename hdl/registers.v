@@ -191,10 +191,12 @@ reg extra_regs_activated;
 reg [1:0] spi_reg_activation_ctr;
 reg spi_reg_activated;
 
+`ifdef WITH_RAM
 // Flags to govern read accesses causing auto inc/dec
 reg video_ram_r; // also used to trigger auto inc after read
 reg video_ram_r2; // also used to trigger auto inc after read
 reg video_ram_aw; // auto increment after write is necessary
+`endif
 
 `ifdef NEED_RGB
 `ifdef CONFIGURABLE_RGB
@@ -230,23 +232,23 @@ reg [7:0] operator;
 reg divzero;
 `endif
 
-reg auto_ram_sel; // which pointer are we auto incrementing?
+reg [1:0] flag_port_1_func;
+reg [1:0] flag_port_2_func;
+reg port_selector; // which port are we applying func to
+reg flag_regs_overlay;
+reg flag_persist;
 
-reg [1:0] video_ram_flag_port_1_auto;
-reg [1:0] video_ram_flag_port_2_auto;
-// bit 4 is tx busy flag
-reg video_ram_flag_regs_overlay;
-reg video_ram_flag_persist;
+reg [7:0] port_hi_1;
+reg [7:0] port_lo_1;
+reg [7:0] port_idx_1;
+reg [7:0] port_hi_2;
+reg [7:0] port_lo_2;
+reg [7:0] port_idx_2;
 
+`ifdef WITH_RAM
 // Port A used for CPU access
 reg [ram_width-1:0] video_ram_addr_a;
 reg video_ram_wr_a;
-reg [7:0] video_ram_hi_1;
-reg [7:0] video_ram_lo_1;
-reg [7:0] video_ram_idx_1;
-reg [7:0] video_ram_hi_2;
-reg [7:0] video_ram_lo_2;
-reg [7:0] video_ram_idx_2;
 reg [7:0] video_ram_data_in_a;
 wire [7:0] video_ram_data_out_a;
 
@@ -263,6 +265,7 @@ reg [15:0] video_ram_fill_dst;
 reg [15:0] video_ram_fill_num;
 reg [7:0] video_ram_fill_val;
 reg video_ram_fill_done;
+`endif // WITH_RAM
 
 // Regarding pre_wr registers below. We need an additional cycle to
 // read existing values before writing. Otherwise, the data_out_a
@@ -296,6 +299,7 @@ wire [17:0] luma_regs_data_out_b;
 `endif
 
 `ifndef HIRES_MODES
+// Implies WITH_RAM and WITH_EXTENSIONS
 // When extensions are enabled but we have no hires modes,
 // then nothing needs to read from port b of video ram.
 // So we have to define the wire/reg here.
@@ -303,6 +307,7 @@ reg [ram_width-1:0] video_ram_addr_b;
 wire [7:0] video_ram_data_out_b;
 `endif
 
+`ifdef WITH_RAM
 // Auto increment/decrement of extra reg addr should happen on reads/writes
 // to the extra reg data port.  Some CPU instructions result in a single
 // read or write.  However, some CPU instructions address the
@@ -320,6 +325,7 @@ VIDEO_RAM video_ram(clk_dot4x,
                     8'b0,          // Video can only read
                     video_ram_data_out_b
                    );
+`endif // WITH_RAM
 
 `ifdef NEED_RGB
 `ifdef CONFIGURABLE_RGB
@@ -507,10 +513,10 @@ begin
  
         extra_regs_activation_ctr <= 2'b0;
 
-        video_ram_flag_port_1_auto <= 2'b0;
-        video_ram_flag_port_2_auto <= 2'b0;
-        video_ram_flag_regs_overlay <= 1'b0;
-        video_ram_flag_persist <= 1'b0;
+        flag_port_1_func <= 2'b0;
+        flag_port_2_func <= 2'b0;
+        flag_regs_overlay <= 1'b0;
+        flag_persist <= 1'b0;
 
 `ifdef SIMULATOR_BOARD
         extra_regs_activated <= 0'b1;
@@ -868,9 +874,9 @@ begin
 `endif
                             };
                         `VIDEO_MEM_1_IDX:
-                            dbo[7:0] <= video_ram_idx_1;
+                            dbo[7:0] <= port_idx_1;
                         `VIDEO_MEM_2_IDX:
-                            dbo[7:0] <= video_ram_idx_2;
+                            dbo[7:0] <= port_idx_2;
                         `VIDEO_MODE1: begin
 `ifdef HIRES_MODES
                             dbo[7:0] <= { 1'b0,
@@ -893,44 +899,44 @@ begin
                             dbo[7:0] <= { 4'b0, 4'b0 };
 `endif
                         `VIDEO_MEM_1_HI:
-                            dbo[7:0] <= video_ram_hi_1;
+                            dbo[7:0] <= port_hi_1;
                         `VIDEO_MEM_1_LO:
-                            dbo[7:0] <= video_ram_lo_1;
+                            dbo[7:0] <= port_lo_1;
                         `VIDEO_MEM_1_VAL:
                         begin
                             // reg overlay or video mem
-                            auto_ram_sel <= 0;
+                            port_selector <= 0;
                             read_ram(
-                                .overlay(video_ram_flag_regs_overlay),
-                                .ram_lo(video_ram_lo_1),
-                                .ram_hi(video_ram_hi_1),
-                                .ram_idx(video_ram_idx_1));
+                                .overlay(flag_regs_overlay),
+                                .ram_lo(port_lo_1),
+                                .ram_hi(port_hi_1),
+                                .ram_idx(port_idx_1));
                         end
                         `VIDEO_MEM_2_HI:
-                            dbo[7:0] <= video_ram_hi_2;
+                            dbo[7:0] <= port_hi_2;
                         `VIDEO_MEM_2_LO:
-                            dbo[7:0] <= video_ram_lo_2;
+                            dbo[7:0] <= port_lo_2;
                         `VIDEO_MEM_2_VAL:
                         begin
                             // reg overlay or video mem
-                            auto_ram_sel <= 1;
+                            port_selector <= 1;
                             read_ram(
-                                .overlay(video_ram_flag_regs_overlay),
-                                .ram_lo(video_ram_lo_2),
-                                .ram_hi(video_ram_hi_2),
-                                .ram_idx(video_ram_idx_2));
+                                .overlay(flag_regs_overlay),
+                                .ram_lo(port_lo_2),
+                                .ram_hi(port_hi_2),
+                                .ram_idx(port_idx_2));
                         end
                         /* 0x3F */ `VIDEO_MEM_FLAGS:
                             dbo[7:0] <= { 1'b0,
-                                          video_ram_flag_persist,
-                                          video_ram_flag_regs_overlay,
+                                          flag_persist,
+                                          flag_regs_overlay,
 `ifdef HAVE_EEPROM
                                           eeprom_busy, // eeprom busy
 `else
                                           1'b0,
 `endif
-                                          video_ram_flag_port_2_auto,
-                                          video_ram_flag_port_1_auto
+                                          flag_port_2_func,
+                                          flag_port_1_func
                                         };
                         default:;
                     endcase
@@ -1160,12 +1166,12 @@ begin
                                             // FLASH_READ  10
                                             flash_begin <= dbi[1:0];
                                             // Greb vmem address
-                                            flash_vmem_addr <= {video_ram_hi_2[ram_hi_width-1:0], video_ram_lo_2};
+                                            flash_vmem_addr <= {port_hi_2[ram_hi_width-1:0], port_lo_2};
                                             // Grab the flash write address
                                             flash_addr <=
-                                            {video_ram_idx_1,
-                                             video_ram_hi_1,
-                                             video_ram_lo_1};
+                                            {port_idx_1,
+                                             port_hi_1,
+                                             port_lo_1};
                                             if (dbi[1:0] == `FLASH_WRITE)
                                                 flash_command_ctr <= `FLASH_CMD_WREN;
                                             else
@@ -1196,9 +1202,9 @@ begin
                                 end
                             end
                             `VIDEO_MEM_1_IDX:
-                                video_ram_idx_1 <= dbi;
+                                port_idx_1 <= dbi;
                             `VIDEO_MEM_2_IDX:
-                                video_ram_idx_2 <= dbi;
+                                port_idx_2 <= dbi;
                             `VIDEO_MODE1:
                             begin
 `ifdef HIRES_MODES
@@ -1217,78 +1223,82 @@ begin
                             end
                             /* 0x3f */ `VIDEO_MEM_FLAGS:
                             begin
-                                video_ram_flag_port_1_auto <= dbi[`VMEM_FLAG_PORT1_FUNCTION];
-                                video_ram_flag_port_2_auto <= dbi[`VMEM_FLAG_PORT2_FUNCTION];
-                                video_ram_flag_regs_overlay <= dbi[`VMEM_FLAG_REGS_OVERLAY_BIT];
-                                video_ram_flag_persist <= dbi[`VMEM_FLAG_PERSIST_BIT];
-                                if (dbi[`VMEM_FLAG_DISABLE_BIT])
+                                flag_port_1_func <= dbi[`FLAG_PORT1_FUNCTION];
+                                flag_port_2_func <= dbi[`FLAG_PORT2_FUNCTION];
+                                flag_regs_overlay <= dbi[`FLAG_REGS_OVERLAY_BIT];
+                                flag_persist <= dbi[`FLAG_PERSIST_BIT];
+                                if (dbi[`FLAG_DISABLE_BIT])
                                     extra_regs_activated <= 1'b0;
                             end
                             `VIDEO_MEM_1_HI:
-                                video_ram_hi_1 <= dbi[7:0];
+                                port_hi_1 <= dbi[7:0];
                             `VIDEO_MEM_1_LO:
-                                video_ram_lo_1 <= dbi[7:0];
+                                port_lo_1 <= dbi[7:0];
                             `VIDEO_MEM_1_VAL:
                             begin
-                                if (!video_ram_flag_regs_overlay &&
-                                        video_ram_flag_port_1_auto == 2'b11 &&
-                                        video_ram_flag_port_2_auto == 2'b11)
+                                if (!flag_regs_overlay &&
+                                        flag_port_1_func == 2'b11 &&
+                                        flag_port_2_func == 2'b11)
                                 begin
+`ifdef WITH_RAM
                                     // block copy or fill operation
                                     if (dbi[0]) begin
                                         // copy low to high
-                                        video_ram_copy_dst <= { video_ram_hi_1, video_ram_lo_1 };
-                                        video_ram_copy_src <= { video_ram_hi_2, video_ram_lo_2 };
-                                        video_ram_copy_num <= { video_ram_idx_2, video_ram_idx_1 };
+                                        video_ram_copy_dst <= { port_hi_1, port_lo_1 };
+                                        video_ram_copy_src <= { port_hi_2, port_lo_2 };
+                                        video_ram_copy_num <= { port_idx_2, port_idx_1 };
                                         video_ram_copy_state <= 2'b0;
                                         video_ram_copy_dir <= 1'b0;
                                         video_ram_copy_done <= 1'b0;
                                     end else if (dbi[1]) begin
                                         // copy high to low
-                                        video_ram_copy_dst <= { video_ram_hi_1, video_ram_lo_1 } + { video_ram_idx_2, video_ram_idx_1 } - 1'b1;
-                                        video_ram_copy_src <= { video_ram_hi_2, video_ram_lo_2 } + { video_ram_idx_2, video_ram_idx_1 } - 1'b1;
-                                        video_ram_copy_num <= { video_ram_idx_2, video_ram_idx_1 };
+                                        video_ram_copy_dst <= { port_hi_1, port_lo_1 } + { port_idx_2, port_idx_1 } - 1'b1;
+                                        video_ram_copy_src <= { port_hi_2, port_lo_2 } + { port_idx_2, port_idx_1 } - 1'b1;
+                                        video_ram_copy_num <= { port_idx_2, port_idx_1 };
                                         video_ram_copy_state <= 2'b0;
                                         video_ram_copy_dir <= 1'b1;
                                         video_ram_copy_done <= 1'b0;
                                     end else if (dbi[2]) begin
                                         // fill
-                                        video_ram_fill_dst <= { video_ram_hi_1, video_ram_lo_1 };
-                                        video_ram_fill_num <= { video_ram_idx_2, video_ram_idx_1 };
-                                        video_ram_fill_val <= video_ram_lo_2;
+                                        video_ram_fill_dst <= { port_hi_1, port_lo_1 };
+                                        video_ram_fill_num <= { port_idx_2, port_idx_1 };
+                                        video_ram_fill_val <= port_lo_2;
                                         video_ram_fill_done <= 1'b0;
                                     end
+`else
+                                    ;
+`endif
                                 end else begin
                                     // reg overlay or video mem
                                     // persistence lock must be open to allow
-                                    auto_ram_sel <= 0;
+                                    port_selector <= 0;
                                     write_ram(
-                                        .overlay(video_ram_flag_regs_overlay),
-                                        .ram_lo(video_ram_lo_1),
-                                        .ram_hi(video_ram_hi_1),
-                                        .ram_idx(video_ram_idx_1),
+                                        .overlay(flag_regs_overlay),
+                                        .ram_lo(port_lo_1),
+                                        .ram_hi(port_hi_1),
+                                        .ram_idx(port_idx_1),
                                         .data(dbi),
                                         .from_cpu(1'b1),
-                                        .do_persist(video_ram_flag_persist));
+                                        .do_persist(flag_persist));
                                 end
                             end
                             `VIDEO_MEM_2_HI:
-                                video_ram_hi_2 <= dbi[7:0];
+                                port_hi_2 <= dbi[7:0];
                             `VIDEO_MEM_2_LO:
-                                video_ram_lo_2 <= dbi[7:0];
+                                port_lo_2 <= dbi[7:0];
                             `VIDEO_MEM_2_VAL:
                             begin
                                 // reg overlay or video mem
                                 // persistence lock must be open to allow
-                                auto_ram_sel <= 1;
+                                port_selector <= 1;
                                 write_ram(
-                                    .overlay(video_ram_flag_regs_overlay),
-                                    .ram_lo(video_ram_lo_2),
-                                    .ram_hi(video_ram_hi_2),
-                                    .ram_idx(video_ram_idx_2),
+                                    .overlay(flag_regs_overlay),
+                                    .ram_lo(port_lo_2),
+                                    .ram_hi(port_hi_2),
+                                    .ram_idx(port_idx_2),
                                     .data(dbi),
                                     .from_cpu(1'b1),
-                                    .do_persist(video_ram_flag_persist));
+                                    .do_persist(flag_persist));
                             end
                             default:;
                         endcase
@@ -1299,9 +1309,12 @@ begin
         end // ready to handle r/w
 
 `ifdef WITH_EXTENSIONS
+
+`ifdef WITH_RAM
         // CPU read from video mem
         if (video_ram_r)
             dbo[7:0] <= video_ram_data_out_a;
+`endif
 
 `ifdef NEED_RGB
 `ifdef CONFIGURABLE_RGB
@@ -1380,9 +1393,11 @@ begin
         end
 `endif
 
+`ifdef WITH_RAM
         // Only need 1 tick to write to video ram
         if (video_ram_wr_a)
             video_ram_wr_a <= 1'b0;
+`endif
 
 `ifdef NEED_RGB
 `ifdef CONFIGURABLE_RGB
@@ -1401,10 +1416,12 @@ begin
         // Near the start of the low cycle, handle auto increment of
         // our vram pointers.
         if (~clk_phi && phi_phase_start_dav_plus_2) begin
+`ifdef WITH_RAM
             // Always clear both flags and propagate r to r2 here.
             video_ram_r <= 0;
             video_ram_r2 <= video_ram_r;
             video_ram_aw <= 1'b0;
+`endif
 
 `ifdef NEED_RGB
 `ifdef CONFIGURABLE_RGB
@@ -1425,7 +1442,10 @@ begin
             // then writing.  If we didn't do this, those instructions would
             // cause two increments when we only wanted one.  So this effectively
             // waits a full cycle before commiting to increment after a read.
-            if (video_ram_r2 || video_ram_aw
+            if (extra_regs_activated
+`ifdef WITH_RAM
+                    || video_ram_r2 || video_ram_aw
+`endif
 `ifdef NEED_RGB
 `ifdef CONFIGURABLE_RGB
                     || color_regs_r2 || color_regs_aw
@@ -1436,43 +1456,43 @@ begin
 `endif
                ) begin
                 // Handle auto increment /decrement after port access
-                if (auto_ram_sel == 0) begin // loc 1 of port a
-                    case(video_ram_flag_port_1_auto) // auto inc port a
+                if (port_selector == 0) begin // loc 1 of port a
+                    case(flag_port_1_func) // auto inc port a
                         2'd1: begin
-                            if (video_ram_lo_1 < 8'hff)
-                                video_ram_lo_1 <= video_ram_lo_1 + 8'b1;
+                            if (port_lo_1 < 8'hff)
+                                port_lo_1 <= port_lo_1 + 8'b1;
                             else begin
-                                video_ram_lo_1 <= 8'h00;
-                                video_ram_hi_1 <= video_ram_hi_1 + 8'b1;
+                                port_lo_1 <= 8'h00;
+                                port_hi_1 <= port_hi_1 + 8'b1;
                             end
                         end
                         2'd2: begin
-                            if (video_ram_lo_1 > 8'h00)
-                                video_ram_lo_1 <= video_ram_lo_1 - 8'b1;
+                            if (port_lo_1 > 8'h00)
+                                port_lo_1 <= port_lo_1 - 8'b1;
                             else begin
-                                video_ram_lo_1 <= 8'hff;
-                                video_ram_hi_1 <= video_ram_hi_1 - 8'b1;
+                                port_lo_1 <= 8'hff;
+                                port_hi_1 <= port_hi_1 - 8'b1;
                             end
                         end
                         default:
                             ;
                     endcase
                 end else begin // loc 2 of port a
-                    case(video_ram_flag_port_2_auto) // auto inc port b
+                    case(flag_port_2_func) // auto inc port b
                         2'd1: begin
-                            if (video_ram_lo_2 < 8'hff)
-                                video_ram_lo_2 <= video_ram_lo_2 + 8'b1;
+                            if (port_lo_2 < 8'hff)
+                                port_lo_2 <= port_lo_2 + 8'b1;
                             else begin
-                                video_ram_lo_2 <= 8'h00;
-                                video_ram_hi_2 <= video_ram_hi_2 + 8'b1;
+                                port_lo_2 <= 8'h00;
+                                port_hi_2 <= port_hi_2 + 8'b1;
                             end
                         end
                         2'd2: begin
-                            if (video_ram_lo_2 > 8'h00)
-                                video_ram_lo_2 <= video_ram_lo_2 - 8'b1;
+                            if (port_lo_2 > 8'h00)
+                                port_lo_2 <= port_lo_2 - 8'b1;
                             else begin
-                                video_ram_lo_2 <= 8'hff;
-                                video_ram_hi_2 <= video_ram_hi_2 - 8'b1;
+                                port_lo_2 <= 8'hff;
+                                port_hi_2 <= port_hi_2 - 8'b1;
                             end
                         end
                         default:
@@ -1482,6 +1502,7 @@ begin
             end
         end
 
+`ifdef WITH_RAM
         // Handle block copy here
         if (video_ram_copy_num > 0) begin
             if (video_ram_copy_state == 2'b0) begin
@@ -1507,8 +1528,8 @@ begin
         else if (video_ram_copy_num == 0 && !video_ram_copy_done) begin
             video_ram_copy_done <= 1'b1;
             video_ram_wr_a <= 1'b0;
-            video_ram_idx_1 <= 8'b0; // signal done
-            video_ram_idx_2 <= 8'b0;
+            port_idx_1 <= 8'b0; // signal done
+            port_idx_2 <= 8'b0;
         end
         // Handle block fill here
         if (video_ram_fill_num > 0) begin
@@ -1521,9 +1542,11 @@ begin
         else if (video_ram_fill_num == 0 && !video_ram_fill_done) begin
             video_ram_fill_done <= 1'b1;
             video_ram_wr_a <= 1'b0;
-            video_ram_idx_1 <= 8'b0; // signal done
-            video_ram_idx_2 <= 8'b0;
+            port_idx_1 <= 8'b0; // signal done
+            port_idx_2 <= 8'b0;
         end
+`endif // WITH_RAM
+
 `endif // WITH_EXTENSIONS
     end // rst or not
 end

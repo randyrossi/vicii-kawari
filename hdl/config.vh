@@ -25,21 +25,27 @@
 
 // WITH_EXTENSIONS
 // ---------------
-// Enables video ram and extra registers. Required for the
+// Enables extra registers. Required for the
 // following optional features:
+//    WITH_RAM
 //    CONFIGURABLE_LUMAS 
 //    CONFIGURABLE_RGB 
 //    CONFIGURABLE_TIMING 
 //    HAVE_EEPROM
 //    HAVE_FLASH
 //    HIRES_MODES
-//
-// Video ram cannot be disabled if WITH_EXTENSIONS is enabled
-// but it can be limited to 32k.
+`define WITH_EXTENSIONS 1
+
+// WITH_RAM
+// --------
+// Will automatically enable WITH_EXTENSIONS if enabled.
+// Use block ram for video memory. This memory can be
+// accessed through ports A and B in the extra registers.
+`define WITH_RAM 1
 
 // WITH_64K
 // --------
-// Has no effect unless WITH_EXTENSIONS is enabled.
+// Has no effect unless WITH_RAM is enabled.
 // Uncomment to use all block ram for video memory. This makes
 // some dual port ram use distributed mem rather than block
 // ram and will increase LUT usage drammatically.  This will
@@ -100,6 +106,7 @@
 
 // HAVE_FLASH
 // Will automatically enable WITH_EXTENSIONS if enabled.
+// Will automatically enable WITH_RAM also.
 // Uncomment if board has FLASH directly connected
 // to FPGA via SPI bus.
 `define HAVE_FLASH 1
@@ -122,6 +129,7 @@
 // HIRES_MODES
 // -----------
 // Will automatically enable WITH_EXTENSIONS if enabled.
+// Will automatically enable WITH_RAM also.
 // Uncomment to enable hires modes (including 80 column
 // mode).  X resolution will be confined to 1X unless
 // this is enabled.
