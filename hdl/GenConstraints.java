@@ -8,8 +8,7 @@ public class GenConstraints
   final static int GEN_RGB = 2;
   final static int HAVE_EEPROM = 3;
   final static int HAVE_FLASH = 4;
-  final static int WITH_SPI = 5;
-  final static int WITH_EXTENSIONS = 6;
+  final static int WITH_EXTENSIONS = 5;
 
   public static boolean[] read_config(String filename) throws Exception {
     File f = new File(filename);
@@ -17,7 +16,7 @@ public class GenConstraints
     InputStreamReader ir = new InputStreamReader(fis);
     BufferedReader br = new BufferedReader(ir);
 
-    boolean[] flags = new boolean[7];
+    boolean[] flags = new boolean[6];
     while (true) {
       String line = br.readLine();
       if (line == null) break;
@@ -32,8 +31,6 @@ public class GenConstraints
         flags[HAVE_EEPROM] = true;
       else if (line.startsWith("`define HAVE_FLASH"))
         flags[HAVE_FLASH] = true;
-      else if (line.startsWith("`define WITH_SPI"))
-        flags[WITH_SPI] = true;
       else if (line.startsWith("`define WITH_EXTENSIONS"))
         flags[WITH_EXTENSIONS] = true;
     }
@@ -93,7 +90,7 @@ public class GenConstraints
 		if (!flags[HAVE_FLASH]) {
                    if (t6.startsWith("flash_s")) continue;
                 }
-		if (!flags[WITH_SPI]) {
+		if (!flags[HAVE_EEPROM] && !flags[HAVE_FLASH]) {
                    if (t6.startsWith("spi_d")) continue;
                    if (t6.startsWith("spi_q")) continue;
                    if (t6.startsWith("spi_c")) continue;
