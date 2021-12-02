@@ -455,7 +455,13 @@
 `endif
 `endif
 
-`ifdef REV_4_BOARD
+// The beta-board did not have luma sink so
+// turn this on for REV_4* boards.
+`ifdef REV_4L_BOARD
+`define HAVE_LUMA_SINK 1
+`endif
+
+`ifdef REV_4S_BOARD
 `define HAVE_LUMA_SINK 1
 `endif
 
