@@ -43,7 +43,8 @@ clean:
 	rm -rf top_summary.xml map.xmsgs top.ncd top.pad top.par top.unroutes
 	rm -rf top.xpi top_par.xrpt top_pad.txt top_pad.csv top.ptwx par.xmsgs
 	rm -rf top.twr top.twx trce.xmsgs top.drc top.bit top.bgn top.bin top.ut
-	rm -rf webtalk.log bitgen.xmsgs top*.twx
+	rm -rf webtalk.log bitgen.xmsgs top*.twx kawari_progspi.tmp _xmsgs iseconfig/top.xreport
+	rm -rf tmp _xmsgs iseconfig/top.xreport
 
 compile:
 	mkdir -p xst/projnav.tmp

@@ -1,0 +1,119 @@
+Release 14.7 - xst P.20131013 (lin64)
+Copyright (c) 1995-2013 Xilinx, Inc.  All rights reserved.
+--> 
+Parameter TMPDIR set to /home/ise/vicii/xst/projnav.tmp
+
+
+Total REAL time to Xst completion: 0.00 secs
+Total CPU time to Xst completion: 0.04 secs
+ 
+--> 
+Parameter xsthdpdir set to /home/ise/vicii/xst
+
+
+Total REAL time to Xst completion: 0.00 secs
+Total CPU time to Xst completion: 0.04 secs
+ 
+--> 
+Reading design: vicii.prj
+
+TABLE OF CONTENTS
+  1) Synthesis Options Summary
+  2) HDL Parsing
+  3) HDL Elaboration
+  4) HDL Synthesis
+       4.1) HDL Synthesis Report
+  5) Advanced HDL Synthesis
+       5.1) Advanced HDL Synthesis Report
+  6) Low Level Synthesis
+  7) Partition Report
+  8) Design Summary
+       8.1) Primitive and Black Box Usage
+       8.2) Device utilization summary
+       8.3) Partition Resource Summary
+       8.4) Timing Report
+            8.4.1) Clock Information
+            8.4.2) Asynchronous Control Signals Information
+            8.4.3) Timing Summary
+            8.4.4) Timing Details
+            8.4.5) Cross Clock Domains Report
+
+
+=========================================================================
+*                          HDL Parsing                                  *
+=========================================================================
+Analyzing Verilog file "/home/ise/vicii/hdl/videoram.v" into library work
+Parsing verilog file "/home/ise/vicii/hdl/common.vh" included at line 3.
+Parsing module <VIDEO_RAM>.
+Analyzing Verilog file "/home/ise/vicii/hdl/serration.v" into library work
+Parsing verilog file "/home/ise/vicii/hdl/common.vh" included at line 3.
+Parsing module <SerrationPulse>.
+Analyzing Verilog file "/home/ise/vicii/hdl/equalization.v" into library work
+Parsing verilog file "/home/ise/vicii/hdl/common.vh" included at line 3.
+Parsing module <EqualizationPulse>.
+Analyzing Verilog file "/home/ise/vicii/hdl/colorreg.v" into library work
+Parsing verilog file "/home/ise/vicii/hdl/common.vh" included at line 3.
+Parsing module <COLOR_REGS>.
+Analyzing Verilog file "/home/ise/vicii/hdl/sprites.v" into library work
+Parsing verilog file "/home/ise/vicii/hdl/common.vh" included at line 3.
+Parsing module <sprites>.
+Analyzing Verilog file "/home/ise/vicii/hdl/registers.v" into library work
+Parsing verilog file "/home/ise/vicii/hdl/common.vh" included at line 3.
+Parsing module <registers>.
+Analyzing Verilog file "/home/ise/vicii/hdl/raster.v" into library work
+Parsing verilog file "/home/ise/vicii/hdl/common.vh" included at line 3.
+Parsing module <raster>.
+Analyzing Verilog file "/home/ise/vicii/hdl/pixel_sequencer.v" into library work
+Parsing verilog file "/home/ise/vicii/hdl/common.vh" included at line 3.
+Parsing module <pixel_sequencer>.
+Analyzing Verilog file "/home/ise/vicii/hdl/matrix.v" into library work
+Parsing verilog file "/home/ise/vicii/hdl/common.vh" included at line 3.
+Parsing module <matrix>.
+Analyzing Verilog file "/home/ise/vicii/hdl/lightpen.v" into library work
+Parsing verilog file "/home/ise/vicii/hdl/common.vh" included at line 3.
+Parsing module <lightpen>.
+Analyzing Verilog file "/home/ise/vicii/hdl/hires_vga_sync.v" into library work
+Parsing verilog file "/home/ise/vicii/hdl/common.vh" included at line 1.
+Parsing module <linebuf_RAM>.
+Parsing module <hires_vga_sync>.
+Analyzing Verilog file "/home/ise/vicii/hdl/hires_pixel_sequencer.v" into library work
+Parsing verilog file "/home/ise/vicii/hdl/common.vh" included at line 3.
+Parsing module <hires_pixel_sequencer>.
+Analyzing Verilog file "/home/ise/vicii/hdl/hires_matrix.v" into library work
+Parsing verilog file "/home/ise/vicii/hdl/common.vh" included at line 3.
+Parsing module <hires_matrix>.
+Analyzing Verilog file "/home/ise/vicii/hdl/hires_addressgen.v" into library work
+Parsing verilog file "/home/ise/vicii/hdl/common.vh" included at line 3.
+Parsing module <hires_addressgen>.
+Analyzing Verilog file "/home/ise/vicii/hdl/cycles.v" into library work
+Parsing verilog file "/home/ise/vicii/hdl/common.vh" included at line 3.
+Parsing module <cycles>.
+Analyzing Verilog file "/home/ise/vicii/hdl/comp_sync.v" into library work
+Parsing verilog file "/home/ise/vicii/hdl/common.vh" included at line 1.
+Parsing module <comp_sync>.
+Analyzing Verilog file "/home/ise/vicii/hdl/bus_access.v" into library work
+Parsing verilog file "/home/ise/vicii/hdl/common.vh" included at line 3.
+Parsing module <bus_access>.
+Analyzing Verilog file "/home/ise/vicii/hdl/border.v" into library work
+Parsing verilog file "/home/ise/vicii/hdl/common.vh" included at line 3.
+Parsing module <border>.
+Analyzing Verilog file "/home/ise/vicii/hdl/addressgen.v" into library work
+Parsing verilog file "/home/ise/vicii/hdl/common.vh" included at line 3.
+Parsing module <addressgen>.
+Analyzing Verilog file "/home/ise/vicii/hdl/vicii.v" into library work
+Parsing verilog file "/home/ise/vicii/hdl/common.vh" included at line 3.
+Parsing module <vicii>.
+ERROR:HDLCompiler:718 - "/home/ise/vicii/hdl/vicii.v" Line 800: Port connections cannot be mixed ordered and named
+ERROR:HDLCompiler:45 - "/home/ise/vicii/hdl/vicii.v" Line 889: video_ram_addr_b is not a function
+ERROR:HDLCompiler:24 - "/home/ise/vicii/hdl/vicii.v" Line 889: video_ram_addr_b expects 0 arguments
+ERROR:HDLCompiler:598 - "/home/ise/vicii/hdl/vicii.v" Line 25: Module <vicii> ignored due to previous errors.
+Verilog file /home/ise/vicii/hdl/vicii.v ignored due to errors
+--> 
+
+
+Total memory usage is 397232 kilobytes
+
+Number of errors   :    4 (   0 filtered)
+Number of warnings :    0 (   0 filtered)
+Number of infos    :    0 (   0 filtered)
+

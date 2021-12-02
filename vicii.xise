@@ -489,9 +489,9 @@
     <file xil_pn:name="hdl/common.vh" xil_pn:type="FILE_VERILOG"/>
     <file xil_pn:name="hdl/config.vh" xil_pn:type="FILE_VERILOG"/>
     <file xil_pn:name="hdl/pll_drp_func.h" xil_pn:type="FILE_VERILOG"/>
-    <file xil_pn:name="hdl/registers_ram.v" xil_pn:type="FILE_VERILOG"/>
     <file xil_pn:name="hdl/registers_eeprom.vh" xil_pn:type="FILE_VERILOG"/>
     <file xil_pn:name="hdl/registers_flash.vh" xil_pn:type="FILE_VERILOG"/>
+    <file xil_pn:name="hdl/registers_ram.v" xil_pn:type="FILE_VERILOG"/>
     <file xil_pn:name="hdl/registers_eeprom.v" xil_pn:type="FILE_VERILOG"/>
     <file xil_pn:name="hdl/registers_flash.v" xil_pn:type="FILE_VERILOG"/>
   </autoManagedFiles>
