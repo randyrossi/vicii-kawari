@@ -2,10 +2,6 @@
 
 `include "../common.vh"
 
-// TODO: This used to generate color clocks from a 50 mhz sys_clock
-// but now it is exclusively used for DVI clock gen.  This file
-// should bre renamed.
-
 `ifdef WITH_DVI
     // A clock gen module for our DVI module.  Accepts a
     // pixel clock as input and generates the necessary

@@ -9,7 +9,7 @@
          <ClosedNodesVersion>2</ClosedNodesVersion>
          <ClosedNode>/avr_interface |home|ise|vicii|hdl|avr_interface.v</ClosedNode>
          <ClosedNode>/comp_sync |home|ise|vicii|hdl|comp_sync.v</ClosedNode>
-         <ClosedNode>/dot4x_50_clockgen |home|ise|vicii|hdl|xilinx_spartan6|dot4x_50_clockgen.v</ClosedNode>
+         <ClosedNode>/dvi_clockgen |home|ise|vicii|hdl|xilinx_spartan6|dvi_clockgen.v</ClosedNode>
          <ClosedNode>/dvi_encoder_top |home|ise|vicii|hdl|dvi|dvi_encoder_top.v</ClosedNode>
          <ClosedNode>/hires_vga_sync |home|ise|vicii|hdl|hires_vga_sync.v</ClosedNode>
          <ClosedNode>/top |home|ise|vicii|hdl|rev_3|top.v/cmod_clockgen - clockgen</ClosedNode>

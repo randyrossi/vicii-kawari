@@ -71,7 +71,7 @@
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="19"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="29"/>
     </file>
-    <file xil_pn:name="hdl/rev_3/clockgen.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="hdl/xilinx_spartan6/clockgen.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="20"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="30"/>
     </file>
@@ -142,7 +142,7 @@
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="101"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="4"/>
     </file>
-    <file xil_pn:name="hdl/xilinx_spartan6/dot4x_50_clockgen.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="hdl/xilinx_spartan6/dvi_clockgen.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="155"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="9"/>
     </file>
