@@ -24,7 +24,7 @@ GOLDEN_MINOR=1
 # 	kawari_golden.ut
 # 	kawari_multiboot.ut
 # 	kawari_progspi.cmd
-# 	top.prj
+# 	top.prj <- Get this from ISE gen dir for same config
 #
 # Outputs:
 #       build/kawari_multiboot_MAJOR_MINOR.bit
@@ -36,15 +36,23 @@ GOLDEN_MINOR=1
 # on a device.
 
 clean:
-	rm -rf op.stx top_summary.html top.xst top.lso top.syr top_xst.xrpt
-	rm -rf webtalk_pn.xml top.ngc top.ngr xst top.cmd_log xst.xmsgs top.ngd
-	rm -rf top.bld top_ngdbuild.xrpt _ngo xlnx_auto_0_xdb ngdbuild.xmsgs top_map.map
-	rm -rf top_map.mrp top_map.xrpt top_map.ncd top.pcf top_map.ngm top_usage.xml
-	rm -rf top_summary.xml map.xmsgs top.ncd top.pad top.par top.unroutes
-	rm -rf top.xpi top_par.xrpt top_pad.txt top_pad.csv top.ptwx par.xmsgs
-	rm -rf top.twr top.twx trce.xmsgs top.drc top.bit top.bgn top.bin top.ut
-	rm -rf webtalk.log bitgen.xmsgs top*.twx kawari_progspi.tmp _xmsgs iseconfig/top.xreport
-	rm -rf tmp _xmsgs iseconfig/top.xreport
+	rm -rf tmp _xmsgs
+	rm -rf rev_3/iseconfig/top.xreport
+	rm -rf rev_3/par_usage_statistics.html
+	rm -rf rev_3/top_bitgen.xwbt
+	rm -rf rev_3/top_guide.ncd
+	rm -rf rev_3/top_summary.html
+	rm -rf rev_4L/iseconfig/top.xreport
+	rm -rf rev_4L/par_usage_statistics.html
+	rm -rf rev_4L/top_bitgen.xwbt
+	rm -rf rev_4L/top_guide.ncd
+	rm -rf rev_4L/top_summary.html
+	rm -rf rev_4S/iseconfig/top.xreport
+	rm -rf rev_4S/par_usage_statistics.html
+	rm -rf rev_4S/top_bitgen.xwbt
+	rm -rf rev_4S/top_guide.ncd
+	rm -rf rev_4S/top_summary.html
+	rm -rf top_summary.html
 
 compile:
 	mkdir -p xst/projnav.tmp
