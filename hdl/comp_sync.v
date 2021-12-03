@@ -1,5 +1,11 @@
 `include "common.vh"
 
+// NOTE: We reproduce the offscreen white pixel at hvisible_start
+// that the real VICII's produces.  You can't see it on CRTs but it
+// will show up on upscalers. It can be removed by getting rid of
+// the three raster_x == hvisible_start conditions below for luma,
+// phase and amplitude.
+
 // A module that produces a luma/chroma signals.
 module comp_sync(
            input clk_dot4x,
@@ -198,7 +204,7 @@ begin
 `endif
             end
             default: begin
-                luma <= ~hSync ? (~native_active ? `BLANKING_LEVEL : lumareg_o) : 6'd0;
+                luma <= ~hSync ? (~native_active ? `BLANKING_LEVEL : (raster_x == hvisible_start ? 6'h3f : lumareg_o)) : 6'd0;
 `ifdef HAVE_LUMA_SINK
                 luma_sink <= hSync;
 `endif
@@ -264,12 +270,12 @@ assign oddline = raster_y_16[0];
 reg [7:0] phasereg_o2;
 reg [7:0] phasereg_16;
 always @(posedge clk_col16x) phasereg_o2 <= phasereg_o;
-always @(posedge clk_col16x) phasereg_16 <= phasereg_o2;
+always @(posedge clk_col16x) phasereg_16 <= raster_x_16 == hvisible_start ? 8'h0 : phasereg_o2;
 
 reg [3:0] amplitudereg_o2;
 reg [3:0] amplitudereg_16;
 always @(posedge clk_col16x) amplitudereg_o2 <=  amplitudereg_o;
-always @(posedge clk_col16x) amplitudereg_16 <= amplitudereg_o2;
+always @(posedge clk_col16x) amplitudereg_16 <= raster_x_16 == hvisible_start ? 4'h0 : amplitudereg_o2;
 
 reg [9:0] burst_start_o2;
 reg [9:0] burst_start16;
