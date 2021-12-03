@@ -6,8 +6,7 @@
 //
 // Color clocks, DVI + RGB out.
 module top(
-           input clk_col4x_pal,
-           input clk_col4x_ntsc,
+           input clk_col4x_either,
 
            // If we are generating luma/chroma, add outputs
 `ifdef GEN_LUMA_CHROMA
@@ -27,15 +26,14 @@ module top(
            output spi_d,
            input  spi_q,
            output spi_c,
+           output flash_d1,
+           output flash_d2,
 `endif
 `ifdef HAVE_EEPROM
            input cfg_reset,
            output eeprom_s,
 `endif
 `endif // WITH_EXTENSIONS
-
-           output flash_d1,
-           output flash_d2,
 
            output cpu_reset,    // for pulling 6510 reset LOW
            input cpu_reset_i,   // for listening to 6510 reset
@@ -64,7 +62,9 @@ module top(
            output cas,          // column address strobe
            output ras,          // row address strobe
            output ls245_addr_dir,  // DIR for addr bus transceivers
-           output ls245_data_dir   // DIR for data bus transceiver
+           output ls245_data_dir,  // DIR for data bus transceiver
+           output ls245_addr_oe,   // OE for addr bus transceivers
+           output ls245_data_oe    // OE for data bus transceiver
 `ifdef WITH_DVI
            ,
            output wire [3:0] TX0_TMDS,
@@ -77,8 +77,10 @@ wire rst;
 wire clk_dot4x;
 wire [1:0] chip;
 
+`ifdef WITH_SPI
 assign flash_d1 = 1'b1;
 assign flash_d2 = 1'b1;
+`endif
 
 `ifndef GEN_RGB
 // When we're not exporting these signals, we still need
@@ -92,20 +94,8 @@ wire [5:0] blue;
 `endif
 `endif
 
-reg chip_mux1;
-reg chip_mux2;
-always @(posedge clk_col4x_ntsc) chip_mux1 <= chip[0];
-always @(posedge clk_col4x_ntsc) chip_mux2 <= chip_mux1;
-
-// When we have color clocks available, we select which
-// one we want to enter the 2x clock gen (below) based
-// on the chip model by using a BUFGMUX. 1=PAL, 0 = NTSC
 wire clk_col4x;
-BUFGMUX colmux(
-            .I0(clk_col4x_ntsc),
-            .I1(clk_col4x_pal),
-            .O(clk_col4x),
-            .S(chip_mux2));
+assign clk_col4x = clk_col4x_either;
 
 // From the 4x color clock, generate an 8x color clock
 // This is necessary to meet the minimum frequency of
@@ -259,5 +249,9 @@ vicii vic_inst(
 assign dbl[7:0] = vic_write_db ? dbo : 8'bz; // CPU reading
 assign adl = vic_write_ab ? ado[5:0] : 6'bz; // vic or stollen cycle
 assign adh = vic_write_ab ? ado[11:6] : 6'bz;
+
+// Set LOW unless we need otherwise.
+assign ls245_addr_oe = 1'b0;
+assign ls245_data_oe = 1'b0;
 
 endmodule : top

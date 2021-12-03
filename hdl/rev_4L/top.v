@@ -27,15 +27,14 @@ module top(
            output spi_d,
            input  spi_q,
            output spi_c,
+           output flash_d1,
+           output flash_d2,
 `endif
 `ifdef HAVE_EEPROM
            input cfg_reset,
            output eeprom_s,
 `endif
 `endif // WITH_EXTENSIONS
-
-           output flash_d1,
-           output flash_d2,
 
            output cpu_reset,    // for pulling 6510 reset LOW
            input cpu_reset_i,   // for listening to 6510 reset
@@ -64,7 +63,9 @@ module top(
            output cas,          // column address strobe
            output ras,          // row address strobe
            output ls245_addr_dir,  // DIR for addr bus transceivers
-           output ls245_data_dir   // DIR for data bus transceiver
+           output ls245_data_dir,  // DIR for data bus transceiver
+           output ls245_addr_oe,   // OE for addr bus transceivers
+           output ls245_data_oe    // OE for data bus transceiver
 `ifdef WITH_DVI
            ,
            output wire [3:0] TX0_TMDS,
@@ -77,8 +78,10 @@ wire rst;
 wire clk_dot4x;
 wire [1:0] chip;
 
+`ifdef WITH_SPI
 assign flash_d1 = 1'b1;
 assign flash_d2 = 1'b1;
+`endif
 
 `ifndef GEN_RGB
 // When we're not exporting these signals, we still need
@@ -259,5 +262,9 @@ vicii vic_inst(
 assign dbl[7:0] = vic_write_db ? dbo : 8'bz; // CPU reading
 assign adl = vic_write_ab ? ado[5:0] : 6'bz; // vic or stollen cycle
 assign adh = vic_write_ab ? ado[11:6] : 6'bz;
+
+// Set LOW unless we need otherwise.
+assign ls245_addr_oe = 1'b0;
+assign ls245_data_oe = 1'b0;
 
 endmodule : top

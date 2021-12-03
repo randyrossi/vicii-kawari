@@ -9,14 +9,21 @@ public class GenConstraints
   final static int HAVE_EEPROM = 3;
   final static int HAVE_FLASH = 4;
   final static int WITH_EXTENSIONS = 5;
+  final static int WITH_CLOCK_MUX = 6;
 
-  public static boolean[] read_config(String filename) throws Exception {
-    File f = new File(filename);
+  public static boolean[] read_config() throws Exception {
+
+
+    File f = new File("config.vh");
     FileInputStream fis = new FileInputStream(f);
     InputStreamReader ir = new InputStreamReader(fis);
     BufferedReader br = new BufferedReader(ir);
 
-    boolean[] flags = new boolean[6];
+    boolean[] flags = new boolean[7];
+
+    // Assume we have a clock mux
+    flags[WITH_CLOCK_MUX] = true;
+
     while (true) {
       String line = br.readLine();
       if (line == null) break;
@@ -33,18 +40,23 @@ public class GenConstraints
         flags[HAVE_FLASH] = true;
       else if (line.startsWith("`define WITH_EXTENSIONS"))
         flags[WITH_EXTENSIONS] = true;
+      if (line.startsWith("`define NO_CLOCK_MUX"))
+        flags[WITH_CLOCK_MUX] = false;
     }
+
+    fis.close();
+
     return flags;
   }
 
   public static void main(String args[]) throws Exception {
-    if (args.length < 2) {
+    if (args.length < 1) {
       System.out.println("Usage:");
-      System.out.println("java GenConstraints wiring.txt ../config.vh > top.ucf");
+      System.out.println("java GenConstraints wiring.txt > top.ucf");
       System.exit(0);
     }
 
-    boolean flags[] = read_config(args[1]);
+    boolean flags[] = read_config();
 
     HashMap<String,Integer> map = new HashMap<String,Integer>();
 
@@ -121,9 +133,14 @@ public class GenConstraints
 		map.put(t4,1);
         }
 
-        System.out.println("NET \"clk_col4x_pal\" TNM_NET = color_clk_pal;");
-        System.out.println("TIMESPEC TS_color_clk_pal = PERIOD \"color_clk_pal\" 17.734475 MHz HIGH 50%;");
-        System.out.println("NET \"clk_col4x_ntsc\" TNM_NET = color_clk_ntsc;");
-        System.out.println("TIMESPEC TS_color_clk_ntsc = PERIOD \"color_clk_ntsc\" 14.318181 MHz HIGH 50%;");
+	if (flags[WITH_CLOCK_MUX]) {
+           System.out.println("NET \"clk_col4x_pal\" TNM_NET = color_clk_pal;");
+           System.out.println("TIMESPEC TS_color_clk_pal = PERIOD \"color_clk_pal\" 17.734475 MHz HIGH 50%;");
+           System.out.println("NET \"clk_col4x_ntsc\" TNM_NET = color_clk_ntsc;");
+           System.out.println("TIMESPEC TS_color_clk_ntsc = PERIOD \"color_clk_ntsc\" 14.318181 MHz HIGH 50%;");
+	} else {
+           System.out.println("NET \"clk_col4x_either\" TNM_NET = color_clk_either;");
+           System.out.println("TIMESPEC TS_color_clk_either = PERIOD \"color_clk_either\" 17.734475 MHz HIGH 50%;");
+	}
      }
 }

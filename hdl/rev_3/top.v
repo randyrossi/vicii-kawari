@@ -26,15 +26,14 @@ module top(
            output spi_d,
            input  spi_q,
            output spi_c,
+           output flash_d1,
+           output flash_d2,
 `endif
 `ifdef HAVE_EEPROM
            input cfg_reset,
            output eeprom_s,
 `endif
 `endif // WITH_EXTENSIONS
-
-           output flash_d1,
-           output flash_d2,
 
            output cpu_reset,    // for pulling 6510 reset LOW
            input cpu_reset_i,   // for listening to 6510 reset
@@ -76,8 +75,10 @@ wire rst;
 wire clk_dot4x;
 wire [1:0] chip;
 
+`ifdef WITH_SPI
 assign flash_d1 = 1'b1;
 assign flash_d2 = 1'b1;
+`endif
 
 `ifndef GEN_RGB
 // When we're not exporting these signals, we still need
