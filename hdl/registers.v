@@ -1442,7 +1442,7 @@ begin
             // then writing.  If we didn't do this, those instructions would
             // cause two increments when we only wanted one.  So this effectively
             // waits a full cycle before commiting to increment after a read.
-            if (extra_regs_activated
+            if (1'b0
 `ifdef WITH_RAM
                     || video_ram_r2 || video_ram_aw
 `endif
