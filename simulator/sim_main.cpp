@@ -766,7 +766,9 @@ int main(int argc, char** argv, char** env) {
     top->standard_sw = 1;
 #if WITH_EXTENSIONS
     // cfg reset is held HIGH simulating pullup
+#if HAVE_EEPROM
     top->cfg_reset = 1;
+#endif
     // simulate SHORTED for config pins
     top->cfg1 = 0; // spi_lock
     top->cfg2 = 0; // extensions_lock
