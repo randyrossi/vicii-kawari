@@ -106,6 +106,8 @@ public class GenConstraints
                    if (t6.startsWith("spi_d")) continue;
                    if (t6.startsWith("spi_q")) continue;
                    if (t6.startsWith("spi_c")) continue;
+                   if (t6.startsWith("flash_d1")) continue;
+                   if (t6.startsWith("flash_d2")) continue;
                 }
 		if (!flags[WITH_EXTENSIONS]) {
                    if (t6.startsWith("cfg_reset")) continue;
