@@ -810,13 +810,7 @@ addressgen vic_addressgen(
                .sprite_cnt(sprite_cnt),
                .sprite_ptr_o(sprite_ptr_o),
                .sprite_mc_o(sprite_mc_o),
-               .phi_phase_start_rlh(phi_phase_start[0]), // ras rise
-               .phi_phase_start_rhl(phi_phase_start[5]), // ras fall
-               .phi_phase_start_clh(phi_phase_start[15]), // cas rise
-               .phi_phase_start_chl(phi_phase_start[7]), // cas fall
-               .phi_phase_start_glitch(phi_phase_start[10]), // post cas glitch
-               .phi_phase_start_row(phi_phase_start[3]), // after cycle_type is valid
-               .phi_phase_start_col(phi_phase_start[6]), // mux between rhl and chl
+               .phi_phase_start(phi_phase_start),
                .ado(ado));
 
 `ifdef HIRES_MODES

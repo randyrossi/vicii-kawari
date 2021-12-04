@@ -39,6 +39,16 @@
 // first (old bmm) address. (The glitch can't happen too soon after
 // CAS falls because it is delayed to RAM.)
 
+`define RAS_RISE 0
+`define RAS_FALL 5
+`define CAS_RISE_P 15 // See below for reason for _P and _N
+`define CAS_FALL_P 7
+`define CAS_RISE_N 0 // See below for reason for _P and _N
+`define CAS_FALL_N 8
+`define CAS_GLITCH 10
+`define MUX_ROW 3
+`define MUX_COL 6
+
 // Address generation
 module addressgen(
            //input rst,
@@ -59,16 +69,10 @@ module addressgen(
            input [2:0] sprite_cnt,
            input [63:0] sprite_ptr_o,
            input [47:0] sprite_mc_o,
-           input phi_phase_start_rlh,
-           input phi_phase_start_rhl,
-           input phi_phase_start_clh,
-           input phi_phase_start_chl,
-           input phi_phase_start_glitch,
-           input phi_phase_start_row,
-           input phi_phase_start_col,
+           input [15:0] phi_phase_start,
            output reg [11:0] ado,
            output reg ras,
-           output reg cas
+           output cas
        );
 
 // Destinations for flattened inputs that need to be sliced back into an array
@@ -159,33 +163,52 @@ begin
     endcase
 end
 
-// Timing observed
-// NTSC:
-//       CAS/RAS separated by ~52ns
-//       RAS falls ~167ns after PHI edge
-//       ADDR mux @ ~38ns after RAS edge
-
 always @(posedge clk_dot4x)
-    if (phi_phase_start_rlh)
+    if (phi_phase_start[`RAS_RISE])
         ras <= 1'b1;
-    else if (phi_phase_start_rhl)
+    else if (phi_phase_start[`RAS_FALL])
         ras <= 1'b0;
 
+// In order to get a better resolution on when
+// CAS falls, we generate a CAS signal on both
+// positive and negative edges of the clock. Then
+// OR them together. This gets RAS to rise on
+// the positive edge and fall on the negative edge
+// which pushes out the fall by half of our
+// 32x dot clock (~15.2ns NTSC, 15.8ns PAL). It
+// seems if we move CAS rise away from where it
+// is now, we get weird address bus contention
+// issues with the CPU (maybe?). So this is done
+// to keep CAS rise where it doesn't cause these
+// issues but have CAS fall closer to where we
+// want it.
+reg cas_p;
+reg cas_n;
 always @(posedge clk_dot4x)
-    if (phi_phase_start_clh)
-        cas <= 1'b1;
-    else if (phi_phase_start_chl)
-        cas <= 1'b0;
+    if (phi_phase_start[`CAS_RISE_P])
+        cas_p <= 1'b1;
+    else if (phi_phase_start[`CAS_FALL_P])
+        cas_p <= 1'b0;
+
+always @(negedge clk_dot4x)
+    if (phi_phase_start[`CAS_RISE_N])
+        cas_n <= 1'b1;
+    else if (phi_phase_start[`CAS_FALL_N])
+        cas_n <= 1'b0;
+
+assign cas = cas_p | cas_n;
 
 // Address out
 // ROW first, COL second
+// Don't bother changing address for COL on refresh cycles
+// because it makes no difference.
 always @(posedge clk_dot4x) begin
     if (!aec) begin
-        if (phi_phase_start_row) begin
+        if (phi_phase_start[`MUX_ROW]) begin
             ado <= {vic_addr[11:8], vic_addr[7:0] };
-        end else if (phi_phase_start_col && cycle_type != `VIC_LR) begin
+        end else if (phi_phase_start[`MUX_COL] && cycle_type != `VIC_LR) begin
             ado <= {vic_addr[11:8], {2'b11, vic_addr[13:8]}};
-        end else if (phi_phase_start_glitch && cycle_type != `VIC_LR) begin
+        end else if (phi_phase_start[`CAS_GLITCH] && cycle_type != `VIC_LR) begin
             // This is the post CAS address change glitch. The 8565 would not
             // do this.  If you want to 'fix' the 6569 bug, remove this block.
             ado <= {vic_addr_now[11:8], {2'b11, vic_addr_now[13:8]}};
