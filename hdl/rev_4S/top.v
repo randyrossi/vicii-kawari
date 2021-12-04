@@ -2,15 +2,13 @@
 
 `include "../common.vh"
 
-// Top level module for the Rev1 board.
-//
-// Color clocks, DVI + RGB out.
+// Top level module for the Rev_$S board.
 module top(
            input clk_col4x_either,
 
            // If we are generating luma/chroma, add outputs
 `ifdef GEN_LUMA_CHROMA
-           output luma_sink,    // luma current sink
+           output luma_sink,     // luma current sink
            output [5:0] luma,    // luma out
            output [5:0] chroma,  // chroma out
 `endif

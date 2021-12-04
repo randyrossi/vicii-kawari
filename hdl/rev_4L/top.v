@@ -2,16 +2,14 @@
 
 `include "../common.vh"
 
-// Top level module for the Rev1 board.
-//
-// Color clocks, DVI + RGB out.
+// Top level module for the Rev_4L board.
 module top(
            input clk_col4x_pal,
            input clk_col4x_ntsc,
 
            // If we are generating luma/chroma, add outputs
 `ifdef GEN_LUMA_CHROMA
-           output luma_sink,    // luma current sink
+           output luma_sink,     // luma current sink
            output [5:0] luma,    // luma out
            output [5:0] chroma,  // chroma out
 `endif
@@ -100,9 +98,8 @@ reg chip_mux2;
 always @(posedge clk_col4x_ntsc) chip_mux1 <= chip[0];
 always @(posedge clk_col4x_ntsc) chip_mux2 <= chip_mux1;
 
-// When we have color clocks available, we select which
-// one we want to enter the 2x clock gen (below) based
-// on the chip model by using a BUFGMUX. 1=PAL, 0 = NTSC
+// We select which color clock to enter the 2x clock gen (below)
+// based on the chip model by using a BUFGMUX. 1=PAL, 0 = NTSC
 wire clk_col4x;
 BUFGMUX colmux(
             .I0(clk_col4x_ntsc),

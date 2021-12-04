@@ -55,12 +55,12 @@ N16    HEAD   red[3]          O   QUIETIO 2 LVCMOS33
 M16    HEAD   red[4]          O   QUIETIO 2 LVCMOS33
 K16    HEAD   red[5]          O   QUIETIO 2 LVCMOS33
 
-G16    HEAD    green[0]        O   QUIETIO 2 LVCMOS33
-F15    HEAD    green[1]        O   QUIETIO 2 LVCMOS33
-F16    HEAD    green[2]        O   QUIETIO 2 LVCMOS33
-H15    HEAD    green[3]        O   QUIETIO 2 LVCMOS33
-H16    HEAD    green[4]        O   QUIETIO 2 LVCMOS33
-E15    HEAD    green[5]        O   QUIETIO 2 LVCMOS33
+G16    HEAD   green[0]        O   QUIETIO 2 LVCMOS33
+F15    HEAD   green[1]        O   QUIETIO 2 LVCMOS33
+F16    HEAD   green[2]        O   QUIETIO 2 LVCMOS33
+H15    HEAD   green[3]        O   QUIETIO 2 LVCMOS33
+H16    HEAD   green[4]        O   QUIETIO 2 LVCMOS33
+E15    HEAD   green[5]        O   QUIETIO 2 LVCMOS33
 
 C15    HEAD   blue[0]         O   QUIETIO 2 LVCMOS33
 C16    HEAD   blue[1]         O   QUIETIO 2 LVCMOS33
@@ -73,11 +73,11 @@ A13   HEAD   clk_dot4x_ext   O   SLOW 4 LVCMOS33
 B14   HEAD   hsync           O   SLOW 4 LVCMOS33
 A14   HEAD   vsync           O   SLOW 4 LVCMOS33
 
-# Only included if have_color_clocks is true
+# Clocks
 J14    HEAD     clk_col4x_pal   I   NA NA LVCMOS33
 J16    HEAD     clk_col4x_ntsc  I   NA NA LVCMOS33
 
-# Only included if gen_luma_chroma is true
+# Luma/Chroma lines
 H3     LUMA     luma[5]         O   QUIETIO 2 LVCMOS33
 J1     LUMA     luma[4]         O   QUIETIO 2 LVCMOS33
 K2     LUMA     luma[3]         O   QUIETIO 2 LVCMOS33
@@ -91,6 +91,7 @@ F1     CHROMA   chroma[2]       O   QUIETIO 2 LVCMOS33
 G1     CHROMA   chroma[1]       O   QUIETIO 2 LVCMOS33
 H2     CHROMA   chroma[0]       O   QUIETIO 2 LVCMOS33
 
+# SPI Stuff
 N12    D1        flash_d1       O QUIETIO 2 LVCMOS33
 P12    D2        flash_d2       O QUIETIO 2 LVCMOS33
 T3     FLASH_S   flash_s        O QUIETIO 2 LVCMOS33

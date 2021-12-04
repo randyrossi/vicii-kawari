@@ -50,7 +50,7 @@ P104     switch    standard_sw    I    NA NA LVCMOS33
 # Clock in
 P56      HEAD      clk_col4x_either   I   NA NA LVCMOS33
 
-# Only included if gen_luma_chroma is true
+# Luma/Chroma lines
 P119     SINK     luma_sink       O   QUIETIO 2 LVCMOS33
 P57      LUMA     luma[5]         O   QUIETIO 2 LVCMOS33
 P50      LUMA     luma[4]         O   QUIETIO 2 LVCMOS33

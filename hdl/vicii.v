@@ -32,10 +32,6 @@ module vicii
            input standard_sw,
            output rst,
            input clk_dot4x,
-`ifdef CMOD_BOARD
-           input [1:0] btn,
-           output [1:0] led,
-`endif
            output clk_phi,
            input clk_col16x,
 `ifdef GEN_LUMA_CHROMA
@@ -881,10 +877,6 @@ wire [7:0] timing_v_bporch_pal;
 
 registers vic_registers(
               .rst(rst),
-`ifdef CMOD_BOARD
-              .btn(btn),
-              .led(led),
-`endif
               .cpu_reset_i(cpu_reset_i),
               .standard_sw(standard_sw),
               .clk_dot4x(clk_dot4x),
