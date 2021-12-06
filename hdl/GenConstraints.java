@@ -97,6 +97,7 @@ public class GenConstraints
                 }
 
 		if (!flags[HAVE_EEPROM]) {
+                   if (t6.startsWith("cfg_reset")) continue;
                    if (t6.startsWith("eeprom_s")) continue;
                 }
 		if (!flags[HAVE_FLASH]) {
@@ -110,7 +111,6 @@ public class GenConstraints
                    if (t6.startsWith("flash_d2")) continue;
                 }
 		if (!flags[WITH_EXTENSIONS]) {
-                   if (t6.startsWith("cfg_reset")) continue;
                    if (t6.startsWith("cfg1")) continue;
                    if (t6.startsWith("cfg2")) continue;
                    if (t6.startsWith("cfg3")) continue;
