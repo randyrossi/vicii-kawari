@@ -144,5 +144,13 @@ public class GenConstraints
            System.out.println("NET \"clk_col4x_either\" TNM_NET = color_clk_either;");
            System.out.println("TIMESPEC TS_color_clk_either = PERIOD \"color_clk_either\" 17.734475 MHz HIGH 50%;");
 	}
+
+        // This tells ISE to ignore the clock domain crossing FF's
+        // between dot4x and col16x. Is there a way to be more specific?
+        System.out.println("net \"clk_dot4x\" TNM_NET = clk_in_grp;");
+        System.out.println("net \"clk_col16x\" TNM_NET = clk_col_grp;");
+        System.out.println("TIMESPEC TS_clk_in = PERIOD \"clk_in_grp\" 10ns HIGH;");
+        System.out.println("TIMEGRP \"clk_out_grp\" = \"clk_col_grp\";");
+        System.out.println("TIMESPEC TS_01=FROM clk_in_grp TO clk_out_grp TIG;");
      }
 }

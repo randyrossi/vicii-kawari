@@ -105,7 +105,7 @@ x2_clockgen x2_clockgen(
                 .clk_in(clk_col4x),
                 .clk_out_x2(clk_col8x), // for PLL to gen dot4x
                 .clk_out_x4(clk_col16x), // for LUMA/CHROMA gen
-                .reset(1'b0));
+                .reset(rst));
 
 `ifdef WITH_DVI
 wire tx0_pclkx10;

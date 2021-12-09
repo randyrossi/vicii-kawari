@@ -95,8 +95,10 @@ wire [5:0] blue;
 
 reg chip_mux1;
 reg chip_mux2;
-always @(posedge clk_col4x_ntsc) chip_mux1 <= chip[0];
-always @(posedge clk_col4x_ntsc) chip_mux2 <= chip_mux1;
+// Not sure if this matter but let's use the faster
+// clock to handle CBC between chip[0] and chip_mux2.
+always @(posedge clk_col4x_pal) chip_mux1 <= chip[0];
+always @(posedge clk_col4x_pal) chip_mux2 <= chip_mux1;
 
 // We select which color clock to enter the 2x clock gen (below)
 // based on the chip model by using a BUFGMUX. 1=PAL, 0 = NTSC
@@ -110,14 +112,15 @@ BUFGMUX colmux(
 // From the 4x color clock, generate an 8x color clock
 // This is necessary to meet the minimum frequency of
 // the PLL_ADV where we further multiple/divide it into
-// a 4x dot clock.
+// a 4x dot clock. We also generate a col16x clock for
+// our chroma generator.
 wire clk_col8x;
 wire clk_col16x;
 x2_clockgen x2_clockgen(
                 .clk_in(clk_col4x),
                 .clk_out_x2(clk_col8x), // for PLL to gen dot4x
                 .clk_out_x4(clk_col16x), // for LUMA/CHROMA gen
-                .reset(1'b0));
+                .reset(rst));
 
 `ifdef WITH_DVI
 wire tx0_pclkx10;

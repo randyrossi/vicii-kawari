@@ -33,7 +33,6 @@ reg [5:0] luma;
 reg [9:0] hvisible_end;
 reg [9:0] hsync_start;
 reg [9:0] hsync_end;
-reg [9:0] burst_start;
 reg [9:0] hvisible_start;
 reg [8:0] vvisible_end;
 reg [8:0] vblank_start;
@@ -74,38 +73,35 @@ case(chip)
     `CHIP6567R8:
     begin
         hvisible_end = 10'd0;
-        hsync_start = hvisible_end + 10'd8; // +12*.1222 = ~1us
-        hsync_end = hsync_start + 10'd37;    // +37*.1222 = ~4.52us
-        hvisible_start = hsync_start + 10'd88; // +88*.1222 = ~10.7us
-        burst_start = hsync_end + 10'd5;       // +5*.1222  = ~.61us
+        hsync_start = 10'd8; // hvisible_end+8*.1222 = ~1us
+        hsync_end = 10'd45;    // hsync_start+37*.1222 = ~4.52us
+        hvisible_start = 10'd96; // hsync_start+88*.1222 = ~10.7us
         vvisible_end = 9'd13;
-        vblank_start = vvisible_end + 9'd1;
-        vblank_end = vblank_start + 9'd8;
-        vvisible_start = vblank_end + 9'd1;
+        vblank_start = 9'd14; // visible_end +9'd1
+        vblank_end = 9'd22; // vblank_start + 9'd8;
+        vvisible_start = 9'd23; // vblank_end + 9'd1;
     end
     `CHIP6567R56A:
     begin
         hvisible_end = 10'd0;
-        hsync_start = hvisible_end + 10'd8; // +8*.1222 = ~1us
-        hsync_end = hsync_start + 10'd37;    // +37*.1222 = ~4.52us
-        hvisible_start = hsync_start + 10'd88; // +88*.1222 = ~10.7us
-        burst_start = hsync_end + 10'd5;       // +5*.1222  = ~.61us
+        hsync_start = 10'd8; // hvisible_end+8*.1222 = ~1us
+        hsync_end = 10'd45;    // hsync_start+37*.1222 = ~4.52us
+        hvisible_start = 10'd96; // hsync_start+88*.1222 = ~10.7us
         vvisible_end = 9'd13;
-        vblank_start = vvisible_end + 9'd1;
-        vblank_end = vblank_start + 9'd8;
-        vvisible_start = vblank_end + 9'd1;
+        vblank_start = 9'd14; // visible_end +9'd1
+        vblank_end = 9'd22; // vblank_start + 9'd8;
+        vvisible_start = 9'd23; // vblank_end + 9'd1;
     end
     `CHIP6569R1, `CHIP6569R3:
     begin
         hvisible_end = 10'd0;
-        hsync_start = hvisible_end + 10'd7;  // +7*.1269 = ~1us
-        hsync_end = hsync_start + 10'd37;      // +37*.1269 = ~4.69us
-        hvisible_start = hsync_start + 10'd84; // +84*.1269 = ~10.65us
-        burst_start = hsync_end + 10'd5;      // +5*.1269  = ~.63us
+        hsync_start = 10'd7;  // hvisible_end+7*.1269 = ~1us
+        hsync_end = 10'd44;      // hsync_start+37*.1269 = ~4.69us
+        hvisible_start =  10'd91; // hsync_start+84*.1269 = ~10.65us
         vvisible_end = 9'd300;
-        vblank_start = vvisible_end + 9'd1;
-        vblank_end = vblank_start + 9'd8;
-        vvisible_start = vblank_end + 9'd1;
+        vblank_start = 9'd301; // visible_end +9'd1
+        vblank_end = 9'd309; // vblank_start + 9'd8;
+        vvisible_start = 9'd310; // vblank_end + 9'd1;
     end
 endcase
 
@@ -234,10 +230,11 @@ end
 `define NO_MODULATION 4'b0000
 
 `ifdef CONFIGURABLE_LUMAS
-`define BURST_AMPLITUDE burst_amplitude
+`define BURST_AMPLITUDE burst_amplitude_16
 `else
 `define BURST_AMPLITUDE 4'd12
 `endif
+`define BURST_START (chip0_16 ? 10'd49 : 10'd50)
 
 reg [8:0] raster_y_16_1;
 reg [8:0] raster_y_16;
@@ -277,10 +274,12 @@ reg [3:0] amplitudereg_16;
 always @(posedge clk_col16x) amplitudereg_o2 <=  amplitudereg_o;
 always @(posedge clk_col16x) amplitudereg_16 <= raster_x_16 == hvisible_start ? 4'h0 : amplitudereg_o2;
 
-reg [9:0] burst_start_o2;
-reg [9:0] burst_start16;
-always @(posedge clk_col16x) burst_start_o2 <=  burst_start;
-always @(posedge clk_col16x) burst_start16 <= burst_start_o2;
+`ifdef CONFIGURABLE_LUMAS
+reg [3:0] burst_amplitude_ms;
+reg [3:0] burst_amplitude_16;
+always @(posedge clk_col16x) burst_amplitude_ms <=  burst_amplitude;
+always @(posedge clk_col16x) burst_amplitude_16 <= burst_amplitude_ms;
+`endif
 
 reg chip0_o2;
 reg chip0_16;
@@ -296,7 +295,7 @@ begin
     end
     prev_raster_y <= raster_y_16;
 
-    if (raster_x_16 >= burst_start16 && need_burst)
+    if (raster_x_16 >= `BURST_START && need_burst)
         in_burst = 1;
 
     if (in_burst)
@@ -328,11 +327,11 @@ begin
                  (
                      native_active_16 ?
                      (chip0_16 ?
-                      (oddline ? 9'd256 - phasereg_16 :  phasereg_16) : /* pal */
-                      phasereg_16) :                                   /* ntsc */
-                     (chip0_16 == 0 ?
-                      8'd128 :                                         /* ntsc */
-                      (oddline ? 8'd160 : 8'd96)                       /* pal */
+                      (oddline ? 8'd255 - phasereg_16 :  phasereg_16) : /* pal */
+                      phasereg_16) :                                    /* ntsc */
+                     (chip0_16 ?
+                      (oddline ? 8'd160 : 8'd96) :                      /* pal */
+                      8'd128                                            /* ntsc */
                      )
                  );
     /* verilator lint_on WIDTH */

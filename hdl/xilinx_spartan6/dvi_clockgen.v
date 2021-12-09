@@ -65,18 +65,11 @@ endmodule`endif
              output   LOCKED
          );
 
-// These signals are used for the BUFG's necessary for the design.
-wire           clkin_bufgout;
-
 wire           clkfb_bufgout;
 wire           clkfb_bufgin;
 
 wire           clk0_bufgin;
-
-BUFG BUFG_CLKIN (
-         .O(clkin_bufgout),
-         .I(CLKIN)
-     );
+wire           clk1_bufgin;
 
 BUFG BUFG_FB (
          .O(clkfb_bufgout),

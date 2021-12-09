@@ -157,8 +157,6 @@ module registers
            output reg [1:0] chip
        );
 
-reg chip_initialized = 1'b0;
-
 // 2D arrays that need to be flattened for output
 reg [8:0] sprite_x[0:`NUM_SPRITES - 1];
 reg [7:0] sprite_y[0:`NUM_SPRITES - 1];
@@ -405,7 +403,7 @@ begin
         `S_DIV: begin
             if (s_op_2 == 0)
                 divzero = 1;
-            else if (u_div_done) begin
+            else if (s_div_done) begin
                 result32[15:0] = s_quotient;
                 result32[31:16] = s_remain;
                 divzero = 0;
@@ -421,9 +419,9 @@ end
 // Master process block for registers
 always @(posedge clk_dot4x)
 begin
-    if (rst) begin
+    handle_persist(rst);
 
-        handle_persist(1'b1);
+    if (rst) begin
 
 `ifdef TEST_PATTERN
         ec <= `LIGHT_BLUE;
@@ -609,19 +607,8 @@ begin
 `endif // SIMULATOR_BOARD
 `endif // WITH_EXTENSIONS
 
-        if (~chip_initialized) begin
-            chip <= {1'b0, ~standard_sw};
-`ifdef HAVE_EEPROM
-            // EEPROM bank always starts off same as chip
-            eeprom_bank <= {1'b0, ~standard_sw};
-`endif
-            chip_initialized <= 1'b1;
-        end
-
     end else
     begin
-
-        handle_persist(1'b0);
 
 `ifdef WITH_EXTENSIONS
 `ifdef HAVE_FLASH
