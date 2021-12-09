@@ -11,14 +11,14 @@
 // REV_4S_BOARD    - Small cost reduced (just a VICII) board with X4
 
 //`define SIMULATOR_BOARD 1
-//`define REV_3_BOARD 1
-`define REV_4S_BOARD 1
+`define REV_3_BOARD 1
+//`define REV_4S_BOARD 1
 //`define REV_4L_BOARD 1
 
 // The REV_4S_BOARD has no oscillators and hence no
 // clock multiplexer. This define is necessary for
 // proper top.ucf generation for that board.
-`define NO_CLOCK_MUX 1
+//`define NO_CLOCK_MUX 1
 
 // Notes on config permutations:
 //
@@ -44,14 +44,14 @@
 //    HAVE_EEPROM
 //    HAVE_FLASH
 //    HIRES_MODES
-//`define WITH_EXTENSIONS 1
+`define WITH_EXTENSIONS 1
 
 // WITH_RAM
 // --------
 // Will automatically enable WITH_EXTENSIONS if enabled.
 // Use block ram for video memory. This memory can be
 // accessed through ports A and B in the extra registers.
-//`define WITH_RAM 1
+`define WITH_RAM 1
 
 // WITH_64K
 // --------
@@ -61,7 +61,7 @@
 // ram and will increase LUT usage drammatically.  This will
 // guarantee the core will NOT fit on an X4 or X9.  The most
 // we can get on X9 is 32k.
-//`define WITH_64K 1
+`define WITH_64K 1
 
 // TEST_PATTERN
 // ------------
@@ -75,7 +75,7 @@
 // --------
 // Uncomment to include TMDS outputs and DVI encoder for video
 // Enabling will automatically enable NEED_RGB.
-//`define WITH_DVI 1
+`define WITH_DVI 1
 
 // GEN_LUMA_CHROMA
 // ---------------
@@ -88,7 +88,7 @@
 // Uncomment to activate registers 0xa0-0xcf and 0x80,0x81 to
 // control luma(a#), phase(0xb#) and amplitudes(0xc#) for the 16
 // colors as well as blanking level (0x80) and burst amplitude (0x81).
-//`define CONFIGURABLE_LUMAS 1
+`define CONFIGURABLE_LUMAS 1
 
 // CONFIGURABLE_RGB
 // ------------------
@@ -96,7 +96,7 @@
 // Uncomment to activate registers 0x00-0x3f to control
 // 18-bit RGB values for the 16 colors.  If RGB is not
 // configurable, a single static palette is used.
-//`define CONFIGURABLE_RGB 1
+`define CONFIGURABLE_RGB 1
 
 // CONFIGURABLE_TIMING
 // -------------------
@@ -112,14 +112,14 @@
 // Will automatically enable WITH_EXTENSIONS if enabled.
 // Uncomment if board has EEPROM for persistence
 // via connected SPI bus.
-//`define HAVE_EEPROM 1
+`define HAVE_EEPROM 1
 
 // HAVE_FLASH
 // Will automatically enable WITH_EXTENSIONS if enabled.
 // Will automatically enable WITH_RAM also.
 // Uncomment if board has FLASH directly connected
 // to FPGA via SPI bus.
-//`define HAVE_FLASH 1
+`define HAVE_FLASH 1
 
 // NEED_RGB
 // --------
@@ -127,14 +127,14 @@
 // VGA, DVI or external composite encoder.  This enables
 // hsync, vsync, active, red, green, blue but does not
 // require them to leave the device via any pins.
-//`define NEED_RGB 1
+`define NEED_RGB 1
 
 // GEN_RGB
 // -------
 // Uncomment if RGB signals are leaving the device via
 // pins (hsync,vsync,active,red,green,blue,clock). Setting
 // GEN_RGB will automatically set NEED_RGB.
-//`define GEN_RGB 1
+`define GEN_RGB 1
 
 // HIRES_MODES
 // -----------
@@ -143,7 +143,7 @@
 // Uncomment to enable hires modes (including 80 column
 // mode).  X resolution will be confined to 1X unless
 // this is enabled.
-//`define HIRES_MODES
+`define HIRES_MODES
 
 // HIRES_RESET
 // ----------------------
@@ -154,13 +154,13 @@
 // to the CPU reset pin.  But since the reset pin is pulled
 // high there should be no issue with this enabled even if
 // there is no connection.
-//`define HIRES_RESET
+`define HIRES_RESET
 
 // WITH_MATH
 // ---------
 // Will automatically enable WITH_EXTENSIONS if enabled.
 // Uncomment to enable 16-bit signed and unsigned
 // math operations on registers 0x2f-0x33.
-//`define WITH_MATH
+`define WITH_MATH
 
 `endif // config_vh_

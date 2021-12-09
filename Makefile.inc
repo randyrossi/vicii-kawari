@@ -35,11 +35,15 @@ GOLDEN_MINOR=7
 # file to create flash disks. Only the multiboot image is ever replaced
 # on a device.
 
-compile:
+install_config:
+	cp ${BOARD_REV}.config.vh ../hdl/config.vh
+	java -cp ../hdl GenConstraints ../hdl/config.vh ../hdl/${BOARD_REV}/wiring.txt > ../hdl/${BOARD_REV}/top.ucf
+
+compile: install_config
 	mkdir -p xst/projnav.tmp
 	xst -intstyle ise -ifn "../kawari.xst" -ofn "top.syr"
-	ngdbuild -intstyle ise -dd _ngo -nt timestamp -uc ../hdl/${BOARD_REV}/top.ucf -p xc6slx16-ftg256-2 top.ngc top.ngd
-	map -intstyle ise -p xc6slx16-ftg256-2 -w -logic_opt off -ol high -t 1 -xt 0 -register_duplication off -r 4 -global_opt off -mt off -detail -ir off -pr off -lc off -power off -o top_map.ncd top.ngd top.pcf
+	ngdbuild -intstyle ise -dd _ngo -nt timestamp -uc ../hdl/${BOARD_REV}/top.ucf -p ${FPGA} top.ngc top.ngd
+	map -intstyle ise -p ${FPGA} -w -logic_opt off -ol high -t 1 -xt 0 -register_duplication off -r 4 -global_opt off -mt off -detail -ir off -pr off -lc off -power off -o top_map.ncd top.ngd top.pcf
 	par -w -intstyle ise -ol high -xe c -mt 4 top_map.ncd top.ncd top.pcf
 
 golden_version:

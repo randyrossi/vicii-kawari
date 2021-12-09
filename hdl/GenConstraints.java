@@ -11,10 +11,10 @@ public class GenConstraints
   final static int WITH_EXTENSIONS = 5;
   final static int WITH_CLOCK_MUX = 6;
 
-  public static boolean[] read_config() throws Exception {
+  public static boolean[] read_config(String configFile) throws Exception {
 
 
-    File f = new File("config.vh");
+    File f = new File(configFile);
     FileInputStream fis = new FileInputStream(f);
     InputStreamReader ir = new InputStreamReader(fis);
     BufferedReader br = new BufferedReader(ir);
@@ -50,17 +50,17 @@ public class GenConstraints
   }
 
   public static void main(String args[]) throws Exception {
-    if (args.length < 1) {
+    if (args.length < 2) {
       System.out.println("Usage:");
-      System.out.println("java GenConstraints wiring.txt > top.ucf");
+      System.out.println("java GenConstraints [config.vh] [wiring.txt] > top.ucf");
       System.exit(0);
     }
 
-    boolean flags[] = read_config();
+    boolean flags[] = read_config(args[0]); // config.vh
 
     HashMap<String,Integer> map = new HashMap<String,Integer>();
 
-        File f = new File(args[0]);
+        File f = new File(args[1]); // wiring
         FileInputStream fis = new FileInputStream(f);
         InputStreamReader ir = new InputStreamReader(fis);
         BufferedReader br = new BufferedReader(ir);
