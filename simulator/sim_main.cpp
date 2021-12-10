@@ -777,7 +777,6 @@ int main(int argc, char** argv, char** env) {
     // cpu_reset_i is held HIGH simulating pullup
     top->cpu_reset_i = 1;
     
-    top->top__DOT__vic_inst__DOT__vic_registers__DOT__chip_initialized = 1;
     top->V_CHIP = chip;
 
     int cnt = 0;
