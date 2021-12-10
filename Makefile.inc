@@ -39,7 +39,7 @@ install_config:
 	cp ${BOARD_REV}.config.vh ../hdl/config.vh
 	java -cp ../hdl GenConstraints ../hdl/config.vh ../hdl/${BOARD_REV}/wiring.txt > ../hdl/${BOARD_REV}/top.ucf
 
-compile: install_config
+compile:
 	mkdir -p xst/projnav.tmp
 	xst -intstyle ise -ifn "../kawari.xst" -ofn "top.syr"
 	ngdbuild -intstyle ise -dd _ngo -nt timestamp -uc ../hdl/${BOARD_REV}/top.ucf -p ${FPGA} top.ngc top.ngd
@@ -54,12 +54,12 @@ multiboot_version:
 	perl -pi.bak -e "s/VERSION_MAJOR.*/VERSION_MAJOR 8'd${MULTIBOOT_MAJOR}/g" ../hdl/config.vh
 	perl -pi.bak -e "s/VERSION_MINOR.*/VERSION_MINOR 8'd${MULTIBOOT_MINOR}/g" ../hdl/config.vh
 
-golden: golden_version compile
+golden: install_config golden_version compile
 	mkdir -p build
 	bitgen -intstyle ise -f ../kawari_golden.ut top.ncd
 	mv top.bit build/kawari_golden_${GOLDEN_MAJOR}.${GOLDEN_MINOR}.bit
 
-multiboot: multiboot_version compile
+multiboot: install_config multiboot_version compile
 	mkdir -p build
 	bitgen -intstyle ise -f ../kawari_multiboot.ut top.ncd
 	mv top.bit build/kawari_multiboot_${MULTIBOOT_MAJOR}.${MULTIBOOT_MINOR}.bit

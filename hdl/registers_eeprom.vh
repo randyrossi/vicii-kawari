@@ -50,4 +50,4 @@ reg [1:0] eeprom_state = `EEPROM_IDLE;
 reg [9:0] eeprom_w_addr = 10'd0;
 reg [7:0] eeprom_w_value;
 reg eeprom_busy = 1'b0;
-
+reg delayed_c = 1'b1;

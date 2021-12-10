@@ -23,7 +23,11 @@ begin
     //if (flash_clk_div[3])
     //$display ("state=%d cmd=%d bit=%d S=%d C=%d D=%d ver=%d busy=%d vmem=%x flash=%x", flash_state, flash_command_ctr, flash_bit_ctr, flash_s, spi_c, spi_d, flash_verify_error, flash_busy, flash_vmem_addr, flash_addr);
 
-    if (flash_clk_div[0] && flash_state != `FLASH_IDLE && ~flash_clk8)
+    if (flash_clk_div[0] && flash_state != `FLASH_IDLE)
+    begin
+        spi_c <= delayed_flash_c;
+    end
+    if (flash_clk_div[1] && flash_state != `FLASH_IDLE && ~flash_clk8)
     begin
         // READ for WAIT (8 bits)
         if (flash_command_ctr == `FLASH_CMD_WAIT)
@@ -61,7 +65,7 @@ begin
                  // WREN
                  if (flash_command_ctr == `FLASH_CMD_WREN) begin
                     if (flash_bit_ctr >= 6'd1 && flash_bit_ctr <= 6'd8) begin
-                       spi_c <= flash_clk8;
+                       delayed_flash_c <= 0;
                     end
                     else if (flash_bit_ctr == 6'd10) begin
                        // goto WRITE after WAIT
@@ -81,10 +85,10 @@ begin
                              $display("GRAB byte #%d", flash_byte_ctr);
                              flash_byte <= video_ram_data_out_a;
                              flash_bit_ctr <= 6'd33;
-                             spi_c <= flash_clk8;
+                             delayed_flash_c <= 0;
                           end
                        end else
-                          spi_c <= flash_clk8;
+                          delayed_flash_c <= 0;
                     end
                     else if (flash_bit_ctr == 6'd42) begin
                        // goto WAIT and then VERIFY
@@ -96,7 +100,7 @@ begin
                  // WAIT
                  else if (flash_command_ctr == `FLASH_CMD_WAIT) begin
                     if (flash_bit_ctr >= 6'd1 && flash_bit_ctr <= 6'd16) begin
-                       spi_c <= flash_clk8;
+                       delayed_flash_c <= 0;
                     end
                     else if (flash_bit_ctr == 6'd18) begin
                        flash_bit_ctr <= 6'd0;
@@ -124,10 +128,10 @@ begin
                               $display("VERIFY byte #%d", flash_byte_ctr);
                               mem_byte <= video_ram_data_out_a;
                               flash_bit_ctr <= 6'd33;
-                              spi_c <= flash_clk8;
+                              delayed_flash_c <= 0;
                            end
                        end else
-                          spi_c <= flash_clk8;
+                          delayed_flash_c <= 0;
                     end else if (flash_bit_ctr == 6'd42) begin
                        flash_page_ctr = flash_page_ctr + 1;
                        if (flash_page_ctr > 0) begin
@@ -153,10 +157,10 @@ begin
                            flash_vmem_addr <= flash_vmem_addr + 1;
                            if (flash_byte_ctr > 0) begin
                               flash_bit_ctr <= 6'd33;
-                              spi_c <= flash_clk8;
+                              delayed_flash_c <= 0;
                            end
                        end else
-                          spi_c <= flash_clk8;
+                          delayed_flash_c <= 0;
                     end else if (flash_bit_ctr == 6'd43) begin
                        flash_page_ctr = flash_page_ctr + 1;
                        if (flash_page_ctr > 0) begin
@@ -180,16 +184,16 @@ begin
                  if (flash_command_ctr == `FLASH_CMD_WREN) begin
                     if (flash_bit_ctr == 6'd0) begin
                        flash_s <= 0;
-                       spi_c <= 1;
+                       delayed_flash_c <= 1;
                        flash_instr <= 8'b00000110;
                        $display("WREN page %d", flash_page_ctr);
                     end else if (flash_bit_ctr >= 6'd1 && flash_bit_ctr <=6'd8) begin
                        spi_d <= flash_instr[7];
-                       spi_c <= flash_clk8;
+                       delayed_flash_c <= 1;
                        flash_instr <= {flash_instr[6:0], 1'b0};
                     end else if (flash_bit_ctr == 6'd9) begin
                        flash_s <= 1;
-                       spi_c <= 1;
+                       delayed_flash_c <= 1;
                     end
                  end
                  // WRITE
@@ -197,20 +201,20 @@ begin
                     if (flash_bit_ctr == 6'd0) begin
                        // setup
                        flash_s <= 0;
-                       spi_c <= 1;
+                       delayed_flash_c <= 1;
                        flash_instr <= 8'b00000010;
                        $display("WRITE page %d", flash_page_ctr);
                     end else if (flash_bit_ctr >= 6'd1 && flash_bit_ctr <= 6'd8) begin
                        // shift in the instruction
                        spi_d <= flash_instr[7];
-                       spi_c <= flash_clk8;
+                       delayed_flash_c <= 1;
                        flash_instr <= {flash_instr[6:0], 1'b0};
                        flash_addr_s <= flash_addr;
                     end else if (flash_bit_ctr >= 6'd9 && flash_bit_ctr <= 6'd32) begin
                        // shift in 24 bit address
                        spi_d <= flash_addr_s[23];
                        flash_addr_s <= {flash_addr_s[22:0], 1'b0};
-                       spi_c <= flash_clk8;
+                       delayed_flash_c <= 1;
                        if (flash_bit_ctr == 6'd31) begin
                           video_ram_addr_a <= flash_vmem_addr;
                        end else if (flash_bit_ctr == 6'd32) begin
@@ -219,7 +223,7 @@ begin
                        end
                     end else if (flash_bit_ctr >= 6'd33 && flash_bit_ctr <= 6'd40) begin
                        spi_d <= flash_byte[7];
-                       spi_c <= flash_clk8;
+                       delayed_flash_c <= 1;
                        flash_byte <= {flash_byte[6:0], 1'b0};
                        if (flash_bit_ctr == 6'd33) begin
                           // advance read addr
@@ -229,7 +233,7 @@ begin
                        end
                     end else if (flash_bit_ctr == 6'd41) begin
                        flash_s <= 1;
-                       spi_c <= 1;
+                       delayed_flash_c <= 1;
                     end
                  end
                  // WAIT
@@ -237,20 +241,20 @@ begin
                     if (flash_bit_ctr == 6'd0) begin
                        // setup
                        flash_s <= 0;
-                       spi_c <= 1;
+                       delayed_flash_c <= 1;
                        flash_instr <= 8'b00000101;
                        $display("WAIT page %d", flash_page_ctr);
                     end else if (flash_bit_ctr >= 6'd1 && flash_bit_ctr <= 6'd8) begin
                        // shift in the instruction
                        spi_d <= flash_instr[7];
-                       spi_c <= flash_clk8;
+                       delayed_flash_c <= 1;
                        flash_instr <= {flash_instr[6:0], 1'b0};
                     end else if (flash_bit_ctr >= 6'd9 && flash_bit_ctr <= 6'd16) begin
                        // read one byte
-                       spi_c <= flash_clk8;
+                       delayed_flash_c <= 1;
                     end else if (flash_bit_ctr == 6'd17) begin
                        // done
-                       spi_c <= 1;
+                       delayed_flash_c <= 1;
                        flash_s <= 1;
                     end
                  end
@@ -259,20 +263,20 @@ begin
                     if (flash_bit_ctr == 6'd0) begin
                        // setup
                        flash_s <= 0;
-                       spi_c <= 1;
+                       delayed_flash_c <= 1;
                        flash_instr <= 8'b00000011;
                        $display("VERIFY page %d", flash_page_ctr);
                     end else if (flash_bit_ctr >= 6'd1 && flash_bit_ctr <= 6'd8) begin
                        // shift in the instruction
                        spi_d <= flash_instr[7];
-                       spi_c <= flash_clk8;
+                       delayed_flash_c <= 1;
                        flash_instr <= {flash_instr[6:0], 1'b0};
                        flash_addr_s <= flash_addr;
                     end else if (flash_bit_ctr >= 6'd9 && flash_bit_ctr <= 6'd32) begin
                        // shift in 24 bit address
                        spi_d <= flash_addr_s[23];
                        flash_addr_s <= {flash_addr_s[22:0], 1'b0};
-                       spi_c <= flash_clk8;
+                       delayed_flash_c <= 1;
                        if (flash_bit_ctr == 6'd31) begin
                           video_ram_addr_a <= flash_vmem_addr;
                        end else if (flash_bit_ctr == 6'd32) begin
@@ -286,10 +290,10 @@ begin
                        end else if (flash_bit_ctr == 6'd39) begin
                           video_ram_addr_a <= flash_vmem_addr;
                        end
-                       spi_c <= flash_clk8;
+                       delayed_flash_c <= 1;
                     end else if (flash_bit_ctr == 6'd41) begin
                        flash_s <= 1;
-                       spi_c <= 1;
+                       delayed_flash_c <= 1;
                     end
                 end
 	    `FLASH_READ:
@@ -297,28 +301,28 @@ begin
                     if (flash_bit_ctr == 6'd0) begin
                        // setup
                        flash_s <= 0;
-                       spi_c <= 1;
+                       delayed_flash_c <= 1;
                        flash_instr <= 8'b00000011;
                        $display("READ page %d", flash_page_ctr);
                     end else if (flash_bit_ctr >= 6'd1 && flash_bit_ctr <= 6'd8) begin
                        // shift in the instruction
                        spi_d <= flash_instr[7];
-                       spi_c <= flash_clk8;
+                       delayed_flash_c <= 1;
                        flash_instr <= {flash_instr[6:0], 1'b0};
                        flash_addr_s <= flash_addr;
                     end else if (flash_bit_ctr >= 6'd9 && flash_bit_ctr <= 6'd32) begin
                        // shift in 24 bit address
                        spi_d <= flash_addr_s[23];
                        flash_addr_s <= {flash_addr_s[22:0], 1'b0};
-                       spi_c <= flash_clk8;
+                       delayed_flash_c <= 1;
                     end else if (flash_bit_ctr >= 6'd33 && flash_bit_ctr <= 6'd40) begin
-                       spi_c <= flash_clk8;
+                       delayed_flash_c <= 1;
                        if (flash_bit_ctr == 6'd33) begin
                           video_ram_addr_a <= flash_vmem_addr;
                        end
                     end else if (flash_bit_ctr == 6'd42) begin
                        flash_s <= 1;
-                       spi_c <= 1;
+                       delayed_flash_c <= 1;
                     end
                 end
 	    default:

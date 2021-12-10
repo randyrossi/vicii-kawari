@@ -148,7 +148,7 @@ module registers
            output reg [7:0] hires_cursor_lo,
 `endif
 `ifdef WITH_SPI
-           output reg    spi_d,
+           output reg    spi_d = 1'b1,
            input         spi_q,
            output reg    spi_c = 1'b1,
 `endif

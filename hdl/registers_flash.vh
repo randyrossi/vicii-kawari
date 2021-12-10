@@ -54,3 +54,5 @@ reg [5:0] flash_page_ctr;
 // Flip this register to 1 to start bulk flash
 // commands.
 reg [1:0] flash_begin = `FLASH_IDLE;
+
+reg delayed_flash_c = 1'b1;
