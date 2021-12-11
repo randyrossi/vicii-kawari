@@ -1,14 +1,22 @@
-Serial Numbers
---------------
+Generate Kawari flash disks with this util
 
-{1 char batch} - {2 char fpag src} - {4 digit number}
+To generate a multiboot (active) image, change Makefile params as follows:
 
-Example: A-00-0000
+    START_ADDRESS=512000
+    SOURCE_IMG=kawari_multiboot_$(VERSION).bit
 
-Batch
-------
-A - Hand assembled beta test batch, no esd on reset or cfg pins
+To generate a golden (fallback) image, change Makefile params as follows
 
-FPGA src
-00 - eBay supplier allenlu1995, $14.25
-01 - eBay supplier lucas89-8, $5.40
+    START_ADDRESS=0
+    SOURCE_IMG=kawari_golden_$(VERSION).bit
+
+Golden images should not be updated normally. But the very first golden image on the beta boards had a flashing bug.
+
+History
+-------
+0.1 - Golden     - shipped with most beta boards
+0.2 - Multiboot  - shipped with most beta boards
+0.3 - Golden     - shipped with some beta boards
+0.4 - Multiboot  - shipped with some beta boards
+0.7 - Golden     - Fixes flashing issue on beta board fallback image
+0.8 - Multiboot  - First published update for beta board
