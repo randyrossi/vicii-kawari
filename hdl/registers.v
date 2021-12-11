@@ -649,6 +649,8 @@ begin
             eeprom_w_addr <= { 2'b0, `EXT_REG_MAGIC_0 };
             eeprom_w_value <= 8'h00;
             state_ctr_reset_for_write <= 1'b1;
+            ec <= `WHITE;
+            b0c <= `WHITE;
         end
 `endif
 `endif // WITH_EXTENSIONS
