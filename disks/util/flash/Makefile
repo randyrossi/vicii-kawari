@@ -8,7 +8,7 @@
 # Stuff to potentially edit
 FLASH_FORMAT=1
 NAME=kawari
-VERSION=0.4
+VERSION=0.8
 START_ADDRESS=512000
 
 # Do not edit below this line
