@@ -22,7 +22,6 @@ static unsigned char variant[16];
 
 static int line = 0;
 
-
 void get_display_flags(void)
 {
    POKE(VIDEO_MEM_1_LO,DISPLAY_FLAGS);
@@ -111,7 +110,7 @@ void show_display_bit(unsigned int bit, int y, int label)
 
 void show_lock_bits(int y)
 {
-    if (line == 8) printf ("%c",18);
+    if (line == 9) printf ("%c",18);
     TOXY(17,y);
     if (FLASH_LOCKED)
        printf ("FLASH ");
@@ -125,7 +124,7 @@ void show_lock_bits(int y)
        printf ("SAVES ");
     else
        printf ("      ");
-    if (line == 8) printf ("%c",146);
+    if (line == 9) printf ("%c",146);
 }
 
 void show_info_line(void) {
@@ -160,10 +159,14 @@ void show_info_line(void) {
         printf ("header. Active LO or Active HI.         ");
     }
     else if (line == 7) {
+        printf ("Turn on/off white burst pixel at start  ");
+        printf ("of each raster line on S/LUM pin.       ");
+    }
+    else if (line == 8) {
         printf ("Physical switch indicator. If ON, chip  ");
         printf ("is opposite of saved video standard.    ");
     }
-    else if (line == 8) {
+    else if (line == 9) {
         printf ("Lock bits indicator. Shows locked funcs ");
         printf ("according to jumper settings.           ");
     }
@@ -211,6 +214,7 @@ void main_menu(void)
     printf ("RGB CSYNC      :\n");
     printf ("VSync polarity :\n");
     printf ("HSync polarity :\n");
+    printf ("S/LUM burst    :\n");
     printf ("External Switch:\n");
     printf ("Locked Func    :\n");
     printf ("\n");
@@ -233,8 +237,9 @@ void main_menu(void)
           show_display_bit(DISPLAY_ENABLE_CSYNC_BIT, 10, 0);
           show_display_bit(DISPLAY_VPOLARITY_BIT, 11, 1);
           show_display_bit(DISPLAY_HPOLARITY_BIT, 12, 1);
-          show_display_bit(DISPLAY_CHIP_INVERT_SWITCH, 13, 0);
-          show_lock_bits(14);
+          show_display_bit(DISPLAY_WHITE_LINE_BIT, 13, 0);
+          show_display_bit(DISPLAY_CHIP_INVERT_SWITCH, 14, 0);
+          show_lock_bits(15);
 	  show_info_line();
           need_refresh = 0;
        }
@@ -278,11 +283,15 @@ void main_menu(void)
              next_display_flags ^= DISPLAY_HPOLARITY_BIT;
              show_display_bit(DISPLAY_HPOLARITY_BIT, 12, 1);
 	  }
+          else if (line == 7 && can_save) {
+             next_display_flags ^= DISPLAY_WHITE_LINE_BIT;
+             show_display_bit(DISPLAY_WHITE_LINE_BIT, 13, 0);
+	  }
        } else if (r.a == 's') {
           save_changes();
           need_refresh=1;
        } else if (r.a == CRSR_DOWN) {
-          line++; if (line > 8) line = 8;
+          line++; if (line > 9) line = 9;
           need_refresh=1;
        } else if (r.a == CRSR_UP) {
           line--; if (line < 0) line = 0;
