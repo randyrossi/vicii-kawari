@@ -1,4 +1,4 @@
-#define UTILITY_VERSION "1.0"
+#define UTILITY_VERSION "1.1"
 
 #define CLRSCRN printf ("%c",147) 
 #define HOME printf ("%c",19) 

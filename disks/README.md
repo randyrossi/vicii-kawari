@@ -1,7 +1,7 @@
 # Download
 
-[Demo Disk 1](https://accentual.com/vicii-kawari/downloads/kawari_demo_1.d64) \
-[Util Disk 1](https://accentual.com/vicii-kawari/downloads/kawari_util_1.d64)
+[Demo Disk 1](https://accentual.com/vicii-kawari/downloads/kawari_demo_1.0.d64) \
+[Util Disk 1](https://accentual.com/vicii-kawari/downloads/kawari_util_1.1.d64)
 
 # VIC-II Kawari Demo/Util Disks
 

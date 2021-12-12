@@ -17,7 +17,7 @@
 // wants to grow upwards starting from the end of the code.
 
 #define FLASH_VERSION_MAJOR 1
-#define FLASH_VERSION_MINOR 0
+#define FLASH_VERSION_MINOR 1
 
 // Use a combination of direct SPI access and bulk
 // SPI write operations provided by hardware to flash
@@ -474,7 +474,8 @@ void expert(void) {
         case 'f': // BULK FLASH READ TO VMEM
           mprintf ("\nEnter FLASH read address:");
           start_addr = input_int();
-          SMPRINTF_1 ("READ 16k from FLASH (bulk) %ld to vmem 0x0000\n", start_addr);
+          mprintf ("READ 16k from FLASH (bulk)\n");
+          SMPRINTF_1 ("%ld to vmem 0x0000\n", start_addr);
           POKE(VIDEO_MEM_FLAGS, 0);
           // From flash start_addr
           POKE(VIDEO_MEM_1_IDX,(start_addr >> 16) & 0xff);
