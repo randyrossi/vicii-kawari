@@ -931,10 +931,9 @@ begin
             end
             // WRITE to register
             else begin /* ~rw */
-                if (phi_phase_start_dav)
+                if (phi_phase_start_dav) begin
                     last_bus <= dbi;
-
-                case (addr_latched[5:0])
+                    case (addr_latched[5:0])
                     /* 0x00 */ `REG_SPRITE_X_0:
                         sprite_x[0][7:0] <= dbi[7:0];
                     /* 0x02 */ `REG_SPRITE_X_1:
@@ -1057,7 +1056,8 @@ begin
                     /* 0x2e */ `REG_SPRITE_COLOR_7:
                         sprite_col[7] <= dbi[3:0];
                     default:;
-                endcase
+                    endcase
+                end
 
 `ifdef WITH_EXTENSIONS
                 // We have an extra condition to only do this write
