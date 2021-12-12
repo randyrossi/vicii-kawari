@@ -321,6 +321,7 @@
 `define ENABLE_CSYNC_BIT             3
 `define VPOLARITY_BIT                4
 `define HPOLARITY_BIT                5
+`define WHITE_LINE_BIT               7
 
 `define EXT_REG_VARIANT_NAME1        8'h90
 `define EXT_REG_VARIANT_NAME2        8'h91

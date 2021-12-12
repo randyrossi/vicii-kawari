@@ -91,20 +91,25 @@ task read_ram(
                         dbo <= {6'b0, eeprom_bank};
 `endif
                     `EXT_REG_DISPLAY_FLAGS:
-`ifdef NEED_RGB
-                        dbo <= {1'b0, // reserved
-                                ~standard_sw,
-                                last_hpolarity,
-                                last_vpolarity,
-                                last_enable_csync,
-                                last_is_native_x,
-                                last_is_native_y,
-                                last_raster_lines};
+                        dbo <= {
+`ifdef GEN_LUMA_CHROMA
+                              white_line,
 `else
-                        dbo <= {1'b0, // reserved
-                               ~standard_sw,
-                               6'b0};
+                              1'b0,
 `endif
+                              ~standard_sw,
+`ifdef NEED_RGB
+                              last_hpolarity,
+                              last_vpolarity,
+                              last_enable_csync,
+                              last_is_native_x,
+                              last_is_native_y,
+                              last_raster_lines
+`else
+                              6'b0
+`endif                              
+                              };
+
 `ifdef HIRES_MODES
                     `EXT_REG_CURSOR_LO:
                         dbo <= hires_cursor_lo;
@@ -326,6 +331,9 @@ task write_ram(
 `endif
                     `EXT_REG_DISPLAY_FLAGS:
                     begin
+`ifdef GEN_LUMA_CHROMA
+                        white_line <= data[`WHITE_LINE_BIT];
+`endif
 `ifdef NEED_RGB
                         last_raster_lines <= data[`SHOW_RASTER_LINES_BIT];
                         last_is_native_y <= data[`IS_NATIVE_Y_BIT]; // 15khz
@@ -333,17 +341,26 @@ task write_ram(
                         last_enable_csync <= data[`ENABLE_CSYNC_BIT];
                         last_hpolarity <= data[`HPOLARITY_BIT];
                         last_vpolarity <= data[`VPOLARITY_BIT];
+`endif // NEED_RGB
                         persist_eeprom(do_persist, `EXT_REG_DISPLAY_FLAGS,
                                        {
-                                        2'b0,
+`ifdef GEN_LUMA_CHROMA
+                                        data[`WHITE_LINE_BIT],
+`else
+                                        1'b0,
+`endif
+                                        1'b0,
+`ifdef NEED_RGB
                                         data[`VPOLARITY_BIT],
                                         data[`HPOLARITY_BIT],
                                         data[`ENABLE_CSYNC_BIT],
                                         data[`IS_NATIVE_X_BIT],
                                         data[`IS_NATIVE_Y_BIT],
                                         data[`SHOW_RASTER_LINES_BIT]
+`else
+                                        6'b0
+`endif
                                        });
-`endif // NEED_RGB
                     end
 `ifdef HIRES_MODES
                     `EXT_REG_CURSOR_LO:

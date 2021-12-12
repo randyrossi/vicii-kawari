@@ -93,6 +93,7 @@ module registers
            output reg last_vpolarity, // for vga only
 `endif
 `ifdef GEN_LUMA_CHROMA
+           output reg white_line = 1'b1,
            output reg [5:0] lumareg_o,
            output reg [7:0] phasereg_o,
            output reg [3:0] amplitudereg_o,

@@ -849,6 +849,7 @@ wire vpolarity;
 wire [5:0] lumareg_o;
 wire [7:0] phasereg_o;
 wire [3:0] amplitudereg_o;
+wire white_line;
 `ifdef CONFIGURABLE_LUMAS
 wire [5:0] blanking_level;
 wire [3:0] burst_amplitude;
@@ -961,6 +962,7 @@ registers vic_registers(
 `endif
 
 `ifdef GEN_LUMA_CHROMA
+              .white_line(white_line),
               .lumareg_o(lumareg_o),
               .phasereg_o(phasereg_o),
               .amplitudereg_o(amplitudereg_o),
@@ -1166,6 +1168,7 @@ comp_sync vic_comp_sync(
               .raster_x(raster_x),
               .raster_y(raster_line),
 `ifdef GEN_LUMA_CHROMA
+              .white_line(white_line),
 `ifdef HAVE_LUMA_SINK
               .luma_sink(luma_sink),
 `endif

@@ -13,6 +13,7 @@ module comp_sync(
            input [9:0] raster_x,
            input [8:0] raster_y,
 `ifdef GEN_LUMA_CHROMA
+           input white_line,
 `ifdef HAVE_LUMA_SINK
            output reg luma_sink,
 `endif
@@ -200,7 +201,7 @@ begin
 `endif
             end
             default: begin
-                luma <= ~hSync ? (~native_active ? `BLANKING_LEVEL : (raster_x == hvisible_start ? 6'h3f : lumareg_o)) : 6'd0;
+                luma <= ~hSync ? (~native_active ? `BLANKING_LEVEL : ((raster_x == hvisible_start && white_line) ? 6'h3f : lumareg_o)) : 6'd0;
 `ifdef HAVE_LUMA_SINK
                 luma_sink <= hSync;
 `endif
@@ -267,12 +268,12 @@ assign oddline = raster_y_16[0];
 reg [7:0] phasereg_o2;
 reg [7:0] phasereg_16;
 always @(posedge clk_col16x) phasereg_o2 <= phasereg_o;
-always @(posedge clk_col16x) phasereg_16 <= raster_x_16 == hvisible_start ? 8'h0 : phasereg_o2;
+always @(posedge clk_col16x) phasereg_16 <= (raster_x_16 == hvisible_start && white_line_16) ? 8'h0 : phasereg_o2;
 
 reg [3:0] amplitudereg_o2;
 reg [3:0] amplitudereg_16;
 always @(posedge clk_col16x) amplitudereg_o2 <=  amplitudereg_o;
-always @(posedge clk_col16x) amplitudereg_16 <= raster_x_16 == hvisible_start ? 4'h0 : amplitudereg_o2;
+always @(posedge clk_col16x) amplitudereg_16 <= (raster_x_16 == hvisible_start && white_line_16) ? 4'h0 : amplitudereg_o2;
 
 `ifdef CONFIGURABLE_LUMAS
 reg [3:0] burst_amplitude_ms;
@@ -284,7 +285,12 @@ always @(posedge clk_col16x) burst_amplitude_16 <= burst_amplitude_ms;
 reg chip0_o2;
 reg chip0_16;
 always @(posedge clk_col16x) chip0_o2 <= chip[0];
-always @(posedge clk_col16x) chip0_16 <= chip0_o2;;
+always @(posedge clk_col16x) chip0_16 <= chip0_o2;
+
+reg white_line_ms;
+reg white_line_16;
+always @(posedge clk_col16x) white_line_ms <= white_line;
+always @(posedge clk_col16x) white_line_16 <= white_line_ms;
 
 wire [8:0] chroma9;
 
