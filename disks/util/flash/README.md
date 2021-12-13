@@ -2,7 +2,7 @@ Releases
 --------
 
 [0.7 fallback](https://accentual.com/vicii-kawari/downloads/flash/kawari_flash_0.7.d64) \
-[0.8 active](https://accentual.com/vicii-kawari/downloads/flash/kawari_flash_0.8.d64) \
+[0.8 active](https://accentual.com/vicii-kawari/downloads/flash/kawari_flash_0.8.d64)
 
 NOTE: The 0.7 fallback image fixes a problem with 0.1 fallback image which was not capable of flashing updates. If your CONFIG util reports 0.2, you should flash this image. Then flash 0.8. Otherwise, you can just flash 0.8.
 
