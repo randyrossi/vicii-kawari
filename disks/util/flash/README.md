@@ -25,9 +25,12 @@ Golden images should not be updated normally. But the very first golden image on
 
 History
 -------
-0.1 - Golden     - shipped with most beta boards
-0.2 - Multiboot  - shipped with most beta boards
-0.3 - Golden     - shipped with some beta boards
-0.4 - Multiboot  - shipped with some beta boards
-0.7 - Golden     - Fixes flashing issue on beta board fallback image
-0.8 - Multiboot  - First published update for beta board
+
+Version | Type | Notes
+--------|------|------
+0.1 | Fallback | shipped with most beta boards
+0.2 | Active   | shipped with most beta boards
+0.3 | Fallback | shipped with some beta boards
+0.4 | Active   | shipped with some beta boards
+0.7 | Fallback | fixes flashing issue on beta board fallback image
+0.8 | Active   | first published update for beta board
