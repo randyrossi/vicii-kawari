@@ -111,6 +111,11 @@ void load_loader(void);
 void copy_5000_0000(void);
 void compare(void);
 
+void sys64738() {
+    r.pc = (unsigned) 64738;
+    _sys(&r);
+}
+
 // Output a single character using kernel BSOUT routine.
 void bsout(unsigned char c) {
     r.pc = (unsigned) 0xFFD2;
@@ -408,6 +413,11 @@ unsigned long input_int(void) {
 }
 
 void expert(void) {
+   if (!is_expert)
+       return;
+
+   // Need to uncomment for expert stuff
+/*
    unsigned long start_addr;
    unsigned int n;
    unsigned char key;
@@ -525,6 +535,7 @@ void expert(void) {
           break;
       }
    } while (key != 'q');
+*/
 }
 
 void fast_start(void) {
@@ -598,9 +609,7 @@ void begin_flash(long num_to_write, unsigned long start_addr) {
        // Transfer $5000 - $8fff into video memory @ $0000
        copy_5000_0000();
 
-       if (is_expert) {
-          expert();
-       }
+       expert();
 
        // Tell kawari to flash it from vmem 0x0000 to the flash address
        POKE(VIDEO_MEM_FLAGS, 0);
@@ -612,15 +621,12 @@ void begin_flash(long num_to_write, unsigned long start_addr) {
        mprintf ("FLASH,");
        POKE(SPI_REG, FLASH_BULK_OP | FLASH_BULK_WRITE);
 
-       if (is_expert) {
-          expert();
-       }
+       expert();
 
        // Wait for flash to be done and verified
        mprintf ("VERIFY,");
        if (wait_verify()) {
-          mprintf("\nVERIFY ERROR. RESTART FLASH TO TRY AGAIN.");
-          press_any_key(TO_CONTINUE);
+          mprintf("\nVERIFY ERROR\nRESTART FLASH TO TRY AGAIN.");
           break;
        } else {
           mprintf ("OK\n");
@@ -637,12 +643,9 @@ void begin_flash(long num_to_write, unsigned long start_addr) {
           }
        }
 
-       if (is_expert) {
-          expert();
-       }
-
+       expert();
     }
-    mprintf ("FINISHED\n");
+    mprintf ("\nDone\n");
     press_any_key(TO_NOTHING);
 }
 
@@ -787,7 +790,6 @@ void main_menu(void)
          break;
       }
     }
-
     please_insert(0);
 
     mprintf ("\nREAD IMAGE INFO\n");
@@ -834,22 +836,37 @@ void main_menu(void)
     fast_start();
 
     for (;;) {
+       if (use_fast_loader) {
+          mprintf ("D - Disable fastloader\n");
+       } else {
+          mprintf ("E - Enable fastloader\n");
+       }
        mprintf ("F - Perform flash\n");
        mprintf ("V - Perform verify\n");
        //mprintf ("X - Expert\n");
-       mprintf ("Q - Quit\n");
+       //mprintf ("Q - Quit\n");
+       mprintf ("R - Reset\n");
        WAITKEY;
        if (r.a == 'f') {
           begin_flash(num_to_write, start_addr);
        } else if (r.a == 'v') {
           begin_verify(num_to_write, start_addr);
+       } else if (use_fast_loader && r.a == 'd') {
+          use_fast_loader = 0;
+       } else if (!use_fast_loader && r.a == 'e') {
+          use_fast_loader = 1;
+          fast_start();
+       } else if (r.a == 'x') {
+          is_expert = 1;
+          expert();
+       } else if (r.a == 'r') {
+          mprintf ("\nConfirm reset? (y/N)");
+          WAITKEY;
+          if (r.a == 'y') sys64738();
+          mprintf ("\n");
        }
-       //else if (r.a == 'x') {
-       //   is_expert = 1;
-       //   expert();
+       //else if (r.a == 'q') {
+       //   break;
        //}
-       else if (r.a == 'q') {
-          break;
-       }
     }
 }

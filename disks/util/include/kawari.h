@@ -32,6 +32,13 @@
 #define VMEM_FLAG_REGS_BIT 32
 #define VMEM_FLAG_PERSIST_BIT 64
 
+#define SPI_REG_Q 1
+#define SPI_REG_FLASH_BUSY 2
+#define SPI_REG_FLASH_VERIFY_ERROR 4
+#define SPI_REG_SPI_LOCK 8
+#define SPI_REG_EXT_LOCK 16 
+#define SPI_REG_EEPROM_LOCK 32
+
 #define MAGIC_0 0x00
 #define MAGIC_1 0x01
 #define MAGIC_2 0x02
