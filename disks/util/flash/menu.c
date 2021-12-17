@@ -17,7 +17,7 @@
 // wants to grow upwards starting from the end of the code.
 
 #define FLASH_VERSION_MAJOR 1
-#define FLASH_VERSION_MINOR 1
+#define FLASH_VERSION_MINOR 2
 
 // Use a combination of direct SPI access and bulk
 // SPI write operations provided by hardware to flash
