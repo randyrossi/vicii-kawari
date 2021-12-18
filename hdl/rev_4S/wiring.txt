@@ -52,12 +52,12 @@ P56      HEAD      clk_col4x_either   I   NA NA LVCMOS33
 
 # Luma/Chroma lines
 P119     SINK     luma_sink       O   QUIETIO 2 LVCMOS33
-P57      LUMA     luma[5]         O   QUIETIO 2 LVCMOS33
-P50      LUMA     luma[4]         O   QUIETIO 2 LVCMOS33
-P55      LUMA     luma[3]         O   QUIETIO 2 LVCMOS33
-P48      LUMA     luma[2]         O   QUIETIO 2 LVCMOS33
-P51      LUMA     luma[1]         O   QUIETIO 2 LVCMOS33
-P46      LUMA     luma[0]         O   QUIETIO 2 LVCMOS33
+P57      LUMA     luma[0]         O   QUIETIO 2 LVCMOS33
+P50      LUMA     luma[1]         O   QUIETIO 2 LVCMOS33
+P55      LUMA     luma[2]         O   QUIETIO 2 LVCMOS33
+P48      LUMA     luma[3]         O   QUIETIO 2 LVCMOS33
+P51      LUMA     luma[4]         O   QUIETIO 2 LVCMOS33
+P46      LUMA     luma[5]         O   QUIETIO 2 LVCMOS33
 P5       CHROMA   chroma[5]       O   QUIETIO 2 LVCMOS33
 P7       CHROMA   chroma[4]       O   QUIETIO 2 LVCMOS33
 P17      CHROMA   chroma[3]       O   QUIETIO 2 LVCMOS33
