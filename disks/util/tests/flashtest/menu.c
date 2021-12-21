@@ -353,7 +353,7 @@ unsigned char c = 0x54;
     if (FLASH_LOCKED) {
        printf ("\nERROR: FLASH lock bit is enabled!\n");
        printf ("SPI functions are not available.\n");
-       printf ("Please remove FLASH lock jumper\n");
+       printf ("Please add FLASH lock jumper\n");
        printf ("to continue.\n\n");
     }
 
