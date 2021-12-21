@@ -1131,6 +1131,7 @@ wire hires_cursor;
 assign hires_cursor = ({hires_matrix_base, hires_vc} == {hires_cursor_hi[6:0] , hires_cursor_lo});
 
 hires_pixel_sequencer vic_hires_pixel_sequencer(
+                          .rst(rst),
                           .clk_dot4x(clk_dot4x),
                           .clk_phi(clk_phi),
                           .dot_rising(dot_rising),

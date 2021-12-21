@@ -3,6 +3,7 @@
 `include "common.vh"
 
 module hires_pixel_sequencer(
+           input rst,
            input clk_dot4x,
            input clk_phi,
            input [3:0] dot_rising,
@@ -171,7 +172,16 @@ begin
            hires2_pixels_shifting = {hires2_pixels_shifting[13:0], 2'b0};
         end
 
-        hires_ff <= ~hires_ff;
+        // We don't have a proper reset case in this module. This
+        // flip flip toggling before reset was lifted was sometimes
+        // causing a 'misalignment' and packed pixels were not being
+        // interpreted correctly. This makes sure we start flipping and
+        // flopping after reset. But,really this whole module should do
+        // nothing while in reset.
+        if (!rst)
+           hires_ff <= ~hires_ff;
+        else
+           hires_ff <= 1'b1;
     end
 end
 
