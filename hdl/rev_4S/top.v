@@ -34,7 +34,6 @@ module top(
 `endif // WITH_EXTENSIONS
 
            output cpu_reset,    // for pulling 6510 reset LOW
-           input cpu_reset_i,   // for listening to 6510 reset
            input standard_sw,   // video standard toggle switch
            output clk_phi,      // output phi clock for CPU
 `ifdef GEN_RGB
@@ -190,7 +189,7 @@ wire vic_write_db;
 vicii vic_inst(
           .rst(rst),
           .chip(chip),
-          .cpu_reset_i(cpu_reset_i),
+          .cpu_reset_i(1'b1), // this signal does not exist on this board
           .standard_sw(standard_sw),
 `ifdef WITH_EXTENSIONS
           .spi_lock(cfg1),
