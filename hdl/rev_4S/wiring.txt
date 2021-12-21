@@ -45,7 +45,7 @@ P92      addr_oe   ls245_addr_oe  O    SLOW 4 LVCMOS33
 P143     data_dir  ls245_data_dir O    SLOW 4 LVCMOS33
 P126     data_oe   ls245_data_oe  O    SLOW 4 LVCMOS33
 P118     RESET     cpu_reset      O    SLOW 4 LVCMOS33
-P104     switch    standard_sw    I    NA NA LVCMOS33
+P102     switch    standard_sw    I    NA NA LVCMOS33
 
 # Clock in
 P56      HEAD      clk_col4x_either   I   NA NA LVCMOS33
@@ -73,3 +73,8 @@ P70    SPI_C     spi_c          O QUIETIO 2 LVCMOS33
 P65    SPI_D     spi_d          O QUIETIO 2 LVCMOS33
 P64    SPI_Q     spi_q          I NA NA LVCMOS33
 P59    EEPROM_S  eeprom_s       O QUIETIO 2 LVCMOS33
+
+# Config
+P105    CFG1      cfg1           I PULLUP NA NA
+P106    CFG2      cfg2           I PULLUP NA NA
+P111    CFG3      cfg3           I PULLUP NA NA
