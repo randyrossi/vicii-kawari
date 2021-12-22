@@ -4,11 +4,13 @@
 // @ 14Mhz, 1/14000000*2^21 = ~ 149ms
 `define RESET_CTR_TOP_BIT 20
 `define RESET_CTR_INC 21'd1
+`define RESET_CHIP_SET_POINT 21'b001111111111111111111
 `define RESET_LIFT_POINT 21'b011111111111111111111
 `else
 // For simluator, have a much shorter reset period
 `define RESET_CTR_TOP_BIT 7
 `define RESET_CTR_INC 7'd1
+`define RESET_CHIP_SET_POINT 8'b00111111
 `define RESET_LIFT_POINT 8'b01111111
 `endif
 
