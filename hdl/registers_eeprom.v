@@ -178,11 +178,20 @@ task handle_persist(input is_reset);
                                     // everything inits to the right chip model
                                     if (is_reset) begin
                                       if (addr_lo == `EXT_REG_CHIP_MODEL) begin
-                                        // Flip the video standard if the switch
-                                        // is LOW.
+// If there is no clock mux, the standard_sw is used to specify either NTSC
+// or PAL operation. By using data[1] for the upper bit, we allow new or old
+// chip models but only the same standard as what standard_sw configures us
+// to be.
+`ifdef NO_CLOCK_MUX
+                                        chip <= {data[1], standard_sw ? chip[0] : ~chip[0]};
+                                        eeprom_bank <= {data[1], standard_sw ? data[0] : ~chip[0]};
+`else
+// Otherwise, we can restore any chip model and the standard_sw is used to
+// toggle NTSC or PAL operation from the saved value.
                                         chip <= {data[1], standard_sw ? data[0] : ~data[0]};
-                                        // EEPROM bank always starts off same as chip
                                         eeprom_bank <= {data[1], standard_sw ? data[0] : ~data[0]};
+`endif
+                                        // EEPROM bank always starts off same as chip
                                       end
                                     end else begin
                                         // For 2nd pass, write to registers
