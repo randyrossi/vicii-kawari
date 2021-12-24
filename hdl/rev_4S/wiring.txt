@@ -70,8 +70,8 @@ P62    D1        flash_d1       O QUIETIO 2 LVCMOS33
 P61    D2        flash_d2       O QUIETIO 2 LVCMOS33
 P38    FLASH_S   flash_s        O QUIETIO 2 LVCMOS33
 P70    SPI_C     spi_c          O QUIETIO 2 LVCMOS33
-P65    SPI_D     spi_d          O QUIETIO 2 LVCMOS33
-P64    SPI_Q     spi_q          I NA NA LVCMOS33
+P64    SPI_D     spi_d          O QUIETIO 2 LVCMOS33
+P65    SPI_Q     spi_q          I NA NA LVCMOS33
 P59    EEPROM_S  eeprom_s       O QUIETIO 2 LVCMOS33
 
 # Config
