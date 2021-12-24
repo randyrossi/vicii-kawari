@@ -32,7 +32,7 @@ int colors[] = {0,0,0,0,
                 28,31,57,0,
                 45,45,45,0};
 
-int luma[4][16] = {
+int luma_rev3[4][16] = {
     // 6567R8   - 9 levels
     {12,63,24,42,27,35,21,50,27,21,35,24,33,50,33,42},
 
@@ -44,6 +44,20 @@ int luma[4][16] = {
 
     // 6569R1   - 5 levels
     {13,63,22,50,37,37,22,50,37,22,37,22,37,50,37,50},
+};
+
+int luma_rev4[4][16] = {
+    // 6567R8   - 9 levels
+    {0x18, 0x3f, 0x2f, 0x39, 0x32, 0x36, 0x2c, 0x3c, 0x32, 0x2c, 0x36, 0x2f, 0x35, 0x3c, 0x35, 0x39},
+
+    // 6569R3   - 9 levels
+    {0x08, 0x3f, 0x2a, 0x37, 0x2d, 0x33, 0x25, 0x3b, 0x2d, 0x25, 0x33, 0x2a, 0x32, 0x3b, 0x32, 0x37},
+
+    // 6567R56A - 5 levels
+    {0x18, 0x3f, 0x2b, 0x3b, 0x35, 0x35, 0x2b, 0x3b, 0x35, 0x2b, 0x35, 0x2b, 0x35, 0x3b, 0x35, 0x3b},
+
+    // 6569R1   - 5 levels
+    {0x08, 0x3f, 0x1f, 0x39, 0x30, 0x30, 0x1f, 0x39, 0x30, 0x1f, 0x30, 0x1f, 0x30, 0x39, 0x30, 0x39},
 };
 
 int phase[4][16] = {
@@ -60,12 +74,15 @@ int amplitude[4][16] = {
    {0, 0, 0xd, 0xa, 0xc, 0xb, 0xb, 0xf, 0xf, 0xb, 0xc, 0, 0, 0xd, 0xd, 0},
 };
 
-void set_lumas(int chip_model) {
+void set_lumas(unsigned int variant_num, int chip_model) {
    // Luma/Chroma
    int reg;
    for (reg=0;reg<16;reg++) {
       POKE(VIDEO_MEM_1_LO, reg+0xa0);
-      SAFE_POKE(VIDEO_MEM_1_VAL, luma[chip_model][reg]);
+      if (variant_num == VARIANT_REV_3)
+         SAFE_POKE(VIDEO_MEM_1_VAL, luma_rev3[chip_model][reg]);
+      else
+         SAFE_POKE(VIDEO_MEM_1_VAL, luma_rev4[chip_model][reg]);
    }
 }
 
@@ -87,7 +104,7 @@ void set_amplitudes(int chip_model) {
    }
 }
 
-void do_init(int chip_model) {
+void do_init(unsigned int variant_num, int chip_model) {
    unsigned int reg;
    unsigned int chip;
    unsigned int bank;
@@ -121,7 +138,7 @@ void do_init(int chip_model) {
          SAFE_POKE(VIDEO_MEM_1_VAL, colors[reg-64]);
       }
 
-      set_lumas(chip);
+      set_lumas(variant_num, chip);
       set_phases(chip);
       set_amplitudes(chip);
 
@@ -176,6 +193,9 @@ int first_init()
    CLRSCRN;
    if (variant_num == VARIANT_UNKNOWN) {
       printf ("WARNING: Unrecognized board.\n");
+   } else {
+      printf ("Variant: %s\n", variant);
+      printf ("Match  : %d\n", variant_num);
    }
 
    printf ("--------------------------------------\n");
@@ -196,12 +216,12 @@ int first_init()
 	  return 0;
        }
        else if (r.a == 'p') {
-          do_init(CHIP6569R3);
+          do_init(variant_num, CHIP6569R3);
           printf ("complete\n\n");
 	  break;
        }
        else if (r.a == 'n') {
-          do_init(CHIP6567R8);
+          do_init(variant_num, CHIP6567R8);
           printf ("complete\n\n");
 	  break;
        }

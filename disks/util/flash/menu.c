@@ -836,8 +836,10 @@ void main_menu(void)
        mprintf ("\nWARNING: This flash image does NOT\n");
        mprintf ("match the board variant. The image\n");
        mprintf ("may be incompatible with this board.\n");
-       mprintf ("Proceed ONLY if you know what you\n");
-       mprintf ("are doing. Press any key.\n");
+       mprintf ("If you are flashing a FORKED kawari,\n");
+       mprintf ("this is expected. Proceed ONLY if\n");
+       mprintf ("you know what you are doing.\n");
+       mprintf ("Press any key to continue.\n");
        WAITKEY;
     }
 
