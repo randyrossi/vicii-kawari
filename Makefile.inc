@@ -36,7 +36,7 @@ GOLDEN_MINOR=7
 # on a device.
 
 install_config:
-	cp ${BOARD_REV}.config.vh ../hdl/config.vh
+	cp ${CONFIG_FILE} ../hdl/config.vh
 	java -cp ../hdl GenConstraints ../hdl/config.vh ../hdl/${BOARD_REV}/wiring.txt > ../hdl/${BOARD_REV}/top.ucf
 
 compile:

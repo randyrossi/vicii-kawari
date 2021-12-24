@@ -4,12 +4,6 @@
 `define VERSION_MAJOR 8'd0
 `define VERSION_MINOR 8'd8
 
-// Pick a board.
-// SIMULATOR_BOARD - For the verilator simulator only
-// REV_3_BOARD     - Beta board sent to 11 person beta test group
-// REV_4L_BOARD    - Large (final) full featured board with X16
-// REV_4S_BOARD    - Small cost reduced (just a VICII) board with X4
-
 `define REV_4S_BOARD 1
 `define NO_CLOCK_MUX 1
 `define VARIANT_SUFFIX_1 8'd53;
