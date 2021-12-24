@@ -13,8 +13,12 @@ VERSION=0.8
 START_ADDRESS=512000
 # TYPE = multiboot or golden
 TYPE=multiboot
-# BOARD = beta | a | b | c | d
-BOARD=beta
+# FN_VARIANT - Filename variant for zip file
+# One of : Sim | Beta | 4SB | 4LC | 4LD
+FN_VARIANT=sim
+# VARIANT - Variant name matching registers 0x90-0x9F
+# One of : SIM | MAIN | MAIN4SB | MAIN4LC | MAIN4LD
+VARIANT=SIM
 
 # Do not edit below this line
 all: subdirs disks
@@ -46,6 +50,8 @@ info_file: load_bytes
 	wc -c stripped.bit | sed 's/ .*//' >> info
 	# start address of image
 	echo $(START_ADDRESS) >> info
+	# variant match
+	echo $(VARIANT) >> info
 
 # Util to output 2 load bytes
 load_bytes: load_bytes.c
@@ -128,4 +134,4 @@ disks: flash.prg checksize third_party/covert/loader.prg image_files info_file
 	rm -f img_*
 
 zip:
-	zip kawari_flash_${VERSION}_${BOARD}_${TYPE}.zip flash1.d64 flash2.d64 flash3.d64 flash4.d64
+	zip kawari_flash_${VERSION}_${FN_VARIANT}_${TYPE}.zip flash1.d64 flash2.d64 flash3.d64 flash4.d64

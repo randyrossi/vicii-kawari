@@ -734,6 +734,9 @@ void main_menu(void)
     long num_to_write;
     unsigned long start_addr;
     unsigned long tmp_addr;
+    unsigned char variant[16];
+    unsigned int current_variant;
+    unsigned int image_variant;
 
     clrscr();
 
@@ -746,10 +749,12 @@ void main_menu(void)
     POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
     firmware_version_major = get_version_major();
     firmware_version_minor = get_version_minor();
+    get_variant(variant);
     POKE(VIDEO_MEM_FLAGS, 0);
 
     SMPRINTF_2 ("Current Firmware Version: %d.%d\n",
         firmware_version_major, firmware_version_minor);
+    SMPRINTF_1 ("Current Variant: %s\n", variant);
     mprintf ("\n");
 
     //        ----------------------------------------
@@ -770,26 +775,30 @@ void main_menu(void)
     POKE(SPI_REG, 80);
     POKE(SPI_REG, 73);
 
-    // Identify flash device
-    for (;;) {
-      mprintf ("\nIdentifying flash...");
-      read_device();
-      SMPRINTF_2 ("MID=%02x DID=%02x\n", data_in[0], data_in[1]);
+    current_variant = ascii_variant_to_int(variant);
+    if (current_variant != VARIANT_SIM) {
+      // Identify flash device
+      for (;;) {
+        mprintf ("\nIdentifying flash...");
+        read_device();
+        SMPRINTF_2 ("MID=%02x DID=%02x\n", data_in[0], data_in[1]);
 
-      if (FLASH_LOCKED) {
-         mprintf ("\nERROR: FLASH lock bit is enabled!\n");
-         mprintf ("SPI functions are not available.\n");
-         mprintf ("Please remove FLASH lock jumper\n");
-         mprintf ("to continue.\n\n");
-      }
+        if (FLASH_LOCKED) {
+           mprintf ("\nERROR: FLASH lock bit is enabled!\n");
+           mprintf ("SPI functions are not available.\n");
+           mprintf ("Please remove FLASH lock jumper\n");
+           mprintf ("to continue.\n\n");
+        }
 
-      if (data_in[0] != 0xef || data_in[1] != 0x14) {
-         mprintf ("Can't identify flash device.\n");
-         press_any_key(TO_TRY_AGAIN);
-      } else {
-         break;
+        if (data_in[0] != 0xef || data_in[1] != 0x14) {
+           mprintf ("Can't identify flash device.\n");
+           press_any_key(TO_TRY_AGAIN);
+        } else {
+           break;
+        }
       }
     }
+
     please_insert(0);
 
     mprintf ("\nREAD IMAGE INFO\n");
@@ -818,6 +827,19 @@ void main_menu(void)
     SMPRINTF_1 ("Size         :%ld bytes\n", num_to_write);
     start_addr = read_decimal(&tmp_addr);
     SMPRINTF_1 ("Start Address:%lx \n", start_addr);
+    read_string(&tmp_addr);
+    SMPRINTF_1 ("Variant      :%s \n", scratch);
+    image_variant = ascii_variant_to_int(scratch);
+
+    // Check variant matches
+    if (image_variant != current_variant) {
+       mprintf ("\nWARNING: This flash image does NOT\n");
+       mprintf ("match the board variant. The image\n");
+       mprintf ("may be incompatible with this board.\n");
+       mprintf ("Proceed ONLY if you know what you\n");
+       mprintf ("are doing. Press any key.\n");
+       WAITKEY;
+    }
 
     mprintf ("\nUse fast loader (Y/n) ?");
 

@@ -73,3 +73,13 @@
 #define FLASH_BULK_OP 128
 #define FLASH_BULK_WRITE 1
 #define FLASH_BULK_READ  2
+
+// Convention is [VARIANT][BOARD_REV][MODEL] except
+// for beta board which is just 'MAIN'. See MODELS.md
+// for description of board revs and models.
+#define VARIANT_UNKNOWN  0
+#define VARIANT_SIM      1
+#define VARIANT_REV_3    2   // a.k.a. MAIN or beta board
+#define VARIANT_REV_4S_B 3   // a.k.a. MAIN4SB
+#define VARIANT_REV_4L_C 4   // a.k.a. MAIN4LC
+#define VARIANT_REV_4L_D 5   // a.k.a. MAIN4LD

@@ -30,19 +30,6 @@ void get_display_flags(void)
    current_switch_val = current_display_flags & DISPLAY_CHIP_INVERT_SWITCH;
 }
 
-void get_variant(void)
-{
-   int t=0;
-   char v;
-   while (t < 16) {
-      POKE(VIDEO_MEM_1_LO,VARIANT+t);
-      v = PEEK(VIDEO_MEM_1_VAL);
-      if (v == 0) break;
-      variant[t++] = v;
-   }
-   variant[t] = 0;
-}
-
 void show_chip_model()
 {
     int flip;
@@ -198,7 +185,7 @@ void main_menu(void)
     POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
     version_major = get_version_major();
     version_minor = get_version_minor();
-    get_variant();
+    get_variant(variant);
 
     CLRSCRN;
     printf ("VIC-II Kawari Config Utility\n\n");

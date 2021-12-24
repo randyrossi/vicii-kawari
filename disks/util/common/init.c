@@ -165,9 +165,19 @@ void do_init(int chip_model) {
 
 int first_init()
 {
+   int variant_num;
+   char variant[16];
+
    POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
 
+   get_variant(variant);
+   variant_num = ascii_variant_to_int(variant);
+
    CLRSCRN;
+   if (variant_num == VARIANT_UNKNOWN) {
+      printf ("WARNING: Unrecognized board.\n");
+   }
+
    printf ("--------------------------------------\n");
    printf ("Your VICII-Kawari EEPROM must be\n");
    printf ("initialized to factory defaults before\n");

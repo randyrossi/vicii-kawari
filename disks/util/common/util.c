@@ -1,5 +1,6 @@
 #include <6502.h>
 #include <peekpoke.h>
+#include <string.h>
 
 #include "util.h"
 #include "kawari.h"
@@ -101,4 +102,32 @@ unsigned char get_chip_model(void)
 {
    POKE(VIDEO_MEM_1_LO,CHIP_MODEL);
    return PEEK(VIDEO_MEM_1_VAL) & 3;
+}
+
+void get_variant(unsigned char *dest)
+{
+   int t=0;
+   char v;
+   while (t < 16) {
+      POKE(VIDEO_MEM_1_LO,VARIANT+t);
+      v = PEEK(VIDEO_MEM_1_VAL);
+      if (v == 0) break;
+      dest[t++] = v;
+   }
+   dest[t] = 0;
+}
+
+unsigned int ascii_variant_to_int(unsigned char *variant)
+{
+   if (strcmp(variant,"main") == 0)
+      return VARIANT_REV_3;
+   if (strcmp(variant,"main4Sb") == 0)
+      return VARIANT_REV_4S_B;
+   if (strcmp(variant,"main4lc") == 0)
+      return VARIANT_REV_4L_C;
+   if (strcmp(variant,"main4ld") == 0)
+      return VARIANT_REV_4L_D;
+   if (strcmp(variant,"sim") == 0)
+      return VARIANT_SIM;
+   return VARIANT_UNKNOWN;
 }
