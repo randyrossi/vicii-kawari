@@ -27,7 +27,11 @@ module LUMA_REGS
 (* ram_style = "block" *) reg [data_width-1:0] ram_dual_port[2**addr_width-1:0];
 `endif
 
-initial $readmemb ("luma.bin", ram_dual_port);
+`ifdef REV_3_BOARD
+initial $readmemb ("luma_rev3.bin", ram_dual_port);
+`else
+initial $readmemb ("luma_rev4.bin", ram_dual_port);
+`endif
 
 always @(posedge clk)
 begin

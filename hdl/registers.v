@@ -1615,7 +1615,9 @@ begin
     phasereg_o <= luma_regs_data_out_b[11:4];
     amplitudereg_o <= luma_regs_data_out_b[3:0];
 `else
+    if (chip[0]) begin // PAL
     case (pixel_color3)
+`ifdef REV_3_BOARD
         `BLACK      : lumareg_o <= 6'h0c;
         `WHITE      : lumareg_o <= 6'h3f;
         `RED        : lumareg_o <= 6'h18;
@@ -1632,7 +1634,65 @@ begin
         `LIGHT_GREEN: lumareg_o <= 6'h32;
         `LIGHT_BLUE : lumareg_o <= 6'h21;
         `LIGHT_GREY : lumareg_o <= 6'h2a;
+`else
+        `BLACK      : lumareg_o <= 6'h08;
+        `WHITE      : lumareg_o <= 6'h3f;
+        `RED        : lumareg_o <= 6'h2a;
+        `CYAN       : lumareg_o <= 6'h37;
+        `PURPLE     : lumareg_o <= 6'h2d;
+        `GREEN      : lumareg_o <= 6'h33;
+        `BLUE       : lumareg_o <= 6'h25;
+        `YELLOW     : lumareg_o <= 6'h3b;
+        `ORANGE     : lumareg_o <= 6'h2d;
+        `BROWN      : lumareg_o <= 6'h25;
+        `PINK       : lumareg_o <= 6'h33;
+        `DARK_GREY  : lumareg_o <= 6'h2a;
+        `GREY       : lumareg_o <= 6'h32;
+        `LIGHT_GREEN: lumareg_o <= 6'h3b;
+        `LIGHT_BLUE : lumareg_o <= 6'h32;
+        `LIGHT_GREY : lumareg_o <= 6'h37;
+`endif
     endcase
+    end
+    else begin // NTSC
+    case (pixel_color3)
+`ifdef REV_3_BOARD
+        `BLACK      : lumareg_o <= 6'h0c;
+        `WHITE      : lumareg_o <= 6'h3f;
+        `RED        : lumareg_o <= 6'h18;
+        `CYAN       : lumareg_o <= 6'h2a;
+        `PURPLE     : lumareg_o <= 6'h1b;
+        `GREEN      : lumareg_o <= 6'h23;
+        `BLUE       : lumareg_o <= 6'h15;
+        `YELLOW     : lumareg_o <= 6'h32;
+        `ORANGE     : lumareg_o <= 6'h1b;
+        `BROWN      : lumareg_o <= 6'h15;
+        `PINK       : lumareg_o <= 6'h23;
+        `DARK_GREY  : lumareg_o <= 6'h18;
+        `GREY       : lumareg_o <= 6'h21;
+        `LIGHT_GREEN: lumareg_o <= 6'h32;
+        `LIGHT_BLUE : lumareg_o <= 6'h21;
+        `LIGHT_GREY : lumareg_o <= 6'h2a;
+`else
+        `BLACK      : lumareg_o <= 6'h18;
+        `WHITE      : lumareg_o <= 6'h3f;
+        `RED        : lumareg_o <= 6'h2f;
+        `CYAN       : lumareg_o <= 6'h39;
+        `PURPLE     : lumareg_o <= 6'h32;
+        `GREEN      : lumareg_o <= 6'h36;
+        `BLUE       : lumareg_o <= 6'h2c;
+        `YELLOW     : lumareg_o <= 6'h3c;
+        `ORANGE     : lumareg_o <= 6'h32;
+        `BROWN      : lumareg_o <= 6'h2c;
+        `PINK       : lumareg_o <= 6'h36;
+        `DARK_GREY  : lumareg_o <= 6'h2f;
+        `GREY       : lumareg_o <= 6'h35;
+        `LIGHT_GREEN: lumareg_o <= 6'h3c;
+        `LIGHT_BLUE : lumareg_o <= 6'h35;
+        `LIGHT_GREY : lumareg_o <= 6'h39;
+`endif
+    endcase
+    end
 
     case (pixel_color3)
         `BLACK      : phasereg_o <= 8'h00; // unmodulated

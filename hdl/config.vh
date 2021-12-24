@@ -20,6 +20,28 @@
 // proper top.ucf generation for that board.
 `define NO_CLOCK_MUX 1
 
+// Change suffix to match board config.
+
+// REV3 - Board 3 with X9XTG144
+//`define VARIANT_SUFFIX_1 8'd0;
+//`define VARIANT_SUFFIX_2 8'd0;
+//`define VARIANT_SUFFIX_3 8'd0;
+//`define VARIANT_SUFFIX_4 8'd0;
+
+// REV4SA - No extensions so no suffix needed
+
+// REV4SB - Board 4S with X9QTG144 (config B)
+`define VARIANT_SUFFIX_1 8'd53;
+`define VARIANT_SUFFIX_2 8'd83;
+`define VARIANT_SUFFIX_3 8'd66;
+`define VARIANT_SUFFIX_4 8'd0;
+
+// REV4LD - Board 4L with X16FTG256 (config D)
+//`define VARIANT_SUFFIX_1 8'd53;
+//`define VARIANT_SUFFIX_2 8'd76;
+//`define VARIANT_SUFFIX_3 8'd68;
+//`define VARIANT_SUFFIX_4 8'd0;
+
 // Notes on config permutations:
 //
 // This core can be configured to output video in different ways.
@@ -44,14 +66,14 @@
 //    HAVE_EEPROM
 //    HAVE_FLASH
 //    HIRES_MODES
-//`define WITH_EXTENSIONS 1
+`define WITH_EXTENSIONS 1
 
 // WITH_RAM
 // --------
 // Will automatically enable WITH_EXTENSIONS if enabled.
 // Use block ram for video memory. This memory can be
 // accessed through ports A and B in the extra registers.
-//`define WITH_RAM 1
+`define WITH_RAM 1
 
 // WITH_64K
 // --------
@@ -61,7 +83,7 @@
 // ram and will increase LUT usage drammatically.  This will
 // guarantee the core will NOT fit on an X4 or X9.  The most
 // we can get on X9 is 32k.
-//`define WITH_64K 1
+`define WITH_64K 1
 
 // TEST_PATTERN
 // ------------
@@ -119,7 +141,7 @@
 // Will automatically enable WITH_RAM also.
 // Uncomment if board has FLASH directly connected
 // to FPGA via SPI bus.
-//`define HAVE_FLASH 1
+`define HAVE_FLASH 1
 
 // NEED_RGB
 // --------
@@ -143,7 +165,7 @@
 // Uncomment to enable hires modes (including 80 column
 // mode).  X resolution will be confined to 1X unless
 // this is enabled.
-//`define HIRES_MODES
+`define HIRES_MODES
 
 // HIRES_RESET
 // ----------------------
@@ -161,6 +183,6 @@
 // Will automatically enable WITH_EXTENSIONS if enabled.
 // Uncomment to enable 16-bit signed and unsigned
 // math operations on registers 0x2f-0x33.
-//`define WITH_MATH
+`define WITH_MATH
 
 `endif // config_vh_

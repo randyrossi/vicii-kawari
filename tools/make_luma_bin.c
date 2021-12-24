@@ -2,18 +2,21 @@
 
 #include <stdio.h>
 
+//#define REV_3 1
+
 #define BINARY 0
 #define DECIMAL 1
 #define HEX 2
 #define CHARS 3
 #define CODE 4
 
+// Only applies if type is CODE
 #define LUMA 1
 #define PHASE 2
 #define AMP 3
 
-static int output_type = CODE;
-static int output_attr = AMP;
+static int output_type = BINARY;
+static int output_attr = LUMA;
 
 // Pick the 6567R8 values for the defaults. If the board
 // has EEPROM, they will get overwritten at startup if
@@ -24,11 +27,21 @@ static int output_attr = AMP;
 
 // Use this prog to generate luma.bin and they also have
 // to go into registers.v in case no EEPROM is compiled in.
+
+#ifdef REV_3
+// Values for rev_3 hardware.
 unsigned int luma[16] =
     {12,63,24,42,27,35,21,50,27,21,35,24,33,50,33,42};
-
 unsigned int amplitude[16] =
    {0, 0, 0xd, 0xa, 0xc, 0xb, 0xb, 0xf, 0xf, 0xb, 0xc, 0, 0, 0xd, 0xd, 0};
+#else
+// Values for rev_4 hardware.
+unsigned int luma[16] =
+    {0x08, 0x3f, 0x2a, 0x37, 0x2d, 0x33, 0x25, 0x3b,
+     0x2d, 0x25, 0x33, 0x2a, 0x32, 0x3b, 0x32, 0x37};
+unsigned int amplitude[16] =
+   {0, 0, 0xd, 0xa, 0xc, 0xb, 0xb, 0xf, 0xf, 0xb, 0xc, 0, 0, 0xd, 0xd, 0};
+#endif
 
 unsigned int phase[16] =
    {0, 0, 80, 208, 32, 160, 241, 128, 96, 112, 80, 0, 0, 160, 241, 0};

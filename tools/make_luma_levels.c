@@ -1,10 +1,11 @@
 #include <stdio.h>
 
-// Generate code for luma levels for our config util
+// Helper to generate code for the 'old' chip luma levels
+// for our init util.
 
 // From "Commodore 6567/6569 video chip luminance levels" by
 // Marko Makela, we have luminance levels for the four chips.
-// These are in millivolts. 
+// These are in millivolts.
 int voltages[4][16] = {
    // 6567R8 - 9 levels
    { 590, 1825, 950, 1380, 1030, 1210, 860, 1560, 1030, 860, 1210, 950, 1160, 1560, 1160, 1380 },
@@ -16,26 +17,59 @@ int voltages[4][16] = {
    { 630, 1850, 900, 1560, 1260, 1260, 900, 1560, 1260, 900, 1260, 900, 1260, 1560, 1260, 1560 },
 };
 
-// https://www.dcode.fr/function-equation-finder
-// Using a real 6567R8, we matched the voltage levels on an
+
+// Using a real 6567R8 and 6569R3, we matched the voltage levels on an
 // oscilloscope and came up with these DAC levels:
-// Measured: 12 14 19 22 28 30 36 43 58
-// Adjusted: 12 20 25 28 34 36 42 49 64
-// 
+
+// NTSC
+// 590	24
+// 860	44
+// 950	47
+// 1030	50
+// 1160	53
+// 1210	54
+// 1380	57
+// 1560	60
+// 1825	63
+
+// PAL
+// 700 08
+// 1020 37
+// 1090 42
+// 1180 45
+// 1300 50
+// 1340 51
+// 1480 55
+// 1620 59
+// 1850 63
+
+// Using polynomial curve matching, on values except black to come
+// up with curve for ntsc and pal.
+// https://www.dcode.fr/function-equation-finder
+
+// This is used to estimate the luma level values for NTSC R56A and PAL R1.
+// I did not measure the voltage levels off those revisions.  Instead,
+// I measured the R8 and R3 chips and used a curve match to the info
+// above to 'guesstimate' what the DAC values ought to be.
 int get_luma(double voltage)
 {
-   // Curve matching
-   //double level = .0000154881d * voltage*voltage +
-   //                     .00103625d*voltage+4.62243;
-   double level = .0000067367333d * voltage*voltage +
-                          .0254356d*voltage - 5.54123d;
-   // Don't go below 12 for any color
-   if (level < 12) level = 12;
-   else if (level > 63) level = 64;
+   // NTSC curve (black excluded)
+   double level = -0.0000171249d * voltage*voltage +
+                          0.0637809d*voltage + 1.9825d;
+   // PAL curve (black excluded)
+   //double level = -0.0000222954d * voltage*voltage +
+   //                       0.0942326d*voltage - 35.1443d;
+
+   // Don't go below 1 for any color
+   if (level < 1) level = 1;
+   else if (level > 63) level = 63;
    return level;
 }
 
 void main(int argc, char* argv[]) {
+   // Show DAC levels.  Use this to see how close the curves are
+   // to what we measured for 'new' chips and use that as an indication
+   // of how close we are (probably) for the old chips.
    for (int chip=0;chip<4;chip++) {
       printf ("\n");
       if (chip==0)
@@ -47,7 +81,7 @@ void main(int argc, char* argv[]) {
       else if (chip==3)
          printf ("    // 6569R1   - 5 levels\n    {");
       for (int col=0;col<16;col++) {
-          printf ("%d", get_luma(voltages[chip][col]));
+          printf ("%02x", get_luma(voltages[chip][col]));
           if (col < 15) printf (",");
       }
       printf ("},\n");

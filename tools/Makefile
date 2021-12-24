@@ -49,7 +49,7 @@ make_luma_bin: make_luma_bin.o
 	gcc -o make_luma_bin make_luma_bin.o
 
 make_luma_levels: make_luma_levels.o
-	gcc -o make_luma_levels make_luma_levels.o
+	gcc -o make_luma_levels make_luma_levels.o -lm
 
 clean:
 	rm -f *.o *.class *.bin a.out hires *.hex make_luma_bin make_colors make_luma_levels

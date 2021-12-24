@@ -18,6 +18,14 @@ rev_3
 
     Essentially identical to rev_2 except it uses the BGA package (FTG256) for the SpartanX16.  Can, in theory, get 64k of video ram if we use distributed ram for mem instead of block ram.
 
+rev_4L
+
+    Hopefully the last large board revision.  Fixes hardware issues (luma and HDMI backfeeding).
+
+rev_4S
+
+    A small version that can be 'just a vicii' or an enhanced vicii but still limited in hardware features.
+
 
 # Block RAM Usage
 
@@ -29,3 +37,9 @@ LUMA REGS         | 16 * 18            | 16 * 18 = 288           | 288/576432 | 
 SINE WAVES        | 4096 * 9           | 4096 * 9 = 36864        | 36864/576432 | 6.395%
 VIDEO RAM         | 32768 * 8          | 32768 * 9 = 294912      | 294912/576432 | 51.161%
 
+
+# Luma/Phase/Amplitude values
+
+The luma_revX.bin files are luma values for an uninitialized board. They assume the board is PAL.  Once initialized, these values are overwritten by the EEPROM values and are specific to each chip model.
+
+The registers_ram.v also has hard coded values for luma/phase/amplitude in the case there is no configurable luma feature built into the bitstream.  These should match the 'new' 6569R3 and 6567R8 values.

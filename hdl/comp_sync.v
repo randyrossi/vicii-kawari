@@ -135,11 +135,19 @@ SerrationPulse usep1
 
 `ifdef GEN_LUMA_CHROMA
 
-// 18 is blanking level - approx 1.29V
+// Luma level of white burst on first visible pixel
+`define WHITE_BURST 6'h3b
+
+// If configurable, use register value.
+// Otherwise, hard coded values.
 `ifdef CONFIGURABLE_LUMAS
 `define BLANKING_LEVEL blanking_level
 `else
+`ifdef REV_3_BOARD
 `define BLANKING_LEVEL 6'd12
+`else
+`define BLANKING_LEVEL (chip[0] ? 6'h08 : 6'h18)
+`endif
 `endif
 
 always @(posedge clk_dot4x)
@@ -201,7 +209,7 @@ begin
 `endif
             end
             default: begin
-                luma <= ~hSync ? (~native_active ? `BLANKING_LEVEL : ((raster_x == hvisible_start && white_line) ? 6'h3f : lumareg_o)) : 6'd0;
+                luma <= ~hSync ? (~native_active ? `BLANKING_LEVEL : ((raster_x == hvisible_start && white_line) ? `WHITE_BURST : lumareg_o)) : 6'd0;
 `ifdef HAVE_LUMA_SINK
                 luma_sink <= hSync;
 `endif
