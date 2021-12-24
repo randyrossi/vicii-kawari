@@ -76,6 +76,8 @@ void main_menu(void)
     unsigned char input_state = 0;
     unsigned char input_char;
     unsigned char input_val;
+    unsigned char variant[16];
+    unsigned int variant_int;
 
     color_name[0] = "black  ";
     color_name[1] = "white  ";
@@ -105,6 +107,9 @@ void main_menu(void)
     printf ("VIC-II Kawari Composite Settings Editor\n\n");
 
     POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
+
+    get_variant(variant);
+    variant_int = ascii_variant_to_int(variant);
 
     printf ("CHIP:   ");
     model = get_chip_model();
@@ -272,7 +277,7 @@ void main_menu(void)
        }
        else if (key == 'j')  {
             model = get_chip_model();
-            set_lumas(model);
+            set_lumas(variant_int, model);
             set_phases(model);
             set_amplitudes(model);
 	    refresh_all = 1;

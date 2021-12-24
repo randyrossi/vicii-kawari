@@ -15,10 +15,10 @@ START_ADDRESS=512000
 TYPE=multiboot
 # FN_VARIANT - Filename variant for zip file
 # One of : Sim | Beta | 4SB | 4LC | 4LD
-FN_VARIANT=sim
+FN_VARIANT=beta
 # VARIANT - Variant name matching registers 0x90-0x9F
 # One of : SIM | MAIN | MAIN4SB | MAIN4LC | MAIN4LD
-VARIANT=SIM
+VARIANT=MAIN
 
 # Do not edit below this line
 all: subdirs disks
