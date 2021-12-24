@@ -136,7 +136,6 @@ task read_ram(
                         dbo <= `VARIANT_SUFFIX_3;
                     `EXT_REG_VARIANT_NAME8:
                         dbo <= `VARIANT_SUFFIX_4;
-`endif
 
 `ifdef CONFIGURABLE_LUMAS
                     `EXT_REG_BLANKING:
