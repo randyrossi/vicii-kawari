@@ -5,7 +5,7 @@
 `define VERSION_MINOR 8'd8
 
 `define REV_4L_BOARD 1
-`define VARIANT_SUFFIX_1 8'd53
+`define VARIANT_SUFFIX_1 8'd52
 `define VARIANT_SUFFIX_2 8'd76
 `define VARIANT_SUFFIX_3 8'd68
 `define VARIANT_SUFFIX_4 8'd0

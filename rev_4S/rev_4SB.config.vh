@@ -6,7 +6,7 @@
 
 `define REV_4S_BOARD 1
 `define NO_CLOCK_MUX 1
-`define VARIANT_SUFFIX_1 8'd53
+`define VARIANT_SUFFIX_1 8'd52
 `define VARIANT_SUFFIX_2 8'd83
 `define VARIANT_SUFFIX_3 8'd66
 `define VARIANT_SUFFIX_4 8'd0
