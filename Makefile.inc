@@ -10,8 +10,6 @@ GOLDEN_MAJOR=0
 GOLDEN_MINOR=7
 
 # Use this makefile to create a multiboot image.
-# Golden version is set to 0.1
-# Multiboot version is set to 1.0
 #
 # Usage:
 #	make clean golden
@@ -36,7 +34,7 @@ GOLDEN_MINOR=7
 # on a device.
 
 install_config:
-	cp ${CONFIG_FILE} ../hdl/config.vh
+	cp ${BOARD_REV}${VARIANT}.config.vh ../hdl/config.vh
 	java -cp ../hdl GenConstraints ../hdl/config.vh ../hdl/${BOARD_REV}/wiring.txt > ../hdl/${BOARD_REV}/top.ucf
 
 compile:
@@ -57,19 +55,19 @@ multiboot_version:
 golden: install_config golden_version compile
 	mkdir -p build
 	bitgen -intstyle ise -f ../kawari_golden.ut top.ncd
-	mv top.bit build/kawari_golden_${GOLDEN_MAJOR}.${GOLDEN_MINOR}.bit
+	mv top.bit build/kawari_golden_${BOARD_REV}${VARIANT}_${GOLDEN_MAJOR}.${GOLDEN_MINOR}.bit
 
 multiboot: install_config multiboot_version compile
 	mkdir -p build
 	bitgen -intstyle ise -f ../kawari_multiboot.ut top.ncd
-	mv top.bit build/kawari_multiboot_${MULTIBOOT_MAJOR}.${MULTIBOOT_MINOR}.bit
+	mv top.bit build/kawari_multiboot_${BOARD_REV}${VARIANT}_${MULTIBOOT_MAJOR}.${MULTIBOOT_MINOR}.bit
 
 mcs:
 	mkdir -p build
-	promgen -w -p mcs -c FF -o build/spix4_MultiBoot_${GOLDEN_MAJOR}_${GOLDEN_MINOR}-${MULTIBOOT_MAJOR}_${MULTIBOOT_MINOR} -s 2048 -u 0000 build/kawari_golden_${GOLDEN_MAJOR}.${GOLDEN_MINOR}.bit -u 07d000 build/kawari_multiboot_${MULTIBOOT_MAJOR}.${MULTIBOOT_MINOR}.bit -spi
+	promgen -w -p mcs -c FF -o build/spix4_MultiBoot_${BOARD_REV}${VARIANT}_${GOLDEN_MAJOR}_${GOLDEN_MINOR}-${MULTIBOOT_MAJOR}_${MULTIBOOT_MINOR} -s 2048 -u 0000 build/kawari_golden_${BOARD_REV}${VARIANT}_${GOLDEN_MAJOR}.${GOLDEN_MINOR}.bit -u 07d000 build/kawari_multiboot_${BOARD_REV}${VARIANT}_${MULTIBOOT_MAJOR}.${MULTIBOOT_MINOR}.bit -spi
 
 program:
-	cat ../kawari_progspi.cmd | sed "s/%GOLDEN_MAJOR%/${GOLDEN_MAJOR}/g" | sed "s/%GOLDEN_MINOR%/${GOLDEN_MINOR}/g" | sed "s/%MULTIBOOT_MAJOR%/${MULTIBOOT_MAJOR}/g" | sed "s/%MULTIBOOT_MINOR%/${MULTIBOOT_MINOR}/g" > kawari_progspi.tmp
+	cat ../kawari_progspi.cmd | sed "s/%BOARD_REV%/${BOARD_REV}/g" | sed "s/%VARIANT%/${VARIANT}/g" | sed "s/%GOLDEN_MAJOR%/${GOLDEN_MAJOR}/g" | sed "s/%GOLDEN_MINOR%/${GOLDEN_MINOR}/g" | sed "s/%MULTIBOOT_MAJOR%/${MULTIBOOT_MAJOR}/g" | sed "s/%MULTIBOOT_MINOR%/${MULTIBOOT_MINOR}/g" > kawari_progspi.tmp
 	impact -batch kawari_progspi.tmp
 
 clean:
@@ -103,13 +101,7 @@ clean:
 	rm -rf 	top.ut
 	rm -rf 	top.xpi
 	rm -rf 	top.xst
-	rm -rf 	top_2021-12-7-14-59-58.twx
-	rm -rf 	top_2021-12-7-23-59-12.twx
-	rm -rf 	top_2021-12-7-4-31-59.twx
-	rm -rf 	top_2021-12-7-6-52-47.twx
-	rm -rf 	top_2021-12-7-7-8-12.twx
-	rm -rf 	top_2021-12-7-8-21-47.twx
-	rm -rf 	top_2021-12-8-13-41-41.twx
+	rm -rf 	top_*.twx
 	rm -rf 	top_bitgen.xwbt
 	rm -rf 	top_envsettings.html
 	rm -rf 	top_guide.ncd

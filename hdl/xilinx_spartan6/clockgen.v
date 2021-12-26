@@ -2,11 +2,8 @@
 
 `include "../common.vh"
 
-// For the MojoV3 board.
-// This module:
-//     1) generates a 4x dot clock for both ntsc and pal clocks
-//     2) uses the lower bit of chip to select ntsc/pal clocks
-//     3) generates the reset signal and holds for approx 150ms at startup
+// Wrapper around dot4x_cc_clockgen that optionally
+// includes dvi_clockgen
 module clockgen(
            input src_clock,
            input [1:0] chip,
