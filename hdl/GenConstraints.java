@@ -115,6 +115,13 @@ public class GenConstraints
                    if (t6.startsWith("cfg2")) continue;
                    if (t6.startsWith("cfg3")) continue;
                 }
+	        if (flags[WITH_CLOCK_MUX]) {
+                   if (t6.startsWith("clk_col4x_either")) continue;
+                }
+	        if (!flags[WITH_CLOCK_MUX]) {
+                   if (t6.startsWith("clk_col4x_pal")) continue;
+                   if (t6.startsWith("clk_col4x_ntsc")) continue;
+                }
 
 		System.out.println("NET \""+t6+"\" LOC="+t4+";");
                 if (t7.equals("O") || t7.equals("IO")) {

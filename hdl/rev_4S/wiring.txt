@@ -47,8 +47,10 @@ P126     data_oe   ls245_data_oe  O    SLOW 4 LVCMOS33
 P118     RESET     cpu_reset      O    SLOW 4 LVCMOS33
 P102     switch    standard_sw    I    NA NA LVCMOS33
 
-# Clock in
-P56      HEAD      clk_col4x_either   I   NA NA LVCMOS33
+# Clocks
+P56    HEAD     clk_col4x_either   I   NA NA LVCMOS33
+P85    HEAD     clk_col4x_pal      I   NA NA LVCMOS33
+P84    HEAD     clk_col4x_ntsc     I   NA NA LVCMOS33
 
 # Luma/Chroma lines
 P119     SINK     luma_sink       O   QUIETIO 2 LVCMOS33
