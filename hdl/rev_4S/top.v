@@ -154,6 +154,7 @@ dvi_encoder_top dvi_tx0 (
                     .TMDSB       (TX0_TMDSB));
 `endif
 
+`ifdef GEN_RGB
 // https://www.xilinx.com/support/answers/35032.html
 ODDR2 oddr2(
           .D0(1'b1),
@@ -165,6 +166,7 @@ ODDR2 oddr2(
           .S(1'b0),
           .Q(clk_dot4x_ext)
       );
+`endif
 
 // This is a reset line for the CPU which would have to be
 // connected with a jumper.  It holds the CPU in reset
