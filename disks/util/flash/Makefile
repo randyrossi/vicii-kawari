@@ -2,7 +2,7 @@
 # from a multiboot bitstream. Up to 4 disks and
 # 28 files (covers Spartan6 X16 bistream size).
 #
-# Expects: kawari_multiboot_$(VERSION).bit
+# Expects: kawari_multiboot_$(BUILD_VARIANT)_$(VERSION).bit
 # Requires: dasm and cc65
 
 # Stuff to potentially edit
@@ -13,12 +13,15 @@ VERSION=0.8
 START_ADDRESS=512000
 # TYPE = multiboot or golden
 TYPE=multiboot
-# FN_VARIANT - Filename variant for zip file
-# One of : Sim | Beta | 4SB | 4LC | 4LD
-FN_VARIANT=beta
-# VARIANT - Variant name matching registers 0x90-0x9F
-# One of : SIM | MAIN | MAIN4SB | MAIN4LC | MAIN4LD
-VARIANT=MAIN
+# REG_VARIANT - Variant name matching registers 0x90-0x9F
+# One of : SIM | MAIN | MAIN4SB | MAIN4LD
+REG_VARIANT=MAIN
+# BUILD_VARIANT - Variant for .bit filename
+# One of : N/A | rev_3 | rev_4SB | rev_4LD
+BUILD_VARIANT=rev_3
+
+# REG_VARIANT and BUILD_VARIANT must be for
+# the same variant.
 
 # Do not edit below this line
 all: subdirs disks
@@ -26,7 +29,7 @@ all: subdirs disks
 subdirs:
 	$(MAKE) -C third_party
 
-SOURCE_IMG=kawari_$(TYPE)_$(VERSION).bit
+SOURCE_IMG=kawari_$(TYPE)_$(BUILD_VARIANT)_$(VERSION).bit
 
 # Max 28 disks to cover size of SpX16
 FILENUMS=00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
@@ -51,7 +54,7 @@ info_file: load_bytes
 	# start address of image
 	echo $(START_ADDRESS) >> info
 	# variant match
-	echo $(VARIANT) >> info
+	echo $(REG_VARIANT) >> info
 
 # Util to output 2 load bytes
 load_bytes: load_bytes.c
@@ -134,4 +137,4 @@ disks: flash.prg checksize third_party/covert/loader.prg image_files info_file
 	rm -f img_*
 
 zip:
-	zip kawari_flash_${VERSION}_${FN_VARIANT}_${TYPE}.zip flash1.d64 flash2.d64 flash3.d64 flash4.d64
+	zip kawari_flash_${VERSION}_${BUILD_VARIANT}_${TYPE}.zip flash1.d64 flash2.d64 flash3.d64 flash4.d64
