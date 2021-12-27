@@ -5,9 +5,9 @@
 `define VERSION_MINOR 8'd8
 
 `define REV_4L_BOARD 1
-`define VARIANT_SUFFIX_1 8'd52
-`define VARIANT_SUFFIX_2 8'd76
-`define VARIANT_SUFFIX_3 8'd68
+`define VARIANT_SUFFIX_1 8'd76
+`define VARIANT_SUFFIX_2 8'd68
+`define VARIANT_SUFFIX_3 8'd0
 `define VARIANT_SUFFIX_4 8'd0
 `define WITH_EXTENSIONS 1
 `define WITH_RAM 1
@@ -20,8 +20,8 @@
 `define HAVE_FLASH 1
 `define NEED_RGB 1
 `define GEN_RGB 1
-`define HIRES_MODES
-`define HIRES_RESET
-`define WITH_MATH
+`define HIRES_MODES 1
+`define HIRES_RESET 1
+`define WITH_MATH 1
 
 `endif // config_vh_

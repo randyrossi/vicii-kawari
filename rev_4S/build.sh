@@ -2,22 +2,14 @@
 
 mkdir -p build
 
-#cp rev_4SA.top.prj top.prj
-#make -f rev_4SA.Makefile clean golden > build/rev_4SA.golden.log
-#make -f rev_4SA.Makefile clean multiboot > build/rev_4SA.multiboot.log
-#make -f rev_4SA.Makefile mcs
+# Model SA - Just a VIC-II, Nothing else.
+cp SA.top.prj top.prj
+make -f SA.Makefile clean golden > build/SA.golden.log
+make -f SA.Makefile clean multiboot > build/SA.multiboot.log
+make -f SA.Makefile mcs
 
-#cp rev_4SAO.top.prj top.prj
-#make -f rev_4SAO.Makefile clean golden > build/rev_4SAO.golden.log
-#make -f rev_4SAO.Makefile clean multiboot > build/rev_4SAO.multiboot.log
-#make -f rev_4SAO.Makefile mcs
-
-cp rev_4SB.top.prj top.prj
-make -f rev_4SB.Makefile clean golden > build/rev_4SB.golden.log
-make -f rev_4SB.Makefile clean multiboot > build/rev_4SB.multiboot.log
-make -f rev_4SB.Makefile mcs
-
-cp rev_4SBO.top.prj top.prj
-make -f rev_4SBO.Makefile clean golden > build/rev_4SBO.golden.log
-make -f rev_4SBO.Makefile clean multiboot > build/rev_4SBO.multiboot.log
-make -f rev_4SBO.Makefile mcs
+# Model SA - VIC-II + Enhancements, Switchable (No DVI or RGB)
+cp SB.top.prj top.prj
+make -f SB.Makefile clean golden > build/SB.golden.log
+make -f SB.Makefile clean multiboot > build/SB.multiboot.log
+make -f SB.Makefile mcs

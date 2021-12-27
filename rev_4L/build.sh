@@ -2,7 +2,7 @@
 
 mkdir -p build
 
-cp rev_4LD.top.prj top.prj
-make -f rev_4LD.Makefile clean golden > build/rev_4LD.golden.log
-make -f rev_4LD.Makefile clean multiboot > build/rev_4LD.multiboot.log
-make -f rev_4LD.Makefile mcs
+cp LD.top.prj top.prj
+make -f LD.Makefile clean golden > build/LD.golden.log
+make -f LD.Makefile clean multiboot > build/LD.multiboot.log
+make -f LD.Makefile mcs
