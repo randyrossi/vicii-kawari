@@ -34,7 +34,7 @@ GOLDEN_MINOR=7
 # on a device.
 
 install_config:
-	cp ${BOARD_REV}${VARIANT}.config.vh ../hdl/config.vh
+	cp ${BOARD}${VARIANT}.config.vh ../hdl/config.vh
 	java -cp ../hdl GenConstraints ../hdl/config.vh ../hdl/${BOARD_REV}/wiring.txt > ../hdl/${BOARD_REV}/top.ucf
 
 compile:
@@ -55,19 +55,19 @@ multiboot_version:
 golden: install_config golden_version compile
 	mkdir -p build
 	bitgen -intstyle ise -f ../kawari_golden.ut top.ncd
-	mv top.bit build/kawari_golden_${BOARD_REV}${VARIANT}_${GOLDEN_MAJOR}.${GOLDEN_MINOR}.bit
+	mv top.bit build/kawari_golden_${BOARD}${VARIANT}_${GOLDEN_MAJOR}.${GOLDEN_MINOR}.bit
 
 multiboot: install_config multiboot_version compile
 	mkdir -p build
 	bitgen -intstyle ise -f ../kawari_multiboot.ut top.ncd
-	mv top.bit build/kawari_multiboot_${BOARD_REV}${VARIANT}_${MULTIBOOT_MAJOR}.${MULTIBOOT_MINOR}.bit
+	mv top.bit build/kawari_multiboot_${BOARD}${VARIANT}_${MULTIBOOT_MAJOR}.${MULTIBOOT_MINOR}.bit
 
 mcs:
 	mkdir -p build
-	promgen -w -p mcs -c FF -o build/spix4_MultiBoot_${BOARD_REV}${VARIANT}_${GOLDEN_MAJOR}_${GOLDEN_MINOR}-${MULTIBOOT_MAJOR}_${MULTIBOOT_MINOR} -s 2048 -u 0000 build/kawari_golden_${BOARD_REV}${VARIANT}_${GOLDEN_MAJOR}.${GOLDEN_MINOR}.bit -u 07d000 build/kawari_multiboot_${BOARD_REV}${VARIANT}_${MULTIBOOT_MAJOR}.${MULTIBOOT_MINOR}.bit -spi
+	promgen -w -p mcs -c FF -o build/spix4_MultiBoot_${BOARD}${VARIANT}_${GOLDEN_MAJOR}_${GOLDEN_MINOR}-${MULTIBOOT_MAJOR}_${MULTIBOOT_MINOR} -s 2048 -u 0000 build/kawari_golden_${BOARD}${VARIANT}_${GOLDEN_MAJOR}.${GOLDEN_MINOR}.bit -u 07d000 build/kawari_multiboot_${BOARD}${VARIANT}_${MULTIBOOT_MAJOR}.${MULTIBOOT_MINOR}.bit -spi
 
 program:
-	cat ../kawari_progspi.cmd | sed "s/%BOARD_REV%/${BOARD_REV}/g" | sed "s/%VARIANT%/${VARIANT}/g" | sed "s/%GOLDEN_MAJOR%/${GOLDEN_MAJOR}/g" | sed "s/%GOLDEN_MINOR%/${GOLDEN_MINOR}/g" | sed "s/%MULTIBOOT_MAJOR%/${MULTIBOOT_MAJOR}/g" | sed "s/%MULTIBOOT_MINOR%/${MULTIBOOT_MINOR}/g" > kawari_progspi.tmp
+	cat ../kawari_progspi.cmd | sed "s/%BOARD%/${BOARD}/g" | sed "s/%VARIANT%/${VARIANT}/g" | sed "s/%GOLDEN_MAJOR%/${GOLDEN_MAJOR}/g" | sed "s/%GOLDEN_MINOR%/${GOLDEN_MINOR}/g" | sed "s/%MULTIBOOT_MAJOR%/${MULTIBOOT_MAJOR}/g" | sed "s/%MULTIBOOT_MINOR%/${MULTIBOOT_MINOR}/g" > kawari_progspi.tmp
 	impact -batch kawari_progspi.tmp
 
 clean:

@@ -10,7 +10,7 @@ N3     A7       adh[1]  IO    QUIETIO 2 LVCMOS33
 N1     A8       adh[2]  IO    QUIETIO 2 LVCMOS33
 M3     A9       adh[3]  IO    QUIETIO 2 LVCMOS33
 M1     A10      adh[4]  IO    QUIETIO 2 LVCMOS33
-N5     A11      adh[5]  IO    QUIETIO 2 LVCMOS33
+T6     A11      adh[5]  IO    QUIETIO 2 LVCMOS33
 
 # Bi-directional databus
 C11     D7       dbl[7]  IO   QUIETIO 2 LVCMOS33
