@@ -1,25 +1,25 @@
 # Bi-directional address bus
-T4     A0       adl[0]  IO    QUIETIO 2 LVCMOS33
-N5     A1       adl[1]  IO    QUIETIO 2 LVCMOS33
-P4     A2       adl[2]  IO    QUIETIO 2 LVCMOS33
-N4     A3       adl[3]  IO    QUIETIO 2 LVCMOS33
-R2     A4       adl[4]  IO    QUIETIO 2 LVCMOS33
+P6     A0       adl[0]  IO    QUIETIO 2 LVCMOS33
+P5     A1       adl[1]  IO    QUIETIO 2 LVCMOS33
+T4     A2       adl[2]  IO    QUIETIO 2 LVCMOS33
+N5     A3       adl[3]  IO    QUIETIO 2 LVCMOS33
+P4     A4       adl[4]  IO    QUIETIO 2 LVCMOS33
 R1     A5       adl[5]  IO    QUIETIO 2 LVCMOS33
 P1     A6       adh[0]  IO    QUIETIO 2 LVCMOS33
-P2     A7       adh[1]  IO    QUIETIO 2 LVCMOS33
+N3     A7       adh[1]  IO    QUIETIO 2 LVCMOS33
 N1     A8       adh[2]  IO    QUIETIO 2 LVCMOS33
 M3     A9       adh[3]  IO    QUIETIO 2 LVCMOS33
 M1     A10      adh[4]  IO    QUIETIO 2 LVCMOS33
-P5     A11      adh[5]  IO    QUIETIO 2 LVCMOS33
+N5     A11      adh[5]  IO    QUIETIO 2 LVCMOS33
 
 # Bi-directional databus
-B12     D7       dbl[7]  IO   QUIETIO 2 LVCMOS33
-A12     D6       dbl[6]  IO   QUIETIO 2 LVCMOS33
-A11     D5       dbl[5]  IO   QUIETIO 2 LVCMOS33
-C10     D4       dbl[4]  IO   QUIETIO 2 LVCMOS33
-A10     D3       dbl[3]  IO   QUIETIO 2 LVCMOS33
-C9      D2       dbl[2]  IO   QUIETIO 2 LVCMOS33
-B10     D1       dbl[1]  IO   QUIETIO 2 LVCMOS33
+C11     D7       dbl[7]  IO   QUIETIO 2 LVCMOS33
+A11     D6       dbl[6]  IO   QUIETIO 2 LVCMOS33
+C10     D5       dbl[5]  IO   QUIETIO 2 LVCMOS33
+A10     D4       dbl[4]  IO   QUIETIO 2 LVCMOS33
+C9      D3       dbl[3]  IO   QUIETIO 2 LVCMOS33
+B10     D2       dbl[2]  IO   QUIETIO 2 LVCMOS33
+A9      D1       dbl[1]  IO   QUIETIO 2 LVCMOS33
 A8      D0       dbl[0]  IO   QUIETIO 2 LVCMOS33
 
 # Read only lines
@@ -36,14 +36,16 @@ A2    CPURI    cpu_reset_i   I NA NA LVCMOS33
 R7      CAS      cas     O    SLOW 4 LVCMOS33
 T7      RAS      ras     O    SLOW 4 LVCMOS33
 N6      PHI      clk_phi O    SLOW 4 LVCMOS33
-T6      AEC      aec     O    SLOW 4 LVCMOS33
-P6      BA       ba      O    SLOW 4 LVCMOS33
+N4      AEC      aec     O    SLOW 4 LVCMOS33
+R2      BA       ba      O    SLOW 4 LVCMOS33
 B3      IRQ      irq     O    SLOW 2 LVCMOS33
 
 # Control lines
-H1     addr_dir  ls245_addr_dir O    SLOW 4 LVCMOS33
+M2     addr_dir  ls245_addr_dir O    SLOW 4 LVCMOS33
 A3     data_dir  ls245_data_dir O    SLOW 4 LVCMOS33
-A7     RESET     cpu_reset      O    SLOW 4 LVCMOS33
+P2     addr_oe   ls245_addr_oe  O    SLOW 4 LVCMOS33
+A7     data_oe   ls245_data_oe  O    SLOW 4 LVCMOS33
+A12    RESET     cpu_reset      O    SLOW 4 LVCMOS33
 R9     switch    standard_sw    I    NA NA LVCMOS33
 T8     CFG_RESET cfg_reset      I    NA NA LVCMOS33
 C3     LUMA_SINK luma_sink      O    SLOW 4 LVCMOS33
@@ -79,12 +81,12 @@ J14    HEAD     clk_col4x_pal   I   NA NA LVCMOS33
 J16    HEAD     clk_col4x_ntsc  I   NA NA LVCMOS33
 
 # Luma/Chroma lines
-H3     LUMA     luma[5]         O   QUIETIO 2 LVCMOS33
-J1     LUMA     luma[4]         O   QUIETIO 2 LVCMOS33
+L1     LUMA     luma[5]         O   QUIETIO 2 LVCMOS33
+K1     LUMA     luma[4]         O   QUIETIO 2 LVCMOS33
 K2     LUMA     luma[3]         O   QUIETIO 2 LVCMOS33
-K1     LUMA     luma[2]         O   QUIETIO 2 LVCMOS33
-L1     LUMA     luma[1]         O   QUIETIO 2 LVCMOS33
-M2     LUMA     luma[0]         O   QUIETIO 2 LVCMOS33
+J1     LUMA     luma[2]         O   QUIETIO 2 LVCMOS33
+H3     LUMA     luma[1]         O   QUIETIO 2 LVCMOS33
+H1     LUMA     luma[0]         O   QUIETIO 2 LVCMOS33
 E2     CHROMA   chroma[5]       O   QUIETIO 2 LVCMOS33
 E1     CHROMA   chroma[4]       O   QUIETIO 2 LVCMOS33
 F2     CHROMA   chroma[3]       O   QUIETIO 2 LVCMOS33
@@ -99,7 +101,7 @@ T3     FLASH_S   flash_s        O QUIETIO 2 LVCMOS33
 T9     EEPROM_S  eeprom_s       O QUIETIO 2 LVCMOS33
 R11    SPI_C     spi_c          O QUIETIO 2 LVCMOS33
 T10    SPI_D     spi_d          O QUIETIO 2 LVCMOS33
-P10    SPI_D     spi_q          I  NA NA LVCMOS33
+P10    SPI_Q     spi_q          I  NA NA LVCMOS33
 
 # Config
 R16    CFG1      cfg1           I PULLUP NA NA
