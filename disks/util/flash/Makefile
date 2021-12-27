@@ -17,8 +17,8 @@ TYPE=multiboot
 # One of : SIM | MAIN | MAINSB | MAINLD
 REG_VARIANT=MAIN
 # BUILD_VARIANT - Variant for .bit filename
-# One of : N/A | rev_3 | rev_4SB | rev_4LD
-BUILD_VARIANT=rev_3
+# One of : N/A | T | SB | LD
+BUILD_VARIANT=T
 
 # REG_VARIANT and BUILD_VARIANT must be for
 # the same variant.
