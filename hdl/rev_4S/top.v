@@ -5,7 +5,7 @@
 // Top level module for the Rev_4S board.
 module top(
 `ifdef NO_CLOCK_MUX
-           input clk_either,
+           input clk_col4x_either,
 `else
            input clk_col4x_pal,
            input clk_col4x_ntsc,
@@ -176,7 +176,6 @@ dvi_encoder_top dvi_tx0 (
                     .TMDSB       (TX0_TMDSB));
 `endif
 
-`ifdef GEN_RGB
 // https://www.xilinx.com/support/answers/35032.html
 `ifdef GEN_RGB
 ODDR2 oddr2(

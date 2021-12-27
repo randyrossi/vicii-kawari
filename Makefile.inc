@@ -122,4 +122,4 @@ clean:
 	rm -rf 	webtalk_pn.xml
 	rm -rf 	xlnx_auto_0_xdb/
 	rm -rf 	xst/
-
+	rm -rf _xmsgs
