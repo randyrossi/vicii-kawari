@@ -14,7 +14,7 @@ START_ADDRESS=512000
 # TYPE = multiboot or golden
 TYPE=multiboot
 # REG_VARIANT - Variant name matching registers 0x90-0x9F
-# One of : SIM | MAIN | MAIN4SB | MAIN4LD
+# One of : SIM | MAIN | MAINSB | MAINLD
 REG_VARIANT=MAIN
 # BUILD_VARIANT - Variant for .bit filename
 # One of : N/A | rev_3 | rev_4SB | rev_4LD
@@ -31,7 +31,7 @@ subdirs:
 
 SOURCE_IMG=kawari_$(TYPE)_$(BUILD_VARIANT)_$(VERSION).bit
 
-# Max 28 disks to cover size of SpX16
+# Max 29 files to cover size of SpX16
 FILENUMS=00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
 # Max 4 disks
 DISKNUMS=1 2 3 4
