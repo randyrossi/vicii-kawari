@@ -45,6 +45,7 @@ P92      addr_oe   ls245_addr_oe  O    SLOW 4 LVCMOS33
 P143     data_dir  ls245_data_dir O    SLOW 4 LVCMOS33
 P126     data_oe   ls245_data_oe  O    SLOW 4 LVCMOS33
 P118     RESET     cpu_reset      O    SLOW 4 LVCMOS33
+P41      CFG_RESET cfg_reset      I    NA NA LVCMOS33
 P102     switch    standard_sw    I    NA NA LVCMOS33
 
 # Clocks
