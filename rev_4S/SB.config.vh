@@ -15,6 +15,7 @@
 `define GEN_LUMA_CHROMA 1
 `define CONFIGURABLE_LUMAS 1
 `define HAVE_FLASH 1
+`define HAVE_EEPROM 1
 `define HIRES_MODES 1
 `define WITH_MATH 1
 
