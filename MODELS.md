@@ -11,16 +11,12 @@ New Video Modes        |No        |Yes       |Yes
 Analog RGB             |No        |No        |Yes
 Fixed to NTSC or PAL   |Yes       |N/A       |N/A
 Switchable NTSC/PAL    |No        |Yes       |Yes
+Jumper Config MB Clk   |N/A       |No        |Yes
 HDMI                   |No        |No        |Yes
 Saveable Config        |No        |Yes       |Yes
-Detect Reset           |N/A       |Yes       |Yes
-R/W Experiment         |No        |No        |Yes
+Detect Reset           |N/A       |No        |Yes
 Old chips?             |No        |Yes       |Yes
-BOM Estimate           |$24 USD   |$35 USD   |
-PCB Manuf.             |  3 USD   |  3 USD   |
-Assembly Estimate      |  5 USD   |  5 USD   |
-Total Cost Manuf.      |$32 USD   |$43 USD   |
-Retail Est (2x)        |$64 USD   |$86 USD   |
+Current Draw           |~120ma    |~120ma    |~180ma
 
 # Feature Descriptions
 
@@ -42,6 +38,9 @@ PCB must be configured as NTSC or PAL but cannot switch between standards. Mothe
 ## Switchable NTSC/PAL
 PCB can be told to boot as either 6567 (NTSC) or 6569 (PAL) (either by hardware switch or software selection). Motherboard clock is optional.
 
+## Jumper Config MB Clk
+PCB can be configured via jumper to use the mother board clock for either NTSC or PAL. (Used to avoid out of phase issue with some carts that use pin 6.)
+
 ## Old Chips
 PCB can be configured to act as older NTSC and PAL models 6567R56A or 6569R1.
 
@@ -53,7 +52,6 @@ PCB can optionally connect to RESET line of motherboard and restore colors to de
 
 ## Saveable Config
 PCB can remember changes to palette and other video settings between cold boots.
-
 
 # Configuration Notes
 
