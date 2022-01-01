@@ -56,13 +56,13 @@ void rgb_to_hsv(double r, double g, double b, int *phase, int *amp, int *luma) {
         *amp = s*(15.0d/100.0d);
         *luma = v*(63.0d/100.0d);
         if (*amp == 0) *phase = 0;
-        if (*luma < 12) *luma = 12;
+        if (*luma < 1) *luma = 1;
         if (*luma > 63) *luma = 63;
         //printf("%f  %f %f %f\n", h,  h*(255.0d/359.0d), s*(15.0d/100.0d), v*(63.0d/100.0d));
- 
 }
 
 int main(int argc, char *argv[]) {
+   // Expect bin file with bytes RGBX
    if (argc < 1) {
       printf ("Usage: rgb2hsv <rgb.bin.file> > hsv.bin.file\n");
       exit(0);
@@ -79,27 +79,26 @@ int main(int argc, char *argv[]) {
    int l[16];
    for (int col=0;col<16;col++) {
       unsigned int r = fgetc(fp);
-      r = r * 255 / 63;
+      //r = r * 255 / 63; // scale up to 0-255
       unsigned int g = fgetc(fp);
-      g = g * 255 / 63;
+      //g = g * 255 / 63; // scale up to 0-255
       unsigned int b = fgetc(fp);
-      b = b * 255 / 63;
-      unsigned int t = fgetc(fp);
-      t = t * 255 / 63;
+      //b = b * 255 / 63; // scale up to 0-255
+      fgetc(fp); // ignore
       
       rgb_to_hsv(r, g, b, &p[col], &a[col], &l[col]);
 
-      // Brighten it up by 25%
-      l[col] = (double)l[col] * 1.25;
+      // Brighten it up a bit
+      l[col] = (double)l[col] * 1.40; 
       if (l[col] > 63) l[col] = 63;
    }
 
    for (int col=0;col<16;col++)
-     printf ("%c", l[col]);
-   for (int col=0;col<16;col++)
-     printf ("%c", p[col]);
-   for (int col=0;col<16;col++)
-     printf ("%c", a[col]);
+   {
+     printf ("0x%02x,", l[col]);
+     printf ("0x%02x,", p[col]);
+     printf ("0x%02x,\n", a[col]);
+   }
       
    fclose(fp);
 }
