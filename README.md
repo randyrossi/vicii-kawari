@@ -1,4 +1,4 @@
-<b><p align=center> This is a WIP. Beta testing is underway on hardware. Check back later for updates.</p></b>
+<b><p align=center> STATUS: The project is on hold due to supply chain issues affecting Spartan-6 availability. I am working on porting to a more readily available FPGA.</p></b>
 
 # VIC-II Kawari
 

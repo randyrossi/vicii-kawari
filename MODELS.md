@@ -4,7 +4,7 @@ Model                  |SA        |SB        |LD
 FPGA                   |LX4-QTG144|LX9-QTG144|LX16-FTG256
 Board                  |S         |S         |L
 Variant                |A         |B         |D
-Video RAM              |N/A       |64K       |64K
+Video RAM              |N/A       |32K/64K   |32K/64K
 Luma/Chroma            |Yes       |Yes       |Yes
 Flash updates from C64 |No        |Yes       |Yes
 New Video Modes        |No        |Yes       |Yes
@@ -55,16 +55,12 @@ PCB can remember changes to palette and other video settings between cold boots.
 
 # Configuration Notes
 
-## Model A
+## Model SA
 
 Spartan 6 LX4. VICII replacement only. Acts as either 6567 or 6569 but not both. EEPROM is unpopulated. Right most pin of header must be set by jumper to match the motherboard's clock. CFG1,CFG2,CFG3 have no function. There are no on-board oscillators.
 
-## Model B
+## Model SB
 Spartan 6 LX9. EEPROM is populated. Right most pin of header must be set to match the motherboard's clock. CFG1, CFG2,CFG3 used to control SPI access, Extensions Access (resp.) and persistence. There are no on-board oscillators. This adds extra video modes and configurable video settings.
 
-## Model C
-Spartan 6 LX9. EEPROM is populated. HDMI connector, TVS diodes and anything else HDMI related is unpopulated.  Both oscillators populated.  CFG1, CFG2, CFG3 used to control SPI access, Extensions Access (resp.) and persistence.  This model adds analog RGB and the ability to be either standard.
-
-## Model D
-Spartan 6 LX16. Same as model C but HDMI components are populated. This model adds HDMI.
-
+## Model LD
+Spartan 6 LX16. Fully loaded board with all features. (NOTE: This board can be partially populated with an LX9 to save cost.  Everything except HDMI would be available for a model LC.)
