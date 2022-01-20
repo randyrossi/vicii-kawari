@@ -49,6 +49,8 @@ A12    RESET     cpu_reset      O    SLOW 4 LVCMOS33
 R9     switch    standard_sw    I    NA NA LVCMOS33
 T8     CFG_RESET cfg_reset      I    NA NA LVCMOS33
 C3     LUMA_SINK luma_sink      O    SLOW 4 LVCMOS33
+B12    RW_CTL    rw_ctl         O    SLOW 4 LVCMOS33
+
 
 # RGB Video output
 L14    HEAD   red[0]          O   QUIETIO 2 LVCMOS33

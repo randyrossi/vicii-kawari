@@ -54,6 +54,7 @@ module top(
 
            input ce,            // chip enable (LOW=enable, HIGH=disabled)
            input rw,            // read/write (LOW=write, HIGH=read)
+           output rw_ctl,
            output irq,          // irq
            input lp,            // light pen
            output aec,          // aec
@@ -207,6 +208,7 @@ wire vic_write_db;
 vicii vic_inst(
           .rst(rst),
           .chip(chip),
+          .rw_ctl(rw_ctl),
           .cpu_reset_i(cpu_reset_i),
           .standard_sw(standard_sw),
 `ifdef WITH_EXTENSIONS

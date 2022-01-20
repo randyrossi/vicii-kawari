@@ -83,6 +83,7 @@ module vicii
            output spi_c,
 `endif
 `endif // WITH_EXTENSIONS
+           output rw_ctl,
            output [1:0] chip               // exported from registers
        );
 
@@ -745,9 +746,15 @@ always @(posedge clk_dot4x)
 
 // Both data/addr LS245s have OE pin grounded (always enabled)
 
-// We write to data bus when chip select is low and rw is high
-// (cpu reading from us).
-assign vic_write_db = rw && ~ce;
+// We write to the data bus when chip select is low and rw is high
+// (cpu reading from us).  We also claim the databus if we are
+// performing DMA which is the only time rw_ctl is ever HI. This
+// also only ever happens when AEC is LO and if WITH_RAM is defined.
+`ifdef WITH_RAM
+assign vic_write_db = (rw && ~ce) | rw_ctl;
+`else
+assign vic_write_db = (rw && ~ce);
+`endif
 
 // Provide a delayed version of aec
 reg aec2;
@@ -784,12 +791,21 @@ bus_access vic_bus_access(
                .aec(aec)
            );
 
+`ifdef WITH_RAM
+wire dma_done;
+wire [15:0] dma_addr;
+`endif
+
 // Address generation
 addressgen vic_addressgen(
                //.rst(rst),
                .cycle_type(cycle_type),
                .clk_dot4x(clk_dot4x),
                .cb(cb),
+`ifdef WITH_RAM
+               .dma_done(dma_done),
+               .dma_addr(dma_addr),
+`endif
                .vc(vc),
                .vm(vm),
                .rc(rc),
@@ -882,9 +898,7 @@ registers vic_registers(
               .standard_sw(standard_sw),
               .clk_dot4x(clk_dot4x),
               .clk_phi(clk_phi),
-              .phi_phase_start_dav_plus_2(phi_phase_start[`DATA_DAV_PLUS_2]),
-              .phi_phase_start_dav_plus_1(phi_phase_start[`DATA_DAV_PLUS_1]),
-              .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
+              .phi_phase_start(phi_phase_start),
               .ce(ce),
               .rw(rw),
               .aec(aec),
@@ -1023,7 +1037,14 @@ registers vic_registers(
 `ifdef HAVE_EEPROM
               .eeprom_s(eeprom_s),
 `endif
+`ifdef WITH_RAM
+              .cycle_type(cycle_type),
+              .idle(idle),
+              .dma_addr(dma_addr),
+              .dma_done(dma_done),
+`endif
 `endif // WITH_EXTENSIONS
+              .rw_ctl(rw_ctl),
               .chip(chip) // config out
           );
 

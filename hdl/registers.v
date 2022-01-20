@@ -13,9 +13,7 @@ module registers
            input standard_sw,
            input clk_dot4x,
            input clk_phi,
-           input phi_phase_start_dav_plus_2,
-           input phi_phase_start_dav_plus_1,
-           input phi_phase_start_dav,
+           input [15:0] phi_phase_start,
            input ras,
            input ce,
            input rw,
@@ -153,8 +151,15 @@ module registers
            input         spi_q,
            output reg    spi_c = 1'b1,
 `endif
+`ifdef WITH_RAM
+           input [3:0] cycle_type,
+           input idle,
+           output reg dma_done = 1'b1,
+           output reg [15:0] dma_addr,
+`endif
 `endif // WITH_EXTENSIONS
 
+           output reg rw_ctl = 1'b0,
            output reg [1:0] chip
        );
 
@@ -247,19 +252,22 @@ reg video_ram_wr_a;
 reg [7:0] video_ram_data_in_a;
 wire [7:0] video_ram_data_out_a;
 
-reg [15:0] video_ram_copy_src;
-reg [15:0] video_ram_copy_dst;
-reg [15:0] video_ram_copy_num;
+reg [15:0] video_ram_copy_src; // for both vmem<->vmem or dram<->vmem
+reg [15:0] video_ram_copy_dst; // for both vmem<->vmem or dram<->vmem
+reg [15:0] video_ram_copy_num; // for vmem<->vmem
+reg [15:0] video_dma_copy_num; // for dram<->vmem
+// For vmem<->vmem, direction of copy
+// For dram<->vmem, 0=dram->vmem, 1=vmem->dram
 reg video_ram_copy_dir;
 // 0= write off, set read addr
 // 1= read data, set write addr, write on
 reg [1:0] video_ram_copy_state;
-reg video_ram_copy_done;
+reg video_ram_copy_done = 1'b1;
 
 reg [15:0] video_ram_fill_dst;
 reg [15:0] video_ram_fill_num;
 reg [7:0] video_ram_fill_val;
-reg video_ram_fill_done;
+reg video_ram_fill_done = 1'b1;
 `endif // WITH_RAM
 
 // Regarding pre_wr registers below. We need an additional cycle to
@@ -505,7 +513,7 @@ begin
         timing_v_sync_pal <= 2;
         timing_v_bporch_pal <= 40; // NOTE: crosses 0, we sub 311 and invert sta/end
 `endif
- 
+
         extra_regs_activation_ctr <= 2'b0;
 
         flag_port_1_func <= 2'b0;
@@ -656,7 +664,7 @@ begin
 `endif
 `endif // WITH_EXTENSIONS
 
-        if (phi_phase_start_dav_plus_1) begin
+        if (phi_phase_start[`DATA_DAV_PLUS_1]) begin
             if (!clk_phi) begin
                 // always clear these immediately after they may
                 // have been used. This should be DAV + 1
@@ -684,7 +692,7 @@ begin
             // Otherwise, we'd do it way too early if we did it at the
             // same time we assert dbo in the block below.  VICE sync
             // complains it is too early.
-            if (rw && phi_phase_start_dav) begin
+            if (rw && phi_phase_start[`DATA_DAV]) begin
                 case (addr_latched[5:0])
                     /* 0x1e */ `REG_SPRITE_2_SPRITE_COLLISION: begin
                         // reading this register clears the value
@@ -932,7 +940,7 @@ begin
             end
             // WRITE to register
             else begin /* ~rw */
-                if (phi_phase_start_dav) begin
+                if (phi_phase_start[`DATA_DAV]) begin
                     last_bus <= dbi;
                     case (addr_latched[5:0])
                     /* 0x00 */ `REG_SPRITE_X_0:
@@ -1064,7 +1072,7 @@ begin
                 // We have an extra condition to only do this write
                 // once for extended registers because we have counters
                 // and state machines that rely on that.
-                if (phi_phase_start_dav) begin
+                if (phi_phase_start[`DATA_DAV]) begin
                     if (~extra_regs_activated) begin
                         case (addr_latched[5:0])
                             // Handle activation sequence here.
@@ -1250,6 +1258,20 @@ begin
                                         video_ram_fill_num <= { port_idx_2, port_idx_1 };
                                         video_ram_fill_val <= port_lo_2;
                                         video_ram_fill_done <= 1'b0;
+                                    end else if (dbi[3]) begin
+                                        // DMA DRAM to VMEM
+                                        video_ram_copy_dst <= { port_hi_1, port_lo_1 };
+                                        dma_addr <= { port_hi_2, port_lo_2 }; // DRAM src
+                                        video_dma_copy_num <= { port_idx_2, port_idx_1 };
+                                        video_ram_copy_dir <= 1'b0;
+                                        dma_done <= 1'b0;
+                                    end else if (dbi[4]) begin
+                                        // DMA VMEM to DRAM
+                                        dma_addr <= { port_hi_1, port_lo_1 }; // DRAM dest
+                                        video_ram_copy_src <= { port_hi_2, port_lo_2 };
+                                        video_dma_copy_num <= { port_idx_2, port_idx_1 };
+                                        video_ram_copy_dir <= 1'b1;
+                                        dma_done <= 1'b0;
                                     end
 `else
                                     ;
@@ -1401,7 +1423,7 @@ begin
 
         // Near the start of the low cycle, handle auto increment of
         // our vram pointers.
-        if (~clk_phi && phi_phase_start_dav_plus_2) begin
+        if (~clk_phi && phi_phase_start[`DATA_DAV_PLUS_2]) begin
 `ifdef WITH_RAM
             // Always clear both flags and propagate r to r2 here.
             video_ram_r <= 0;
@@ -1489,11 +1511,10 @@ begin
         end
 
 `ifdef WITH_RAM
-        // Handle block copy here
+        // Handle VRAM block copy here (vmem<->vmem)
         if (video_ram_copy_num > 0) begin
             if (video_ram_copy_state == 2'b0) begin
                 // read
-                video_ram_wr_a <= 1'b0;
                 video_ram_addr_a <= video_ram_copy_src[ram_width-1:0];
             end else if (video_ram_copy_state == 2'b10) begin
                 // write
@@ -1513,11 +1534,10 @@ begin
         end
         else if (video_ram_copy_num == 0 && !video_ram_copy_done) begin
             video_ram_copy_done <= 1'b1;
-            video_ram_wr_a <= 1'b0;
             port_idx_1 <= 8'b0; // signal done
             port_idx_2 <= 8'b0;
         end
-        // Handle block fill here
+        // Handle VMEM block fill here
         if (video_ram_fill_num > 0) begin
             video_ram_wr_a <= 1'b1;
             video_ram_addr_a <= video_ram_fill_dst[ram_width-1:0];
@@ -1527,10 +1547,51 @@ begin
         end
         else if (video_ram_fill_num == 0 && !video_ram_fill_done) begin
             video_ram_fill_done <= 1'b1;
-            video_ram_wr_a <= 1'b0;
             port_idx_1 <= 8'b0; // signal done
             port_idx_2 <= 8'b0;
         end
+        // Handle DMA here
+        if (!aec && video_dma_copy_num > 0 && (cycle_type == `VIC_LI || cycle_type == `VIC_LG && idle)) begin
+           if (video_ram_copy_dir) begin
+              // VMEM->DRAM
+              // cycle_type is not valid until [2]
+              if (phi_phase_start[2]) begin
+                 // setup read from VMEM
+                 video_ram_addr_a <= video_ram_copy_src[ram_width-1:0];
+              end else if (phi_phase_start[4]) begin
+                 // setup write to DRAM, address is set in addressgen.v
+                 dbo <= video_ram_data_out_a;
+                 rw_ctl <= 1;
+              end else if (phi_phase_start[15]) begin
+                 // all done, move to next byte
+                 video_dma_copy_num <= video_dma_copy_num - 1;
+                 rw_ctl <= 0;
+                 video_ram_copy_src <= video_ram_copy_src + 16'b1;
+                 dma_addr <= dma_addr + 16'b1;
+              end
+           end else begin
+              // DRAM->VMEM
+              // cycle_type is not valid until [2]
+              if (phi_phase_start[2]) begin
+                 // setup read from DRAM, address is set in addressgen.v
+                 rw_ctl <= 0;
+              end else if (phi_phase_start[0]) begin
+                 // do the read from DRAM and setup the write to VMEM
+                 video_dma_copy_num <= video_dma_copy_num - 1;
+                 video_ram_wr_a <= 1'b1;
+                 video_ram_addr_a <= video_ram_copy_dst[ram_width-1:0];
+                 video_ram_data_in_a <= dbi;
+                 dma_addr <= dma_addr + 16'b1;
+                 video_ram_copy_dst <= video_ram_copy_dst + 16'b1;
+              end
+           end
+        end
+        else if (video_dma_copy_num == 0 && !dma_done) begin
+           dma_done <= 1'b1;
+           port_idx_1 <= 8'b0; // signal done
+           port_idx_2 <= 8'b0;
+        end
+
 `endif // WITH_RAM
 
 `endif // WITH_EXTENSIONS

@@ -65,6 +65,7 @@ module top(
 
            input ce,            // chip enable (LOW=enable, HIGH=disabled)
            input rw,            // read/write (LOW=write, HIGH=read)
+           output rw_ctl,
            output irq,          // irq
            input lp,            // light pen
            output aec,          // aec
@@ -184,6 +185,7 @@ vicii vic_inst(
           .spi_c(spi_c),
 `endif
 `endif // WITH_EXTENSIONS
+          .rw_ctl(rw_ctl),
           .chip(chip)
       );
 

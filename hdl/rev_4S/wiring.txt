@@ -47,6 +47,7 @@ P126     data_oe   ls245_data_oe  O    SLOW 4 LVCMOS33
 P118     RESET     cpu_reset      O    SLOW 4 LVCMOS33
 P41      CFG_RESET cfg_reset      I    NA NA LVCMOS33
 P102     switch    standard_sw    I    NA NA LVCMOS33
+P144     RW_CTL    rw_ctl         O    SLOW 4 LVCMOS33
 
 # Clocks
 P56    HEAD     clk_col4x_either   I   NA NA LVCMOS33

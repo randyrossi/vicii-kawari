@@ -2,7 +2,7 @@
 
 `include "common.vh"
 
-// The 6569 has a glitch whereby a bmm change on the CPU's half cycle 
+// The 6569 has a glitch whereby a bmm change on the CPU's half cycle
 // prior to a bitmap fetch will result in the wrong address put to
 // the address bus for a CHARROM address. This implementation is my best
 // guess as to what is really going in in the VIC, as opposed to
@@ -54,6 +54,10 @@ module addressgen(
            //input rst,
            input clk_dot4x,
            input [3:0] cycle_type,
+`ifdef WITH_RAM
+           input dma_done,
+           input [15:0] dma_addr,
+`endif
            input [2:0] cb,
            input [9:0] vc,
            input [3:0] vm,
@@ -110,9 +114,16 @@ begin
         `VIC_LR: begin
             vic_addr = {6'b111111, refc};
             vic_addr_now = vic_addr;
-        end `VIC_LG: begin
+        end
+        `VIC_LG: begin
             if (idle) begin
-                vic_addr = ecm_now ? 14'h39FF : 14'h3FFF;
+`ifdef WITH_RAM
+                // We can use idle cycles for DMA transfers.
+                if (!dma_done)
+                  vic_addr = dma_addr[13:0];
+                else
+`endif
+                  vic_addr = ecm_now ? 14'h39FF : 14'h3FFF;
                 vic_addr_now = vic_addr;
             end else begin
                 // This is a wierd calculation for the address using
@@ -126,7 +137,7 @@ begin
                     vic_addr = {cb, char_ptr, rc}; // character pixels
                 if (ecm_now) // ecm at start of half cycle
                     vic_addr[10:9] = 2'b00;
-                
+
                 // This section determines the address that the new
                 // bmm value (if it changed) determines and will be placed
                 // on the address bus shortly after CAS falls.
@@ -157,7 +168,13 @@ begin
                 vic_addr_now = vic_addr;
             end
         default: begin
-            vic_addr = 14'h3FFF;
+`ifdef WITH_RAM
+            // We can use idle cycles for DMA transfers.
+            if (!dma_done && cycle_type == `VIC_LI)
+               vic_addr = dma_addr[13:0];
+            else
+`endif
+               vic_addr = 14'h3FFF;
             vic_addr_now = vic_addr;
         end
     endcase
