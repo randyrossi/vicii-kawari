@@ -30,11 +30,11 @@ Once activated, registers 0xd02f - 0xd03f become available and may be used to ac
 
 REG    | Name | Description
 -------|------|-------------
-0xd02f | OP_1_HI/RESULT_HH | Operand 1 HI on write, Result 31-25
-0xd030 | OP_1_LO/RESULT_HL | Operand 1 LO on write, Result 24-16
-0xd031 | OP_2_HI/RESULT_LH | Operand 2 HI on write, Result 15-8
-0xd032 | OP_2_LO/RESULT_LL | Operand 2 LO on write, Result 7-0
-0xd033 | OPERATOR/OPERATOR_FLAGS | Operator on write, Operation Flags on read
+0xd02f | OP_1_HI/RESULT_HH | Math Operand 1 HI on write, Result 31-25
+0xd030 | OP_1_LO/RESULT_HL | Math Operand 1 LO on write, Result 24-16
+0xd031 | OP_2_HI/RESULT_LH | Math Operand 2 HI on write, Result 15-8
+0xd032 | OP_2_LO/RESULT_LL | Math Operand 2 LO on write, Result 7-0
+0xd033 | OPERATOR/OPERATOR_FLAGS | Math Operator on write, Operation Flags on read
 0xd034 | SPI_REG | SPI Programming Register / Status Register
 0xd035 | VIDEO_MEM_1_IDX | Video Memory Index Port A (RAM only)
 0xd036 | VIDEO_MEM_2_IDX | Video Memory Index Port B (RAM only)
@@ -48,7 +48,9 @@ REG    | Name | Description
 0xd03e | VIDEO_MEM_2_VAL | Video Memory Read/Write Value Port B
 0xd03f | VIDEO_MEM_FLAGS | Video Memory Op Flags (see below)
 
-All math operands are 16-bit.
+### Math Operations
+
+VIC-II Kawari has signed and unsigned multiply and divide operations which can eliminate expensive loops on the CPU and achieve the same result.  All math operands are 16-bit.
 
 OPERATOR    | Description
 ------------|------------
@@ -70,7 +72,7 @@ OPERATOR_FLAGS | Description
 
 ## SPI Programming Register / Status Register ($d034)
 
-This register is used by config/flash programs to update the FPGA bitstream.
+This register is used by config/flash programs to update the FPGA bitstream. The SPI register is not enabled unless it is first POKEd with the sequence 'S','P','I'.
 
 On Write:
 
@@ -93,6 +95,8 @@ Bulk Flash Op | Operation
 ### For bulk flash operations
     24 bit Flash Address = { VIDEO_MEM_1_IDX, VIDEO_MEM_1_HI, VIDEO_MEM_1_LO }
     16 bit VMEM Address = { VIDEO_MEM_2_HI, VIDEO_MEM_2_LO }
+
+Bulk flash operations always operate on 16k pages.
 
 On Read:
 
@@ -127,8 +131,8 @@ VIC-II Kawari adds 64k of video memory to the C64. This memory can be directly a
 
 VIDEO_MEM_FLAGS | Description
 ----------------|-------------
-BIT 1,2  | PORT 1 FUNCTION <br>0=NONE<br>1=AUTO INC<br>2=AUTO DEC<br>3=COPYSRC/FILL
-BIT 3,4  | PORT 2 FUNCTION <br>0=NONE<br>1=AUTO INC<br>2=AUTO DEC<br>3=COPYDST/FILLVAL
+BIT 1,2  | PORT 1 FUNCTION <br>0=NONE<br>1=AUTO INC<br>2=AUTO DEC<br>3=DMA
+BIT 3,4  | PORT 2 FUNCTION <br>0=NONE<br>1=AUTO INC<br>2=AUTO DEC<br>3=DMA
 BIT 5    | Persist busy status flag (see below)
 BIT 6    | Extra 256 registers overlay at 0x0000 Enable/Disable
 BIT 7    | Persist Flag (see below)
@@ -174,7 +178,7 @@ HIRES MODE | Description
 2          | 320x200 Bitmap 16 Color (32K Bitmap, packed pixels, 2 pixels per byte)
 3          | 640x200 Bitmap 4 Color (32K Bitmap, packed pixels, 4 pixels per byte)
 
-### Mode 0
+### Mode 0 : 80 Column Text
 
 Base Pointer    | Description                                     | Range             | Restrictions
 ----------------|-------------------------------------------------|-------------------|------------------
@@ -192,7 +196,9 @@ COLOR_BASE      | Points to a 2k block for 80x25 color matrix     | XXXX0000-XXX
     Matrix Fetch Addr (15):  MATRIX_BASE(4) | VC(11)
     Char Pixel Fetch Addr (15): CHAR_PIXEL_BASE(3) | CASE_BIT(1) | CHAR_NUM(8) | RC(3)
 
-### Mode 1
+    There are no 'bad lines' in hires modes since the video memory is dual port and can be accessed by hires pixel sequencer and the CPU at the same time.  However, yscroll will still trigger a reset of the row counter as it does in the legacy modes.
+
+### Mode 1 : 640x200 16 color
 
 Base Pointer    | Description                                     | Range             | Restrictions
 ----------------|-------------------------------------------------|-------------------|--------------
@@ -207,7 +213,7 @@ COLOR_BASE      | Points to a 2k block for 80x25 color matrix     | XXXX0000-XXX
     Color Fetch Addr (15): COLOR_BASE(4) | VC(11)
     Pixel Fetch Addr (16): MATRIX_BASE[1:0](2) | FVC
 
-### Mode 2
+### Mode 2 : 320x200 16 color
 
 Base Pointer    | Description                                     | Range             | Restrictions
 ----------------|-------------------------------------------------|-------------------|--------------
@@ -221,7 +227,7 @@ COLOR_BASE      | Unused                                          |             
     FVC (15 bit counter)
     Pixel Fetch Addr (16) : MATRIX_BASE[0](1) | HVC
 
-### Mode 3
+### Mode 3 : 640x200 4 color
 
 Base Pointer    | Description                                     | Range             | Restrictions
 ----------------|-------------------------------------------------|-------------------|--------------
@@ -236,11 +242,14 @@ COLOR_BASE      | Color bank                                      | XXXXXX00-XXX
     HVC (15 bit counter)
     Pixel Fetch Addr (16) : MATRIX_BASE[0](1) | HVC
 
+## Accessing Video Memory
+
 ### Writing to video memory from main DRAM using auto increment
+
     LDA <ADDR
-    STA VIDEO_MEM_A_HI
+    STA VIDEO_MEM_1_HI
     LDA >ADDR
-    STA VIDEO_MEM_A_LO
+    STA VIDEO_MEM_1_LO
     LDA #1               ; Auto increment port 1
     STA VIDEO_MEM_FLAGS
     LDA #$55
@@ -257,10 +266,11 @@ COLOR_BASE      | Color bank                                      | XXXXXX00-XXX
     * video mem hi/lo pairs will wrap as expected
 
 ### Reading from video memory into main DRAM using auto increment
+
     LDA <ADDR
-    STA VIDEO_MEM_A_HI
+    STA VIDEO_MEM_1_HI
     LDA >ADDR
-    STA VIDEO_MEM_A_LO
+    STA VIDEO_MEM_1_LO
     LDA #1               ; Auto increment port 1
     STA VIDEO_MEM_FLAGS
     LDA VIDEO_MEM_A_VAL  ; read the value
@@ -273,20 +283,20 @@ COLOR_BASE      | Color bank                                      | XXXXXX00-XXX
 
     * video mem hi/lo pairs will wrap as expected
 
-### Performing a move within video memory
+### Performing a move within video memory (CPU)
 
 Here is an example of moving memory within video RAM using the CPU.
 (A much more efficient way using block copy is shown below).
 
     LDA <SRC_ADDR
-    STA VIDEO_MEM_A_HI
+    STA VIDEO_MEM_1_HI
     LDA >SRC_ADDR
-    STA VIDEO_MEM_A_LO
+    STA VIDEO_MEM_1_LO
 
     LDA <DEST_ADDR
-    STA VIDEO_MEM_B_HI
+    STA VIDEO_MEM_2_HI
     LDA >DEST_ADDR
-    STA VIDEO_MEM_B_LO
+    STA VIDEO_MEM_2_LO
 
     LDA #5               ; Auto increment port 1 and 2
     STA VIDEO_MEM_FLAGS
@@ -296,9 +306,9 @@ Here is an example of moving memory within video RAM using the CPU.
 
     Sequential read/writes will auto increment/decrement the address as above.
 
-## Block Copy
+## DMA Functions
 
-You can perform high speed block copy operations by setting the vmem port 1 and 2 functions to COPYSRC/FILL and COPYDST/FILLVAL respectively. NOTE: Both port 1 and 2 must be configured for COPY/FILL function.
+You can perform high speed copy/fill operations by setting the vmem port 1 and 2 functions to DMA. NOTE: Both port 1 and 2 must be configured for DMA.
 
 Register       | Meaning
 ---------------|--------------
@@ -308,20 +318,30 @@ VIDEO_MEM_2_LO | Src Lo Byte
 VIDEO_MEM_2_HI | Src Hi Byte
 VIDEO_MEM_1_IDX | Num Bytes Lo
 VIDEO_MEM_2_IDX | Num Bytes Hi
-VIDEO_MEM_1_VAL | Perform Copy, 1=copy start to end, 2=copy end to start
+VIDEO_MEM_1_VAL | Perform DMA Function (on write)
 VIDEO_MEM_2_VAL | Unused
 
-### Copy Example
+Perform DMA Function Value| Meaning
+--------------------------|--------------
+1 | Copy VMEM src to VMEM dest (start to end)
+2 | Copy VMEM src to VMEM dest (end to start)
+4 | Fill VMEM dest (See below)
+8 | Copy DRAM src\* to VMEM dest
+16| Copy VMEM src to DRAM dest\*
+
+\* The upper 2 bits of all DRAM src/dest addresses are controlled by the CIA chip. That is, DRAM accesses for DMA transfers will point to the same 16k bank the CIA chip points the VIC to. The upper two bits of all DRAM addresses specified in the registers above are effectively ignored.
+
+### VMEM to VMEM Copy Example (DMA)
 
         LDA <SRC_ADDR
-        STA VIDEO_MEM_A_HI
+        STA VIDEO_MEM_1_HI
         LDA >SRC_ADDR
-        STA VIDEO_MEM_A_LO
+        STA VIDEO_MEM_1_LO
 
         LDA <DEST_ADDR
-        STA VIDEO_MEM_B_HI
+        STA VIDEO_MEM_2_HI
         LDA >DEST_ADDR
-        STA VIDEO_MEM_B_LO
+        STA VIDEO_MEM_2_LO
 
         LDA #15               ; Port 1 copy src, Port 2 copy dest
         STA VIDEO_MEM_FLAGS
@@ -344,11 +364,7 @@ VIDEO_MEM_2_VAL | Unused
 * 8 bytes are moved each 6510 cycle.
 * Max copy is 65535 bytes
 
-## Block Fill
-
-You can perform high speed block fill operations by setting the vmem port 1 and 2 functions to COPYSRC/FILL and COPYDST/FILLVAL respectively.
-
-### Fill
+### VMEM Fill (DMA)
 
 Register       | Meaning
 ---------------|--------------
@@ -358,17 +374,17 @@ VIDEO_MEM_1_IDX | Num Bytes Lo
 VIDEO_MEM_2_IDX | Num Bytes Hi
 VIDEO_MEM_2_LO  | Byte for fill
 VIDEO_MEM_2_HI  | Unused
-VIDEO_MEM_1_VAL | 4 = Perform fill with byte stored in VIDEO_MEM_2_VAL
+VIDEO_MEM_1_VAL | 4 = Perform fill with byte stored in VIDEO_MEM_2_LO
 VIDEO_MEM_2_VAL | Unused
 
 ### Fill Example
 
         LDA <DST_ADDR
-        STA VIDEO_MEM_A_HI
+        STA VIDEO_MEM_1_HI
         LDA >DST_ADDR
-        STA VIDEO_MEM_A_LO
+        STA VIDEO_MEM_1_LO
 
-        LDA #15               ; Port 1 fill dst, Port 2 fill val
+        LDA #15               ; Port 1 DMA, Port 2 DMA
         STA VIDEO_MEM_FLAGS
 
         LDA #00
@@ -392,6 +408,70 @@ VIDEO_MEM_2_VAL | Unused
 * 32 bytes are filled each 6510 cycle.
 * Max fill is 65535 bytes
 
+### DRAM to VMEM copy example (DMA)
+
+        LDA <VMEM_SRC_ADDR  ; vmem src
+        STA VIDEO_MEM_1_HI
+        LDA >VMEM_SRC_ADDR
+        STA VIDEO_MEM_1_LO
+
+        LDA <DRAM_DST_ADDR  ; dram dest
+        STA VIDEO_MEM_2_HI
+        LDA >DRAM_DST_ADDR
+        STA VIDEO_MEM_2_LO
+
+        LDA #0
+        STA VIDEO_MEM_1_IDX
+        LDA #4
+        STA VIDEO_MEM_2_IDX ; size 2k
+
+        LDA #15               ; Port 1 op DMA, Port 2 op DMA
+        STA VIDEO_MEM_FLAGS
+
+        LDA #8                ; Perform DMA op 
+        STA VIDEO_MEM_FLAGS
+
+    waitdone
+        LDA VIDEO_MEM_2_IDX   ; wait for done
+        bne waitdone
+
+### VMEM to DRAM copy example (DMA)
+
+        LDA <DRAM_SRC_ADDR  ; dram src
+        STA VIDEO_MEM_1_HI
+        LDA >DRAM_SRC_ADDR
+        STA VIDEO_MEM_1_LO
+
+        LDA <VMEM_DST_ADDR  ; vmem dest
+        STA VIDEO_MEM_2_HI
+        LDA >VMEM_DST_ADDR
+        STA VIDEO_MEM_2_LO
+
+        LDA #0
+        STA VIDEO_MEM_1_IDX
+        LDA #4
+        STA VIDEO_MEM_2_IDX   ; size 2k
+
+        LDA #15               ; Port 1 op DMA, Port 2 op DMA
+        STA VIDEO_MEM_FLAGS
+
+        LDA #16               ; Perform DMA op 
+        STA VIDEO_MEM_FLAGS
+
+    waitdone
+        LDA VIDEO_MEM_2_IDX   ; wait for done
+        bne waitdone
+
+* VIC-II Kawari uses idle graphics fetch cycles (as well as idle cycles) to perform DRAM to VMEM or VMEM to DRAM transfers. On raster lines less than 51 and greater than 250 (i.e when graphics fetches are in idle state), at least 40 bytes will be transfered each raster line. The actual number depends on the chip model since there are 2-4 additional idle cycles. When graphics fetches are not in idle state (i.e. usually in the visible gfx region) only 2-4 bytes are transfered each raster line.  Rough calculations on the number of bytes that can be transfered per second are provided below.
+
+Chip    | Idle RL             | Active RL | Bytes/Idle RL | Bytes/Active RL| Bytes / Frame 
+--------|---------------------|-----------|---------------|----------------|---------------
+6569    | 50 + (312-250) = 112| 200       | 42            | 2              | 5104
+6567R8  | 50 + (262-250) = 62 | 200       | 44            | 4              | 3528          
+6567R56A| 50 + (261-250) = 61 | 200       | 43            | 3              | 3223          
+
+* If badlines are suppressed (i.e turn off the den bit), then all raster lines can transfer the maximum number of bytes and the transfer rate is much higher.  By turning off the low-res VIC modes, transferring memory from DRAM to VMEM can be as high as 13k/Frame.
+
 ### Using video mem pointers with an index
 
 Sometimes, it may be more convenient to use an index when porting code to use VIC-II Kawari extended video memory.  This is useful if replacing indirect indexed addressing.
@@ -409,11 +489,11 @@ Can be replaced with:
 
     LDY #20
     LDA #00
-    STA VIDEO_MEM_A_LO
+    STA VIDEO_MEM_1_LO
     LDA #04
-    STA VIDEO_MEM_A_HI
-    STY VIDEO_MEM_A_IDX
-    LDA VIDEO_MEM_A_VAL
+    STA VIDEO_MEM_1_HI
+    STY VIDEO_MEM_1_IDX
+    LDA VIDEO_MEM_1_VAL
 
 NOTE: VIDEO_MEM_?_IDX only applies to RAM access, not the extended register
       overlay area between 0x00 - 0xff described below.
@@ -468,6 +548,7 @@ Location | Name | Description | Capability Requirement | Can be saved?
 VIC-II Kawari has a configurable color palette. The 16 colors can be selected from a palette of 262144 colors by specifying three 6-bit RGB values. (The upper 2 bits in each byte are ignored).  The RGB palette is located at 0x40 in the extended registers page.
 
 ### HSV Color Registers (For luma/chroma)
+
 Colors generated by the luma/chroma generator can be modified by changing registers 0xa0-0xaf (luma levels), 0xb0-0xbf (hue/phase angles) and 0xc0-0xcf (saturation/amplitude).  Luma levels are 6 bit values (0-63).  Phase angles are 0-255 (representing 0-359 degrees). Amplitudes are 4 bit values (0-15).  (NOTE: Blanking levels below 8 may not be accepted by some TV's/monitors and any color luma value should be at or above the blanking level or the CRT may lose sync.)
 
 #### General Notes

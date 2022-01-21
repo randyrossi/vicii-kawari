@@ -148,7 +148,7 @@ If you need a VIC-II to replace a broken one, you should just buy one off eBay. 
 * Configurable color palette (262144 RGB color space, 262144 HSV color space)
 * No need for a working clock circuit
 * Can software switch between NTSC and PAL-B
-* Optional NTSC/PAL-B hardware switch available
+* Optional NTSC/PAL-B hardware switch
 * Four chip models supported (6567R56A, 6567R8, 6569R1, 6569R3)
 * An 80 column mode and new graphics modes
 * An 80 column Novaterm driver
