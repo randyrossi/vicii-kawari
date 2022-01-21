@@ -31,4 +31,5 @@ void main_menu(void)
     RUN_TEST1(vmem_copy, 2);
     RUN_TEST(vmem_copy_overlap);
     RUN_TEST(vmem_fill);
+    RUN_TEST(dma);
 }

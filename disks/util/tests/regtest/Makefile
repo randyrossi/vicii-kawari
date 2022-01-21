@@ -9,7 +9,8 @@ OBJS=../../common/main.o menu.o ../../common/util.o ../../common/init.o \
      test_vmem.o \
      test_vmem_idx.o \
      test_copy.o \
-     test_fill.o
+     test_fill.o \
+     test_dma.o
 
 regtest.prg: $(OBJS)
 	cl65 -o regtest.prg $(OBJS)
