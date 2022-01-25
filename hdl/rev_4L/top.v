@@ -271,4 +271,4 @@ assign adh = vic_write_ab ? ado[11:6] : 6'bz;
 assign ls245_addr_oe = 1'b0;
 assign ls245_data_oe = 1'b0;
 
-endmodule : top
+endmodule

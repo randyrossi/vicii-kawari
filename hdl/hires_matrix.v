@@ -92,4 +92,4 @@ always @(posedge clk_dot4x)
         end
     end
 
-endmodule: hires_matrix
+endmodule

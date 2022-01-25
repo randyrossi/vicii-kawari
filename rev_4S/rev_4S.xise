@@ -167,7 +167,7 @@
     <file xil_pn:name="../hdl/config.vh" xil_pn:type="FILE_VERILOG"/>
     <file xil_pn:name="../hdl/pll_drp_func.h" xil_pn:type="FILE_VERILOG"/>
     <file xil_pn:name="../hdl/registers_no_eeprom.vh" xil_pn:type="FILE_VERILOG"/>
-    <file xil_pn:name="../hdl/registers_no_eeprom.v" xil_pn:type="FILE_VERILOG"/>
+    <file xil_pn:name="../hdl/registers_no_eeprom.vi" xil_pn:type="FILE_VERILOG"/>
   </autoManagedFiles>
 
   <properties>

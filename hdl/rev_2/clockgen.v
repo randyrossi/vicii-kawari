@@ -48,4 +48,4 @@ dvi_clockgen dvi_clockgen(
              );
 `endif
 
-endmodule : clockgen
+endmodule

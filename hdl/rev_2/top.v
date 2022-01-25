@@ -240,4 +240,4 @@ assign dbl[7:0] = vic_write_db ? dbo : 8'bz; // CPU reading
 assign adl = vic_write_ab ? ado[5:0] : 6'bz; // vic or stollen cycle
 assign adh = vic_write_ab ? ado[11:6] : 6'bz;
 
-endmodule : top
+endmodule

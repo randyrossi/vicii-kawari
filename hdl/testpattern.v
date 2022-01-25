@@ -1,5 +1,7 @@
 `timescale 1ns / 1ps
 
+`ifdef TEST_PATTERN
+
 `include "common.vh"
 
 // ROM for a test pattern.
@@ -28,3 +30,5 @@ begin
 end
 
 endmodule
+
+`endif

@@ -194,4 +194,4 @@ assign ado_sim = ado;
 assign dbo_sim = dbo;
 // End diff
 
-endmodule : top
+endmodule

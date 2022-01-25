@@ -366,4 +366,4 @@ SINE_WAVES vic_sinewaves(.clk(clk_col16x),
                          .dout(chroma9));
 `endif  // GEN_LUMA_CHROMA
 
-endmodule : comp_sync
+endmodule

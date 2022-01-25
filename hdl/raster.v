@@ -154,4 +154,4 @@ always @(posedge clk_dot4x)
 `endif
     end
 
-endmodule: raster
+endmodule

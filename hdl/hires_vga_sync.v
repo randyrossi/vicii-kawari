@@ -423,4 +423,4 @@ task set_params_configurable();
 endtask
 `endif
 
-endmodule : hires_vga_sync
+endmodule

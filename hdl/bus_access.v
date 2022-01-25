@@ -92,4 +92,4 @@ always @(posedge clk_dot4x)
 
 // s-access reads are performed in vic_sprites
 
-endmodule: bus_access
+endmodule

@@ -1256,4 +1256,4 @@ hires_vga_sync vic_vga_sync(
                );
 `endif
 
-endmodule : vicii
+endmodule

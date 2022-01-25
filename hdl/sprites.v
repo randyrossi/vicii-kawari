@@ -576,4 +576,4 @@ always @(posedge clk_dot4x)
         end
     end
 
-endmodule: sprites
+endmodule

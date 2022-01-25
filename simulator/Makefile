@@ -47,10 +47,11 @@ VTOP_DEPS = vicii_ipc.o libvicii_ipc.so $(VERILOG_SOURCES) sim_main.cpp vicii_ip
 
 SIM_CONFIG = 0
 
+VI_INC = ../hdl/registers_eeprom.vi ../hdl/registers_ram.vi ../hdl/registers_eeprom.vi ../hdl/registers_flash.vi
+
 # Use -DHIRES_TEXT -DHIRES_BITMAP1 -DHIRES_BITMAP2 -DHIRES_BITMAP3 for other modes
 # Add -DVIC_ROLL=1 for vic_roll branch
-obj_dir/Vtop: $(VTOP_DEPS) gen_config \
-	../hdl/registers_eeprom.v ../hdl/registers_ram.v
+obj_dir/Vtop: $(VTOP_DEPS) gen_config $(VI_INC)
 	@(./gen_config $(SIM_CONFIG) > ../hdl/config.vh)
 	$(VERILATOR) --top-module top --trace -cc  --exe \
 	    -I../hdl $(VERILOG_SOURCES) -I../hdl/dvi sim_main.cpp log.cpp \

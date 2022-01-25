@@ -522,7 +522,7 @@ begin
         flag_persist <= 1'b0;
 
 `ifdef SIMULATOR_BOARD
-        extra_regs_activated <= 0'b1;
+        extra_regs_activated <= 1'b1;
 `ifdef HIRES_MODES
 	`ifdef HIRES_TEXT
         // Test mode 0 : Text
@@ -1798,18 +1798,18 @@ end
 
 // read_ram and write_ram task definitions
 `ifdef WITH_EXTENSIONS
-`include "registers_ram.v"
+`include "registers_ram.vi"
 `endif // WITH_EXTENSIONS
 
 `ifdef HAVE_EEPROM
-`include "registers_eeprom.v"
+`include "registers_eeprom.vi"
 `else
-`include "registers_no_eeprom.v"
+`include "registers_no_eeprom.vi"
 `endif
 
 `ifdef WITH_EXTENSIONS
 `ifdef HAVE_FLASH
-`include "registers_flash.v"
+`include "registers_flash.vi"
 `endif
 `endif // WITH_EXTENSIONS
 

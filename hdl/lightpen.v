@@ -102,5 +102,4 @@ begin
     end
 end
 
-
-endmodule: lightpen
+endmodule
