@@ -3,13 +3,14 @@
 
 `include "config.vh"
 
-// Some defines to get things to compile properly
+// Some defines to get things to synthesize properly
 // between 32k and 64k video ram.  Some concatenations
 // and bit ranges need adjusting.
 `ifdef WITH_64K
 `define VIDEO_RAM_WIDTH    16
 `define VIDEO_RAM_HI_WIDTH 8
 `define VIDEO_RAM_HI_RANGE 7:0
+`define VIDEO_RAM_MUX      15:13
 `define BIT_EXT_64K        1'b0,
 `define BIT_EXT2_64K       matrix_base[0],
 `define BIT_EXT3_64K       matrix_base[1:0],
@@ -17,6 +18,7 @@
 `define VIDEO_RAM_WIDTH    15
 `define VIDEO_RAM_HI_WIDTH 7
 `define VIDEO_RAM_HI_RANGE 6:0
+`define VIDEO_RAM_MUX      14:13
 `define BIT_EXT_64K
 `define BIT_EXT2_64K
 `define BIT_EXT3_64K       matrix_base[0],
