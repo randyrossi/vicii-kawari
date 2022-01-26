@@ -15,7 +15,8 @@
 module VIDEO_RAM_EF
        #(
            parameter addr_width = 13,
-           data_width = 8
+           parameter data_width = 8,
+           parameter init_file = ""
        )
        (
            input wire clk,
@@ -30,6 +31,14 @@ module VIDEO_RAM_EF
        );
 
 reg [data_width-1:0] ram_dual_port[2**addr_width-1:0];
+
+initial
+begin
+   if (init_file != "")
+   begin
+      $readmemh(init_file, ram_dual_port);
+   end
+end
 
 always @(posedge clk)
 begin
@@ -50,7 +59,7 @@ endmodule
 module VIDEO_RAM
        #(
            parameter addr_width = `VIDEO_RAM_WIDTH,
-           data_width = 8
+           parameter data_width = 8
        )
        (
            input wire clk,
@@ -66,26 +75,26 @@ module VIDEO_RAM
 
 wire [data_width-1:0] dout_a0;
 wire [data_width-1:0] dout_b0;
-VIDEO_RAM_EF video_ram_0(
+VIDEO_RAM_EF #(.init_file("")) video_ram_0 (
            clk,
-           addr_a[`VIDEO_RAM_MUX] == 3'd0 ? we_a : 0,
+           addr_a[`VIDEO_RAM_MUX] == 0 ? we_a : 0,
            addr_a,
            din_a,
            dout_a0,
-           addr_b[`VIDEO_RAM_MUX] == 3'd0 ? we_b : 0,
+           addr_b[`VIDEO_RAM_MUX] == 0 ? we_b : 0,
            addr_b,
            din_b,
            dout_b0
         );
 wire [data_width-1:0] dout_a1;
 wire [data_width-1:0] dout_b1;
-VIDEO_RAM_EF video_ram_1(
+VIDEO_RAM_EF #(.init_file("")) video_ram_1 (
            clk,
-           addr_a[`VIDEO_RAM_MUX] == 3'd1 ? we_a : 0,
+           addr_a[`VIDEO_RAM_MUX] == 1 ? we_a : 0,
            addr_a,
            din_a,
            dout_a1,
-           addr_b[`VIDEO_RAM_MUX] == 3'd1 ? we_b : 0,
+           addr_b[`VIDEO_RAM_MUX] == 1 ? we_b : 0,
            addr_b,
            din_b,
            dout_b1
@@ -93,7 +102,7 @@ VIDEO_RAM_EF video_ram_1(
 
 wire [data_width-1:0] dout_a2;
 wire [data_width-1:0] dout_b2;
-VIDEO_RAM_EF video_ram_2(
+VIDEO_RAM_EF #(.init_file("")) video_ram_2 (
            clk,
            addr_a[`VIDEO_RAM_MUX] == 2 ? we_a : 0,
            addr_a,
@@ -107,7 +116,7 @@ VIDEO_RAM_EF video_ram_2(
 
 wire [data_width-1:0] dout_a3;
 wire [data_width-1:0] dout_b3;
-VIDEO_RAM_EF video_ram_3(
+VIDEO_RAM_EF #(.init_file("")) video_ram_3 (
            clk,
            addr_a[`VIDEO_RAM_MUX] == 3 ? we_a : 0,
            addr_a,
@@ -123,7 +132,7 @@ VIDEO_RAM_EF video_ram_3(
 
 wire [data_width-1:0] dout_a4;
 wire [data_width-1:0] dout_b4;
-VIDEO_RAM_EF video_ram_4(
+VIDEO_RAM_EF #(.init_file("")) video_ram_4 (
            clk,
            addr_a[`VIDEO_RAM_MUX] == 4 ? we_a : 0,
            addr_a,
@@ -137,7 +146,7 @@ VIDEO_RAM_EF video_ram_4(
 
 wire [data_width-1:0] dout_a5;
 wire [data_width-1:0] dout_b5;
-VIDEO_RAM_EF video_ram_5(
+VIDEO_RAM_EF #(.init_file("")) video_ram_5 (
            clk,
            addr_a[`VIDEO_RAM_MUX] == 5 ? we_a : 0,
            addr_a,
@@ -151,7 +160,7 @@ VIDEO_RAM_EF video_ram_5(
 
 wire [data_width-1:0] dout_a6;
 wire [data_width-1:0] dout_b6;
-VIDEO_RAM_EF video_ram_6(
+VIDEO_RAM_EF #(.init_file("")) video_ram_6 (
            clk,
            addr_a[`VIDEO_RAM_MUX] == 6 ? we_a : 0,
            addr_a,
@@ -164,7 +173,7 @@ VIDEO_RAM_EF video_ram_6(
         );
 wire [data_width-1:0] dout_a7;
 wire [data_width-1:0] dout_b7;
-VIDEO_RAM_EF video_ram_7(
+VIDEO_RAM_EF #(.init_file("")) video_ram_7 (
            clk,
            addr_a[`VIDEO_RAM_MUX] == 7 ? we_a : 0,
            addr_a,
@@ -179,12 +188,12 @@ VIDEO_RAM_EF video_ram_7(
 
 `ifdef WITH_64K
 assign dout_a =
-    (addr_a[`VIDEO_RAM_MUX] == 3'd0 ? dout_a0 : 
-      (addr_a[`VIDEO_RAM_MUX] == 3'd1 ? dout_a1 : 
-        (addr_a[`VIDEO_RAM_MUX] == 3'd2 ? dout_a2 : 
-          (addr_a[`VIDEO_RAM_MUX] == 3'd3 ? dout_a3 : 
-            (addr_a[`VIDEO_RAM_MUX] == 3'd4 ? dout_a4 : 
-              (addr_a[`VIDEO_RAM_MUX] == 3'd5 ? dout_a5 : 
+    (addr_a[`VIDEO_RAM_MUX] == 3'd0 ? dout_a0 :
+      (addr_a[`VIDEO_RAM_MUX] == 3'd1 ? dout_a1 :
+        (addr_a[`VIDEO_RAM_MUX] == 3'd2 ? dout_a2 :
+          (addr_a[`VIDEO_RAM_MUX] == 3'd3 ? dout_a3 :
+            (addr_a[`VIDEO_RAM_MUX] == 3'd4 ? dout_a4 :
+              (addr_a[`VIDEO_RAM_MUX] == 3'd5 ? dout_a5 :
                 (addr_a[`VIDEO_RAM_MUX] == 3'd6 ? dout_a6 : dout_a7)
               )
             )
@@ -194,12 +203,12 @@ assign dout_a =
     );
 
 assign dout_b =
-    (addr_b[`VIDEO_RAM_MUX] == 3'd0 ? dout_b0 : 
-      (addr_b[`VIDEO_RAM_MUX] == 3'd1 ? dout_b1 : 
-        (addr_b[`VIDEO_RAM_MUX] == 3'd2 ? dout_b2 : 
-          (addr_b[`VIDEO_RAM_MUX] == 3'd3 ? dout_b3 : 
-            (addr_b[`VIDEO_RAM_MUX] == 3'd4 ? dout_b4 : 
-              (addr_b[`VIDEO_RAM_MUX] == 3'd5 ? dout_b5 : 
+    (addr_b[`VIDEO_RAM_MUX] == 3'd0 ? dout_b0 :
+      (addr_b[`VIDEO_RAM_MUX] == 3'd1 ? dout_b1 :
+        (addr_b[`VIDEO_RAM_MUX] == 3'd2 ? dout_b2 :
+          (addr_b[`VIDEO_RAM_MUX] == 3'd3 ? dout_b3 :
+            (addr_b[`VIDEO_RAM_MUX] == 3'd4 ? dout_b4 :
+              (addr_b[`VIDEO_RAM_MUX] == 3'd5 ? dout_b5 :
                 (addr_b[`VIDEO_RAM_MUX] == 3'd6 ? dout_b6 : dout_b7)
               )
             )
@@ -210,16 +219,16 @@ assign dout_b =
 `else
 
 assign dout_a =
-    (addr_a[`VIDEO_RAM_MUX] == 3'd0 ? dout_a0 : 
-      (addr_a[`VIDEO_RAM_MUX] == 3'd1 ? dout_a1 : 
-        (addr_a[`VIDEO_RAM_MUX] == 3'd2 ? dout_a2 : dout_a3)
+    (addr_a[`VIDEO_RAM_MUX] == 2'd0 ? dout_a0 :
+      (addr_a[`VIDEO_RAM_MUX] == 2'd1 ? dout_a1 :
+        (addr_a[`VIDEO_RAM_MUX] == 2'd2 ? dout_a2 : dout_a3)
       )
     );
 
 assign dout_b =
-    (addr_b[`VIDEO_RAM_MUX] == 3'd0 ? dout_b0 : 
-      (addr_b[`VIDEO_RAM_MUX] == 3'd1 ? dout_b1 : 
-        (addr_b[`VIDEO_RAM_MUX] == 3'd2 ? dout_b2 : dout_b3)
+    (addr_b[`VIDEO_RAM_MUX] == 2'd0 ? dout_b0 :
+      (addr_b[`VIDEO_RAM_MUX] == 2'd1 ? dout_b1 :
+        (addr_b[`VIDEO_RAM_MUX] == 2'd2 ? dout_b2 : dout_b3)
       )
     );
 `else
