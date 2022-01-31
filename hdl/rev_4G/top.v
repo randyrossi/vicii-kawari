@@ -8,15 +8,19 @@ module top(
 
        input clk_col16x_ntsc, // from pll
        input clk_dot4x_ntsc, // from pll
+       input clk_dot40x_ntsc, // from pll
        input clk_col16x_pal, // from pll
        input clk_dot4x_pal, // from pll
-    
+       input clk_dot40x_pal, // from pll
+
        output reg ntsc_dot, // throw away signal for mux hack
+       output reg ntsc_dot_10, // throw away signal for mux hack
        output reg pal_dot, // throw away signal for mux hack
+       output reg pal_dot_10, // throw away signal for mux hack
        output reg ntsc_col, // throw away signal for mux hack
        output reg pal_col, // throw away signal for mux hack
 
-           // If we are generating luma/chroma, add outputs
+       // If we are generating luma/chroma, add outputs
 `ifdef GEN_LUMA_CHROMA
            output luma_sink,     // luma current sink
            output [5:0] luma,    // luma out
@@ -61,7 +65,7 @@ module top(
            output adl_OE, // address enable (lower 6 bits)
 
            output [5:0] adh,     // address (high 6 bits)
-           
+
            input [7:0] dbl_IN, // data bus lines in (ram/rom)
            output [7:0] dbl_OUT, // data bus ines out (ram/rom)
            output dbl_OE,  // data bus enable
@@ -83,8 +87,10 @@ module top(
            output ls245_data_oe    // OE for data bus transceiver
 `ifdef WITH_DVI
            ,
-           output wire [3:0] TX0_TMDS,
-           output wire [3:0] TX0_TMDSB
+           output tmds_data_r,
+           output tmds_data_g,
+           output tmds_data_b,
+           output tmds_clock
 `endif
 );
 
@@ -97,6 +103,7 @@ assign cpu_reset = rst;
 //assign pll_inst1_RESET = 1'b1;
 //assign pll_inst1_CLKSEL = {1'b0, chip};
 
+/*
 // ======== MUX HACK ==============
 wire clk_dot4x;
 // Put the muxed clock onto the clock tree
@@ -104,6 +111,14 @@ EFX_GBUFCE mux1(
     .CE(1'b1),
     .I(standard_sw ? clk_dot4x_pal : clk_dot4x_ntsc),
     .O(clk_dot4x)
+    );
+
+wire clk_dot40x;
+// Put the muxed clock onto the clock tree
+EFX_GBUFCE mux3(
+    .CE(1'b1),
+    .I(standard_sw ? clk_dot40x_pal : clk_dot40x_ntsc),
+    .O(clk_dot40x)
     );
 
 wire clk_col16x;
@@ -124,6 +139,16 @@ begin
     pal_dot <= ~pal_dot;
 end
 
+always @(posedge clk_dot40x_ntsc)
+begin
+    ntsc_dot_10 <= ~ntsc_dot_10;
+end
+
+always @(posedge clk_dot40x_pal)
+begin
+    pal_dot_10 <= ~pal_dot_10;
+end
+
 always @(posedge clk_col16x_ntsc)
 begin
     ntsc_col <= ~ntsc_col;
@@ -134,7 +159,7 @@ begin
     pal_col <= ~pal_col;
 end
 // ======== END MUX HACK ==========
-
+*/
 wire [7:0] dbo;
 wire [11:0] ado;
 
@@ -167,7 +192,7 @@ vicii vic_inst(
           .spi_c(spi_c),
 `endif
 `endif // WITH_EXTENSIONS
-          .clk_dot4x(clk_dot4x),
+          .clk_dot4x(clk_dot4x_ntsc),
           .clk_phi(clk_phi),
 `ifdef NEED_RGB
           .active(active),
@@ -177,7 +202,7 @@ vicii vic_inst(
           .green(green),
           .blue(blue),
 `endif
-          .clk_col16x(clk_col16x),
+          .clk_col16x(clk_col16x_ntsc),
 `ifdef GEN_LUMA_CHROMA
           .luma_sink(luma_sink),
           .luma(luma),
@@ -212,6 +237,27 @@ assign adh = ado[11:6];
 // Set LOW unless we need otherwise.
 assign ls245_addr_oe = 1'b0;
 assign ls245_data_oe = 1'b0;
+
+`ifdef WITH_DVI
+// Scale from 6 bits to 8 for DVI
+wire[31:0] red_scaled;
+wire[31:0] green_scaled;
+wire[31:0] blue_scaled;
+assign red_scaled = red * 255 / 63;
+assign green_scaled = green * 255 / 63;
+assign blue_scaled = blue * 255 / 63;
+
+dvi dvi_tx0 (
+   .clk_pixel    (clk_dot4x_ntsc),
+   .clk_pixel_x10(clk_dot40x_ntsc),
+   .reset        (1'b0),
+   .rgb          ({red_scaled[7:0], green_scaled[7:0], blue_scaled[7:0]}),
+   .hsync        (hsync),
+   .vsync        (vsync),
+   .de           (active),
+   .tmds         ({tmds_data_r, tmds_data_g, tmds_data_b}),
+   .tmds_clock   (tmds_clock));
+`endif
 
 endmodule
 
