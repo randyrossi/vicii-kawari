@@ -39,9 +39,12 @@ VERILOG_SOURCES = ../hdl/simulator/top.v ../hdl/vicii.v ../hdl/common.vh \
 	          ../hdl/lightpen.v ../hdl/raster.v ../hdl/divide.v \
 	          ../hdl/serration.v  ../hdl/bus_access.v ../hdl/cycles.v \
                   ../hdl/matrix.v ../hdl/sprites.v  ../hdl/hires_vga_sync.v \
-		  ../hdl/clockdivs.v ../hdl/videoram.v ../hdl/colorreg.v \
+		  ../hdl/videoram.v ../hdl/colorreg.v \
 		  ../hdl/sinewave.v ../hdl/testpattern.v ../hdl/lumareg.v \
-		  ../hdl/hires_matrix.v ../hdl/hires_addressgen.v ../hdl/hires_pixel_sequencer.v
+		  ../hdl/hires_matrix.v ../hdl/hires_addressgen.v ../hdl/hires_pixel_sequencer.v \
+		  ../hdl/efinix_trion/dvi/dvi.sv \
+		  ../hdl/efinix_trion/dvi/tmds_channel.sv \
+		  ../hdl/efinix_trion/dvi/serializer.sv
 
 VTOP_DEPS = vicii_ipc.o libvicii_ipc.so $(VERILOG_SOURCES) sim_main.cpp vicii_ipc.c vicii_ipc.h 
 
@@ -76,6 +79,9 @@ install: libvicii_ipc.so
 	sudo chmod oug+r /usr/include/vicii_ipc.h
 
 logic:
+	#Make it so we can add bus values in session.tcl
+	#cat session.vcd | sed 's/tmds_internal(0)/tmds_internal_0/g' | sed 's/tmds_shift(0)/tmds_shift_0/g' > tmp
+	#mv tmp session.vcd
 	gtkwave session.vcd --script session.tcl
 
 gen_config: gen_config.o

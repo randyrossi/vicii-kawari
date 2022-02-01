@@ -76,8 +76,10 @@ module top(
            output ls245_addr_dir   // DIR for addr bus transceiver
 `ifdef WITH_DVI
            ,
-           output wire [3:0] TX0_TMDS,
-           output wire [3:0] TX0_TMDSB
+           output tmds_data_r, // from generic DVI encoder
+           output tmds_data_g, // from generic DVI encoder
+           output tmds_data_b, // from generic DVI encoder
+           output tmds_clock // from generic DVI encoder
 `endif
            );
 
@@ -96,19 +98,6 @@ wire [5:0] green;
 wire [5:0] blue;
 `endif
 `endif
-
-`ifdef WITH_DVI
-// For config test only
-assign TX0_TMDS[0] = 1;
-assign TX0_TMDS[1] = 0;
-assign TX0_TMDS[2] = 1;
-assign TX0_TMDS[3] = 0;
-assign TX0_TMDSB[0] = 1;
-assign TX0_TMDSB[1] = 0;
-assign TX0_TMDSB[2] = 1;
-assign TX0_TMDSB[3] = 0;
-`endif
-
 
 // This is a reset line for the CPU which would have to be
 // connected with a jumper.  It holds the CPU in reset
@@ -193,5 +182,41 @@ vicii vic_inst(
 assign ado_sim = ado;
 assign dbo_sim = dbo;
 // End diff
+
+`ifdef WITH_DVI
+wire[31:0] red_scaled;
+wire[31:0] green_scaled;
+wire[31:0] blue_scaled;
+assign red_scaled = red * 255 / 63;
+assign green_scaled = green * 255 / 63;
+assign blue_scaled = blue * 255 / 63;
+
+// Fake a clock and 10x clock. Won't be
+// aligned to dot4x but we can look at
+// rgb data load and encoding issues.
+reg c1 = 1;
+reg [3:0] ctr;
+reg c2;
+always @(posedge clk_dot4x)
+begin
+    c1 = ~c1;
+    ctr = ctr +1;
+    if (ctr == 10) begin
+       ctr = 0;
+       c2 = ~c2;
+    end
+end
+
+dvi dvi_tx0 (
+   .clk_pixel    (c2),
+   .clk_pixel_x10(c1),
+   .reset        (1'b0),
+   .rgb          ({red_scaled[7:0], green_scaled[7:0], blue_scaled[7:0]}),
+   .hsync        (hsync),
+   .vsync        (vsync),
+   .de           (active),
+   .tmds         ({tmds_data_r, tmds_data_g, tmds_data_b}),
+   .tmds_clock   (tmds_clock));
+`endif
 
 endmodule
