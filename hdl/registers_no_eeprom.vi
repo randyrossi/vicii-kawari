@@ -10,8 +10,10 @@ task handle_persist(input is_reset);
     begin
         if (internal_rst)
             rstcntr <= rstcntr + `RESET_CTR_INC;
+`ifndef SIMULATOR_BOARD
         if (rstcntr == `RESET_CHIP_SET_POINT)
-            chip <= {chip[1], standard_sw ? ~chip[0] : chip[0]};
+            chip <= {chip[1], standard_sw ? chip[0] : ~chip[0]};
+`endif
         if (rstcntr == `RESET_LIFT_POINT)
             rst <= 0;
     end
