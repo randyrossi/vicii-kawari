@@ -38,8 +38,6 @@ module top(
            output spi_d,
            input  spi_q,
            output spi_c,
-           output flash_d1,
-           output flash_d2,
 `endif
 `ifdef HAVE_EEPROM
            input cfg_reset,
@@ -62,13 +60,13 @@ module top(
 
            input [5:0] adl_IN, // address (lower 6 bits input)
            output [5:0] adl_OUT, // address (lower 6 bits output)
-           output adl_OE, // address enable (lower 6 bits)
+           output [5:0] adl_OE, // address enable (lower 6 bits)
 
            output [5:0] adh,     // address (high 6 bits)
 
            input [7:0] dbl_IN, // data bus lines in (ram/rom)
            output [7:0] dbl_OUT, // data bus ines out (ram/rom)
-           output dbl_OE,  // data bus enable
+           output [7:0] dbl_OE,  // data bus enable
 
            input [3:0] dbh,     // data bus lines (color)
 
@@ -100,10 +98,7 @@ assign clk_dot4x_ext = 1'b0;
 wire rst;
 assign cpu_reset = rst;
 
-//assign pll_inst1_RESET = 1'b1;
-//assign pll_inst1_CLKSEL = {1'b0, chip};
 
-/*
 // ======== MUX HACK ==============
 wire clk_dot4x;
 // Put the muxed clock onto the clock tree
@@ -159,7 +154,7 @@ begin
     pal_col <= ~pal_col;
 end
 // ======== END MUX HACK ==========
-*/
+
 wire [7:0] dbo;
 wire [11:0] ado;
 
@@ -192,7 +187,7 @@ vicii vic_inst(
           .spi_c(spi_c),
 `endif
 `endif // WITH_EXTENSIONS
-          .clk_dot4x(clk_dot4x_ntsc),
+          .clk_dot4x(clk_dot4x),
           .clk_phi(clk_phi),
 `ifdef NEED_RGB
           .active(active),
@@ -202,13 +197,13 @@ vicii vic_inst(
           .green(green),
           .blue(blue),
 `endif
-          .clk_col16x(clk_col16x_ntsc),
+          .clk_col16x(clk_col16x),
 `ifdef GEN_LUMA_CHROMA
           .luma_sink(luma_sink),
           .luma(luma),
           .chroma(chroma),
 `endif
-          .adi(adl_IN[5:0]),
+          .adi(adl_IN),
           .ado(ado),
           .dbi({dbh,dbl_IN}),
           .dbo(dbo),
@@ -228,10 +223,10 @@ vicii vic_inst(
 
 // Write to bus condition, else tri state.
 assign dbl_OUT[7:0] = dbo; // CPU reading
-assign dbl_OE = vic_write_db;
+assign dbl_OE = {vic_write_db,vic_write_db,vic_write_db,vic_write_db,vic_write_db,vic_write_db,vic_write_db};
 
 assign adl_OUT = ado[5:0]; // vic or stollen cycle
-assign adl_OE = vic_write_ab;
+assign adl_OE = {vic_write_ab,vic_write_ab,vic_write_ab,vic_write_ab,vic_write_ab,vic_write_ab};
 assign adh = ado[11:6];
 
 // Set LOW unless we need otherwise.
@@ -248,8 +243,8 @@ assign green_scaled = green * 255 / 63;
 assign blue_scaled = blue * 255 / 63;
 
 dvi dvi_tx0 (
-   .clk_pixel    (clk_dot4x_ntsc),
-   .clk_pixel_x10(clk_dot40x_ntsc),
+   .clk_pixel    (clk_dot4x),
+   .clk_pixel_x10(clk_dot40x),
    .reset        (1'b0),
    .rgb          ({red_scaled[7:0], green_scaled[7:0], blue_scaled[7:0]}),
    .hsync        (hsync),
@@ -260,4 +255,3 @@ dvi dvi_tx0 (
 `endif
 
 endmodule
-
