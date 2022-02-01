@@ -168,6 +168,14 @@ task handle_persist(input is_reset);
                                             magic <= magic + 1;
                                         magic_4 <= data;
                                     end
+                                    `EXT_REG_DISPLAY_FLAGS:
+                                      if (magic != 4 && is_reset) begin
+                                        // If we reach this register stil with no magic, we will never
+                                        // restore any settings including the chip. So at least set
+                                        // chip according to the external switch.
+                                        chip <= {data[1], standard_sw ? chip[0] : ~chip[0]};
+                                        eeprom_bank <= {data[1], standard_sw ? chip[0] : ~chip[0]};
+                                      end
                                     default:
                                         ;
                                 endcase
@@ -184,7 +192,7 @@ task handle_persist(input is_reset);
 // to be.
 `ifdef NO_CLOCK_MUX
                                         chip <= {data[1], standard_sw ? chip[0] : ~chip[0]};
-                                        eeprom_bank <= {data[1], standard_sw ? data[0] : ~chip[0]};
+                                        eeprom_bank <= {data[1], standard_sw ? chip[0] : ~chip[0]};
 `else
 // Otherwise, we can restore any chip model and the standard_sw is used to
 // toggle NTSC or PAL operation from the saved value.
