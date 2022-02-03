@@ -245,14 +245,14 @@ end
 `endif
 `define BURST_START (chip0_16 ? 10'd49 : 10'd50)
 
-reg [8:0] raster_y_16_1;
-reg [8:0] raster_y_16;
-reg [9:0] raster_x_16_1;
-reg [9:0] raster_x_16;
-reg native_active_16_1;
-reg native_active_16;
-reg vSync_16_1;
-reg vSync_16;
+(* async_reg = "true" *) reg [8:0] raster_y_16_1;
+(* async_reg = "true" *) reg [8:0] raster_y_16;
+(* async_reg = "true" *) reg [9:0] raster_x_16_1;
+(* async_reg = "true" *) reg [9:0] raster_x_16;
+(* async_reg = "true" *) reg native_active_16_1;
+(* async_reg = "true" *) reg native_active_16;
+(* async_reg = "true" *) reg vSync_16_1;
+(* async_reg = "true" *) reg vSync_16;
 
 // Handle domain crossing for registers we need from dot4x in a co16x block.
 always @(posedge clk_col16x) raster_y_16_1 <= raster_y;
@@ -273,30 +273,30 @@ wire oddline;
 assign oddline = raster_y_16[0];
 
 // Handle domain crossing from dot4x to col16x
-reg [7:0] phasereg_o2;
-reg [7:0] phasereg_16;
+(* async_reg = "true" *) reg [7:0] phasereg_o2;
+(* async_reg = "true" *) reg [7:0] phasereg_16;
 always @(posedge clk_col16x) phasereg_o2 <= phasereg_o;
 always @(posedge clk_col16x) phasereg_16 <= (raster_x_16 == hvisible_start && white_line_16) ? 8'h0 : phasereg_o2;
 
-reg [3:0] amplitudereg_o2;
-reg [3:0] amplitudereg_16;
+(* async_reg = "true" *) reg [3:0] amplitudereg_o2;
+(* async_reg = "true" *) reg [3:0] amplitudereg_16;
 always @(posedge clk_col16x) amplitudereg_o2 <=  amplitudereg_o;
 always @(posedge clk_col16x) amplitudereg_16 <= (raster_x_16 == hvisible_start && white_line_16) ? 4'h0 : amplitudereg_o2;
 
 `ifdef CONFIGURABLE_LUMAS
-reg [3:0] burst_amplitude_ms;
-reg [3:0] burst_amplitude_16;
+(* async_reg = "true" *) reg [3:0] burst_amplitude_ms;
+(* async_reg = "true" *) reg [3:0] burst_amplitude_16;
 always @(posedge clk_col16x) burst_amplitude_ms <=  burst_amplitude;
 always @(posedge clk_col16x) burst_amplitude_16 <= burst_amplitude_ms;
 `endif
 
-reg chip0_o2;
-reg chip0_16;
+(* async_reg = "true" *) reg chip0_o2;
+(* async_reg = "true" *) reg chip0_16;
 always @(posedge clk_col16x) chip0_o2 <= chip[0];
 always @(posedge clk_col16x) chip0_16 <= chip0_o2;
 
-reg white_line_ms;
-reg white_line_16;
+(* async_reg = "true" *) reg white_line_ms;
+(* async_reg = "true" *) reg white_line_16;
 always @(posedge clk_col16x) white_line_ms <= white_line;
 always @(posedge clk_col16x) white_line_16 <= white_line_ms;
 
