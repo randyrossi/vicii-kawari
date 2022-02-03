@@ -9,8 +9,6 @@
 //
 // https://github.com/sameer
 module dvi 
-#(
-)
 (
     input  clk_pixel,
     input  clk_pixel_x10,

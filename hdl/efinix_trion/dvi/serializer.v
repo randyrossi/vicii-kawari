@@ -13,8 +13,6 @@
 // may be limits on how fast clk_pixel_x10 can be
 // due to component switching limits.
 module serializer
-#(
-)
 (
     input clk_pixel,
     input clk_pixel_x10,

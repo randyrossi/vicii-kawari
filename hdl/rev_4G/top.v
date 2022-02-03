@@ -98,13 +98,30 @@ assign clk_dot4x_ext = 1'b0;
 wire rst;
 assign cpu_reset = rst;
 
+`ifdef USE_MUX_HACK
+`define OOT_CLOCK_4X clk_dot4x
+`define DOT_CLOCK_40X clk_dot40x
+`define COL_CLOCK_16X clk_col16x
+`else
+// Fix to one or the other for testing
+`define DOT_CLOCK_4X clk_dot4x_ntsc
+`define DOT_CLOCK_40X clk_dot40x_ntsc
+`define COL_CLOCK_16X clk_col16x_ntsc
+`endif
 
 // ======== MUX HACK ==============
+// There seems to be no clock mux for the Trion
+// family. This is a hack to mux our clock. It
+// appears to work but produces a warning indicating
+// this might introduce extra clock skew.  However,
+// it doesn't seemt o be a problem.
+
+`ifdef USE_MUX_HACK
 wire clk_dot4x;
 // Put the muxed clock onto the clock tree
 EFX_GBUFCE mux1(
     .CE(1'b1),
-    .I(standard_sw ? clk_dot4x_pal : clk_dot4x_ntsc),
+    .I(standard_sw ? clk_dot4x_ntsc : clk_dot4x_pal),
     .O(clk_dot4x)
     );
 
@@ -112,7 +129,7 @@ wire clk_dot40x;
 // Put the muxed clock onto the clock tree
 EFX_GBUFCE mux3(
     .CE(1'b1),
-    .I(standard_sw ? clk_dot40x_pal : clk_dot40x_ntsc),
+    .I(standard_sw ? clk_dot40x_ntsc : clk_dot40x_pal),
     .O(clk_dot40x)
     );
 
@@ -120,10 +137,16 @@ wire clk_col16x;
 // Put the muxed clock onto the clock tree
 EFX_GBUFCE mux2(
     .CE(1'b1),
-    .I(standard_sw ? clk_col16x_pal : clk_col16x_ntsc),
+    .I(standard_sw ? clk_col16x_ntsc : clk_col16x_pal),
     .O(clk_col16x)
     );
 
+// This is a bit of a hack.  The Efinity toolchain does
+// not like us using  our generated clocks only in the
+// bit of combinatorial logic above (mux). It wants
+// to drive at least one flipflop. So, we will burn
+// 6 pins, one for each of our generated clocks. Is
+// there a better way?
 always @(posedge clk_dot4x_ntsc)
 begin
     ntsc_dot <= ~ntsc_dot;
@@ -153,7 +176,7 @@ always @(posedge clk_col16x_pal)
 begin
     pal_col <= ~pal_col;
 end
-// ======== END MUX HACK ==========
+`endif
 
 wire [7:0] dbo;
 wire [11:0] ado;
@@ -187,7 +210,7 @@ vicii vic_inst(
           .spi_c(spi_c),
 `endif
 `endif // WITH_EXTENSIONS
-          .clk_dot4x(clk_dot4x),
+          .clk_dot4x(`DOT_CLOCK_4X),
           .clk_phi(clk_phi),
 `ifdef NEED_RGB
           .active(active),
@@ -197,7 +220,7 @@ vicii vic_inst(
           .green(green),
           .blue(blue),
 `endif
-          .clk_col16x(clk_col16x),
+          .clk_col16x(`COL_CLOCK_16X),
 `ifdef GEN_LUMA_CHROMA
           .luma_sink(luma_sink),
           .luma(luma),
@@ -223,7 +246,7 @@ vicii vic_inst(
 
 // Write to bus condition, else tri state.
 assign dbl_OUT[7:0] = dbo; // CPU reading
-assign dbl_OE = {vic_write_db,vic_write_db,vic_write_db,vic_write_db,vic_write_db,vic_write_db,vic_write_db};
+assign dbl_OE = {vic_write_db,vic_write_db,vic_write_db,vic_write_db,vic_write_db,vic_write_db,vic_write_db,vic_write_db};
 
 assign adl_OUT = ado[5:0]; // vic or stollen cycle
 assign adl_OE = {vic_write_ab,vic_write_ab,vic_write_ab,vic_write_ab,vic_write_ab,vic_write_ab};
@@ -243,8 +266,8 @@ assign green_scaled = green * 255 / 63;
 assign blue_scaled = blue * 255 / 63;
 
 dvi dvi_tx0 (
-   .clk_pixel    (clk_dot4x),
-   .clk_pixel_x10(clk_dot40x),
+   .clk_pixel    (`DOT_CLOCK_4X),
+   .clk_pixel_x10(`DOT_CLOCK_40X),
    .reset        (1'b0),
    .rgb          ({red_scaled[7:0], green_scaled[7:0], blue_scaled[7:0]}),
    .hsync        (hsync),

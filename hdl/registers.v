@@ -1564,7 +1564,7 @@ begin
                  rw_ctl <= 1;
               end else if (phi_phase_start[15]) begin
                  // all done, move to next byte
-                 video_dma_copy_num <= video_dma_copy_num - 1;
+                 video_dma_copy_num <= video_dma_copy_num - 16'd1;
                  rw_ctl <= 0;
                  video_ram_copy_src <= video_ram_copy_src + 16'b1;
                  dma_addr <= dma_addr + 16'b1;
@@ -1577,7 +1577,7 @@ begin
                  rw_ctl <= 0;
               end else if (phi_phase_start[0]) begin
                  // do the read from DRAM and setup the write to VMEM
-                 video_dma_copy_num <= video_dma_copy_num - 1;
+                 video_dma_copy_num <= video_dma_copy_num - 16'd1;
                  video_ram_wr_a <= 1'b1;
                  video_ram_addr_a <= video_ram_copy_dst[ram_width-1:0];
                  video_ram_data_in_a <= dbi;
