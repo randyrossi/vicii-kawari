@@ -38,7 +38,9 @@ module top(
            input standard_sw,   // video standard toggle switch
            output clk_phi,      // output phi clock for CPU
 `ifdef GEN_RGB
+`ifdef WITH_RGB_CLOCK
            output clk_rgb,      // pixel clock for analog RGB
+`endif
            output hsync,        // hsync signal for analog RGB
            output vsync,        // vsync signal for analog RGB
            output [5:0] red,    // red out for analog RGB
@@ -169,7 +171,7 @@ dvi_encoder_top dvi_tx0 (
 `endif
 
 // https://www.xilinx.com/support/answers/35032.html
-`ifdef GEN_RGB
+`ifdef WITH_RGB_CLOCK
 wire clk_dot4x_ext_oe;
 wire clk_dot4x_ext;
 BUFGMUX extmux(
@@ -242,7 +244,7 @@ vicii vic_inst(
           .red(red),
           .green(green),
           .blue(blue),
-`ifdef GEN_RGB
+`ifdef WITH_RGB_CLOCK
           .clk_dot4x_ext(clk_dot4x_ext),
           .clk_dot4x_ext_oe(clk_dot4x_ext_oe),
 `endif

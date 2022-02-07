@@ -18,7 +18,9 @@ module top(
            output clk_phi,      // output phi clock for CPU
            output clk_dot4x,    // pixel clock
 `ifdef GEN_RGB
+`ifdef WITH_RGB_CLOCK
            output reg clk_rgb,      // pixel clock for analog RGB
+`endif
            output active,
            output hsync,        // hsync signal for analog RGB
            output vsync,        // vsync signal for analog RGB
@@ -119,7 +121,7 @@ wire [11:0] ado;
 wire vic_write_ab;
 wire vic_write_db;
 
-`ifdef GEN_RGB
+`ifdef WITH_RGB_CLOCK
 wire clk_dot4x_ext_oe;
 wire clk_dot4x_ext;
 // This fake muxing of the dot4x clock or the divided clocks
@@ -157,7 +159,7 @@ vicii vic_inst(
           .red(red),
           .green(green),
           .blue(blue),
-`ifdef GEN_RGB
+`ifdef WITH_RGB_CLOCK
           .clk_dot4x_ext(clk_dot4x_ext),
           .clk_dot4x_ext_oe(clk_dot4x_ext_oe),
 `endif

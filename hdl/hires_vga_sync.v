@@ -74,7 +74,7 @@ endmodule
 `ifdef HIRES_MODES
         input [10:0] hires_raster_x,
 `endif
-`ifdef GEN_RGB
+`ifdef WITH_RGB_CLOCK
         output clk_dot4x_ext,          // for external dot clock when divided due to native x or y
         output clk_dot4x_ext_oe,
 `endif
@@ -173,7 +173,7 @@ assign advance = (!is_native_y && !is_native_x) ||
        ((is_native_y ^ is_native_x) && (ff == 2'b01 || ff == 2'b11)) ||
        (is_native_y && is_native_x && ff == 2'b01);
 
-`ifdef GEN_RGB
+`ifdef WITH_RGB_CLOCK
 // Export a clock that will match the dot clock we need taking int
 // account the native x and y flags. When both are native, then we
 // need the dot4x clock divided by 4. If only one is active, then

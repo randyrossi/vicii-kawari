@@ -10,6 +10,7 @@ public class GenConstraints
   final static int HAVE_FLASH = 4;
   final static int WITH_EXTENSIONS = 5;
   final static int WITH_CLOCK_MUX = 6;
+  final static int WITH_RGB_CLOCK = 7;
 
   public static boolean[] read_config(String configFile) throws Exception {
 
@@ -19,7 +20,7 @@ public class GenConstraints
     InputStreamReader ir = new InputStreamReader(fis);
     BufferedReader br = new BufferedReader(ir);
 
-    boolean[] flags = new boolean[7];
+    boolean[] flags = new boolean[8];
 
     // Assume we have a clock mux
     flags[WITH_CLOCK_MUX] = true;
@@ -42,6 +43,8 @@ public class GenConstraints
         flags[WITH_EXTENSIONS] = true;
       if (line.startsWith("`define NO_CLOCK_MUX"))
         flags[WITH_CLOCK_MUX] = false;
+      if (line.startsWith("`define WITH_RGB_CLOCK"))
+        flags[WITH_RGB_CLOCK] = true;
     }
 
     fis.close();
@@ -121,6 +124,9 @@ public class GenConstraints
 	        if (!flags[WITH_CLOCK_MUX]) {
                    if (t6.startsWith("clk_col4x_pal")) continue;
                    if (t6.startsWith("clk_col4x_ntsc")) continue;
+                }
+	        if (!flags[WITH_RGB_CLOCK]) {
+                   if (t6.startsWith("clk_rgb")) continue;
                 }
 
 		System.out.println("NET \""+t6+"\" LOC="+t4+";");

@@ -14,24 +14,25 @@ struct _Define {
 typedef struct _Define Define;
 
 enum DefineValues {
-   WITH_EXTENSIONS = 0,
-   WITH_RAM,
-   TEST_PATTERN,
-   GEN_LUMA_CHROMA,
-   CONFIGURABLE_RGB,
-   CONFIGURABLE_LUMAS,
-   CONFIGURABLE_TIMING,
-   HAVE_LUMA_SINK,
-   WITH_SPI,
-   HAVE_EEPROM,
-   HAVE_FLASH,
-   NEED_RGB,
-   GEN_RGB,
-   WITH_DVI,
-   HIRES_MODES,
-   HIDE_SYNC,
-   WITH_64K,
-   WITH_MATH,
+   WITH_EXTENSIONS = 0,  // can activate extensions via $d03f 'V','I','C','2'
+   WITH_RAM,             // use block RAM for video RAM
+   TEST_PATTERN,         // show a test pattern (for debugging)
+   GEN_LUMA_CHROMA,      // output S/LUM and CHROMA signals
+   CONFIGURABLE_RGB,     // has registers to change color palette (RGB)
+   CONFIGURABLE_LUMAS,   // has registers to change color palette (LUMA/PHASE/AMP)
+   CONFIGURABLE_TIMING,  // has registers to change VGA/DVI timing (debugging only)
+   HAVE_LUMA_SINK,       // has proper luma current sink for proper sync voltage level
+   WITH_SPI,             // include spi CLK, MISO, MOSI lines
+   HAVE_EEPROM,          // include EEPROM_S and eeprom save/restore logic
+   HAVE_FLASH,           // include FLASH_S and flash support logic
+   NEED_RGB,             // has internal RGB regs (required for DVI)
+   GEN_RGB,              // include signals for analog RGBHV header
+   WITH_DVI,             // include DVI encoder and differential signals
+   HIRES_MODES,          // has extra hires modes available
+   HIDE_SYNC,            // (for simulator) hide sync signals from view
+   WITH_64K,             // select 64K for ram rather than 32K
+   WITH_MATH,            // include math registers
+   WITH_RGB_CLOCK,       // export the RGB dot clock on the CLK pin
 };
 
 Define defines[] = {
@@ -53,6 +54,7 @@ Define defines[] = {
   {HIDE_SYNC ,0,0,"HIDE_SYNC"},
   {WITH_64K ,0,0,"WITH_64K"},
   {WITH_MATH ,0,0,"WITH_MATH"},
+  {WITH_RGB_CLOCK ,0,0,"WITH_RGB_CLOCK"},
 };
 
 void printcfg(int d, int def) {
@@ -85,8 +87,9 @@ void gen_rgb(int d) { printcfg(d, GEN_RGB); need_rgb(d); }
 void with_dvi(int d) { printcfg(d, WITH_DVI);need_rgb(d); }
 void hires_modes(int d) { printcfg(d, HIRES_MODES);with_ext(d); with_ram(d); }
 void hide_sync(int d) { printcfg(d, HIDE_SYNC); }
-void with_64k(int d) { printcfg(d, WITH_64K);  with_ext(d); }
+void with_64k(int d) { printcfg(d, WITH_64K);  with_ram(d), with_ext(d); }
 void with_math(int d) { printcfg(d, WITH_MATH); with_ext(d); }
+void with_rgb_clock(int d) { printcfg(d, WITH_RGB_CLOCK); gen_rgb(d); }
 
 int main(int argc, char* argv[]) {
 
@@ -113,17 +116,14 @@ int main(int argc, char* argv[]) {
             // make sure to turn OFF RGB/HIRES so that native pixel sequencer
             // values are used.
 	    case 0:
+                    // The minimal config. Just a VIC-II.
 		    gen_luma_chroma(d);
-		    luma_sink(d);
-		    configurable_rgb(d);
-		    gen_rgb(d);
-		    hires_modes(d);
-		    with_64k(d);
 		    break;
 	    case 1:
 		    // Use this config for generating test results
 		    // since it hides sync lines.
 		    gen_luma_chroma(d);
+		    luma_sink(d);
 		    have_flash(d);
 		    with_dvi(d);
 		    hires_modes(d);
@@ -145,11 +145,12 @@ int main(int argc, char* argv[]) {
 		    with_dvi(d);
 		    break;
 	    case 6:
-		    gen_luma_chroma(d);
 		    gen_rgb(d);
+                    with_rgb_clock(d);
 		    configurable_rgb(d);
 		    configurable_lumas(d);
 		    configurable_timing(d);
+                    with_64k(d);
 		    break;
 	    case 7:
 	            // Just a vic replacement config. No extensions.
