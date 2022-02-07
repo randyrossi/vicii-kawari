@@ -1,6 +1,11 @@
 // Helper for bulk writing data from video ram into
 // flash device. Used for updating the device's bitstream.
 //
+// Spi Mode 3 (1,1): Peripheral will capture our data
+// on the RISING edge of our clock. We shift data in
+// from the peripheral on the FALLING edge.
+//
+// Notes:
 // do 64 times
 //    WREN
 //    WRITE (data from video ram)
@@ -20,23 +25,23 @@ task handle_flash();
 begin
     flash_clk_div <= {flash_clk_div[2:0] , flash_clk_div[3]};
 
-    //if (flash_clk_div[3])
-    //$display ("state=%d cmd=%d bit=%d S=%d C=%d D=%d ver=%d busy=%d vmem=%x flash=%x", flash_state, flash_command_ctr, flash_bit_ctr, flash_s, spi_c, spi_d, flash_verify_error, flash_busy, flash_vmem_addr, flash_addr);
-
     if (flash_clk_div[0] && flash_state != `FLASH_IDLE)
     begin
         spi_c <= delayed_flash_c;
     end
-    if (flash_clk_div[1] && flash_state != `FLASH_IDLE && ~flash_clk8)
+    if (flash_clk_div[1] && flash_state != `FLASH_IDLE && flash_clk8)
     begin
         // READ for WAIT (8 bits)
         if (flash_command_ctr == `FLASH_CMD_WAIT)
-            if (flash_bit_ctr >= 6'd9 && flash_bit_ctr <= 6'd16)
+            if (flash_bit_ctr >= 6'd9 && flash_bit_ctr <= 6'd16) begin
                 flash_byte <= { flash_byte[6:0] , spi_q };
+                $display("READ Q C=%d",spi_c);
+            end
         // READ for VERIFY (8 bits)
         if (flash_command_ctr == `FLASH_CMD_VERIFY)  // OR READ for FLASH_READ
             if (flash_bit_ctr >= 6'd33 && flash_bit_ctr <= 6'd40) begin
                 flash_byte <= { flash_byte[6:0] , spi_q };
+                $display("READ Q C=%d",spi_c);
             end
     end
     else if (flash_clk_div[2]) begin
@@ -330,6 +335,8 @@ begin
             endcase
 	end
     end
+
+    $display ("clk8=%d div=%d state=%d cmd=%d bit=%d S=%d C=%d D=%d ver=%d busy=%d vmem=%x flash=%x", flash_clk8, flash_clk_div, flash_state, flash_command_ctr, flash_bit_ctr, flash_s, spi_c, spi_d, flash_verify_error, flash_busy, flash_vmem_addr, flash_addr);
 
 end
 endtask
