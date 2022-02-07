@@ -29,6 +29,11 @@
 #define VIDEO_MEM_2_VAL 0xd03eL
 #define VIDEO_MEM_FLAGS 0xd03fL
 
+#define VMEM_FLAG_AUTO_INC_1 1
+#define VMEM_FLAG_AUTO_DEC_1 2
+#define VMEM_FLAG_AUTO_INC_2 4
+#define VMEM_FLAG_AUTO_DEC_2 8
+#define VMEM_FLAG_DMA 15
 #define VMEM_FLAG_REGS_BIT 32
 #define VMEM_FLAG_PERSIST_BIT 64
 
@@ -73,6 +78,12 @@
 #define FLASH_BULK_OP 128
 #define FLASH_BULK_WRITE 1
 #define FLASH_BULK_READ  2
+
+#define DMA_VMEM_TO_VMEM_UP 1
+#define DMA_VMEM_TO_VMEM_DOWN 2
+#define DMA_VMEM_FILL 4
+#define DMA_DRAM_TO_VMEM 8
+#define DMA_VMEM_TO_DRAM 16
 
 // Convention is [VARIANT][BOARD_REV][MODEL] except
 // for beta board which is just 'MAIN'. See MODELS.md

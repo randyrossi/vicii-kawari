@@ -160,6 +160,18 @@ void wait_busy(void) {
 
 // Read the flash device id bytes
 void read_device(void) {
+    // Some FPGAs may leave the flash in a bad
+    // state. Reset it first.
+    talk(0x66,
+         0 /* withaddr */, 0,
+        0 /* read 2 */,
+        0 /* write 0 */,
+        1 /* close */);
+    talk(0x99,
+         0 /* withaddr */, 0,
+        0 /* read 2 */,
+        0 /* write 0 */,
+        1 /* close */);
     // INSTR + 24 bit 0 + 2 READ BYTES + CLOSE
     talk(DEVICE_ID_INSTR,
          1 /* withaddr */, 0,
@@ -357,14 +369,20 @@ unsigned char c = 0x54;
        printf ("to continue.\n\n");
     }
 
-    if (data_in[0] != 0xef || data_in[1] != 0x14) {
-       printf ("Can't identify flash device.\n");
+    if (data_in[0] == 0xef) {
+       printf ("WinBond ");
+       if (data_in[1] == 0x14)
+          printf ("W25Q16\n");
+       else if (data_in[1] == 0x15)
+          printf ("W25Q32\n");
+    } else {
+       printf ("UNKNOWN FLASH DEVICE.\n");
        return;
     }
 
    test_erase();
-   test_fast_write();
-   test_fast_read();
    test_slow_write();
    test_slow_read();
+   test_fast_write();
+   test_fast_read();
 }

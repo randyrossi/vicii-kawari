@@ -342,6 +342,18 @@ void wait_busy(void) {
 
 // Read the flash device id bytes
 void read_device(void) {
+    // Some FPGAs leave the flash in a bad state.
+    // Reset it first.
+    talk(0x66,
+         0 /* withaddr */, 0,
+	 0 /* read 2 */,
+	 0 /* write 0 */,
+	 1 /* close */);
+    talk(0x99,
+         0 /* withaddr */, 0,
+	 0 /* read 2 */,
+	 0 /* write 0 */,
+	 1 /* close */);
     // INSTR + 24 bit 0 + 2 READ BYTES + CLOSE
     talk(DEVICE_ID_INSTR,
          1 /* withaddr */, 0,
@@ -413,14 +425,15 @@ unsigned long input_int(void) {
 }
 
 void expert(void) {
-   if (!is_expert)
-       return;
-
    // Need to uncomment for expert stuff
-/*
+
    unsigned long start_addr;
    unsigned int n;
    unsigned char key;
+   if (!is_expert)
+       return;
+
+/*
    mprintf ("\nExpert CMD\n");
    do {
       mprintf ("\n> ");
@@ -790,11 +803,20 @@ void main_menu(void)
            mprintf ("to continue.\n\n");
         }
 
-        if (data_in[0] != 0xef || data_in[1] != 0x14) {
-           mprintf ("Can't identify flash device.\n");
-           press_any_key(TO_TRY_AGAIN);
+        if (data_in[0] == 0xef) {
+           mprintf ("WinBond: ");
+           if (data_in[1] == 0x14) {
+              mprintf ("W25Q16\n");
+              break;
+           } else if (data_in[1] == 0x15) {
+              mprintf ("W25Q32\n");
+              break;
+           } else
+              mprintf ("UNKNOWN\n");
+              press_any_key(TO_TRY_AGAIN);
         } else {
-           break;
+           mprintf ("UNKNOWN FLASH\n");
+           press_any_key(TO_TRY_AGAIN);
         }
       }
     }
