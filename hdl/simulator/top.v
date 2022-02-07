@@ -18,12 +18,13 @@ module top(
            output clk_phi,      // output phi clock for CPU
            output clk_dot4x,    // pixel clock
 `ifdef GEN_RGB
-           output active,       // display active for HDMI
-           output hsync,        // hsync signal for VGA/HDMI
-           output vsync,        // vsync signal for VGA/HDMI
-           output [5:0] red,    // red out
-           output [5:0] green,  // green out
-           output [5:0] blue,   // blue out
+           output reg clk_rgb,      // pixel clock for analog RGB
+           output active,
+           output hsync,        // hsync signal for analog RGB
+           output vsync,        // vsync signal for analog RGB
+           output [5:0] red,    // red out for analog RGB
+           output [5:0] green,  // green out for analog RGB
+           output [5:0] blue,   // blue out for analog RGB
 `endif
 
            // If we are generating luma/chroma, add outputs
@@ -118,6 +119,29 @@ wire [11:0] ado;
 wire vic_write_ab;
 wire vic_write_db;
 
+`ifdef GEN_RGB
+wire clk_dot4x_ext_oe;
+wire clk_dot4x_ext;
+// This fake muxing of the dot4x clock or the divided clocks
+// won't work on real hardware.  It requires buffers to do
+// properly since you can't drive a load with a clock. This
+// is just here to be able to look at something in the logic
+// analyser and verify the frequency is right depending
+// on native x/y settings. Worst case, on real hardware, we can
+// use the 40x clock we have and divide it back down to 4x.
+always @(posedge clk_dot4x)
+   if (clk_dot4x_ext_oe)
+      clk_rgb = clk_dot4x_ext;
+   else
+      clk_rgb = ~clk_rgb;
+
+always @(negedge clk_dot4x)
+   if (clk_dot4x_ext_oe)
+      clk_rgb = clk_dot4x_ext;
+   else
+      clk_rgb = ~clk_rgb;
+`endif
+
 // Instantiate the vicii with our clocks and pins.
 vicii vic_inst(
           .rst(rst),
@@ -133,6 +157,10 @@ vicii vic_inst(
           .red(red),
           .green(green),
           .blue(blue),
+`ifdef GEN_RGB
+          .clk_dot4x_ext(clk_dot4x_ext),
+          .clk_dot4x_ext_oe(clk_dot4x_ext_oe),
+`endif
 `endif
 `ifdef GEN_LUMA_CHROMA
 `ifdef HAVE_LUMA_SINK

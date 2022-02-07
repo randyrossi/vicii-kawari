@@ -74,6 +74,10 @@ endmodule
 `ifdef HIRES_MODES
         input [10:0] hires_raster_x,
 `endif
+`ifdef GEN_RGB
+        output clk_dot4x_ext,          // for external dot clock when divided due to native x or y
+        output clk_dot4x_ext_oe,
+`endif
         input [3:0] pixel_color3,
         output wire hsync,             // horizontal sync
         output wire vsync,             // vertical sync
@@ -166,9 +170,22 @@ assign active = ~(
 // the table below for more info.
 wire advance;
 assign advance = (!is_native_y && !is_native_x) ||
-       (is_native_y && !is_native_x && (ff == 2'b01 || ff == 2'b11)) ||
-       (!is_native_y && is_native_x && (ff == 2'b01 || ff == 2'b11)) ||
+       ((is_native_y ^ is_native_x) && (ff == 2'b01 || ff == 2'b11)) ||
        (is_native_y && is_native_x && ff == 2'b01);
+
+`ifdef GEN_RGB
+// Export a clock that will match the dot clock we need taking int
+// account the native x and y flags. When both are native, then we
+// need the dot4x clock divided by 4. If only one is active, then
+// we need dot4x clock divided by 2. Otherwise, we export the dot4x
+// clock without division.
+assign clk_dot4x_ext = (is_native_y && is_native_x) ? ff[1] : (
+                         (is_native_y ^ is_native_x) ? ff[0] : 0
+                       );
+// Indicates when clk_dot4x_ext should be active. If not active, then
+// the dot4x clock (undivided) should be used.
+assign clk_dot4x_ext_oe = (is_native_y && is_native_x) || (is_native_y ^ is_native_x);
+`endif
 
 always @ (posedge clk_dot4x)
 begin

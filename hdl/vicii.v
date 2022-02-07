@@ -49,6 +49,10 @@ module vicii
            output [5:0] red,
            output [5:0] green,
            output [5:0] blue,
+`ifdef GEN_RGB
+           output clk_dot4x_ext,
+           output clk_dot4x_ext_oe,
+`endif
 `endif
            output [11:0] ado,
            input [5:0] adi,
@@ -1245,6 +1249,10 @@ hires_vga_sync vic_vga_sync(
                    .xpos(xpos),
 `ifdef HIRES_MODES
                    .hires_raster_x(hires_raster_x),
+`endif
+`ifdef GEN_RGB
+                   .clk_dot4x_ext(clk_dot4x_ext),
+                   .clk_dot4x_ext_oe(clk_dot4x_ext_oe),
 `endif
                    .chip(chip),
                    .pixel_color3(pixel_color3),

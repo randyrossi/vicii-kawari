@@ -39,12 +39,12 @@ module top(
            input standard_sw,   // video standard toggle switch
            output clk_phi,      // output phi clock for CPU
 `ifdef GEN_RGB
-           output clk_dot4x_ext,// pixel clock for VGA/DVI
-           output hsync,        // hsync signal for VGA/DVI
-           output vsync,        // vsync signal for VGA/DVI
-           output [5:0] red,    // red out for VGA/DVI or Composite Encoder
-           output [5:0] green,  // green out for VGA/DVI or Composite Encoder
-           output [5:0] blue,   // blue out for VGA/DVI or Composite Encoder
+           output clk_rgb,      // pixel clock for analog RGB
+           output hsync,        // hsync signal for analog RGB
+           output vsync,        // vsync signal for analog RGB
+           output [5:0] red,    // red out for analog RGB
+           output [5:0] green,  // green out for analog RGB
+           output [5:0] blue,   // blue out for analog RGB
 `endif
 
            inout tri [5:0] adl, // address (lower 6 bits)
@@ -173,15 +173,23 @@ dvi_encoder_top dvi_tx0 (
 
 // https://www.xilinx.com/support/answers/35032.html
 `ifdef GEN_RGB
+wire clk_dot4x_ext_oe;
+wire clk_dot4x_ext;
+BUFGMUX extmux(
+            .I0(clk_dot4x),
+            .I1(clk_dot4x_ext),
+            .O(clk_dot4x_ext_g),
+            .S(clk_dot4x_ext_oe));
+
 ODDR2 oddr2(
           .D0(1'b1),
           .D1(1'b0),
-          .C0(clk_dot4x),
-          .C1(~clk_dot4x),
+          .C0(clk_dot4x_ext_g),
+          .C1(~clk_dot4x_ext_g),
           .CE(1'b1),
           .R(1'b0),
           .S(1'b0),
-          .Q(clk_dot4x_ext)
+          .Q(clk_rgb)
       );
 `endif
 
@@ -237,6 +245,10 @@ vicii vic_inst(
           .red(red),
           .green(green),
           .blue(blue),
+`ifdef GEN_RGB
+          .clk_dot4x_ext(clk_dot4x_ext),
+          .clk_dot4x_ext_oe(clk_dot4x_ext_oe),
+`endif
 `endif
           .clk_col16x(clk_col16x),
 `ifdef GEN_LUMA_CHROMA
