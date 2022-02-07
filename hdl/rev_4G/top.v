@@ -265,9 +265,24 @@ assign red_scaled = red * 255 / 63;
 assign green_scaled = green * 255 / 63;
 assign blue_scaled = blue * 255 / 63;
 
+`ifdef HALF_X_RES
+// Turn this on if we set native x in both
+// registers and vga sync modules. Tests
+// 16Mhz dot clock instead of 32mhz
+reg ff1;
+reg ff2;
+always @(posedge `DOT_CLOCK_4X) ff1=~ff1;
+always @(posedge `DOT_CLOCK_40X) ff2=~ff2;
+`endif
+
 dvi dvi_tx0 (
+`ifdef HALF_X_RES
+   .clk_pixel    (ff1), //`DOT_CLOCK_4X),
+   .clk_pixel_x10(ff2), //`DOT_CLOCK_40X),
+`else
    .clk_pixel    (`DOT_CLOCK_4X),
    .clk_pixel_x10(`DOT_CLOCK_40X),
+`endif
    .reset        (1'b0),
    .rgb          ({red_scaled[7:0], green_scaled[7:0], blue_scaled[7:0]}),
    .hsync        (hsync),
