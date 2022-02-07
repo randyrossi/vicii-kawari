@@ -42,9 +42,9 @@ VERILOG_SOURCES = ../hdl/simulator/top.v ../hdl/vicii.v ../hdl/common.vh \
 		  ../hdl/videoram.v ../hdl/colorreg.v \
 		  ../hdl/sinewave.v ../hdl/testpattern.v ../hdl/lumareg.v \
 		  ../hdl/hires_matrix.v ../hdl/hires_addressgen.v ../hdl/hires_pixel_sequencer.v \
-		  ../hdl/efinix_trion/dvi/dvi.sv \
-		  ../hdl/efinix_trion/dvi/tmds_channel.sv \
-		  ../hdl/efinix_trion/dvi/serializer.sv
+		  ../hdl/efinix_trion/dvi/dvi.v \
+		  ../hdl/efinix_trion/dvi/tmds_channel.v \
+		  ../hdl/efinix_trion/dvi/serializer.v
 
 VTOP_DEPS = vicii_ipc.o libvicii_ipc.so $(VERILOG_SOURCES) sim_main.cpp vicii_ipc.c vicii_ipc.h 
 
