@@ -19,6 +19,7 @@ reg [9:0] q_out;
 wire [9:0] video_coding;
 assign video_coding = q_out;
 
+/* verilator lint_off WIDTH */
 reg [3:0] N1D;
 reg signed [4:0] N1q_m07;
 reg signed [4:0] N0q_m07;
@@ -39,6 +40,7 @@ begin
     endcase
     N0q_m07 = 5'sd8 - N1q_m07;
 end
+/* verilator lint_on WIDTH */
 
 reg signed [4:0] acc_add;
 
@@ -90,7 +92,9 @@ begin
 end
 /* verilator lint_on ALWCOMBORDER */
 
+/* verilator lint_off WIDTH */
 always @(posedge clk_pixel) acc <= mode != 3'd1 ? 5'sd0 : acc + acc_add;
+/* verilator lint_on WIDTH */
 
 // See Section 5.4.2
 reg [9:0] control_coding;
