@@ -51,6 +51,7 @@ The PCB has an unpopulated 10 pin analog header (1 +5V, 6 signal, 3 GND) that ca
 
 For 1080/1084-D monitors, a CSYNC option can be enabled to output composite sync over the horizontal sync pin.  1084-S monitors use the default separated HSYNC and VSYNC signals.
 
+NOTE: The CLK pin (dot clock) is disabled as it is not necessary for analog connections.  If you need it, it can be enabled with a firmware update.
 
 #### FEMALE 6-PIN PORT AS VIEWED FROM REAR OF 1084-S
 
@@ -138,6 +139,9 @@ Yes. The pixel perfect look on an HDMI monitor will resemble an emulator. There 
 ## Will DVI/VGA add delay to the video output?
 There is no frame buffer for video output. However, there is a single raster line buffer necessary to double the 15khz horizontal frequency. Although this adds a very small delay, it is a tiny fraction of the frame rate and is imperceivable by a human. For DVI, any additional latency will be from the monitor you use. Most TVs have a 'game mode' that turns off extra processing that can introduce latency and it is highly recommended you use that feature.
 
+## My DVI/HDMI monitor stretches the picture. Can that be changed?
+The video signals are output at native resolution (or 2x) and since there is no frame buffer, the aspect ratio of the image cannot be adjusted. It will be up to your monitor/TV to support 4:3 aspect ratio to display something that doesn't look 'stretched'.  I have no plans on making the DVI/HDMI image look like an analog display.
+
 ## Do light pens work?
 Yes. However, light pens will only work using a real CRT with composite. (LCD/DVI/HDMI or even VGA monitors will not work with light pens.)
 
@@ -152,6 +156,7 @@ If you need a VIC-II to replace a broken one, you should just buy one off eBay. 
 * Four chip models supported (6567R56A, 6567R8, 6569R1, 6569R3)
 * An 80 column mode and new graphics modes
 * An 80 column Novaterm driver
+* Some fun 'extras' to play around with
 * It's not an almost 40 year old device that may fail at any time
 
 Also, since the core is open source, hobbyests can add their own interesting new features (i.e. a math co-processor, more sprites, more colors, a new graphics mode, a display address translator, etc) See [FORKING.md](doc/FORKING.md) for some a list of possible add-ons.
@@ -181,6 +186,10 @@ In addition to the 80 column text mode, three bitmap modes have been added for y
 #### Notes about sprites in hires-modes
 
 Low-res sprites will show up on the hi-res modes. However, they behave according to low-res mode rules. That means their x-positions are still low resolution. Background collisions will trigger based on hi-res screen data, but cannot detect collisions at the 'half' pixel resolution. Sprite to sprite collisions should work as expected. This was a compromise chosen between adding new hires sprite support (taking up a lot of FPGA space) and having no sprites at all.  For the 320x200 and 640x200 bitmap modes, a pixel is considered to be background if it matches the background color register value.  Otherwise, it is foreground.
+
+### More RAM
+
+There is an additional 64K of video ram. This is RAM that the video 'chip' can access directly for the new hires modes.  It can also be used to store data and there is a DMA transfer function that can copy between DRAM and VRAM quickly without using CPU resources.
 
 ### Software switch between PAL-B and NTSC
 
@@ -223,7 +232,11 @@ NOTE: You can get away without removing the RF modulator but then you will have 
 
 ## Config RESET
 
-You can reset the board by temporarily shorting the jumper pads labeled 'Reset' while the device is powered on. Then cold boot. (It's difficult to tell whether you've shorted them so you may have to try a couple times.)  This will prevent the device from reading any persisted settings.  The default palette will be used for all models.  After a config reset, the next time you run any configuration utility, it will prompt you to initialize the device.
+You can reset the board by temporarily shorting the jumper pads labeled 'Reset' while the device is powered on. The background and border color will turn white to let you know a reset has been detected. Then cold boot. This will prevent the device from reading any persisted settings.  The default palette will be used for all models.  After a config reset, the next time you run any configuration utility, it will prompt you to initialize the device again.
+
+## Can you add feature X and option Y and enhancement Z?
+
+Not really. That's up to you. That's why the project is open source.  Consider my 'MAIN' variant one possibility of what you can do with the device.  However, since my features take up practically all the fabric, you would most likely have to disable some of my 'extras' in favor of yours.
 
 ## Limitations/Caveats
 
