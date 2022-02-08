@@ -173,18 +173,6 @@ unsigned char load() {
       return slow_load();
 }
 
-unsigned long input_int(void) {
-   unsigned n = 0;
-   for (;;) {
-      WAITKEY;
-      SMPRINTF_1("%c",r.a);
-      if (r.a == 0x0d) break;
-      scratch[n++] = r.a;
-   }
-   scratch[n] = '\0';
-   return atol(scratch);
-}
-
 void fast_start(void) {
     if (use_fast_loader) {
        mprintf ("LOAD LOADER...");

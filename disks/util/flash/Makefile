@@ -39,6 +39,8 @@ DISKNUMS=1 2 3 4
 OBJS=main.o menu.o ../common/util.o ../common/init.o ../common/flash.o \
      crt0.o loader_loader.o copy.o compare.o
 
+EXPERT_OBJS=main.o expert.o ../common/util.o ../common/init.o ../common/flash.o copy.o
+
 # Make an info file for flash program to read
 # $9000 dest
 info_file: load_bytes
@@ -64,6 +66,9 @@ flash.prg: ${OBJS}
 	ld65 -o flash.prg ${OBJS} /usr/share/cc65/lib/c64.lib \
 		-C /usr/share/cc65/cfg/c64.cfg
 
+expert.prg: ${EXPERT_OBJS}
+	cl65 -o expert.prg ${EXPERT_OBJS}
+
 main.o: main.c ../include/util.h
 	cl65 --include-dir ../include -c main.c -o main.o
 
@@ -72,6 +77,9 @@ crt0.o: crt0.s
 
 menu.o: menu.c ../include/util.h ../include/kawari.h
 	cl65 --include-dir ../include -c menu.c -o menu.o
+
+expert.o: expert.c ../include/util.h ../include/kawari.h ../include/flash.h
+	cl65 --include-dir ../include -c expert.c -o expert.o
 
 loader_loader.o: loader_loader.s
 	ca65 loader_loader.s -o loader_loader.o
