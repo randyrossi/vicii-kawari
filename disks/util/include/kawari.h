@@ -1,3 +1,6 @@
+#ifndef KAWARI_H
+#define KAWARI_H
+
 #define CHIP6567R8 0
 #define CHIP6569R3 1
 #define CHIP6567R56A 2
@@ -94,3 +97,5 @@
 #define VARIANT_REV_4S_B 3   // a.k.a. MAIN4SB
 #define VARIANT_REV_4L_C 4   // a.k.a. MAIN4LC
 #define VARIANT_REV_4L_D 5   // a.k.a. MAIN4LD
+
+#endif

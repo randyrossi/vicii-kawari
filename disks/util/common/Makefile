@@ -1,4 +1,4 @@
-all: util.o init.o main.o
+all: util.o init.o main.o flash.o
 
 util.o: util.c ../include/util.h
 	cl65 --include-dir ../include -c util.c -o util.o
@@ -8,6 +8,9 @@ init.o: init.c ../include/init.h
 
 main.o: main.c ../include/menu.h
 	cl65 --include-dir ../include -c main.c -o main.o
+
+flash.o: flash.c ../include/flash.h
+	cl65 --include-dir ../include -c flash.c -o flash.o
 
 clean:
 	rm -f *.o

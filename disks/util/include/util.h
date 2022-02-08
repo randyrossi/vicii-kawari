@@ -1,3 +1,6 @@
+#ifndef UTIL_H
+#define UTIL_H
+
 #define UTILITY_VERSION "1.1"
 
 #define CLRSCRN printf ("%c",147) 
@@ -10,6 +13,9 @@
 #define CRSR_DOWN 17
 #define CRSR_LEFT 157
 #define CRSR_RIGHT 29
+
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
 
 // Poll persist busy bit and don't perform poke
 // until it is 0
@@ -51,3 +57,5 @@ unsigned char get_lock_bits(void);
 unsigned char get_chip_model(void);
 void get_variant(unsigned char* dest);
 unsigned int ascii_variant_to_int(unsigned char *variant);
+
+#endif

@@ -8,6 +8,7 @@
 #include "util.h"
 #include "kawari.h"
 #include "menu.h"
+#include "flash.h"
 
 // Program starts at 0x801.
 // 0x5000-0x8fff is used for 16k flash load space
@@ -31,56 +32,6 @@
 
 static struct regs r;
 
-// SPI_REG - Used for both direct (slow) access to SPI devices
-//           and bulk SPI operation for Kawari to execute.
-//
-// (Write)
-// Bit 1 : FLASH Select
-// Bit 2 : SPI Clock
-// Bit 3 : SPI Data Out
-// Bit 4 : EEPROM Select
-// Bit 5 : unused
-// Bit 6 : unused
-// Bit 7 : unused
-// Bit 8 : Write/Verify 16k block from 0x00000 video ram (*)
-//
-// * 24-bit write address set from 0x35,0x36,0x3a
-//
-// (Read)
-// Bit 1 - SPI Data In
-// Bit 2 - Write busy : 1=BUSY, 0=DONE
-// Bit 3 - Verify error : 1=ERROR, 0=OK
-// Bit 4 - SPI lock status
-// Bit 5 - Extensions lock status
-// Bit 6 - Persistence lock status
-// Bit 7 - unused
-// Bit 8 - unused
-
-// SPI_REG
-// All combinations of D/C/S bits for Flash
-// programming. Make sure EEPROM select (Bit 4)
-// is always held high.
-#define D1_C1_S1 15 // 1111
-#define D1_C1_S0 14 // 1110
-#define D1_C0_S1 13 // 1101
-#define D1_C0_S0 12 // 1100
-#define D0_C1_S1 11 // 1011
-#define D0_C1_S0 10 // 1010
-#define D0_C0_S1 9  // 1001
-#define D0_C0_S0 8  // 1000
-
-#define STRINGIFY(x) #x
-#define TOSTRING(x) STRINGIFY(x)
-
-#define SET(val) asm("lda #"STRINGIFY(val)); asm ("sta $d034");
-
-#define DEVICE_ID_INSTR       0x90
-#define READ_INSTR            0x03
-#define WREN_INSTR            0x06
-#define READ_STATUS1_INSTR    0x05
-#define BLOCK_ERASE_4K_INSTR  0x20
-#define WRITE_INSTR           0x02
-
 #define TO_EXIT 0
 #define TO_CONTINUE 1
 #define TO_TRY_AGAIN 2
@@ -97,22 +48,18 @@ unsigned char smp_tmp[40];
         snprintf (smp_tmp, 39, format, arg1, arg2, arg3);\
 	mprintf(smp_tmp);
 
-unsigned char data_out[256];
-unsigned char data_in[256];
-
 #define SCRATCH_SIZE 32
 unsigned char filename[16];
 unsigned char scratch[SCRATCH_SIZE];
 
 unsigned char use_fast_loader;
-unsigned char is_expert = 0;
 
 void load_loader(void);
 void copy_5000_0000(void);
 void compare(void);
 
 void sys64738() {
-    r.pc = (unsigned) 64738;
+    r.pc = (unsigned) 64738L;
     _sys(&r);
 }
 
@@ -226,192 +173,6 @@ unsigned char load() {
       return slow_load();
 }
 
-// Helper to read 8 bits from SPI device
-void read8() {
-   unsigned char b;
-   unsigned char value = 0;
-   unsigned int bit;
-   for (b=128;b>=1;b=b/2) {
-        SET(D0_C0_S0);
-        SET(D0_C1_S0);
-        bit = PEEK(SPI_REG) & 1;
-        if (bit)
-	   value = value + b;
-   }
-   data_in[0] = value;
-}
-
-// Generic routine to talk to SPI device
-// 8-bit instruction
-// optional 24 bit address
-// write_count num bytes to write (from data[] array)
-// read_count num bytes to read (into data[] array)
-void talk(unsigned char instr,
-          unsigned char with_addr, unsigned long addr,
-	  unsigned int read_count, unsigned int write_count,
-	  unsigned char close)
-{
-    unsigned char value;
-    unsigned long b;
-    int n;
-    unsigned long bit;
-
-    asm("sei");
-    SET(D1_C1_S1);
-    SET(D0_C1_S0);
-
-    // 8 bit instruction
-    for (b=128L;b>=1L;b=b/2L) {
-       bit = instr & b;
-       if (bit) {
-	       SET(D1_C0_S0);
-               SET(D1_C1_S0);
-       } else {
-	       SET(D0_C0_S0);
-               SET(D0_C1_S0);
-       }
-    }
-
-    // Should we shift a 24 bit address now?
-    if (with_addr) {
-       // 24 bit address
-       for (b=8388608L;b>=1L;b=b/2L) {
-          bit = addr & b;
-          if (bit) {
-	       SET(D1_C0_S0);
-               SET(D1_C1_S0);
-          } else {
-	       SET(D0_C0_S0);
-               SET(D0_C1_S0);
-          }
-       }
-    }
-
-    for (n=0;n<write_count;n++) {
-       for (b=128L;b>=1L;b=b/2L) {
-          bit = data_out[n] & b;
-          if (bit) {
-	       SET(D1_C0_S0);
-               SET(D1_C1_S0);
-          } else {
-	       SET(D0_C0_S0);
-               SET(D0_C1_S0);
-          }
-       }
-    }
-
-    // count is num bytes to read
-    for (n=0;n<read_count;n++) {
-       // 8 bit data
-       value = 0;
-       for (b=128L;b>=1L;b=b/2L) {
-	   SET(D0_C0_S0);
-	   SET(D0_C1_S0);
-           bit = PEEK(SPI_REG) & 1;
-           if (bit)
-	      value = value + b;
-       }
-       data_in[n] = value;
-    }
-
-    if (close) {
-       SET(D0_C1_S0); // leave clock high before S high
-       SET(D1_C1_S1); // drive S high again
-    }
-
-    asm("cli");
-}
-
-// Wait for flash device to be ready
-void wait_busy(void) {
-    // INSTR + 1 BYTE READ + NO CLOSE
-    talk(READ_STATUS1_INSTR,
-	0, 0L /* no addr */,
-	1 /* read 1 */,
-	0 /* write 0 */,
-	0 /* no close */);
-
-    while (data_in[0] & 1) {
-       read8();
-    }
-
-    // close
-    SET(D0_C0_S0);
-    SET(D1_C1_S1);
-}
-
-// Read the flash device id bytes
-void read_device(void) {
-    // Some FPGAs leave the flash in a bad state.
-    // Reset it first.
-    talk(0x66,
-         0 /* withaddr */, 0,
-	 0 /* read 2 */,
-	 0 /* write 0 */,
-	 1 /* close */);
-    talk(0x99,
-         0 /* withaddr */, 0,
-	 0 /* read 2 */,
-	 0 /* write 0 */,
-	 1 /* close */);
-    // INSTR + 24 bit 0 + 2 READ BYTES + CLOSE
-    talk(DEVICE_ID_INSTR,
-         1 /* withaddr */, 0,
-	 2 /* read 2 */,
-	 0 /* write 0 */,
-	 1 /* close */);
-}
-
-void read_page(unsigned long addr) {
-    // INSTR + 24 bit addr + 256 read bytes + CLOSE
-    talk(READ_INSTR,
-	1 /* withaddr */, addr,
-	256 /* read 256 */,
-	0 /* write 0 */,
-	1 /* close */);
-}
-
-void write_page(unsigned long addr) {
-    // INSTR + 24 bit addr + 256 write bytes + CLOSE
-    talk(WRITE_INSTR,
-	1 /* withaddr */, addr,
-	0 /* read 0 */,
-	256 /* write 256 */,
-	1 /* close */);
-
-    wait_busy();
-}
-
-// Write enable
-void wren(void) {
-    // INSTR + CLOSE
-    talk(WREN_INSTR,
-	0, 0L /* no addr */,
-	0 /* read 0 */,
-	0 /* write 0 */,
-	1 /* close */);
-}
-
-// Erase a 4k segment starting at addr
-void erase_4k(unsigned long addr) {
-    // INSTR + 24 bit 0 + 2 READ BYTES + CLOSE
-    talk(BLOCK_ERASE_4K_INSTR,
-         1 /* withaddr */, addr,
-	 0 /* read 0 */,
-	 0 /* write 0 */,
-	 1 /* close */);
-    wait_busy();
-}
-
-// Return > 0 on verify error.
-unsigned wait_verify(void) {
-   unsigned char v;
-   // Keep checking bit 2 for write busy flag.
-   do { v = PEEK(SPI_REG); } while (v & 2);
-   // Done? Return verify bit.
-   return v & 4;
-}
-
 unsigned long input_int(void) {
    unsigned n = 0;
    for (;;) {
@@ -422,133 +183,6 @@ unsigned long input_int(void) {
    }
    scratch[n] = '\0';
    return atol(scratch);
-}
-
-void expert(void) {
-   // Need to uncomment for expert stuff
-
-   unsigned long start_addr;
-   unsigned int n;
-   unsigned char key;
-   if (!is_expert)
-       return;
-
-/*
-   mprintf ("\nExpert CMD\n");
-   do {
-      mprintf ("\n> ");
-      WAITKEY;
-      key = r.a;
-      mprintf ("\n");
-      switch(key) {
-        case '?':
-          mprintf ("R slow read 256 from flash\n");
-          mprintf ("e erase flash 4k\n");
-          mprintf ("w slow write 256 to flash\n");
-          mprintf ("m read 256 from vmem\n");
-          mprintf ("f bulk flash read to vmem\n");
-          mprintf ("g bulk flash write from vmem\n");
-          mprintf ("c copy 0x5000 dram to 0x0000 vmem\n");
-          mprintf ("l fill 16k vmem with pattern\n");
-          mprintf ("s get spi status reg\n");
-          mprintf ("z expert off\n");
-          mprintf ("q exit\n");
-          break;
-        case 'r': // SLOW READ 256 FROM FLASH
-          mprintf ("\nEnter FLASH READ address:");
-          start_addr = input_int();
-          SMPRINTF_1 ("READ 256 bytes from FLASH (slow) %ld\n", start_addr);
-          read_page(start_addr);
-          for (n=0;n<256;n++) {
-             SMPRINTF_1 ("%02x:", data_in[n]);
-          }
-          break;
-        case 'e': // ERASE FLASH 4K
-          mprintf ("\nEnter FLASH ERASE address:");
-          start_addr = input_int();
-          SMPRINTF_1 ("ERASE FLASH 4k @ %ld\n", start_addr);
-          wren();
-          erase_4k(start_addr);
-          break;
-        case 'w': // SLOW WRITE 256 TO FLASH
-          mprintf ("\nEnter FLASH WRITE address:");
-          start_addr = input_int();
-          SMPRINTF_1 ("WRITE 256 bytes to %ld (slow)\n", start_addr);
-          for (n=0;n<256;n++) {
-             data_out[n] = n;
-          }
-          wren();
-          write_page(start_addr);
-          break;
-        case 'm': // READ 256 FROM VMEM
-          mprintf ("\nEnter VMEM read address:");
-          start_addr = input_int();
-          SMPRINTF_1 ("READ 256 vmem bytes from %ld (slow)\n", start_addr);
-          POKE(VIDEO_MEM_FLAGS, 1);
-          POKE(VIDEO_MEM_1_IDX,0);
-          POKE(VIDEO_MEM_2_IDX,0);
-          POKE(VIDEO_MEM_1_LO,start_addr & 0xff);
-          POKE(VIDEO_MEM_1_HI,start_addr >> 8);
-          for (n=0;n<256;n++) {
-             SMPRINTF_1("%02x ",PEEK(VIDEO_MEM_1_VAL));
-          }
-          POKE(VIDEO_MEM_FLAGS, 0);
-          break;
-        case 'f': // BULK FLASH READ TO VMEM
-          mprintf ("\nEnter FLASH read address:");
-          start_addr = input_int();
-          mprintf ("READ 16k from FLASH (bulk)\n");
-          SMPRINTF_1 ("%ld to vmem 0x0000\n", start_addr);
-          POKE(VIDEO_MEM_FLAGS, 0);
-          // From flash start_addr
-          POKE(VIDEO_MEM_1_IDX,(start_addr >> 16) & 0xff);
-          POKE(VIDEO_MEM_1_HI,(start_addr >> 8) & 0xff);
-          POKE(VIDEO_MEM_1_LO,(start_addr & 0xff));
-          // To video mem 0x0000
-          POKE(VIDEO_MEM_2_HI, 0);
-          POKE(VIDEO_MEM_2_LO, 0);
-          POKE(SPI_REG, FLASH_BULK_OP | FLASH_BULK_READ);
-          break;
-        case 'g': // BULK FLASH WRITE FROM VMEM
-          mprintf ("\nEnter FLASH write address:");
-          start_addr = input_int();
-          SMPRINTF_1 ("WRITE 16k to FLASH (bulk) %ld\nfrom vmem 0x0000\n", start_addr);
-          POKE(VIDEO_MEM_FLAGS, 0);
-          // To flash start_addr
-          POKE(VIDEO_MEM_1_IDX,(start_addr >> 16) & 0xff);
-          POKE(VIDEO_MEM_1_HI,(start_addr >> 8) & 0xff);
-          POKE(VIDEO_MEM_1_LO,(start_addr & 0xff));
-          // From video mem 0x0000
-          POKE(VIDEO_MEM_2_HI, 0);
-          POKE(VIDEO_MEM_2_LO, 0);
-          POKE(SPI_REG, FLASH_BULK_OP | FLASH_BULK_WRITE);
-          SMPRINTF_1("VERIFY %d\n", wait_verify());
-          break;
-        case 'c': // COPY 0x5000 to vmem 0x000
-          mprintf ("\nCopy 0x5000 DRAM to 0x000 VMEM\n");
-          copy_5000_0000();
-          break;
-        case 'l': // FILL 16k vmem with pattern
-          POKE(VIDEO_MEM_FLAGS, 1);
-          POKE(VIDEO_MEM_1_IDX,0);
-          POKE(VIDEO_MEM_2_IDX,0);
-          POKE(VIDEO_MEM_1_LO,0);
-          POKE(VIDEO_MEM_1_HI,0);
-          for (n=0;n<16384;n++) {
-             POKE(VIDEO_MEM_1_VAL, n % 256);
-          }
-          POKE(VIDEO_MEM_FLAGS, 0);
-          break;
-        case 'z': // EXIT EXPERT
-          mprintf ("\nExpert off\n");
-          is_expert = 0;
-          break;
-        case 's': // GET SPI REG
-          SMPRINTF_1 ("\nSPI_REG=%d\n", PEEK(SPI_REG));
-          break;
-      }
-   } while (key != 'q');
-*/
 }
 
 void fast_start(void) {
@@ -622,8 +256,6 @@ void begin_flash(long num_to_write, unsigned long start_addr) {
        // Transfer $5000 - $8fff into video memory @ $0000
        copy_5000_0000();
 
-       expert();
-
        // Tell kawari to flash it from vmem 0x0000 to the flash address
        POKE(VIDEO_MEM_FLAGS, 0);
        POKE(VIDEO_MEM_1_IDX,(start_addr >> 16) & 0xff);
@@ -633,8 +265,6 @@ void begin_flash(long num_to_write, unsigned long start_addr) {
        POKE(VIDEO_MEM_2_LO, 0);
        mprintf ("FLASH,");
        POKE(SPI_REG, FLASH_BULK_OP | FLASH_BULK_WRITE);
-
-       expert();
 
        // Wait for flash to be done and verified
        mprintf ("VERIFY,");
@@ -655,8 +285,6 @@ void begin_flash(long num_to_write, unsigned long start_addr) {
 	      WAITKEY;
           }
        }
-
-       expert();
     }
     mprintf ("\nDone\n");
     press_any_key(TO_NOTHING);
@@ -902,9 +530,6 @@ void main_menu(void)
        } else if (!use_fast_loader && r.a == 'e') {
           use_fast_loader = 1;
           fast_start();
-       } else if (r.a == 'x') {
-          is_expert = 1;
-          expert();
        } else if (r.a == 'r') {
           mprintf ("\nConfirm reset? (y/N)");
           WAITKEY;

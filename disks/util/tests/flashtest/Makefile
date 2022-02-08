@@ -1,7 +1,8 @@
 # Do not edit below this line
 all: flashtest.prg
 
-OBJS=main.o menu.o support.o ../../common/util.o ../../common/init.o 
+OBJS=main.o menu.o support.o ../../common/util.o ../../common/init.o \
+     ../../common/flash.o
 
 flashtest.prg: ${OBJS}
 	ld65 -o flashtest.prg ${OBJS} /usr/share/cc65/lib/c64.lib \
