@@ -173,8 +173,8 @@ task handle_persist(input is_reset);
                                         // If we reach this register stil with no magic, we will never
                                         // restore any settings including the chip. So at least set
                                         // chip according to the external switch.
-                                        chip <= {data[1], standard_sw ? chip[0] : ~chip[0]};
-                                        eeprom_bank <= {data[1], standard_sw ? chip[0] : ~chip[0]};
+                                        chip <= {chip[1], standard_sw ? chip[0] : ~chip[0]};
+                                        eeprom_bank <= {chip[1], standard_sw ? chip[0] : ~chip[0]};
                                       end
                                     default:
                                         ;
