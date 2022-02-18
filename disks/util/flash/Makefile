@@ -36,8 +36,8 @@ FILENUMS=00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23
 # Max 4 disks
 DISKNUMS=1 2 3 4
 
-OBJS=main.o menu.o ../common/util.o ../common/init.o ../common/flash.o \
-     crt0.o loader_loader.o copy.o compare.o
+OBJS=main.o menu.o ../common/util.o ../common/data.o ../common/init.o \
+     ../common/flash.o crt0.o loader_loader.o copy.o compare.o
 
 EXPERT_OBJS=main.o expert.o ../common/util.o ../common/init.o ../common/flash.o copy.o
 

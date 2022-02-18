@@ -6,6 +6,9 @@ util.o: util.c ../include/util.h
 init.o: init.c ../include/init.h
 	cl65 --include-dir ../include -c init.c -o init.o
 
+data.o: data.c ../include/data.h
+	cl65 --include-dir ../include -c data.c -o data.o
+
 main.o: main.c ../include/menu.h
 	cl65 --include-dir ../include -c main.c -o main.o
 

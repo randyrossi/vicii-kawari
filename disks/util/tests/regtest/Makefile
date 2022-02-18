@@ -1,6 +1,6 @@
 all: regtest.prg
 
-OBJS=../../common/main.o menu.o ../../common/util.o ../../common/init.o \
+OBJS=../../common/main.o menu.o ../../common/data.o ../../common/util.o ../../common/init.o \
      test_auto_inc_vmem_a.o \
      test_auto_inc_vmem_b.o \
      test_auto_dec_vmem_a.o \

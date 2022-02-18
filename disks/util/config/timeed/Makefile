@@ -1,6 +1,6 @@
 all: timed.prg
 
-OBJS=../../common/main.o menu.o ../../common/util.o ../../common/init.o
+OBJS=../../common/main.o menu.o ../../common/data.o ../../common/util.o ../../common/init.o
 
 timed.prg: ${OBJS}
 	cl65 -o timed.prg ${OBJS}
