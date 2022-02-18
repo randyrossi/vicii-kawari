@@ -71,7 +71,8 @@ unsigned char data_all[1024];
 #define SCRATCH_SIZE 32
 unsigned char scratch[SCRATCH_SIZE];
 
-// THIS IS REV_4 INTI DATA
+// THIS IS REV_4 INIT DATA - GENERATE
+// WITH make_init_mem util
 unsigned char compare[1024] = {
 0x56,0x49,0x43,0x32,0x80,0xff,0xff,0xff,
 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
@@ -647,6 +648,11 @@ void main_menu(void)
     clrscr();
 
     printf ("VIC-II Kawari EEPROM Test Util\n\n");
+
+    if (FLASH_LOCKED) {
+      printf ("The SPI lock jumper is present.\n");
+      printf ("This utility will not function.\n");
+    }
 
     // Activate SPI reg.
     POKE(SPI_REG, 83);
