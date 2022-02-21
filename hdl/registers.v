@@ -9,7 +9,9 @@ module registers
        )
        (
            output reg rst = 1'b1,
+`ifdef HIRES_RESET
            input cpu_reset_i,
+`endif
            input standard_sw,
            input clk_dot4x,
            input clk_phi,

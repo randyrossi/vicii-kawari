@@ -13,7 +13,9 @@ module top(
            input clk_col16x,    // driven by sim
 
            output cpu_reset,    // reset for 6510 CPU
+`ifdef HIRES_RESET
            input cpu_reset_i,
+`endif
            input standard_sw,   // video standard toggle switch
            output clk_phi,      // output phi clock for CPU
            output clk_dot4x,    // pixel clock
@@ -147,7 +149,9 @@ always @(negedge clk_dot4x)
 // Instantiate the vicii with our clocks and pins.
 vicii vic_inst(
           .rst(rst),
+`ifdef HIRES_RESET
           .cpu_reset_i(cpu_reset_i),
+`endif
           .standard_sw(standard_sw),
           .clk_dot4x(clk_dot4x),
           .clk_phi(clk_phi),

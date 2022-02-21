@@ -28,7 +28,9 @@ module vicii
            parameter ram_width = `VIDEO_RAM_WIDTH
            )
            (
+`ifdef HIRES_RESET
            input cpu_reset_i,
+`endif
            input standard_sw,
            output rst,
            input clk_dot4x,
@@ -898,7 +900,9 @@ wire [7:0] timing_v_bporch_pal;
 
 registers vic_registers(
               .rst(rst),
+`ifdef HIRES_RESET
               .cpu_reset_i(cpu_reset_i),
+`endif
               .standard_sw(standard_sw),
               .clk_dot4x(clk_dot4x),
               .clk_phi(clk_phi),

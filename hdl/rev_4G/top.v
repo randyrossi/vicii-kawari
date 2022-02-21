@@ -46,7 +46,9 @@ module top(
 `endif // WITH_EXTENSIONS
 
            output cpu_reset,    // for pulling 6510 reset LOW
+`ifdef HIRES_RESET
            input cpu_reset_i,   // for listening to 6510 reset
+`endif
            input standard_sw,   // video standard toggle switch
            output clk_phi,      // output phi clock for CPU
 `ifdef GEN_RGB
@@ -98,8 +100,10 @@ assign clk_dot4x_ext = 1'b0;
 wire rst;
 assign cpu_reset = rst;
 
+`define USE_MUX_HACK 1
+
 `ifdef USE_MUX_HACK
-`define OOT_CLOCK_4X clk_dot4x
+`define DOT_CLOCK_4X clk_dot4x
 `define DOT_CLOCK_40X clk_dot40x
 `define COL_CLOCK_16X clk_col16x
 `else
@@ -191,7 +195,9 @@ vicii vic_inst(
           .rst(rst),
           .chip(chip),
           .rw_ctl(rw_ctl),
+`ifdef HIRES_RESET
           .cpu_reset_i(cpu_reset_i),
+`endif
           .standard_sw(standard_sw),
 `ifdef WITH_EXTENSIONS
           .spi_lock(cfg1),
