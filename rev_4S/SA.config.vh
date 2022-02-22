@@ -4,7 +4,6 @@
 `define VERSION_MAJOR 8'd0
 `define VERSION_MINOR 8'd8
 
-`define REV_4S_BOARD 1
 `define NO_CLOCK_MUX 1
 `define GEN_LUMA_CHROMA 1
 

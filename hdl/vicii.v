@@ -37,7 +37,7 @@ module vicii
            output clk_phi,
            input clk_col16x,
 `ifdef GEN_LUMA_CHROMA
-`ifdef HAVE_LUMA_SINK
+`ifndef REV_3_BOARD
            output luma_sink,
 `endif
            output [5:0] luma,
@@ -1199,7 +1199,7 @@ comp_sync vic_comp_sync(
               .raster_y(raster_line),
 `ifdef GEN_LUMA_CHROMA
               .white_line(white_line),
-`ifdef HAVE_LUMA_SINK
+`ifndef REV_3_BOARD
               .luma_sink(luma_sink),
 `endif
               .luma_out(luma),

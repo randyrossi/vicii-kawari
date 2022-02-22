@@ -6,6 +6,12 @@
 // the three raster_x == hvisible_start conditions below for luma,
 // phase and amplitude.
 
+// Rev 4+ boards have luma sink capabilities to properly
+// sink most current during h/v sync periods.
+`ifndef REV_3_BOARD
+`define HAVE_LUMA_SINK 1
+`endif
+
 // A module that produces a luma/chroma signals.
 module comp_sync(
            input clk_dot4x,
