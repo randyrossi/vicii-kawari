@@ -33,9 +33,7 @@ module top(
 
            // If we are generating luma/chroma, add outputs
 `ifdef GEN_LUMA_CHROMA
-`ifdef HAVE_LUMA_SINK
            output luma_sink,    // luma current sink
-`endif
            output [5:0] luma,    // luma out
            output [5:0] chroma,  // chroma out
 `endif
@@ -169,9 +167,7 @@ vicii vic_inst(
 `endif
 `endif
 `ifdef GEN_LUMA_CHROMA
-`ifdef HAVE_LUMA_SINK
           .luma_sink(luma_sink),
-`endif
           .luma(luma),
           .chroma(chroma),
 `endif

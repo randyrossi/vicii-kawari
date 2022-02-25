@@ -775,7 +775,9 @@ int main(int argc, char** argv, char** env) {
     top->cfg3 = 0; // persistence_lock
 #endif
     // cpu_reset_i is held HIGH simulating pullup
+#if HIRES_RESET
     top->cpu_reset_i = 1;
+#endif
     
     top->V_CHIP = chip;
 
