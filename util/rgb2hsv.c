@@ -12,6 +12,38 @@
        __typeof__ (b) _b = (b); \
      _a < _b ? _a : _b; })
 
+#define BINARY 0
+#define HEX 1
+
+#define OUTPUT_FORMAT HEX
+
+#define BYTE_TO_BINARY6_PATTERN "%c%c%c%c%c%c"
+#define BYTE_TO_BINARY6(byte)  \
+  (byte & 0x20 ? '1' : '0'), \
+  (byte & 0x10 ? '1' : '0'), \
+  (byte & 0x08 ? '1' : '0'), \
+  (byte & 0x04 ? '1' : '0'), \
+  (byte & 0x02 ? '1' : '0'), \
+  (byte & 0x01 ? '1' : '0') 
+
+#define BYTE_TO_BINARY8_PATTERN "%c%c%c%c%c%c%c%c"
+#define BYTE_TO_BINARY8(byte)  \
+  (byte & 0x80 ? '1' : '0'), \
+  (byte & 0x40 ? '1' : '0'), \
+  (byte & 0x20 ? '1' : '0'), \
+  (byte & 0x10 ? '1' : '0'), \
+  (byte & 0x08 ? '1' : '0'), \
+  (byte & 0x04 ? '1' : '0'), \
+  (byte & 0x02 ? '1' : '0'), \
+  (byte & 0x01 ? '1' : '0') 
+
+#define BYTE_TO_BINARY4_PATTERN "%c%c%c%c"
+#define BYTE_TO_BINARY4(byte)  \
+  (byte & 0x08 ? '1' : '0'), \
+  (byte & 0x04 ? '1' : '0'), \
+  (byte & 0x02 ? '1' : '0'), \
+  (byte & 0x01 ? '1' : '0') 
+
 void rgb_to_hsv(double r, double g, double b, int *phase, int *amp, int *luma) {
         // R, G, B values are divided by 255
         // to change the range from 0..255 to 0..1
@@ -93,12 +125,20 @@ int main(int argc, char *argv[]) {
       if (l[col] > 63) l[col] = 63;
    }
 
-   for (int col=0;col<16;col++)
-   {
-     printf ("0x%02x,", l[col]);
-     printf ("0x%02x,", p[col]);
-     printf ("0x%02x,\n", a[col]);
-   }
+   if (OUTPUT_FORMAT == HEX) {
+     for (int col=0;col<16;col++) {
+        printf ("0x%02x,", l[col]);
+        printf ("0x%02x,", p[col]);
+        printf ("0x%02x,\n", a[col]);
+      }
+   } else if (OUTPUT_FORMAT == BINARY) {
+     for (int col=0;col<16;col++) {
+        printf (BYTE_TO_BINARY6_PATTERN, BYTE_TO_BINARY6(l[col]));
+        printf (BYTE_TO_BINARY8_PATTERN, BYTE_TO_BINARY8(p[col]));
+        printf (BYTE_TO_BINARY4_PATTERN, BYTE_TO_BINARY4(a[col]));
+        printf ("\n");
+      }
+   } 
       
    fclose(fp);
 }

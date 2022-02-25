@@ -1,4 +1,4 @@
-all: rgb2hsv Sine.class
+all: rgb2hsv Sine.class MakeImage.class
 
 rgb2hsv: rgb2hsv.o
 	$(CC) -o $@ $<
