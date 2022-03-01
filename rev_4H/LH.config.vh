@@ -11,11 +11,8 @@
 `define WITH_EXTENSIONS 1
 `define GEN_LUMA_CHROMA 1
 `define CONFIGURABLE_LUMAS 1
-`define CONFIGURABLE_RGB 1
-`define NEED_RGB 1
 `define WITH_RAM 1
-`define WITH_DVI 1
-`define HAVE_EEPROM 1
+`define WITH_4K 1
 `define HAVE_FLASH 1
 
 `endif // config_vh_

@@ -74,7 +74,9 @@ module top(
 
            input ce,            // chip enable (LOW=enable, HIGH=disabled)
            input rw,            // read/write (LOW=write, HIGH=read)
-           output rw_ctl,
+
+           //output rw_ctl,     // don't have this on this model
+
            output irq,          // irq
            input lp,            // light pen
            output aec,          // aec
@@ -194,7 +196,7 @@ wire [1:0] chip;
 vicii vic_inst(
           .rst(rst),
           .chip(chip),
-          .rw_ctl(rw_ctl),
+          .rw_ctl(1'b0),
 `ifdef HIRES_RESET
           .cpu_reset_i(cpu_reset_i),
 `endif

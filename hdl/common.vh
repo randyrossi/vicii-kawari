@@ -15,6 +15,16 @@
 `define BIT_EXT2_64K       matrix_base[0],
 `define BIT_EXT3_64K       matrix_base[1:0],
 `else
+
+`ifdef WITH_4K
+`define VIDEO_RAM_WIDTH    12
+`define VIDEO_RAM_HI_WIDTH 4
+`define VIDEO_RAM_HI_RANGE 3:0
+`define VIDEO_RAM_MUX
+`define BIT_EXT_64K
+`define BIT_EXT2_64K
+`define BIT_EXT3_64K
+`else
 `define VIDEO_RAM_WIDTH    15
 `define VIDEO_RAM_HI_WIDTH 7
 `define VIDEO_RAM_HI_RANGE 6:0
@@ -22,6 +32,8 @@
 `define BIT_EXT_64K
 `define BIT_EXT2_64K
 `define BIT_EXT3_64K       matrix_base[0],
+`endif
+
 `endif
 
 `define EEPROM_READ  2'd0
