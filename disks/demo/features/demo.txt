@@ -1,0 +1,159 @@
+what to demo:
+
+New video output options
+
+   Your VIC-II Kawari continues to output
+   S/LUM + COLOR signals which produce
+   the composite or s-video signals at
+   the rear video port.
+
+64k ram
+new modes
+   80 column mode
+   320x200x16 cells
+   640x200x16
+   640x200x4
+math
+vmem copy/fill
+DMA
+
+
+
+VIC-II Kawari is compatible with the original VIC-II
+6567/6569 chipset. So all your favorite games and utility software
+will run just fine. However, VIC-II Kawari adds some new features
+never before available on a Commodore 64.  Some features are for everyone
+while others were added specifically for 8-bit enthusiasts to
+experiment with.  We've separated the new features into the following
+categories:
+
+ E - This is a feature for for everyone. Anyone with a C-64 can enjoy this feature and requires no special knowedge or programming skills.  Just plug it in and play.
+
+ 8 - This feature is for the 8-bit enthusiast who likes to code for 8-bit machines. Coding for 8-bit machines is not easy as they have limited capabilities.  But it's the limitations that make it challenging and rewarding.  VIC-II Kawari has added some extra functionality that will keep the 8-bit coder busy.
+
+ H - At it's core, VIC-II Kawari is like an FPGA development board with a Commodore-64 address/data bus interface.  If you want to experiment with defining the way the video chip itself behaves at the hardware level, this can be done since the FPGA core is open source.  Since this defines the very behavior of the hardware itself, the possibilities are endless.
+
+[E] Easily switch between NTSC and PAL modes
+
+  Switching between NTSC and PAL is as easy as flipping
+  a switch or running a short utility program and toggling
+  an option.  After swtiching the machine video standard,
+  the next cold boot reflects the change.
+
+  Many users who grew up with an NTSC machine noticed that
+  many games or demos either didn't run or ran with horrible
+  glitches.  This feature lets North American users have the best
+  of both worlds.  Combined with the new video output options,
+  this is a great way for North American users to have a
+  the PAL experince.
+
+[8] An additional 64K RAM
+
+  VIC-II Kawari provides an extra 64K of RAM.  This ram
+  is directly accessed by the video card's hires pixel
+  sequencer but can also be accessed indirectly by the 6510
+  CPU. Store extra graphics, sound or even code in this
+  area.
+
+[E] An 80 column text mode
+
+  This is a true 80 column text mode.  Each character is a full
+  8 bit wide character and there are no color limitations like you
+  get with soft-80 solutions.  There are also hardware backed
+  copy/fill routines that make this mode very snappy.
+
+  Integrates well with BASIC using only a small 2k resident program
+  that replaces kernel print routines.
+
+  Can be integrated into other software as long as the source
+  is available or there is a plug-in architecture (i.e Novaterm)
+
+  It is very similar to the VDC on the 128.  It uses the upper nibble
+  (4 bits) of color information for blink, alt chars, intensity and
+  underline.
+
+                (Let's get CP/M working with this!)
+
+[8] New hires video modes
+
+  There are three new hires graphics modes.  These modes use
+  the additional 64K of video ram provided by Kawari.
+
+   320x200x16
+
+      [ hi-nibble lo-nibble ] = C1C2
+
+      Every pixel can have a separate 16 color.
+
+   640x200x16
+
+      Similar to character graphics mode except with a higher resolution.
+      Each 8x8 cell has a separate foregorund color and can display
+      an arbitrary 8x8 bitmap matrix in that color.
+
+   640x200x4
+
+      Hi-res, low color mode. This is a full 640x200 pixel mode with
+      no limitations on adjacent colors.
+
+[E] New digital and analog output options
+
+  VIC-II Kawari produces SYNC/LUMA and CHROMA signals just like the original
+  chips.  This is what produces the composite signal out of the video
+  output jack on the back of the machine.  Composite video can be quite
+  noisy since the signals are mixed and then separated on the receiving end.
+  Some people have built custom S-Video cables which separate these two
+  signals resulting in a clearer picture. However, not all C64 models have
+  the S/LUM and CHROMA signals separated on the video port.
+
+  If you want an even better quality image while maintaining the retro feel,
+  VICII-Kawari includes an analog RGB header which can produce video signals
+  for a 1084 or VGA monitor.  15khz horizontal refresh rates are an option if
+  your monitor supports it.
+
+  Not everyone has an old CRT monitor laying around.  That's why VIC-II Kawari
+  includes a micro-HDMI connector that carries a DVI signal.  This is a 
+  convenient way to get a sharp a image from your C-64 directly from the video
+  cart without having to go through an up-scaler. (NOTE: This will make your
+  C-64 look like an emulator which is not to everyone's taste.)
+
+[E] The palette is configurable and can be saved/restored at boot
+
+  Want to adjust the colors?  No problem, use the RGBED or COMPED programs
+  to adjust the color palette to your preference.
+
+[8] Configure custom palettes for your own program
+
+  Since the color palette can be configured, you can make changes to the
+  default palette for your own program.  A game you write, for example,
+  can have a completely different palette that better suits the game.
+ 
+[8] DMA transfer between DRAM and VRAM
+
+  The standard low-res modes read from DRAM. The new hires modes
+  read from VRAM.  As a programmer, you may wish to transfer blocks of
+  memory from one to the other.  This is what DMA transfer is for.  DMA
+  transfers will use the idle graphics fetch cycles to perform DRAM to VRAM
+  or VRAM to DRAM copies.  This can come in very handy for quickly swapping
+  graphics from one ram type to the other.
+
+[8] Copy/Fill 
+
+  Move entire blocks of memory within VRAM or fill blocks of memory within
+  VRAM very quickly by using the copy/fill functions. To get a feel of how
+  this improves performance, look at how quickly the 80 column mode scrolls
+  text as compared to the 40 column mode.  It scrolls much quicker even
+  though it is moving twice as much memory!
+
+[8] Next cycle DIV/MUL math operations
+
+  Why waste precious 6510 cycles looping to perform division or multiplication
+  operations?  With the new DIV/MUL registers, your answer will be available
+  on the next 6510 cycle. This leaves more room for your program to do other
+  more useful things.
+
+[H] Endless possibilities
+
+  
+
+  
