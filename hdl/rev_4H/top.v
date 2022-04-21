@@ -2,23 +2,23 @@
 
 `include "../common.vh"
 
+//`define USE_MUX_HACK 1
+
 module top(
        input clk_col4x_ntsc, // from pin
        input clk_col4x_pal, // from pin
 
        input clk_col16x_ntsc, // from pll
        input clk_dot4x_ntsc, // from pll
-       input clk_dot40x_ntsc, // from pll
        input clk_col16x_pal, // from pll
        input clk_dot4x_pal, // from pll
-       input clk_dot40x_pal, // from pll
 
+`ifdef USE_MUX_HACK
        output reg ntsc_dot, // throw away signal for mux hack
-       output reg ntsc_dot_10, // throw away signal for mux hack
        output reg pal_dot, // throw away signal for mux hack
-       output reg pal_dot_10, // throw away signal for mux hack
        output reg ntsc_col, // throw away signal for mux hack
        output reg pal_col, // throw away signal for mux hack
+`endif
 
        // If we are generating luma/chroma, add outputs
 `ifdef GEN_LUMA_CHROMA
@@ -87,13 +87,6 @@ module top(
            output ls245_data_dir,  // DIR for data bus transceiver
            output ls245_addr_oe,   // OE for addr bus transceivers
            output ls245_data_oe    // OE for data bus transceiver
-`ifdef WITH_DVI
-           ,
-           output tmds_data_r,
-           output tmds_data_g,
-           output tmds_data_b,
-           output tmds_clock
-`endif
 );
 
 // TODO - export dot clock for RGB header
@@ -102,16 +95,12 @@ assign clk_dot4x_ext = 1'b0;
 wire rst;
 assign cpu_reset = rst;
 
-`define USE_MUX_HACK 1
-
 `ifdef USE_MUX_HACK
 `define DOT_CLOCK_4X clk_dot4x
-`define DOT_CLOCK_40X clk_dot40x
 `define COL_CLOCK_16X clk_col16x
 `else
 // Fix to one or the other for testing
 `define DOT_CLOCK_4X clk_dot4x_ntsc
-`define DOT_CLOCK_40X clk_dot40x_ntsc
 `define COL_CLOCK_16X clk_col16x_ntsc
 `endif
 
@@ -129,14 +118,6 @@ EFX_GBUFCE mux1(
     .CE(1'b1),
     .I(standard_sw ? clk_dot4x_ntsc : clk_dot4x_pal),
     .O(clk_dot4x)
-    );
-
-wire clk_dot40x;
-// Put the muxed clock onto the clock tree
-EFX_GBUFCE mux3(
-    .CE(1'b1),
-    .I(standard_sw ? clk_dot40x_ntsc : clk_dot40x_pal),
-    .O(clk_dot40x)
     );
 
 wire clk_col16x;
@@ -163,16 +144,6 @@ begin
     pal_dot <= ~pal_dot;
 end
 
-always @(posedge clk_dot40x_ntsc)
-begin
-    ntsc_dot_10 <= ~ntsc_dot_10;
-end
-
-always @(posedge clk_dot40x_pal)
-begin
-    pal_dot_10 <= ~pal_dot_10;
-end
-
 always @(posedge clk_col16x_ntsc)
 begin
     ntsc_col <= ~ntsc_col;
@@ -191,12 +162,13 @@ wire vic_write_ab;
 wire vic_write_db;
 
 wire [1:0] chip;
+wire rw_ctl;
 
 // Instantiate the vicii with our clocks and pins.
 vicii vic_inst(
           .rst(rst),
           .chip(chip),
-          .rw_ctl(1'b0),
+          .rw_ctl(rw_ctl),
 `ifdef HIRES_RESET
           .cpu_reset_i(cpu_reset_i),
 `endif
@@ -252,6 +224,7 @@ vicii vic_inst(
           .vic_write_ab(vic_write_ab)
       );
 
+      
 // Write to bus condition, else tri state.
 assign dbl_OUT[7:0] = dbo; // CPU reading
 assign dbl_OE = {vic_write_db,vic_write_db,vic_write_db,vic_write_db,vic_write_db,vic_write_db,vic_write_db,vic_write_db};
@@ -263,41 +236,5 @@ assign adh = ado[11:6];
 // Set LOW unless we need otherwise.
 assign ls245_addr_oe = 1'b0;
 assign ls245_data_oe = 1'b0;
-
-`ifdef WITH_DVI
-// Scale from 6 bits to 8 for DVI
-wire[31:0] red_scaled;
-wire[31:0] green_scaled;
-wire[31:0] blue_scaled;
-assign red_scaled = red * 255 / 63;
-assign green_scaled = green * 255 / 63;
-assign blue_scaled = blue * 255 / 63;
-
-`ifdef HALF_X_RES
-// Turn this on if we set native x in both
-// registers and vga sync modules. Tests
-// 16Mhz dot clock instead of 32mhz
-reg ff1;
-reg ff2;
-always @(posedge `DOT_CLOCK_4X) ff1=~ff1;
-always @(posedge `DOT_CLOCK_40X) ff2=~ff2;
-`endif
-
-dvi dvi_tx0 (
-`ifdef HALF_X_RES
-   .clk_pixel    (ff1), //`DOT_CLOCK_4X),
-   .clk_pixel_x10(ff2), //`DOT_CLOCK_40X),
-`else
-   .clk_pixel    (`DOT_CLOCK_4X),
-   .clk_pixel_x10(`DOT_CLOCK_40X),
-`endif
-   .reset        (1'b0),
-   .rgb          ({red_scaled[7:0], green_scaled[7:0], blue_scaled[7:0]}),
-   .hsync        (hsync),
-   .vsync        (vsync),
-   .de           (active),
-   .tmds         ({tmds_data_r, tmds_data_g, tmds_data_b}),
-   .tmds_clock   (tmds_clock));
-`endif
 
 endmodule

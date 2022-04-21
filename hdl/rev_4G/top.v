@@ -2,6 +2,8 @@
 
 `include "../common.vh"
 
+`define USE_MUX_HACK 1
+
 module top(
        input clk_col4x_ntsc, // from pin
        input clk_col4x_pal, // from pin
@@ -13,12 +15,14 @@ module top(
        input clk_dot4x_pal, // from pll
        input clk_dot40x_pal, // from pll
 
+`ifdef USE_MUX_HACK
        output reg ntsc_dot, // throw away signal for mux hack
        output reg ntsc_dot_10, // throw away signal for mux hack
        output reg pal_dot, // throw away signal for mux hack
        output reg pal_dot_10, // throw away signal for mux hack
        output reg ntsc_col, // throw away signal for mux hack
        output reg pal_col, // throw away signal for mux hack
+`endif
 
        // If we are generating luma/chroma, add outputs
 `ifdef GEN_LUMA_CHROMA
@@ -100,7 +104,6 @@ assign clk_dot4x_ext = 1'b0;
 wire rst;
 assign cpu_reset = rst;
 
-`define USE_MUX_HACK 1
 
 `ifdef USE_MUX_HACK
 `define DOT_CLOCK_4X clk_dot4x

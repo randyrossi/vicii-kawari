@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<efxpt:design_db name="vicii" device_def="T8Q144" location="C:\shared\Vivado\vicii\rev_4H" version="2021.2.323.1.8" db_version="20212999" last_change_date="Tue Mar  1 08:57:31 2022" xmlns:efxpt="http://www.efinixinc.com/peri_design_db" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/peri_design_db peri_design_db.xsd ">
+<efxpt:design_db name="vicii" device_def="T8Q144" location="C:\shared\Vivado\vicii\rev_4H" version="2021.2.323.1.8" db_version="20212999" last_change_date="Thu Apr 21 14:47:32 2022" xmlns:efxpt="http://www.efinixinc.com/peri_design_db" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/peri_design_db peri_design_db.xsd ">
     <efxpt:device_info>
         <efxpt:iobank_info>
             <efxpt:iobank name="1A" iostd="3.3 V LVTTL / LVCMOS"/>
@@ -211,7 +211,7 @@
         <efxpt:gpio name="luma[5]" gpio_def="GPIOL_32" mode="output" bus_name="luma" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
             <efxpt:output_config name="luma[5]" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
         </efxpt:gpio>
-        <efxpt:gpio name="luma_sink" gpio_def="GPIOB_RXN07" mode="output" bus_name="" is_lvds_gpio="true" io_standard="3.3 V LVTTL / LVCMOS">
+        <efxpt:gpio name="luma_sink" gpio_def="GPIOR_104" mode="output" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
             <efxpt:output_config name="luma_sink" name_ddio_lo="" register_option="none" clock_name="" is_clock_inverted="false" is_slew_rate="false" tied_option="none" ddio_type="none" drive_strength="1"/>
         </efxpt:gpio>
         <efxpt:gpio name="ras" gpio_def="GPIOL_25" mode="output" bus_name="" is_lvds_gpio="false" io_standard="3.3 V LVTTL / LVCMOS">
@@ -244,22 +244,12 @@
         <efxpt:pll name="pll_inst1" pll_def="PLL_TL0" ref_clock_name="clk_col4x_ntsc" ref_clock_freq="14.32" multiplier="4" pre_divider="1" post_divider="1" reset_name="" locked_name="" is_ipfrz="false" is_bypass_lock="true">
             <efxpt:output_clock name="clk_col16x_ntsc" number="0" out_divider="20" adv_out_phase_shift="0"/>
             <efxpt:output_clock name="clk_dot4x_ntsc" number="2" out_divider="35" adv_out_phase_shift="0"/>
-            <efxpt:output_clock name="clk_dot20x_ntsc" number="1" out_divider="7" adv_out_phase_shift="0"/>
             <efxpt:adv_prop ref_clock_mode="core" ref_clock1_name="" ext_ref_clock_id="2" clksel_name="" feedback_clock_name="clk_col16x_ntsc" feedback_mode="local"/>
         </efxpt:pll>
         <efxpt:pll name="pll_inst2" pll_def="PLL_TL1" ref_clock_name="clk_col4x_pal" ref_clock_freq="17.73" multiplier="4" pre_divider="1" post_divider="1" reset_name="" locked_name="" is_ipfrz="false" is_bypass_lock="true">
             <efxpt:output_clock name="clk_col16x_pal" number="0" out_divider="20" adv_out_phase_shift="0"/>
             <efxpt:output_clock name="clk_dot4x_pal" number="1" out_divider="45" adv_out_phase_shift="0"/>
-            <efxpt:output_clock name="clk_dot20x_pal" number="2" out_divider="9" adv_out_phase_shift="0"/>
             <efxpt:adv_prop ref_clock_mode="core" ref_clock1_name="" ext_ref_clock_id="2" clksel_name="" feedback_clock_name="clk_col16x_pal" feedback_mode="local"/>
-        </efxpt:pll>
-        <efxpt:pll name="pll_inst3" pll_def="PLL_TR0" ref_clock_name="clk_dot20x_ntsc" ref_clock_freq="163.66" multiplier="32" pre_divider="4" post_divider="4" reset_name="" locked_name="" is_ipfrz="false" is_bypass_lock="true">
-            <efxpt:output_clock name="clk_dot40x_ntsc" number="0" out_divider="1" adv_out_phase_shift="0"/>
-            <efxpt:adv_prop ref_clock_mode="core" ref_clock1_name="" ext_ref_clock_id="2" clksel_name="" feedback_clock_name="clk_dot40x_ntsc" feedback_mode="internal"/>
-        </efxpt:pll>
-        <efxpt:pll name="pll_inst4" pll_def="PLL_TR1" ref_clock_name="clk_dot20x_pal" ref_clock_freq="157.60" multiplier="40" pre_divider="4" post_divider="1" reset_name="" locked_name="" is_ipfrz="false" is_bypass_lock="true">
-            <efxpt:output_clock name="clk_dot40x_pal" number="0" out_divider="5" adv_out_phase_shift="0"/>
-            <efxpt:adv_prop ref_clock_mode="core" ref_clock1_name="" ext_ref_clock_id="2" clksel_name="" feedback_clock_name="clk_dot40x_pal" feedback_mode="internal"/>
         </efxpt:pll>
     </efxpt:pll_info>
     <efxpt:lvds_info/>

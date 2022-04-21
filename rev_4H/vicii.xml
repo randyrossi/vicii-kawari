@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<efx:project name="vicii" description="" last_change_date="Tue March 1 2022 09:20:26" location="C:/shared/Vivado/vicii/rev_4H" sw_version="2021.2.323.1.8" last_run_state="pass" last_run_tool="efx_pgm" last_run_flow="bitstream" config_result_in_sync="true" design_ood="change" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
+<efx:project name="vicii" description="" last_change_date="Thu April 21 2022 15:22:24" location="C:/shared/Vivado/vicii/rev_4H" sw_version="2021.2.323.1.8" last_run_state="pass" last_run_tool="efx_pgm" last_run_flow="bitstream" config_result_in_sync="true" design_ood="change" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
     <efx:device_info>
         <efx:family name="Trion"/>
         <efx:device name="T8Q144"/>
-        <efx:timing_model name="C4"/>
+        <efx:timing_model name="I4"/>
     </efx:device_info>
     <efx:design_info def_veri_version="verilog_2k" def_vhdl_version="vhdl_2008">
         <efx:top_module name="top"/>
@@ -24,7 +24,7 @@
         <efx:design_file name="C:/shared/Vivado/vicii/hdl/equalization.v" version="default" library="default"/>
         <efx:design_file name="C:/shared/Vivado/vicii/hdl/pixel_sequencer.v" version="default" library="default"/>
         <efx:design_file name="C:/shared/Vivado/vicii/hdl/addressgen.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/rev_4G/top.v" version="default" library="default"/>
+        <efx:design_file name="C:/shared/Vivado/vicii/hdl/rev_4H/top.v" version="default" library="default"/>
         <efx:design_file name="C:/shared/Vivado/vicii/hdl/hires_pixel_sequencer.v" version="default" library="default"/>
         <efx:design_file name="C:/shared/Vivado/vicii/hdl/hires_addressgen.v" version="default" library="default"/>
         <efx:design_file name="C:/shared/Vivado/vicii/hdl/colorreg.v" version="default" library="default"/>
@@ -71,7 +71,7 @@
     </efx:place_and_route>
     <efx:bitstream_generation tool_name="efx_pgm">
         <efx:param name="mode" value="active" value_type="e_option"/>
-        <efx:param name="width" value="1" value_type="e_option"/>
+        <efx:param name="width" value="4" value_type="e_option"/>
         <efx:param name="enable_roms" value="smart" value_type="e_option"/>
         <efx:param name="spi_low_power_mode" value="on" value_type="e_bool"/>
         <efx:param name="io_weak_pullup" value="on" value_type="e_bool"/>

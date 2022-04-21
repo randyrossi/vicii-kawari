@@ -2,16 +2,8 @@
 
 `include "common.vh"
 
-// The Efinity synthesis tool seems to have a bug that prevents us
-// from declaring an address width any greater than 13 (8K). It fails
-// to synthesize with a cryptic error:
-// [EFX-0680 ERROR] Dual Ported Memory 'ram__D$b3b0g1' has incompatible
-// Read-Enable signal 'vcc'
-// We need 64K of video ram, so to get around this, we will multiplex 8
-// 8K banks using the upper 3 bits of the address.  (NOTE: When 32K is
-// configured, only 4 banks are needed).
-//
-// The design files should replace videoram.v with videoram_efinix.v
+// For 4H board, we can only afford 4k of memory and it will be used
+// exclusively for flashing new images.
 module VIDEO_RAM_EF
        #(
            parameter addr_width = 12,
@@ -88,5 +80,6 @@ VIDEO_RAM_EF #(.init_file("")) video_ram_0 (
         );
 
 assign dout_a = dout_a0;
+assign dout_b = dout_b0;
 
 endmodule
