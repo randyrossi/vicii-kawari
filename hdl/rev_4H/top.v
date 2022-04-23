@@ -2,7 +2,7 @@
 
 `include "../common.vh"
 
-//`define USE_MUX_HACK 1
+`define USE_MUX_HACK 1
 
 module top(
        input clk_col4x_ntsc, // from pin
@@ -116,7 +116,7 @@ wire clk_dot4x;
 // Put the muxed clock onto the clock tree
 EFX_GBUFCE mux1(
     .CE(1'b1),
-    .I(standard_sw ? clk_dot4x_ntsc : clk_dot4x_pal),
+    .I(chip[0] ? clk_dot4x_pal : clk_dot4x_ntsc),
     .O(clk_dot4x)
     );
 
@@ -124,7 +124,7 @@ wire clk_col16x;
 // Put the muxed clock onto the clock tree
 EFX_GBUFCE mux2(
     .CE(1'b1),
-    .I(standard_sw ? clk_col16x_ntsc : clk_col16x_pal),
+    .I(chip[0] ? clk_col16x_pal : clk_col16x_ntsc),
     .O(clk_col16x)
     );
 
