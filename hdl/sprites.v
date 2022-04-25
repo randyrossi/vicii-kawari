@@ -488,6 +488,7 @@ end
 `ifndef EFINIX
 always @(posedge clk_dot4x)
 begin
+        if (dot_rising_1) begin
             // Now delay sprite stuff by 6 pixels so that these
             // signals are valid by stage0 in the pixel sequencer.
             // This ensures things like priority splits happen when
@@ -522,6 +523,7 @@ begin
             active_sprite5 <= active_sprite4;
             active_sprite6 <= active_sprite5;
             active_sprite_d <= active_sprite6;
+        end
 end
 `endif
 
