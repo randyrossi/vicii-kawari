@@ -389,9 +389,9 @@ begin
                                     //    {sprite_pixels_shifting[n][23], 1'b0}, sprite_pixels_shifting[n]);
                                     sprite_cur_pixel1[n] = {sprite_pixels_shifting[n][23], 1'b0};
                                 end
-                                sprite_mmc1 <= sprite_mmc_next;
+                                sprite_mmc1[n] <= sprite_mmc_next[n];
                             end
-                            sprite_pri1 <= sprite_pri;
+                            sprite_pri1[n] <= sprite_pri[n];
                             if (sprite_xe_ff[n]) begin
                                 sprite_pixels_shifting[n] <= {sprite_pixels_shifting[n][30:0], 1'b0};
                             end
@@ -399,7 +399,6 @@ begin
                                 sprite_xe_ff[n] = !sprite_xe_ff[n];
                             else
                                 sprite_xe_ff[n] = `TRUE;
-
                         end
 
                         // Keep track of active sprite
@@ -411,6 +410,41 @@ begin
                     end
                 end
             end
+
+            // Now delay sprite stuff by 6 pixels so that these
+            // signals are valid by stage0 in the pixel sequencer.
+            // This ensures things like priority splits happen when
+            // the current pixel is actually overlayed in the gfx
+            // pipeline. Same for mmc splits.
+            for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
+               sprite_cur_pixel2[n] <= sprite_cur_pixel1[n];
+               sprite_cur_pixel3[n] <= sprite_cur_pixel2[n];
+               sprite_cur_pixel4[n] <= sprite_cur_pixel3[n];
+               sprite_cur_pixel5[n] <= sprite_cur_pixel4[n];
+               sprite_cur_pixel6[n] <= sprite_cur_pixel5[n];
+               sprite_cur_pixel[n] <= sprite_cur_pixel6[n];
+            end
+
+            sprite_mmc2 <= sprite_mmc1;
+            sprite_mmc3 <= sprite_mmc2;
+            sprite_mmc4 <= sprite_mmc3;
+            sprite_mmc5 <= sprite_mmc4;
+            sprite_mmc6 <= sprite_mmc5;
+            sprite_mmc_d <= sprite_mmc6;
+
+            sprite_pri2 <= sprite_pri1;
+            sprite_pri3 <= sprite_pri2;
+            sprite_pri4 <= sprite_pri3;
+            sprite_pri5 <= sprite_pri4;
+            sprite_pri6 <= sprite_pri5;
+            sprite_pri_d <= sprite_pri6;
+
+            active_sprite2 <= active_sprite1;
+            active_sprite3 <= active_sprite2;
+            active_sprite4 <= active_sprite3;
+            active_sprite5 <= active_sprite4;
+            active_sprite6 <= active_sprite5;
+            active_sprite_d <= active_sprite6;
         end
 
         // s-access - This must be done here instead of bus_access.v because
@@ -418,7 +452,8 @@ begin
         // spriteenable2.prg test, sprite 0's first byte is accessed before
         // AEC had a chance to remain LOW due to d015 futzing just before the
         // fetch cycle.  When AEC is low, shift the last bus value into
-        // the register which is set from registers.v
+        // the register which is set from registers.v. This condition never
+        // overlaps with dot_rising_1 above.
         if (phi_phase_start_dav) begin
             case (cycle_type)
                 `VIC_HS1, `VIC_LS2, `VIC_HS3:
@@ -438,52 +473,6 @@ begin
             endcase
         end
     end
-end
-
-
-// This is a delay pipeline to carry sprite cur pixel out
-// to align with gfx in the pixel sequencer. We also carry
-// the mmc and pri values so the pixel sequencer will use
-// the values that 'go' with this pixel.
-// TODO: This seems excessive. Can we delay without so many
-// registers?
-always @(posedge clk_dot4x)
-begin
-    if (dot_rising_1) begin
-        for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
-            sprite_cur_pixel2[n] <= sprite_cur_pixel1[n];
-            sprite_cur_pixel3[n] <= sprite_cur_pixel2[n];
-            sprite_cur_pixel4[n] <= sprite_cur_pixel3[n];
-            sprite_cur_pixel5[n] <= sprite_cur_pixel4[n];
-            sprite_cur_pixel6[n] <= sprite_cur_pixel5[n];
-            sprite_cur_pixel[n] <= sprite_cur_pixel6[n];
-
-            sprite_mmc2 <= sprite_mmc1;
-            sprite_mmc3 <= sprite_mmc2;
-            sprite_mmc4 <= sprite_mmc3;
-            sprite_mmc5 <= sprite_mmc4;
-            sprite_mmc6 <= sprite_mmc5;
-            sprite_mmc_d <= sprite_mmc6;
-        end
-
-        // For this delay, we align it to become valid by stage0
-        // in the pixel sequencer so any pri splits happens when
-        // the cur pixel is actually overlayed in the gfx pipeline.
-        sprite_pri2 <= sprite_pri1;
-        sprite_pri3 <= sprite_pri2;
-        sprite_pri4 <= sprite_pri3;
-        sprite_pri5 <= sprite_pri4;
-        sprite_pri6 <= sprite_pri5;
-        sprite_pri_d <= sprite_pri6;
-
-        active_sprite2 <= active_sprite1;
-        active_sprite3 <= active_sprite2;
-        active_sprite4 <= active_sprite3;
-        active_sprite5 <= active_sprite4;
-        active_sprite6 <= active_sprite5;
-        active_sprite_d <= active_sprite6;
-    end
-
 end
 
 // Sprite to sprite collision logic (m2m)

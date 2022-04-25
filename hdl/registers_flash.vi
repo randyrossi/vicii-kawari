@@ -336,7 +336,7 @@ begin
 	end
     end
 
-    $display ("clk8=%d div=%d state=%d cmd=%d bit=%d S=%d C=%d D=%d ver=%d busy=%d vmem=%x flash=%x", flash_clk8, flash_clk_div, flash_state, flash_command_ctr, flash_bit_ctr, flash_s, spi_c, spi_d, flash_verify_error, flash_busy, flash_vmem_addr, flash_addr);
+    //$display ("clk8=%d div=%d state=%d cmd=%d bit=%d S=%d C=%d D=%d ver=%d busy=%d vmem=%x flash=%x", flash_clk8, flash_clk_div, flash_state, flash_command_ctr, flash_bit_ctr, flash_s, spi_c, spi_d, flash_verify_error, flash_busy, flash_vmem_addr, flash_addr);
 
 end
 endtask
