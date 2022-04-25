@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<efx:project name="vicii" description="" last_change_date="Mon February 21 2022 23:07:09" location="C:/shared/Vivado/vicii/rev_4G" sw_version="2021.2.323.1.8" last_run_state="pass" last_run_tool="efx_pgm" last_run_flow="bitstream" config_result_in_sync="true" design_ood="change" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
+<efx:project name="vicii" description="" last_change_date="Mon April 25 2022 10:07:08" location="C:/shared/Vivado/vicii/rev_4G" sw_version="2021.2.323.3.14" last_run_state="pass" last_run_tool="efx_pgm" last_run_flow="bitstream" config_result_in_sync="true" design_ood="change" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
     <efx:device_info>
         <efx:family name="Trion"/>
         <efx:device name="T20F256"/>
@@ -71,7 +71,7 @@
     </efx:place_and_route>
     <efx:bitstream_generation tool_name="efx_pgm">
         <efx:param name="mode" value="active" value_type="e_option"/>
-        <efx:param name="width" value="1" value_type="e_option"/>
+        <efx:param name="width" value="4" value_type="e_option"/>
         <efx:param name="enable_roms" value="smart" value_type="e_option"/>
         <efx:param name="spi_low_power_mode" value="on" value_type="e_bool"/>
         <efx:param name="io_weak_pullup" value="on" value_type="e_bool"/>
@@ -83,6 +83,11 @@
         <efx:param name="release_tri_then_reset" value="on" value_type="e_bool"/>
         <efx:param name="cold_boot" value="off" value_type="e_bool"/>
         <efx:param name="cascade" value="off" value_type="e_option"/>
+        <efx:param name="generate_bit" value="on" value_type="e_bool"/>
+        <efx:param name="generate_bitbin" value="off" value_type="e_bool"/>
+        <efx:param name="generate_hex" value="on" value_type="e_bool"/>
+        <efx:param name="generate_hexbin" value="off" value_type="e_bool"/>
+        <efx:param name="four_byte_addressing" value="off" value_type="e_bool"/>
     </efx:bitstream_generation>
     <efx:debugger>
         <efx:param name="work_dir" value="work_dbg" value_type="e_string"/>
