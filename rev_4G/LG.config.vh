@@ -4,6 +4,7 @@
 `define VERSION_MAJOR 8'd0
 `define VERSION_MINOR 8'd8
 
+`define EFINIX
 `define VARIANT_SUFFIX_1 8'd76
 `define VARIANT_SUFFIX_2 8'd71
 `define VARIANT_SUFFIX_3 8'd0
