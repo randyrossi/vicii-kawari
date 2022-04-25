@@ -137,11 +137,13 @@ task read_ram(
                     `EXT_REG_VARIANT_NAME8:
                         dbo <= `VARIANT_SUFFIX_4;
 
+`ifdef GEN_LUMA_CHROMA
 `ifdef CONFIGURABLE_LUMAS
                     `EXT_REG_BLANKING:
                         dbo <= {2'b0, blanking_level};
                     `EXT_REG_BURSTAMP:
                         dbo <= {4'b0, burst_amplitude};
+`endif
 `endif
                     // Advertise some capability bits
                     `EXT_REG_CAP_LO:
@@ -199,7 +201,7 @@ task read_ram(
         end else begin
 `ifdef WITH_RAM
             video_ram_r <= 1;
-            video_ram_addr_a <= {ram_hi[`VIDEO_RAM_HI_RANGE], ram_lo} + {7'b0, ram_idx};
+            video_ram_addr_a <= {ram_hi[`VIDEO_RAM_HI_RANGE], ram_lo} + {`VIDEO_RAM_LO_PAD, ram_idx};
 `else
             ;
 `endif
@@ -375,6 +377,7 @@ task write_ram(
                     `EXT_REG_CURSOR_HI:
                         hires_cursor_hi <= data;
 `endif
+`ifdef GEN_LUMA_CHROMA
 `ifdef CONFIGURABLE_LUMAS
                     `EXT_REG_BLANKING: begin
 `ifdef HAVE_EEPROM
@@ -396,7 +399,8 @@ task write_ram(
 `endif
                         persist_eeprom(do_persist, ram_lo, {4'b0, data[3:0]});
                     end
-`endif
+`endif // configurable lumas
+`endif // gen luma chroma
 `ifdef CONFIGURABLE_TIMING
                     `EXT_REG_TIMING_CHANGE:
                         timing_change <= data[0];
@@ -442,7 +446,7 @@ task write_ram(
             video_ram_wr_a <= 1'b1;
             video_ram_aw <= 1'b1;
             video_ram_data_in_a <= data[7:0];
-            video_ram_addr_a <= {ram_hi[`VIDEO_RAM_HI_RANGE], ram_lo} + {7'b0, ram_idx};
+            video_ram_addr_a <= {ram_hi[`VIDEO_RAM_HI_RANGE], ram_lo} + {`VIDEO_RAM_LO_PAD, ram_idx};
 `else
             ;
 `endif

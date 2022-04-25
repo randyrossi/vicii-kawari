@@ -10,6 +10,7 @@
 `define VIDEO_RAM_WIDTH    16
 `define VIDEO_RAM_HI_WIDTH 8
 `define VIDEO_RAM_HI_RANGE 7:0
+`define VIDEO_RAM_LO_PAD   8'b0
 `define VIDEO_RAM_MUX      15:13
 `define BIT_EXT_64K        1'b0,
 `define BIT_EXT2_64K       matrix_base[0],
@@ -20,6 +21,7 @@
 `define VIDEO_RAM_WIDTH    12
 `define VIDEO_RAM_HI_WIDTH 4
 `define VIDEO_RAM_HI_RANGE 3:0
+`define VIDEO_RAM_LO_PAD   4'b0
 `define VIDEO_RAM_MUX
 `define BIT_EXT_64K
 `define BIT_EXT2_64K
@@ -28,6 +30,7 @@
 `define VIDEO_RAM_WIDTH    15
 `define VIDEO_RAM_HI_WIDTH 7
 `define VIDEO_RAM_HI_RANGE 6:0
+`define VIDEO_RAM_LO_PAD   7'b0
 `define VIDEO_RAM_MUX      14:13
 `define BIT_EXT_64K
 `define BIT_EXT2_64K
@@ -420,6 +423,9 @@
 `define HAS_CONFIG_LUMA_CAP 1'b1
 `ifndef WITH_EXTENSIONS
 `define WITH_EXTENSIONS 1'b1
+`endif
+`ifndef GEN_LUMA_CHROMA
+`define GEN_LUMA_CHROMA 1'b1
 `endif
 `else
 `define HAS_CONFIG_LUMA_CAP 1'b0

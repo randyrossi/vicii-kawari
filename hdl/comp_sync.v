@@ -28,10 +28,10 @@ module comp_sync(
            input [5:0] lumareg_o, // from registers base on pixel_color3
            input [7:0] phasereg_o, // from registers base on pixel_color3
            input [3:0] amplitudereg_o, // from registers base on pixel_color3
-`endif
 `ifdef CONFIGURABLE_LUMAS
            input [5:0] blanking_level,
            input [3:0] burst_amplitude,
+`endif
 `endif
            input [1:0] chip
        );

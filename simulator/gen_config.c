@@ -30,9 +30,10 @@ enum DefineValues {
    WITH_DVI,             // include DVI encoder and differential signals
    HIRES_MODES,          // has extra hires modes available
    HIDE_SYNC,            // (for simulator) hide sync signals from view
-   WITH_64K,             // select 64K for ram rather than 32K
+   WITH_64K,             // select 64K for ram
    WITH_MATH,            // include math registers
    WITH_RGB_CLOCK,       // export the RGB dot clock on the CLK pin
+   WITH_4K,              // select 4K for ram
 };
 
 Define defines[] = {
@@ -55,6 +56,7 @@ Define defines[] = {
   {WITH_64K ,0,0,"WITH_64K"},
   {WITH_MATH ,0,0,"WITH_MATH"},
   {WITH_RGB_CLOCK ,0,0,"WITH_RGB_CLOCK"},
+  {WITH_4K ,0,0,"WITH_4K"},
 };
 
 void printcfg(int d, int def) {
@@ -72,11 +74,11 @@ void printcfg(int d, int def) {
 }
 
 void with_ext(int d) { printcfg(d, WITH_EXTENSIONS); }
-void with_ram(int d) { printcfg(d, WITH_MATH); with_ext(d); }
+void with_ram(int d) { printcfg(d, WITH_RAM); with_ext(d); }
 void test_pattern(int d) { printcfg(d, TEST_PATTERN); }
 void gen_luma_chroma(int d) { printcfg(d, GEN_LUMA_CHROMA); }
 void configurable_rgb(int d) { printcfg(d, CONFIGURABLE_RGB);with_ext(d); }
-void configurable_lumas(int d) { printcfg(d, CONFIGURABLE_LUMAS);with_ext(d); }
+void configurable_lumas(int d) { gen_luma_chroma(d); printcfg(d, CONFIGURABLE_LUMAS);with_ext(d); }
 void configurable_timing(int d) { printcfg(d, CONFIGURABLE_TIMING); with_ext(d); }
 void luma_sink(int d) { printcfg(d, HAVE_LUMA_SINK); }
 void with_spi(int d) { printcfg(d, WITH_SPI);with_ext(d); }
@@ -88,6 +90,7 @@ void with_dvi(int d) { printcfg(d, WITH_DVI);need_rgb(d); }
 void hires_modes(int d) { printcfg(d, HIRES_MODES);with_ext(d); with_ram(d); }
 void hide_sync(int d) { printcfg(d, HIDE_SYNC); }
 void with_64k(int d) { printcfg(d, WITH_64K);  with_ram(d), with_ext(d); }
+void with_4k(int d) { printcfg(d, WITH_4K);  with_ram(d), with_ext(d); }
 void with_math(int d) { printcfg(d, WITH_MATH); with_ext(d); }
 void with_rgb_clock(int d) { printcfg(d, WITH_RGB_CLOCK); gen_rgb(d); }
 
@@ -162,6 +165,9 @@ int main(int argc, char* argv[]) {
 		    gen_luma_chroma(d);
 		    with_ext(d);
                     with_math(d);
+		    break;
+	    case 9:
+		    with_4k(d);
 		    break;
 	    default:
 		    break;

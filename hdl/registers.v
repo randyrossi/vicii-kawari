@@ -492,9 +492,11 @@ begin
 `endif
 
 `ifdef WITH_EXTENSIONS
+`ifdef GEN_LUMA_CHROMA
 `ifdef CONFIGURABLE_LUMAS
         blanking_level <= 6'd12;
         burst_amplitude <= 4'd12;
+`endif
 `endif
 `ifdef CONFIGURABLE_TIMING
         timing_change <= 1'b0;
