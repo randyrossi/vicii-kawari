@@ -8,17 +8,17 @@
 # Stuff to potentially edit
 FLASH_FORMAT=1
 NAME=kawari
-VERSION=0.8
+VERSION=1.1
 # START_ADDRESS = 0 for golden, 512000 for multiboot
 START_ADDRESS=512000
 # TYPE = multiboot or golden
 TYPE=multiboot
 # REG_VARIANT - Variant name matching registers 0x90-0x9F
 # One of : SIM | MAIN | MAINSB | MAINLD
-REG_VARIANT=MAIN
+REG_VARIANT=MAINLD
 # BUILD_VARIANT - Variant for .bit filename
 # One of : N/A | T | SB | LD
-BUILD_VARIANT=T
+BUILD_VARIANT=LD
 
 # REG_VARIANT and BUILD_VARIANT must be for
 # the same variant.
@@ -39,7 +39,7 @@ DISKNUMS=1 2 3 4
 OBJS=main.o menu.o ../common/util.o ../common/data.o ../common/init.o \
      ../common/flash.o crt0.o loader_loader.o copy.o compare.o
 
-EXPERT_OBJS=main.o expert.o ../common/util.o ../common/init.o ../common/flash.o copy.o
+EXPERT_OBJS=main.o expert.o ../common/util.o ../common/data.o ../common/init.o ../common/flash.o copy.o
 
 # Make an info file for flash program to read
 # $9000 dest

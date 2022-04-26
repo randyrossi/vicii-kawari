@@ -121,11 +121,11 @@ unsigned int ascii_variant_to_int(unsigned char *variant)
 {
    if (strcmp(variant,"main") == 0)
       return VARIANT_REV_3;
-   if (strcmp(variant,"main4sb") == 0)
+   if (strcmp(variant,"mainsb") == 0)
       return VARIANT_REV_4S_B;
-   if (strcmp(variant,"main4lc") == 0)
+   if (strcmp(variant,"mainlc") == 0)
       return VARIANT_REV_4L_C;
-   if (strcmp(variant,"main4ld") == 0)
+   if (strcmp(variant,"mainld") == 0)
       return VARIANT_REV_4L_D;
    if (strcmp(variant,"sim") == 0)
       return VARIANT_SIM;

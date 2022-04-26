@@ -9,6 +9,16 @@
 
 static struct regs r;
 
+void set_rgb(void) {
+   int reg;
+   // Colors - all chips get same RGB values
+   for (reg=64;reg<128;reg++) {
+     if (reg % 4 == 3) continue;
+     POKE(VIDEO_MEM_1_LO, reg);
+     SAFE_POKE(VIDEO_MEM_1_VAL, colors[reg-64]);
+   }
+}
+
 void set_lumas(unsigned int variant_num, int chip_model) {
    // Luma/Chroma
    int reg;
@@ -66,13 +76,7 @@ void do_init(unsigned int variant_num, int chip_model) {
       POKE(VIDEO_MEM_1_LO, EEPROM_BANK);
       POKE(VIDEO_MEM_1_VAL, chip);
 
-      // Colors - all chips get same RGB values
-      for (reg=64;reg<128;reg++) {
-         if (reg % 4 == 3) continue;
-         POKE(VIDEO_MEM_1_LO, reg);
-         SAFE_POKE(VIDEO_MEM_1_VAL, colors[reg-64]);
-      }
-
+      set_rgb();
       set_lumas(variant_num, chip);
       set_phases(chip);
       set_amplitudes(chip);
