@@ -102,7 +102,7 @@ public class MakeImage {
           for (int w=0;w< width;w++) {
               Color v = new Color(img2.getRGB(w, h));
 	      Integer c = map.get(v);
-              if (c == null) { c = new Integer(p); map.put(v,c); p=p+1; }
+              if (c == null) { map.put(v,p); p=p+1; }
           }
         }
 
@@ -146,6 +146,28 @@ public class MakeImage {
                 }
 	    }
 	}
+	for (p=maxColors;p<16;p++) {
+		   if (colorFormat == ColorFormat.BINARY) {
+                      String s = Integer.toBinaryString(0);
+                      while (s.length() < 18) s="0"+s;
+                      String l = s+"000000\n";
+                      bos.write(l.getBytes());
+		   } else if (colorFormat == ColorFormat.HEX) {
+                      String s1 = Integer.toHexString(0);
+		      if (s1.length() < 2) s1="0"+s1;
+                      String s2 = Integer.toHexString(0);
+		      if (s2.length() < 2) s2="0"+s2;
+                      String s3 = Integer.toHexString(0);
+		      if (s3.length() < 2) s3="0"+s3;
+                      String l = s1+" "+s2+" "+s3+" 00\n";
+                      bos.write(l.getBytes());
+		   } else {
+                      bos.write((byte)0);
+                      bos.write((byte)0);
+                      bos.write((byte)0);
+                      bos.write((byte)0);
+                   }
+        }
 
         // Make image binary file
 

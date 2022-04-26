@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 
 #define max(a,b) \
@@ -14,8 +15,8 @@
 
 #define BINARY 0
 #define HEX 1
+#define BIN 2
 
-#define OUTPUT_FORMAT HEX
 
 #define BYTE_TO_BINARY6_PATTERN "%c%c%c%c%c%c"
 #define BYTE_TO_BINARY6(byte)  \
@@ -47,9 +48,9 @@
 void rgb_to_hsv(double r, double g, double b, int *phase, int *amp, int *luma) {
         // R, G, B values are divided by 255
         // to change the range from 0..255 to 0..1
-        r = r / 255.0;
-        g = g / 255.0;
-        b = b / 255.0;
+        r = r / 63.0;
+        g = g / 63.0;
+        b = b / 63.0;
  
         // h, s, v = hue, saturation, value
         double cmax = max(r, max(g, b)); // maximum of r, g, b
@@ -70,7 +71,7 @@ void rgb_to_hsv(double r, double g, double b, int *phase, int *amp, int *luma) {
             h = (int)((60 * ((b - r) / diff) + 120)) % 360;
  
         // if cmax equal b then compute h
-        else if (cmax == b)
+        else
             h = (int)((60 * ((r - g) / diff) + 240)) % 360;
  
         // if cmax equal zero
@@ -88,16 +89,22 @@ void rgb_to_hsv(double r, double g, double b, int *phase, int *amp, int *luma) {
         *amp = s*(15.0d/100.0d);
         *luma = v*(63.0d/100.0d);
         if (*amp == 0) *phase = 0;
-        if (*luma < 1) *luma = 1;
+        if (*luma < 12) *luma = 12;
         if (*luma > 63) *luma = 63;
         //printf("%f  %f %f %f\n", h,  h*(255.0d/359.0d), s*(15.0d/100.0d), v*(63.0d/100.0d));
 }
 
 int main(int argc, char *argv[]) {
+   int outputFormat = BIN;
+
    // Expect bin file with bytes RGBX
    if (argc < 1) {
       printf ("Usage: rgb2hsv <rgb.bin.file> > hsv.bin.file\n");
       exit(0);
+   }
+   if (argc > 2) {
+      if (strcmp(argv[2],"-h") == 0) outputFormat=HEX;
+      if (strcmp(argv[2],"-b") == 0) outputFormat=BINARY;
    }
 
    FILE *fp = fopen(argv[1],"r");
@@ -121,24 +128,34 @@ int main(int argc, char *argv[]) {
       rgb_to_hsv(r, g, b, &p[col], &a[col], &l[col]);
 
       // Brighten it up a bit
-      l[col] = (double)l[col] * 1.40; 
+      //l[col] = (double)l[col] * 1.40; 
       if (l[col] > 63) l[col] = 63;
    }
 
-   if (OUTPUT_FORMAT == HEX) {
+   if (outputFormat == HEX) {
      for (int col=0;col<16;col++) {
         printf ("0x%02x,", l[col]);
         printf ("0x%02x,", p[col]);
         printf ("0x%02x,\n", a[col]);
       }
-   } else if (OUTPUT_FORMAT == BINARY) {
+   } else if (outputFormat == BINARY) {
      for (int col=0;col<16;col++) {
         printf (BYTE_TO_BINARY6_PATTERN, BYTE_TO_BINARY6(l[col]));
         printf (BYTE_TO_BINARY8_PATTERN, BYTE_TO_BINARY8(p[col]));
         printf (BYTE_TO_BINARY4_PATTERN, BYTE_TO_BINARY4(a[col]));
         printf ("\n");
       }
-   } 
+   } else if (outputFormat == BIN) {
+     for (int col=0;col<16;col++) {
+        printf ("%c", l[col]);
+     }
+     for (int col=0;col<16;col++) {
+        printf ("%c", p[col]);
+     }
+     for (int col=0;col<16;col++) {
+        printf ("%c", a[col]);
+     }
+   }
       
    fclose(fp);
 }
