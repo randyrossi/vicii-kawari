@@ -27,8 +27,19 @@
 // while 'current' bistream is located at 0x07d000.
 
 // The max version of the image file format we can understand.
-#define MAX_VERSION 1L
-#define MAX_VERSION_STR "1"
+#define FLASH_FORMAT_VERSION 2L
+#define FLASH_FORMAT_VERSION_STR "2"
+
+// These must match what the Makefile uses to fill disks
+// with flash image files that have been broken up. It
+// depends on the page size we used to split the bitstream
+// up.
+#define MAX_FILE_PER_DISK_16K 8
+#define MAX_FILE_PER_DISK_4K 33
+
+// The number of disks also depends on page size.
+#define NUM_DISKS_16K 4
+#define NUM_DISKS_4K 5
 
 static struct regs r;
 
@@ -55,7 +66,7 @@ unsigned char scratch[SCRATCH_SIZE];
 unsigned char use_fast_loader;
 
 void load_loader(void);
-void copy_5000_0000(void);
+void copy_5000_0000(unsigned char num_256b_pages);
 void compare(void);
 
 void sys64738() {
@@ -197,19 +208,21 @@ void please_insert(int disk_num) {
 
 // Flash files are spread across 4 disks
 // This routine erases the flash
-void begin_flash(long num_to_write, unsigned long start_addr) {
+void begin_flash(long num_to_write, unsigned long start_addr, unsigned long page_size) {
     unsigned long src_addr;
     unsigned char disknum;
     unsigned char filenum;
     unsigned char abs_filenum;
     unsigned int n;
+    unsigned int max_file = (page_size == 16384 ? MAX_FILE_PER_DISK_16K : MAX_FILE_PER_DISK_4K);
+    unsigned int max_disk = (page_size == 16384 ? (NUM_DISKS_16K) - 1 : (NUM_DISKS_4K - 1));
 
     // If we had chosen a start address dividible by 64k, we
     // could have used 64k page erase.  Oh well.  At least
     // the address of our multiboot image is divisible by 4k.
     mprintf ("ERASE FLASH");
     for (src_addr=start_addr;
-           src_addr<(start_addr+512000L) && src_addr < 2097152L;
+           src_addr<(start_addr+num_to_write) && src_addr < 2097152L;
               src_addr+=4096) {
         mprintf (".");
         wren();
@@ -223,7 +236,7 @@ void begin_flash(long num_to_write, unsigned long start_addr) {
 
     while (num_to_write > 0) {
        // Set next filename
-       sprintf (filename,"i%02d", abs_filenum);
+       sprintf (filename,"i%03d", abs_filenum);
        SMPRINTF_2("%ld:READ %s,", num_to_write, filename);
 
        while (load()) {
@@ -235,14 +248,14 @@ void begin_flash(long num_to_write, unsigned long start_addr) {
        mprintf ("COPY,");
 
        // Pad remaining bytes
-       if (num_to_write < 16384) {
-           for (n=num_to_write; n < 16384; n++) {
+       if (num_to_write < page_size) {
+           for (n=num_to_write; n < page_size; n++) {
               POKE(0x5000L+n, 0xff);
            }
        }
 
        // Transfer $5000 - $8fff into video memory @ $0000
-       copy_5000_0000();
+       copy_5000_0000(page_size == 16384 ? 64 : 16);
 
        // Tell kawari to flash it from vmem 0x0000 to the flash address
        POKE(VIDEO_MEM_FLAGS, 0);
@@ -261,12 +274,12 @@ void begin_flash(long num_to_write, unsigned long start_addr) {
           break;
        } else {
           mprintf ("OK\n");
-          start_addr += 16384;
-          num_to_write -= 16384;
+          start_addr += page_size;
+          num_to_write -= page_size;
 
           abs_filenum++;
           filenum++;
-          if (disknum < 3 && filenum == 8) {
+          if (disknum < max_disk && filenum == max_file) {
 	      filenum = 0;
 	      disknum++;
 	      SMPRINTF_1("Insert disk %d and press any key\n", disknum+1);
@@ -278,11 +291,13 @@ void begin_flash(long num_to_write, unsigned long start_addr) {
     press_any_key(TO_NOTHING);
 }
 
-void begin_verify(long num_to_read, unsigned long start_addr) {
+void begin_verify(long num_to_read, unsigned long start_addr, unsigned long page_size) {
     unsigned char disknum;
     unsigned char filenum;
     unsigned char abs_filenum;
     unsigned int n;
+    unsigned int max_file = (page_size == 16384 ? MAX_FILE_PER_DISK_16K : MAX_FILE_PER_DISK_4K);
+    unsigned int max_disk = (page_size == 16384 ? (NUM_DISKS_16K) - 1 : (NUM_DISKS_4K - 1));
 
     filenum = 0;
     abs_filenum = 0;
@@ -292,7 +307,7 @@ void begin_verify(long num_to_read, unsigned long start_addr) {
 
     while (num_to_read > 0) {
        // Set next filename
-       sprintf (filename,"i%02d", abs_filenum);
+       sprintf (filename,"i%03d", abs_filenum);
        SMPRINTF_2("%ld:READ %s,", num_to_read, filename);
 
        while (load()) {
@@ -320,10 +335,10 @@ void begin_verify(long num_to_read, unsigned long start_addr) {
 
        // Set the number of bytes to compare
        // vmem 0x0000 with mem 0x5000
-       n = num_to_read >= 16384 ? 16384 : num_to_read;
+       n = num_to_read >= page_size ? page_size : num_to_read;
 
 // For testing in sim
-//copy_5000_0000();
+//copy_5000_0000(page_size == 16384 ? 64 : 16);
 
        POKE(0xfe,(n >> 8) & 0xff);
        POKE(0xfd,(n & 0xff));
@@ -332,11 +347,11 @@ void begin_verify(long num_to_read, unsigned long start_addr) {
 
        if (PEEK(0xfd) == 0) {
           mprintf ("OK\n");
-          start_addr += 16384;
-          num_to_read -= 16384;
+          start_addr += page_size;
+          num_to_read -= page_size;
           abs_filenum++;
           filenum++;
-          if (disknum < 3 && filenum == 8) {
+          if (disknum < max_disk && filenum == max_file) {
 	     filenum = 0;
 	     disknum++;
              please_insert(disknum);
@@ -360,6 +375,7 @@ void main_menu(void)
     unsigned char firmware_version_major;
     unsigned char firmware_version_minor;
     unsigned long disk_format_version;
+    unsigned long page_size;
     long num_to_write;
     unsigned long start_addr;
     unsigned long tmp_addr;
@@ -451,8 +467,8 @@ void main_menu(void)
     disk_format_version = read_decimal(&tmp_addr);
     SMPRINTF_1 ("File Format  :v%ld\n", disk_format_version);
 
-    if (disk_format_version > MAX_VERSION) {
-       mprintf ("\nThis util can only read version " MAX_VERSION_STR "\n");
+    if (disk_format_version != FLASH_FORMAT_VERSION) {
+       mprintf ("\nThis util can only read version " FLASH_FORMAT_VERSION_STR "\n");
        press_any_key(TO_EXIT);
        return;
     }
@@ -468,6 +484,13 @@ void main_menu(void)
     read_string(&tmp_addr);
     SMPRINTF_1 ("Variant      :%s \n", scratch);
     image_variant = ascii_variant_to_int(scratch);
+    page_size = read_decimal(&tmp_addr);
+    SMPRINTF_1 ("Page Size    :%ld \n", page_size);
+
+    if (page_size != 4096 && page_size != 16384) {
+       mprintf ("\nERROR: Invalid page size\n");
+       exit(0);
+    }
 
     // Check variant matches
     if (image_variant != current_variant) {
@@ -510,9 +533,9 @@ void main_menu(void)
        mprintf ("R - Reset\n");
        WAITKEY;
        if (r.a == 'f') {
-          begin_flash(num_to_write, start_addr);
+          begin_flash(num_to_write, start_addr, page_size);
        } else if (r.a == 'v') {
-          begin_verify(num_to_write, start_addr);
+          begin_verify(num_to_write, start_addr, page_size);
        } else if (use_fast_loader && r.a == 'd') {
           use_fast_loader = 0;
        } else if (!use_fast_loader && r.a == 'e') {

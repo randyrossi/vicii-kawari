@@ -11,6 +11,8 @@ VMEM_B_LO = $d03c
 VMEM_B_VAL = $d03e
 
 _copy_5000_0000:
+        ; put first arg into pg_size
+        sta pg_size+1
         sei         ; disable interrupts
 
         lda $fc
@@ -30,7 +32,9 @@ _copy_5000_0000:
         lda #1      ; use auto increment
         sta KAWARI_PORT
 
-        ldx #$40    ; we loop 64 times (64x256 = 16Kb)
+        ; page size is overwritten by incoming arg in accum
+pg_size:
+        ldx #$40    ; we loop this many times (64 times = 16Kb, 16 times = 4k)
 loop:
         lda ($fb),y ; read byte from src $fb/$fc
         sta VMEM_A_VAL   ; write byte to dest video ram
