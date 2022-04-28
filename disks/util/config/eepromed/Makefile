@@ -17,4 +17,4 @@ make_init_mem: make_init_mem.c ../../common/data.c ../../include/data.h
 	gcc -o make_init_mem data.o make_init_mem.o
 
 clean:
-	rm -f *.o *.prg
+	rm -f *.o *.prg make_init_mem

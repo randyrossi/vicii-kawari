@@ -139,6 +139,7 @@ void scroll_up(void) {
    POKE(VIDEO_MEM_2_IDX,0x07); // 2k -80
    POKE(VIDEO_MEM_1_VAL,1); // copy
    while (PEEK(VIDEO_MEM_2_IDX) != 0) {}
+   POKE(VIDEO_MEM_FLAGS,0);
 }
 
 void scroll_down(void) {
@@ -159,6 +160,7 @@ void scroll_down(void) {
    POKE(VIDEO_MEM_2_IDX,0x07); // 2k -80
    POKE(VIDEO_MEM_1_VAL,2); // copy
    while (PEEK(VIDEO_MEM_2_IDX) != 0) {}
+   POKE(VIDEO_MEM_FLAGS,0);
 }
 
 void wait_frame(void) {
@@ -207,5 +209,18 @@ enable_kawari();
 
    delay(5000L);
 
+   CLRSCRN;
+   POKE (VIDEO_MODE1, 0);
+
+   POKE(646L,1);
+   POKE(53272L,21); // upper case
+
+   printf ("\n\n\n\n\n\n\n\n\nthis next mode demonstrates a new\n");
+   printf ("320x200 mode with 16 colors. each\n");
+   printf ("pixel can have an independent color\n");
+   printf ("and since the palette is configurable,\n");
+   printf ("we can install custom colors for\n");
+   printf ("a better image.\n");
+ 
    return 0;
 }

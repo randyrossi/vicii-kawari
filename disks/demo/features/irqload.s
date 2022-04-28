@@ -35,6 +35,24 @@ getin           = $ffe4
 load            = $ffd5
 save            = $ffd8
 
+; Some VICII-Kawari registers
+KAWARI_VMODE1 = $d037
+KAWARI_VMODE2 = $d038
+KAWARI_PORT = $d03f
+
+; Kawari video memory port A regs
+VMEM_A_IDX = $d035
+VMEM_A_HI = $d03a
+VMEM_A_LO = $d039
+VMEM_A_VAL = $d03b
+
+; Kawari video memory port B regs
+VMEM_B_IDX = $d036
+VMEM_B_HI = $d03d
+VMEM_B_LO = $d03c
+VMEM_B_VAL = $d03e
+
+
 ;Here comes the main program. Basically it initializes the fastloader,
 ;initializes raster interrupts to play music located at $1000 while loading
 ;(Eighties Megahit by Olli Niemitalo), performs the actual loading subroutine
@@ -73,24 +91,84 @@ start:
                 ; basic load pgm and jump straight into it ourselves
                 jsr $40ad
 
-                ; load next segment
+                lda #0
+                sta directVmem
+
+                ; kawari inside logo
                 ldx #"S"
                 ldy #"2"
                 jsr fastload
                 jsr $40ad
 
-                ; load next segment
+                ; configurable palette demo
                 ldx #"S"
                 ldy #"3"
                 jsr fastload
                 jsr $40ad
 
-                ; load next segment
+                ; 80 column demo
                 ldx #"S"
                 ldy #"4"
                 jsr fastload
                 jsr $40ad
 
+                ; S5 = bruno_img.bin
+                ; load next img direct to vmem
+                lda #1
+                sta directVmem
+                lda #0
+                sta $d035 ; zero out idx
+                lda #1
+                sta $d03f ; vmem with auto inc
+                ldx #"S"
+                ldy #"5"
+                jsr fastload
+
+                ; S6 = bruno_col.bin
+                lda #0
+                sta directVmem
+                ldx #"S"
+                ldy #"6"
+                jsr fastload
+                jsr install_colors
+                
+                ; Turn on hires 320x200 
+                lda #16+64
+                sta KAWARI_VMODE1
+                lda #0
+                STA KAWARI_VMODE2
+
+                ; short description
+                ldx #"S"
+                ldy #"7"
+                jsr fastload
+                jsr $40ad
+                
+                ; S8 = horse_img.bin
+                ; load next img direct to vmem
+                lda #1
+                sta directVmem
+                lda #0
+                sta $d035 ; zero out idx
+                lda #1
+                sta $d03f ; vmem with auto inc
+                ldx #"S"
+                ldy #"8"
+                jsr fastload
+
+                ; S9 = horse_col.bin
+                lda #0
+                sta directVmem
+                ldx #"S"
+                ldy #"9"
+                jsr fastload
+                jsr install_colors
+                
+                ; Turn on hires 640x200 
+                lda #16+64+32
+                sta KAWARI_VMODE1
+                lda #0
+                STA KAWARI_VMODE2
 forever:
 		inc $d020
                 jmp forever
@@ -301,6 +379,9 @@ fastload_delay: dex                     ;Give the drive some time to set CLK
 
 ;Get the first two bytes of the file, the startaddress.
 
+                lda directVmem
+                cmp #0
+                bne useKawari
                 jsr fastload_getbyte    ;Get file start address
                 sta fastload_sta+1
                 jsr fastload_getbyte
@@ -317,6 +398,23 @@ fastload_sta:   sta $1000               ;routine exits when all have been
                 bne fastload_loop
                 inc fastload_sta+2
                 jmp fastload_loop
+
+; This sets up Kawari port A with the start address in VMEM
+useKawari:      jsr fastload_getbyte    ;Get file start address
+                sta 53305
+                jsr fastload_getbyte
+                sta 53306
+                lda #$3b
+                sta fastload_sta2+1
+                lda #$d0
+                sta fastload_sta2+2
+
+; Goes direct to VMEM
+fastload_loop2: jsr fastload_getbyte    ;Then get bytes one by one. Getbyte
+fastload_sta2:  sta $1000               ;routine exits when all have been
+                inc $d020               ;received.
+                dec $d020               ;Just some flashing to know we're
+                jmp fastload_loop2
 
 ;The getbyte subroutine. If there's bytes in the buffer, use them (in reverse
 ;order), until buffer is empty.
@@ -634,6 +732,74 @@ loader:
         jsr $FFD5 ; do LOAD
         rts
 
+install_colors:
+        lda #0
+        sta VMEM_A_HI
+        lda #64     ; color regs start at 64
+        sta VMEM_A_LO
+        lda #32
+        sta KAWARI_PORT  ; make regs visible, no inc
+
+        ; colors were loaded into $40a0
+        lda #$40
+        sta $fc
+        ldy #$a0
+        sty $fb
+
+        ldy #0
+loop3
+        lda ($fb),y
+        sta VMEM_A_VAL
+        inc VMEM_A_LO
+        iny
+        tya
+        cmp #64
+        bne loop3
+
+        lda #$a0     ; luma
+        sta VMEM_A_LO
+loop4
+        lda ($fb),y
+        sta VMEM_A_VAL
+        inc VMEM_A_LO
+        iny
+        tya
+        cmp #80
+        bne loop4
+
+        lda #$b0     ; phase
+        sta VMEM_A_LO
+loop5
+        lda ($fb),y
+        sta VMEM_A_VAL
+        inc VMEM_A_LO
+        iny
+        tya
+        cmp #96
+        bne loop5
+
+        lda #$c0     ; amp
+        sta VMEM_A_LO
+loop6
+        lda ($fb),y
+        sta VMEM_A_VAL
+        inc VMEM_A_LO
+        iny
+        tya
+        cmp #112
+        bne loop6
+
+        ; Something is hitting $d03f unexpectedly later on
+        ; and if we leave VMEM_A_LO pointing to 0x80, it will
+        ; kill the blanking level and composite will be garbage
+        ; So set it to somthing harmless. TODO: Find this
+        lda #0
+        sta VMEM_A_LO
+        lda #0
+        sta KAWARI_PORT
+        rts
+
+
 ;Here's the data for the M-W and M-E command strings, in reverse order.
 
 mwcmd:          dc.b AMOUNT,>drive,<drive,"W-M"
@@ -647,10 +813,16 @@ lmecmd          = . - mecmd
 ;can exit from any number of nested subroutines.
 stackptrstore:  dc.b 0
 
+; Set this to 1 to write to Kawari port A
+; instead of DRAM. Get the location from dasm
+; output
+directVmem:     dc.b 0
+
 ;The filename and sector buffer.
 filename:       dc.b 0,0
-loadbuffer:     dc.b 254,0
 segment1:       dc.b 83,49  ; S1
+loadbuffer:     dc.b 254,0
+
 
 ;Music data.
 

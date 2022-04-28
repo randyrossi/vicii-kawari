@@ -119,7 +119,7 @@ run:
 	x64sc flash.prg
 
 clean:
-	rm -rf *.o *.prg *.d64 img_* stripped.bit
+	rm -rf *.o *.prg *.d64 img_* stripped.bit multi_hex_to_bit
 	$(MAKE) -C third_party clean
 
 # For Spartan6 devices, we need to skip over the first X
