@@ -170,7 +170,7 @@ void wait_frame(void) {
 
 int main(void)
 {
-   int t,r;
+   int t,u;
 
 enable_kawari();
 
@@ -199,15 +199,17 @@ enable_kawari();
    delay(20000L);
 
    for (t=0;t<10;t++) {
-    for (r=0;r<8;r++) {
+    for (u=0;u<8;u++) {
       scroll_down(); wait_frame();
     }
-    for (r=0;r<8;r++) {
+    for (u=0;u<8;u++) {
       scroll_up(); wait_frame();
     }
    }
 
-   delay(5000L);
+   prnt("\npress any key to continue");
+
+   WAITKEY;
 
    CLRSCRN;
    POKE (VIDEO_MODE1, 0);
@@ -215,12 +217,13 @@ enable_kawari();
    POKE(646L,1);
    POKE(53272L,21); // upper case
 
-   printf ("\n\n\n\n\n\n\n\n\nthis next mode demonstrates a new\n");
-   printf ("320x200 mode with 16 colors. each\n");
-   printf ("pixel can have an independent color\n");
-   printf ("and since the palette is configurable,\n");
-   printf ("we can install custom colors for\n");
-   printf ("a better image.\n");
+   printf ("\n\n\n\n\n\n\n\n\n");
+   printf ("this next mode demonstrates a new\n");
+   printf ("320x200 resolution with 16 colors.\n");
+   printf ("each pixel can have an independent\n");
+   printf ("color and since the palette is \n");
+   printf ("configurable, we can install custom\n");
+   printf ("colors for a better image.\n");
  
    return 0;
 }

@@ -65,15 +65,23 @@ VMEM_B_VAL = $d03e
 ;Example main program. Inits the fastloader and loads a file using it. After-
 ;wards the drive can be used normally.
 
+; jump past vectors and stuff
 sys:            dc.b $0b,$08           ;Address of next instruction
                 dc.b $0a,$00           ;Line number(10)
                 dc.b $9e               ;SYS-token
-                dc.b $32,$30,$36,$34   ;2064 as ASCII
+                dc.b $32,$30,$36,$38   ;2068 as ASCII
                 dc.b $00
                 dc.b $00,$00           ;Instruction address 0 terminates
                                        ;the basic program
 
+; Put this stuff here so our segments can call these
+; if needed
 vectors:        jmp initmusicplayback
+                jmp fastload
+                ; Set this to 1 to write to Kawari port A
+                ; instead of DRAM. Get the location from dasm
+                ; output
+directVmem:     dc.b 0
 
 start:          
 
@@ -112,6 +120,8 @@ start:
                 ldy #"4"
                 jsr fastload
                 jsr $40ad
+
+                ; TODO - MOVE THIS INTO REAL SEGMENTS
 
                 ; S5 = bruno_img.bin
                 ; load next img direct to vmem
@@ -171,6 +181,14 @@ start:
                 lda #0
                 STA KAWARI_VMODE2
 
+                ; END TODO - MOVE THIS INTO REAL SEGMENTS
+
+                ; segment 10 - falcon
+                ldx #"S"
+                ldy #"A"
+                jsr fastload
+                jsr $40ad
+
 
 forever:
 		inc $d020
@@ -220,12 +238,15 @@ raster:
                 jsr SIDUpdate
                 lda #$ff
                 sta $d019 ; ack interrupt status
+                jmp $ea31
+/*
                 pla
                 tay
                 pla
                 tax
                 pla
                 rti
+*/
 
 
 ;Here is the initialization routine, that "uploads" the custom code to the disk
@@ -816,10 +837,6 @@ lmecmd          = . - mecmd
 ;can exit from any number of nested subroutines.
 stackptrstore:  dc.b 0
 
-; Set this to 1 to write to Kawari port A
-; instead of DRAM. Get the location from dasm
-; output
-directVmem:     dc.b 0
 
 ;The filename and sector buffer.
 filename:       dc.b 0,0
@@ -830,4 +847,4 @@ loadbuffer:     dc.b 254,0
 ;Music data.
 
                 org $0f82
-                incbin Elysion.sid
+                incbin Lost_in_Space.sid

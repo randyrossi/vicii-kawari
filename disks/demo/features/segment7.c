@@ -22,9 +22,9 @@ int main(void)
    POKE (VIDEO_MODE1, 0);
    POKE (646L, 1);
 
-   printf ("\n\n\n\n\n\n\nthe next video mode is a\n");
-   printf ("640x200 mode with 4 colors. Each pixel\n");
-   printf ("can have one of 4 colors.\n");
+   printf ("\n\n\n\n\n\n\n");
+   printf ("the next video mode is a 640x200\n");
+   printf ("resolution with 4 colors...\n");
 
    return 0;
 }

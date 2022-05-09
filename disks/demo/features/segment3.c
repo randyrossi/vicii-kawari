@@ -179,9 +179,10 @@ int main(void)
    restore_colors_vmem(0x8000L);
 
    POKE(646L,1);
-   printf ("\n\n\n\n\n\n\n\nvic-ii kawari has an additional\n");
-   printf ("64k of video ram. this ram can be used for\n");
-   printf ("new hires graphics modes...\n");
+   printf ("\n\n\n\n\n\n\n\n");
+   printf ("vic-ii kawari has an additional\n");
+   printf ("64k of video ram. this ram can be used\n");
+   printf ("for new hires graphics modes...\n");
 
    return 0;
 }
