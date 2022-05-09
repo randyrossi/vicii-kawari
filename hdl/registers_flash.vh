@@ -47,9 +47,11 @@ reg [5:0] flash_bit_ctr;
 reg [7:0] flash_byte_ctr;
 
 // A counter to keep track of which page number we are
-// currently writing. We write 64 pages of 256 bytes
-// to cover 16k of data given to us from the CPU.
-reg [5:0] flash_page_ctr;
+// currently writing. For 64k or 32k builds, we write
+// 64 pages of 256 bytes (16k) but when we only have
+// 4k we are reduced to 16 pages. The flash program
+// must know based on the variant id.
+reg [`FLASH_PAGE_RANGE] flash_page_ctr;
 
 // Flip this register to 1 to start bulk flash
 // commands.

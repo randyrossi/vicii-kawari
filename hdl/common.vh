@@ -4,8 +4,10 @@
 `include "config.vh"
 
 // Some defines to get things to synthesize properly
-// between 32k and 64k video ram.  Some concatenations
-// and bit ranges need adjusting.
+// between 4k, 32k and 64k video ram.  Some
+// concatenations and bit ranges need adjusting.
+// For 64k and 32k, we can flash in 16k chunks
+// but for 4k we are limited to 4k.
 `ifdef WITH_64K
 `define VIDEO_RAM_WIDTH    16
 `define VIDEO_RAM_HI_WIDTH 8
@@ -15,8 +17,8 @@
 `define BIT_EXT_64K        1'b0,
 `define BIT_EXT2_64K       matrix_base[0],
 `define BIT_EXT3_64K       matrix_base[1:0],
+`define FLASH_PAGE_RANGE   5:0
 `else
-
 `ifdef WITH_4K
 `define VIDEO_RAM_WIDTH    12
 `define VIDEO_RAM_HI_WIDTH 4
@@ -26,6 +28,7 @@
 `define BIT_EXT_64K
 `define BIT_EXT2_64K
 `define BIT_EXT3_64K
+`define FLASH_PAGE_RANGE   3:0
 `else
 `define VIDEO_RAM_WIDTH    15
 `define VIDEO_RAM_HI_WIDTH 7
@@ -35,6 +38,7 @@
 `define BIT_EXT_64K
 `define BIT_EXT2_64K
 `define BIT_EXT3_64K       matrix_base[0],
+`define FLASH_PAGE_RANGE   5:0
 `endif
 
 `endif

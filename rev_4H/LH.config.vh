@@ -11,7 +11,6 @@
 `define VARIANT_SUFFIX_4 8'd0
 `define WITH_EXTENSIONS 1
 `define GEN_LUMA_CHROMA 1
-`define CONFIGURABLE_LUMAS 1
 `define WITH_RAM 1
 `define WITH_4K 1
 `define HAVE_FLASH 1
