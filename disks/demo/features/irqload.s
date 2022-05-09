@@ -1,5 +1,5 @@
-SIDInit   = $4040
-SIDUpdate = $4043
+SIDInit   = $1000
+SIDUpdate = $1003
 
 ;status          = $90           ;Kernal zeropage variables
 ;messages        = $9d
@@ -76,6 +76,7 @@ sys:            dc.b $0b,$08           ;Address of next instruction
 vectors:        jmp initmusicplayback
 
 start:          
+
                 ; load cc64 compiled demo section
 		ldx #<segment1
 		ldy #>segment1
@@ -169,6 +170,8 @@ start:
                 sta KAWARI_VMODE1
                 lda #0
                 STA KAWARI_VMODE2
+
+
 forever:
 		inc $d020
                 jmp forever
@@ -827,4 +830,4 @@ loadbuffer:     dc.b 254,0
 ;Music data.
 
                 org $0f82
-                incbin Armalyte_2.sid
+                incbin Elysion.sid

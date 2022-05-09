@@ -180,8 +180,8 @@ int main(void)
 
    POKE(646L,1);
    printf ("\n\n\n\n\n\n\n\nvic-ii kawari has an additional\n");
-   printf ("64k of video ram that can be used for\n");
-   printf ("new hires graphics modes.\n");
+   printf ("64k of video ram. this ram can be used for\n");
+   printf ("new hires graphics modes...\n");
 
    return 0;
 }

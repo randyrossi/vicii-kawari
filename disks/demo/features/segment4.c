@@ -54,10 +54,10 @@ void copy_char_rom(void) {
       " lda #$33\n"
       " sta $01\n"
       " lda ($fb),y\n"
-      " sta $fd\n"
+      " sta $801\n" // reuse this memory
       " lda #$37\n"
       " sta $01\n"
-      " lda $fd\n"
+      " lda $801\n" // reuse this memory
       " sta 53307\n"
       " iny\n"
       " bne loop\n"
@@ -190,7 +190,7 @@ enable_kawari();
    prnt("<3c<4o<5l<7o<8r\n");
    prnt("<1memory for each cell. the upper four bits of the color memory\n");
    prnt("are also used to control attributes like <lblink<>, <uunderline<>, \n");
-   prnt("<rreverse<> and alternate character set (which allows all 512.\n");
+   prnt("<rreverse<> and alternate character set (allows all 512.\n");
    prnt("characters to be displayed at the same time).\n");
    prnt("\nalso, there are hardware supported memory move routines that make\n");
    prnt("scrolling very fast. try out the 80col-51200 wedge on the demo\n");

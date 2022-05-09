@@ -1,7 +1,7 @@
 all: segment1.prg segment2.prg segment3.prg segment4.prg segment7.prg \
      irqload.prg disk
 
-LIB=/usr/share/cc65/share/cc65/lib/c64.lib
+LIB=/usr/share/cc65_hacked/share/cc65/lib/c64.lib
 
 OBJS=crt0.o ../../util/common/util.o ../../util/common/color.o
 HDRS=../../util/include/util.h ../../util/include/kawari.h
