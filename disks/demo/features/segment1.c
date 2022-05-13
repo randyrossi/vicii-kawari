@@ -497,7 +497,9 @@ void do_fade(void) {
    restore_colors(saved_colors);
 
    POKE(646L, 1); // white
-   TOXY(5,5); printf ("loading...");
+   TOXY(5,5);
+   printf ("kawari extensions activated\n\n");
+   printf ("         loading....");
 }
 
 int main(void)

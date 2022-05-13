@@ -71,7 +71,9 @@ int main(void)
         "sta $d03f\n" 
         "ldx #$44\n" // D
         "ldy #$32\n" // 2
-        "jsr $810\n"); // fastload
+        "jsr $810\n" // fastload
+        "lda #0\n"
+        "sta $813\n"); // remember to turn this off again
 
    // Now do the animation using DMA
 
@@ -133,7 +135,7 @@ int main(void)
    printf ("");
    printf ("the next example shows the mandelbrot\n");
    printf ("set being computed (in low resolution).\n");
-   printf ("first using the 6510 CPU to perform\n");
+   printf ("first using the 6510 cpu to perform\n");
    printf ("multiplications, then using vicii-kawari\n\n");
 
    printf ("press any key to continue\n");

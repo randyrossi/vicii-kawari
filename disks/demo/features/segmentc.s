@@ -13,15 +13,6 @@ start
                 screen = $0400
                 color_mem = 55296
 
-                lda #CHAR_V
-                sta KAWARI_PORT
-                lda #CHAR_I
-                sta KAWARI_PORT
-                lda #CHAR_C
-                sta KAWARI_PORT
-                lda #CHAR_2
-                sta KAWARI_PORT
-
 		lda #0
 		sta iteration
 
