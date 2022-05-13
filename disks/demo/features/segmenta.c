@@ -16,6 +16,7 @@ int main(void)
 {
    unsigned long src;
    unsigned int loop;
+   unsigned char oldv;
 
 // For testing standalone
 //enable_kawari();
@@ -76,6 +77,7 @@ int main(void)
 
    // Switch to custom char set
    CLRSCRN;
+   oldv = PEEK(53272);
    POKE (53272L,PEEK(53272L) & 240 | 12);
 
    POKE (53280L,0);
@@ -119,5 +121,24 @@ int main(void)
       while(PEEK(0xd012L) != 240) { }
       while(PEEK(0xd012L) == 240) { }
    }
+
+   CLRSCRN;
+   POKE (53272L,oldv);
+
+   printf ("\n\n\n\n");
+   printf ("vic-ii kawari also makes available\n");
+   printf ("some hardware math operations for\n");
+   printf ("16-bit signed and unsigned division\n");
+   printf ("and multiplication\n");
+   printf ("");
+   printf ("the next example shows the mandelbrot\n");
+   printf ("set being computed (in low resolution).\n");
+   printf ("first using the 6510 CPU to perform\n");
+   printf ("multiplications, then using vicii-kawari\n\n");
+
+   printf ("press any key to continue\n");
+
+   WAITKEY;
+
    return 0;
 }

@@ -189,6 +189,13 @@ start:
                 jsr fastload
                 jsr $40ad
 
+                ; segment 11 - removed
+
+                ; segment 12 - mandelbrot
+                ldx #"S"
+                ldy #"C"
+                jsr fastload
+                jsr $40ad
 
 forever:
 		inc $d020
