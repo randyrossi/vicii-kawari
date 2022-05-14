@@ -192,7 +192,7 @@ enable_kawari();
    prnt("are also used to control attributes like <lblink<>, <uunderline<>, \n");
    prnt("<rreverse<> and alternate character set (allows all 512.\n");
    prnt("characters to be displayed at the same time).\n");
-   prnt("\nalso, there are hardware supported memory move routines that make\n");
+   prnt("\nthere are hardware supported memory move routines that make\n");
    prnt("scrolling very fast. try out the 80col-51200 wedge on the demo\n");
    prnt("disk or the novaterm 80 column driver!");
 

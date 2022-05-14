@@ -34,14 +34,15 @@ int main(void)
    WAITKEY;
 
    printf ("the extra video ram can also be used to\n");
-   printf ("to store data. a dma transfer is\n");
-   printf ("available to quicky transfer up to 16k\n");
-   printf ("of data from vram into dram.\n\n");
+   printf ("to store any kind of data. a dma\n");
+   printf ("transfer is available to quicky move\n");
+   printf ("up to 16k at a time from vram into dram \n");
+   printf ("(or vice versa) with just a few 6510\n");
+   printf ("instructions.\n\n");
 
-   printf ("this next sequence demonstrates how the\n");
-   printf ("dma transfer can be used to show an\n");
-   printf ("animation of 64 frames using very\n");
-   printf ("little cpu. each frame is 1000 bytes\n");
+   printf ("this next sequence uses dma transfer\n");
+   printf ("to play 64 frames of an animation using\n");
+   printf ("very little cpu. each frame is 1k bytes\n");
    printf ("copied from vram into the screen memory\n");
    printf ("at 0x400 with only a few intructions.\n\n");
 

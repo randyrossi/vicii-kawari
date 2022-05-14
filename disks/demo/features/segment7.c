@@ -24,7 +24,7 @@ int main(void)
 
    printf ("\n\n\n\n\n\n\n");
    printf ("the next video mode is a 640x200\n");
-   printf ("resolution with 4 colors...\n");
+   printf ("resolution with 4 colors...\n\n");
 
    return 0;
 }

@@ -139,9 +139,9 @@ int main(void)
    int color;
    CLRSCRN;
 
-   printf ("\n\n\n\n\n\n\n\n\nyour vic-ii kawari adds some\n");
-   printf ("extra features never before available\n");
-   printf ("on the commodore 64.\n\n");
+   printf ("\n\n\n\n\n\n\n\n\n");
+   printf ("your vic-ii kawari adds some extra\n");
+   printf ("features to your commodore 64.\n\n");
 
    printf ("let's start with the basics...\n");
 
@@ -182,7 +182,7 @@ int main(void)
    printf ("\n\n\n\n\n\n\n\n");
    printf ("vic-ii kawari has an additional\n");
    printf ("64k of video ram. this ram can be used\n");
-   printf ("for new hires graphics modes...\n");
+   printf ("for some new hires graphics modes...\n");
 
    return 0;
 }
