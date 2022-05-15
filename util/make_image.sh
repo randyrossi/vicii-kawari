@@ -2,12 +2,13 @@
 # directly into vmem 
 if [ "$1" == "" ]
 then
-   echo "Usage make_image.sh img.png"
+   echo "Usage make_image.sh <res> img.png"
+   echo "Where res is 320x200x16 or 640x200x4"
    exit 0
 fi
 
 # Make the img binary
-java MakeImage -bin 640x200x4 $1 img.bin col.bin
+java MakeImage -bin $1 $2 img.bin col.bin
 
 # Prepend load bytes
 ../disks/util/flash/load_bytes 0 0 > tmp.bin

@@ -89,8 +89,8 @@ void rgb_to_hsv(double r, double g, double b, int *phase, int *amp, int *luma) {
         *amp = s*(15.0d/100.0d);
         *luma = v*(63.0d/100.0d);
         if (*amp == 0) *phase = 0;
-        if (*luma < 12) *luma = 12;
-        if (*luma > 63) *luma = 63;
+        //if (*luma < 12) *luma = 12;
+        //if (*luma > 63) *luma = 63;
         //printf("%f  %f %f %f\n", h,  h*(255.0d/359.0d), s*(15.0d/100.0d), v*(63.0d/100.0d));
 }
 
@@ -127,10 +127,37 @@ int main(int argc, char *argv[]) {
       
       rgb_to_hsv(r, g, b, &p[col], &a[col], &l[col]);
 
-      // Brighten it up a bit
-      //l[col] = (double)l[col] * 1.40; 
+      // clamp luma
       if (l[col] > 63) l[col] = 63;
    }
+
+   // Adjust luma
+   int min_luma = 64;
+   int max_luma = 0;
+   for (int col=0;col<16;col++) {
+      if (l[col] < min_luma) min_luma = l[col];
+      if (l[col] > max_luma) max_luma = l[col];
+   }
+   //printf ("min luma %d\n", min_luma);
+   //printf ("max luma %d\n", max_luma);
+
+   int min_dist = 12 - min_luma;
+   int max_dist = 63 - max_luma;
+   //printf ("min_dist %d\n",min_dist);
+   //printf ("max_dist %d\n",max_dist);
+
+   double slope = (double)(max_dist - min_dist) / (double)(63-12+1);
+   //printf ("slope %f\n",slope);
+   
+   if (min_dist > 0) { 
+     for (int col = 0; col < 16; col++) {
+      //printf("%d -> ", l[col]);
+      l[col] = l[col] + ceil(min_dist - slope*(l[col]-12));
+      if(l[col] > 63) l[col]=63;
+      //printf("%d\n", l[col]);
+     }
+   }
+   
 
    if (outputFormat == HEX) {
      for (int col=0;col<16;col++) {
