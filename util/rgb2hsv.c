@@ -3,6 +3,8 @@
 #include <string.h>
 #include <math.h>
 
+#define DEBUG
+
 #define max(a,b) \
    ({ __typeof__ (a) _a = (a); \
        __typeof__ (b) _b = (b); \
@@ -98,25 +100,38 @@ int main(int argc, char *argv[]) {
    int outputFormat = BIN;
 
    // Expect bin file with bytes RGBX
-   if (argc < 1) {
-      printf ("Usage: rgb2hsv <rgb.bin.file> > hsv.bin.file\n");
+   if (argc < 4) {
+      printf ("Usage: rgb2hsv <rgb.bin.file> <num_colors> <min_luma> <out.bin>\n");
       exit(0);
    }
-   if (argc > 2) {
-      if (strcmp(argv[2],"-h") == 0) outputFormat=HEX;
-      if (strcmp(argv[2],"-b") == 0) outputFormat=BINARY;
-   }
-
+   
    FILE *fp = fopen(argv[1],"r");
    if (fp == NULL) {
       printf ("Can't open file\n");
       exit(-1);
    }
 
+   int num_colors = atoi(argv[2]);
+   if (num_colors != 4 && num_colors != 16)
+   {
+      printf ("Bad num colors\n");
+      exit(-1);
+   }
+
+   int min_luma = atoi(argv[3]);
+   if (min_luma < 0) min_luma = 0;
+   if (min_luma > 63) min_luma = 63;
+
+   FILE *fp2 = fopen(argv[4],"w");
+   if (fp2 == NULL) {
+      printf ("Can't open output file\n");
+      exit(-1);
+   }
+
    int p[16];
    int a[16];
    int l[16];
-   for (int col=0;col<16;col++) {
+   for (int col=0;col<num_colors;col++) {
       unsigned int r = fgetc(fp);
       //r = r * 255 / 63; // scale up to 0-255
       unsigned int g = fgetc(fp);
@@ -132,57 +147,66 @@ int main(int argc, char *argv[]) {
    }
 
    // Adjust luma
-   int min_luma = 64;
-   int max_luma = 0;
-   for (int col=0;col<16;col++) {
-      if (l[col] < min_luma) min_luma = l[col];
-      if (l[col] > max_luma) max_luma = l[col];
+   int minl = 64;
+   int maxl = 0;
+   for (int col=0;col<num_colors;col++) {
+      if (l[col] < minl) minl = l[col];
+      if (l[col] > maxl) maxl = l[col];
    }
-   //printf ("min luma %d\n", min_luma);
-   //printf ("max luma %d\n", max_luma);
+#ifdef DEBUG
+   printf ("min luma %d\n", minl);
+   printf ("max luma %d\n", maxl);
+#endif
 
-   int min_dist = 12 - min_luma;
-   int max_dist = 63 - max_luma;
-   //printf ("min_dist %d\n",min_dist);
-   //printf ("max_dist %d\n",max_dist);
+   int min_dist = min_luma - minl;
+#ifdef DEBUG
+   printf ("min_dist %d\n",min_dist);
+#endif
 
-   double slope = (double)(max_dist - min_dist) / (double)(63-12+1);
-   //printf ("slope %f\n",slope);
+   double slope = (double)(-min_dist) / (double)(maxl-minl);
+#ifdef DEBUG
+   printf ("slope %f\n",slope);
+#endif
    
    if (min_dist > 0) { 
-     for (int col = 0; col < 16; col++) {
-      //printf("%d -> ", l[col]);
-      l[col] = l[col] + ceil(min_dist - slope*(l[col]-12));
+     for (int col = 0; col < num_colors; col++) {
+#ifdef DEBUG
+      printf("%d %f-> ", l[col], slope*(l[col]-minl));
+#endif
+      l[col] = l[col] + ceil(min_dist + slope*(l[col]-minl));
       if(l[col] > 63) l[col]=63;
-      //printf("%d\n", l[col]);
+#ifdef DEBUG
+      printf("%d\n", l[col]);
+#endif
      }
    }
    
 
    if (outputFormat == HEX) {
      for (int col=0;col<16;col++) {
-        printf ("0x%02x,", l[col]);
-        printf ("0x%02x,", p[col]);
-        printf ("0x%02x,\n", a[col]);
+        fprintf (fp2,"0x%02x,", l[col]);
+        fprintf (fp2,"0x%02x,", p[col]);
+        fprintf (fp2,"0x%02x,\n", a[col]);
       }
    } else if (outputFormat == BINARY) {
      for (int col=0;col<16;col++) {
-        printf (BYTE_TO_BINARY6_PATTERN, BYTE_TO_BINARY6(l[col]));
-        printf (BYTE_TO_BINARY8_PATTERN, BYTE_TO_BINARY8(p[col]));
-        printf (BYTE_TO_BINARY4_PATTERN, BYTE_TO_BINARY4(a[col]));
-        printf ("\n");
+        fprintf (fp2,BYTE_TO_BINARY6_PATTERN, BYTE_TO_BINARY6(l[col]));
+        fprintf (fp2,BYTE_TO_BINARY8_PATTERN, BYTE_TO_BINARY8(p[col]));
+        fprintf (fp2,BYTE_TO_BINARY4_PATTERN, BYTE_TO_BINARY4(a[col]));
+        fprintf (fp2,"\n");
       }
    } else if (outputFormat == BIN) {
      for (int col=0;col<16;col++) {
-        printf ("%c", l[col]);
+        fprintf (fp2,"%c", l[col]);
      }
      for (int col=0;col<16;col++) {
-        printf ("%c", p[col]);
+        fprintf (fp2,"%c", p[col]);
      }
      for (int col=0;col<16;col++) {
-        printf ("%c", a[col]);
+        fprintf (fp2,"%c", a[col]);
      }
    }
       
    fclose(fp);
+   fclose(fp2);
 }
