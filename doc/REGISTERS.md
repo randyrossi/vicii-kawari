@@ -52,12 +52,12 @@ REG    | Name | Description
 
 VIC-II Kawari has signed and unsigned multiply and divide operations which can eliminate expensive loops on the CPU and achieve the same result.  All math operands are 16-bit.
 
-OPERATOR    | Description
-------------|------------
-U_MULT      | Unsigned multiply OP_1 * OP_2
-U_DIV       | Unsigned divide OP_1 / OP_2
-S_MULT      | Signed multiply OP_1 * OP_2
-S_DIV       | Signed divide OP_1 / OP_2
+OPERATOR    | Value | Description
+------------|-------|-------------
+U_MULT      | 0     | Unsigned multiply OP_1 * OP_2
+U_DIV       | 1     | Unsigned divide OP_1 / OP_2
+S_MULT      | 2     | Signed multiply OP_1 * OP_2
+S_DIV       | 3     | Signed divide OP_1 / OP_2
 
 OPERATION   | Result Format
 ------------|--------------
