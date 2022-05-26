@@ -397,11 +397,11 @@ The following table estimates the number of bytes that can be moved
 if move operations are restricted to non-graphics raster lines. (NOTE:
 move can be invoked any time.)
 
-Chip    | Non visible gfx lines | Cycles / line | Bytes Filled / Frame
+Chip    | Non visible gfx lines | Cycles / line | Bytes Copied / Frame
 --------|-----------------------|---------------|---------------------
-6569    | (312-200) = 112       | 63            | 63*112*8 = 56448
-6567R8  | (262-200) = 62        | 65            | 65*62*8 = 32240
-6567R56A| (261-200) = 61        | 64            | 64*61*8 = 31232
+6569    | (312-200) = 112       | 63            | 63\*112\*8 = 56448
+6567R8  | (262-200) = 62        | 65            | 65\*62\*8 = 32240
+6567R56A| (261-200) = 61        | 64            | 64\*61\*8 = 31232
 
 ### VMEM Fill (DMA)
 
@@ -453,9 +453,9 @@ fill can be invoked any time.)
 
 Chip    | Non visible gfx lines | Cycles / line | Bytes Filled / Frame
 --------|-----------------------|---------------|---------------------
-6569    | (312-200) = 112       | 63            | 63*112*32 = 225792
-6567R8  | (262-200) = 62        | 65            | 65*62*32 = 128960
-6567R56A| (261-200) = 61        | 64            | 64*61*32 = 124928
+6569    | (312-200) = 112       | 63            | 63\*112\*32 = 225792
+6567R8  | (262-200) = 62        | 65            | 65\*62\*32 = 128960
+6567R56A| (261-200) = 61        | 64            | 64\*61\*32 = 124928
 
 ### DRAM to VMEM copy example (DMA)
 
@@ -590,9 +590,9 @@ The estimated bandwidth of blitter operations is 4 pixels per 6510 cycle.  The t
 
 Chip    | Non visible gfx lines | Cycles / line | Pixels Moved / Frame
 --------|-----------------------|---------------|---------------------
-6569    | (312-200) = 112       | 63            | 63*112*4 = 28224
-6567R8  | (262-200) = 62        | 65            | 65*62*4 = 16120
-6567R56A| (261-200) = 61        | 64            | 64*61*4 = 15616
+6569    | (312-200) = 112       | 63            | 63\*112\*4 = 28224
+6567R8  | (262-200) = 62        | 65            | 65\*62\*4 = 16120
+6567R56A| (261-200) = 61        | 64            | 64\*61\*4 = 15616
 
 NOTE: You can invoke the blitter any time and you can likely get a slightly higher bandwidth by starting operations before the raster line reaches the last visible graphics line. However, care must be taken to avoid altering visible graphics region where the scanline currently is to avoid tearing.
 
