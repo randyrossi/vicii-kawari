@@ -64,7 +64,7 @@ disk2:
 	c1541 -attach kawari_inside_2.d64 -write falcon.char d1
 	c1541 -attach kawari_inside_2.d64 -write falcon.lut d2
 	c1541 -attach kawari_inside_2.d64 -write segmentc.prg sc
-	c1541 -attach kawari_inside.d64 -write segmentd.prg sd
-	c1541 -attach kawari_inside.d64 -write blit_img.bin d3
-	c1541 -attach kawari_inside.d64 -write blit_col.bin d4
+	c1541 -attach kawari_inside_2.d64 -write segmentd.prg sd
+	c1541 -attach kawari_inside_2.d64 -write blit_img.bin d3
+	c1541 -attach kawari_inside_2.d64 -write blit_col.bin d4
 	c1541 -attach kawari_inside_2.d64 -list
