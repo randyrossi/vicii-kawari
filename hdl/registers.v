@@ -291,8 +291,8 @@ reg [15:0] blit_dst_cur;
 reg [7:0] blit_d; // dest mem byte
 reg [7:0] blit_s; // src mem byte
 reg [7:0] blit_o; // output byte
-reg [7:0] blit_dst_pos; // dest byte offset from base ptr
-reg [7:0] blit_src_pos; // src byte offset from base ptr
+reg [8:0] blit_dst_pos; // dest byte offset from base ptr
+reg [8:0] blit_src_pos; // src byte offset from base ptr
 reg [9:0] blit_line; // keep track of raster line of bitmap
 reg [1:0] blit_dst_align; // num pixels out of alignment
 reg [1:0] blit_src_align; // num pixels out of alignment
@@ -300,7 +300,8 @@ reg [2:0] blit_src_avail; // num pixels available from src
 reg [2:0] blit_dst_avail; // num pixels available from dst
 reg [2:0] blit_out_avail; // num pixels available from out
 reg [9:0] blit_pixels_written; // num pixels written from output
-reg [3:0] blit_state;
+reg [2:0] blit_state;
+reg blit_init;
 
 wire [2:0] PIXELS_PER_BYTE;
 assign PIXELS_PER_BYTE = hires_mode == 2'b10 ? 3'd2 : 3'd4;
@@ -1337,6 +1338,7 @@ begin
                                         blit_dst_stride <= port_hi_2;
                                         blit_done <= 0;
                                         blit_state <= 0;
+                                        blit_init <= 1;
                                     end
 `else
                                     ;
@@ -1656,6 +1658,7 @@ begin
            port_idx_1 <= 8'b0; // signal done
            port_idx_2 <= 8'b0;
         end
+`ifdef WITH_BLITTER
         // HANDLE blit here
         // We operate pixel by pixel.
         // We draw pixels from src or dst from the upper bits (from the left).
@@ -1665,40 +1668,45 @@ begin
            //$display("blit state %d",blit_state);
            case (blit_state)
              // init
-             4'd0: begin
-                $display("W:%d H%d SRC:%04x S:%d",
-                   blit_width, blit_height, blit_src_ptr, blit_src_stride);
-                $display("OP:%d DST:%04x S:%d",
-                   blit_raster_op, blit_dst_ptr, blit_dst_stride);
-                $display("PIXELS_PER_BYTE = %d  ", PIXELS_PER_BYTE);
-                blit_src_cur = blit_src_ptr;
-                blit_dst_cur = blit_dst_ptr;
-                if (PIXELS_PER_BYTE == 3'd2) begin
-                   blit_dst_align = {1'b0, blit_dst_x[0]}; 
-                   blit_src_align = {1'b0, blit_src_x[0]}; 
-                end else begin
-                   blit_dst_align = blit_dst_x[1:0]; 
-                   blit_src_align = blit_src_x[1:0]; 
+             3'd0: begin
+                if (blit_init) begin
+                   $display("W:%d H%d SRC:%04x S:%d",
+                      blit_width, blit_height, blit_src_ptr, blit_src_stride);
+                   $display("OP:%d DST:%04x S:%d",
+                      blit_raster_op, blit_dst_ptr, blit_dst_stride);
+                   $display("PIXELS_PER_BYTE = %d  ", PIXELS_PER_BYTE);
+                   blit_src_cur = blit_src_ptr;
+                   blit_dst_cur = blit_dst_ptr;
+                   if (PIXELS_PER_BYTE == 3'd2) begin
+                      blit_dst_align = {1'b0, blit_dst_x[0]};
+                      blit_src_align = {1'b0, blit_src_x[0]};
+                   end else begin
+                      blit_dst_align = blit_dst_x[1:0];
+                      blit_src_align = blit_src_x[1:0];
+                   end
+                   $display("DST ALIGN = %d", blit_dst_align);
+                   $display("SRC ALIGN = %d", blit_src_align);
+                   blit_src_avail = 0;
+                   blit_dst_avail = 0;
+                   blit_out_avail = 0;
+                   blit_pixels_written = 0;
+                   blit_src_pos = 0;
+                   blit_dst_pos = 0;
+                   blit_line = 0;
+                   blit_init <= 0;
                 end
-                $display("DST ALIGN = %d", blit_dst_align);
-                $display("SRC ALIGN = %d", blit_src_align);
-                blit_src_avail = 0;
-                blit_dst_avail = 0;
-                blit_out_avail = 0;
-                blit_pixels_written = 0;
-                blit_src_pos = 0;
-                blit_dst_pos = 0;
-                blit_line = 0;
-                blit_state <= blit_state + 1;
+                // Still need this tick for writes from 3'd7 state below
              end
-             4'd1: begin
+             3'd1: begin
                 // Do we need to read dst pixels?
                 if (blit_dst_avail == 0) begin
-                   video_ram_addr_a <= blit_dst_cur + {8'b0, blit_dst_pos};
+                   video_ram_addr_a <= blit_dst_cur + {7'b0, blit_dst_pos};
                 end
-                blit_state <= blit_state + 1;
              end
-             4'd3: begin
+             3'd2:
+                ;
+                // Need to wait for read
+             3'd3: begin
                 // Save dst pixels from read in previous state. For now, we
                 // assume we have PIXELS_PER_BYTE available pixels.
                 if (blit_dst_avail == 0) begin
@@ -1707,16 +1715,16 @@ $display("blit dst read %02x from %4x", video_ram_data_out_a, video_ram_addr_a);
 $display("blit dst avail %d", blit_dst_avail);
                    blit_d = video_ram_data_out_a;
                 end
-                blit_state <= blit_state + 1;
-             end
-             4'd5: begin
+
                 // Do we need to read src pixels?
                 if (blit_src_avail == 0) begin
-                   video_ram_addr_a <= blit_src_cur + {8'b0, blit_src_pos};
+                   video_ram_addr_a <= blit_src_cur + {7'b0, blit_src_pos};
                 end
-                blit_state <= blit_state + 1;
              end
-             4'd7: begin
+             3'd4:
+                // Need to wait for read
+                ;
+             3'd5: begin
                 // Save src pixels from read in previous state. For now, we
                 // assume we have PIXELS_PER_BYTE available pixels.
                 if (blit_src_avail == 0) begin
@@ -1728,14 +1736,12 @@ $display("blit src avail %d", blit_src_avail);
                    // move to the next src line and reset src alignment.
                    blit_src_pos = blit_src_pos + 1;
                 end
-                blit_state <= blit_state + 1;
-             end
-             4'd8: begin
+
                 // Handle dst misalignemnt.
                 if (blit_dst_align != 0) begin
                    // If we are not aligned, move the pixels in dst that
                    // should remain untouched to the out byte. Adjust
-                   // avail 
+                   // avail counters.
                    if (PIXELS_PER_BYTE == 3'd2) begin
                       // This case is easy.
                       blit_o = { 4'b0, blit_d[7:4] };
@@ -1783,9 +1789,8 @@ $display("blit src avail reduced to %d", blit_src_avail);
                    end
                    blit_src_align = 0;
                 end
-                blit_state <= blit_state + 1;
              end
-             4'd9: begin
+             3'd6: begin
                 // As long as we have not written width pixels yet.
                 // Figure out new pixel = dst pixel OP src pixel
                 // Shift out byte up by one pixel to make room in lower bits for new pixel
@@ -1822,19 +1827,26 @@ $display("blit src avail reduced to %d", blit_src_avail);
                    end
                    blit_src_avail = blit_src_avail - 1;
                    blit_pixels_written = blit_pixels_written + 1;
+                end else begin
+                   // We can get here if we wrote blit_width pixels but didn't
+                   // fill out the output byte yet. So we simply need to pad
+                   // with whatever we have left in the dst
+                   if (PIXELS_PER_BYTE == 3'd2)
+                      blit_o = { blit_o[3:0], blit_d[7:4] };
+                   else
+                      blit_o = { blit_o[5:0], blit_d[7:6] };
                 end
                 blit_dst_avail = blit_dst_avail - 1;
                 blit_out_avail = blit_out_avail + 1;
-                blit_state <= blit_state + 1;
 $display("blit o now %d with %d avail", blit_o, blit_out_avail);
 $display("blit d now %d with %d avail", blit_d, blit_dst_avail);
 $display("blit s now %d with %d avail", blit_s, blit_src_avail);
              end
-             4'd10: begin
+             3'd7: begin
                 // If out byte is full of pixels, write it to mem now
                 if (blit_out_avail == PIXELS_PER_BYTE) begin
-$display("write %02x to %04x", blit_o, blit_dst_cur + {8'b0, blit_dst_pos});
-                   video_ram_addr_a <= blit_dst_cur + {8'b0, blit_dst_pos};
+$display("write %02x to %04x", blit_o, blit_dst_cur + {7'b0, blit_dst_pos});
+                   video_ram_addr_a <= blit_dst_cur + {7'b0, blit_dst_pos};
                    video_ram_wr_a <= 1'b1;
                    video_ram_data_in_a <= blit_o;
                    blit_out_avail = 0;
@@ -1850,40 +1862,31 @@ $display("write %02x to %04x", blit_o, blit_dst_cur + {8'b0, blit_dst_pos});
 $display("blit next dst line (%d)", blit_line);
                       // We must reset align flag since we're back to the start.
                       if (PIXELS_PER_BYTE == 3'd2)
-                         blit_dst_align = {1'b0, blit_dst_x[0]}; 
+                         blit_dst_align = {1'b0, blit_dst_x[0]};
                       else
-                         blit_dst_align = blit_dst_x[1:0]; 
+                         blit_dst_align = blit_dst_x[1:0];
 
 $display("blit next src line");
                       blit_src_pos = 0;
                       blit_src_cur = blit_src_cur + { 8'b0, blit_src_stride };
                       if (PIXELS_PER_BYTE == 3'd2)
-                         blit_src_align = {1'b0, blit_src_x[0]}; 
+                         blit_src_align = {1'b0, blit_src_x[0]};
                       else
-                         blit_src_align = blit_src_x[1:0]; 
+                         blit_src_align = blit_src_x[1:0];
                       blit_src_avail = 0;
 
                       // If we've done all the lines, we are done our blit.
                       if (blit_line == blit_height) begin
                          blit_done <= 1'b1;
-                         port_hi_2 <= 0; // signal done by setting stride to 0
+                         port_hi_2 <= 0; // signal done
                       end
                    end
                 end
-                blit_state <= blit_state + 1;
              end
-             4'd11:
-                blit_state <= 4'd1;
-             4'd2,
-             4'd4,
-             4'd6,
-             4'd12,
-             4'd13,
-             4'd14,
-             4'd15:
-                blit_state <= blit_state + 1;
           endcase
+          blit_state <= blit_state + 1;
         end
+`endif // WITH_BLITTER
 
 `endif // WITH_RAM
 
