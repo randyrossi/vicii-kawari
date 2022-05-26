@@ -1,5 +1,8 @@
 # Makes an img.bin and col.bin file that can be loaded
 # directly into vmem 
+
+INCLUDE_LOAD_BYTES=1
+
 if [ "$1" == "" ]
 then
    echo "Usage make_image.sh <res> img.png"
@@ -23,9 +26,12 @@ fi
 java MakeImage -bin $1 $2 img.bin col.bin
 
 # Prepend load bytes
+if [ "$INCLUDE_LOAD_BYTES" = "1" ]
+then
 ../disks/util/flash/load_bytes 0 0 > tmp.bin
 cat img.bin >> tmp.bin
 mv tmp.bin img.bin
+fi
 
 # Color file must also add hsv equivalents
 if [ "$1" = "320x200x16" ]
@@ -38,6 +44,15 @@ fi
 ./rgb2hsv col.bin $NUM_COLS 20 tmp.bin
 cat tmp.bin >> col.bin
 rm -f tmp.bin
+
+if [ "$INCLUDE_LOAD_BYTES" = "1" ]
+then
 ../disks/util/flash/load_bytes 160 64 > tmp.bin
 cat col.bin >> tmp.bin
 mv tmp.bin col.bin
+fi
+
+# For simulator
+#xxd -g 1 img.bin > bitmap.hex
+#xxd -g 1 col.bin > colors.hex
+#python tobin.py

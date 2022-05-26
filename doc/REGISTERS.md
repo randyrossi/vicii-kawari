@@ -306,6 +306,32 @@ Here is an example of moving memory within video RAM using the CPU.
 
     Sequential read/writes will auto increment/decrement the address as above.
 
+### Using video mem pointers with an index
+
+Sometimes, it may be more convenient to use an index when porting code to use VIC-II Kawari extended video memory.  This is useful if replacing indirect indexed addressing.
+
+For example, the code:
+
+    LDY #20
+    LDA #00
+    STA $fc
+    LDA #04
+    STA $fd
+    LDA ($fc),y
+
+Can be replaced with:
+
+    LDY #20
+    LDA #00
+    STA VIDEO_MEM_1_LO
+    LDA #04
+    STA VIDEO_MEM_1_HI
+    STY VIDEO_MEM_1_IDX
+    LDA VIDEO_MEM_1_VAL
+
+NOTE: VIDEO_MEM_?_IDX only applies to RAM access, not the extended register
+      overlay area between 0x00 - 0xff described below.
+
 ## DMA Functions
 
 You can perform high speed copy/fill operations by setting the vmem port 1 and 2 functions to DMA. NOTE: Both port 1 and 2 must be configured for DMA.
@@ -316,18 +342,21 @@ VIDEO_MEM_1_LO | Dest Lo Byte
 VIDEO_MEM_1_HI | Dest Hi Byte
 VIDEO_MEM_2_LO | Src Lo Byte
 VIDEO_MEM_2_HI | Src Hi Byte
-VIDEO_MEM_1_IDX | Num Bytes Lo
-VIDEO_MEM_2_IDX | Num Bytes Hi
+VIDEO_MEM_1_IDX | Num Bytes Lo (Copy)
+VIDEO_MEM_2_IDX | Num Bytes Hi (Copy)
 VIDEO_MEM_1_VAL | Perform DMA Function (on write)
 VIDEO_MEM_2_VAL | Unused
 
 Perform DMA Function Value| Meaning
 --------------------------|--------------
-1 | Copy VMEM src to VMEM dest (start to end)
-2 | Copy VMEM src to VMEM dest (end to start)
-4 | Fill VMEM dest (See below)
-8 | Copy DRAM src\* to VMEM dest
-16| Copy VMEM src to DRAM dest\*
+1  | Copy VMEM src to VMEM dest (start to end)
+2  | Copy VMEM src to VMEM dest (end to start)
+4  | Fill VMEM dest (See below)
+8  | Copy DRAM src\* to VMEM dest
+16 | Copy VMEM src to DRAM dest\*
+32 | Blit VMEM src to VMEM dest
+64 | Unused
+128| Unused
 
 \* The upper 2 bits of all DRAM src/dest addresses are controlled by the CIA chip. That is, DRAM accesses for DMA transfers will point to the same 16k bank the CIA chip points the VIC to. The upper two bits of all DRAM addresses specified in the registers above are effectively ignored.
 
@@ -363,6 +392,16 @@ Perform DMA Function Value| Meaning
   one value that started as not 0 for 0 is sufficient to indicate done.
 * 8 bytes are moved each 6510 cycle.
 * Max copy is 65535 bytes
+
+The following table estimates the number of bytes that can be moved
+if move operations are restricted to non-graphics raster lines. (NOTE:
+move can be invoked any time.)
+
+Chip    | Non visible gfx lines | Cycles / line | Bytes Filled / Frame
+--------|-----------------------|---------------|---------------------
+6569    | (312-200) = 112       | 63            | 63*112*8 = 56448
+6567R8  | (262-200) = 62        | 65            | 65*62*8 = 32240
+6567R56A| (261-200) = 61        | 64            | 64*61*8 = 31232
 
 ### VMEM Fill (DMA)
 
@@ -407,6 +446,16 @@ VIDEO_MEM_2_VAL | Unused
   one value that started as not 0 for 0 is sufficient to indicate done.
 * 32 bytes are filled each 6510 cycle.
 * Max fill is 65535 bytes
+
+The following table estimates the number of bytes that can be filled
+if fill operations are restricted to non-graphics raster lines. (NOTE:
+fill can be invoked any time.)
+
+Chip    | Non visible gfx lines | Cycles / line | Bytes Filled / Frame
+--------|-----------------------|---------------|---------------------
+6569    | (312-200) = 112       | 63            | 63*112*32 = 225792
+6567R8  | (262-200) = 62        | 65            | 65*62*32 = 128960
+6567R56A| (261-200) = 61        | 64            | 64*61*32 = 124928
 
 ### DRAM to VMEM copy example (DMA)
 
@@ -472,33 +521,82 @@ Chip    | Idle RL             | Active RL | Bytes/Idle RL | Bytes/Active RL| Byt
 
 * If badlines are suppressed (i.e turn off the den bit), then all raster lines can transfer the maximum number of bytes and the transfer rate is much higher.  By turning off the low-res VIC modes, transferring memory from DRAM to VMEM can be as high as 13k/Frame.
 
-### Using video mem pointers with an index
+## Blitter
 
-Sometimes, it may be more convenient to use an index when porting code to use VIC-II Kawari extended video memory.  This is useful if replacing indirect indexed addressing.
+The blitter modifies graphics data in a region of video memory (dest) using data in another region of video memory (source) according to the specified operation (rasterOp).  Video mem flags for both ports 1 & 2 functions must be set to DMA (3) for the blitter to execute. The blitter only operates on the extended video ram (VRAM), not DRAM.
 
-For example, the code:
+The base pointer for the source and destination must be specified as well as the source and destination stride. The source and destination coordinates (x,y) of a rectangle (w,h) must also be specified.  For both 320x200x16 and 640x200x4 resolutions, the stride is 160.  However, you can keep an off-screen bitmap of any stride if needed. It is up to the caller to ensure the stride is sufficient to contain the width of the rectangle. Pixel depth is always determined by the current resolution in VIDEO_MODE1 (bits 6-7). The blitter only works with bitmap modes 320x200 or 640x200.  Using the blitter with other modes is undefined behavior.  The caller may check 0xd03c == 0 to determine whether the blitter operation is complete.
 
-    LDY #20
-    LDA #00
-    STA $fc
-    LDA #04
-    STA $fd
-    LDA ($fc),y
+### Operating the blitter is as follows:
 
-Can be replaced with:
+1. Set the blitter source rectangle information
+2. Set the blitter destination rectangle information, raster operation + flags and execute
+3. Check 0xd03c == 0 for done
 
-    LDY #20
-    LDA #00
-    STA VIDEO_MEM_1_LO
-    LDA #04
-    STA VIDEO_MEM_1_HI
-    STY VIDEO_MEM_1_IDX
-    LDA VIDEO_MEM_1_VAL
+### Setting Blitter Source Info
 
-NOTE: VIDEO_MEM_?_IDX only applies to RAM access, not the extended register
-      overlay area between 0x00 - 0xff described below.
+Register| Param | Description
+--------|-------|------------
+0xd02f | Width Hi | The rectangle width hi byte (only lowest 2 bits are valid)
+0xd030 | Width Lo | The rectangle width lo byte
+0xd031 | Height Hi | The rectangle height hi byte (only lowest 2 bits are valid)
+0xd032 | Height Lo  | The rectangle height lo byte
+0xd035 | Src Ptr Lo Byte | The base pointer to bitmap data (lo byte)
+0xd036 | Src Ptr Hi byte | The base pointer to bitmap data (hi byte)
+0xd039 | Src X Lo Byte | The x coordinate for the rectangle (lo byte)
+0xd03a | Src X Hi Byte | The x coordinate for the rectangle (hi byte)
+0xd03b | Src Y Lo Byte | The y coordinate for the rectangle
+0xd03c | Src Stride | The source bitmap stride
+0xd03d | Set | Set blitter src with value of 32
 
-### Extra Registers Overlay
+### Setting Blitter Dest Info & Execute
+
+Register| Param | Description
+--------|-------|------------
+0xd02f | Raster Op | Raster operation (See below)
+0xd030 | Blit flags | (See below)
+0xd031 | Unused | 
+0xd032 | Unused | 
+0xd035 | Dst Ptr Lo Byte | The base pointer to bitmap data (lo byte)
+0xd036 | Dst Ptr Hi byte | The base pointer to bitmap data (hi byte)
+0xd039 | Dst X Lo Byte | The x coordinate for the rectangle (lo byte)
+0xd03a | Dst X Hi Byte | The x coordinate for the rectangle (hi byte)
+0xd03b | Dst Y Lo Byte | The y coordinate for the rectangle
+0xd03c | Dst Stride | The destination bitmap stride
+0xd03d | Set Reg | Set blitter dst and perform blit op with value of 64
+
+### Blitter flags
+
+8765 |4|3|2|1
+-----|-|-|-|-
+index| | | | transparency bit
+
+If set, the transparency bit tells the blitter to consider any pixel with a color index specified by bits 8-5 as transparent.  The raster operation is fixed to DST = SRC.  Note that in 640x400x4 mode, only bits 5&6 matter since ther are only 4 colors per pixel.
+
+### Raster Operations
+
+Value | Description
+------|------------
+0 | DST = SRC
+1 | DST = SRC | DST
+2 | DST = SRC & DST
+3 | DST = SRC XOR DST
+
+### Additional Notes
+
+There is no clipping of rectangles.  The rectangles must be within the bounds of the bitmap region.
+
+The estimated bandwidth of blitter operations is 4 pixels per 6510 cycle.  The table below shows how many pixels / frame can be copied/movied if blitter operations are restricted to run outside visible graphics region.
+
+Chip    | Non visible gfx lines | Cycles / line | Pixels Moved / Frame
+--------|-----------------------|---------------|---------------------
+6569    | (312-200) = 112       | 63            | 63*112*4 = 28224
+6567R8  | (262-200) = 62        | 65            | 65*62*4 = 16120
+6567R56A| (261-200) = 61        | 64            | 64*61*4 = 15616
+
+NOTE: You can invoke the blitter any time and you can likely get a slightly higher bandwidth by starting operations before the raster line reaches the last visible graphics line. However, care must be taken to avoid altering visible graphics region where the scanline currently is to avoid tearing.
+
+## Extra Registers Overlay
 
 When BIT 6 of the VIDEO_MEM_FLAGS register is set, the first 256 bytes of video RAM is mapped to extra registers for special VIC-II Kawari functions.
 
@@ -574,6 +672,8 @@ For VGA, Front Porch, Sync Pulse Width and Back Porch are durations and are adde
 Care must be taken so that no value exceeds the resolution.  For PAL, VBLANK + FPORCH + SPULSE + is expected to be less than 311 but BPORCH is expected to cross 311.
 
 For composite output, color burst and sync pulses begin/end are hard coded to NTSC or PAL video standards and are relative to blank start.
+
+### Other Registers
 
 DISPLAY_FLAGS| Function
 -------------|-------

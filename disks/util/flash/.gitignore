@@ -3,3 +3,4 @@ kawari_multiboot*.bit
 load_bytes
 stripped.bit
 *.zip
+multi_hex_to_bit
