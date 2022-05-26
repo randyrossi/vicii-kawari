@@ -17,6 +17,7 @@ int main(void)
    unsigned long src;
    unsigned int loop;
    unsigned char oldv;
+   unsigned char b1,b2,b3,b4,b5;
 
 // For testing standalone
 //enable_kawari();
@@ -30,8 +31,35 @@ int main(void)
    POKE (VIDEO_MODE1, 0);
    POKE (646L, 1);
 
-   printf ("insert disk 2 and press a key\n\n");
-   WAITKEY;
+   POKE (0x3000L, 0);
+   POKE (0x3001L, 0);
+   POKE (0x3002L, 0);
+   POKE (0x3003L, 0);
+   POKE (0x3004L, 0);
+   while (1) {
+      printf ("insert disk 2 and press a key\n\n");
+      WAITKEY;
+
+      asm( "lda #0\n"
+        "sta $816\n" // directVmem no
+        "lda #0\n"
+        "sta $d035\n"  // idx
+        "lda #1\n" // auto inc to vmem
+        "sta $d03f\n" 
+        "ldx #$4E\n" // N
+        "ldy #$32\n" // 2
+        "jsr $810\n"); // fastload
+
+      b1 = PEEK(0x3000L);
+      b2 = PEEK(0x3001L);
+      b3 = PEEK(0x3002L);
+      b4 = PEEK(0x3003L);
+      b5 = PEEK(0x3004L);
+
+      // 64 69 73 6b 32 = disk2
+      if (b1 == 0x64 && b2 == 0x69 && b3 == 0x73 && b4 == 0x6b && b5 == 0x32)
+         break;
+   }
 
    printf ("the extra video ram can also be used to\n");
    printf ("to store any kind of data. a dma\n");

@@ -61,6 +61,7 @@ disk1:
 disk2:
 	truncate -s 174848 kawari_inside_2.d64
 	c1541 -attach kawari_inside_2.d64 -format "disk2",0
+	c1541 -attach kawari_inside_2.d64 -write n2 n2
 	c1541 -attach kawari_inside_2.d64 -write falcon.char d1
 	c1541 -attach kawari_inside_2.d64 -write falcon.lut d2
 	c1541 -attach kawari_inside_2.d64 -write segmentc.prg sc
