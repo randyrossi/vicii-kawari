@@ -1,5 +1,5 @@
 all: segment1.prg segment2.prg segment3.prg segment4.prg segment7.prg \
-     segmenta.prg segmentc.prg irqload.prg disk1 disk2
+     segmenta.prg segmentc.prg segmentd.prg irqload.prg disk1 disk2
 
 LIB=/usr/share/cc65_hacked/share/cc65/lib/c64.lib
 
@@ -26,6 +26,9 @@ segmenta.prg: segmenta.o ${OBJS}
 
 segmentc.prg: segmentc.s
 	acme --cpu 6510 segmentc.s
+
+segmentd.prg: segmentd.o ${OBJS}
+	ld65 -o segmentd.prg segmentd.o ${OBJS} ${LIB} -C c64.cfg
 
 %.o: %.c ${HDRS}
 	cl65 --include-dir ../../util/include -c $*.c -o $*.o
@@ -61,4 +64,7 @@ disk2:
 	c1541 -attach kawari_inside_2.d64 -write falcon.char d1
 	c1541 -attach kawari_inside_2.d64 -write falcon.lut d2
 	c1541 -attach kawari_inside_2.d64 -write segmentc.prg sc
+	c1541 -attach kawari_inside.d64 -write segmentd.prg sd
+	c1541 -attach kawari_inside.d64 -write blit_img.bin d3
+	c1541 -attach kawari_inside.d64 -write blit_col.bin d4
 	c1541 -attach kawari_inside_2.d64 -list

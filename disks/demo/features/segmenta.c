@@ -36,7 +36,7 @@ int main(void)
    printf ("the extra video ram can also be used to\n");
    printf ("to store any kind of data. a dma\n");
    printf ("transfer is available to quicky move\n");
-   printf ("up to 16k at a time from vram into dram \n");
+   printf ("up to 16k at a time from vram into dram\n");
    printf ("(or vice versa) with just a few 6510\n");
    printf ("instructions.\n\n");
 
@@ -54,7 +54,7 @@ int main(void)
 
    // falcon.char to 0x3000 dram
    asm( "lda #0\n"
-        "sta $813\n" // directVmem no
+        "sta $816\n" // directVmem no
         "lda #0\n"
         "sta $d035\n"  // idx
         "lda #1\n" // auto inc to vmem
@@ -65,7 +65,7 @@ int main(void)
 
    // falcon.lut to 0x0000 vmem
    asm( "lda #1\n"
-        "sta $813\n" // directVmem yes
+        "sta $816\n" // directVmem yes
         "lda #0\n"
         "sta $d035\n"  // idx
         "lda #1\n" // auto inc to vmem
@@ -74,7 +74,7 @@ int main(void)
         "ldy #$32\n" // 2
         "jsr $810\n" // fastload
         "lda #0\n"
-        "sta $813\n"); // remember to turn this off again
+        "sta $816\n"); // remember to turn this off again
 
    // Now do the animation using DMA
 

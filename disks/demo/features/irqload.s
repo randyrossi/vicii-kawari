@@ -69,19 +69,20 @@ VMEM_B_VAL = $d03e
 sys:            dc.b $0b,$08           ;Address of next instruction
                 dc.b $0a,$00           ;Line number(10)
                 dc.b $9e               ;SYS-token
-                dc.b $32,$30,$36,$38   ;2068 as ASCII
+                dc.b $32,$30,$37,$31   ;2071 as ASCII
                 dc.b $00
                 dc.b $00,$00           ;Instruction address 0 terminates
                                        ;the basic program
 
 ; Put this stuff here so our segments can call these
 ; if needed
-vectors:        jmp initmusicplayback
-                jmp fastload
+vectors:        jmp initmusicplayback  ; $80d
+                jmp fastload           ; $810
+                jmp install_colors     ; $813
                 ; Set this to 1 to write to Kawari port A
                 ; instead of DRAM. Get the location from dasm
                 ; output
-directVmem:     dc.b 0
+directVmem:     dc.b 0   ; $816
 
 start:          
 
@@ -194,6 +195,12 @@ start:
                 ; segment 12 - mandelbrot
                 ldx #"S"
                 ldy #"C"
+                jsr fastload
+                jsr $40ad
+
+                ; segment 13 - blitter
+                ldx #"S"
+                ldy #"D"
                 jsr fastload
                 jsr $40ad
 
@@ -771,10 +778,10 @@ install_colors:
         lda #32
         sta KAWARI_PORT  ; make regs visible, no inc
 
-        ; colors were loaded into $40a0
-        lda #$40
+        ; colors were loaded into $3000
+        lda #$30
         sta $fc
-        ldy #$a0
+        ldy #$00
         sty $fb
 
         ldy #0

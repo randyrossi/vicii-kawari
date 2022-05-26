@@ -8,7 +8,7 @@ Memory:
 0x0801 Initial PRG
 0x0f82 MUSIC HDR
 0x1000 MUSIC (max 8k)
-0x3000 custom char
+0x3000 custom char or color data
 0x40A0 CC65 PROG START ADDR
 
 Every segment can load into 0x40a0 while music is playing.
