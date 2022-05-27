@@ -28,7 +28,7 @@ java MakeImage -bin $1 $2 img.bin col.bin
 # Prepend load bytes
 if [ "$INCLUDE_LOAD_BYTES" = "1" ]
 then
-../disks/util/flash/load_bytes 0 0 > tmp.bin
+../disks/util/flash/load_bytes 0 128 > tmp.bin
 cat img.bin >> tmp.bin
 mv tmp.bin img.bin
 fi
@@ -41,18 +41,19 @@ elif [ "$1" = "640x200x4" ]
 then
 NUM_COLS=4
 fi
+cp col.bin orig
 ./rgb2hsv col.bin $NUM_COLS 20 tmp.bin
 cat tmp.bin >> col.bin
 rm -f tmp.bin
 
 if [ "$INCLUDE_LOAD_BYTES" = "1" ]
 then
-../disks/util/flash/load_bytes 160 64 > tmp.bin
+../disks/util/flash/load_bytes 0 48 > tmp.bin
 cat col.bin >> tmp.bin
 mv tmp.bin col.bin
 fi
 
-# For simulator
-#xxd -g 1 img.bin > bitmap.hex
-#xxd -g 1 col.bin > colors.hex
+# For simulator - make sure INCLUDE_LOAD_BYTES is off above
+# get simualator binary from output of tobin.py
+#xxd -g 1 img.bin | sed 's/^.*: //' | sed 's/  .*//' > hires.hex
 #python tobin.py

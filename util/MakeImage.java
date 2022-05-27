@@ -146,6 +146,15 @@ public class MakeImage {
                 }
 	    }
 	}
+        int n = map.keySet().size();
+        if (n < maxColors) {
+           for (p=0; p < (maxColors - n); p++) {
+                  bos.write((byte)0);
+                  bos.write((byte)0);
+                  bos.write((byte)0);
+                  bos.write((byte)0);
+           }
+        }
 	for (p=maxColors;p<16;p++) {
 		   if (colorFormat == ColorFormat.BINARY) {
                       String s = Integer.toBinaryString(0);

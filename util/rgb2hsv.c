@@ -133,10 +133,13 @@ int main(int argc, char *argv[]) {
    int l[16];
    for (int col=0;col<num_colors;col++) {
       unsigned int r = fgetc(fp);
+      if (r == -1) { printf ("Not enough colors in rgb bin file. Need to pad!\n"); exit(-1); }
       //r = r * 255 / 63; // scale up to 0-255
       unsigned int g = fgetc(fp);
+      if (g == -1) { printf ("Not enough colors in rgb bin file. Need to pad!\n"); exit(-1); }
       //g = g * 255 / 63; // scale up to 0-255
       unsigned int b = fgetc(fp);
+      if (b == -1) { printf ("Not enough colors in rgb bin file. Need to pad!\n"); exit(-1); }
       //b = b * 255 / 63; // scale up to 0-255
       fgetc(fp); // ignore
       
