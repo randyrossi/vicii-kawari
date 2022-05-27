@@ -80,6 +80,7 @@ int main(void)
 
    CLRSCRN;
    POKE (VIDEO_MODE1, 0);
+   POKE (53269,0);
    POKE (646L, 1);
 
    printf ("a hires graphics blitter is available\n");
@@ -92,8 +93,6 @@ int main(void)
    printf ("transparent when applied to the\n");
    printf ("destination.\n\n");
 
-   printf ("press any key to continue\n");
-   WAITKEY;
 
    // load bitmap data to 0x8000
    asm( "lda #1\n"
@@ -105,6 +104,10 @@ int main(void)
         "ldx #$44\n" // D
         "ldy #$33\n" // 3
         "jsr $810\n"); // fastload
+
+   // Stuff these at very last row of memory so it doesn't interfere with
+   // the offscreen bitmap data
+   save_colors_vmem(0xFFFFL - 160); // stuff 
 
    // load colors
    asm( "lda #0\n"
@@ -194,8 +197,12 @@ asm ("wait:\n"
       wait_blitter();
    }
 
+   restore_colors_vmem(0xFFFFL - 160); // stuff 
+
    POKE (VIDEO_MODE1, 0);
-   POKE (646L, 15);
+   POKE (53280,0);
+   POKE (53281,0);
+   POKE (646L, 1);
    CLRSCRN;
 
    printf ("thanks for watching!\n\n");

@@ -43,20 +43,20 @@ irqload.prg: irqload.s
 	dasm irqload.s -oirqload.prg -v3 -p3
 
 disk1:
-	truncate -s 174848 kawari_inside.d64
-	c1541 -attach kawari_inside.d64 -format "disk1",0
-	c1541 -attach kawari_inside.d64 -write irqload.prg
-	c1541 -attach kawari_inside.d64 -write segment1.prg s1
-	c1541 -attach kawari_inside.d64 -write segment2.prg s2
-	c1541 -attach kawari_inside.d64 -write segment3.prg s3
-	c1541 -attach kawari_inside.d64 -write segment4.prg s4
-	c1541 -attach kawari_inside.d64 -write bruno_img.bin s5
-	c1541 -attach kawari_inside.d64 -write bruno_col.bin s6
-	c1541 -attach kawari_inside.d64 -write segment7.prg s7
-	c1541 -attach kawari_inside.d64 -write horse_img.bin s8
-	c1541 -attach kawari_inside.d64 -write horse_col.bin s9
-	c1541 -attach kawari_inside.d64 -write segmenta.prg sa
-	c1541 -attach kawari_inside.d64 -list
+	truncate -s 174848 kawari_inside_1.d64
+	c1541 -attach kawari_inside_1.d64 -format "disk1",0
+	c1541 -attach kawari_inside_1.d64 -write irqload.prg
+	c1541 -attach kawari_inside_1.d64 -write segment1.prg s1
+	c1541 -attach kawari_inside_1.d64 -write segment2.prg s2
+	c1541 -attach kawari_inside_1.d64 -write segment3.prg s3
+	c1541 -attach kawari_inside_1.d64 -write segment4.prg s4
+	c1541 -attach kawari_inside_1.d64 -write bruno_img.bin s5
+	c1541 -attach kawari_inside_1.d64 -write bruno_col.bin s6
+	c1541 -attach kawari_inside_1.d64 -write segment7.prg s7
+	c1541 -attach kawari_inside_1.d64 -write horse_img.bin s8
+	c1541 -attach kawari_inside_1.d64 -write horse_col.bin s9
+	c1541 -attach kawari_inside_1.d64 -write segmenta.prg sa
+	c1541 -attach kawari_inside_1.d64 -list
 
 disk2:
 	truncate -s 174848 kawari_inside_2.d64
