@@ -282,7 +282,6 @@ reg [15:0] blit_dst_ptr;
 reg [1:0] blit_dst_x;
 reg [7:0] blit_dst_stride;
 
-reg [1:0] blit_raster_op;
 reg [7:0] blit_flags;
 
 reg blit_done = 1'b1;
@@ -1327,8 +1326,7 @@ begin
                                         blit_src_stride <= port_hi_2;
                                     end else if (dbi[6]) begin
                                         // Set Blitter DST Info & Execute
-                                        blit_raster_op <= u_op_1[9:8];
-                                        blit_flags <= u_op_1[7:0];
+                                        blit_flags <= u_op_1[15:8];
                                         // dst_ptr = base + x / PIXELS_PER_BYTE + y * STRIDE
                                         blit_dst_ptr <=
                                             { port_idx_1, port_idx_2 } +
@@ -1672,8 +1670,8 @@ begin
                 if (blit_init) begin
                    $display("W:%d H%d SRC:%04x S:%d",
                       blit_width, blit_height, blit_src_ptr, blit_src_stride);
-                   $display("OP:%d DST:%04x S:%d",
-                      blit_raster_op, blit_dst_ptr, blit_dst_stride);
+                   $display("FL:%d DST:%04x S:%d",
+                      blit_flags, blit_dst_ptr, blit_dst_stride);
                    $display("PIXELS_PER_BYTE = %d  ", PIXELS_PER_BYTE);
                    blit_src_cur = blit_src_ptr;
                    blit_dst_cur = blit_dst_ptr;
@@ -1799,27 +1797,31 @@ $display("blit src avail reduced to %d", blit_src_avail);
                    // src pixel is blit_s[7:4]
                    // dst pixel is blit_d[7:4]
                    if (PIXELS_PER_BYTE == 3'd2) begin
-                      if (blit_flags[0] && blit_s[7:4] == blit_flags[7:4])
+                      if (blit_flags[3] && blit_s[7:4] == blit_flags[7:4])
                          blit_o = { blit_o[3:0], blit_d[7:4] }; // transparent
                       else begin
-                        case (blit_raster_op)
-                           2'd0: blit_o = { blit_o[3:0], blit_s[7:4] };
-                           2'd1: blit_o = { blit_o[3:0], blit_s[7:4] | blit_d[7:4] };
-                           2'd2: blit_o = { blit_o[3:0], blit_s[7:4] & blit_d[7:4] };
-                           2'd3: blit_o = { blit_o[3:0], blit_s[7:4] ^ blit_d[7:4] };
+                        case (blit_flags[2:0])
+                           3'd0: blit_o = { blit_o[3:0], blit_s[7:4] };
+                           3'd1: blit_o = { blit_o[3:0], blit_s[7:4] | blit_d[7:4] };
+                           3'd2: blit_o = { blit_o[3:0], blit_s[7:4] & blit_d[7:4] };
+                           3'd3: blit_o = { blit_o[3:0], blit_s[7:4] ^ blit_d[7:4] };
+                           default:
+                              ;
                         endcase
                       end
                       blit_d = { blit_d[3:0], 4'b0 };
                       blit_s = { blit_s[3:0], 4'b0 };
                    end else begin
-                      if (blit_flags[0] && blit_s[7:6] == blit_flags[5:4])
+                      if (blit_flags[3] && blit_s[7:6] == blit_flags[5:4])
                          blit_o = { blit_o[5:0], blit_d[7:6] }; // transparent
                       else begin
-                        case (blit_raster_op)
-                           2'd0: blit_o = { blit_o[5:0], blit_s[7:6] };
-                           2'd1: blit_o = { blit_o[5:0], blit_s[7:6] | blit_d[7:6]};
-                           2'd2: blit_o = { blit_o[5:0], blit_s[7:6] & blit_d[7:6]};
-                           2'd3: blit_o = { blit_o[5:0], blit_s[7:6] ^ blit_d[7:6]};
+                        case (blit_flags[2:0])
+                           3'd0: blit_o = { blit_o[5:0], blit_s[7:6] };
+                           3'd1: blit_o = { blit_o[5:0], blit_s[7:6] | blit_d[7:6]};
+                           3'd2: blit_o = { blit_o[5:0], blit_s[7:6] & blit_d[7:6]};
+                           3'd3: blit_o = { blit_o[5:0], blit_s[7:6] ^ blit_d[7:6]};
+                           default:
+                              ;
                         endcase
                       end
                       blit_d = { blit_d[5:0], 2'b0 };

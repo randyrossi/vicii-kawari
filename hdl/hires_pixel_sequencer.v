@@ -225,7 +225,7 @@ begin
                     // 320x200 32k packed pixel (16 col)
                     if (hires_ff) begin
                         hires_pixel_color1 <= hires2_pixel_value[3:0];
-                        hires_is_background_pixel <= (hires2_pixel_value != b0c_d2);
+                        hires_is_background_pixel <= (hires2_pixel_value[3:0] != b0c_d2);
                     end
                 2'b11: begin
                     // 640x200 32k packed pixel (4 col)
