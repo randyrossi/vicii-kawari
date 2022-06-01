@@ -142,11 +142,10 @@ When BIT 7 is 1, changes to some registers (like color palette, composite luma, 
 
 VIDEO_MODE1 | Description
 ------------|------------
-BIT 1-3     | CHAR_PIXEL_BASE
+BIT 3-1     | CHAR_PIXEL_BASE
 BIT 4       | HIRES ALLOW BADLINES ON LORES MODES (0=no, 1=yes)
 BIT 5       | HIRES ENABLE
-BIT 6-7     | HIRES MODE (0=TEXT, 1=640x200, 2=320x200, 3=640x200)
-BIT 8       | UNUSED
+BIT 8-6     | HIRES MODE (000=TEXT, 001=640x200, 010=320x200, 011=640x200, 100=160x200)
 
 VIDEO_MODE2 | Description
 ------------|------------
@@ -178,7 +177,7 @@ HIRES MODE | Description
 2          | 320x200 Bitmap 16 Color (32K Bitmap, packed pixels, 2 pixels per byte)
 3          | 640x200 Bitmap 4 Color (32K Bitmap, packed pixels, 4 pixels per byte)
 
-### Mode 0 : 80 Column Text
+### Mode 000 : 80 Column Text
 
 Base Pointer    | Description                                     | Range             | Restrictions
 ----------------|-------------------------------------------------|-------------------|------------------
@@ -198,7 +197,7 @@ COLOR_BASE      | Points to a 2k block for 80x25 color matrix     | XXXX0000-XXX
 
     There are no 'bad lines' in hires modes since the video memory is dual port and can be accessed by hires pixel sequencer and the CPU at the same time.  However, yscroll will still trigger a reset of the row counter as it does in the legacy modes.
 
-### Mode 1 : 640x200 16 color
+### Mode 001 : 640x200 16 color
 
 Base Pointer    | Description                                     | Range             | Restrictions
 ----------------|-------------------------------------------------|-------------------|--------------
@@ -213,7 +212,7 @@ COLOR_BASE      | Points to a 2k block for 80x25 color matrix     | XXXX0000-XXX
     Color Fetch Addr (15): COLOR_BASE(4) | VC(11)
     Pixel Fetch Addr (16): MATRIX_BASE[1:0](2) | FVC
 
-### Mode 2 : 320x200 16 color
+### Mode 010 : 320x200 16 color
 
 Base Pointer    | Description                                     | Range             | Restrictions
 ----------------|-------------------------------------------------|-------------------|--------------
@@ -227,7 +226,7 @@ COLOR_BASE      | Unused                                          |             
     FVC (15 bit counter)
     Pixel Fetch Addr (16) : MATRIX_BASE[0](1) | HVC
 
-### Mode 3 : 640x200 4 color
+### Mode 011 : 640x200 4 color
 
 Base Pointer    | Description                                     | Range             | Restrictions
 ----------------|-------------------------------------------------|-------------------|--------------
@@ -241,6 +240,21 @@ COLOR_BASE      | Color bank                                      | XXXXXX00-XXX
 
     HVC (15 bit counter)
     Pixel Fetch Addr (16) : MATRIX_BASE[0](1) | HVC
+
+### Mode 100 : 160x200 16 color
+
+Base Pointer    | Description                                     | Range             | Restrictions
+----------------|-------------------------------------------------|-------------------|--------------
+CHAR_PIXEL_BASE | Unused                                          |                   |
+MATRIX_BASE     | Points to a 16k block 160x200 pixel data        | XXXXXX00-XXXXXX11 |
+COLOR_BASE      | Unused                                          |                   |
+
+    One byte is fetched each cycle giving 80 bytes each line. But each pixel color is
+    defined by a nibble (16 colors) so we get 2 pixels per byte, or 160 pixels each line.
+    byte is fetched each half cycle giving 80 bytes per line.
+
+    FVC (14 bit counter)
+    Pixel Fetch Addr (16): MATRIX_BASE[1:0](2) | FVC
 
 ## Accessing Video Memory
 
