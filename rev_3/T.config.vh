@@ -25,5 +25,6 @@
 `define HIRES_MODES
 `define HIRES_RESET
 `define WITH_MATH
+`define WITH_BLITTER
 
 `endif // config_vh_
