@@ -144,7 +144,7 @@ module registers
            output reg [3:0] hires_color_base,
            output reg hires_enabled,
            output reg hires_allow_bad,
-           output reg [1:0] hires_mode,
+           output reg [2:0] hires_mode,
            output reg [7:0] hires_cursor_hi,
            output reg [7:0] hires_cursor_lo,
 `endif
@@ -303,7 +303,7 @@ reg [2:0] blit_state;
 reg blit_init;
 
 wire [2:0] PIXELS_PER_BYTE;
-assign PIXELS_PER_BYTE = hires_mode == 2'b10 ? 3'd2 : 3'd4;
+assign PIXELS_PER_BYTE = hires_mode == 3'b011 ? 3'd4 : 3'd2;
 
 `endif // WITH_BLITTER
 
@@ -569,7 +569,7 @@ begin
         // Test mode 0 : Text
         hires_enabled <= 1'b1;
         hires_allow_bad <= 1'b0;
-        hires_mode <= 2'b00;
+        hires_mode <= 3'b000;
         // char pixels @0000(4K)
         hires_char_pixel_base <= 3'b0;
         // color table @1000(2K)
@@ -583,7 +583,7 @@ begin
 	`ifdef HIRES_BITMAP1
         hires_enabled <= 1'b1;
         hires_allow_bad <= 1'b0;
-        hires_mode <= 2'b01;
+        hires_mode <= 3'b001;
         hires_char_pixel_base <= 3'b0; // ignored
         // pixels @0000(16k)
         hires_matrix_base <= 4'b0000;
@@ -593,7 +593,7 @@ begin
 	`ifdef HIRES_BITMAP2
         hires_enabled <= 1'b1;
         hires_allow_bad <= 1'b0;
-        hires_mode <= 2'b10;
+        hires_mode <= 3'b010;
         hires_char_pixel_base <= 3'b0; // ignored
         hires_matrix_base <= 4'b0000; // 32k bank
         hires_color_base <= 4'b0000; // ignored
@@ -601,10 +601,19 @@ begin
 	`ifdef HIRES_BITMAP3
         hires_enabled <= 1'b1;
         hires_allow_bad <= 1'b0;
-        hires_mode <= 2'b11;
+        hires_mode <= 3'b011;
         hires_char_pixel_base <= 3'b0; // ignored
         hires_matrix_base <= 4'b0000; // 32k bank
         hires_color_base <= 4'b0000; // 4 color bank
+	`endif
+	`ifdef HIRES_BITMAP4
+        hires_enabled <= 1'b1;
+        hires_allow_bad <= 1'b0;
+        hires_mode <= 3'b100;
+        hires_char_pixel_base <= 3'b0; // ignored
+        // pixels @0000(16k)
+        hires_matrix_base <= 4'b0000;
+        hires_color_base <= 4'b0000; // ignored
 	`endif
 `endif // HIRES_MODES
 
@@ -644,7 +653,7 @@ begin
 `else // SIMULATION_BOARD
         extra_regs_activated <= 1'b0;
 `ifdef HIRES_MODES
-        hires_mode <= 2'b00;
+        hires_mode <= 3'b000;
         hires_enabled <= 1'b0;
         hires_allow_bad <= 1'b0;
         hires_char_pixel_base <= 3'b0;
@@ -676,7 +685,7 @@ begin
 `else
         if (!cpu_reset_i && extra_regs_activated) begin
 `endif
-            hires_mode <= 2'b00;
+            hires_mode <= 3'b000;
             hires_enabled <= 1'b0;
             hires_allow_bad <= 1'b0;
             hires_char_pixel_base <= 3'b0;
@@ -914,8 +923,7 @@ begin
                             dbo[7:0] <= port_idx_2;
                         `VIDEO_MODE1: begin
 `ifdef HIRES_MODES
-                            dbo[7:0] <= { 1'b0,
-                                          hires_mode,
+                            dbo[7:0] <= { hires_mode,
                                           hires_enabled,
                                           hires_allow_bad,
                                           hires_char_pixel_base };
@@ -1243,7 +1251,7 @@ begin
                             `VIDEO_MODE1:
                             begin
 `ifdef HIRES_MODES
-                                hires_mode <= dbi[6:5];
+                                hires_mode <= dbi[7:5];
                                 hires_enabled <= dbi[`HIRES_ENABLE];
                                 hires_allow_bad <= dbi[`HIRES_ALLOW_BAD];
                                 hires_char_pixel_base <= dbi[2:0];

@@ -34,6 +34,7 @@ enum DefineValues {
    WITH_MATH,            // include math registers
    WITH_RGB_CLOCK,       // export the RGB dot clock on the CLK pin
    WITH_4K,              // select 4K for ram
+   WITH_BLITTER,         // include blitter
 };
 
 Define defines[] = {
@@ -57,6 +58,7 @@ Define defines[] = {
   {WITH_MATH ,0,0,"WITH_MATH"},
   {WITH_RGB_CLOCK ,0,0,"WITH_RGB_CLOCK"},
   {WITH_4K ,0,0,"WITH_4K"},
+  {WITH_BLITTER ,0,0,"WITH_BLITTER"},
 };
 
 void printcfg(int d, int def) {
@@ -93,6 +95,9 @@ void with_64k(int d) { printcfg(d, WITH_64K);  with_ram(d), with_ext(d); }
 void with_4k(int d) { printcfg(d, WITH_4K);  with_ram(d), with_ext(d); }
 void with_math(int d) { printcfg(d, WITH_MATH); with_ext(d); }
 void with_rgb_clock(int d) { printcfg(d, WITH_RGB_CLOCK); gen_rgb(d); }
+// NOTE: Blitter only works with 64k a.t.m.
+// TODO: Fix this and also math reg requirement.
+void with_blitter(int d) { printcfg(d, WITH_BLITTER); hires_modes(d); with_64k(d); with_math(d);}
 
 int main(int argc, char* argv[]) {
 
@@ -121,6 +126,12 @@ int main(int argc, char* argv[]) {
 	    case 0:
                     // The minimal config. Just a VIC-II.
 		    gen_luma_chroma(d);
+                    // Add these to test hires modes in simulator
+                    //configurable_rgb(d);
+                    //hires_modes(d);
+                    //gen_rgb(d);
+                    //with_64k(d);
+                    //with_blitter(d);
 		    break;
 	    case 1:
 		    // Use this config for generating test results
@@ -168,6 +179,11 @@ int main(int argc, char* argv[]) {
 		    break;
 	    case 9:
 		    with_4k(d);
+		    break;
+	    case 10:
+		    gen_rgb(d);
+                    with_64k(d);
+                    with_blitter(d);
 		    break;
 	    default:
 		    break;

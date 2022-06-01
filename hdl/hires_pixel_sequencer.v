@@ -22,7 +22,7 @@ module hires_pixel_sequencer(
            output reg hires_stage1,
            output reg hires_is_background_pixel,
            input hires_enabled,
-           input [1:0] hires_mode,
+           input [2:0] hires_mode,
            input [2:0] hires_cycle_bit,
            input [7:0] hires_pixel_data,
            input [7:0] hires_color_data,
@@ -126,7 +126,7 @@ end
 
 reg hires_pixel_value; // for text or 16k bitmap modes
 reg[3:0] hires2_pixel_value; // for 32k bitmap modes, up to 4 bits to determine color
-reg hires_ff;
+reg[1:0] hires_ff;
 reg main_border_stage0;
 always @(posedge clk_dot4x)
 begin
@@ -138,39 +138,62 @@ begin
 
         // load pixels when xscroll matches pixel 0-7
         if (xscroll_delayed == hires_cycle_bit) begin
-            hires_ff <= 1'b0;
+            hires_ff <= 2'b0;
             if (!vborder && visible_d) begin
-                if (hires_mode[1] == 1'b0) begin
-                   // Text or 16k bitmap mode
+                if (hires_mode == 3'b000 || hires_mode == 3'b001) begin
+                   // Text or 16k bitmap with colors. We used both pixel and color data.
                    hires_pixels_shifting = hires_pixel_data_delayed;
                    hires_color_shifting = hires_color_data_delayed;
+                end else if (hires_mode == 3'b100) begin
+                   // 16k bitmap. Place the only byte we have at the top.
+                   hires2_pixels_shifting = {hires_pixel_data_delayed, 8'b0};
                 end else begin
-                   // 32k bitmap modes
+                   // 32k bitmap modes.
                    // Here we use the color register for byte 1 and the pixel register
-                   // for byte 2.
+                   // for byte 2. So thename 'color' is misleading here.
                    hires2_pixels_shifting = {hires_color_data_delayed,
                                              hires_pixel_data_delayed};
                 end
             end else begin
-                if (hires_mode[1] == 1'b0) begin
-                   // Text or 16k bitmap mode
+                if (hires_mode == 3'b000 || hires_mode == 3'b001) begin
+                   // Text
                    hires_pixels_shifting = 8'b0;
                    hires_color_shifting = 8'b0;
                 end else begin
-                   // 32k bitmap modes
+                   // 16k/32k bitmap modes
                    hires2_pixels_shifting = 16'b0;
                 end
             end
         end
-        if (hires_mode[1] == 1'b0) begin
-           // Text or 16k bitmap mode
-           hires_pixel_value <= hires_pixels_shifting[7];
-           hires_pixels_shifting = {hires_pixels_shifting[6:0], 1'b0};
-        end else begin
-           // 32k bitmap modes
-           hires2_pixel_value <= hires2_pixels_shifting[15:12];
-           hires2_pixels_shifting = {hires2_pixels_shifting[13:0], 2'b0};
-        end
+        case (hires_mode)
+           3'b000, 3'b001: begin
+             // Text or 16k bitmap with color cells
+             hires_pixel_value <= hires_pixels_shifting[7];
+             hires_pixels_shifting = {hires_pixels_shifting[6:0], 1'b0};
+           end
+           3'b010: begin
+             // 320x200x16
+             if (hires_ff[0]) begin
+                hires2_pixel_value <= hires2_pixels_shifting[15:12];
+                hires2_pixels_shifting = {hires2_pixels_shifting[11:0], 4'b0};
+             end
+           end
+           3'b011: begin
+             // 640x200x4
+             hires2_pixel_value <= hires2_pixels_shifting[15:12];
+             hires2_pixels_shifting = {hires2_pixels_shifting[13:0], 2'b0};
+           end
+           3'b100: begin
+             // 160x200x16
+             if (hires_ff == 2'b00) begin
+               hires2_pixel_value <= hires2_pixels_shifting[15:12];
+               hires2_pixels_shifting = {hires2_pixels_shifting[11:0], 4'b0};
+             end
+           end
+           default:
+             // invalid
+             ;
+        endcase
 
         // We don't have a proper reset case in this module. This
         // flip flip toggling before reset was lifted was sometimes
@@ -179,9 +202,9 @@ begin
         // flopping after reset. But,really this whole module should do
         // nothing while in reset.
         if (!rst)
-           hires_ff <= ~hires_ff;
+           hires_ff <= hires_ff + 2'b1;
         else
-           hires_ff <= 1'b1;
+           hires_ff <= 2'b01;
     end
 end
 
@@ -197,7 +220,7 @@ begin
             hires_pixel_color1 <= ec_d2;
         else begin
             case (hires_mode)
-                2'b00: begin
+                3'b000: begin
                     // Text mode.
                     // Lower 4 bits = color index
                     // Bit 6 = reverse video
@@ -214,24 +237,24 @@ begin
                      hires_color_shifting[3:0] : b0c_d2) : b0c_d2;
                     hires_is_background_pixel <= !hires_pixel_value;
                 end
-                2'b01: begin
-                    // 640x200 16 color bitmap. Uses only lower 4 bits of color as
+                3'b001: begin
+                    // 640x200 with 8x8 color cells. Uses only lower 4 bits of color as
                     // color index. 'shifting' here is not really shifting
                     hires_pixel_color1 <=
                         hires_pixel_value ? hires_color_shifting[3:0] : b0c_d2;
                     hires_is_background_pixel <= !hires_pixel_value;
+                end 3'b010, 3'b100: begin
+                  // 160x200x16 or 320x200x16
+                  hires_pixel_color1 <= hires2_pixel_value[3:0];
+                  hires_is_background_pixel <= (hires2_pixel_value[3:0] != b0c_d2);
                 end
-                2'b10:
-                    // 320x200 32k packed pixel (16 col)
-                    if (hires_ff) begin
-                        hires_pixel_color1 <= hires2_pixel_value[3:0];
-                        hires_is_background_pixel <= (hires2_pixel_value[3:0] != b0c_d2);
-                    end
-                2'b11: begin
-                    // 640x200 32k packed pixel (4 col)
-                    hires_pixel_color1 <= {color_base[1:0], hires2_pixel_value[3:2]};
-                    hires_is_background_pixel <= ({color_base[1:0], hires2_pixel_value[3:2]} != b0c_d2);
+                3'b011: begin
+                  // 640x200x4
+                  hires_pixel_color1 <= {color_base[1:0], hires2_pixel_value[3:2]};
+                  hires_is_background_pixel <= ({color_base[1:0], hires2_pixel_value[3:2]} != b0c_d2);
                 end
+                default:
+                  ;
             endcase
         end
     end
