@@ -354,8 +354,8 @@ Perform DMA Function Value| Meaning
 4  | Fill VMEM dest (See below)
 8  | Copy DRAM src\* to VMEM dest
 16 | Copy VMEM src to DRAM dest\*
-32 | Blit VMEM src to VMEM dest
-64 | Unused
+32 | Set Blit Src Info
+64 | Set Blit Dst Info & Execute
 128| Unused
 
 \* The upper 2 bits of all DRAM src/dest addresses are controlled by the CIA chip. That is, DRAM accesses for DMA transfers will point to the same 16k bank the CIA chip points the VIC to. The upper two bits of all DRAM addresses specified in the registers above are effectively ignored.
@@ -553,8 +553,8 @@ Register| Param | Description
 
 Register| Param | Description
 --------|-------|------------
-0xd02f | Raster Op | Raster operation (See below)
-0xd030 | Blit flags | (See below)
+0xd02f | Blit Flags | Flags and Raster operation (See below)
+0xd030 | Unused |
 0xd031 | Unused | 
 0xd032 | Unused | 
 0xd035 | Dst Ptr Lo Byte | The base pointer to bitmap data (lo byte)
@@ -569,9 +569,9 @@ Register| Param | Description
 
 8765 |4|3|2|1
 -----|-|-|-|-
-index| | | | transparency bit
+index| transparency bit| raster operation
 
-If set, the transparency bit tells the blitter to consider any pixel with a color index specified by bits 8-5 as transparent.  The raster operation is fixed to DST = SRC.  Note that in 640x400x4 mode, only bits 5&6 matter since ther are only 4 colors per pixel.
+If set, the transparency bit tells the blitter to consider any pixel with a color index specified by bits 8-5 as transparent.  The raster operation is fixed to DST = SRC in that case.  Note that in 640x400x4 mode, only bits 5&6 matter since ther are only 4 colors per pixel.
 
 ### Raster Operations
 
@@ -581,6 +581,7 @@ Value | Description
 1 | DST = SRC | DST
 2 | DST = SRC & DST
 3 | DST = SRC XOR DST
+4-6 | Unused
 
 ### Additional Notes
 

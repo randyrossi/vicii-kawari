@@ -20,6 +20,7 @@ public class MakeImage {
     static ColorFormat colorFormat = ColorFormat.BINARY;
 
     enum Mode {
+        MODE_160x200x16,
         MODE_320x200x16,
         MODE_640x200x4
     };
@@ -57,7 +58,9 @@ public class MakeImage {
       }
 
       String modeString = args[argIdx++];
-      if (modeString.equals("320x200x16")) {
+      if (modeString.equals("160x200x16")) {
+          mode = Mode.MODE_160x200x16;
+      } else if (modeString.equals("320x200x16")) {
           mode = Mode.MODE_320x200x16;
       } else if (modeString.equals("640x200x4")) {
           mode = Mode.MODE_640x200x4;
@@ -66,7 +69,7 @@ public class MakeImage {
           System.exit(0);
       }
 
-      maxColors = mode == Mode.MODE_320x200x16 ? 16 : 4;
+      maxColors = mode == Mode.MODE_640x200x4 ? 4 : 16;
      
       img = ImageIO.read(new File(args[argIdx++])); 
       imageBinFileName = args[argIdx++];
@@ -82,7 +85,10 @@ public class MakeImage {
         int height = img2.getHeight();
         int width = img2.getWidth();
 
-        if (mode == Mode.MODE_320x200x16 && (width != 320 || height !=200)) {
+        if (mode == Mode.MODE_160x200x16 && (width != 160 || height !=200)) {
+            System.out.println("Image is not 160x200");
+            System.exit(0);
+        } else if (mode == Mode.MODE_320x200x16 && (width != 320 || height !=200)) {
             System.out.println("Image is not 320x200");
             System.exit(0);
         } else if (mode == Mode.MODE_640x200x4 &&
@@ -180,7 +186,7 @@ public class MakeImage {
 
         // Make image binary file
 
-        if (mode == Mode.MODE_320x200x16) {
+        if (mode == Mode.MODE_160x200x16 || mode == Mode.MODE_320x200x16) {
 	  int nhi=0; // upper nibble
 	  int nlo=0; // lower nibble
           for (int h=0;h< height;h++) {

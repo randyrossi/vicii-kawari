@@ -45,8 +45,7 @@ void wait_blitter() {
 
 void blit(int width, int height, long src_ptr, int sx, int sy,
           int src_stride, long dst_ptr, int dx, int dy,
-          int dst_stride, unsigned char raster_op,
-          unsigned char raster_op_flags, int wait) {
+          int dst_stride, unsigned char raster_flags, int wait) {
    POKE(0xd02fL, width >> 8); POKE(0xd030L, width & 0xff);
    POKE(0xd031L, height >> 8); POKE(0xd032L, height & 0xff);
    POKE(0xd035L, src_ptr >> 8); POKE(0xd036L, src_ptr & 0xff);
@@ -55,8 +54,7 @@ void blit(int width, int height, long src_ptr, int sx, int sy,
    POKE(0xd03dL, src_stride & 0xff);
    POKE(0xd03bL, 32); // set
       
-   POKE(0xd02fL, raster_op);
-   POKE(0xd030L, raster_op_flags);
+   POKE(0xd02fL, raster_flags);
    POKE(0xd035L, dst_ptr >> 8); POKE(0xd036L, dst_ptr & 0xff);
    POKE(0xd039L, dx & 0xff); POKE(0xd03aL, dx >> 8);
    POKE(0xd03cL, dy & 0xff);
@@ -73,7 +71,7 @@ void blit(int width, int height, long src_ptr, int sx, int sy,
 int main(void)
 {
    int ball_x=0,ball_y=100;
-   int back_x=100; int back_y=9;
+   int back_x=100; int back_y=40;
    int delta_x=1,delta_y=1,delta_back_x=1;
    int stage = 0;
    long frame = 0;
@@ -155,29 +153,29 @@ asm ("wait:\n"
       // Draw next frame
       clear_bitmap();
 
-      blit(120,182,
+      blit(120,120,
         0x8000,0,0,160,
         0x0000,back_x,back_y,160,
-        0,0, 1 /* wait*/);
-      blit(72,72,
-        0x8000,248,0,160,
+        0,1 /* wait*/);
+      blit(100,59,
+        0x8000,220,0,160,
         0x0000,ball_x,ball_y,160,
-        0,1, 0 /* no wait */);
+        16+8, 0 /* no wait */); // transparency on for index 1
 
       // We can use the CPU while the blitter works
       // Always bounce the ball
       ball_x = ball_x + delta_x;
       ball_y = ball_y + delta_y;
-      if (ball_x < 0 | ball_x >= 248) {
+      if (ball_x < 0 | ball_x >= 220) {
           ball_x = ball_x - delta_x; delta_x = -delta_x;
       }
-      // We actually can't go above 90 for the ball because
+      // We can't go too high for the ball because
       // there wasn't enough bandwidth to clear the screen, 
       // copy the large background bitmap and the ball before the
-      // raster line hit the top.  We might be able to squeeze more
+      // raster line hits the top.  We might be able to squeeze more
       // by starting the frame slightly before the last visible line
       // but I'm keeping it this way since its just a demo.
-      if (ball_y < 90 | ball_y >= 128) {
+      if (ball_y < 50 | ball_y >= 140) {
           ball_y = ball_y - delta_y; delta_y = -delta_y;
       }
       if (stage > 0) {

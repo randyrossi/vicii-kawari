@@ -6,11 +6,11 @@ INCLUDE_LOAD_BYTES=1
 if [ "$1" == "" ]
 then
    echo "Usage make_image.sh <res> img.png"
-   echo "Where res is 320x200x16 or 640x200x4"
+   echo "Where res is 160x200x16, 320x200x16 or 640x200x4"
    exit 0
 fi
 
-if [ "$1" != "320x200x16" -a "$1" != "640x200x4" ]
+if [ "$1" != "320x200x16" -a "$1" != "640x200x4" -a "$1" != "160x200x16" ]
 then
 echo "Unknown format"
 exit -1
@@ -34,7 +34,7 @@ mv tmp.bin img.bin
 fi
 
 # Color file must also add hsv equivalents
-if [ "$1" = "320x200x16" ]
+if [ "$1" = "320x200x16" -o "$1" = "160x200x16" ]
 then
 NUM_COLS=16
 elif [ "$1" = "640x200x4" ]
