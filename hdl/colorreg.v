@@ -30,17 +30,21 @@ module COLOR_REGS
 `endif
 
 `ifndef SIMULATOR_BOARD
-initial $readmemb ("colors.bin", ram_dual_port);
+  initial $readmemb ("colors.bin", ram_dual_port);
 `else
-`ifdef HIRES_BITMAP3
-initial $readmemb ("640colors.bin", ram_dual_port);
-`else
-`ifdef HIRES_BITMAP2
-initial $readmemb ("320colors.bin", ram_dual_port);
-`else
-initial $readmemb ("colors.bin", ram_dual_port);
-`endif
-`endif
+  `ifdef HIRES_BITMAP3
+    initial $readmemb ("640colors.bin", ram_dual_port);
+  `else
+    `ifdef HIRES_BITMAP2
+      initial $readmemb ("320colors.bin", ram_dual_port);
+    `else
+      `ifdef HIRES_BITMAP4
+        initial $readmemb ("160colors.bin", ram_dual_port);
+      `else
+        initial $readmemb ("colors.bin", ram_dual_port);
+      `endif
+    `endif
+  `endif
 `endif
 
 

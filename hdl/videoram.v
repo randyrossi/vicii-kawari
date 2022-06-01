@@ -24,16 +24,19 @@ module VIDEO_RAM
 
 `ifdef SIMULATOR_BOARD
 `ifdef HIRES_TEXT
-initial $readmemh ("hires00.hex", ram_dual_port);
+initial $readmemh ("hires000.hex", ram_dual_port);
 `endif
 `ifdef HIRES_BITMAP1
-initial $readmemh ("hires01.hex", ram_dual_port);
+initial $readmemh ("hires001.hex", ram_dual_port);
 `endif
 `ifdef HIRES_BITMAP2
-initial $readmemh ("hires10.hex", ram_dual_port);
+initial $readmemh ("hires010.hex", ram_dual_port);
 `endif
 `ifdef HIRES_BITMAP3
-initial $readmemh ("hires11.hex", ram_dual_port);
+initial $readmemh ("hires011.hex", ram_dual_port);
+`endif
+`ifdef HIRES_BITMAP4
+initial $readmemh ("hires100.hex", ram_dual_port);
 `endif
 `endif
 

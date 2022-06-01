@@ -271,7 +271,7 @@ wire [2:0] hires_rc; // hires row counter
 wire [2:0] hires_char_pixel_base;
 wire [3:0] hires_matrix_base;
 wire [3:0] hires_color_base;
-wire [1:0] hires_mode;
+wire [2:0] hires_mode;
 wire [7:0] hires_pixel_data;
 wire [7:0] hires_color_data;
 wire [7:0] hires_cursor_hi;

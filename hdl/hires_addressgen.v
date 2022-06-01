@@ -32,7 +32,7 @@ module hires_addressgen
            input char_case, // this comes from the existing cb[0]
            output reg [ram_width-1:0] video_mem_addr, // extended video ram address
 	   input [7:0] video_mem_data,
-	   input [1:0] hires_mode,
+	   input [2:0] hires_mode,
 	   output reg [7:0] hires_pixel_data,
 	   output reg [7:0] hires_color_data
        );
@@ -49,23 +49,25 @@ begin
             // On [6] set char pixel addr for fetch on [8]
 	    if (phi_phase_start[2])
                 case (hires_mode)
-		2'b00:
-		   // TEXT mode
+		3'b000, 3'b001:
+		   // TEXT mode or 16k bitmap w/ 16 color. Color data.
                    video_mem_addr <= {`BIT_EXT_64K color_base, vc};
-                2'b01:
-                   // 16k Bitmap 2k color mode
-                   video_mem_addr <= {`BIT_EXT_64K color_base, vc};
-                2'b10, 2'b11:
+                3'b010, 3'b011: begin
                    // 32k Bitmap modes, 1st pixel data byte fetch
                    video_mem_addr <= {`BIT_EXT2_64K fvc};
+                   end
+                default:
+                   ; // unused in this mode
                 endcase
 	    else if (phi_phase_start[4]) begin
+                // Only used for 000 text mode
                 video_mem_addr <= {`BIT_EXT_64K matrix_base, vc};
-                // For modes 10 and 11, this is pixel data
+                // NOTE: For modes 10 and 11, this is pixel data, not color.
+                // For mode 01, this is unused.
 		hires_color_data <= video_mem_data;
             end else if (phi_phase_start[6]) begin
 		case (hires_mode)
-		2'b00:
+		3'b000:
 		   // TEXT mode pixel fetch
                    // No need to store the char ptr. We fetch it every
 		   // time anyway.
@@ -73,12 +75,14 @@ begin
                                       char_case |
                                       hires_color_data[`HIRES_ALTC_BIT],
                                       video_mem_data, rc};
-                2'b01:
-                   // 16k Bitmap mode pixel fetch. Take 14:1 for 16k counter.
+                3'b001, 3'b100:
+                   // 16k Bitmap mode. Pixel data fetch. Take 14:1 for 16k counter.
                    video_mem_addr <= {`BIT_EXT3_64K fvc[14:1]};
-                2'b10, 2'b11:
+                3'b010, 3'b011:
                    // 32k Bitmap modes, 2nd byte pixel data fetch.
                    video_mem_addr <= {`BIT_EXT2_64K fvc | 15'b1};
+                default:
+                   ; // Invalid mode
                 endcase
 	    end else if (phi_phase_start[8])
 		hires_pixel_data <= video_mem_data;  // ready by 10
