@@ -78,7 +78,7 @@ int main(void)
 
    CLRSCRN;
    POKE (VIDEO_MODE1, 0);
-   POKE (53269,0);
+   POKE (53269L, 0);
    POKE (646L, 1);
 
    printf ("a hires graphics blitter is available\n");
@@ -90,7 +90,9 @@ int main(void)
    printf ("make one color in the source bitmap\n");
    printf ("transparent when applied to the\n");
    printf ("destination.\n\n");
-
+   printf ("the moving objects in the next\n");
+   printf ("segment are not sprites. they are\n");
+   printf ("drawn each frame using the blitter.\n");
 
    // load bitmap data to 0x8000
    asm( "lda #1\n"
