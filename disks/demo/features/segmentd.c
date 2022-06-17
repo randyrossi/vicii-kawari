@@ -8,8 +8,6 @@
 #include "menu.h"
 #include "color.h"
 
-static struct regs r;
-
 void delay(long v) { long t; for (t=0;t<v;t++) { } }
 
 void clear_bitmap() {
@@ -121,8 +119,9 @@ int main(void)
         "jsr $810\n" // fastload
         "jsr $813\n"); // install colors we just read
 
-/*
+
 // For testing in simulator
+/*
 asm ("wait:\n"
      " lda $d012\n"
      " cmp #247\n"
@@ -143,6 +142,7 @@ asm ("wait:\n"
      " beq wait3\n"
 );
 */
+
 
    POKE (VIDEO_MODE1, 16+64); // 320x200
    POKE (VIDEO_MODE2, 0); // 0x0000 base
@@ -200,16 +200,26 @@ asm ("wait:\n"
    restore_colors_vmem(0xFFFFL - 160); // stuff 
 
    POKE (VIDEO_MODE1, 0);
-   POKE (53280,0);
-   POKE (53281,0);
+   POKE (53280L,0);
+   POKE (53281L,0);
    POKE (646L, 1);
    CLRSCRN;
 
-   printf ("thanks for watching!\n\n");
+   printf ("          thanks for watching!\n\n");
 
-   printf ("goto www.accentual.com/vicii-kawari\n");
-   printf ("for the latest news on vicii-kawari\n");
-   printf ("boards\n");
+   POKE (646L, 5);
+   printf ("                coding\n");
+   printf ("\n");
+   POKE (646L, 1);
+   printf ("              randy rossi\n");
+   printf ("\n");
+   POKE (646L, 5);
+   printf ("                music\n");
+   printf ("\n");
+   POKE (646L, 1);
+   printf ("             lost in space\n");
+   printf ("                  by\n");
+   printf ("         steven diemer  (a-man)\n");
 
    for (;;) { }
 
