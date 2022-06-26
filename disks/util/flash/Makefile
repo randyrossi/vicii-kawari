@@ -15,7 +15,7 @@
 # Stuff to potentially edit
 FLASH_FORMAT=2
 NAME=kawari
-VERSION=1.1
+VERSION=1.10
 # FAMILY
 # One of: spartan6_x9 | spartan6_x16 | efinix_t8
 FPGA=efinix_t8
@@ -38,7 +38,7 @@ PAGE_SIZE=4096
 # the same variant.
 
 # Do not edit below this line
-all: subdirs disks tools
+all: subdirs d64 d81 tools
 
 subdirs:
 	$(MAKE) -C third_party
@@ -119,7 +119,7 @@ run:
 	x64sc flash.prg
 
 clean:
-	rm -rf *.o *.prg *.d64 img_* stripped.bit multi_hex_to_bit
+	rm -rf *.o *.prg *.d64 tmp stripped.bit multi_hex_to_bit
 	$(MAKE) -C third_party clean
 
 # For Spartan6 devices, we need to skip over the first X
@@ -137,6 +137,7 @@ clean:
 # Then prefix each file with load bytes
 # $5000 dest for every chunk
 image_files:
+	mkdir -p tmp
 	if [ "$(FPGA)" = "spartan6_x16" ]; then \
 	   dd skip=1 bs=89 if=$(SOURCE_IMG) > stripped.bit; \
 	fi
@@ -149,11 +150,11 @@ image_files:
 	if [ "$(FPGA)" = "efinix_t8" -a "$(TYPE)" = "golden" ]; then \
 	   dd skip=0 bs=$(START_ADDRESS) count=1 if=$(SOURCE_IMG) > stripped.bit; \
 	fi
-	split -a 3 -d -b $(PAGE_SIZE) stripped.bit img_
+	split -a 3 -d -b $(PAGE_SIZE) stripped.bit tmp/img_
 	for NUM in $(FILENUMS); do \
-           if [ -e img_$$NUM ]; then \
-	   ./load_bytes 0 80 > img_d64_$$NUM; \
-	   cat img_$$NUM >> img_d64_$$NUM; \
+           if [ -e tmp/img_$$NUM ]; then \
+	   ./load_bytes 0 80 > tmp/img_d64_$$NUM; \
+	   cat tmp/img_$$NUM >> tmp/img_d64_$$NUM; \
 	   fi \
 	done
 
@@ -169,7 +170,7 @@ DISKNUMS=1 2 3 4 5
 # Put together disk images based on what chunks
 # we created. NOTE: These divisors must match
 # what is hard coded in the flasher program. (8 and 33)
-disks: flash.prg checksize third_party/covert/loader.prg image_files info_file
+d64: flash.prg checksize third_party/covert/loader.prg image_files info_file
 	for NUM in $(DISKNUMS); do \
 	   truncate -s 174848 flash$$NUM.d64; \
 	   c1541 -attach flash$$NUM.d64 -format "vicii-flash$$NUM",0; \
@@ -185,23 +186,43 @@ disks: flash.prg checksize third_party/covert/loader.prg image_files info_file
 	fi
 	if [ "$(PAGE_SIZE)" = "16384" ]; then \
 	for NUM in $(FILENUMS); do \
-           if [ -e img_$$NUM ]; then \
+           if [ -e tmp/img_$$NUM ]; then \
 		DN=`echo $$NUM / 8 + 1 | bc`; \
-		c1541 -attach flash$$DN.d64 -write img_d64_$$NUM i$$NUM; \
+		c1541 -attach flash$$DN.d64 -write tmp/img_d64_$$NUM i$$NUM; \
 	   fi \
 	done \
 	else \
 	for NUM in $(FILENUMS); do \
-           if [ -e img_$$NUM ]; then \
+           if [ -e tmp/img_$$NUM ]; then \
 		DN=`echo $$NUM / 33 + 1 | bc`; \
-		c1541 -attach flash$$DN.d64 -write img_d64_$$NUM i$$NUM; \
+		c1541 -attach flash$$DN.d64 -write tmp/img_d64_$$NUM i$$NUM; \
 	   fi \
 	done \
 	fi
-	rm -f img_*
 
-zip:
-	zip kawari_flash_${VERSION}_${BUILD_VARIANT}_${TYPE}.zip flash*.d64
+d81: flash.prg checksize third_party/covert/loader.prg image_files info_file
+	c1541 -format 1,flash d81 flash.d81; \
+	c1541 -attach flash.d81 -write flash.prg flash; \
+	c1541 -attach flash.d81 -write third_party/covert/loader.prg loader; \
+	c1541 -attach flash.d81 -write info info; \
+	if [ "$(PAGE_SIZE)" = "16384" ]; then \
+	for NUM in $(FILENUMS); do \
+           if [ -e tmp/img_$$NUM ]; then \
+		DN=`echo $$NUM / 8 + 1 | bc`; \
+		c1541 -attach flash.d81 -write tmp/img_d64_$$NUM i$$NUM; \
+	   fi \
+	done \
+	else \
+	for NUM in $(FILENUMS); do \
+           if [ -e tmp/img_$$NUM ]; then \
+		DN=`echo $$NUM / 33 + 1 | bc`; \
+		c1541 -attach flash.d81 -write tmp/img_d64_$$NUM i$$NUM; \
+	   fi \
+	done \
+	fi
+
+zip: all
+	zip kawari_flash_${VERSION}_${BUILD_VARIANT}_${TYPE}.zip flash*.d64 flash.d81
 
 tools:
 	cc -o multi_hex_to_bit multi_hex_to_bit.c

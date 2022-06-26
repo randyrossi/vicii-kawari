@@ -4,3 +4,6 @@ load_bytes
 stripped.bit
 *.zip
 multi_hex_to_bit
+tmp
+flash.d81
+flash*.d64
