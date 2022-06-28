@@ -741,8 +741,15 @@ sprites vic_sprites(
 // AEC LOW tells CPU to tri-state its bus lines
 // AEC will remain HIGH during PHI phase 2 for 3 cycles
 // after which it will remain LOW with ba.
+// Provide a delayed version of aec
+reg aec2;
+reg aec3;
 always @(posedge clk_dot4x)
+begin
     aec <= ba ? clk_phi : ba3 & clk_phi;
+    aec2 <= aec;
+    aec3 <= aec2;
+end
 
 // For reference, on LS245's:
 //    OE pin low = all channels active
@@ -762,13 +769,6 @@ assign vic_write_db = (rw && ~ce) | rw_ctl;
 assign vic_write_db = (rw && ~ce);
 `endif
 
-// Provide a delayed version of aec
-reg aec2;
-reg aec3;
-always @(posedge clk_dot4x) begin
-    aec2 <= aec;
-    aec3 <= aec2;
-end
 
 // AEC low means we own the address bus so we can write to it.
 // For address bus direction pin, use aec,
@@ -779,7 +779,7 @@ assign vic_write_ab = ~(aec | aec3);
 
 // For data bus direction, use inverse of vic_write_db
 assign ls245_data_dir = ~vic_write_db;
-assign ls245_addr_dir = aec;
+assign ls245_addr_dir = ~vic_write_ab;
 
 // Handle cycles that perform data bus accesses
 bus_access vic_bus_access(

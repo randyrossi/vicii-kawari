@@ -345,8 +345,9 @@ wire [17:0] luma_regs_data_out_b;
 // When extensions are enabled but we have no hires modes,
 // then nothing needs to read from port b of video ram.
 // So we have to define the wire/reg here.
-reg [ram_width-1:0] video_ram_addr_b;
+wire [ram_width-1:0] video_ram_addr_b;
 wire [7:0] video_ram_data_out_b;
+assign video_ram_addr_b = {8'b0, `VIDEO_RAM_LO_PAD};
 `endif
 
 `ifdef WITH_RAM
