@@ -17,3 +17,16 @@ Active is 2.  Fallback is 0 (triggered by grounding a TP on the board)
     openFPGALoader -b xyloni_spi -c digilent_ad multi.hex --verify
 
     (Example using Xilinx programmer)
+
+# Making a flash disk (.d64 or .d81)
+
+Generate a multi.hex file bitstream as descibed above
+and then use the util/flash directory to convert it to a .bit file
+for the Makefile to generate disks from.
+
+# Prototype Board (deprecated)
+
+The prototype board (PCBWay) with the T8 has different wiring than the final
+production PCB.  It also has the motherboard clock wired directly
+to GPIOR_125.
+
