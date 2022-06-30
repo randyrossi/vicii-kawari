@@ -22,5 +22,6 @@
 `define WITH_DVI 1
 `define HAVE_EEPROM 1
 `define HAVE_FLASH 1
+`define WITH_BLITTER 1
 
 `endif // config_vh_

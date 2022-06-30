@@ -223,9 +223,9 @@ always @(posedge clk_dot4x) begin
     if (!aec) begin
         if (phi_phase_start[`MUX_ROW]) begin
             ado <= {vic_addr[11:8], vic_addr[7:0] };
-        end else if (phi_phase_start[`MUX_COL] && cycle_type != `VIC_LR) begin
+        end else if (phi_phase_start[`MUX_COL]) begin
             ado <= {vic_addr[11:8], {2'b11, vic_addr[13:8]}};
-        end else if (phi_phase_start[`CAS_GLITCH] && cycle_type != `VIC_LR) begin
+        end else if (phi_phase_start[`CAS_GLITCH]) begin
             // This is the post CAS address change glitch. The 8565 would not
             // do this.  If you want to 'fix' the 6569 bug, remove this block.
             ado <= {vic_addr_now[11:8], {2'b11, vic_addr_now[13:8]}};

@@ -171,4 +171,10 @@
 // math operations on registers 0x2f-0x33.
 `define WITH_MATH
 
+// WITH_BLITTER
+// ---------
+// Adds the blitter operations.
+// Requires HIRES_MODES.
+`define WITH_BLITTER
+
 `endif // config_vh_

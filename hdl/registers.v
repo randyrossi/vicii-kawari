@@ -345,8 +345,9 @@ wire [17:0] luma_regs_data_out_b;
 // When extensions are enabled but we have no hires modes,
 // then nothing needs to read from port b of video ram.
 // So we have to define the wire/reg here.
-reg [ram_width-1:0] video_ram_addr_b;
+wire [ram_width-1:0] video_ram_addr_b;
 wire [7:0] video_ram_data_out_b;
+assign video_ram_addr_b = {8'b0, `VIDEO_RAM_LO_PAD};
 `endif
 
 `ifdef WITH_RAM
@@ -1321,6 +1322,7 @@ begin
                                         video_dma_copy_num <= { port_idx_2, port_idx_1 };
                                         video_ram_copy_dir <= 1'b1;
                                         dma_done <= 1'b0;
+`ifdef WITH_BLITTER
                                     end else if (dbi[5]) begin
                                         // Set Blitter SRC Info
                                         blit_width <= u_op_1[9:0];
@@ -1345,6 +1347,7 @@ begin
                                         blit_done <= 0;
                                         blit_state <= 0;
                                         blit_init <= 1;
+`endif // WITH_BLITTER
                                     end
 `else
                                     ;

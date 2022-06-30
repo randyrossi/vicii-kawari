@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<efx:project name="vicii" description="" last_change_date="Tue April 26 2022 13:37:12" location="C:/shared/Vivado/vicii/rev_4H" sw_version="2021.2.323.3.14" last_run_state="pass" last_run_tool="efx_pgm" last_run_flow="bitstream" config_result_in_sync="true" design_ood="sync" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
+<efx:project name="vicii" description="" last_change_date="Mon June 27 2022 22:52:56" location="C:/shared/Vivado/vicii/rev_4H" sw_version="2021.2.323.3.14" last_run_state="pass" last_run_tool="efx_pgm" last_run_flow="bitstream" config_result_in_sync="true" design_ood="change" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
     <efx:device_info>
         <efx:family name="Trion"/>
         <efx:device name="T8Q144"/>
@@ -75,7 +75,7 @@
         <efx:param name="enable_roms" value="smart" value_type="e_option"/>
         <efx:param name="spi_low_power_mode" value="on" value_type="e_bool"/>
         <efx:param name="io_weak_pullup" value="on" value_type="e_bool"/>
-        <efx:param name="oscillator_clock_divider" value="DIV8" value_type="e_option"/>
+        <efx:param name="oscillator_clock_divider" value="DIV4" value_type="e_option"/>
         <efx:param name="bitstream_compression" value="off" value_type="e_bool"/>
         <efx:param name="enable_external_master_clock" value="off" value_type="e_bool"/>
         <efx:param name="active_capture_clk_edge" value="posedge" value_type="e_option"/>
@@ -87,6 +87,7 @@
         <efx:param name="generate_bitbin" value="off" value_type="e_bool"/>
         <efx:param name="generate_hex" value="on" value_type="e_bool"/>
         <efx:param name="generate_hexbin" value="off" value_type="e_bool"/>
+        <efx:param name="four_byte_addressing" value="off" value_type="e_bool"/>
     </efx:bitstream_generation>
     <efx:debugger>
         <efx:param name="work_dir" value="work_dbg" value_type="e_string"/>
