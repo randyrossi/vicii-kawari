@@ -15,9 +15,9 @@
 # Stuff to potentially edit
 FLASH_FORMAT=2
 NAME=kawari
-VERSION=1.10
+VERSION=1.5
 # FAMILY
-# One of: spartan6_x9 | spartan6_x16 | efinix_t8
+# One of: spartan6_x9 | spartan6_x16 | efinix_t8 | efinix_t20
 FPGA=efinix_t8
 # START_ADDRESS
 # For Spartan6: 0=golden, 512000=multiboot
@@ -26,10 +26,10 @@ START_ADDRESS=659456
 # TYPE = multiboot or golden
 TYPE=multiboot
 # REG_VARIANT - Variant name matching registers 0x90-0x9F
-# One of : SIM | MAIN | MAINSB | MAINLD | MAINLG | MAINLH
+# One of : SIM | MAIN | MAINSB | MAINLD | MAINLG | MAINLH | MAINLI
 REG_VARIANT=MAINLH
 # BUILD_VARIANT - Variant for .bit filename
-# One of : N/A | T | SB | LD | LH
+# One of : N/A | T    | SB     | LD     | LG     | LH     | LI
 BUILD_VARIANT=LH
 # PAGE_SIZE - Must be 4k for boards that only have 4k RAM
 PAGE_SIZE=4096
@@ -147,7 +147,13 @@ image_files:
 	if [ "$(FPGA)" = "efinix_t8" -a "$(TYPE)" = "multiboot" ]; then \
 	   dd skip=1 bs=$(START_ADDRESS) if=$(SOURCE_IMG) > stripped.bit; \
 	fi
+	if [ "$(FPGA)" = "efinix_t20" -a "$(TYPE)" = "multiboot" ]; then \
+	   dd skip=1 bs=$(START_ADDRESS) if=$(SOURCE_IMG) > stripped.bit; \
+	fi
 	if [ "$(FPGA)" = "efinix_t8" -a "$(TYPE)" = "golden" ]; then \
+	   dd skip=0 bs=$(START_ADDRESS) count=1 if=$(SOURCE_IMG) > stripped.bit; \
+	fi
+	if [ "$(FPGA)" = "efinix_t20" -a "$(TYPE)" = "golden" ]; then \
 	   dd skip=0 bs=$(START_ADDRESS) count=1 if=$(SOURCE_IMG) > stripped.bit; \
 	fi
 	split -a 3 -d -b $(PAGE_SIZE) stripped.bit tmp/img_
