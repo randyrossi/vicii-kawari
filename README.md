@@ -1,4 +1,4 @@
-<b><p align=center> STATUS May 2022: I have redesigned the PCB using the Efinix Trion line of FPGAs.  An order for 50 'Mini' boards has been placed and I am waiting for delivery.  Once delivered, I will notify the email list of their availability.  There will be a few 'Full' boards available at that time as well. If devices sell well, I will take pre-orders for another batch of up to 100 'Full' and 'Mini' models.</p></b>
+<b><p align=center> STATUS May 2022: I have redesigned the PCB using the Efinix Trion line of FPGAs.  An order for 50 'Mini' boards has been placed and I am waiting for delivery.  Once delivered, I will notify the email list of their availability.  There will be a few 'Large' boards available at that time as well. If devices sell well, I will take pre-orders for another batch of up to 100 'Large' and 'Mini' models.</p></b>
 
 # VIC-II Kawari
 
@@ -19,7 +19,7 @@ Please note that the video options available depends on the board design and con
 
 Board Design | DVI | Analog RGB | Luma/Chroma | Extensions/Switching
 -------------|-----|------------|-------------|---------------------
-Kawari-Full  | Yes | Yes        | Yes         | Yes
+Kawari-Large | Yes | Yes        | Yes         | Yes
 Kawari-Mini  | No  | No         | Yes         | Yes
 Kawari-POV   | No  | No         | Yes         | No
 
@@ -101,7 +101,7 @@ You can try these xrandr commands on Linux to test out a 50hz mode very similar 
     xrandr --output DP-1 --mode my50hzmode
 
 ## What chip models can this replace?
-The 'Full' and 'Mini' models can replace the 6567R8(NTSC),6567R56A(NTSC),6569R3(PAL-B),6569R1(PAL-B) models. They can assume the functionality of either video standard with a simple configuration change followed by a cold boot. This means your C64 can be both an NTSC and PAL machine. (PAL-N / PAL-M are not supported but it can be added with some hardware modifications.)  The 'POV' model cannot behave as 'old' chip models (R56A/R1) and are fixed to either a 6567R8 or 6569R3.
+The 'Large' and 'Mini' models can replace the 6567R8(NTSC),6567R56A(NTSC),6569R3(PAL-B),6569R1(PAL-B) models. They can assume the functionality of either video standard with a simple configuration change followed by a cold boot. This means your C64 can be both an NTSC and PAL machine. (PAL-N / PAL-M are not supported but it can be added with some hardware modifications.)  The 'POV' model cannot behave as 'old' chip models (R56A/R1) and are fixed to either a 6567R8 or 6569R3.
 
 ## Will this work in C64-C (short board) models?
 It will function if plugged into a C64-C 'short' board. The VDD pin is not connected so there is no voltage compatibility issue like with the real 8562/8565 models. Keep in mind that the board will behave as a 6567/6569 even when replacing a 8562/8565 (the differences are minor).
@@ -116,11 +116,11 @@ There are subtle differences between the PAL-B revisions mostly to do with lumin
 It is, in theory, possible to re-purpose one of the video standards to be a 6572 (South America PAL-N). It would require a firmware change and the board would have to be configured to use the motherboard's clock (or one of the oscillators changed to match PAL-N frequency).  Either NTSC or PAL-B could be replaced with PAL-N. As far as I can tell, the only reason to do this would be to get real Argentinian CRTs/TVs to display a composite signal correctly while being (mostly) compatible with NTSC software. (This is a lower priority project but if someone else wants to take on the challenge, it could appear as a fork.)
 
 ## Do I need a functioning clock circuit on my motherboard?
-This depends on how the VIC-II Kawari PCB has been populated and configured. The 'Full' and 'Mini' boards come with on-board oscillators for both NTSC and PAL-B standards. In that case, the motherboard's clock circuit can be bypassed. However, the board can be configured to use the motherboard's clock for the machine's 'native' standard via jumper config. In that case, one of the two video standards can be driven by the motherboard's clock.  Please see [Limitations/Caveats](#limitationscaveats) below regarding pin 6 of the cartridge port.  The 'POV' model must use the motherboard's clock and cannot switch video standards. Refer to the table below for C.SRC jumper settings.
+This depends on how the VIC-II Kawari PCB has been populated and configured. The 'Large' and 'Mini' boards come with on-board oscillators for both NTSC and PAL-B standards. In that case, the motherboard's clock circuit can be bypassed. However, the board can be configured to use the motherboard's clock for the machine's 'native' standard via jumper config. In that case, one of the two video standards can be driven by the motherboard's clock.  Please see [Limitations/Caveats](#limitationscaveats) below regarding pin 6 of the cartridge port.  The 'POV' model must use the motherboard's clock and cannot switch video standards. Refer to the table below for C.SRC jumper settings.
 
 ## How do the C.SRC jumpers work?
 
-For 'Full' and 'Mini' boards, the C.SRC jumpers let you select the clock source for the two video standards the board supports. By default, both video standards are driven by on-board oscillators (if the board has been populated with them).  However, you have the option of using the machine's 'native' clock source for one of the video standards.  This is an option in case some specialty cartridges require the use of Pin 6 on the cartridge port. See [Limitations/Caveats](#limitationscaveats)
+For 'Large' and 'Mini' boards, the C.SRC jumpers let you select the clock source for the two video standards the board supports. By default, both video standards are driven by on-board oscillators (if the board has been populated with them).  However, you have the option of using the machine's 'native' clock source for one of the video standards.  This is an option in case some specialty cartridges require the use of Pin 6 on the cartridge port. See [Limitations/Caveats](#limitationscaveats)
 
 Here is a table describing the valid jumper configurations:
 
@@ -163,7 +163,7 @@ The video signals are output at native resolution (or 2x) and since there is no 
 Yes. However, light pens will only work using a real CRT with composite. (LCD/DVI/HDMI or even VGA monitors will not work with light pens.)
 
 ## This is more expensive. Why not just buy a real one?
-If you need a VIC-II to replace a broken one, you should just buy one off eBay. This project is for fun/interest and would certainly cost more than just buying the real thing. However, there are some advantages to using VIC-II Kawari ('Full/Mini' models):
+If you need a VIC-II to replace a broken one, you should just buy one off eBay. This project is for fun/interest and would certainly cost more than just buying the real thing. However, there are some advantages to using VIC-II Kawari ('Large/Mini' models):
 
 * No 'VSP' bug
 * Configurable color palette (262144 RGB color space, 262144 HSV color space)
@@ -178,7 +178,7 @@ If you need a VIC-II to replace a broken one, you should just buy one off eBay. 
 
 Also, since the core is open source, hobbyests can add their own interesting new features (i.e. a math co-processor, more sprites, more colors, a new graphics mode, a display address translator, etc) See [FORKING.md](doc/FORKING.md) for some a list of possible add-ons.
 
-## What extra features are available ('Full/Mini' models)?
+## What extra features are available ('Large/Mini' models)?
 
 ### A configurable color palette
 
@@ -257,7 +257,7 @@ Not really. That's up to you. That's why the project is open source.  Consider m
 
 ## Known Compatibility Issues
 
-This is a list of hardware known to be incompatible.
+This is a list of hardware known to be incompatible or have issues.
 
 Hardware                    | Issue
 ----------------------------|----------------------------------
@@ -269,7 +269,7 @@ SaRuMan-64 DRAM Replacement | Reported intermittent issues (but my testing showe
 
 ### Soft Reset + HiRes Modes / Color Registers
 
-Please note that if you change color registers or enable hi-res modes, Kawari will not revert back to the default palette or lo-res modes with a soft reset (or RUN/STOP restore). If you want the Kawari 'Full' model to detect soft resets, you can connect the through hole pad labeled RST in the upper left corner of the board to the 6510's RESET pin (or any other RESET location) using a jumper wire and grabber.  The 'Mini' and 'POV' models cannot detect resets.
+Please note that if you change color registers or enable hi-res modes, Kawari will not revert back to the default palette or lo-res modes with a soft reset (or even RUN/STOP restore). If you want the Kawari 'Large' model to detect soft resets, you can connect the through hole pad labeled RST in the upper left corner of the board to the 6510's RESET pin (or any other RESET location) using a jumper wire and grabber.  The 'Mini' and 'POV' models cannot detect resets.
 
 ### Cartridges that use DOT clock pin (pin 6)
 

@@ -1,6 +1,6 @@
 # Feature / PCB Design Matrix
 
-PCB Design             |Kawari-Full |Kawari-Mini |Kawari-POV|
+PCB Design             |Kawari-Large|Kawari-Mini |Kawari-POV|
 -----------------------|------------|------------|----------|
 Luma/Chroma            |Yes         |Yes         |Yes       |
 Extra RAM              |64K         |64K         |No        |
