@@ -518,7 +518,6 @@ int main(void)
     CLRSCRN;
 
     have_kawari = enable_kawari();
-    have_kawari = 1; //enable_kawari();
 
     // So we can restore any time across segments
     save_colors_vmem(0x8000L);
