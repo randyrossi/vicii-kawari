@@ -595,7 +595,7 @@ Value | Description
 1 | DST = SRC | DST
 2 | DST = SRC & DST
 3 | DST = SRC XOR DST
-4-6 | Unused
+4-7 | Unused
 
 ### Additional Notes
 

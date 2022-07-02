@@ -33,9 +33,9 @@ DVI          | Micro HDMI |User must fish cable out of machine and provide strai
 Analog RGB   | Header     |User must build custom RGB connector, fish cable out of machine and provide strain relief, RGB:.7Vp-p (75 ohm termination) HV:TTL
 Luma/Chroma  | A/V Jack   |Regular S/LUM output at rear of computer (composite or s-video)
 
-The core is flexible can be configured to support all three or any subset of these video options.
+The core is flexible and can be configured to support all three or any subset of these video options provided the hardware can support it.
 
-By default, the DVI/RGB signals double the horizontal frequency from ~15.7khz to ~31.4khz (for 2X native height). The horizontal resolution is also doubled to support the 80 column mode.  However, the resolution scaling can be turned off for both width and height.
+By default, the DVI/RGB signals double the horizontal frequency from ~15.7khz to ~31.4khz (for 2X native height). The horizontal resolution is also doubled to support the 80 column mode.  However, the resolution scaling can be turned off for both width and height.  (NOTE: Turning off horizontal scaling will prevent hires modes from working properly.)
 
 Video        |Width|Height|Horiz Freq |Vert Freq  |Pixel Clock  |Suitable for
 -------------|-----|------|-----------|-----------|-------------|---------------
@@ -199,6 +199,7 @@ In addition to the 80 column text mode, three bitmap modes have been added for y
     640x200 16 color - Every 8x8 cell can be one of 16 foreground colors or the background color.
     320x200 16 color - Every pixel can be set to one of 16 colors.
     640x200 4 colors - Every pixel can be set to one of 4 colors.
+    160x200 16 colors - Every pixel can be set to one of 16 colors.
 
 #### Notes about sprites in hires-modes
 
@@ -207,6 +208,14 @@ Low-res sprites will show up on the hi-res modes. However, they behave according
 ### More RAM
 
 There is an additional 64K of video ram. This is RAM that the video 'chip' can access directly for the new hires modes.  It can also be used to store data and there is a DMA transfer function that can copy between DRAM and VRAM quickly without using CPU resources.
+
+### Hardware DIV and MUL registers
+
+Hardware divide and multiply registers were added to avoid costly loops. Some programs can be modified to take advantage of these registers.
+
+### Blitter/Copy/Fill
+
+A blitter is availble to copy rectangular regions of memory quickly without using the CPU.  There are also block copy and fill routines that can move or fill video ram. These features are useful for the new hi-res modes.
 
 ### Software switch between PAL-B and NTSC
 
