@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<efx:project name="vicii" description="" last_change_date="Mon June 27 2022 22:52:56" location="C:/shared/Vivado/vicii/rev_4H" sw_version="2021.2.323.3.14" last_run_state="pass" last_run_tool="efx_pgm" last_run_flow="bitstream" config_result_in_sync="true" design_ood="change" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
+<efx:project name="vicii" description="" last_change_date="Tue July 12 2022 11:22:54" location="C:/shared/Vivado/vicii/rev_4H" sw_version="2021.2.323.3.14" last_run_state="pass" last_run_tool="efx_pgm" last_run_flow="bitstream" config_result_in_sync="true" design_ood="sync" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
     <efx:device_info>
         <efx:family name="Trion"/>
-        <efx:device name="T8Q144"/>
+        <efx:device name="T20Q144"/>
         <efx:timing_model name="I4"/>
     </efx:device_info>
     <efx:design_info def_veri_version="verilog_2k" def_vhdl_version="vhdl_2008">
@@ -31,10 +31,10 @@
         <efx:design_file name="C:/shared/Vivado/vicii/hdl/hires_matrix.v" version="default" library="default"/>
         <efx:design_file name="C:/shared/Vivado/vicii/hdl/hires_vga_sync.v" version="default" library="default"/>
         <efx:design_file name="C:/shared/Vivado/vicii/hdl/divide.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/videoram_efinix_4k.v" version="default" library="default"/>
         <efx:design_file name="C:/shared/Vivado/vicii/hdl/efinix_trion/dvi/dvi.v" version="default" library="default"/>
         <efx:design_file name="C:/shared/Vivado/vicii/hdl/efinix_trion/dvi/serializer.v" version="default" library="default"/>
         <efx:design_file name="C:/shared/Vivado/vicii/hdl/efinix_trion/dvi/tmds_channel.v" version="default" library="default"/>
+        <efx:design_file name="../hdl/videoram_efinix.v" version="default" library="default"/>
         <efx:top_vhdl_arch name=""/>
     </efx:design_info>
     <efx:constraint_info>
