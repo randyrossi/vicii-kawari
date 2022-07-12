@@ -7,7 +7,7 @@
 // c-access - character pointer reads
 // g-access - bitmap graphics reads
 // p-access - sprite pointer reads
-// s-access - sprite bitmap graphics reads
+// s-access - sprite bitmap graphics reads (see vic_sprites.v)
 module bus_access(
            input clk_dot4x,
            input phi_phase_start_dav,

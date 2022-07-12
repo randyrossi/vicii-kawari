@@ -7,7 +7,9 @@
 // phase and amplitude.
 
 // Rev 4+ boards have luma sink capabilities to properly
-// sink most current during h/v sync periods.
+// sink most current during h/v sync periods. Rev 3 board
+// couldn't do this and the sync period was too 'hot' but
+// still worked on most monitors.
 `ifndef REV_3_BOARD
 `define HAVE_LUMA_SINK 1
 `endif

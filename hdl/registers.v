@@ -200,14 +200,12 @@ reg video_ram_r2; // also used to trigger auto inc after read
 reg video_ram_aw; // auto increment after write is necessary
 `endif
 
-`ifdef NEED_RGB
 `ifdef CONFIGURABLE_RGB
 reg color_regs_r; // also used to trigger auto inc after read
 reg color_regs_r2; // also used to trigger auto inc after read
 reg color_regs_aw; // auto increment after write is necessary
 reg [1:0] color_regs_r_nibble;
 reg [1:0] color_regs_wr_nibble;
-`endif
 `endif
 
 `ifdef CONFIGURABLE_LUMAS
@@ -309,14 +307,13 @@ assign PIXELS_PER_BYTE = hires_mode == 3'b011 ? 3'd4 : 3'd2;
 
 `endif // WITH_RAM
 
-// Regarding pre_wr registers below. We need an additional cycle to
+// Regarding pre_wr registers below: We need an additional cycle to
 // read existing values before writing. Otherwise, the data_out_a
 // register will have garbage. This goes for both color and luma
 // registers where we pack components inside a wider register.
 
-`ifdef NEED_RGB
 `ifdef CONFIGURABLE_RGB
-// For CPU/MCU register read/write to color regs
+// For CPU register read/write to color regs
 reg [3:0] color_regs_addr_a; // 16 regs
 reg color_regs_wr_a;
 reg color_regs_pre_wr_a;
@@ -326,10 +323,9 @@ reg [23:0] color_regs_data_in_a;
 wire [23:0] color_regs_data_out_a;
 wire [23:0] color_regs_data_out_b;
 `endif
-`endif
 
 `ifdef CONFIGURABLE_LUMAS
-// For CPU/MCU register read/write to luma regs
+// For CPU register read/write to luma regs
 reg [3:0] luma_regs_addr_a;
 reg luma_regs_wr_a;
 reg luma_regs_pre_wr_a;
@@ -370,7 +366,6 @@ VIDEO_RAM video_ram(clk_dot4x,
                    );
 `endif // WITH_RAM
 
-`ifdef NEED_RGB
 `ifdef CONFIGURABLE_RGB
 COLOR_REGS color_regs(clk_dot4x,
                       color_regs_wr_a, // write to color ram
@@ -378,11 +373,14 @@ COLOR_REGS color_regs(clk_dot4x,
                       color_regs_data_in_a,
                       color_regs_data_out_a,
                       1'b0, // we never write to port b
+`ifdef NEED_RGB
                       pixel_color4, // read addr for color lookups
+`else
+                      4'b0,
+`endif
                       24'b0, // we never write to port b
                       color_regs_data_out_b // read value for color lookups
                      );
-`endif
 `endif
 
 `ifdef CONFIGURABLE_LUMAS
@@ -1400,7 +1398,6 @@ begin
             dbo[7:0] <= video_ram_data_out_a;
 `endif
 
-`ifdef NEED_RGB
 `ifdef CONFIGURABLE_RGB
         // CPU write to color register ram
         if (color_regs_pre_wr2_a) begin
@@ -1423,7 +1420,6 @@ begin
                     color_regs_data_in_a <= {color_regs_data_out_a[23:6], color_regs_wr_value}; // never used
             endcase
         end
-`endif
 `endif
 
 `ifdef CONFIGURABLE_LUMAS
@@ -1451,7 +1447,6 @@ begin
         end
 `endif
 
-`ifdef NEED_RGB
 `ifdef CONFIGURABLE_RGB
         // CPU read from color regs
         if (color_regs_r) begin
@@ -1462,7 +1457,6 @@ begin
                 2'b11: dbo[7:0] <= { 2'b0, color_regs_data_out_a[5:0] };
             endcase
         end
-`endif
 `endif
 
 `ifdef CONFIGURABLE_LUMAS
@@ -1483,12 +1477,10 @@ begin
             video_ram_wr_a <= 1'b0;
 `endif
 
-`ifdef NEED_RGB
 `ifdef CONFIGURABLE_RGB
         // Only need 1 tick to write to color ram
         if (color_regs_wr_a)
             color_regs_wr_a <= 1'b0;
-`endif
 `endif
 
 `ifdef CONFIGURABLE_LUMAS
@@ -1507,12 +1499,10 @@ begin
             video_ram_aw <= 1'b0;
 `endif
 
-`ifdef NEED_RGB
 `ifdef CONFIGURABLE_RGB
             color_regs_r <= 0;
             color_regs_r2 <= color_regs_r;
             color_regs_aw <= 1'b0;
-`endif
 `endif
 
 `ifdef CONFIGURABLE_LUMAS
@@ -1530,10 +1520,8 @@ begin
 `ifdef WITH_RAM
                     || video_ram_r2 || video_ram_aw
 `endif
-`ifdef NEED_RGB
 `ifdef CONFIGURABLE_RGB
                     || color_regs_r2 || color_regs_aw
-`endif
 `endif
 `ifdef CONFIGURABLE_LUMAS
                     || luma_regs_r2 || luma_regs_aw

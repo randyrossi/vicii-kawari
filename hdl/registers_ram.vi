@@ -47,12 +47,10 @@ task read_ram(
             if (ram_lo >= 8'h40 && ram_lo < 8'h80) begin
                 // _r_nibble stores which 6-bit-nibble within the 24 bit
                 // lookup value we want.  The lowest 6-bits are never used.
-`ifdef NEED_RGB
 `ifdef CONFIGURABLE_RGB
                 color_regs_r <= 1'b1;
                 color_regs_r_nibble <= ram_lo[1:0];
                 color_regs_addr_a <= ram_lo[5:2];
-`endif
 `endif
             end
 `ifdef CONFIGURABLE_LUMAS
@@ -238,7 +236,6 @@ task write_ram(
                 // In order to write to individual 6 bit
                 // values within the 24 bit register, we
                 // have to read it first, then write.
-`ifdef NEED_RGB
 `ifdef CONFIGURABLE_RGB
 `ifdef HAVE_EEPROM
                 if (eeprom_bank == chip) begin
@@ -251,7 +248,6 @@ task write_ram(
                 end
 `endif
                 persist_eeprom(do_persist, ram_lo, {2'b0, data[5:0]});
-`endif
 `endif
             end
 `ifdef CONFIGURABLE_LUMAS
