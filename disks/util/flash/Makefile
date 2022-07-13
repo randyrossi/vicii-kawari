@@ -15,23 +15,24 @@
 # Stuff to potentially edit
 FLASH_FORMAT=2
 NAME=kawari
-VERSION=1.5
+VERSION=1.4
 # FAMILY
 # One of: spartan6_x9 | spartan6_x16 | efinix_t8 | efinix_t20
-FPGA=efinix_t8
+FPGA=efinix_t20
 # START_ADDRESS
 # For Spartan6: 0=golden, 512000=multiboot
 # For EfinixT8: 0=golden, 659456=multiboot
-START_ADDRESS=659456
+START_ADDRESS=0
+IMAGE_SIZE=659456
 # TYPE = multiboot or golden
-TYPE=multiboot
+TYPE=golden
 # REG_VARIANT - Variant name matching registers 0x90-0x9F
-# One of : SIM | MAIN | MAINSB | MAINLD | MAINLG | MAINLH | MAINLI
+# One of : SIM | MAIN | MAINSB | MAINLD | MAINLG | MAINLH | MAINLF
 REG_VARIANT=MAINLH
 # BUILD_VARIANT - Variant for .bit filename
-# One of : N/A | T    | SB     | LD     | LG     | LH     | LI
+# One of : N/A | T    | SB     | LD     | LG     | LH     | LF
 BUILD_VARIANT=LH
-# PAGE_SIZE - Must be 4k for boards that only have 4k RAM
+# PAGE_SIZE - Must be 4k for efinix, 16k for spartan
 PAGE_SIZE=4096
 
 # REG_VARIANT and BUILD_VARIANT must be for
@@ -145,16 +146,16 @@ image_files:
 	   dd skip=1 bs=88 if=$(SOURCE_IMG) > stripped.bit; \
 	fi
 	if [ "$(FPGA)" = "efinix_t8" -a "$(TYPE)" = "multiboot" ]; then \
-	   dd skip=1 bs=$(START_ADDRESS) if=$(SOURCE_IMG) > stripped.bit; \
+	   dd skip=1 bs=$(IMAGE_SIZE) if=$(SOURCE_IMG) > stripped.bit; \
 	fi
 	if [ "$(FPGA)" = "efinix_t20" -a "$(TYPE)" = "multiboot" ]; then \
-	   dd skip=1 bs=$(START_ADDRESS) if=$(SOURCE_IMG) > stripped.bit; \
+	   dd skip=1 bs=$(IMAGE_SIZE) if=$(SOURCE_IMG) > stripped.bit; \
 	fi
 	if [ "$(FPGA)" = "efinix_t8" -a "$(TYPE)" = "golden" ]; then \
-	   dd skip=0 bs=$(START_ADDRESS) count=1 if=$(SOURCE_IMG) > stripped.bit; \
+	   dd skip=0 bs=$(IMAGE_SIZE) count=1 if=$(SOURCE_IMG) > stripped.bit; \
 	fi
 	if [ "$(FPGA)" = "efinix_t20" -a "$(TYPE)" = "golden" ]; then \
-	   dd skip=0 bs=$(START_ADDRESS) count=1 if=$(SOURCE_IMG) > stripped.bit; \
+	   dd skip=0 bs=$(IMAGE_SIZE) count=1 if=$(SOURCE_IMG) > stripped.bit; \
 	fi
 	split -a 3 -d -b $(PAGE_SIZE) stripped.bit tmp/img_
 	for NUM in $(FILENUMS); do \

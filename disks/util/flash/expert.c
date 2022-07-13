@@ -155,5 +155,9 @@ void main_menu(void)
     POKE(SPI_REG, 80);
     POKE(SPI_REG, 73);
 
+    printf ("\nIdentifying flash...");
+    read_device();
+    printf ("MID=%02x DID=%02x\n", data_in[0], data_in[1]);
+
     expert();
 }
