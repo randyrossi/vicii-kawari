@@ -1,4 +1,4 @@
-<b><p align=center> STATUS May 2022: I have redesigned the PCB using the Efinix Trion line of FPGAs.  An order for 50 'Mini' boards has been placed and I am waiting for delivery.  Once delivered, I will notify the email list of their availability.  There will be a few 'Large' boards available at that time as well. If devices sell well, I will take pre-orders for another batch of up to 100 'Large' and 'Mini' models.</p></b>
+<b><p align=center> STATUS June 13, 2022: 50 'Mini' boards have arrived and are being programmed/tested. I also have 8 'Large' boards built. They will go up for sale on eBay soon following an email/video update..</p></b>
 
 # VIC-II Kawari
 
