@@ -195,7 +195,7 @@ COLOR_BASE      | Points to a 2k block for 80x25 color matrix     | XXXX0000-XXX
     Matrix Fetch Addr (15):  MATRIX_BASE(4) | VC(11)
     Char Pixel Fetch Addr (15): CHAR_PIXEL_BASE(3) | CASE_BIT(1) | CHAR_NUM(8) | RC(3)
 
-    There are no 'bad lines' in hires modes since the video memory is dual port and can be accessed by hires pixel sequencer and the CPU at the same time.  However, yscroll will still trigger a reset of the row counter as it does in the legacy modes.
+    There are no 'badlines' in hires modes since the video memory is dual port and can be accessed by hires pixel sequencer and the CPU at the same time.  However, yscroll will still trigger a reset of the row counter as it does in the legacy modes. (NOTE: Badlines for hires modes can be enabled/disabled. See BIT 4 of VIDEO_MODE1 register.  If disabled, an additional 6% (approximately) worth of 6510 cycles / frame becomes available for the CPU.)
 
 ### Mode 001 : 640x200 16 color
 

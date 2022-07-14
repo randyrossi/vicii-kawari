@@ -188,6 +188,10 @@ Each of the Commodore 64's 16 colors can be changed for preference. For RGB base
 
 A true 16 color 80 column text mode is available. This is NOT a soft-80 mode that uses bitmap graphics but rather a true text mode. Each character cell is a full 8x8 pixels. An 80 colum text screen occupies 4k of kawari video memory space (+4k character definition data). A small program (2k resident at $c800) can enable this for the basic programming environment. The basic text editor operates exactly as the 40 column mode does since the input/output routines are simply copies of the normal kernel routines compiled with new limits. This mode also takes advantage of hardware accelerated block copy/fill features of VIC-II Kawari so scrolling/clearing the text is fast.
 
+NOTE: 40 column BASIC programs will not necessarily run without modification in the 80 column mode. If the program uses print statements exclusively, then there's a good chance it will work.  If it uses POKEs to screen memory, it will have to be modified.
+
+NOTE: The 80 column display was not intended for TVs or low resolution monitors. The mode will function using a composite signal but the bandwidth is too low and you will not get a sharp display.  You may get a more usable image using a custom s-video cable (and possibly an upscaler).
+
 ### Novaterm 9.6c 80 column driver
 
 A Novaterm 9.6c 80 column video driver is available.  Use this driver with a user port or cartridge modem and relive the 80's BBS experience in 80 columns on your C64!
@@ -231,8 +235,8 @@ What's Saved  | Swith OPEN   | Switch CLOSED
 --------------|--------------|--------------
 6567R8 NTSC   | 6567R8 NTSC  | 6569R5 PAL-B
 6567R56A NTSC | 656756A NTSC | 6569R1 PAL-B
-6569R5 PAL-B    | 6569R5 PAL-B   | 6567R8 NTSC
-6569R1 PAL-B    | 6569R1 PAL-B   | 6567R56A NTSC
+6569R5 PAL-B  | 6569R5 PAL-B | 6567R8 NTSC
+6569R1 PAL-B  | 6569R1 PAL-B | 6567R56A NTSC
 
 ## What are the installation options?
 
