@@ -24,7 +24,7 @@ void set_lumas(unsigned int variant_num, int chip_model) {
    int reg;
    for (reg=0;reg<16;reg++) {
       POKE(VIDEO_MEM_1_LO, reg+0xa0);
-      if (variant_num == VARIANT_REV_3)
+      if (variant_num == VARIANT_REV_3T)
          SAFE_POKE(VIDEO_MEM_1_VAL, luma_rev3[chip_model][reg]);
       else
          SAFE_POKE(VIDEO_MEM_1_VAL, luma_rev4[chip_model][reg]);

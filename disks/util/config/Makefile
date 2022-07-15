@@ -13,6 +13,7 @@ menu.o: menu.c ../include/util.h ../include/kawari.h
 
 subdirs:
 	$(MAKE) -C rgbed
+	$(MAKE) -C eepromed
 	$(MAKE) -C comped
 	$(MAKE) -C timeed
 	$(MAKE) -C quick
@@ -20,6 +21,7 @@ subdirs:
 clean:
 	$(MAKE) -C rgbed clean
 	$(MAKE) -C comped clean
+	$(MAKE) -C eepromed clean
 	$(MAKE) -C timeed clean
 	$(MAKE) -C quick clean
 	rm -f *.o config.prg

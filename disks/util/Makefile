@@ -23,7 +23,6 @@ subdirs:
 	$(MAKE) -C 80col
 	$(MAKE) -C novaterm
 	$(MAKE) -C tests
-	$(MAKE) -C flash
 
 clean:
 	$(MAKE) -C config clean

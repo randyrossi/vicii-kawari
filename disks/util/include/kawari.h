@@ -93,9 +93,8 @@
 // for description of board revs and models.
 #define VARIANT_UNKNOWN  0
 #define VARIANT_SIM      1
-#define VARIANT_REV_3    2   // a.k.a. MAIN or beta board
-#define VARIANT_REV_4S_B 3   // a.k.a. MAIN4SB
-#define VARIANT_REV_4L_C 4   // a.k.a. MAIN4LC
-#define VARIANT_REV_4L_D 5   // a.k.a. MAIN4LD
+#define VARIANT_REV_3T   2   // a.k.a. MAIN (beta board)
+#define VARIANT_REV_4LD  3   // a.k.a. MAIN4LD
+#define VARIANT_REV_4LH  4   // a.k.a. MAIN4LH
 
 #endif

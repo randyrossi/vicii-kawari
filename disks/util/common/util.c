@@ -120,13 +120,11 @@ void get_variant(unsigned char *dest)
 unsigned int ascii_variant_to_int(unsigned char *variant)
 {
    if (strcmp(variant,"main") == 0)
-      return VARIANT_REV_3;
-   if (strcmp(variant,"mainsb") == 0)
-      return VARIANT_REV_4S_B;
-   if (strcmp(variant,"mainlc") == 0)
-      return VARIANT_REV_4L_C;
+      return VARIANT_REV_3T; // beta board
    if (strcmp(variant,"mainld") == 0)
-      return VARIANT_REV_4L_D;
+      return VARIANT_REV_4LD; // large spartan6 x16
+   if (strcmp(variant,"mainlh") == 0)
+      return VARIANT_REV_4LH; // mini efinix t20
    if (strcmp(variant,"sim") == 0)
       return VARIANT_SIM;
    return VARIANT_UNKNOWN;
