@@ -11,7 +11,8 @@
 #include "flash.h"
 
 // 16k At this location is used to test flash
-#define FLASH_SCRATCH_START 1048576L
+// Must be beyond multiboot image for both spartan and efinix devices
+#define FLASH_SCRATCH_START 1392640L
 
 #define SCRATCH_SIZE 32
 unsigned char scratch[SCRATCH_SIZE];
@@ -49,48 +50,70 @@ void test_erase(void) {
 
 void test_fast_write(void) {
    unsigned long addr = FLASH_SCRATCH_START;
+   unsigned long to_addr = 0;
+   unsigned int page_size;
+   unsigned int num_to_write = 16384;
 
    printf ("TEST FAST WRITE:");
    erase_16k();
    fill_5000();
    copy_5000_0000();
 
-   // To flash addr
-   POKE(VIDEO_MEM_1_IDX,(addr >> 16) & 0xff);
-   POKE(VIDEO_MEM_1_HI,(addr >> 8) & 0xff);
-   POKE(VIDEO_MEM_1_LO,(addr & 0xff));
-   // From video mem 0x0000
-   POKE(VIDEO_MEM_2_HI, 0);
-   POKE(VIDEO_MEM_2_LO, 0);
-   POKE(SPI_REG, FLASH_BULK_OP | FLASH_BULK_WRITE);
+   page_size = get_flash_page_size();
+  
+   while (num_to_write > 0) {
+      // To flash addr
+      POKE(VIDEO_MEM_1_IDX,(addr >> 16) & 0xff);
+      POKE(VIDEO_MEM_1_HI,(addr >> 8) & 0xff);
+      POKE(VIDEO_MEM_1_LO,(addr & 0xff));
+      // From video mem 0x0000
+      POKE(VIDEO_MEM_2_HI, (to_addr >> 8 ) & 0xff);
+      POKE(VIDEO_MEM_2_LO, to_addr & 0xff);
+      POKE(SPI_REG, FLASH_BULK_OP | FLASH_BULK_WRITE);
 
-   if (wait_verify()) {
-      printf ("VERIFY ERROR\n");
-   } else {
-      printf ("OK\n");
+      if (wait_verify()) {
+         printf ("VERIFY ERROR\n");
+         break;
+      } else {
+         printf ("OK\n");
+      }
+      addr += page_size;
+      to_addr += page_size;
+      num_to_write -= page_size;
    }
 }
 
 void test_fast_read(void) {
    unsigned long addr = FLASH_SCRATCH_START;
+   unsigned long from_addr = 0;
    unsigned char fail;
+   unsigned int page_size;
+   unsigned int num_to_read = 16384;
 
    printf ("TEST FAST READ:");
    zero_5000();
    copy_5000_0000();
 
-   // From flash start_addr
-   POKE(VIDEO_MEM_1_IDX,(addr >> 16) & 0xff);
-   POKE(VIDEO_MEM_1_HI,(addr >> 8) & 0xff);
-   POKE(VIDEO_MEM_1_LO,(addr & 0xff));
-   // To video mem 0x0000
-   POKE(VIDEO_MEM_2_HI, 0);
-   POKE(VIDEO_MEM_2_LO, 0);
-   POKE(SPI_REG, FLASH_BULK_OP | FLASH_BULK_READ);
+   page_size = get_flash_page_size();
 
-   wait_verify();
+   while (num_to_read > 0) {
+      // From flash start_addr
+      POKE(VIDEO_MEM_1_IDX,(addr >> 16) & 0xff);
+      POKE(VIDEO_MEM_1_HI,(addr >> 8) & 0xff);
+      POKE(VIDEO_MEM_1_LO,(addr & 0xff));
+      // To video mem 0x0000
+      POKE(VIDEO_MEM_2_HI, (from_addr >> 8) & 0xff);
+      POKE(VIDEO_MEM_2_LO, from_addr & 0xff);
+      POKE(SPI_REG, FLASH_BULK_OP | FLASH_BULK_READ);
 
-   // Check we got back what we wrote
+      wait_verify();
+
+      addr += page_size;
+      from_addr += page_size;
+      num_to_read -= page_size;
+   }
+
+   // Check we got back what we wrote (16k)
    POKE(VIDEO_MEM_1_IDX,0);
    POKE(VIDEO_MEM_1_HI,0);
    POKE(VIDEO_MEM_1_LO,0);

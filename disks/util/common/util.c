@@ -129,3 +129,17 @@ unsigned int ascii_variant_to_int(unsigned char *variant)
       return VARIANT_SIM;
    return VARIANT_UNKNOWN;
 }
+
+unsigned int get_flash_page_size(void) {
+   char variant_str[32];
+   unsigned int variant;
+
+   get_variant(variant_str);
+   variant = ascii_variant_to_int(variant_str);
+
+   // The two spartan models have 16k flash page size
+   if (variant == VARIANT_REV_4LD || variant == VARIANT_REV_3T)
+      return 16384;
+   else
+      return 4096;
+}
