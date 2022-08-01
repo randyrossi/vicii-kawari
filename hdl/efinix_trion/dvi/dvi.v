@@ -41,14 +41,14 @@ begin
 end
 
 // All logic below relates to the production and output of the 10-bit TMDS code.
-wire [9:0] tmds_internal0;
-wire [9:0] tmds_internal1;
-wire [9:0] tmds_internal2;
+wire [9:0] tmds_b;
+wire [9:0] tmds_g;
+wire [9:0] tmds_r;
 
-tmds_channel #(.CN(0)) tmds_channel0 (.clk_pixel(clk_pixel), .video_data(video_data[7:0]), .control_data(control_data[1:0]), .mode(de), .tmds(tmds_internal0));
-tmds_channel #(.CN(1)) tmds_channel1 (.clk_pixel(clk_pixel), .video_data(video_data[15:8]), .control_data(control_data[3:2]), .mode(de), .tmds(tmds_internal1));
-tmds_channel #(.CN(2)) tmds_channel2 (.clk_pixel(clk_pixel), .video_data(video_data[23:16]), .control_data(control_data[5:4]), .mode(de), .tmds(tmds_internal2));
+tmds_channel #(.CN(0)) tmds_channel0 (.clk_pixel(clk_pixel), .video_data(video_data[7:0]), .control_data(control_data[1:0]), .mode(de), .tmds(tmds_b));
+tmds_channel #(.CN(1)) tmds_channel1 (.clk_pixel(clk_pixel), .video_data(video_data[15:8]), .control_data(control_data[3:2]), .mode(de), .tmds(tmds_g));
+tmds_channel #(.CN(2)) tmds_channel2 (.clk_pixel(clk_pixel), .video_data(video_data[23:16]), .control_data(control_data[5:4]), .mode(de), .tmds(tmds_r));
 
-serializer serializer(.clk_pixel(clk_pixel), .clk_pixel_x10(clk_pixel_x10), .reset(reset), .tmds_internal0(tmds_internal0), .tmds_internal1(tmds_internal1), .tmds_internal2(tmds_internal2), .tmds(tmds), .tmds_clock(tmds_clock));
+serializer serializer(.clk_pixel(clk_pixel), .clk_pixel_x10(clk_pixel_x10), .reset(reset), .tmds_internal0(tmds_b), .tmds_internal1(tmds_r), .tmds_internal2(tmds_g), .tmds(tmds), .tmds_clock(tmds_clock));
 
 endmodule
