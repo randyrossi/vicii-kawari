@@ -16,6 +16,3 @@ set_clock_groups -exclusive -group {clk_col4x_pal clk_dot4x_pal clk_col16x_pal c
 
 set_false_path -from clk_dot4x_ntsc -to clk_col16x_ntsc
 set_false_path -from clk_dot4x_pal -to clk_col16x_pal
-
-set_output_delay -clock clk_dot4x_ntsc 1 [get_ports tmds_clock]
-set_output_delay -clock clk_dot40x_ntsc 1 [get_ports {tmds_data_r tmds_data_g tmds_data_b}]

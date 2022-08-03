@@ -15,15 +15,6 @@ module top(
        input clk_dot4x_pal, // from pll
        input clk_dot40x_pal, // from pll
 
-`ifdef USE_MUX_HACK
-       output reg ntsc_dot, // throw away signal for mux hack
-       output reg ntsc_dot_10, // throw away signal for mux hack
-       output reg pal_dot, // throw away signal for mux hack
-       output reg pal_dot_10, // throw away signal for mux hack
-       output reg ntsc_col, // throw away signal for mux hack
-       output reg pal_col, // throw away signal for mux hack
-`endif
-
        // If we are generating luma/chroma, add outputs
 `ifdef GEN_LUMA_CHROMA
            output luma_sink,     // luma current sink
@@ -148,6 +139,13 @@ EFX_GBUFCE mux2(
     .O(clk_col16x)
     );
 
+(* syn_preserve = "true" *) reg ntsc_dot;// throw away signal for mux hack
+(* syn_preserve = "true" *) reg ntsc_dot_10; // throw away signal for mux hack
+(* syn_preserve = "true" *) reg pal_dot; // throw away signal for mux hack
+(* syn_preserve = "true" *) reg pal_dot_10; // throw away signal for mux hack
+(* syn_preserve = "true" *) reg ntsc_col; // throw away signal for mux hack
+(* syn_preserve = "true" *) reg pal_col; // throw away signal for mux hack
+
 // This is a bit of a hack.  The Efinity toolchain does
 // not like us using  our generated clocks only in the
 // bit of combinatorial logic above (mux). It wants
@@ -192,6 +190,12 @@ wire vic_write_ab;
 wire vic_write_db;
 
 wire [1:0] chip;
+
+`ifndef GEN_RGB
+wire [5:0] red;
+wire [5:0] green;
+wire [5:0] blue;
+`endif
 
 // Instantiate the vicii with our clocks and pins.
 vicii vic_inst(
@@ -267,17 +271,18 @@ assign ls245_data_oe = 1'b0;
 
 `ifdef WITH_DVI
 // Scale from 6 bits to 8 for DVI
-wire[31:0] red_scaled;
-wire[31:0] green_scaled;
-wire[31:0] blue_scaled;
-assign red_scaled = red * 255 / 63;
-assign green_scaled = green * 255 / 63;
-assign blue_scaled = blue * 255 / 63;
+// TODO: This scaling doesn't seem to work on Efinix. Either leave
+// as-is or use a ROM to map 6 bits to 8 bit scaled value.
+//wire[31:0] red_scaled;
+//wire[31:0] green_scaled;
+//wire[31:0] blue_scaled;
+//assign red_scaled = red * 255 / 63;
+//assign green_scaled = green * 255 / 63;
+//assign blue_scaled = blue * 255 / 63;
 
 `ifdef HALF_X_RES
-// Turn this on if we set native x in both
-// registers and vga sync modules. Tests
-// 16Mhz dot clock instead of 32mhz
+// Turn this on to test a 16Mhz clock instead of 32Mhz
+// Must also set native_x flag for this to work.
 reg ff1;
 reg ff2;
 always @(posedge `DOT_CLOCK_4X) ff1=~ff1;
@@ -293,7 +298,7 @@ dvi dvi_tx0 (
    .clk_pixel_x10(`DOT_CLOCK_40X),
 `endif
    .reset        (1'b0),
-   .rgb          ({red_scaled[7:0], green_scaled[7:0], blue_scaled[7:0]}),
+   .rgb          ({red, 2'b0, green, 2'b0, blue, 2'b0}),
    .hsync        (hsync),
    .vsync        (vsync),
    .de           (active),
