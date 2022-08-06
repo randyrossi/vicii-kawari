@@ -12,7 +12,7 @@ kawari_util_1: subdirs
 	c1541 -attach kawari_util_1.d64 -write tests/mathtest/mathtest.prg mathtest
 	c1541 -attach kawari_util_1.d64 -write tests/rgbtest/rgbtest.prg rgbtest
 	c1541 -attach kawari_util_1.d64 -write tests/lumatest/lumatest.prg lumatest
-	c1541 -attach kawari_util_1.d64 -write tests/flashtest/flashtest.prg flashtest
+	#c1541 -attach kawari_util_1.d64 -write tests/flashtest/flashtest.prg flashtest
 	c1541 -attach kawari_util_1.d64 -write 80col/80col-51200.prg 80col-51200
 	c1541 -attach kawari_util_1.d64 -write novaterm/kawari.ml 80col.kawari
 	c1541 -attach kawari_util_1.d64 -list
