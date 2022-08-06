@@ -1,3 +1,5 @@
+Back to [README.md](../README.md)
+
 # Feature / PCB Design Matrix
 
 PCB Design             |Kawari-Large|Kawari-Mini |Kawari-POV|
@@ -14,7 +16,11 @@ HDMI                   |Yes         |No          |No        |
 Saveable Config        |Yes         |Yes         |No        |
 Old chips?             |Yes         |Yes         |No        |
 Current Draw           |~180ma      |TBD         |TBD       |
-Variants               |LD,LG       |LH          |LF        |
+Variants               |T,LD,LG     |LH          |LF        |
+
+# Jumpers
+
+Jumper configuration depends on the board version.  See [VARIANTS.md](doc/VARIANTS.md)
 
 # Feature Descriptions
 
