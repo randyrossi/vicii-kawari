@@ -20,7 +20,7 @@ Variants               |T,LD,LG     |LH          |LF        |
 
 # Jumpers
 
-Jumper configuration depends on the board version.  See [VARIANTS.md](doc/VARIANTS.md)
+Jumper configuration depends on the board version.  See [VARIANTS.md](VARIANTS.md)
 
 # Feature Descriptions
 
