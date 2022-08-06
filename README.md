@@ -111,9 +111,9 @@ The 'large" board will fit into revisions 250407, 250425, 326298 & KU-1419HB pro
 ## Will this work in C64-C (short board) models?
 Although the board will (mostly) function if plugged into a C64-C 'short' board (i.e. 250469), the current versions of VIC-II Kawari are not recommended for these motherboards.
 
-    #1. It is difficult to close the machine. The 'Mini' PCB sits too high off the motherboard which presses up on the sheilding (required to be installed due to keyboard support brackets being attached).  The large also requires an extra socket to clear some motherboard components and causes the same issue with the sheild. If you are willing to replace the sheild with 3D printed keyboard support brackets (or other solutions), you may be able to get it to fit into a closed machine. However, this has not been tested.
+1. It is difficult to close the machine. The 'Mini' PCB sits too high off the motherboard which presses up on the sheilding (required to be installed due to keyboard support brackets being attached).  The large also requires an extra socket to clear some motherboard components and causes the same issue with the sheild. If you are willing to replace the sheild with 3D printed keyboard support brackets (or other solutions), you may be able to get it to fit into a closed machine. However, this has not been tested.
 
-    #2. The 8562/8565 CAS/RAS timing is slightly different than the older generation 6567/6569 chips. You can try flashing an alternate firmware that adjusts the timing. However, there are still some issues that can cause some games/demos to fail.
+2. The 8562/8565 CAS/RAS timing is slightly different than the older generation 6567/6569 chips. You can try flashing an alternate firmware that adjusts the timing. However, there are still some issues that can cause some games/demos to fail. For this reason, I am not recommending VIC-II Kawari for C64-C short boards.
 
 NOTE: The VDD pin is not connected so there is no voltage compatibility issue like with the real 8562/8565 models. It won't damage the Kawari to plug it into a C64-C 'short' board. You may run into the issues described above, however.
 
@@ -287,7 +287,7 @@ Hardware                    | Issue
 ----------------------------|----------------------------------
 Kung Fu Flash Cartridge     | Intermittent issues. Probably timing.
 MK2 Reloaded                | Does not detect VIC model. Shows signs of DRAM timing issues
-SaRuMan-64 DRAM Replacement | Reported intermittent issues (but my testing showed no problems)
+SaRuMan-64 DRAM Replacement | Intermittent issues with v1.5. Have a fix that is under test for 250407 board.
 
 ## Other Limitations/Caveats
 
