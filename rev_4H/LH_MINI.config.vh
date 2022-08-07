@@ -1,8 +1,8 @@
 `ifndef config_vh_
 `define config_vh_
 
-`define VERSION_MAJOR 8'd5
-`define VERSION_MINOR 8'd1
+`define VERSION_MAJOR 8'd1
+`define VERSION_MINOR 8'd5
 
 `define EFINIX
 `define VARIANT_SUFFIX_1 8'd76
