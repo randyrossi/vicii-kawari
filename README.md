@@ -156,7 +156,7 @@ IMPORTANT! Strain relief on the cable is VERY important as it exits the machine.
 ## How accurate is it?
 To measure accuracy, I use the same suite of programs VICE (The Versatile Commodore Emulator) uses to catch regressions in their releases. Out of a total of 280 VIC-II tests, 280 are passing (at least by visual comparison).
 
-I can't test every program but it supports the graphics tricks programmers used in their demos/games. Refer to the [KNOWN_ISSUES.md](doc/KNOWN_ISSUES.md) doc for a list of programs and/or demos that are known to have issues.  Although perhaps not perfect, it is safe to say it is a faithful reproduction of the original chips.
+I can't test every program but it supports the graphics tricks programmers used in their demos/games. Refer to the Hardware/Software compatibility matrix below. Although perhaps not perfect, it is safe to say it is a faithful reproduction of the original chips.
 
 ## Is this emulation?
 That's a matter of opinion. Some people consider an FPGA implementation that 'mimics' hardware to be emulation because some behavior is being re-implemented using a high level hardware description language. But it's important to note that the PCB is not 'running' a program like you would on a PC. The PCB is providing a real clock signal to drive the 6510 CPU. It's also generating real CAS/RAS timing signals to refresh DRAM. It is interacting with the same address and data bus that a genuine chip would.
@@ -279,15 +279,25 @@ You can reset the board by temporarily shorting the jumper pads labeled 'Reset' 
 
 Not really. That's up to you. That's why the project is open source.  Consider my 'MAIN' variant one possibility of what you can do with the device.  However, since my features take up practically all the fabric, you would most likely have to disable some of my 'extras' in favor of yours.
 
-## Known Compatibility Issues
+## Hardware Compatibility Updates
 
-This is a list of hardware known to be incompatible or have issues.
-
-Hardware                    | Issue
+Hardware                    | Status
 ----------------------------|----------------------------------
-Kung Fu Flash Cartridge     | Intermittent issues. Probably timing.
-MK2 Reloaded                | Does not detect VIC model. Shows signs of DRAM timing issues
-SaRuMan-64 DRAM Replacement | Intermittent issues with v1.5. Have a fix that is under test for 250407 board.
+Kung Fu Flash Cartridge     | Working as of v1.5 on all long board motherboard revisions I've tested.
+SuperCPU                    | Works as long as the motherboard clock is used (jumper setting). Will not work with on-board oscillators.
+MK2 Reloaded                | Not working. Does not detect VIC model. Shows signs of DRAM timing issues.
+The Final Cartridge         | No issues discovered so far.
+Ultimate 1541               | No issues discovered so far.
+Pi1541                      | Must turn off GraphIEC feature or else some demos will fail (same with real VIC-II's)
+Link232 Wifi Cartridge      | Works but requires motherboard clock jumper setting. Will not work with on-board oscillators.
+Turbo Chameleon             | Reported not working
+SaRuMan DRAM Replacement    | Not working with v1.5 firmware on long boards. Can be made to work with a CAS/RAM timing change. Testing on a 250407 board is underway (Aug 6, 2022)
+
+Software                | Status 
+------------------------|----------|-------------|--------
+errata (emulamer)       | End screen should slow reveal but quick revelals instead. Cause unknown.
+Uncensored (booze)      | Does not advance on disk 2 swap on my 326298 long board. Works on others. But loading directly from disk 2 does work and the rest of the demo plays.
+Edge of Disgrace        | Some garbage at the bottom of first face pic. Rest of demo plays fine.
 
 ## Other Limitations/Caveats
 
