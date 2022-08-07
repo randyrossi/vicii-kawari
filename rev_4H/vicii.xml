@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<efx:project name="vicii" description="" last_change_date="Tue July 12 2022 11:22:54" location="C:/shared/Vivado/vicii/rev_4H" sw_version="2021.2.323.3.14" last_run_state="pass" last_run_tool="efx_pgm" last_run_flow="bitstream" config_result_in_sync="true" design_ood="sync" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
+<efx:project name="vicii" description="" last_change_date="Sat August 6 2022 21:56:40" location="C:/shared/Vivado/vicii/rev_4H" sw_version="2021.2.323.3.14" last_run_state="pass" last_run_tool="efx_pgm" last_run_flow="bitstream" config_result_in_sync="true" design_ood="change" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
     <efx:device_info>
         <efx:family name="Trion"/>
         <efx:device name="T20Q144"/>
-        <efx:timing_model name="I4"/>
+        <efx:timing_model name="C3"/>
     </efx:device_info>
     <efx:design_info def_veri_version="verilog_2k" def_vhdl_version="vhdl_2008">
         <efx:top_module name="top"/>
