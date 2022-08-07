@@ -279,7 +279,7 @@ You can reset the board by temporarily shorting the jumper pads labeled 'Reset' 
 
 Not really. That's up to you. That's why the project is open source.  Consider my 'MAIN' variant one possibility of what you can do with the device.  However, since my features take up practically all the fabric, you would most likely have to disable some of my 'extras' in favor of yours.
 
-## Hardware Compatibility Updates
+## Hardware Compatibility Matrix
 
 Hardware                    | Status
 ----------------------------|----------------------------------
@@ -293,8 +293,10 @@ Link232 Wifi Cartridge      | Works but requires motherboard clock jumper settin
 Turbo Chameleon             | Reported not working
 SaRuMan DRAM Replacement    | Not working with v1.5 firmware on long boards. Can be made to work with a CAS/RAM timing change. Testing on a 250407 board is underway (Aug 6, 2022)
 
+## Software Compatibility Matrix
+
 Software                | Status 
-------------------------|----------|-------------|--------
+------------------------|----------
 errata (emulamer)       | End screen should slow reveal but quick revelals instead. Cause unknown.
 Uncensored (booze)      | Does not advance on disk 2 swap on my 326298 long board. Works on others. But loading directly from disk 2 does work and the rest of the demo plays.
 Edge of Disgrace        | Some garbage at the bottom of first face pic. Rest of demo plays fine.
