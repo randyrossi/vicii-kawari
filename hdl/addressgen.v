@@ -39,6 +39,19 @@
 // first (old bmm) address. (The glitch can't happen too soon after
 // CAS falls because it is delayed to RAM.)
 
+// TODO: Run a full test of all long boards using SARUMAN_TIMING
+// and remove this condition if all tests pass.
+`ifdef SARUMAN_TIMING
+`define RAS_RISE 0
+`define RAS_FALL 5
+`define CAS_RISE_P 0 // See below for reason for _P and _N
+`define CAS_FALL_P 7
+`define CAS_RISE_N 1 // See below for reason for _P and _N
+`define CAS_FALL_N 8
+`define CAS_GLITCH 10
+`define MUX_ROW 3
+`define MUX_COL 6
+`else
 `define RAS_RISE 0
 `define RAS_FALL 5
 `define CAS_RISE_P 15 // See below for reason for _P and _N
@@ -48,6 +61,7 @@
 `define CAS_GLITCH 10
 `define MUX_ROW 3
 `define MUX_COL 6
+`endif
 
 // Address generation
 module addressgen(
