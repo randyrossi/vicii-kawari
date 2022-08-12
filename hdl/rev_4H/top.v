@@ -13,13 +13,6 @@ module top(
        input clk_col16x_pal, // from pll
        input clk_dot4x_pal, // from pll
 
-`ifdef USE_MUX_HACK
-       output reg ntsc_dot, // throw away signal for mux hack
-       output reg pal_dot, // throw away signal for mux hack
-       output reg ntsc_col, // throw away signal for mux hack
-       output reg pal_col, // throw away signal for mux hack
-`endif
-
        // If we are generating luma/chroma, add outputs
 `ifdef GEN_LUMA_CHROMA
            output luma_sink,     // luma current sink
@@ -74,9 +67,7 @@ module top(
 
            input ce,            // chip enable (LOW=enable, HIGH=disabled)
            input rw,            // read/write (LOW=write, HIGH=read)
-
-           output rw_ctl,     // don't have this on this model
-
+           output rw_ctl,
            output irq,          // irq
            input lp,            // light pen
            output aec,          // aec
@@ -127,6 +118,11 @@ EFX_GBUFCE mux2(
     .I(chip[0] ? clk_col16x_pal : clk_col16x_ntsc),
     .O(clk_col16x)
     );
+
+(* syn_preserve = "true" *) reg ntsc_dot;// throw away signal for mux hack
+(* syn_preserve = "true" *) reg pal_dot; // throw away signal for mux hack
+(* syn_preserve = "true" *) reg ntsc_col; // throw away signal for mux hack
+(* syn_preserve = "true" *) reg pal_col; // throw away signal for mux hack
 
 // This is a bit of a hack.  The Efinity toolchain does
 // not like us using  our generated clocks only in the
@@ -219,6 +215,8 @@ vicii vic_inst(
           .ras(ras),
           .ls245_data_dir(ls245_data_dir),
           .ls245_addr_dir(ls245_addr_dir),
+          //.ls245_data_oe(ls245_data_oe),
+          //.ls245_addr_oe(ls245_addr_oe),
           .vic_write_db(vic_write_db),
           .vic_write_ab(vic_write_ab)
       );

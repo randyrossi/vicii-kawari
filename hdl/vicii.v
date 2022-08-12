@@ -72,6 +72,8 @@ module vicii
            output ls245_addr_dir,
            output vic_write_db,
            output vic_write_ab,
+           //output ls245_addr_oe,
+           //output ls245_data_oe,
 `ifdef WITH_EXTENSIONS
 `ifdef HAVE_FLASH
            output flash_s,
@@ -780,6 +782,11 @@ assign vic_write_ab = ~(aec | aec3);
 // For data bus direction, use inverse of vic_write_db
 assign ls245_data_dir = ~vic_write_db;
 assign ls245_addr_dir = ~vic_write_ab;
+
+// When AEC is high, engage address/data lines only if CE is low
+// When AEC is low, VIC owns bus so we engage address/data lines
+//assign ls245_addr_oe = aec ? ce : 1'b0;
+//assign ls245_data_oe = aec ? ce : 1'b0;
 
 // Handle cycles that perform data bus accesses
 bus_access vic_bus_access(
