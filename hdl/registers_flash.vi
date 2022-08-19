@@ -6,14 +6,14 @@
 // from the peripheral on the FALLING edge.
 //
 // Notes:
-// do 64 times
+// do sizeof(flash_page_ctr) times (64 for spartan, 16 for efinix)
 //    WREN
 //    WRITE (data from video ram)
 //    READ STATUS, LOOP UNTIL NOT BUSY
 //    advance addr by 256 bytes
 // done
 // reset addr back to start
-// do 64 times
+// do sizeof(flash_page_ctr) times (64 for spartan, 16 for efinix)
 //    PAGE READ (compare to video ram)
 //    advance addr by 256 bytes
 // done

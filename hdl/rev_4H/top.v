@@ -75,7 +75,7 @@ module top(
            input ce,            // chip enable (LOW=enable, HIGH=disabled)
            input rw,            // read/write (LOW=write, HIGH=read)
 
-           //output rw_ctl,     // don't have this on this model
+           output rw_ctl,     // don't have this on this model
 
            output irq,          // irq
            input lp,            // light pen
@@ -162,7 +162,6 @@ wire vic_write_ab;
 wire vic_write_db;
 
 wire [1:0] chip;
-wire rw_ctl;
 
 // Instantiate the vicii with our clocks and pins.
 vicii vic_inst(

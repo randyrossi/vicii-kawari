@@ -238,8 +238,9 @@ begin
                     hires_is_background_pixel <= !hires_pixel_value;
                 end
                 3'b001: begin
-                    // 640x200 with 8x8 color cells. Uses only lower 4 bits of color as
-                    // color index. 'shifting' here is not really shifting
+                    // 640x200 with 8x8 color cells. Uses only lower 4 bits of
+                    // color as color index. 'shifting' here is not really
+                    // shifting
                     hires_pixel_color1 <=
                         hires_pixel_value ? hires_color_shifting[3:0] : b0c_d2;
                     hires_is_background_pixel <= !hires_pixel_value;

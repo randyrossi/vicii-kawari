@@ -1,4 +1,4 @@
-Efinix Trion project files
+Large Board - Efinix Trion project files
 
 IMPORTANT: Make sure bistream generation has SPI 4X
 selected in the project's settings.  Otherwise, the

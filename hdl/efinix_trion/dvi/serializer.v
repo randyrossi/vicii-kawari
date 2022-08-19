@@ -38,7 +38,7 @@ module serializer
         
     // Propagate the slow clock load signal onto a shift register
     // using the fast clock.
-    (* async_reg = "true" *) reg [9:0] tmds_control_synchronizer_chain = 10'd0;
+    reg [9:0] tmds_control_synchronizer_chain = 10'd0;
     always @(posedge clk_pixel_x10)
         tmds_control_synchronizer_chain <= {tmds_control,
             tmds_control_synchronizer_chain[9:1]};

@@ -177,4 +177,13 @@
 // Requires HIRES_MODES.
 `define WITH_BLITTER
 
+// SARUMAN_TIMING
+// --------------
+// Change CAS/RAS timing to match 8562/8565
+// This fixed SaRuMan issues on a 250407 SixtyClone
+// board.  Possibly also fixes Jan Beta's 250466
+// SixtyClone board.  If all tests pass, we
+// should just switch to this timing.
+//`define SARUMAN_TIMING
+
 `endif // config_vh_
