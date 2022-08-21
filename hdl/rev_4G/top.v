@@ -248,11 +248,13 @@ vicii vic_inst(
           .aec(aec),
           .irq(irq),
           .lp(lp),
-          .ba(ba),
+          .ba_d2(ba),
           .cas(cas),
           .ras(ras),
           .ls245_data_dir(ls245_data_dir),
           .ls245_addr_dir(ls245_addr_dir),
+          //.ls245_data_oe(ls245_data_oe),
+          //.ls245_addr_oe(ls245_addr_oe),
           .vic_write_db(vic_write_db),
           .vic_write_ab(vic_write_ab)
       );
