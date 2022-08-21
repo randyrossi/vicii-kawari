@@ -1,5 +1,6 @@
-Releases
---------
+Firmware Releases
+-----------------
+You can check your firmware version using the CONFIG utilty program.
 
 # Beta Board
 

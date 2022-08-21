@@ -1,5 +1,7 @@
 # Firmware History
 
+Download firmware updates here: [README.md](../disks/util/flash/README.md)
+
 ## 1.5
 
 - identical to 1.4 except active image
