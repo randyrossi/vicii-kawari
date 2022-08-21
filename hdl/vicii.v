@@ -65,7 +65,7 @@ module vicii
            output irq,
            input lp,
            output reg aec,
-           output reg ba,
+           output reg ba_d2, // output a delayed ba signal to match genuine
            output ras,
            output cas,
            output ls245_data_dir,
@@ -639,9 +639,19 @@ always @(*) begin
     end
 end
 
+// Used internally. For external ba, use ba_d2.
+reg ba;
 // Drop BA if either chars or sprites need it.
 always @(posedge clk_dot4x)
     ba <= ba_chars & (ba_sprite == 0);
+
+// Produce a delayed version of ba for output. 2 ticks to match genuine.
+reg ba_d1;
+always @(posedge clk_dot4x)
+begin
+    ba_d1 <= ba;
+    ba_d2 <= ba_d1;
+end
 
 // Cascade ba through three cycles, making sure
 // aec is lowered 3 cycles after ba went low
@@ -741,16 +751,16 @@ sprites vic_sprites(
 
 
 // AEC LOW tells CPU to tri-state its bus lines
-// AEC will remain HIGH during PHI phase 2 for 3 cycles
-// after which it will remain LOW with ba.
-// Provide a delayed version of aec
+// AEC will remain HIGH during PHI phase 2 for one extra cycle
+// after which it will remain LOW with ba. This extra cycle
+// seems to quell noise at the start of AEC low cycle (source
+// remains a mystery)
+// Provide a delayed version of aec in aec2
 reg aec2;
-reg aec3;
 always @(posedge clk_dot4x)
 begin
     aec <= ba ? clk_phi : ba3 & clk_phi;
     aec2 <= aec;
-    aec3 <= aec2;
 end
 
 // For reference, on LS245's:
@@ -775,9 +785,9 @@ assign vic_write_db = (rw && ~ce);
 // AEC low means we own the address bus so we can write to it.
 // For address bus direction pin, use aec,
 // This used to be simply ~aec.  But instead we use
-// ~(aec | aec3) so that we switch to output a couple ticks after aec
+// ~(aec | aec2) so that we switch to output an extra tick after aec
 // falls but still switch back to input with rising aec.
-assign vic_write_ab = ~(aec | aec3);
+assign vic_write_ab = ~(aec | aec2);
 
 // For data bus direction, use inverse of vic_write_db
 assign ls245_data_dir = ~vic_write_db;

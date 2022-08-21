@@ -248,7 +248,7 @@ vicii vic_inst(
           .aec(aec),
           .irq(irq),
           .lp(lp),
-          .ba(ba),
+          .ba_d2(ba),
           .cas(cas),
           .ras(ras),
           .ls245_data_dir(ls245_data_dir),

@@ -41,26 +41,48 @@
 
 // TODO: Run a full test of all long boards using SARUMAN_TIMING
 // and remove this condition if all tests pass.
+// See below for reason for RAS _P and _N rise/fall
 `ifdef SARUMAN_TIMING
+// Tested with 250407 + SaRuMan. Waiting to hear back if this fixes
+// Jan Beta 250466 + SaRuMan issue.
 `define RAS_RISE 0
 `define RAS_FALL 5
-`define CAS_RISE_P 0 // See below for reason for _P and _N
+`define CAS_RISE_P 0
 `define CAS_FALL_P 7
-`define CAS_RISE_N 1 // See below for reason for _P and _N
+`define CAS_RISE_N 1
 `define CAS_FALL_N 8
 `define CAS_GLITCH 10
 `define MUX_ROW 3
 `define MUX_COL 6
 `else
+`ifdef MK2_TIMING
+// Tested on MK2 Reloaded
+// Will cause slight gltiches on real C64 boards for programs that rely on
+// the CAS_GLITCH as it is likely too late in the cycle to result in data
+// valid at [0]. This is of minor consequence as I'm not aware of any (good)
+// demos that use it. (emulamer doesn't count)
+`define RAS_RISE 0
+`define RAS_FALL 7
+`define CAS_RISE_P 15
+`define CAS_FALL_P 9
+`define CAS_RISE_N 0
+`define CAS_FALL_N 10
+`define CAS_GLITCH 11
+`define MUX_ROW 3
+`define MUX_COL 9
+`else
+// Default 'real' motherboard timing. Tested on 250407,326298,250425.
+// Assumed working on KU-14194H but not physically tested.
 `define RAS_RISE 0
 `define RAS_FALL 5
-`define CAS_RISE_P 15 // See below for reason for _P and _N
+`define CAS_RISE_P 15 
 `define CAS_FALL_P 7
-`define CAS_RISE_N 0 // See below for reason for _P and _N
+`define CAS_RISE_N 0
 `define CAS_FALL_N 8
 `define CAS_GLITCH 10
 `define MUX_ROW 3
 `define MUX_COL 6
+`endif
 `endif
 
 // Address generation
@@ -192,6 +214,31 @@ begin
             vic_addr_now = vic_addr;
         end
     endcase
+
+    // Address out
+    // ROW first, COL second
+    // This makes ado valid as early as MUX_ROW + 1
+    if (!aec) begin
+        if (phi_phase_start[`MUX_ROW]) begin
+            ado <= {vic_addr[11:8], vic_addr[7:0] };
+        end else if (phi_phase_start[`MUX_COL]) begin
+            ado <= {vic_addr[11:8], {2'b11, vic_addr[13:8]}};
+        end else if (phi_phase_start[`CAS_GLITCH]) begin
+            // This is the post CAS address change glitch. The 8565 would not
+            // do this.  If you want to 'fix' the 6569 bug, remove this block.
+            ado <= {vic_addr_now[11:8], {2'b11, vic_addr_now[13:8]}};
+        end
+    end
+    else begin
+        // Apparently, if we don't do this at the beginning of our low AEC
+        // cycles, we get a lot of noisy address lines near the time the
+        // MK2 board wants to pick up the row address. It's not clear why
+        // this noise is present in the first place as we should own the
+        // bus at the time AEC goes low. So there should be no contention
+        // from any other device (i.e. CPU).
+        if (phi_phase_start[0])
+            ado <= 12'b0;
+    end
 end
 
 always @(posedge clk_dot4x)
@@ -228,23 +275,5 @@ always @(negedge clk_dot4x)
         cas_n <= 1'b0;
 
 assign cas = cas_p | cas_n;
-
-// Address out
-// ROW first, COL second
-// Don't bother changing address for COL on refresh cycles
-// because it makes no difference.
-always @(posedge clk_dot4x) begin
-    if (!aec) begin
-        if (phi_phase_start[`MUX_ROW]) begin
-            ado <= {vic_addr[11:8], vic_addr[7:0] };
-        end else if (phi_phase_start[`MUX_COL]) begin
-            ado <= {vic_addr[11:8], {2'b11, vic_addr[13:8]}};
-        end else if (phi_phase_start[`CAS_GLITCH]) begin
-            // This is the post CAS address change glitch. The 8565 would not
-            // do this.  If you want to 'fix' the 6569 bug, remove this block.
-            ado <= {vic_addr_now[11:8], {2'b11, vic_addr_now[13:8]}};
-        end
-    end
-end
 
 endmodule
