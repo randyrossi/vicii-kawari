@@ -1,4 +1,4 @@
-<b><p align=center> STATUS Aug 5, 2022: 44 'Mini' boards and 7 'Large' boards were sold. I am taking a break to await feedback and possibly address more compatibility issues if/when they arise. If people are generally satisfied with the performance of the device, I will put in another order for a larger batch of 'Mini' and 'POV' devices. </p></b>
+<b><p align=center> STATUS Aug 20, 2022: I've put in an order for 200 'Mini' boards. I was also able to get both the large and mini boards working with the MK2 Reloaded. I also fixed an issue with SaRuMan on 250407 (and possibly others). Firmware update pending. I may set up an online store front instead of selling on eBay.</p></b>
 
 # VIC-II Kawari
 
@@ -285,13 +285,13 @@ Hardware                    | Status
 ----------------------------|----------------------------------
 Kung Fu Flash Cartridge     | Working as of v1.5 on all long board motherboard revisions I've tested.
 SuperCPU                    | Works as long as the motherboard clock is used (jumper setting). Will not work with on-board oscillators.
-MK2 Reloaded                | Not working. Does not detect VIC model. Shows signs of DRAM timing issues.
+MK2 Reloaded                | Have firmware update that will work. Check back later for update.
 The Final Cartridge         | No issues discovered so far.
 Ultimate 1541               | No issues discovered so far.
 Pi1541                      | Must turn off GraphIEC feature or else some demos will fail (same with real VIC-II's)
 Link232 Wifi Cartridge      | Works but requires motherboard clock jumper setting. Will not work with on-board oscillators.
 Turbo Chameleon             | Reported not working
-SaRuMan DRAM Replacement    | Not working with v1.5 firmware on long boards. Can be made to work with a CAS/RAM timing change. Testing on a 250407 board is underway (Aug 6, 2022)
+SaRuMan DRAM Replacement    | Can be made to work with a CAS/RAM timing change. Testing on a 250407 board is underway (Aug 6, 2022). Check back later for update.
 
 ## Software Compatibility Matrix
 
@@ -299,7 +299,7 @@ Software                | Status
 ------------------------|----------
 errata (emulamer)       | End screen should slow reveal but quick revelals instead. Cause unknown.
 Uncensored (booze)      | Does not advance on disk 2 swap on my 326298 long board. Works on others. But loading directly from disk 2 does work and the rest of the demo plays.
-Edge of Disgrace        | Some garbage at the bottom of first face pic. Rest of demo plays fine.
+Edge of Disgrace        | Some garbage at the bottom of first face pic on 326298 & 250245. Rest of demo plays fine. Problem does not happen on 250407.
 
 ## Other Limitations/Caveats
 

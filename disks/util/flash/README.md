@@ -6,43 +6,34 @@ Releases
 The beta-board was sent to 10 individuals as part of a beta program for testing.
 It has the label VICII-Kawari-B X16-M9516-W25Q16-001
 
-[0.7 fallback](https://accentual.com/vicii-kawari/downloads/flash/T/kawari_flash_0.7_T_golden.zip) \
-[0.8 active](https://accentual.com/vicii-kawari/downloads/flash/T/kawari_flash_0.8_T_multiboot.zip)
+[1.4 fallback](https://accentual.com/vicii-kawari/downloads/flash/T/kawari_flash_1.4_T_golden.zip) \
+[1.5 active](https://accentual.com/vicii-kawari/downloads/flash/T/kawari_flash_1.5_T_multiboot.zip)
 
-NOTE: The 0.7 fallback image fixes a problem with 0.1 fallback image which was not capable of flashing updates. If your CONFIG util reports 0.2, you should flash this image. Then flash 0.8. Otherwise, you can just flash 0.8.
+NOTE: 0.1 fallback images on the first beta boards had a flashing bug. If your active image reports 0.2, you should flash 1.4 image as well as 1.5.
 
 # Final Spartan6 Large (Fully Featured) Board
 
-This board is the final hardware revision using the Spartan6 FPGA. It has the label VICII-Kawari-4L
-X16-M9516-W25Q16-002.
+This board is the final hardware revision using the Spartan6 FPGA. It has the label VICII-Kawari-4L X16-M9516-W25Q16-002.
 
-[1.1 active](https://accentual.com/vicii-kawari/downloads/flash/LD/kawari_flash_1.1_LD_multiboot.zip)
+[1.5 active](https://accentual.com/vicii-kawari/downloads/flash/LD/kawari_flash_1.5_LD_multiboot.zip)
 
-Notes
------
+# Final Trion Mini (Luma/Chroma only) Board
 
-Generate Kawari flash disks with this util
+This board is labeled VICII-Kawari LH Revision 1.3
 
-To generate a multiboot (active) image, change Makefile params as follows:
-
-    START_ADDRESS=512000
-    SOURCE_IMG=kawari_multiboot_$(VERSION).bit
-
-To generate a golden (fallback) image, change Makefile params as follows
-
-    START_ADDRESS=0
-    SOURCE_IMG=kawari_golden_$(VERSION).bit
-
-Golden images should not be updated normally. But the very first golden image on the beta boards had a flashing bug.
+[1.5 active](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.5_LH_multiboot.zip)
 
 History
 -------
 
 Version | Type | Notes
 --------|------|------
-0.1 | Fallback | shipped with most beta boards
-0.2 | Active   | shipped with most beta boards
-0.3 | Fallback | shipped with some beta boards
-0.4 | Active   | shipped with some beta boards
-0.7 | Fallback | fixes flashing issue on beta board fallback image
-0.8 | Active   | first published update for beta board
+0.1 | Fallback | (beta) shipped with most beta boards
+0.2 | Active   | (beta) shipped with most beta boards
+0.3 | Fallback | (beta) shipped with some beta boards
+0.4 | Active   | (beta) shipped with some beta boards
+0.7 | Fallback | (beta) fixes flashing issue on beta board fallback image
+0.8 | Active   | (beta) first published update for beta board
+1.4 | Fallback | first release with all features
+1.5 | Active   | first release with all features
+
