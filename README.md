@@ -284,7 +284,8 @@ Not really. That's up to you. That's why the project is open source.  Consider m
 Hardware                    | Status
 ----------------------------|----------------------------------
 Kung Fu Flash Cartridge     | Working as of v1.5 on all long board motherboard revisions I've tested.
-SuperCPU                    | Works as long as the motherboard clock is used (jumper setting). Will not work with on-board oscillators.
+SuperCPU                    | Tested and works as long as the motherboard clock is used (jumper setting). Will not work with on-board oscillators.
+REU                         | Untested but should works as long as the motherboard clock is used.
 MK2 Reloaded                | Have firmware update that will work. Check back later for update.
 The Final Cartridge         | No issues discovered so far.
 Ultimate 1541               | No issues discovered so far.
