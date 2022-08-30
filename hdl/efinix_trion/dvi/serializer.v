@@ -35,12 +35,18 @@ module serializer
     reg tmds_control = 1'd0;
     always @(posedge clk_pixel)
         tmds_control <= !tmds_control;
+
+    // Clock domain crossing
+    reg tmds_control_1;
+    reg tmds_control_2;
+    always @(posedge clk_pixel_x10) tmds_control_1 <= tmds_control;
+    always @(posedge clk_pixel_x10) tmds_control_2 <= tmds_control_1;
         
     // Propagate the slow clock load signal onto a shift register
     // using the fast clock.
     reg [9:0] tmds_control_synchronizer_chain = 10'd0;
     always @(posedge clk_pixel_x10)
-        tmds_control_synchronizer_chain <= {tmds_control,
+        tmds_control_synchronizer_chain <= {tmds_control_2,
             tmds_control_synchronizer_chain[9:1]};
 
     // Trigger load signal when we see a transition on the shift register.
@@ -50,12 +56,26 @@ module serializer
     assign load = 
        tmds_control_synchronizer_chain[1] ^ tmds_control_synchronizer_chain[0];
 
+    // Clock domain crossing
+    reg[9:0] tmds_internal0_1;
+    reg[9:0] tmds_internal0_2;
+    reg[9:0] tmds_internal1_1;
+    reg[9:0] tmds_internal1_2;
+    reg[9:0] tmds_internal2_1;
+    reg[9:0] tmds_internal2_2;
+    always @(posedge clk_pixel_x10) tmds_internal0_1 <= tmds_internal0;
+    always @(posedge clk_pixel_x10) tmds_internal0_2 <= tmds_internal0_1;
+    always @(posedge clk_pixel_x10) tmds_internal1_1 <= tmds_internal1;
+    always @(posedge clk_pixel_x10) tmds_internal1_2 <= tmds_internal1_1;
+    always @(posedge clk_pixel_x10) tmds_internal2_1 <= tmds_internal2;
+    always @(posedge clk_pixel_x10) tmds_internal2_2 <= tmds_internal2_1;
+
     // Fast clock picks up the data on load signal, just as we finished
     // shifting out the last but from the previous load.
     always @(posedge clk_pixel_x10) begin
-       tmds_shift0 <= load ? tmds_internal0 : tmds_shift0 >> 1;
-       tmds_shift1 <= load ? tmds_internal1 : tmds_shift1 >> 1;
-       tmds_shift2 <= load ? tmds_internal2 : tmds_shift2 >> 1;
+       tmds_shift0 <= load ? tmds_internal0_2 : tmds_shift0 >> 1;
+       tmds_shift1 <= load ? tmds_internal1_2 : tmds_shift1 >> 1;
+       tmds_shift2 <= load ? tmds_internal2_2 : tmds_shift2 >> 1;
     end
 
     // This is a fast clock generator signal
