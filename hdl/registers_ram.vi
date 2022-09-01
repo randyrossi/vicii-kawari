@@ -401,38 +401,70 @@ task write_ram(
                     `EXT_REG_TIMING_CHANGE:
                         timing_change <= data[0];
 
-                    8'hd0:
+                    8'hd0: begin
                         timing_h_blank_ntsc <= data;
-                    8'hd1:
+                        persist_eeprom(do_persist, ram_lo, data);
+                    end
+                    8'hd1: begin
                         timing_h_fporch_ntsc <= data;
-                    8'hd2:
+                        persist_eeprom(do_persist, ram_lo, data);
+                    end
+                    8'hd2: begin
                         timing_h_sync_ntsc <= data;
-                    8'hd3:
+                        persist_eeprom(do_persist, ram_lo, data);
+                    end
+                    8'hd3: begin
                         timing_h_bporch_ntsc <= data;
-                    8'hd4:
+                        persist_eeprom(do_persist, ram_lo, data);
+                    end
+                    8'hd4: begin
                         timing_v_blank_ntsc <= data;
-                    8'hd5:
+                        persist_eeprom(do_persist, ram_lo, data);
+                    end
+                    8'hd5: begin
                         timing_v_fporch_ntsc <= data;
-                    8'hd6:
+                        persist_eeprom(do_persist, ram_lo, data);
+                    end
+                    8'hd6: begin
                         timing_v_sync_ntsc <= data;
-                    8'hd7:
+                        persist_eeprom(do_persist, ram_lo, data);
+                    end
+                    8'hd7: begin
                         timing_v_bporch_ntsc <= data;
-                    8'hd8:
+                        persist_eeprom(do_persist, ram_lo, data);
+                    end
+                    8'hd8: begin
                         timing_h_blank_pal <= data;
-                    8'hd9:
+                        persist_eeprom(do_persist, ram_lo, data);
+                    end
+                    8'hd9: begin
                         timing_h_fporch_pal <= data;
-                    8'hda:
+                        persist_eeprom(do_persist, ram_lo, data);
+                    end
+                    8'hda: begin
                         timing_h_sync_pal <= data;
-                    8'hdb:
+                        persist_eeprom(do_persist, ram_lo, data);
+                    end
+                    8'hdb: begin
                         timing_h_bporch_pal <= data;
-                    8'hdc:
+                        persist_eeprom(do_persist, ram_lo, data);
+                    end
+                    8'hdc: begin
                         timing_v_blank_pal <= data;
-                    8'hdd:
+                        persist_eeprom(do_persist, ram_lo, data);
+                    end
+                    8'hdd: begin
                         timing_v_fporch_pal <= data;
-                    8'hde:
+                        persist_eeprom(do_persist, ram_lo, data);
+                    end
+                    8'hde: begin
                         timing_v_sync_pal <= data;
-                    8'hdf:
+                        persist_eeprom(do_persist, ram_lo, data);
+                    end
+                    8'hdf: begin
                         timing_v_bporch_pal <= data;
+                        persist_eeprom(do_persist, ram_lo, data);
+                    end
 `endif
                     default: ;
                 endcase

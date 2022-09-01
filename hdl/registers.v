@@ -538,8 +538,8 @@ begin
         timing_change <= 1'b0;
         timing_h_blank_ntsc <= 0;
         timing_h_fporch_ntsc <= 10;
-        timing_h_sync_ntsc <= 60;
-        timing_h_bporch_ntsc <= 10;
+        timing_h_sync_ntsc <= 70;
+        timing_h_bporch_ntsc <= 20;
         timing_v_blank_ntsc <= 11;
         timing_v_fporch_ntsc <= 8;
         timing_v_sync_ntsc <= 3;
