@@ -215,6 +215,7 @@ begin
         end
     endcase
 
+`ifdef MK2_TIMING
     // Address out
     // ROW first, COL second
     // This makes ado valid as early as MUX_ROW + 1
@@ -239,6 +240,7 @@ begin
         if (phi_phase_start[0])
             ado <= 12'b0;
     end
+`endif
 end
 
 always @(posedge clk_dot4x)
@@ -275,5 +277,26 @@ always @(negedge clk_dot4x)
         cas_n <= 1'b0;
 
 assign cas = cas_p | cas_n;
+
+// TODO: Consider moving this to above where MK2_TIMING is and
+// put the ifdef around the else clause instead.  For now, keep
+// this as is.
+`ifndef MK2_TIMING
+// Address out
+// ROW first, COL second
+always @(posedge clk_dot4x) begin
+    if (!aec) begin
+        if (phi_phase_start[`MUX_ROW]) begin
+            ado <= {vic_addr[11:8], vic_addr[7:0] };
+        end else if (phi_phase_start[`MUX_COL]) begin
+            ado <= {vic_addr[11:8], {2'b11, vic_addr[13:8]}};
+        end else if (phi_phase_start[`CAS_GLITCH]) begin
+            // This is the post CAS address change glitch. The 8565 would not
+            // do this.  If you want to 'fix' the 6569 bug, remove this block.
+            ado <= {vic_addr_now[11:8], {2'b11, vic_addr_now[13:8]}};
+        end
+    end
+end
+`endif
 
 endmodule
