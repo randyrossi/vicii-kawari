@@ -20,8 +20,8 @@ static int defaults[] = {
 	// ntsc
         0,  // start   0
         10,  // fporch  10
-        60,  // sync  60
-        10,  // bporch  10
+        70,  // sync  70
+        20,  // bporch  20
         11,  // start  11
         8,  // fporch   8
         3,  // sync   3
