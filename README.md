@@ -9,6 +9,11 @@ This repository contains an open source VIC-II FPGA core written in Verilog. Thr
 
 The PCB interfaces with a real C64 address and data bus through the VIC-II socket on the C64 motherboard. The board can replace all the functions of a real VIC-II chip including DRAM refresh, light pen interrupts (real CRT only), PHI2 clock source for the CPU and, of course, video output.
 
+## Resources
+
+[Discord Server](https://discord.gg/4TUd5mWP) - Chat about stuff, ask questions<br>
+[Report Issues](https://github.com/randyrossi/vicii-kawari/issues) - File bugs/issues
+
 ## Forking VIC-II Kawari?
 
 If you intend to fork VIC-II Kawari to add your own features, please read [FORKING.md](doc/FORKING.md)
