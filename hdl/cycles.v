@@ -136,5 +136,11 @@ always @(posedge clk_dot4x)
             endcase
         end
     end
-
+    // NOTE: If we need address lines set earlier in the phase, we could
+    // move the logic in addressgen.v right here and make cycle_type a blocking
+    // assignment.  Provided there is enough time in one tick to do all this
+    // work, that would get ado set ~30ns earlier. However, there seems to be
+    // a lot instability early in the phase for some unknown reason and not
+    // sure we can set ado any earlier.  It might be due to the transceivers
+    // just having switched direction from input to output.
 endmodule

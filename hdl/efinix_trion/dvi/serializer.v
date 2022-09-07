@@ -32,29 +32,15 @@ module serializer
     // positive edge of the slow clock.  The tmds_control flag
     // toggles each posedge and we will detect transitions on
     // the fast clock to signal load.
-    reg tmds_control = 1'd0;
-    always @(posedge clk_pixel)
-        tmds_control <= !tmds_control;
-
-    // Clock domain crossing
-    reg tmds_control_1;
-    reg tmds_control_2;
-    always @(posedge clk_pixel_x10) tmds_control_1 <= tmds_control;
-    always @(posedge clk_pixel_x10) tmds_control_2 <= tmds_control_1;
-        
-    // Propagate the slow clock load signal onto a shift register
-    // using the fast clock.
-    reg [9:0] tmds_control_synchronizer_chain = 10'd0;
+    reg[9:0] tmds_control = 10'b0000000001;
     always @(posedge clk_pixel_x10)
-        tmds_control_synchronizer_chain <= {tmds_control_2,
-            tmds_control_synchronizer_chain[9:1]};
+        tmds_control <= { tmds_control[0], tmds_control[9:1] };
 
     // Trigger load signal when we see a transition on the shift register.
     // This will latch the data from tmds_internal just as we shift
     // the last bit of the previous data.
     wire load;
-    assign load = 
-       tmds_control_synchronizer_chain[1] ^ tmds_control_synchronizer_chain[0];
+    assign load = tmds_control[0];
 
     // Clock domain crossing
     reg[9:0] tmds_internal0_1;

@@ -313,19 +313,19 @@ wire [8:0] chroma9;
 always @(posedge clk_col16x)
 begin
     if (raster_y_16 != prev_raster_y) begin
-        need_burst = 1;
+        need_burst <= 1;
     end
     prev_raster_y <= raster_y_16;
 
     if (raster_x_16 >= `BURST_START && need_burst)
-        in_burst = 1;
+        in_burst <= 1;
 
     if (in_burst)
     begin
         burstCount <= burstCount + 1'b1;
         if (burstCount == 144) begin // 9 periods * 16 samples for one period
-            in_burst = 0;
-            need_burst = 0;
+            in_burst <= 0;
+            need_burst <= 0;
             burstCount <= 0;
         end
     end
