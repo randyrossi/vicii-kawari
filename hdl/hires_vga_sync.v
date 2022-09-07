@@ -303,8 +303,8 @@ task set_params();
                 // WIDTH 520  HEIGHT 263
                 ha_end=11'd0;  // start   0
                 hs_sta=11'd10;  // fporch  10
-                hs_end=11'd70;  // sync  60
-                ha_sta=11'd80;  // bporch  10
+                hs_end=11'd80;  // sync  70
+                ha_sta=11'd100;  // bporch  20
                 va_end=10'd11;  // start  11
                 vs_sta=10'd19;  // fporch   8
                 vs_end=10'd22;  // sync   3
@@ -316,8 +316,8 @@ task set_params();
                 // WIDTH 512  HEIGHT 262
                 ha_end=11'd0;  // start   0
                 hs_sta=11'd10;  // fporch  10
-                hs_end=11'd70;  // sync  60
-                ha_sta=11'd80;  // bporch  10
+                hs_end=11'd80;  // sync  70
+                ha_sta=11'd100;  // bporch  20
                 va_end=10'd11;  // start  11
                 vs_sta=10'd19;  // fporch   8
                 vs_end=10'd22;  // sync   3
