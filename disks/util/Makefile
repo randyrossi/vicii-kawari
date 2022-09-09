@@ -15,6 +15,7 @@ kawari_util_1: subdirs
 	#c1541 -attach kawari_util_1.d64 -write tests/flashtest/flashtest.prg flashtest
 	c1541 -attach kawari_util_1.d64 -write 80col/80col-51200.prg 80col-51200
 	c1541 -attach kawari_util_1.d64 -write novaterm/kawari.ml 80col.kawari
+	c1541 -attach kawari_util_1.d64 -write ansii/ansii.prg ansii
 	c1541 -attach kawari_util_1.d64 -list
 
 subdirs:
@@ -23,6 +24,7 @@ subdirs:
 	$(MAKE) -C 80col
 	$(MAKE) -C novaterm
 	$(MAKE) -C tests
+	$(MAKE) -C ansii
 
 clean:
 	$(MAKE) -C config clean
@@ -32,4 +34,5 @@ clean:
 	$(MAKE) -C novaterm clean
 	$(MAKE) -C tests clean
 	$(MAKE) -C flash clean
+	$(MAKE) -C ansii clean
 	rm -f *.d64
