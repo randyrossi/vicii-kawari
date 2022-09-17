@@ -186,4 +186,19 @@
 // should just switch to this timing.
 //`define SARUMAN_TIMING
 
+// MK2_TIMING
+// ----------
+// Change timing to work with MK2 Reloaded board
+//`define MK2_TIMING
+
+// ANALOG_RGB_TIMING
+// ----------------------
+// If set, will adjust hblank timing to compensate
+// for loss of color on some monitors. Should be used
+// for builds that have Analog RGB out activated.
+// Otherwise, timing that centers NTSC displays
+// for DVI is used.  Will still work with DVI but
+// NTSC will be shifted to the left a bit.
+//`define ANALOG_RGB_TIMING
+
 `endif // config_vh_
