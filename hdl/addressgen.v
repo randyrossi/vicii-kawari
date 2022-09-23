@@ -68,7 +68,7 @@
 `define CAS_RISE_N 0
 `define CAS_FALL_N 10
 `define CAS_GLITCH 11
-`define MUX_ROW 3
+`define MUX_ROW 2
 `define MUX_COL 9
 `else
 // Default 'real' motherboard timing. Tested on 250407,326298,250425.
