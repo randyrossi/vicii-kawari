@@ -105,6 +105,25 @@ You can try these xrandr commands on Linux to test out a 50hz mode very similar 
     xrandr --addmode DP-1 my50hzmode
     xrandr --output DP-1 --mode my50hzmode
 
+## DVI limitations
+
+### DVI Limitations Summary
+
+1. May not work on older monitors or TVs (non-standard resolutions)
+2. You won't get a 4:3 aspect ratio unless your display has the option
+3. You may have to turn off the display or use an HDMI switch to boot the C64
+4. Using the motherboard oscillator may result in loss of sync
+
+### DVI Limitations Details
+
+1. The resolution/timing the board outputs is not a standard resolution.  Some older TVs/monitors may not sync to it.  Some HD Capture cards only accept standard resolutions as well (like 720p or 1080p) and will also not sync.
+
+2. The display will be horizontally stretched on most HDMI displays.  You will not be able to get a perfect 4:3 aspect ratio.  Some displays have a aspect ratio option that can yield a better result. There are no plans to do any processing on the output (i.e. scaling).
+
+3. HDMI monitors can power the FPGA core through the HDMI cable.  This prevents the core from booting properly (or sometimes booting at all).  It's an unwanted side-effect of driving the TMDS lines directly from the FPGA core.  This device is not an HDMI device, it is DVI over an HDMI connector. A buffer IC is required to avoid this but would add more cost to the board. The work around is to either power off the monitor or use an HDMI switch.
+
+4. The quality of the mother board clock is not sufficient to derive the 40x dot clock required for the DVI signals.  It appears the high jitter on the crystal is the cause.  The motherboard clock was never meant to go through a clock multiplier to high frequencies.  This appears to cause sync loss especially on NTSC boards.  For this reason, the on-board oscillators should be used to drive the digital display modes.
+
 ## What chip models can this replace?
 The 'Large' and 'Mini' models can replace the 6567R8(NTSC),6567R56A(NTSC),6569R3(PAL-B),6569R1(PAL-B) models. They can assume the functionality of either video standard with a simple configuration change followed by a cold boot. This means your C64 can be both an NTSC and PAL machine. (PAL-N / PAL-M are not supported but it can be added with some hardware modifications.)  The 'POV' model cannot behave as 'old' chip models (R56A/R1) and are fixed to either a 6567R8 or 6569R3.
 
@@ -283,6 +302,14 @@ You can reset the board by temporarily shorting the jumper pads labeled 'Reset' 
 ## Can you add feature X and option Y and enhancement Z?
 
 Not really. That's up to you. That's why the project is open source.  Consider my 'MAIN' variant one possibility of what you can do with the device.  However, since my features take up practically all the fabric, you would most likely have to disable some of my 'extras' in favor of yours.
+
+## Why are changed colors not resetting after a cold boot (HDMI Cable)?
+
+The FPGA can be powered by the monitor through the HDMI cable and even though the C64 is powered off, the video card continues to run and hold the most recent color register changes.  The solution is to turn off your monitor for a few seconds and then turn on the C64/monitor again.  (Or use an HDMI switch).  This only happens if you are using the extended features.  The same is true for hi-res modes.  If you find you are 'stuck' in a hires mode, you need to cold boot (for real).
+
+## Why isn't my video standard switch working (HDMI Cable)?
+
+Same reason as above. Kawari detects the switch only after a cold boot but if your monitor is still providing power to the board, it's not really cold booting. Workaround is described above.  The same problem will happen for other 'cold boot' settings.
 
 ## Hardware Compatibility Matrix
 
