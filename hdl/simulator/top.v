@@ -106,7 +106,13 @@ wire [5:0] blue;
 // connected with a jumper.  It holds the CPU in reset
 // before the clock is locked.  TODO: Find out if this is
 // actually required.
+`ifdef USE_RESET_AS_DOT_CLOCK
+reg[3:0] dot_clock_shift = 4'b1100;
+always @(posedge clk_dot4x) dot_clock_shift <= {dot_clock_shift[2:0], dot_clock_shift[3]};
+assign cpu_reset = dot_clock_shift[3];
+`else
 assign cpu_reset = rst;
+`endif
 
 wire [7:0] dbo;
 wire [11:0] ado;

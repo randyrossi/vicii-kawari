@@ -201,4 +201,17 @@
 // NTSC will be shifted to the left a bit.
 //`define ANALOG_RGB_TIMING
 
+// USE_RESET_AS_DOT_CLOCK
+// ----------------------
+// Activate the dotclock generation hack which repurposes
+// pin 3 that reaches 74LS05 into a dot clock generator.
+// This can be bodged down to pin 21 of the vic socket
+// and provide a dot clock that will reach pin 6 of the
+// cartridge port. DO NOT activate this for motherboards
+// that have not had their clock circuits disconnected.
+// i.e. 8701 removed.  
+// !!! THIS IS NOT A SUPPORTED FEATURE !!!
+// !!! USE AT YOUR OWN RISK !!!
+`define USE_RESET_AS_DOT_CLOCK
+
 `endif // config_vh_

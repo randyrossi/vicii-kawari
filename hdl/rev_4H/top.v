@@ -83,9 +83,6 @@ module top(
 // TODO - export dot clock for RGB header
 assign clk_dot4x_ext = 1'b0;
 
-wire rst;
-assign cpu_reset = rst;
-
 `ifdef USE_MUX_HACK
 `define DOT_CLOCK_4X clk_dot4x
 `define COL_CLOCK_16X clk_col16x
@@ -93,6 +90,21 @@ assign cpu_reset = rst;
 // Fix to one or the other for testing
 `define DOT_CLOCK_4X clk_dot4x_ntsc
 `define COL_CLOCK_16X clk_col16x_ntsc
+`endif
+
+wire rst;
+`ifdef USE_RESET_AS_DOT_CLOCK
+// NOTE: This hack will only work breadbins that use
+// 8701 clock ICs and that IC MUST be removed.
+// i.e. 250425 250466
+// This will NOT currently work on short board motherboards
+// The unit with this hack should NEVER be plugged into a
+// motherboard without the clock circuit being disabled.
+reg[3:0] dot_clock_shift = 4'b1100;
+always @(posedge `DOT_CLOCK_4X) dot_clock_shift <= {dot_clock_shift[2:0], dot_clock_shift[3]};
+assign cpu_reset = dot_clock_shift[3];
+`else
+assign cpu_reset = rst;
 `endif
 
 // ======== MUX HACK ==============
