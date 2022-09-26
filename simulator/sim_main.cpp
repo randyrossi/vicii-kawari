@@ -1004,12 +1004,12 @@ int main(int argc, char** argv, char** env) {
                 0b0,
                 0b0,
                 255);
-            else
-             SDL_SetRenderDrawColor(ren,
-                (top->red << 2) | 0b11,
-                (top->green << 2) | 0b11,
-                (top->blue << 2) | 0b11,
-                255);
+            else {
+             double rr = top->red * 255.0/63.0;
+             double gg = top->green * 255.0/63.0;
+             double bb = top->blue * 255.0/63.0;
+             SDL_SetRenderDrawColor(ren, rr, gg, bb, 255);
+            }
 #else 
 #ifdef NEED_RGB
             // Show h/v sync in red
@@ -1020,12 +1020,12 @@ int main(int argc, char** argv, char** env) {
                 0b0,
                 0b0,
                 255);
-            else
-             SDL_SetRenderDrawColor(ren,
-                (top->top__DOT__red << 2) | 0b11,
-                (top->top__DOT__green << 2) | 0b11,
-                (top->top__DOT__blue << 2) | 0b11,
-                255);
+            else {
+             double rr = top->top__DOT__red * 255.0/63.0;
+             double gg = top->top__DOT__green * 255.0/63.0;
+             double bb = top->top__DOT__blue * 255.0/63.0;
+             SDL_SetRenderDrawColor(ren, rr,gg,bb,255);
+            }
 #else
 #ifdef GEN_LUMA_CHROMA
             // Fallback to native pixel sequencer's pixel3 value
