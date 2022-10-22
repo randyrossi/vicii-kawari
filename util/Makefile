@@ -9,5 +9,10 @@ rgb2hsv: rgb2hsv.o
 %.class: %.java
 	javac $<
 
+make_bin_files: make_bin_files.c
+	gcc -c ../disks/util/common/data.c -o data.o
+	gcc -c make_bin_files.c -o make_bin_files.o
+	gcc -o make_bin_files data.o make_bin_files.o
+
 clean:
 	rm -f *.o *.class rgb2hsv
