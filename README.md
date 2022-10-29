@@ -1,4 +1,4 @@
-<b><p align=center> STATUS Aug 20, 2022: I've put in an order for 200 'Mini' boards. I was also able to get both the large and mini boards working with the MK2 Reloaded. I also fixed an issue with SaRuMan on 250407 (and possibly others). Firmware update pending. I may set up an online store front instead of selling on eBay.</p></b>
+<b><p align=center> STATUS Oct 29, 2022: Starting Oct 30, 2022 @ 2pm EST, CAN/USA/NZ/AUS users can visit https://vicii-kawari.myshopify.com for sales/pre-orders.  For EU/UK users, an announcement on availability from VideoGamePerfection.com will be released soon.</p></b>
 
 # VIC-II Kawari
 
