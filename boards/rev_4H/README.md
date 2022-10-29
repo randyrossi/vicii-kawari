@@ -23,23 +23,3 @@ Active is 2.  Fallback is 0 (triggered by grounding a TP on the board)
 Generate a multi.hex file bitstream as descibed above
 and then use the util/flash directory to convert it to a .bit file
 for the Makefile to generate disks from.
-
-# POV
-
-Change Mini BOM as follows:
-
-   Omit both oscillators
-   Omit oscillator capacitors
-   Omit oscillator resistors
-   Omit eeprom
-   Change T20 to T8
-
-   DNP PAL1 (OSC)
-   DNP NTSC2 (OSC)
-   DNP C35
-   DNP C36
-   DNP R29
-   DNP R30
-   DNP R67
-   DNP R4
-   DNP IC1 (EEPROM)

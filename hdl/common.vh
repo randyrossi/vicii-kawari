@@ -387,11 +387,6 @@
 `define EXT_REG_VARIANT_NAME15       8'h9e
 `define EXT_REG_VARIANT_NAME16       8'h9f
 
-`define VARIANT_NAME1   8'h4D  // M
-`define VARIANT_NAME2   8'h41  // A
-`define VARIANT_NAME3   8'h49  // I
-`define VARIANT_NAME4   8'h4E  // N
-
 `define HIRES_BLINK_FREQ 5  // every 32 frames
 
 // These are the same as C128's VDC
