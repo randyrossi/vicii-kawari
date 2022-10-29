@@ -109,7 +109,7 @@ assign clk_dot4x_ext = 1'b0;
 `endif
 
 wire rst;
-`ifdef USE_RESET_AS_DOT_CLOCK
+`ifdef OUTPUT_DOT_CLOCK
 // NOTE: This hack will only work breadbins that use
 // 8701 clock ICs and that IC MUST be removed.
 // i.e. 250425 250466

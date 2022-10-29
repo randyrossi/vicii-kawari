@@ -58,9 +58,6 @@ module top(
            input standard_sw,   // video standard toggle switch
            output clk_phi,      // output phi clock for CPU
 `ifdef GEN_RGB
-`ifdef WITH_RGB_CLOCK
-           output clk_rgb,      // pixel clock for analog RGB
-`endif
            output hsync,        // hsync signal for analog RGB
            output vsync,        // vsync signal for analog RGB
            output [5:0] red,    // red out for analog RGB
@@ -195,33 +192,19 @@ dvi_encoder_top dvi_tx0 (
                     .TMDSB       (TX0_TMDSB));
 `endif
 
-// https://www.xilinx.com/support/answers/35032.html
-`ifdef WITH_RGB_CLOCK
-wire clk_dot4x_ext_oe;
-wire clk_dot4x_ext;
-BUFGMUX extmux(
-            .I0(clk_dot4x),
-            .I1(clk_dot4x_ext),
-            .O(clk_dot4x_ext_g),
-            .S(clk_dot4x_ext_oe));
-
-ODDR2 oddr2(
-          .D0(1'b1),
-          .D1(1'b0),
-          .C0(clk_dot4x_ext_g),
-          .C1(~clk_dot4x_ext_g),
-          .CE(1'b1),
-          .R(1'b0),
-          .S(1'b0),
-          .Q(clk_rgb)
-      );
-`endif
-
-// This is a reset line for the CPU which would have to be
-// connected with a jumper.  It holds the CPU in reset
-// before the clock is locked.  TODO: Find out if this is
-// actually required.
+`ifdef OUTPUT_DOT_CLOCK
+// NOTE: This hack will only work breadbins that use
+// 8701 clock ICs and that IC MUST be removed.
+// i.e. 250425 250466
+// This will NOT currently work on short board motherboards
+// The unit with this hack should NEVER be plugged into a
+// motherboard without the clock circuit being disabled.
+reg[3:0] dot_clock_shift = 4'b1100;
+always @(posedge clk_dot4x) dot_clock_shift <= {dot_clock_shift[2:0], dot_clock_shift[3]};
+assign cpu_reset = dot_clock_shift[3];
+`else
 assign cpu_reset = rst;
+`endif
 
 wire [7:0] dbo;
 wire [11:0] ado;
@@ -269,10 +252,6 @@ vicii vic_inst(
           .red(red),
           .green(green),
           .blue(blue),
-`ifdef WITH_RGB_CLOCK
-          .clk_dot4x_ext(clk_dot4x_ext),
-          .clk_dot4x_ext_oe(clk_dot4x_ext_oe),
-`endif
 `endif
           .clk_col16x(clk_col16x),
 `ifdef GEN_LUMA_CHROMA

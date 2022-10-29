@@ -63,7 +63,7 @@ module top(
            input standard_sw,   // video standard toggle switch
            output clk_phi,      // output phi clock for CPU
 `ifdef GEN_RGB
-           output clk_dot4x_ext,// pixel clock for VGA/DVI
+           output clk_dot4x_ext,// pixel clock
            output hsync,        // hsync signal for VGA/DVI
            output vsync,        // vsync signal for VGA/DVI
            output [5:0] red,    // red out for VGA/DVI or Composite Encoder
@@ -105,8 +105,6 @@ module top(
 `endif
 );
 
-// TODO - export dot clock for RGB header
-assign clk_dot4x_ext = 1'b0;
 
 `ifdef USE_MUX_HACK
 `define DOT_CLOCK_4X clk_dot4x
@@ -121,7 +119,7 @@ assign clk_dot4x_ext = 1'b0;
 
 wire rst;
 
-`ifdef USE_RESET_AS_DOT_CLOCK
+`ifdef OUTPUT_DOT_CLOCK
 // NOTE: This hack will only work breadbins that use
 // 8701 clock ICs and that IC MUST be removed.
 // i.e. 250425 250466
@@ -130,9 +128,9 @@ wire rst;
 // motherboard without the clock circuit being disabled.
 reg[3:0] dot_clock_shift = 4'b1100;
 always @(posedge `DOT_CLOCK_4X) dot_clock_shift <= {dot_clock_shift[2:0], dot_clock_shift[3]};
-assign cpu_reset = dot_clock_shift[3];
+assign clk_dot4x_ext = dot_clock_shift[3];
 `else
-assign cpu_reset = rst;
+assign clk_dot4x_ext = 1'b0;
 `endif
 
 // ======== MUX HACK ==============
