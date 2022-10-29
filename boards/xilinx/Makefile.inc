@@ -34,23 +34,24 @@ GOLDEN_MINOR=7
 # on a device.
 
 install_config:
-	cp ${BOARD}${VARIANT}.config.vh ../hdl/config.vh
-	java -cp ../hdl GenConstraints ../hdl/config.vh ../hdl/${BOARD_REV}/wiring.txt > ../hdl/${BOARD_REV}/top.ucf
+	cp ${BOARD}${VARIANT}.config.vh ../../hdl/config.vh
+	javac -cp ../../hdl ../../hdl/GenConstraints.java
+	java -cp ../../hdl GenConstraints ../../hdl/config.vh ../../hdl/${BOARD_REV}/wiring.txt > ../../hdl/${BOARD_REV}/top.ucf
 
 compile:
 	mkdir -p xst/projnav.tmp
 	xst -intstyle ise -ifn "../xilinx/kawari.xst" -ofn "top.syr"
-	ngdbuild -intstyle ise -dd _ngo -nt timestamp -uc ../hdl/${BOARD_REV}/top.ucf -p ${FPGA} top.ngc top.ngd
+	ngdbuild -intstyle ise -dd _ngo -nt timestamp -uc ../../hdl/${BOARD_REV}/top.ucf -p ${FPGA} top.ngc top.ngd
 	map -intstyle ise -p ${FPGA} -w -logic_opt off -ol high -t 1 -xt 0 -register_duplication off -r 4 -global_opt off -mt off -detail -ir off -pr off -lc off -power off -o top_map.ncd top.ngd top.pcf
 	par -w -intstyle ise -ol high -xe c -mt 4 top_map.ncd top.ncd top.pcf
 
 golden_version:
-	perl -pi.bak -e "s/VERSION_MAJOR.*/VERSION_MAJOR 8'd${GOLDEN_MAJOR}/g" ../hdl/config.vh
-	perl -pi.bak -e "s/VERSION_MINOR.*/VERSION_MINOR 8'd${GOLDEN_MINOR}/g" ../hdl/config.vh
+	perl -pi.bak -e "s/VERSION_MAJOR.*/VERSION_MAJOR 8'd${GOLDEN_MAJOR}/g" ../../hdl/config.vh
+	perl -pi.bak -e "s/VERSION_MINOR.*/VERSION_MINOR 8'd${GOLDEN_MINOR}/g" ../../hdl/config.vh
 
 multiboot_version:
-	perl -pi.bak -e "s/VERSION_MAJOR.*/VERSION_MAJOR 8'd${MULTIBOOT_MAJOR}/g" ../hdl/config.vh
-	perl -pi.bak -e "s/VERSION_MINOR.*/VERSION_MINOR 8'd${MULTIBOOT_MINOR}/g" ../hdl/config.vh
+	perl -pi.bak -e "s/VERSION_MAJOR.*/VERSION_MAJOR 8'd${MULTIBOOT_MAJOR}/g" ../../hdl/config.vh
+	perl -pi.bak -e "s/VERSION_MINOR.*/VERSION_MINOR 8'd${MULTIBOOT_MINOR}/g" ../../hdl/config.vh
 
 golden: install_config golden_version compile
 	mkdir -p build
