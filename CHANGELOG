@@ -16,3 +16,9 @@
    Fixed signed division result register error
    Fixed division by zero flag on math module
    Fixed incompatibilty issue for register sets with beamracer
+
+1.4/1.5 (rev_4H, rev_4G, rev_4L, rev_3)
+   Added blitter and math regs
+
+1.8 (rev_4L, rev_4G)
+   Fixed timing issue for NTSC analog RGB signals causing B/W pic

@@ -1,33 +1,40 @@
 # History of hardware revisions
 
-mojo_v3 (Deprecated)
+mojo_v3 (Deprecated/Removed)
 
     This is a top.v and supporting files for the MojoV3 FPGA devboard with the 'hat'.  The MCU is hooked up to the flash ram and the bitstream is written to the FPGA by the MCU.  There is a serial link between the MCU and FPGA over which persisted data is saved/restored.  Analog RGB is possible over this board since there is a header on the hat but HDMI/DVI is not.
 
-rev_1 (Deprecated)
+rev_1 (Deprecated/Removed)
 
     This is essentially the same configuration as the MojoV3 FPGA devboard but in an all-in-one PCB.  The MCU and USB connector are still present.  It's more for easy development than something for end users.  A switch was added that can be used to toggle between NTSC/PAL.  This board also added a CPU reset listener so we can reset hires registers when we detect a reset.  This board also has an HDMI connector so DVI is possible.
 
     An 'experiment' was added to this board to try out using the C64's incoming 4x color clock signal.  A jumper could be used to re-purpose the cpu reset line in to be used as a clock.  (cpu_reset_i could be a clock). This was to determine if a small cheap board could be made without the need for any oscillators, reducing cost even further.  The downside is that it would be a fixed video standard (whatever clock was on the board).  This was removed from the schematic later.
 
-rev_2
+rev_2 (Deprecated/Removed)
 
     This is the first board that is configured to retrieve the bitstream directly from the FLASH RAM eliminating the need for the MCU, 8Mhz crystal and a number of other components that just add to the cost of the board.  All video options are possible from this board.  It also has a switch for NTSC/PAL toggle and the RW line was also hooked so this board could in theory write to DRAM. This board also listens to the reset line like rev_1.  It has an additional cfg_reset jumper pad that when brought low, will reset the eeprom.  Added the lock bits header here too.  Considering using this layout with the X4 and leaving HDMI off.
 
-rev_3
+rev_3 (Beta Board)
 
     Essentially identical to rev_2 except it uses the BGA package (FTG256) for the SpartanX16.  Can, in theory, get 64k of video ram if we use distributed ram for mem instead of block ram.
 
-rev_4L
+rev_4L (Spartan6 Board)
 
     Hopefully the last large board revision.  Fixes hardware issues (luma and HDMI backfeeding).
 
-rev_4S
+rev_4S (Spartan6 Mini - Never Released)
 
     A small version that can be 'just a vicii' or an enhanced vicii but still limited in hardware features.
 
+rev_4H
 
-# Block RAM Usage
+    Small version based on Efinix Trion (T8QFP144 for POV, T20QFP144 for Mini)
+
+rev_4G
+
+    Large version with HDMI/Analog RGB based on Efinix Trion (T20 BGA256)
+
+# Block RAM Usage (Spartan)
 
 Purpose           | Size needed (bits) | Actual Size used (bits) | Ratio | Percentage
 ------------------|--------------------|-------------------------|-----------|-----------
