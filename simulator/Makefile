@@ -199,4 +199,4 @@ config_test: config_test_0 config_test_1 config_test_2 config_test_3 \
 maintainer-copy::
 clean mostlyclean distclean maintainer-clean::
 	-rm -rf obj_dir *.log *.dmp *.vpd core
-	-rm -f vicii_ipc.o ipc_test libvicii_ipc.so
+	-rm -f *.o ipc_test gen_config libvicii_ipc.so
