@@ -171,3 +171,31 @@ int first_init()
    WAITKEY;
    return 1;
 }
+
+void init(int initPal)
+{
+   int variant_num;
+   char variant[16];
+
+   POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
+
+   get_variant(variant);
+   variant_num = ascii_variant_to_int(variant);
+
+   CLRSCRN;
+   if (variant_num == VARIANT_UNKNOWN) {
+      printf ("WARNING: Unrecognized board.\n");
+   } else {
+      printf ("Variant: %s\n", variant);
+      printf ("Match  : %d\n", variant_num);
+   }
+
+   if (initPal) {
+      do_init(variant_num, CHIP6569R3);
+      printf ("Init to PAL\n\n");
+   }
+   else {
+      do_init(variant_num, CHIP6567R8);
+      printf ("Init to NTSC\n\n");
+   }
+}

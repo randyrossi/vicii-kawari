@@ -1,4 +1,5 @@
 #include "tests.h"
+#include "macros.h"
 
 #include <6502.h>
 #include <peekpoke.h>

@@ -8,6 +8,7 @@
 #include "init.h"
 
 #include "tests.h"
+#include "macros.h"
 
 void main_menu(void)
 {

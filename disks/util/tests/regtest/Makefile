@@ -15,10 +15,10 @@ OBJS=../../common/main.o menu.o ../../common/data.o ../../common/util.o ../../co
 regtest.prg: $(OBJS)
 	cl65 -o regtest.prg $(OBJS)
 
-menu.o: menu.c ../../include/util.h ../../include/kawari.h
+menu.o: menu.c ../../include/util.h ../../include/kawari.h tests.h
 	cl65 --include-dir ../../include -c menu.c -o menu.o
 
-test_%.o: test_%.c
+test_%.o: test_%.c tests.h macros.h
 	cl65 --include-dir ../../include -o $@ -c $<
 
 %.o: %.c

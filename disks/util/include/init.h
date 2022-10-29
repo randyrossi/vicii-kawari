@@ -7,6 +7,7 @@
 // be initialized and wait for a key press.
 // Returns 1 on successful initialization
 int first_init(void);
+void init(int isPal);
 
 // Routines to apply default values with persistence
 // to eeprom.
