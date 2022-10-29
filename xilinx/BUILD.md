@@ -1,29 +1,27 @@
-# Build
+# Build for Xilinx boards
 
 Build instructions/notes.
 
 ### Generate constraints
 
-    Edit hdl/config.vh and select options.
+    cd hdl
+    Edit hdl/config.vh and select options (or copy from rev_X dir)
     java GenConstraints rev_X/wiring.txt config.vh > rev_X/top.ucf
 
 ## Making full Header/Golden/Multiboot images
 
 ### Generate top.prj
 
-    TODO: How to create top.prj relevant for config? Command line tool?
+    TODO: The only way to create a top.prg file that works is by first
+    using Xilinx ISE tool.  There seems to be no command line to do it.
 
 ### Golden image
-
-The golden image should be built off the stable release branch matching version 0.1:
 
     make clean golden
 
 This makes kawari_golden.bit which includes the SPIx4 multiboot programming header. Golden resides at 0x000044. Multiboot header points to 0x7d000.
 
 ### Multiboot image
-
-The multiboot image should be built off latest release branch matching version 1.0:
 
     make clean multiboot
 
@@ -46,7 +44,7 @@ Expects spix4_MultiBoot.mcs to have been made and device connected via JTAG.
 Device's multiboot images can be updated directly from the C64 using demo/config/flash:
 
     cp kawari_multiboot.bit demo/config/flash/kawari_multiboot_#.#.bit
-    cd demo/config/flash
+    cd disks/util/config/flash
     EDIT Makefile and change VERSION/SOURCE_IMG to point to the right .bit file
     make clean all
 

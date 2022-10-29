@@ -18,10 +18,10 @@ GOLDEN_MINOR=7
 #	make program
 #
 # Required files:
-# 	kawari.xst
-# 	kawari_golden.ut
-# 	kawari_multiboot.ut
-# 	kawari_progspi.cmd
+# 	xilinx/kawari.xst
+# 	xilinx/kawari_golden.ut
+# 	xilinx/kawari_multiboot.ut
+# 	xilinx/kawari_progspi.cmd
 # 	top.prj <- Get this from ISE gen dir for same config
 #
 # Outputs:
@@ -39,7 +39,7 @@ install_config:
 
 compile:
 	mkdir -p xst/projnav.tmp
-	xst -intstyle ise -ifn "../kawari.xst" -ofn "top.syr"
+	xst -intstyle ise -ifn "../xilinx/kawari.xst" -ofn "top.syr"
 	ngdbuild -intstyle ise -dd _ngo -nt timestamp -uc ../hdl/${BOARD_REV}/top.ucf -p ${FPGA} top.ngc top.ngd
 	map -intstyle ise -p ${FPGA} -w -logic_opt off -ol high -t 1 -xt 0 -register_duplication off -r 4 -global_opt off -mt off -detail -ir off -pr off -lc off -power off -o top_map.ncd top.ngd top.pcf
 	par -w -intstyle ise -ol high -xe c -mt 4 top_map.ncd top.ncd top.pcf
@@ -54,12 +54,12 @@ multiboot_version:
 
 golden: install_config golden_version compile
 	mkdir -p build
-	bitgen -intstyle ise -f ../kawari_golden.ut top.ncd
+	bitgen -intstyle ise -f ../xilinx/kawari_golden.ut top.ncd
 	mv top.bit build/kawari_golden_${BOARD}${VARIANT}_${GOLDEN_MAJOR}.${GOLDEN_MINOR}.bit
 
 multiboot: install_config multiboot_version compile
 	mkdir -p build
-	bitgen -intstyle ise -f ../kawari_multiboot.ut top.ncd
+	bitgen -intstyle ise -f ../xilinx/kawari_multiboot.ut top.ncd
 	mv top.bit build/kawari_multiboot_${BOARD}${VARIANT}_${MULTIBOOT_MAJOR}.${MULTIBOOT_MINOR}.bit
 
 mcs:
@@ -67,7 +67,7 @@ mcs:
 	promgen -w -p mcs -c FF -o build/spix4_MultiBoot_${BOARD}${VARIANT}_${GOLDEN_MAJOR}_${GOLDEN_MINOR}-${MULTIBOOT_MAJOR}_${MULTIBOOT_MINOR} -s 2048 -u 0000 build/kawari_golden_${BOARD}${VARIANT}_${GOLDEN_MAJOR}.${GOLDEN_MINOR}.bit -u 07d000 build/kawari_multiboot_${BOARD}${VARIANT}_${MULTIBOOT_MAJOR}.${MULTIBOOT_MINOR}.bit -spi
 
 program:
-	cat ../kawari_progspi.cmd | sed "s/%BOARD%/${BOARD}/g" | sed "s/%VARIANT%/${VARIANT}/g" | sed "s/%GOLDEN_MAJOR%/${GOLDEN_MAJOR}/g" | sed "s/%GOLDEN_MINOR%/${GOLDEN_MINOR}/g" | sed "s/%MULTIBOOT_MAJOR%/${MULTIBOOT_MAJOR}/g" | sed "s/%MULTIBOOT_MINOR%/${MULTIBOOT_MINOR}/g" > kawari_progspi.tmp
+	cat ../xilinx/kawari_progspi.cmd | sed "s/%BOARD%/${BOARD}/g" | sed "s/%VARIANT%/${VARIANT}/g" | sed "s/%GOLDEN_MAJOR%/${GOLDEN_MAJOR}/g" | sed "s/%GOLDEN_MINOR%/${GOLDEN_MINOR}/g" | sed "s/%MULTIBOOT_MAJOR%/${MULTIBOOT_MAJOR}/g" | sed "s/%MULTIBOOT_MINOR%/${MULTIBOOT_MINOR}/g" > kawari_progspi.tmp
 	impact -batch kawari_progspi.tmp
 
 clean:

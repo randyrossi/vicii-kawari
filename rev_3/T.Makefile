@@ -1,4 +1,4 @@
-include ../Makefile.inc
+include ../xilinx/Makefile.inc
 
 BOARD_REV=rev_3
 BOARD=T
