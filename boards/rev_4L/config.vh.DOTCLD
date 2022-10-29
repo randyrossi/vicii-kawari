@@ -4,10 +4,10 @@
 `define VERSION_MAJOR 8'd0
 `define VERSION_MINOR 8'd0
 
-`define VARIANT_NAME1   8'h4D  // M
-`define VARIANT_NAME2   8'h41  // A
-`define VARIANT_NAME3   8'h49  // I
-`define VARIANT_NAME4   8'h4E  // N
+`define VARIANT_NAME1   8'h44  // D
+`define VARIANT_NAME2   8'h4F  // O
+`define VARIANT_NAME3   8'h54  // T
+`define VARIANT_NAME4   8'h43  // C
 
 `define VARIANT_SUFFIX_1 8'd76 // L
 `define VARIANT_SUFFIX_2 8'd68 // D
