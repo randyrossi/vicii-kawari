@@ -91,10 +91,11 @@
 // Convention is [VARIANT][BOARD_REV][MODEL] except
 // for beta board which is just 'MAIN'. See MODELS.md
 // for description of board revs and models.
-#define VARIANT_UNKNOWN  0
-#define VARIANT_SIM      1
-#define VARIANT_REV_3T   2   // a.k.a. MAIN (beta board)
-#define VARIANT_REV_4LD  3   // a.k.a. MAIN4LD
-#define VARIANT_REV_4LH  4   // a.k.a. MAIN4LH
+#define BOARD_UNKNOWN  0
+#define BOARD_SIM      1
+#define BOARD_REV_3T   2   // a.k.a. large Spartan beta board
+#define BOARD_REV_4LD  3   // a.k.a. large Spartan
+#define BOARD_REV_4LH  4   // a.k.a. mini Efinix
+#define BOARD_REV_4LG  5   // a.k.a. large Efinix
 
 #endif

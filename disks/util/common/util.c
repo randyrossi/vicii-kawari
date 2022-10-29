@@ -117,28 +117,35 @@ void get_variant(unsigned char *dest)
    dest[t] = 0;
 }
 
-unsigned int ascii_variant_to_int(unsigned char *variant)
+unsigned int ascii_variant_to_board_int(unsigned char *variant)
 {
-   if (strcmp(variant,"main") == 0)
-      return VARIANT_REV_3T; // beta board
-   if (strcmp(variant,"mainld") == 0)
-      return VARIANT_REV_4LD; // large spartan6 x16
-   if (strcmp(variant,"mainlh") == 0)
-      return VARIANT_REV_4LH; // mini efinix t20
    if (strcmp(variant,"sim") == 0)
       return VARIANT_SIM;
+
+   if (strlen(variant) >= 4) {
+      if (variant[4] == 0)
+         return VARIANT_REV_3T;
+      if (variant[4] == 'l') {
+         if (variant[5] == 'd')
+            return VARIANT_REV_4LD;
+         if (variant[5] == 'h')
+            return VARIANT_REV_4LH;
+         if (variant[5] == 'g')
+             return VARIANT_REV_4LG;
+      }
+   }
    return VARIANT_UNKNOWN;
 }
 
 unsigned int get_flash_page_size(void) {
    char variant_str[32];
-   unsigned int variant;
+   unsigned int board_int;
 
    get_variant(variant_str);
-   variant = ascii_variant_to_int(variant_str);
+   board_int = ascii_variant_to_board_int(variant_str);
 
    // The two spartan models have 16k flash page size
-   if (variant == VARIANT_REV_4LD || variant == VARIANT_REV_3T)
+   if (board_int == BOARD_REV_4LD || board_int == BOARD_REV_3T)
       return 16384;
    else
       return 4096;

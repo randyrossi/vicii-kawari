@@ -380,8 +380,8 @@ void main_menu(void)
     unsigned long start_addr;
     unsigned long tmp_addr;
     unsigned char variant[16];
-    unsigned int current_variant;
-    unsigned int image_variant;
+    unsigned int current_board_int;
+    unsigned int image_board_int;
 
     clrscr();
 
@@ -420,8 +420,8 @@ void main_menu(void)
     POKE(SPI_REG, 80);
     POKE(SPI_REG, 73);
 
-    current_variant = ascii_variant_to_int(variant);
-    if (current_variant != VARIANT_SIM) {
+    current_board_int = ascii_variant_to_board_int(variant);
+    if (current_board_int != BOARD_SIM) {
       // Identify flash device
       for (;;) {
         mprintf ("\nIdentifying flash...");
@@ -483,7 +483,7 @@ void main_menu(void)
     SMPRINTF_1 ("Start Address:%lx \n", start_addr);
     read_string(&tmp_addr);
     SMPRINTF_1 ("Variant      :%s \n", scratch);
-    image_variant = ascii_variant_to_int(scratch);
+    image_board_int = ascii_variant_to_board_int(scratch);
     page_size = read_decimal(&tmp_addr);
     SMPRINTF_1 ("Page Size    :%ld \n", page_size);
 
@@ -493,9 +493,9 @@ void main_menu(void)
     }
 
     // Check variant matches
-    if (image_variant != current_variant) {
+    if (image_board_int != current_board_int) {
        mprintf ("\nWARNING: This flash image does NOT\n");
-       mprintf ("match the board variant. The image\n");
+       mprintf ("match the board number. The image\n");
        mprintf ("may be incompatible with this board.\n");
        mprintf ("If you are flashing a FORKED kawari,\n");
        mprintf ("this is expected. Proceed ONLY if\n");

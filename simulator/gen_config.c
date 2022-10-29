@@ -126,6 +126,10 @@ int main(int argc, char* argv[]) {
        printf ("`define VERSION_MAJOR 8'd0\n");
        printf ("`define VERSION_MINOR 8'd2\n");
        printf ("`define SIMULATOR_BOARD 1\n");
+       printf ("`define VARIANT_NAME1 8'h53  // S\n");
+       printf ("`define VARIANT_NAME2 8'h49  // I\n");
+       printf ("`define VARIANT_NAME3 8'h4D  // M\n");
+       printf ("`define VARIANT_NAME3 8'h00");
        printf ("`define VARIANT_SUFFIX_1 8'd0\n");
        printf ("`define VARIANT_SUFFIX_2 8'd0\n");
        printf ("`define VARIANT_SUFFIX_3 8'd0\n");

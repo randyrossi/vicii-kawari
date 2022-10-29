@@ -19,12 +19,12 @@ void set_rgb(void) {
    }
 }
 
-void set_lumas(unsigned int variant_num, int chip_model) {
+void set_lumas(unsigned int board_int, int chip_model) {
    // Luma/Chroma
    int reg;
    for (reg=0;reg<16;reg++) {
       POKE(VIDEO_MEM_1_LO, reg+0xa0);
-      if (variant_num == VARIANT_REV_3T)
+      if (board_int == BOARD_REV_3T)
          SAFE_POKE(VIDEO_MEM_1_VAL, luma_rev3[chip_model][reg]);
       else
          SAFE_POKE(VIDEO_MEM_1_VAL, luma_rev4[chip_model][reg]);
@@ -49,7 +49,7 @@ void set_amplitudes(int chip_model) {
    }
 }
 
-void do_init(unsigned int variant_num, int chip_model) {
+void do_init(unsigned int board_int, int chip_model) {
    unsigned int reg;
    unsigned int chip;
    unsigned int bank;
@@ -77,7 +77,7 @@ void do_init(unsigned int variant_num, int chip_model) {
       POKE(VIDEO_MEM_1_VAL, chip);
 
       set_rgb();
-      set_lumas(variant_num, chip);
+      set_lumas(board_int, chip);
       set_phases(chip);
       set_amplitudes(chip);
 
@@ -121,20 +121,20 @@ void do_init(unsigned int variant_num, int chip_model) {
 
 int first_init()
 {
-   int variant_num;
+   int board_int;
    char variant[16];
 
    POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
 
    get_variant(variant);
-   variant_num = ascii_variant_to_int(variant);
+   board_int = ascii_variant_to_board_int(variant);
 
    CLRSCRN;
-   if (variant_num == VARIANT_UNKNOWN) {
+   if (board_int == BOARD_UNKNOWN) {
       printf ("WARNING: Unrecognized board.\n");
    } else {
       printf ("Variant: %s\n", variant);
-      printf ("Match  : %d\n", variant_num);
+      printf ("Match  : %d\n", board_int);
    }
 
    printf ("--------------------------------------\n");
@@ -155,12 +155,12 @@ int first_init()
 	  return 0;
        }
        else if (r.a == 'p') {
-          do_init(variant_num, CHIP6569R3);
+          do_init(board_int, CHIP6569R3);
           printf ("complete\n\n");
 	  break;
        }
        else if (r.a == 'n') {
-          do_init(variant_num, CHIP6567R8);
+          do_init(board_int, CHIP6567R8);
           printf ("complete\n\n");
 	  break;
        }
@@ -174,28 +174,28 @@ int first_init()
 
 void init(int initPal)
 {
-   int variant_num;
+   int board_int;
    char variant[16];
 
    POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
 
    get_variant(variant);
-   variant_num = ascii_variant_to_int(variant);
+   board_int = ascii_variant_to_board_int(variant);
 
    CLRSCRN;
-   if (variant_num == VARIANT_UNKNOWN) {
+   if (board_int == BOARD_UNKNOWN) {
       printf ("WARNING: Unrecognized board.\n");
    } else {
       printf ("Variant: %s\n", variant);
-      printf ("Match  : %d\n", variant_num);
+      printf ("Match  : %d\n", board_int);
    }
 
    if (initPal) {
-      do_init(variant_num, CHIP6569R3);
+      do_init(board_int, CHIP6569R3);
       printf ("Init to PAL\n\n");
    }
    else {
-      do_init(variant_num, CHIP6567R8);
+      do_init(board_int, CHIP6567R8);
       printf ("Init to NTSC\n\n");
    }
 }

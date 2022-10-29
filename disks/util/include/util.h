@@ -56,7 +56,7 @@ unsigned char get_version_minor(void);
 unsigned char get_lock_bits(void);
 unsigned char get_chip_model(void);
 void get_variant(unsigned char* dest);
-unsigned int ascii_variant_to_int(unsigned char *variant);
+unsigned int ascii_variant_to_board_int(unsigned char *variant);
 unsigned int get_flash_page_size(void);
 
 #endif
