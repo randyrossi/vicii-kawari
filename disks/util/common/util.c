@@ -120,21 +120,21 @@ void get_variant(unsigned char *dest)
 unsigned int ascii_variant_to_board_int(unsigned char *variant)
 {
    if (strcmp(variant,"sim") == 0)
-      return VARIANT_SIM;
+      return BOARD_SIM;
 
    if (strlen(variant) >= 4) {
       if (variant[4] == 0)
-         return VARIANT_REV_3T;
+         return BOARD_REV_3T;
       if (variant[4] == 'l') {
          if (variant[5] == 'd')
-            return VARIANT_REV_4LD;
+            return BOARD_REV_4LD;
          if (variant[5] == 'h')
-            return VARIANT_REV_4LH;
+            return BOARD_REV_4LH;
          if (variant[5] == 'g')
-             return VARIANT_REV_4LG;
+             return BOARD_REV_4LG;
       }
    }
-   return VARIANT_UNKNOWN;
+   return BOARD_UNKNOWN;
 }
 
 unsigned int get_flash_page_size(void) {
