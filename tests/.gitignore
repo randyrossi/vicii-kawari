@@ -1,0 +1,10 @@
+MakeReport.class
+list.txt
+index.html
+screenshot.bmp
+screenshot.png
+*.log
+*.png
+session.vcd
+colors.bin
+sine.bin

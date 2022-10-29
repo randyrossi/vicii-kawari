@@ -1,0 +1,144 @@
+##############################################################################
+## Copyright (c) 2009 Xilinx, Inc.
+## This design is confidential and proprietary of Xilinx, All Rights Reserved.
+##############################################################################
+##   ____  ____
+##  /   /\/   /
+## /___/  \  /   Vendor:        Xilinx
+## \   \   \/    Version:       1.0.0
+##  \   \        Filename:      vtc_demo.ucf
+##  /   /        Date Created:  April, 2009
+## /___/   /\    
+## \   \  /  \
+##  \___\/\___\
+##
+## Devices:   Spartan-36Generation FPGA
+## Purpose:   Constraint file for programmable video timing controller
+## Contact:   bob.feng@xilinx.com
+## Reference: None
+##
+## Revision History:
+## 
+##
+##############################################################################
+##
+## LIMITED WARRANTY AND DISCLAIMER. These designs are provided to you "as is".
+## Xilinx and its licensors make and you receive no warranties or conditions,
+## express, implied, statutory or otherwise, and Xilinx specifically disclaims
+## any implied warranties of merchantability, non-infringement, or fitness for
+## a particular purpose. Xilinx does not warrant that the functions contained
+## in these designs will meet your requirements, or that the operation of
+## these designs will be uninterrupted or error free, or that defects in the
+## designs will be corrected. Furthermore, Xilinx does not warrant or make any
+## representations regarding use or the results of the use of the designs in
+## terms of correctness, accuracy, reliability, or otherwise.
+##
+## LIMITATION OF LIABILITY. In no event will Xilinx or its licensors be liable
+## for any loss of data, lost profits, cost or procurement of substitute goods
+## or services, or for any special, incidental, consequential, or indirect
+## damages arising from the use or operation of the designs or accompanying
+## documentation, however caused and on any theory of liability. This
+## limitation will apply even if Xilinx has been advised of the possibility
+## of such damage. This limitation shall apply not-withstanding the failure
+## of the essential purpose of any limited remedies herein.
+##
+##############################################################################
+## Copyright (c) 2009 Xilinx, Inc.
+## This design is confidential and proprietary of Xilinx, All Rights Reserved.
+##############################################################################
+
+###########################################
+# Setting VCCAUX for different SP601 board
+###########################################
+VCCAUX = 3.3;
+
+########################################
+# Reset button and LEDs
+########################################
+NET "RSTBTN"        LOC = "N4";
+NET "LED<0>"        LOC = "H12";
+NET "LED<1>"        LOC = "G13";
+NET "LED<2>"        LOC = "E16";
+NET "LED<3>"        LOC = "E18";
+
+##############################################################################
+# SYSCLK Input
+##############################################################################
+
+NET "SYS_CLK"       LOC = "L15";
+
+##############################################################################
+# Mechanical Switches (SW)
+##############################################################################
+
+NET "SW<0>"         LOC = "A10" | IOSTANDARD = LVCMOS33 ;
+NET "SW<1>"         LOC = "D14" | IOSTANDARD = LVCMOS33 ;
+NET "SW<2>"         LOC = "C14" | IOSTANDARD = LVCMOS33 ;
+NET "SW<3>"         LOC = "P15" | IOSTANDARD = LVCMOS33 ;
+
+##############################################################################
+# Debug Port # JA1
+##############################################################################
+NET "DEBUG[0]" LOC = "B12" | IOSTANDARD = LVCMOS33;
+NET "DEBUG[1]" LOC = "B11" | IOSTANDARD = LVCMOS33;
+
+##############################################################################
+# DCM/PLL/BUFPLL positions
+##############################################################################
+#INST "PCLK_GEN_INST" LOC = "DCM_X0Y3"; 
+#INST "PLL_OSERDES"   LOC = "PLL_ADV_X0Y1";
+#INST "ioclk_buf"     LOC = "BUFPLL_X1Y0";
+
+###########################################
+# Timing Constraints
+###########################################
+NET "clk50m_bufg" TNM_NET = "TNM_CLK50M";
+TIMESPEC "TS_CLK50M" = PERIOD "TNM_CLK50M" 50 MHz HIGH 50 % PRIORITY 0 ;
+
+NET "pclk" TNM_NET = "TNM_PCLK";
+TIMESPEC "TS_PCLK" = PERIOD "TNM_PCLK" 108 MHz HIGH 50 % PRIORITY 0 ;
+
+NET "pclkx2" TNM_NET = "TNM_PCLKX2";
+TIMESPEC "TS_PCLKX2" = PERIOD "TNM_PCLKX2" TS_PCLK * 2;
+
+NET "pclkx10" TNM_NET = "TNM_PCLKX10";
+TIMESPEC "TS_PCLKX10" = PERIOD "TNM_PCLKX10" TS_PCLK * 10;
+
+#
+# Multi-cycle paths
+#
+TIMEGRP "bramgrp" = RAMS(enc0/pixel2x/dataint<*>);  
+TIMEGRP "fddbgrp" = FFS(enc0/pixel2x/db<*>);
+TIMEGRP "bramra" = FFS(enc0/pixel2x/ra<*>);
+
+TIMESPEC "TS_ramdo" = FROM "bramgrp" TO "fddbgrp" TS_PCLK;
+TIMESPEC "TS_ramra" = FROM "bramra" TO "fddbgrp" TS_PCLK;
+
+############################
+# TMDS pairs on the top
+############################
+#NET "TMDS(0)"  	LOC = "C7" | IOSTANDARD = TMDS_33 ; # Blue
+#NET "TMDSB(0)"  LOC = "A7" | IOSTANDARD = TMDS_33 ;
+#NET "TMDS(1)"  	LOC = "D8" | IOSTANDARD = TMDS_33 ; # Red
+#NET "TMDSB(1)"  LOC = "C8" | IOSTANDARD = TMDS_33 ;
+#NET "TMDS(2)"  	LOC = "B6" | IOSTANDARD = TMDS_33 ; # Green
+#NET "TMDSB(2)"  LOC = "A6" | IOSTANDARD = TMDS_33 ;
+#NET "TMDS(3)"  	LOC = "B8" | IOSTANDARD = TMDS_33 ; # Clock
+#NET "TMDSB(3)"  LOC = "A8" | IOSTANDARD = TMDS_33 ;
+
+NET "TMDS(0)"  	LOC = "D8" | IOSTANDARD = TMDS_33 ; # Blue
+NET "TMDSB(0)"  LOC = "C8" | IOSTANDARD = TMDS_33 ;
+NET "TMDS(1)"  	LOC = "C7" | IOSTANDARD = TMDS_33 ; # Red
+NET "TMDSB(1)"  LOC = "A7" | IOSTANDARD = TMDS_33 ;
+NET "TMDS(2)"  	LOC = "B8" | IOSTANDARD = TMDS_33 ; # Green
+NET "TMDSB(2)"  LOC = "A8" | IOSTANDARD = TMDS_33 ;
+NET "TMDS(3)"  	LOC = "B6" | IOSTANDARD = TMDS_33 ; # Clock
+NET "TMDSB(3)"  LOC = "A6" | IOSTANDARD = TMDS_33 ;
+
+
+
+
+
+
+
+##############################################################################
