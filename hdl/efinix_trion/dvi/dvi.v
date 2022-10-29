@@ -1,3 +1,19 @@
+// This file is part of the vicii-kawari distribution
+// (https://github.com/randyrossi/vicii-kawari)
+// Copyright (c) 2022 Randy Rossi.
+// 
+// This program is free software: you can redistribute it and/or modify  
+// it under the terms of the GNU General Public License as published by  
+// the Free Software Foundation, version 3.
+//
+// This program is distributed in the hope that it will be useful, but 
+// WITHOUT ANY WARRANTY; without even the implied warranty of 
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+// General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License 
+// along with this program. If not, see <http://www.gnu.org/licenses/>.
+
 // This is a modified DVI encoder module originally
 // written by Sameer Puri.  It is a verilog version
 // with all HDMI logic removed, hard coded to
@@ -8,6 +24,7 @@
 // buffer (vendor specific).
 //
 // https://github.com/sameer
+// https://github.com/hdl-util/hdmi
 module dvi 
 (
     input  clk_pixel,

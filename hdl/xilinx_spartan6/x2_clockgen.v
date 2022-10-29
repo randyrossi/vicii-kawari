@@ -1,4 +1,21 @@
+// This file is part of the vicii-kawari distribution
+// (https://github.com/randyrossi/vicii-kawari)
+// Copyright (c) 2022 Randy Rossi.
+// 
+// This program is free software: you can redistribute it and/or modify  
+// it under the terms of the GNU General Public License as published by  
+// the Free Software Foundation, version 3.
+//
+// This program is distributed in the hope that it will be useful, but 
+// WITHOUT ANY WARRANTY; without even the implied warranty of 
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+// General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License 
+// along with this program. If not, see <http://www.gnu.org/licenses/>.
+
 `timescale 1ps/1ps
+
 // This module multiplies the clk_in by x2 and x4.  The color clock on input
 // is already 4x color.  But we need a color_x8 clock to meet the minimum frequency
 // of the PLL downstream.  We also need a color x16 clock for our chroma signal
