@@ -8,7 +8,7 @@ mkdir -p build
 #VARIANT=MAIN make mcs
 
 # Just for flash disks...
-VARIANT=MAIN make clean multiboot > build/LD.multiboot.MAIN.log
-VARIANT=DOTC make clean multiboot > build/LD.multiboot.DOTC.log
-VARIANT=MKII make clean multiboot > build/LD.multiboot.MKII.log
-VARIANT=SARU make clean multiboot > build/LD.multiboot.SARU.log
+VARIANT=MAINLD make clean multiboot > build/LD.multiboot.MAIN.log
+VARIANT=DOTCLD make clean multiboot > build/LD.multiboot.DOTC.log
+ARIANT=MKIILD make clean multiboot > build/LD.multiboot.MKII.log
+ARIANT=SARULD make clean multiboot > build/LD.multiboot.SARU.log
