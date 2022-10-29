@@ -1,0 +1,6 @@
+*.o
+*.class
+*.bin
+rgb2hsv
+colors.hex
+hires.hex

@@ -1,0 +1,137 @@
+diff --git a/asminc/zeropage.inc b/asminc/zeropage.inc
+index 1ba035868..da8ee80c6 100644
+--- a/asminc/zeropage.inc
++++ b/asminc/zeropage.inc
+@@ -8,7 +8,7 @@
+ ; by the compiler, ready for usage in asm code.
+ 
+ 
+-        .globalzp       sp, sreg, regsave
++        .globalzp       unused1, unused2, sp, sreg, regsave
+         .globalzp       ptr1, ptr2, ptr3, ptr4
+         .globalzp       tmp1, tmp2, tmp3, tmp4
+         .globalzp       regbank
+@@ -17,7 +17,7 @@
+ regbanksize     = 6
+ 
+ ; The total amount of zero page space used
+-zpspace         = 26
++zpspace         = 30
+ 
+ ; The amount of space that needs to be saved by an interrupt handler that
+ ; calls C code (does not include the register bank, which is saved by the
+diff --git a/libsrc/Makefile b/libsrc/Makefile
+index 60946b59f..dcb8ecd0c 100644
+--- a/libsrc/Makefile
++++ b/libsrc/Makefile
+@@ -2,40 +2,42 @@ ifneq ($(shell echo),)
+   CMD_EXE = 1
+ endif
+ 
+-CBMS = c128   \
+-       c16    \
+-       c64    \
+-       cbm510 \
+-       cbm610 \
+-       cx16   \
+-       pet    \
+-       plus4  \
+-       vic20
+-
+-GEOS = geos-apple \
+-       geos-cbm
+-
+-TARGETS = apple2       \
+-          apple2enh    \
+-          atari        \
+-          atarixl      \
+-          atari2600    \
+-          atari5200    \
+-          atmos        \
+-          creativision \
+-          $(CBMS)      \
+-          $(GEOS)      \
+-          gamate       \
+-          lynx         \
+-          nes          \
+-          none         \
+-          osic1p       \
+-          pce          \
+-          sim6502      \
+-          sim65c02     \
+-          supervision  \
+-          sym1         \
+-          telestrat
++CBMS = c64
++#CBMS = c128   \
++#       c16    \
++#       c64    \
++#       cbm510 \
++#       cbm610 \
++#       cx16   \
++#       pet    \
++#       plus4  \
++#       vic20
++
++#GEOS = geos-apple \
++#       geos-cbm
++
++TARGETS = $(CBMS)
++#TARGETS = apple2       \
++#          apple2enh    \
++#          atari        \
++#          atarixl      \
++#          atari2600    \
++#          atari5200    \
++#          atmos        \
++#          creativision \
++#          $(CBMS)      \
++#          $(GEOS)      \
++#          gamate       \
++#          lynx         \
++#          nes          \
++#          none         \
++#          osic1p       \
++#          pce          \
++#          sim6502      \
++#          sim65c02     \
++#          supervision  \
++#          sym1         \
++#          telestrat
+ 
+ DRVTYPES = emd \
+            joy \
+diff --git a/libsrc/cbm/exehdr.s b/libsrc/cbm/exehdr.s
+index 6d0051d96..bfe06ce5e 100644
+--- a/libsrc/cbm/exehdr.s
++++ b/libsrc/cbm/exehdr.s
+@@ -14,7 +14,7 @@
+         .addr   Next
+         .word   .version        ; Line number
+         .byte   $9E             ; SYS token
+-;       .byte   <(((Start / 10000) .mod 10) + '0')
++        .byte   <(((Start / 10000) .mod 10) + '0')
+         .byte   <(((Start /  1000) .mod 10) + '0')
+         .byte   <(((Start /   100) .mod 10) + '0')
+         .byte   <(((Start /    10) .mod 10) + '0')
+@@ -28,6 +28,6 @@ Start:
+ ; is almost never used, check it at link time and generate an error so the
+ ; user knows something is wrong.
+ 
+-.assert (Start < 10000), error, "Start address too large for generated BASIC stub"
++;.assert (Start < 10000), error, "Start address too large for generated BASIC stub"
+ 
+ 
+diff --git a/libsrc/runtime/zeropage.s b/libsrc/runtime/zeropage.s
+index 2bbe7ceee..40eac7019 100644
+--- a/libsrc/runtime/zeropage.s
++++ b/libsrc/runtime/zeropage.s
+@@ -10,6 +10,8 @@
+ 
+ .zeropage
+ 
++unused1:        .res    2
++unused2:        .res    2
+ sp:             .res    2       ; Stack pointer
+ sreg:           .res    2       ; Secondary register/high 16 bit for longs
+ regsave:        .res    4       ; Slot to save/restore (E)AX into
