@@ -1,8 +1,0 @@
-*.class
-*.bin
-make_colors
-view_chargen
-*.o
-*.hex
-hires
-make_luma
