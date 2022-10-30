@@ -1,5 +1,20 @@
 #!/bin/bash
 
-VICII_HOME=/shared/Vivado/vicii
+curd=$PWD
 
-$VICII_HOME/simulator/obj_dir/Vtop $*
+while [ 1=1 ]
+do
+bd=`basename $curd`
+if [ $bd = "vicii-kawari" ]
+then
+   $curd/simulator/obj_dir/Vtop $*
+   exit
+fi
+
+curd=`dirname $curd`
+if [ "$curd" = "/" -o $curd = "" ]
+then
+   echo "vicsim must be run under vicii-kawari"
+   exit
+fi
+done
