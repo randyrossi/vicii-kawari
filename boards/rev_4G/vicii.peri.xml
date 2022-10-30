@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<efxpt:design_db name="vicii" device_def="T20F256" location="C:\shared\Vivado\vicii\rev_4G" version="2021.2.323.3.14" db_version="20212999" last_change_date="Mon Aug  1 22:18:49 2022" xmlns:efxpt="http://www.efinixinc.com/peri_design_db" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/peri_design_db peri_design_db.xsd ">
+<efxpt:design_db name="vicii" device_def="T20F256" location="/shared/Vivado/vicii-karari/rev_4G" version="2021.2.323.3.14" db_version="20212999" last_change_date="Mon Aug  1 22:18:49 2022" xmlns:efxpt="http://www.efinixinc.com/peri_design_db" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/peri_design_db peri_design_db.xsd ">
     <efxpt:device_info>
         <efxpt:iobank_info>
             <efxpt:iobank name="1A" iostd="3.3 V LVTTL / LVCMOS"/>

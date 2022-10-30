@@ -1,40 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<efx:project name="vicii" description="" last_change_date="Wed September 7 2022 19:06:55" location="C:/shared/Vivado/vicii/rev_4G" sw_version="2021.2.323.3.14" last_run_state="pass" last_run_tool="efx_pgm" last_run_flow="bitstream" config_result_in_sync="true" design_ood="change" place_ood="change" route_ood="change" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
+<efx:project name="vicii" description="" last_change_date="Sat. October 29 2022 23:59:27" location="/shared/Vivado/vicii-kawari/boards/rev_4G" sw_version="2021.2.323.1.8" last_run_state="pass" last_run_tool="efx_pgm" last_run_flow="bitstream" config_result_in_sync="true" design_ood="sync" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
     <efx:device_info>
         <efx:family name="Trion"/>
         <efx:device name="T20F256"/>
-        <efx:timing_model name="C3"/>
+        <efx:timing_model name="C4"/>
     </efx:device_info>
     <efx:design_info def_veri_version="verilog_2k" def_vhdl_version="vhdl_2008">
         <efx:top_module name="top"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/bus_access.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/sprites.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/sinewave.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/border.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/testpattern.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/lightpen.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/lumareg.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/cycles.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/matrix.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/comp_sync.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/vicii.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/registers.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/raster.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/serration.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/equalization.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/pixel_sequencer.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/addressgen.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/rev_4G/top.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/hires_pixel_sequencer.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/hires_addressgen.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/colorreg.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/hires_matrix.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/hires_vga_sync.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/divide.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/videoram_efinix.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/efinix_trion/dvi/dvi.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/efinix_trion/dvi/serializer.v" version="default" library="default"/>
-        <efx:design_file name="C:/shared/Vivado/vicii/hdl/efinix_trion/dvi/tmds_channel.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/bus_access.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/sprites.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/sinewave.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/border.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/testpattern.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/lightpen.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/lumareg.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/cycles.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/matrix.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/comp_sync.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/vicii.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/registers.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/raster.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/serration.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/equalization.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/pixel_sequencer.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/addressgen.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/rev_4G/top.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/hires_pixel_sequencer.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/hires_addressgen.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/colorreg.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/hires_matrix.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/hires_vga_sync.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/divide.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/videoram_efinix.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/efinix_trion/dvi/dvi.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/efinix_trion/dvi/serializer.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/efinix_trion/dvi/tmds_channel.v" version="default" library="default"/>
         <efx:top_vhdl_arch name=""/>
     </efx:design_info>
     <efx:constraint_info>

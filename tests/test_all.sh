@@ -4,6 +4,8 @@
 #
 # If prg omitted, all tests run.
 
+VICII_PARENT=/shared/Vivado
+
 input="tests.txt"
 while read -r line
 do
@@ -60,18 +62,18 @@ do
 		delay="19"
 	fi
 
-	pushd /shared/Vivado/vicii-vice-3.4
+	pushd ${VICII_PARENT}/vicii-vice-3.4
         ./src/x64sc -sounddev dummy $standard -VICIImodel $model \
-		"/shared/Vivado/vicii/tests/$i" 2> stderr &
+		"${VICII_PARENT}/vicii-kawari/tests/$i" 2> stderr &
 	popd
 	sleep $delay
 	rm -f screenshot.bmp
 	../simulator/obj_dir/Vtop -k -q -w -z -x -c $chip
 	sleep 1
 
-	mv /shared/Vivado/vicii-vice-3.4/stderr $k/vice_$j.log
+	mv ${VICII_PARENT}/vicii-vice-3.4/stderr $k/vice_$j.log
 	convert screenshot.bmp -interpolate Integer -filter point -resize $resolution $k/fpga_$j.png
-	mv /shared/Vivado/vicii-vice-3.4/screenshot.png $k/vice_$j.png
+	mv ${VICII_PARENT}/vicii-vice-3.4/screenshot.png $k/vice_$j.png
    #fi
 
 done < "$input"
