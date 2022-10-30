@@ -16,7 +16,7 @@ HDMI                   |Yes         |No          |No        |
 Saveable Config        |Yes         |Yes         |No        |
 Old chips?             |Yes         |Yes         |No        |
 Current Draw           |~180ma      |TBD         |TBD       |
-Variants               |T,LD,LG     |LH          |LF        |
+Variants               |T,LD,LG     |LH          |LJ        |
 
 # Jumpers
 

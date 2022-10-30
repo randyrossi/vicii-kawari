@@ -2,7 +2,7 @@
 # from a multiboot bitstream. Up to 4 disks and
 # 28 files (covers Spartan6 X16 bistream size).
 #
-# Expects: kawari_$(TYPE)_$(BUILD_VARIANT)_$(VERSION).bit
+# Expects: kawari_$(TYPE)_$(VARIANT)_$(VERSION).bit
 # Requires: dasm and cc65
 
 # NOTE: The spartan6 builds separates golden from multiboot
@@ -15,36 +15,38 @@
 # Stuff to potentially edit
 FLASH_FORMAT=2
 NAME=kawari
-VERSION=1.4
+VERSION=1.8
 # FAMILY
 # One of: spartan6_x9 | spartan6_x16 | efinix_t8 | efinix_t20
-FPGA=efinix_t20
+FPGA=spartan6_x16
 # START_ADDRESS
 # For Spartan6: 0=golden, 512000=multiboot
 # For EfinixT8: 0=golden, 659456=multiboot
-START_ADDRESS=0
+START_ADDRESS=512000
 IMAGE_SIZE=659456
 # TYPE = multiboot or golden
-TYPE=golden
-# REG_VARIANT - Variant name matching registers 0x90-0x9F
-# One of : SIM | MAIN | MAINSB | MAINLD | MAINLG | MAINLH | MAINLF
-REG_VARIANT=MAINLH
-# BUILD_VARIANT - Variant for .bit filename
-# One of : N/A | T    | SB     | LD     | LG     | LH     | LF
-BUILD_VARIANT=LH
+TYPE=multiboot
+# VARIANT - Variant name matching registers 0x90-0x9F
+# One of : SIM | MAIN | MAINLD | MAINLG | MAINLH | MAINLJ
+VARIANT=DOTCLD
 # PAGE_SIZE - Must be 4k for efinix, 16k for spartan
-PAGE_SIZE=4096
-
-# REG_VARIANT and BUILD_VARIANT must be for
-# the same variant.
+PAGE_SIZE=16384
 
 # Do not edit below this line
-all: subdirs d64 d81 tools
+all: subdirs ask d64 d81 tools
+
+ask:
+	@echo -------------------------------------------
+	@echo MAKING: ${VARIANT}
+	@echo FROM: ${SOURCE_IMG}
+	@echo -------------------------------------------
+	@echo -n Press enter to continue, Cntrl-C to abort:
+	@read dummy
 
 subdirs:
 	$(MAKE) -C third_party
 
-SOURCE_IMG=kawari_$(TYPE)_$(BUILD_VARIANT)_$(VERSION).bit
+SOURCE_IMG=kawari_$(TYPE)_$(VARIANT)_$(VERSION).bit
 
 # Max 29 files to cover size of SpX16
 FILENUMS=000 001 002 003 004 005 006 007 008 009 010 011 012 013 014 015 016 017 018 019 \
@@ -229,7 +231,7 @@ d81: flash.prg checksize third_party/covert/loader.prg image_files info_file
 	fi
 
 zip: all
-	zip kawari_flash_${VERSION}_${BUILD_VARIANT}_${TYPE}.zip flash*.d64 flash.d81
+	zip kawari_flash_${VERSION}_${VARIANT}_${TYPE}.zip flash*.d64 flash.d81
 
 tools:
 	cc -o multi_hex_to_bit multi_hex_to_bit.c
