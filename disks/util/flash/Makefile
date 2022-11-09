@@ -18,7 +18,7 @@ NAME=kawari
 VERSION=1.8
 # FAMILY
 # One of: spartan6_x9 | spartan6_x16 | efinix_t8 | efinix_t20
-FPGA=spartan6_x16
+FPGA=efinix_t20
 # START_ADDRESS
 # For Spartan6: 0=golden, 512000=multiboot
 # For EfinixT8: 0=golden, 659456=multiboot
@@ -28,9 +28,9 @@ IMAGE_SIZE=659456
 TYPE=multiboot
 # VARIANT - Variant name matching registers 0x90-0x9F
 # One of : SIM | MAIN | MAINLD | MAINLG | MAINLH | MAINLJ
-VARIANT=DOTCLD
+VARIANT=MKIILH
 # PAGE_SIZE - Must be 4k for efinix, 16k for spartan
-PAGE_SIZE=16384
+PAGE_SIZE=4096
 
 # Do not edit below this line
 all: subdirs ask d64 d81 tools
@@ -79,7 +79,7 @@ info_file: load_bytes
 	# start address of image
 	echo $(START_ADDRESS) >> info
 	# variant match
-	echo $(REG_VARIANT) >> info
+	echo $(VARIANT) >> info
 	# page size
 	echo $(PAGE_SIZE) >> info
 
