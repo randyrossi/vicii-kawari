@@ -333,6 +333,7 @@ Software                | Status
 errata (emulamer)       | End screen should slow reveal but quick revelals instead. Cause unknown.
 Uncensored (booze)      | Does not advance on disk 2 swap on my 326298 long board. Works on others. But loading directly from disk 2 does work and the rest of the demo plays.
 Edge of Disgrace        | Some garbage at the bottom of first face pic on 326298 & 250245. Rest of demo plays fine. Problem does not happen on 250407.
+Super Mario Bros Turbo Option | If Kawari extensions are enabled, Super Mario Bros will have severe slowdowns.  This is because there is a register collision and it thinks Turbo option is available even though it is not.  Solution is to just cold boot and/or disable Kawari extensions.
 
 ## Other Limitations/Caveats
 
