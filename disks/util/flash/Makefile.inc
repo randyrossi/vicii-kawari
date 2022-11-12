@@ -1,6 +1,5 @@
 # Makes a VIC-II Kawari flash update disk set
-# from a multiboot bitstream. Up to 4 disks and
-# 28 files (covers Spartan6 X16 bistream size).
+# from a bitstream.
 #
 # Expects: kawari_$(TYPE)_$(VARIANT)_$(VERSION).bit
 # Requires: dasm and cc65
@@ -13,24 +12,28 @@
 # same file names as golden and multiboot)
 
 # Stuff to potentially edit
-FLASH_FORMAT=2
-NAME=kawari
-VERSION=1.8
-# FAMILY
-# One of: spartan6_x9 | spartan6_x16 | efinix_t8 | efinix_t20
-FPGA=efinix_t20
-# START_ADDRESS
-# For Spartan6: 0=golden, 512000=multiboot
-# For EfinixT8: 0=golden, 659456=multiboot
-START_ADDRESS=512000
-IMAGE_SIZE=659456
-# TYPE = multiboot or golden
-TYPE=multiboot
-# VARIANT - Variant name matching registers 0x90-0x9F
-# One of : SIM | MAIN | MAINLD | MAINLG | MAINLH | MAINLJ
-VARIANT=MKIILH
-# PAGE_SIZE - Must be 4k for efinix, 16k for spartan
-PAGE_SIZE=4096
+#FLASH_FORMAT=3
+#NAME=kawari
+#VERSION=1.8
+#FPGA=efinix_t20
+#    One of: spartan6_x9 | spartan6_x16 | efinix_t8 | efinix_t20
+#START_ADDRESS
+#    For Spartan6 LD: 0=golden, 512000=multiboot
+#    For Efinix   LH: 0=golden, 659456=multiboot
+#    For Efinix   LG: 0=golden, 679936=multiboot
+#START_ADDRESS=659456
+#IMAGE_SIZE=659456
+#TYPE
+#    One of:  multiboot | golden
+#TYPE=multiboot
+#VARIANT 
+#     Variant name matching registers 0x90-0x9F
+#     One of : SIM | MAIN | MAINLD | MAINLG | MAINLH | MAINLJ
+#VARIANT=MKIILH
+#PAGE_SIZE
+#     Must be 4096 for efinix
+#     Must be 16k for spartan
+#PAGE_SIZE=4096
 
 # Do not edit below this line
 all: subdirs ask d64 d81 tools
@@ -82,6 +85,8 @@ info_file: load_bytes
 	echo $(VARIANT) >> info
 	# page size
 	echo $(PAGE_SIZE) >> info
+	# num disks
+	echo $(NUM_DISKS) >> info
 
 # Util to output 2 load bytes
 load_bytes: load_bytes.c
@@ -122,7 +127,7 @@ run:
 	x64sc flash.prg
 
 clean:
-	rm -rf *.o *.prg *.d64 tmp stripped.bit multi_hex_to_bit
+	rm -rf *.o *.prg *.d64 *.d81 tmp stripped.bit multi_hex_to_bit
 	$(MAKE) -C third_party clean
 
 # For Spartan6 devices, we need to skip over the first X
@@ -174,11 +179,9 @@ checksize:
 	    echo "ERROR: flash.prg too large" ; exit 1 ; \
 	fi
 
-DISKNUMS=1 2 3 4 5
-
 # Put together disk images based on what chunks
 # we created. NOTE: These divisors must match
-# what is hard coded in the flasher program. (8 and 33)
+# what is hard coded in the flasher program. (8 and 34)
 d64: flash.prg checksize third_party/covert/loader.prg image_files info_file
 	for NUM in $(DISKNUMS); do \
 	   truncate -s 174848 flash$$NUM.d64; \
@@ -189,10 +192,6 @@ d64: flash.prg checksize third_party/covert/loader.prg image_files info_file
 	      c1541 -attach flash$$NUM.d64 -write info info; \
 	   fi \
 	done
-	# We don't need the fifth disk for spartan since it's smaller
-	if [ "$(FPGA)" = "spartan6_x9" -o "$(FPGA)" = "spartan6_x16" ]; then \
-		rm flash5.d64; \
-	fi
 	if [ "$(PAGE_SIZE)" = "16384" ]; then \
 	for NUM in $(FILENUMS); do \
            if [ -e tmp/img_$$NUM ]; then \
@@ -203,7 +202,7 @@ d64: flash.prg checksize third_party/covert/loader.prg image_files info_file
 	else \
 	for NUM in $(FILENUMS); do \
            if [ -e tmp/img_$$NUM ]; then \
-		DN=`echo $$NUM / 33 + 1 | bc`; \
+		DN=`echo $$NUM / 34 + 1 | bc`; \
 		c1541 -attach flash$$DN.d64 -write tmp/img_d64_$$NUM i$$NUM; \
 	   fi \
 	done \
@@ -224,7 +223,7 @@ d81: flash.prg checksize third_party/covert/loader.prg image_files info_file
 	else \
 	for NUM in $(FILENUMS); do \
            if [ -e tmp/img_$$NUM ]; then \
-		DN=`echo $$NUM / 33 + 1 | bc`; \
+		DN=`echo $$NUM / 34 + 1 | bc`; \
 		c1541 -attach flash.d81 -write tmp/img_d64_$$NUM i$$NUM; \
 	   fi \
 	done \

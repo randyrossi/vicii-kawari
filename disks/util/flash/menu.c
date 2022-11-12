@@ -27,19 +27,15 @@
 // while 'current' bistream is located at 0x07d000.
 
 // The max version of the image file format we can understand.
-#define FLASH_FORMAT_VERSION 2L
-#define FLASH_FORMAT_VERSION_STR "2"
+#define FLASH_FORMAT_VERSION 3L
+#define FLASH_FORMAT_VERSION_STR "3"
 
 // These must match what the Makefile uses to fill disks
 // with flash image files that have been broken up. It
 // depends on the page size we used to split the bitstream
 // up.
 #define MAX_FILE_PER_DISK_16K 8
-#define MAX_FILE_PER_DISK_4K 33
-
-// The number of disks also depends on page size.
-#define NUM_DISKS_16K 4
-#define NUM_DISKS_4K 5
+#define MAX_FILE_PER_DISK_4K 34
 
 static struct regs r;
 
@@ -208,14 +204,14 @@ void please_insert(int disk_num) {
 
 // Flash files are spread across 4 disks
 // This routine erases the flash
-void begin_flash(long num_to_write, unsigned long start_addr, unsigned long page_size) {
+void begin_flash(long num_to_write, unsigned long start_addr, unsigned long page_size, unsigned long num_disks) {
     unsigned long src_addr;
     unsigned char disknum;
     unsigned char filenum;
     unsigned char abs_filenum;
     unsigned int n;
     unsigned int max_file = (page_size == 16384 ? MAX_FILE_PER_DISK_16K : MAX_FILE_PER_DISK_4K);
-    unsigned int max_disk = (page_size == 16384 ? (NUM_DISKS_16K) - 1 : (NUM_DISKS_4K - 1));
+    unsigned int max_disk = num_disks - 1;
 
     // If we had chosen a start address dividible by 64k, we
     // could have used 64k page erase.  Oh well.  At least
@@ -291,13 +287,13 @@ void begin_flash(long num_to_write, unsigned long start_addr, unsigned long page
     press_any_key(TO_NOTHING);
 }
 
-void begin_verify(long num_to_read, unsigned long start_addr, unsigned long page_size) {
+void begin_verify(long num_to_read, unsigned long start_addr, unsigned long page_size, unsigned long num_disks) {
     unsigned char disknum;
     unsigned char filenum;
     unsigned char abs_filenum;
     unsigned int n;
     unsigned int max_file = (page_size == 16384 ? MAX_FILE_PER_DISK_16K : MAX_FILE_PER_DISK_4K);
-    unsigned int max_disk = (page_size == 16384 ? (NUM_DISKS_16K) - 1 : (NUM_DISKS_4K - 1));
+    unsigned int max_disk = num_disks - 1;
 
     filenum = 0;
     abs_filenum = 0;
@@ -376,6 +372,7 @@ void main_menu(void)
     unsigned char firmware_version_minor;
     unsigned long disk_format_version;
     unsigned long page_size;
+    unsigned long num_disks;
     long num_to_write;
     unsigned long start_addr;
     unsigned long tmp_addr;
@@ -486,6 +483,8 @@ void main_menu(void)
     image_board_int = ascii_variant_to_board_int(scratch);
     page_size = read_decimal(&tmp_addr);
     SMPRINTF_1 ("Page Size    :%ld \n", page_size);
+    num_disks = read_decimal(&tmp_addr);
+    SMPRINTF_1 ("Num Disks    :%ld \n", num_disks);
 
     if (page_size != 4096 && page_size != 16384) {
        mprintf ("\nERROR: Invalid page size\n");
@@ -528,14 +527,12 @@ void main_menu(void)
        }
        mprintf ("F - Perform flash\n");
        mprintf ("V - Perform verify\n");
-       //mprintf ("X - Expert\n");
-       //mprintf ("Q - Quit\n");
        mprintf ("R - Reset\n");
        WAITKEY;
        if (r.a == 'f') {
-          begin_flash(num_to_write, start_addr, page_size);
+          begin_flash(num_to_write, start_addr, page_size, num_disks);
        } else if (r.a == 'v') {
-          begin_verify(num_to_write, start_addr, page_size);
+          begin_verify(num_to_write, start_addr, page_size, num_disks);
        } else if (use_fast_loader && r.a == 'd') {
           use_fast_loader = 0;
        } else if (!use_fast_loader && r.a == 'e') {
