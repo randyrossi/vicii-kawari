@@ -118,6 +118,7 @@ module top(
 `endif
 
 wire rst;
+assign cpu_reset = rst;
 
 `ifdef OUTPUT_DOT_CLOCK
 // NOTE: This hack will only work breadbins that use
