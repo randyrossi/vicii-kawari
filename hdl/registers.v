@@ -1938,25 +1938,6 @@ begin
         if (half_bright)
         case (pixel_color4)
             `BLACK:{red, green, blue} <= {6'h00, 6'h00, 6'h00};
-            `WHITE:{red, green, blue} <= {6'h3f, 6'h3f, 6'h3f};
-            `RED:{red, green, blue} <= {6'h2b, 6'h0a, 6'h0a};
-            `CYAN:{red, green, blue} <= {6'h18, 6'h36, 6'h33};
-            `PURPLE:{red, green, blue} <= {6'h2c, 6'h0f, 6'h2d};
-            `GREEN:{red, green, blue} <= {6'h12, 6'h31, 6'h12};
-            `BLUE:{red, green, blue} <= {6'h0d, 6'h0e, 6'h31};
-            `YELLOW:{red, green, blue} <= {6'h39, 6'h3b, 6'h13};
-            `ORANGE:{red, green, blue} <= {6'h2d, 6'h16, 6'h07};
-            `BROWN:{red, green, blue} <= {6'h1a, 6'h0e, 6'h02};
-            `PINK:{red, green, blue} <= {6'h3a, 6'h1d, 6'h1b};
-            `DARK_GREY:{red, green, blue} <= {6'h13, 6'h13, 6'h13};
-            `GREY:{red, green, blue} <= {6'h21, 6'h21, 6'h21};
-            `LIGHT_GREEN:{red, green, blue} <= {6'h29, 6'h3e, 6'h27};
-            `LIGHT_BLUE:{red, green, blue} <= {6'h1c, 6'h1f, 6'h39};
-            `LIGHT_GREY:{red, green, blue} <= {6'h2d, 6'h2d, 6'h2d};
-        endcase
-        else
-        case (pixel_color4)
-            `BLACK:{red, green, blue} <= {6'h00, 6'h00, 6'h00};
             `WHITE:{red, green, blue} <= {6'h1f, 6'h1f, 6'h1f};
             `RED:{red, green, blue} <= {6'h15, 6'h05, 6'h05};
             `CYAN:{red, green, blue} <= {6'h0c, 6'h1b, 6'h19};
@@ -1972,6 +1953,25 @@ begin
             `LIGHT_GREEN:{red, green, blue} <= {6'h14, 6'h1f, 6'h13};
             `LIGHT_BLUE:{red, green, blue} <= {6'h0e, 6'h0f, 6'h1c};
             `LIGHT_GREY:{red, green, blue} <= {6'h16, 6'h16, 6'h16};
+        endcase
+        else
+        case (pixel_color4)
+            `BLACK:{red, green, blue} <= {6'h00, 6'h00, 6'h00};
+            `WHITE:{red, green, blue} <= {6'h3f, 6'h3f, 6'h3f};
+            `RED:{red, green, blue} <= {6'h2b, 6'h0a, 6'h0a};
+            `CYAN:{red, green, blue} <= {6'h18, 6'h36, 6'h33};
+            `PURPLE:{red, green, blue} <= {6'h2c, 6'h0f, 6'h2d};
+            `GREEN:{red, green, blue} <= {6'h12, 6'h31, 6'h12};
+            `BLUE:{red, green, blue} <= {6'h0d, 6'h0e, 6'h31};
+            `YELLOW:{red, green, blue} <= {6'h39, 6'h3b, 6'h13};
+            `ORANGE:{red, green, blue} <= {6'h2d, 6'h16, 6'h07};
+            `BROWN:{red, green, blue} <= {6'h1a, 6'h0e, 6'h02};
+            `PINK:{red, green, blue} <= {6'h3a, 6'h1d, 6'h1b};
+            `DARK_GREY:{red, green, blue} <= {6'h13, 6'h13, 6'h13};
+            `GREY:{red, green, blue} <= {6'h21, 6'h21, 6'h21};
+            `LIGHT_GREEN:{red, green, blue} <= {6'h29, 6'h3e, 6'h27};
+            `LIGHT_BLUE:{red, green, blue} <= {6'h1c, 6'h1f, 6'h39};
+            `LIGHT_GREY:{red, green, blue} <= {6'h2d, 6'h2d, 6'h2d};
         endcase
 `endif
 `ifndef HIDE_SYNC
