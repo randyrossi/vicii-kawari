@@ -30,11 +30,13 @@
 #include <stdio.h>
 #include <sys/sem.h>
 
+#ifndef __APPLE__
 union semun {
   int val;
   struct semid_ds* buf;
   ushort* array;
 };
+#endif
 
 // When bit 1 is flipped, fpga sync will start
 #define VICII_OP_CAPTURE_START 1
