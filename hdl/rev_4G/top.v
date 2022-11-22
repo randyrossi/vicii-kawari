@@ -18,18 +18,18 @@
 
 `include "../common.vh"
 
-`define USE_MUX_HACK 1
-
 module top(
        input clk_col4x_ntsc, // from pin
        input clk_col4x_pal, // from pin
 
        input clk_col16x_ntsc, // from pll
        input clk_dot4x_ntsc, // from pll
-       input clk_dot40x_ntsc, // from pll
+       input clk_dvi_ntsc, // from pll
+       input clk_dvi10x_ntsc, // from pll
        input clk_col16x_pal, // from pll
        input clk_dot4x_pal, // from pll
-       input clk_dot40x_pal, // from pll
+       input clk_dvi_pal, // from pll
+       input clk_dvi10x_pal, // from pll
 
        // If we are generating luma/chroma, add outputs
 `ifdef GEN_LUMA_CHROMA
@@ -106,17 +106,6 @@ module top(
 );
 
 
-`ifdef USE_MUX_HACK
-`define DOT_CLOCK_4X clk_dot4x
-`define DOT_CLOCK_40X clk_dot40x
-`define COL_CLOCK_16X clk_col16x
-`else
-// Fix to one or the other for testing
-`define DOT_CLOCK_4X clk_dot4x_ntsc
-`define DOT_CLOCK_40X clk_dot40x_ntsc
-`define COL_CLOCK_16X clk_col16x_ntsc
-`endif
-
 wire rst;
 assign cpu_reset = rst;
 
@@ -128,7 +117,7 @@ assign cpu_reset = rst;
 // The unit with this hack should NEVER be plugged into a
 // motherboard without the clock circuit being disabled.
 reg[3:0] dot_clock_shift = 4'b1100;
-always @(posedge `DOT_CLOCK_4X) dot_clock_shift <= {dot_clock_shift[2:0], dot_clock_shift[3]};
+always @(posedge clk_dot4x) dot_clock_shift <= {dot_clock_shift[2:0], dot_clock_shift[3]};
 assign clk_dot4x_ext = dot_clock_shift[3];
 `else
 assign clk_dot4x_ext = 1'b0;
@@ -141,35 +130,41 @@ assign clk_dot4x_ext = 1'b0;
 // this might introduce extra clock skew.  However,
 // it doesn't seemt o be a problem.
 
-`ifdef USE_MUX_HACK
 wire clk_dot4x;
-// Put the muxed clock onto the clock tree
 EFX_GBUFCE mux1(
     .CE(1'b1),
     .I(chip[0] ? clk_dot4x_pal : clk_dot4x_ntsc),
     .O(clk_dot4x)
     );
 
-wire clk_dot40x;
-// Put the muxed clock onto the clock tree
-EFX_GBUFCE mux3(
-    .CE(1'b1),
-    .I(chip[0] ? clk_dot40x_pal : clk_dot40x_ntsc),
-    .O(clk_dot40x)
-    );
-
 wire clk_col16x;
-// Put the muxed clock onto the clock tree
 EFX_GBUFCE mux2(
     .CE(1'b1),
     .I(chip[0] ? clk_col16x_pal : clk_col16x_ntsc),
     .O(clk_col16x)
     );
 
-(* syn_preserve = "true" *) reg ntsc_dot;// throw away signal for mux hack
-(* syn_preserve = "true" *) reg ntsc_dot_10; // throw away signal for mux hack
-(* syn_preserve = "true" *) reg pal_dot; // throw away signal for mux hack
-(* syn_preserve = "true" *) reg pal_dot_10; // throw away signal for mux hack
+wire clk_dvi;
+EFX_GBUFCE mux3(
+    .CE(1'b1),
+    .I(chip[0] ? clk_dvi_pal : clk_dvi_ntsc),
+    .O(clk_dvi)
+    );
+
+wire clk_dvi_x10;
+EFX_GBUFCE mux4(
+    .CE(1'b1),
+    .I(chip[0] ? clk_dvi10x_pal : clk_dvi10x_ntsc),
+    .O(clk_dvi_x10)
+    );
+
+
+(* syn_preserve = "true" *) reg ntsc_dot_2;// throw away signal for mux hack
+(* syn_preserve = "true" *) reg ntsc_dvi_5; // throw away signal for mux hack
+(* syn_preserve = "true" *) reg dvi_ntsc_dot; // throw away signal for mux hack
+(* syn_preserve = "true" *) reg pal_dot_2; // throw away signal for mux hack
+(* syn_preserve = "true" *) reg pal_dvi_5; // throw away signal for mux hack
+(* syn_preserve = "true" *) reg dvi_pal_dot; // throw away signal for mux hack
 (* syn_preserve = "true" *) reg ntsc_col; // throw away signal for mux hack
 (* syn_preserve = "true" *) reg pal_col; // throw away signal for mux hack
 
@@ -181,22 +176,32 @@ EFX_GBUFCE mux2(
 // there a better way?
 always @(posedge clk_dot4x_ntsc)
 begin
-    ntsc_dot <= ~ntsc_dot;
+    ntsc_dot_2 <= ~ntsc_dot_2;
 end
 
 always @(posedge clk_dot4x_pal)
 begin
-    pal_dot <= ~pal_dot;
+    pal_dot_2 <= ~pal_dot_2;
 end
 
-always @(posedge clk_dot40x_ntsc)
+always @(posedge clk_dvi_ntsc)
 begin
-    ntsc_dot_10 <= ~ntsc_dot_10;
+    dvi_ntsc_dot <= ~dvi_ntsc_dot;
 end
 
-always @(posedge clk_dot40x_pal)
+always @(posedge clk_dvi10x_ntsc)
 begin
-    pal_dot_10 <= ~pal_dot_10;
+    ntsc_dvi_5 <= ~ntsc_dvi_5;
+end
+
+always @(posedge clk_dvi_pal)
+begin
+    dvi_pal_dot <= ~dvi_pal_dot;
+end
+
+always @(posedge clk_dvi10x_pal)
+begin
+    pal_dvi_5 <= ~pal_dvi_5;
 end
 
 always @(posedge clk_col16x_ntsc)
@@ -208,7 +213,6 @@ always @(posedge clk_col16x_pal)
 begin
     pal_col <= ~pal_col;
 end
-`endif
 
 wire [7:0] dbo;
 wire [11:0] ado;
@@ -250,7 +254,10 @@ vicii vic_inst(
           .spi_c(spi_c),
 `endif
 `endif // WITH_EXTENSIONS
-          .clk_dot4x(`DOT_CLOCK_4X),
+          .clk_dot4x(clk_dot4x),
+`ifdef WITH_DVI
+          .clk_dvi(clk_dvi),
+`endif
           .clk_phi(clk_phi),
 `ifdef NEED_RGB
           .active(active),
@@ -260,7 +267,7 @@ vicii vic_inst(
           .green(green),
           .blue(blue),
 `endif
-          .clk_col16x(`COL_CLOCK_16X),
+          .clk_col16x(clk_col16x),
 `ifdef GEN_LUMA_CHROMA
           .luma_sink(luma_sink),
           .luma(luma),
@@ -299,33 +306,10 @@ assign ls245_addr_oe = 1'b0;
 assign ls245_data_oe = 1'b0;
 
 `ifdef WITH_DVI
-// Scale from 6 bits to 8 for DVI
-// TODO: This scaling doesn't seem to work on Efinix. Either leave
-// as-is or use a ROM to map 6 bits to 8 bit scaled value.
-//wire[31:0] red_scaled;
-//wire[31:0] green_scaled;
-//wire[31:0] blue_scaled;
-//assign red_scaled = red * 255 / 63;
-//assign green_scaled = green * 255 / 63;
-//assign blue_scaled = blue * 255 / 63;
-
-`ifdef HALF_X_RES
-// Turn this on to test a 16Mhz clock instead of 32Mhz
-// Must also set native_x flag for this to work.
-reg ff1;
-reg ff2;
-always @(posedge `DOT_CLOCK_4X) ff1=~ff1;
-always @(posedge `DOT_CLOCK_40X) ff2=~ff2;
-`endif
 
 dvi dvi_tx0 (
-`ifdef HALF_X_RES
-   .clk_pixel    (ff1), //`DOT_CLOCK_4X),
-   .clk_pixel_x10(ff2), //`DOT_CLOCK_40X),
-`else
-   .clk_pixel    (`DOT_CLOCK_4X),
-   .clk_pixel_x10(`DOT_CLOCK_40X),
-`endif
+   .clk_pixel    (clk_dvi),
+   .clk_pixel_x10(clk_dvi_x10),
    .reset        (1'b0),
    .rgb          ({red, 2'b0, green, 2'b0, blue, 2'b0}),
    .hsync        (hsync),
@@ -333,6 +317,7 @@ dvi dvi_tx0 (
    .de           (active),
    .tmds         ({tmds_data_r, tmds_data_g, tmds_data_b}),
    .tmds_clock   (tmds_clock));
+
 `endif
 
 endmodule

@@ -50,6 +50,11 @@ module vicii
            input standard_sw,
            output rst,
            input clk_dot4x,
+`ifdef EFINIX
+`ifdef WITH_DVI
+           input clk_dvi,
+`endif
+`endif
            output clk_phi,
            input clk_col16x,
 `ifdef GEN_LUMA_CHROMA
@@ -934,6 +939,15 @@ registers vic_registers(
 `endif
               .standard_sw(standard_sw),
               .clk_dot4x(clk_dot4x),
+`ifdef EFINIX
+`ifdef WITH_DVI
+              .clk_dvi(clk_dvi),
+`else
+              .clk_dvi(clk_dot4x),
+`endif
+`else
+              .clk_dvi(clk_dot4x),
+`endif
               .clk_phi(clk_phi),
               .phi_phase_start(phi_phase_start),
               .ce(ce),
@@ -1249,6 +1263,66 @@ comp_sync vic_comp_sync(
 // When X resolution is doubled, this can show hi-res modes.
 // -------------------------------------------------------------
 `ifdef NEED_RGB
+
+// For Efinix boards, the timing for analog RGB and DVI are different
+// so we use a different sync/pixel generator.  NOTE:  ANALOG_RGB_TIMING
+// must NOT be enabled for EFINIX, otherwise the ntsc timing will be
+// unusable.
+`ifdef EFINIX
+`ifdef WITH_DVI
+`define HAVE_SYNC_MODULE 1
+hires_dvi_sync vic_dvi_sync(
+                   .rst(rst),
+                   .clk_dot4x(clk_dot4x),
+                   .clk_dvi(clk_dvi),
+                   .dot_rising(dot_rising),
+                   .is_native_y_in(is_native_y),
+                   .is_native_x_in(is_native_x),
+                   .enable_csync(enable_csync),
+                   .hpolarity(hpolarity),
+                   .vpolarity(vpolarity),
+`ifdef CONFIGURABLE_TIMING
+                   .timing_change_in(timing_change),
+                   .timing_h_blank_ntsc(timing_h_blank_ntsc),
+                   .timing_h_fporch_ntsc(timing_h_fporch_ntsc),
+                   .timing_h_sync_ntsc(timing_h_sync_ntsc),
+                   .timing_h_bporch_ntsc(timing_h_bporch_ntsc),
+                   .timing_v_blank_ntsc(timing_v_blank_ntsc),
+                   .timing_v_fporch_ntsc(timing_v_fporch_ntsc),
+                   .timing_v_sync_ntsc(timing_v_sync_ntsc),
+                   .timing_v_bporch_ntsc(timing_v_bporch_ntsc),
+                   .timing_h_blank_pal(timing_h_blank_pal),
+                   .timing_h_fporch_pal(timing_h_fporch_pal),
+                   .timing_h_sync_pal(timing_h_sync_pal),
+                   .timing_h_bporch_pal(timing_h_bporch_pal),
+                   .timing_v_blank_pal(timing_v_blank_pal),
+                   .timing_v_fporch_pal(timing_v_fporch_pal),
+                   .timing_v_sync_pal(timing_v_sync_pal),
+                   .timing_v_bporch_pal(timing_v_bporch_pal),
+`endif // CONFIGURABLE_TIMING
+                   .raster_x(raster_x),
+                   .raster_y(raster_line),
+                   .xpos(xpos),
+`ifdef HIRES_MODES
+                   .hires_raster_x(hires_raster_x),
+`endif
+                   .chip(chip),
+                   .pixel_color3(pixel_color3),
+                   .hsync(hsync),
+                   .vsync(vsync),
+                   .active(active),
+                   .pixel_color4(pixel_color4_vga),
+                   .half_bright(half_bright)
+               );
+`endif // WITH_DVI
+`endif // EFINIX
+
+// For Spartan6, we can share the same sync/pixel generator and
+// both analog RGB and DVI can be active at the same time.
+// ANALOG_RGB_TIMING should be enabled to avoid bad ntsc output
+// on some monitors. If we get here for EFINIX builds, then
+// we do not have DVI enabled.
+`ifndef HAVE_SYNC_MODULE
 hires_vga_sync vic_vga_sync(
                    .rst(rst),
                    .clk_dot4x(clk_dot4x),
@@ -1276,7 +1350,7 @@ hires_vga_sync vic_vga_sync(
                    .timing_v_fporch_pal(timing_v_fporch_pal),
                    .timing_v_sync_pal(timing_v_sync_pal),
                    .timing_v_bporch_pal(timing_v_bporch_pal),
-`endif
+`endif // CONFIGURABLE_TIMING
                    .raster_x(raster_x),
                    .raster_y(raster_line),
                    .xpos(xpos),
@@ -1291,6 +1365,8 @@ hires_vga_sync vic_vga_sync(
                    .pixel_color4(pixel_color4_vga),
                    .half_bright(half_bright)
                );
-`endif
+`endif // HAVE_SYNC_MODULE
+
+`endif // NEED_RGB
 
 endmodule

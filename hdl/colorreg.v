@@ -28,12 +28,13 @@ module COLOR_REGS
            data_width = 24
        )
        (
-           input wire clk,
+           input wire clk_a,
            input wire we_a,
            input wire [addr_width-1:0] addr_a,
            input wire [data_width-1:0] din_a,
            output reg [data_width-1:0] dout_a,
            input wire we_b,
+           input wire clk_b,
            input wire [addr_width-1:0] addr_b,
            input wire [data_width-1:0] din_b,
            output reg [data_width-1:0] dout_b
@@ -64,14 +65,14 @@ module COLOR_REGS
 `endif
 
 
-always @(posedge clk)
+always @(posedge clk_a)
 begin
     if (we_a)
         ram_dual_port[addr_a] <= din_a;
     dout_a <= ram_dual_port[addr_a];
 end
 
-always @(posedge clk)
+always @(posedge clk_b)
 begin
     if (we_b)
         ram_dual_port[addr_b] <= din_b;

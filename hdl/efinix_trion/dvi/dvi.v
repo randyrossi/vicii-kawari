@@ -45,16 +45,9 @@ reg [5:0] control_data = 6'd0;
 
 always @(posedge clk_pixel)
 begin
-   if (reset)
-   begin
-      video_data <= 24'd0;
-      control_data <= 6'd0;
-   end
-   else begin
-      video_data <= rgb;
-      // ctrl3, ctrl2, ctrl1, ctrl0, vsync, hsync
-      control_data <= {4'b0000, {vsync, hsync}};
-   end
+   video_data <= rgb;
+   // ctrl3, ctrl2, ctrl1, ctrl0, vsync, hsync
+   control_data <= {4'b0000, {vsync, hsync}};
 end
 
 // All logic below relates to the production and output of the 10-bit TMDS code.

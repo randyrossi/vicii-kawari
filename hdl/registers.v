@@ -30,6 +30,7 @@ module registers
 `endif
            input standard_sw,
            input clk_dot4x,
+           input clk_dvi,
            input clk_phi,
            input [15:0] phi_phase_start,
            input ras,
@@ -389,6 +390,7 @@ COLOR_REGS color_regs(clk_dot4x,
                       color_regs_data_in_a,
                       color_regs_data_out_a,
                       1'b0, // we never write to port b
+                      clk_dvi,
 `ifdef NEED_RGB
                       pixel_color4, // read addr for color lookups
 `else
@@ -553,18 +555,19 @@ begin
 `ifdef CONFIGURABLE_TIMING
         timing_change <= 1'b0;
         timing_h_blank_ntsc <= 0;
+`ifdef ANALOG_RGB_TIMING
         timing_h_fporch_ntsc <= 10;
-`ifdef ANLAOG_RGB_TIMING
         timing_h_sync_ntsc <= 70;
         timing_h_bporch_ntsc <= 20;
 `else
-        timing_h_sync_ntsc <= 60;
-        timing_h_bporch_ntsc <= 10;
+        timing_h_fporch_ntsc <= 5;
+        timing_h_sync_ntsc <= 35;
+        timing_h_bporch_ntsc <= 40;
 `endif
         timing_v_blank_ntsc <= 11;
         timing_v_fporch_ntsc <= 8;
-        timing_v_sync_ntsc <= 3;
-        timing_v_bporch_ntsc <= 2;
+        timing_v_sync_ntsc <= 4;
+        timing_v_bporch_ntsc <= 3;
         timing_h_blank_pal <= 0;
         timing_h_fporch_pal <= 10;
         timing_h_sync_pal <= 60;
@@ -1916,10 +1919,15 @@ $display("blit next src line");
     end // rst or not
 end
 
+reg [3:0] pixel_color4_1;
+reg [3:0] pixel_color4_2;
+always @(posedge clk_dvi) pixel_color4_1 <= pixel_color4;
+always @(posedge clk_dvi) pixel_color4_2 <= pixel_color4_1;
+
 `ifdef NEED_RGB
 // At every pixel clock tick, set red,green,blue from color
 // register ram according to the pixel_color4 address.
-always @(posedge clk_dot4x)
+always @(posedge clk_dvi)
 begin
 `ifndef HIDE_SYNC
     if (active) begin
@@ -1936,7 +1944,7 @@ begin
         end
 `else
         if (half_bright)
-        case (pixel_color4)
+        case (pixel_color4_2)
             `BLACK:{red, green, blue} <= {6'h00, 6'h00, 6'h00};
             `WHITE:{red, green, blue} <= {6'h1f, 6'h1f, 6'h1f};
             `RED:{red, green, blue} <= {6'h15, 6'h05, 6'h05};
@@ -1955,7 +1963,7 @@ begin
             `LIGHT_GREY:{red, green, blue} <= {6'h16, 6'h16, 6'h16};
         endcase
         else
-        case (pixel_color4)
+        case (pixel_color4_2)
             `BLACK:{red, green, blue} <= {6'h00, 6'h00, 6'h00};
             `WHITE:{red, green, blue} <= {6'h3f, 6'h3f, 6'h3f};
             `RED:{red, green, blue} <= {6'h2b, 6'h0a, 6'h0a};
