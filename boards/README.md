@@ -3,7 +3,7 @@
 Parent | VariantCode | Description
 -------|-------------|------------
 None   | MAIN        | Mainline variant
-MAIN   | DOTC        | DotClock output enabled
+MAIN   | DOTC        | Dot-Clock mod enabled (Mini only)
 MAIN   | MKII        | MK2 compatible variant
 MAIN   | SARU        | Sarumon compatible variant
 

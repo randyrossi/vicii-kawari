@@ -32,5 +32,6 @@
 `define HAVE_FLASH 1
 `define WITH_BLITTER 1
 `define SARUMAN_TIMING 1
+`define OUTPUT_DOT_CLOCK 1
 
 `endif // config_vh_

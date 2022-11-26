@@ -30,5 +30,6 @@
 `define WITH_MATH 1
 `define WITH_BLITTER 1
 `define MK2_TIMING 1
+`define OUTPUT_DOT_CLOCK 1
 
 `endif // config_vh_
