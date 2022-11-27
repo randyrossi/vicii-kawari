@@ -21,7 +21,6 @@
 `define CONFIGURABLE_LUMAS 1
 `define CONFIGURABLE_RGB 1
 `define NEED_RGB 1
-`define GEN_RGB 1
 `define HIRES_MODES 1
 `define HIRES_RESET 1
 `define WITH_MATH 1

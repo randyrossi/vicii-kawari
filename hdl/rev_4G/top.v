@@ -24,12 +24,16 @@ module top(
 
        input clk_col16x_ntsc, // from pll
        input clk_dot4x_ntsc, // from pll
+`ifdef WITH_DVI
        input clk_dvi_ntsc, // from pll
        input clk_dvi10x_ntsc, // from pll
+`endif
        input clk_col16x_pal, // from pll
        input clk_dot4x_pal, // from pll
+`ifdef WITH_DVI
        input clk_dvi_pal, // from pll
        input clk_dvi10x_pal, // from pll
+`endif
 
        // If we are generating luma/chroma, add outputs
 `ifdef GEN_LUMA_CHROMA
@@ -144,6 +148,7 @@ EFX_GBUFCE mux2(
     .O(clk_col16x)
     );
 
+`ifdef WITH_DVI
 wire clk_dvi;
 EFX_GBUFCE mux3(
     .CE(1'b1),
@@ -157,7 +162,7 @@ EFX_GBUFCE mux4(
     .I(chip[0] ? clk_dvi10x_pal : clk_dvi10x_ntsc),
     .O(clk_dvi_x10)
     );
-
+`endif
 
 (* syn_preserve = "true" *) reg ntsc_dot_2;// throw away signal for mux hack
 (* syn_preserve = "true" *) reg ntsc_dvi_5; // throw away signal for mux hack
@@ -184,6 +189,7 @@ begin
     pal_dot_2 <= ~pal_dot_2;
 end
 
+`ifdef WITH_DVI
 always @(posedge clk_dvi_ntsc)
 begin
     dvi_ntsc_dot <= ~dvi_ntsc_dot;
@@ -203,6 +209,7 @@ always @(posedge clk_dvi10x_pal)
 begin
     pal_dvi_5 <= ~pal_dvi_5;
 end
+`endif
 
 always @(posedge clk_col16x_ntsc)
 begin
