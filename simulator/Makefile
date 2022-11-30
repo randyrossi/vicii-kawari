@@ -92,7 +92,7 @@ gen_config.o: gen_config.c
 
 config_test_0: gen_config
 	@(./gen_config 0 > ../hdl/config.vh)
-	$(MAKE) clean
+	$(MAKE) mostlyclean
 	$(MAKE) vicii_ipc.o
 	$(VERILATOR) --top-module top --trace -cc  --exe \
 		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
@@ -101,7 +101,7 @@ config_test_0: gen_config
 
 config_test_1: gen_config
 	@(./gen_config 1 > ../hdl/config.vh)
-	$(MAKE) clean
+	$(MAKE) mostlyclean
 	$(MAKE) vicii_ipc.o
 	$(VERILATOR) --top-module top --trace -cc  --exe \
 		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
@@ -110,7 +110,7 @@ config_test_1: gen_config
 
 config_test_2: gen_config
 	@(./gen_config 2 > ../hdl/config.vh)
-	$(MAKE) clean
+	$(MAKE) mostlyclean
 	$(MAKE) vicii_ipc.o
 	$(VERILATOR) --top-module top --trace -cc  --exe \
 		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
@@ -119,7 +119,7 @@ config_test_2: gen_config
 
 config_test_3: gen_config
 	@(./gen_config 3 > ../hdl/config.vh)
-	$(MAKE) clean
+	$(MAKE) mostlyclean
 	$(MAKE) vicii_ipc.o
 	$(VERILATOR) --top-module top --trace -cc  --exe \
 		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
@@ -128,7 +128,7 @@ config_test_3: gen_config
 
 config_test_4: gen_config
 	@(./gen_config 4 > ../hdl/config.vh)
-	$(MAKE) clean
+	$(MAKE) mostlyclean
 	$(MAKE) vicii_ipc.o
 	$(VERILATOR) --top-module top --trace -cc  --exe \
 		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
@@ -137,7 +137,7 @@ config_test_4: gen_config
 
 config_test_5: gen_config
 	@(./gen_config 5 > ../hdl/config.vh)
-	$(MAKE) clean
+	$(MAKE) mostlyclean
 	$(MAKE) vicii_ipc.o
 	$(VERILATOR) --top-module top --trace -cc  --exe \
 		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
@@ -146,7 +146,7 @@ config_test_5: gen_config
 
 config_test_6: gen_config
 	@(./gen_config 6 > ../hdl/config.vh)
-	$(MAKE) clean
+	$(MAKE) mostlyclean
 	$(MAKE) vicii_ipc.o
 	$(VERILATOR) --top-module top --trace -cc  --exe \
 		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
@@ -155,7 +155,7 @@ config_test_6: gen_config
 
 config_test_7: gen_config
 	@(./gen_config 7 > ../hdl/config.vh)
-	$(MAKE) clean
+	$(MAKE) mostlyclean
 	$(MAKE) vicii_ipc.o
 	$(VERILATOR) --top-module top --trace -cc  --exe \
 		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
@@ -164,7 +164,7 @@ config_test_7: gen_config
 
 config_test_8: gen_config
 	@(./gen_config 8 > ../hdl/config.vh)
-	$(MAKE) clean
+	$(MAKE) mostlyclean
 	$(MAKE) vicii_ipc.o
 	$(VERILATOR) --top-module top --trace -cc  --exe \
 		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
@@ -173,7 +173,7 @@ config_test_8: gen_config
 
 config_test_9: gen_config
 	@(./gen_config 9 > ../hdl/config.vh)
-	$(MAKE) clean
+	$(MAKE) mostlyclean
 	$(MAKE) vicii_ipc.o
 	$(VERILATOR) --top-module top --trace -cc  --exe \
 		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
@@ -182,7 +182,7 @@ config_test_9: gen_config
 
 config_test_10: gen_config
 	@(./gen_config 10 > ../hdl/config.vh)
-	$(MAKE) clean
+	$(MAKE) mostlyclean
 	$(MAKE) vicii_ipc.o
 	$(VERILATOR) --top-module top --trace -cc  --exe \
 		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
@@ -196,7 +196,10 @@ config_test: config_test_0 config_test_1 config_test_2 config_test_3 \
 
 ######################################################################
 
-maintainer-copy::
-clean mostlyclean distclean maintainer-clean::
+mostlyclean:
+	-rm -rf obj_dir *.log *.dmp *.vpd core
+	-rm -f *.o ipc_test libvicii_ipc.so
+
+clean:
 	-rm -rf obj_dir *.log *.dmp *.vpd core
 	-rm -f *.o ipc_test gen_config libvicii_ipc.so

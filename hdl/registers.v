@@ -1919,12 +1919,12 @@ $display("blit next src line");
     end // rst or not
 end
 
+`ifdef NEED_RGB
 reg [3:0] pixel_color4_1;
 reg [3:0] pixel_color4_2;
 always @(posedge clk_dvi) pixel_color4_1 <= pixel_color4;
 always @(posedge clk_dvi) pixel_color4_2 <= pixel_color4_1;
 
-`ifdef NEED_RGB
 // At every pixel clock tick, set red,green,blue from color
 // register ram according to the pixel_color4 address.
 always @(posedge clk_dvi)
