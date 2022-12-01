@@ -7,6 +7,7 @@ kawari_demo_1: subdirs
 	c1541 -attach kawari_demo_1.d64 -write hires/grogu.prg  grogu-img
 	c1541 -attach kawari_demo_1.d64 -write hires/horse.prg  horse-img
 	c1541 -attach kawari_demo_1.d64 -write split/split.prg  split320
+	c1541 -attach kawari_demo_1.d64 -write racer80/racer80.prg  racer80
 	c1541 -attach kawari_demo_1.d64 -list
 
 subdirs:

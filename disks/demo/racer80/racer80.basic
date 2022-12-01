@@ -1,0 +1,23 @@
+
+
+;racer80.prg ==0801==
+    1 rem 10 print racer: 8-bit show & tell
+    2 rem adapted to vicii-kawari 80 columns
+    3 rem requires 80col-51200 and vmem-49152 to be installed
+    5 r$="":print"init:";:forx=1to75:m$=chr$(205.5+rnd(.)):r$=r$+m$:printm$;:next
+   10 print"{clr}{wht}":c=40:r=33:w=15:d=0:s=4096
+   20 l=0:forz=0to1step0:x=rnd(.)*10
+   30 ifx<4thenr=r-1:ifr<1thenr=1
+   40 ifx>6thenr=r+1:ifr+w>77thenr=77-w
+   50 o=rnd(.)*35+1:printmid$(r$,o,r);spc(w);mid$(r$,o,79-r-w)
+   60 d=d+1:l=l+1:ifl>49thenl=0:w=w-1:ifw<3thenw=3
+   70 ifd<25thennext
+   75 geta$:ifa$="4"thenc=c-1
+   80 ifa$="6"thenc=c+1
+   90 ad=s+c:sys49155,ad,0:ifpeek(780)<>32then200
+  100 sys49152,ad,42:next
+  200 printspc(17)"crash!":ifd>hthenh=d
+  205 print,"score:"d"  high:"h
+  210 forx=1to2000:next:poke198,0
+  220 geta$:ifa$=""then220
+  230 goto10

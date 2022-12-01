@@ -14,6 +14,7 @@ kawari_util_1: subdirs
 	c1541 -attach kawari_util_1.d64 -write tests/lumatest/lumatest.prg lumatest
 	#c1541 -attach kawari_util_1.d64 -write tests/flashtest/flashtest.prg flashtest
 	c1541 -attach kawari_util_1.d64 -write 80col/80col-51200.prg 80col-51200
+	c1541 -attach kawari_util_1.d64 -write vmem/vmem-49152.prg vmem-49152
 	c1541 -attach kawari_util_1.d64 -write novaterm/kawari.ml 80col.kawari
 	c1541 -attach kawari_util_1.d64 -write ansii/ansii.prg ansii
 	c1541 -attach kawari_util_1.d64 -list
