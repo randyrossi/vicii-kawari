@@ -1,9 +1,6 @@
 # Download
 
-[Demo Disk 1.0](https://accentual.com/vicii-kawari/downloads/kawari_demo_1.0.d64) \
-[Util Disk 1.2](https://accentual.com/vicii-kawari/downloads/kawari_util_1.2.d64) \
-[Kawari Inside Disk 1](https://accentual.com/vicii-kawari/downloads/kawari_inside_1.d64) \
-[Kawari Inside Disk 2](https://accentual.com/vicii-kawari/downloads/kawari_inside_2.d64)
+Disks are available from the download tab of the forum @ [VIC-II Kawari Forum](https://accentual.com/forum)
 
 * NOTE: The Kawari Inside demo requires a 1541 (or Pi1541). SD2IEC devices are not compatible with the fast loader.
 
