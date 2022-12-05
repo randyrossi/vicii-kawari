@@ -150,3 +150,14 @@ unsigned int get_flash_page_size(void) {
    else
       return 4096;
 }
+
+unsigned short get_capability_bits(void)
+{
+   unsigned char lo,hi;
+   POKE(VIDEO_MEM_1_IDX, 0);
+   POKE(VIDEO_MEM_1_LO, CAP_LO);
+   lo = PEEK(VIDEO_MEM_1_VAL);
+   POKE(VIDEO_MEM_1_LO, CAP_HI);
+   hi = PEEK(VIDEO_MEM_1_VAL);
+   return lo | (hi << 8);
+}

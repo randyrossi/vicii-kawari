@@ -98,4 +98,14 @@
 #define BOARD_REV_4LH  4   // a.k.a. mini Efinix
 #define BOARD_REV_4LG  5   // a.k.a. large Efinix
 
+#define CAP_RGB_BIT 1
+#define CAP_DVI_BIT 2
+#define CAP_COMP_BIT 4
+#define CAP_CONFIG_RGB_BIT 8
+#define CAP_CONFIG_LUMA_BIT 16
+#define CAP_CONFIG_TIMING_BIT 32
+#define CAP_PERSIST_BIT 64
+#define CAP_HIRES_BIT 128
+
+
 #endif
