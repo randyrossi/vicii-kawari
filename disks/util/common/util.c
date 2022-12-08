@@ -161,3 +161,16 @@ unsigned short get_capability_bits(void)
    hi = PEEK(VIDEO_MEM_1_VAL);
    return lo | (hi << 8);
 }
+
+// Added in v.0xfe to safely/smartly initialize newly added
+// EEPROM locations from the flash program. If the current
+// value > the flash program's value, then we initialize
+// all fields added in every version until we reach the
+// current value. (We count up because our version scheme
+// works downward starting from 0xff as the first version.)
+unsigned char get_cfg_version(void)
+{
+   POKE(VIDEO_MEM_1_IDX, 0);
+   POKE(VIDEO_MEM_1_LO, CFG_VERSION);
+   return PEEK(VIDEO_MEM_1_VAL);
+}

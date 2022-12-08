@@ -102,6 +102,10 @@ module top(
 
 wire rst;
 wire [1:0] chip;
+`ifdef GEN_LUMA_CHROMA
+wire ntsc_50;
+wire pal_60;
+`endif
 
 `ifndef GEN_RGB
 // When we're not exporting these signals, we still need
@@ -163,6 +167,8 @@ vicii vic_inst(
           .luma_sink(luma_sink),
           .luma(luma),
           .chroma(chroma),
+          .ntsc_50(ntsc_50),
+          .pal_60(pal_60),
 `endif
           .adi(adl[5:0]),
           .ado(ado),

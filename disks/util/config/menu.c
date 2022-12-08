@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <6502.h>
 #include <peekpoke.h>
+#include <string.h>
 
 #include "util.h"
 #include "kawari.h"
@@ -18,6 +19,7 @@ static unsigned char current_lock_bits = 0;
 
 static unsigned char version_major = 0;
 static unsigned char version_minor = 0;
+static unsigned short version_short = 0;
 static unsigned char variant[16];
 
 static int line = 0;
@@ -26,24 +28,26 @@ static int has_rgb = 0;
 static int has_dvi = 0;
 static int has_comp= 0;
 
-static int chip_line;
-static int is_native_y_line;
-static int is_native_x_line;
-static int csync_line;
-static int hpolarity_line;
-static int vpolarity_line;
-static int white_line_line;
-static int switch_line;
-static int locks_line;
-static int raster_lines_line;
-static int is_native_y_line;
-static int max_line;
-
+static int chip_line = -1;
+static int is_native_y_line = -1;
+static int is_native_x_line = -1;
+static int csync_line = -1;
+static int hpolarity_line = -1;
+static int vpolarity_line = -1;
+static int white_line_line = -1;
+static int switch_line = -1;
+static int locks_line = -1;
+static int raster_lines_line = -1;
+static int ntsc_50_line = -1;
+static int pal_60_line = -1;
+static int max_line = -1;
 
 void get_display_flags(void)
 {
    POKE(VIDEO_MEM_1_LO,DISPLAY_FLAGS);
    current_display_flags = PEEK(VIDEO_MEM_1_VAL);
+   POKE(VIDEO_MEM_1_LO,DISPLAY_FLAGS2);
+   current_display_flags = current_display_flags | (PEEK(VIDEO_MEM_1_VAL) << 8);
    next_display_flags = current_display_flags;
    current_switch_val = current_display_flags & DISPLAY_CHIP_INVERT_SWITCH;
 }
@@ -175,6 +179,14 @@ void show_info_line(void) {
         printf ("Lock bits indicator. Shows locked funcs ");
         printf ("according to jumper settings.           ");
     }
+    else if (line == ntsc_50_line) {
+        printf ("Uses NTSC color encoding for PAL chips. ");
+        printf ("Makes using some NTSC monitors possible.");
+    }
+    else if (line == pal_60_line) {
+        printf ("Uses PAL color encoding for NTSC chips. ");
+        printf ("Makes using some PAL monitors possible.");
+    }
 }
 
 void save_changes(void)
@@ -182,7 +194,9 @@ void save_changes(void)
    POKE(VIDEO_MEM_FLAGS, PEEK(VIDEO_MEM_FLAGS) | VMEM_FLAG_PERSIST_BIT);
    if (current_display_flags != next_display_flags) {
       POKE(VIDEO_MEM_1_LO, DISPLAY_FLAGS);
-      SAFE_POKE(VIDEO_MEM_1_VAL, next_display_flags);
+      SAFE_POKE(VIDEO_MEM_1_VAL, next_display_flags & 0xff);
+      POKE(VIDEO_MEM_1_LO, DISPLAY_FLAGS2);
+      SAFE_POKE(VIDEO_MEM_1_VAL, next_display_flags >> 8);
       current_display_flags = next_display_flags;
    }
    if (current_model != next_model) {
@@ -205,12 +219,19 @@ void main_menu(void)
     POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
     version_major = get_version_major();
     version_minor = get_version_minor();
+    version_short = version_minor + version_major * 256;
     get_variant(variant);
 
     caps = get_capability_bits();
     has_rgb = caps & CAP_RGB_BIT;
     has_dvi = caps & CAP_DVI_BIT;
     has_comp = caps & CAP_COMP_BIT;
+
+    if (strcmp(variant,"sim") ==0) {
+       has_rgb = 1;
+       has_dvi = 1;
+       has_comp = 1;
+    }
 
     CLRSCRN;
     printf ("VIC-II Kawari Config Utility\n\n");
@@ -233,6 +254,8 @@ void main_menu(void)
     }
     if (has_comp) {
        printf ("S/LUM burst    :\n");
+       printf ("NTSC 50        :\n");
+       printf ("PAL  60        :\n");
     }
     printf ("External Switch:\n");
     printf ("Locked Func    :\n");
@@ -276,6 +299,13 @@ void main_menu(void)
           if (has_comp) {
              white_line_line = ln; ln++;
              show_display_bit(DISPLAY_WHITE_LINE_BIT, white_line_line, 0);
+             // Only available since 1.11(267)
+             if (version_short >= 267) {
+                ntsc_50_line = ln; ln++;
+                show_display_bit(DISPLAY_NTSC_50_BIT, ntsc_50_line, 0);
+                pal_60_line = ln; ln++;
+                show_display_bit(DISPLAY_PAL_60_BIT, pal_60_line, 0);
+             }
           }
           switch_line = ln; ln++;
           show_display_bit(DISPLAY_CHIP_INVERT_SWITCH, switch_line, 0);
@@ -330,6 +360,14 @@ void main_menu(void)
           else if (line == white_line_line && can_save) {
              next_display_flags ^= DISPLAY_WHITE_LINE_BIT;
              show_display_bit(DISPLAY_WHITE_LINE_BIT, white_line_line, 0);
+	  }
+          else if (line == ntsc_50_line && can_save) {
+             next_display_flags ^= DISPLAY_NTSC_50_BIT;
+             show_display_bit(DISPLAY_NTSC_50_BIT, ntsc_50_line, 0);
+	  }
+          else if (line == pal_60_line && can_save) {
+             next_display_flags ^= DISPLAY_PAL_60_BIT;
+             show_display_bit(DISPLAY_PAL_60_BIT, pal_60_line, 0);
 	  }
        } else if (r.a == 's') {
           save_changes();

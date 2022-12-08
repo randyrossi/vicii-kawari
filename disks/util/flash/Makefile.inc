@@ -12,7 +12,6 @@
 # same file names as golden and multiboot)
 
 # Stuff to potentially edit
-#FLASH_FORMAT=3
 #NAME=kawari
 #VERSION=1.8
 #FPGA=efinix_t20
@@ -62,17 +61,15 @@ FILENUMS=000 001 002 003 004 005 006 007 008 009 010 011 012 013 014 015 016 017
          140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 \
          160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179
 
-OBJS=main.o menu.o ../common/util.o ../common/data.o ../common/init.o \
+OBJS=main.o menu.o ../common/util.o \
      ../common/flash.o crt0.o loader_loader.o copy.o compare.o
 
-EXPERT_OBJS=main.o expert.o ../common/util.o ../common/data.o ../common/init.o ../common/flash.o copy.o
+EXPERT_OBJS=main.o expert.o ../common/util.o ../common/flash.o copy.o
 
 # Make an info file for flash program to read
 # $9000 dest
 info_file: load_bytes
 	./load_bytes 0 144 > info
-	# flash format version
-	echo $(FLASH_FORMAT) >> info
 	# name, max 31 chars, petscii
 	echo $(NAME) >> info
 	# version string

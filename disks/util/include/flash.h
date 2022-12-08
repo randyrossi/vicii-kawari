@@ -37,26 +37,50 @@
 // All combinations of D/C/S bits for Flash
 // programming. Make sure EEPROM select (Bit 4)
 // is always held high.
-#define D1_C1_S1 15 // 1111
-#define D1_C1_S0 14 // 1110
-#define D1_C0_S1 13 // 1101
-#define D1_C0_S0 12 // 1100
-#define D0_C1_S1 11 // 1011
-#define D0_C1_S0 10 // 1010
-#define D0_C0_S1 9  // 1001
-#define D0_C0_S0 8  // 1000
+#define F_D1_C1_S1 15 // 1111
+#define F_D1_C1_S0 14 // 1110
+#define F_D1_C0_S1 13 // 1101
+#define F_D1_C0_S0 12 // 1100
+#define F_D0_C1_S1 11 // 1011
+#define F_D0_C1_S0 10 // 1010
+#define F_D0_C0_S1 9  // 1001
+#define F_D0_C0_S0 8  // 1000
 
-#define SET(val) asm("lda #"STRINGIFY(val)); asm ("sta $d034");
+// All combinations of D/C/S bits for EEPROM.
+// Make sure FLASH select (Bit 1) is always held high.
+#define E_D1_C1_S1 15 // 1111
+#define E_D1_C1_S0  7 // 0111
+#define E_D1_C0_S1 13 // 1101
+#define E_D1_C0_S0  5 // 0101
+#define E_D0_C1_S1 11 // 1011
+#define E_D0_C1_S0  3 // 0011
+#define E_D0_C0_S1  9 // 1001
+#define E_D0_C0_S0  1 // 0001
 
-#define DEVICE_ID_INSTR       0x90
+#define SET(val) asm("lda %v",val); asm ("sta $d034");
+
+// Common to FLASH and EEPROM
 #define READ_INSTR            0x03
 #define WREN_INSTR            0x06
 #define READ_STATUS1_INSTR    0x05
 #define BLOCK_ERASE_4K_INSTR  0x20
 #define WRITE_INSTR           0x02
 
+// FLASH only
+#define F_DEVICE_ID_INSTR     0x90
+
+// EEPROM only
+#define E_DEVICE_ID_INSTR     0x83
+
 extern unsigned char data_out[256];
 extern unsigned char data_in[256];
+
+#define DEVICE_TYPE_EEPROM 0
+#define DEVICE_TYPE_FLASH  1
+
+// Set device type before using any functions to talk to
+// either FLASH or EEPROM
+void use_device(unsigned char type);
 
 // Helper to read 8 bits from SPI device
 void read8(void);
@@ -84,10 +108,16 @@ void write_page(unsigned long addr);
 // Write enable
 void wren(void);
 
-// Erase a 4k segment starting at addr
+// Erase a 4k segment starting at addr - FLASH only
 void erase_4k(unsigned long addr);
 
-// Return > 0 on verify error.
+// Return > 0 on verify error. - FLASH only
 unsigned wait_verify(void);
+
+// Write a single byte to eeprom.
+void write_byte(unsigned long addr, unsigned char value);
+
+// Read a single byte from eeprom.
+unsigned read_byte(unsigned long addr);
 
 #endif

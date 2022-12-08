@@ -2,7 +2,7 @@
 mkdir -p build
 
 MAJ=1
-MIN=8
+MIN=11
 
 ALL="MAINLH DOTCLH MKIILH SARULH"
 

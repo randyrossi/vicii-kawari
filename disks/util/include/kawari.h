@@ -47,28 +47,34 @@
 #define SPI_REG_EXT_LOCK 16 
 #define SPI_REG_EEPROM_LOCK 32
 
-#define MAGIC_0 0x00
-#define MAGIC_1 0x01
-#define MAGIC_2 0x02
-#define MAGIC_3 0x03
-#define DISPLAY_FLAGS 0x04
-#define EEPROM_BANK 0x05
-#define CHIP_MODEL 0x1f
-#define RGB_START 0x40
-#define BLACK_LEVEL 0x80
-#define BURST_AMPLITUDE 0x81
-#define VERSION_MAJOR 0x83
-#define VERSION_MINOR 0x84
-#define CURSOR_LO 0x85
-#define CURSOR_HI 0x86
-#define CAP_LO 0x87
-#define CAP_HI 0x88
-#define TIMING_CHANGE 0x89
-#define VARIANT 0x90
-#define LUMA_START 0xa0
-#define PHASE_START 0xb0
-#define AMPLITUDE_START 0xc0
+// NOTE: See common.vh and flash update code
+// for notes on CFG_VERSION.
 
+#define MAGIC_0 0x00 // since v.0xff
+#define MAGIC_1 0x01 // since v.0xff
+#define MAGIC_2 0x02 // since v.0xff
+#define MAGIC_3 0x03 // since v.0xff
+#define DISPLAY_FLAGS 0x04 // since v.0xff
+#define EEPROM_BANK 0x05 // since v.0xff
+#define DISPLAY_FLAGS2 0x06 // since v.0xfe
+#define CFG_VERSION 0x07 // since v.0xfe
+#define CHIP_MODEL 0x1f // since v.0xff
+#define RGB_START 0x40 // since v.0xff
+#define BLACK_LEVEL 0x80 // since v.0xff
+#define BURST_AMPLITUDE 0x81 // since v.0xff
+#define VERSION_MAJOR 0x83 // not persisted
+#define VERSION_MINOR 0x84 // not persisted
+#define CURSOR_LO 0x85 // not persisted
+#define CURSOR_HI 0x86 // not persisted
+#define CAP_LO 0x87 // not persisted
+#define CAP_HI 0x88 // not persisted
+#define TIMING_CHANGE 0x89 // not persisted
+#define VARIANT 0x90 // not persisted
+#define LUMA_START 0xa0 // since v.0xff
+#define PHASE_START 0xb0 // since v.0xff
+#define AMPLITUDE_START 0xc0 // since v.0xff
+
+// For DISPLAY_FLAGS (LO BYTE)
 #define DISPLAY_SHOW_RASTER_LINES_BIT 1
 #define DISPLAY_IS_NATIVE_Y_BIT 2
 #define DISPLAY_IS_NATIVE_X_BIT 4
@@ -77,6 +83,10 @@
 #define DISPLAY_HPOLARITY_BIT 32
 #define DISPLAY_CHIP_INVERT_SWITCH 64
 #define DISPLAY_WHITE_LINE_BIT 128
+
+// For DISPLAY_FLAGS2 (HI BYTE)
+#define DISPLAY_NTSC_50_BIT 256
+#define DISPLAY_PAL_60_BIT 512
 
 #define FLASH_BULK_OP 128
 #define FLASH_BULK_WRITE 1

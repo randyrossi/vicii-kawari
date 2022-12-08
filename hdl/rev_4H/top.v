@@ -140,10 +140,12 @@ EFX_GBUFCE mux1(
     );
 
 wire clk_col16x;
+wire color_sel = chip[0] ? (~ntsc_50) : (pal_60);
+
 // Put the muxed clock onto the clock tree
 EFX_GBUFCE mux2(
     .CE(1'b1),
-    .I(chip[0] ? clk_col16x_pal : clk_col16x_ntsc),
+    .I(color_sel ? clk_col16x_pal : clk_col16x_ntsc),
     .O(clk_col16x)
     );
 
@@ -186,6 +188,10 @@ wire vic_write_ab;
 wire vic_write_db;
 
 wire [1:0] chip;
+`ifdef GEN_LUMA_CHROMA
+wire ntsc_50;
+wire pal_60;
+`endif
 
 // Instantiate the vicii with our clocks and pins.
 vicii vic_inst(
@@ -228,6 +234,8 @@ vicii vic_inst(
           .luma_sink(luma_sink),
           .luma(luma),
           .chroma(chroma),
+          .ntsc_50(ntsc_50),
+          .pal_60(pal_60),
 `endif
           .adi(adl_IN),
           .ado(ado),

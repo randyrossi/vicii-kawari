@@ -4,6 +4,7 @@
 #define DEFAULT_BLANKING_LEVEL 12
 #define DEFAULT_BURST_AMPLITUDE 12
 #define DEFAULT_DISPLAY_FLAGS 128
+#define DEFAULT_DISPLAY_FLAGS2 0
 
 extern int colors[];
 extern int luma_rev3[4][16];

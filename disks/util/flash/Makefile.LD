@@ -1,7 +1,6 @@
 include Makefile.inc
 
 DISKNUMS=1 2 3 4
-FLASH_FORMAT=3
 NAME=kawari
 VERSION=1.8
 FPGA=spartan6_x16

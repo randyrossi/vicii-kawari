@@ -94,6 +94,10 @@ wire active;
 wire rst;
 wire clk_dot4x;
 wire [1:0] chip;
+`ifdef GEN_LUMA_CHROMA
+wire ntsc_50;
+wire pal_60;
+`endif
 
 `ifdef OUTPUT_DOT_CLOCK
 // NOTE: This hack will only work breadbins that use
@@ -130,7 +134,8 @@ reg chip_mux1;
 reg chip_mux2;
 // Not sure if this matter but let's use the faster
 // clock to handle CBC between chip[0] and chip_mux2.
-always @(posedge clk_col4x_pal) chip_mux1 <= chip[0];
+wire color_sel = chip[0] ? (~ntsc_50) : (pal_60);
+always @(posedge clk_col4x_pal) chip_mux1 <= color_sel;
 always @(posedge clk_col4x_pal) chip_mux2 <= chip_mux1;
 
 // We select which color clock to enter the 2x clock gen (below)
@@ -263,6 +268,8 @@ vicii vic_inst(
           .luma_sink(luma_sink),
           .luma(luma),
           .chroma(chroma),
+          .ntsc_50(ntsc_50),
+          .pal_60(pal_60),
 `endif
           .adi(adl[5:0]),
           .ado(ado),

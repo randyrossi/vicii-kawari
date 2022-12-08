@@ -59,5 +59,6 @@ void get_variant(unsigned char* dest);
 unsigned int ascii_variant_to_board_int(unsigned char *variant);
 unsigned int get_flash_page_size(void);
 unsigned short get_capability_bits(void);
+unsigned char get_cfg_version(void);
 
 #endif

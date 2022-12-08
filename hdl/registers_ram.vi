@@ -122,7 +122,16 @@ task read_ram(
                               6'b0
 `endif                              
                               };
-
+                    `EXT_REG_DISPLAY_FLAGS2:
+                        dbo <= {
+                              6'b0, // reserved
+`ifdef GEN_LUMA_CHROMA
+                              pal_60,
+                              ntsc_50
+`else
+                              2'b0
+`endif
+                              };
 `ifdef HIRES_MODES
                     `EXT_REG_CURSOR_LO:
                         dbo <= hires_cursor_lo;
@@ -380,6 +389,19 @@ task write_ram(
 `else
                                         6'b0
 `endif
+                                       });
+                    end
+                    `EXT_REG_DISPLAY_FLAGS2:
+                    begin
+`ifdef GEN_LUMA_CHROMA
+                        ntsc_50 <= data[`NTSC_50_BIT];
+                        pal_60 <= data[`PAL_60_BIT];
+`endif
+                        persist_eeprom(do_persist, `EXT_REG_DISPLAY_FLAGS2,
+                                       {
+                                        6'b0, // reserved
+                                        data[`PAL_60_BIT],
+                                        data[`NTSC_50_BIT]
                                        });
                     end
 `ifdef HIRES_MODES

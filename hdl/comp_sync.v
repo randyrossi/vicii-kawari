@@ -38,6 +38,8 @@ module comp_sync(
            input [8:0] raster_y,
 `ifdef GEN_LUMA_CHROMA
            input white_line,
+           input ntsc_50,
+           input pal_60,
 `ifdef HAVE_LUMA_SINK
            output reg luma_sink,
 `endif
@@ -316,7 +318,7 @@ always @(posedge clk_col16x) burst_amplitude_16 <= burst_amplitude_ms;
 
 (* async_reg = "true" *) reg chip0_o2;
 (* async_reg = "true" *) reg chip0_16;
-always @(posedge clk_col16x) chip0_o2 <= chip[0];
+always @(posedge clk_col16x) chip0_o2 <= chip[0] ? (~ntsc_50) : (pal_60);
 always @(posedge clk_col16x) chip0_16 <= chip0_o2;
 
 (* async_reg = "true" *) reg white_line_ms;

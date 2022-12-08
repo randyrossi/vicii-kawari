@@ -170,6 +170,7 @@ void main_menu(void)
     POKE(SPI_REG, 80);
     POKE(SPI_REG, 73);
 
+    use_device(DEVICE_TYPE_FLASH);
     // Identify flash device
 
     printf ("\nIdentifying flash...");

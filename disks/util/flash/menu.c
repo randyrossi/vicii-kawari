@@ -10,6 +10,14 @@
 #include "menu.h"
 #include "flash.h"
 
+// This is the version of eeprom data we know of. If we
+// encounter a version higher than this, move downward and
+// apply all initializations to newly added locations until
+// we reach the currently saved version.  This value needs
+// to change downward whenever we add new fields we want
+// to save to the eeprom (so they only get initizlied once).
+#define MY_CFG_VERSION 0xfe
+
 // Program starts at 0x801.
 // 0x5000-0x8fff is used for 16k flash load space
 // 0x9000 is used first as scratch space for into then fast loader
@@ -18,17 +26,13 @@
 // wants to grow upwards starting from the end of the code.
 
 #define FLASH_VERSION_MAJOR 1
-#define FLASH_VERSION_MINOR 2
+#define FLASH_VERSION_MINOR 3
 
 // Use a combination of direct SPI access and bulk
 // SPI write operations provided by hardware to flash
 // an updated bitstream to the device.  Flash (2Mb) is
 // partitioned into header + golden master at 0x000000
 // while 'current' bistream is located at 0x07d000.
-
-// The max version of the image file format we can understand.
-#define FLASH_FORMAT_VERSION 3L
-#define FLASH_FORMAT_VERSION_STR "3"
 
 // These must match what the Makefile uses to fill disks
 // with flash image files that have been broken up. It
@@ -202,6 +206,35 @@ void please_insert(int disk_num) {
    press_any_key(TO_CONTINUE);
 }
 
+void upgrade_eeprom(void) {
+   unsigned char current_cfg_version;
+   // Switch over to EEPROM
+   use_device(DEVICE_TYPE_EEPROM);
+   current_cfg_version = read_byte(CFG_VERSION);
+   SMPRINTF_1 ("CFG VERSION %d\n",current_cfg_version);
+   // As long as the current cfg version is higher than ours...
+   while (current_cfg_version > MY_CFG_VERSION) {
+      while (SAVES_LOCKED) {
+         mprintf ("\nERROR: SAVES lock bit is enabled!\n");
+         mprintf ("Please put back the SAVES jumper\n");
+         mprintf ("to continue.\n\n");
+         press_any_key(TO_TRY_AGAIN);
+      }
+      SMPRINTF_1 ("Update EEPROM to %02x\n", current_cfg_version - 1);
+      if (current_cfg_version == 0xff) {
+          // Bring us to 0xfe
+          // Initialize DISPLAY_FLAGS2
+          write_byte(DISPLAY_FLAGS2, 0);
+
+          // Remember to bump version
+          write_byte(CFG_VERSION, current_cfg_version - 1);
+      }
+      current_cfg_version--;
+   }
+   // Switch back to FLASH before we exit
+   use_device(DEVICE_TYPE_FLASH);
+}
+
 // Flash files are spread across 4 disks
 // This routine erases the flash
 void begin_flash(long num_to_write, unsigned long start_addr, unsigned long page_size, unsigned long num_disks) {
@@ -370,7 +403,6 @@ void main_menu(void)
 {
     unsigned char firmware_version_major;
     unsigned char firmware_version_minor;
-    unsigned long disk_format_version;
     unsigned long page_size;
     unsigned long num_disks;
     long num_to_write;
@@ -416,6 +448,8 @@ void main_menu(void)
     POKE(SPI_REG, 83);
     POKE(SPI_REG, 80);
     POKE(SPI_REG, 73);
+ 
+    use_device(DEVICE_TYPE_FLASH);
 
     current_board_int = ascii_variant_to_board_int(variant);
     if (current_board_int != BOARD_SIM) {
@@ -461,14 +495,6 @@ void main_menu(void)
 
     // Info is now at $9000
     tmp_addr=0x9000;
-    disk_format_version = read_decimal(&tmp_addr);
-    SMPRINTF_1 ("File Format  :v%ld\n", disk_format_version);
-
-    if (disk_format_version != FLASH_FORMAT_VERSION) {
-       mprintf ("\nThis util can only read version " FLASH_FORMAT_VERSION_STR "\n");
-       press_any_key(TO_EXIT);
-       return;
-    }
 
     read_string(&tmp_addr);
     SMPRINTF_1 ("Image name   :%s\n", scratch);
@@ -530,6 +556,7 @@ void main_menu(void)
        mprintf ("R - Reset\n");
        WAITKEY;
        if (r.a == 'f') {
+          upgrade_eeprom();
           begin_flash(num_to_write, start_addr, page_size, num_disks);
        } else if (r.a == 'v') {
           begin_verify(num_to_write, start_addr, page_size, num_disks);

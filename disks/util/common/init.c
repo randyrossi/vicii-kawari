@@ -62,6 +62,8 @@ void do_init(unsigned int board_int, int chip_model) {
    // Display flags
    POKE(VIDEO_MEM_1_LO, DISPLAY_FLAGS);
    SAFE_POKE(VIDEO_MEM_1_VAL, DEFAULT_DISPLAY_FLAGS);
+   POKE(VIDEO_MEM_1_LO, DISPLAY_FLAGS2);
+   SAFE_POKE(VIDEO_MEM_1_VAL, DEFAULT_DISPLAY_FLAGS2);
 
    // Chip model
    POKE(VIDEO_MEM_1_LO, CHIP_MODEL);

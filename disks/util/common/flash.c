@@ -1,7 +1,44 @@
 #include <flash.h>
 
+unsigned char type = DEVICE_TYPE_FLASH;
+
 unsigned char data_out[256];
 unsigned char data_in[256];
+
+static unsigned char d1_c1_s1;
+static unsigned char d1_c1_s0;
+static unsigned char d1_c0_s1;
+static unsigned char d1_c0_s0;
+static unsigned char d0_c1_s1;
+static unsigned char d0_c1_s0;
+static unsigned char d0_c0_s1;
+static unsigned char d0_c0_s0;
+static unsigned char device_id_instr;
+
+void use_device(unsigned char t) {
+   type = t;
+   if (type == DEVICE_TYPE_FLASH) {
+      d1_c1_s1 = F_D1_C1_S1;
+      d1_c1_s0 = F_D1_C1_S0;
+      d1_c0_s1 = F_D1_C0_S1;
+      d1_c0_s0 = F_D1_C0_S0;
+      d0_c1_s1 = F_D0_C1_S1;
+      d0_c1_s0 = F_D0_C1_S0;
+      d0_c0_s1 = F_D0_C0_S1;
+      d0_c0_s0 = F_D0_C0_S0;
+      device_id_instr = F_DEVICE_ID_INSTR;
+   } else {
+      d1_c1_s1 = E_D1_C1_S1;
+      d1_c1_s0 = E_D1_C1_S0;
+      d1_c0_s1 = E_D1_C0_S1;
+      d1_c0_s0 = E_D1_C0_S0;
+      d0_c1_s1 = E_D0_C1_S1;
+      d0_c1_s0 = E_D0_C1_S0;
+      d0_c0_s1 = E_D0_C0_S1;
+      d0_c0_s0 = E_D0_C0_S0;
+      device_id_instr = E_DEVICE_ID_INSTR;
+   }
+}
 
 // Helper to read 8 bits from SPI device
 void read8() {
@@ -9,8 +46,8 @@ void read8() {
    unsigned char value = 0;
    unsigned int bit;
    for (b=128;b>=1;b=b/2) {
-        SET(D0_C0_S0);
-        SET(D0_C1_S0);
+        SET(d0_c0_s0);
+        SET(d0_c1_s0);
         bit = PEEK(SPI_REG) & 1;
         if (bit)
 	   value = value + b;
@@ -34,32 +71,32 @@ void talk(unsigned char instr,
     unsigned long bit;
 
     asm("sei");
-    SET(D1_C1_S1);
-    SET(D0_C1_S0);
+    SET(d1_c1_s1);
+    SET(d0_c1_s0);
 
     // 8 bit instruction
     for (b=128L;b>=1L;b=b/2L) {
        bit = instr & b;
        if (bit) {
-	       SET(D1_C0_S0);
-               SET(D1_C1_S0);
+	       SET(d1_c0_s0);
+               SET(d1_c1_s0);
        } else {
-	       SET(D0_C0_S0);
-               SET(D0_C1_S0);
+	       SET(d0_c0_s0);
+               SET(d0_c1_s0);
        }
     }
 
-    // Should we shift a 24 bit address now?
+    // Should we shift a 24(flash)/16(eeprom) bit address now?
     if (with_addr) {
-       // 24 bit address
-       for (b=8388608L;b>=1L;b=b/2L) {
+       // 24(flash)/16(eeprom) bit address
+       for (b=type ? 8388608L : 32768L;b>=1L;b=b/2L) {
           bit = addr & b;
           if (bit) {
-	       SET(D1_C0_S0);
-               SET(D1_C1_S0);
+	       SET(d1_c0_s0);
+               SET(d1_c1_s0);
           } else {
-	       SET(D0_C0_S0);
-               SET(D0_C1_S0);
+	       SET(d0_c0_s0);
+               SET(d0_c1_s0);
           }
        }
     }
@@ -68,11 +105,11 @@ void talk(unsigned char instr,
        for (b=128L;b>=1L;b=b/2L) {
           bit = data_out[n] & b;
           if (bit) {
-	       SET(D1_C0_S0);
-               SET(D1_C1_S0);
+	       SET(d1_c0_s0);
+               SET(d1_c1_s0);
           } else {
-	       SET(D0_C0_S0);
-               SET(D0_C1_S0);
+	       SET(d0_c0_s0);
+               SET(d0_c1_s0);
           }
        }
     }
@@ -82,8 +119,8 @@ void talk(unsigned char instr,
        // 8 bit data
        value = 0;
        for (b=128L;b>=1L;b=b/2L) {
-	   SET(D0_C0_S0);
-	   SET(D0_C1_S0);
+	   SET(d0_c0_s0);
+	   SET(d0_c1_s0);
            bit = PEEK(SPI_REG) & 1;
            if (bit)
 	      value = value + b;
@@ -92,8 +129,8 @@ void talk(unsigned char instr,
     }
 
     if (close) {
-       SET(D0_C1_S0); // leave clock high before S high
-       SET(D1_C1_S1); // drive S high again
+       SET(d0_c1_s0); // leave clock high before S high
+       SET(d1_c1_s1); // drive S high again
     }
 
     asm("cli");
@@ -113,28 +150,30 @@ void wait_busy(void) {
     }
 
     // close
-    SET(D0_C0_S0);
-    SET(D1_C1_S1);
+    SET(d0_c0_s0);
+    SET(d1_c1_s1);
 }
 
 // Read the flash device id bytes
 void read_device(void) {
     // Some FPGAs leave the flash in a bad state.
     // Reset it first.
-    talk(0x66,
+    if (type == DEVICE_TYPE_FLASH) {
+      talk(0x66,
          0 /* withaddr */, 0,
 	 0 /* read 2 */,
 	 0 /* write 0 */,
 	 1 /* close */);
-    talk(0x99,
+      talk(0x99,
          0 /* withaddr */, 0,
 	 0 /* read 2 */,
 	 0 /* write 0 */,
 	 1 /* close */);
+    }
     // INSTR + 24 bit 0 + 2 READ BYTES + CLOSE
-    talk(DEVICE_ID_INSTR,
+    talk(device_id_instr,
          1 /* withaddr */, 0,
-	 2 /* read 2 */,
+	 type == DEVICE_TYPE_FLASH ? 2 : 3 /* read 2(flash) 3(eeprom) */,
 	 0 /* write 0 */,
 	 1 /* close */);
 }
@@ -171,6 +210,9 @@ void wren(void) {
 
 // Erase a 4k segment starting at addr
 void erase_4k(unsigned long addr) {
+    if (type != DEVICE_TYPE_FLASH)
+       return;
+
     // INSTR + 24 bit 0 + 2 READ BYTES + CLOSE
     talk(BLOCK_ERASE_4K_INSTR,
          1 /* withaddr */, addr,
@@ -183,8 +225,39 @@ void erase_4k(unsigned long addr) {
 // Return > 0 on verify error.
 unsigned wait_verify(void) {
    unsigned char v;
+
+   if (type != DEVICE_TYPE_FLASH)
+      return 1;
+
    // Keep checking bit 2 for write busy flag.
    do { v = PEEK(SPI_REG); } while (v & 2);
    // Done? Return verify bit.
    return v & 4;
+}
+
+unsigned read_byte(unsigned long addr) {
+    if (type != DEVICE_TYPE_EEPROM)
+      return 1;
+
+    // INSTR + 24 bit addr + 1 read byte + CLOSE
+    talk(READ_INSTR,
+	1 /* withaddr */, addr,
+	1 /* read 1 */,
+	0 /* write 0 */,
+	1 /* close */);
+    return data_in[0];
+}
+
+void write_byte(unsigned long addr, unsigned char value) {
+   if (type != DEVICE_TYPE_EEPROM)
+      return;
+
+   wren();
+   data_out[0] = value;
+   talk(WRITE_INSTR,
+        1 /* withaddr */, addr,
+        0 /* read 0 */,
+        1 /* write 1 */,
+        1 /* close */);
+   wait_busy();
 }
