@@ -180,9 +180,11 @@ checksize:
 # we created. NOTE: These divisors must match
 # what is hard coded in the flasher program. (8 and 34)
 d64: flash.prg checksize third_party/covert/loader.prg image_files info_file
+	@rm -f autoswap.lst;
 	for NUM in $(DISKNUMS); do \
 	   truncate -s 174848 flash$$NUM.d64; \
 	   c1541 -attach flash$$NUM.d64 -format "vicii-flash$$NUM",0; \
+	   echo "flash$$NUM.d64" >> autoswap.lst; \
 	   if [ "$$NUM" = "1" ]; then \
 	      c1541 -attach flash$$NUM.d64 -write flash.prg flash; \
 	      c1541 -attach flash$$NUM.d64 -write third_party/covert/loader.prg loader; \
@@ -227,7 +229,7 @@ d81: flash.prg checksize third_party/covert/loader.prg image_files info_file
 	fi
 
 zip: all
-	zip kawari_flash_${VERSION}_${VARIANT}_${TYPE}.zip flash*.d64 flash.d81
+	zip kawari_flash_${VERSION}_${VARIANT}_${TYPE}.zip flash*.d64 flash.d81 autoswap.lst
 
 tools:
 	cc -o multi_hex_to_bit multi_hex_to_bit.c
