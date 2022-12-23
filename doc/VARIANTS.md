@@ -22,15 +22,26 @@ Last version of the large spartan based board. Further production of this design
 
 ![alt text](https://raw.githubusercontent.com/randyrossi/vicii-kawari/main/doc/images/4LD_Jumpers.png)
 
-## Mini Trion Board (Rev 1.3)
+## Mini Trion Board (Rev 1.3 & Rev 1.4)
 
-Revision 1.3 of the Efinix Trion based board. Run of 50.
+Revision 1.3 of the Efinix Trion based board (50).
+Revision 1.4 of the Efinix Trion based board (200).
 
     TYPE: Mini            FPGA: T20Q144C3
     VARIANT CODE: MAINLH  FLASH: W25Q16JVSSIM
     BUILD CODE: LH        EEPROM: M95160-DRDW8
 
 ![alt text](https://raw.githubusercontent.com/randyrossi/vicii-kawari/main/doc/images/4LH_Jumpers.png)
+
+## Large Trion Board (Rev 1.2)
+
+Revision 1.2 of the Large Efinix Trion based board (200).
+
+    TYPE: Large            FPGA: T20FBGA256
+    VARIANT CODE: MAINLG   FLASH: W25Q16JVSSIM
+    BUILD CODE: LG         EEPROM: M95160-DRDW8
+
+![alt text](https://raw.githubusercontent.com/randyrossi/vicii-kawari/main/doc/images/4LG_Jumpers.png)
 
 ## POV Trion Board
 

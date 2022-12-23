@@ -1,5 +1,3 @@
-<b><p align=center> STATUS Oct 29, 2022: Starting Oct 30, 2022 @ 2pm EST, CAN/USA/NZ/AUS users can visit https://vicii-kawari.myshopify.com for sales/pre-orders.  For EU/UK users, an announcement on availability from VideoGamePerfection.com will be released soon.</p></b>
-
 # VIC-II Kawari
 
 ## What is VIC-II Kawari?
@@ -11,8 +9,11 @@ The PCB interfaces with a real C64 address and data bus through the VIC-II socke
 
 ## Resources
 
+[Forum Server](https://accentual.com/forum) - Discussions, ask questions<br>
 [Discord Server](https://discord.gg/KZcRBfZh8z) - Chat about stuff, ask questions<br>
-[Report Issues](https://github.com/randyrossi/vicii-kawari/issues) - File bugs/issues
+[Report Issues](https://github.com/randyrossi/vicii-kawari/issues) - File bugs/issues<br>
+
+[Firmware Downloads](doc/FIRMWARE.md) | [Flashing Guide](doc/FLASHING.md) | [Jumpers](doc/VARIANTS.md) | [Programming](doc/VARIANTS.md)
 
 ## Forking VIC-II Kawari?
 

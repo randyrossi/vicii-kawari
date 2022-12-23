@@ -16,6 +16,9 @@
 // we reach the currently saved version.  This value needs
 // to change downward whenever we add new fields we want
 // to save to the eeprom (so they only get initizlied once).
+// NOTE: This memory location was initialied for 0xff before
+// we started verioning config schemes. That's why we count
+// down instead of up.
 #define MY_CFG_VERSION 0xfe
 
 // Program starts at 0x801.

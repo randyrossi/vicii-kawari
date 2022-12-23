@@ -16,6 +16,7 @@ demo/ball | A spinning ball using color cycling.
 demo/hires/grogu | A demonstration of the 320x200 16 color graphics mode 
 demo/hires/horse | A demonstration of the 640x200 4 color graphics mode 
 demo/split | Demonstration of hi/lo res split screen using raster IRQ 
+demo/racer80 | 80 column basic program (requires vmem-49152)
 
 Utility Program | Description
 ----------------|------------
@@ -25,6 +26,7 @@ config/comped   | Luma/Chroma/Amplitude color editor
 config/eepromed | EEPROM utility.
 config/qs       | Quick switch utility. Fast to load and switch video standard.
 80col-51200     | Enable 80 column BASIC mode. 2k resides at $c800.
+vmem-49152      | Utility functions to access 80 column screen memory from basic
 novaterm        | Novaterm 9.6c 80 column driver. Copy 80col.kawari to novaterm disk.
 flash           | Flash disk builder utility.
 tests/regted    | Test suite for extended registers

@@ -254,8 +254,10 @@ void main_menu(void)
     }
     if (has_comp) {
        printf ("S/LUM burst    :\n");
-       printf ("NTSC 50        :\n");
-       printf ("PAL  60        :\n");
+       if (version_short >= 267) {
+          printf ("NTSC 50        :\n");
+          printf ("PAL  60        :\n");
+       }
     }
     printf ("External Switch:\n");
     printf ("Locked Func    :\n");
