@@ -13,7 +13,7 @@ The PCB interfaces with a real C64 address and data bus through the VIC-II socke
 [Discord Server](https://discord.gg/KZcRBfZh8z) - Chat about stuff, ask questions<br>
 [Report Issues](https://github.com/randyrossi/vicii-kawari/issues) - File bugs/issues<br>
 
-[Firmware Downloads](doc/FIRMWARE.md) | [Flashing Guide](doc/FLASHING.md) | [Jumpers](doc/VARIANTS.md) | [Programming](doc/VARIANTS.md)
+[Firmware Downloads](doc/FIRMWARE.md) | [Flashing Guide](doc/FLASHING.md) | [Jumpers](doc/VARIANTS.md) | [Programming](doc/REGISTERS.md)
 
 ## Forking VIC-II Kawari?
 
