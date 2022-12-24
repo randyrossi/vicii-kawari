@@ -1,6 +1,6 @@
 all: rgbed.prg
 
-OBJS=../../common/main.o menu.o ../../common/data.o ../../common/util.o ../../common/init.o
+OBJS=../../common/main.o menu.o ../../common/data.o ../../common/util.o ../../common/flash.o ../../common/init.o
 
 rgbed.prg: ${OBJS}
 	cl65 -o rgbed.prg ${OBJS}

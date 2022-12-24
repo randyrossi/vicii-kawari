@@ -50,6 +50,7 @@ enum DefineValues {
    WITH_MATH,            // include math registers
    WITH_4K,              // select 4K for ram
    WITH_BLITTER,         // include blitter
+   EFINIX,
 };
 
 Define defines[] = {
@@ -73,6 +74,7 @@ Define defines[] = {
   {WITH_MATH ,0,0,"WITH_MATH"},
   {WITH_4K ,0,0,"WITH_4K"},
   {WITH_BLITTER ,0,0,"WITH_BLITTER"},
+  {EFINIX ,0,0,"EFINIX"},
 };
 
 void printcfg(int d, int def) {
@@ -111,6 +113,7 @@ void with_math(int d) { printcfg(d, WITH_MATH); with_ext(d); }
 // NOTE: Blitter only works with 64k a.t.m.
 // TODO: Fix this and also math reg requirement.
 void with_blitter(int d) { printcfg(d, WITH_BLITTER); hires_modes(d); with_64k(d); with_math(d);}
+void efinix(int d) { printcfg(d, EFINIX); }
 
 int main(int argc, char* argv[]) {
 
@@ -200,6 +203,8 @@ int main(int argc, char* argv[]) {
 		    gen_rgb(d);
                     with_64k(d);
                     with_blitter(d);
+                    with_dvi(d);
+                    efinix(d);
 		    break;
 	    default:
 		    break;

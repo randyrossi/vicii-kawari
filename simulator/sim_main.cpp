@@ -275,12 +275,43 @@ static void CHECK(Vtop *top, int cond, int line) {
 // We can drive our simulated clock gen every pico second but that would
 // be a waste since nothing happens between clock edges. This function
 // will determine how many ticks(picoseconds) to advance our clock.
-static vluint64_t nextTick(Vtop* top) {
+
+// tick_scale_* simulates a clk_dvi signal that is slower in the right
+// fraction of the master dot4x clock.  For efinix, we use a slower clock
+// (13/16 for NTSC and 15/16 for PAL) and chop off some of the border area.
+// For spartan, the full resolution is used so clk_dot4x = clk_dvi.
+
+#ifdef EFINIX
+#ifdef WITH_DVI
+static long tc = 0;
+static int tick_scale_pal[] = {1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1};
+static int tick_scale_ntsc[] = {1,1,1,0,1,1,1,1,0,1,1,1,0,1,1,1};
+#endif
+#endif
+
+static vluint64_t nextTick(Vtop* top, int chip) {
    vluint64_t diff1 = nextClk - ticks;
 
    nextClk += half4XDotPS;
 
    top->V_DOT4X = ~top->V_DOT4X;
+   
+#ifdef EFINIX
+#ifdef WITH_DVI
+   // Emulate our dvi clock in the correct fraction of the dot4x clock
+   if (chip & 1) {
+      if (tick_scale_pal[tc])
+         top->V_CLK_DVI = ~top->V_CLK_DVI;
+   } else {
+      if (tick_scale_ntsc[tc])
+         top->V_CLK_DVI = ~top->V_CLK_DVI;
+   }
+
+   tc++;
+   if (tc>=16) tc=0;
+#endif
+#endif
+
    top->V_COL4X = ~top->V_COL4X;
    top->V_COL16X = ~top->V_COL16X;
    nextClkCnt = (nextClkCnt + 1) % 32;
@@ -806,7 +837,7 @@ int main(int argc, char** argv, char** env) {
 #endif
        STATE(top);
        STORE_PREV();
-       ticks = nextTick(top);
+       ticks = nextTick(top, chip);
        cnt++;
     }
 
@@ -901,7 +932,7 @@ int main(int argc, char** argv, char** env) {
 #if VM_TRACE
 	          if (tfp) tfp->dump(ticks / TICKS_TO_TIMESCALE);
 #endif
-                  ticks = nextTick(top);
+                  ticks = nextTick(top, chip);
                   STATE(top);
                   STORE_PREV();
                }
@@ -913,7 +944,7 @@ int main(int argc, char** argv, char** env) {
 #if VM_TRACE
 	          if (tfp) tfp->dump(ticks / TICKS_TO_TIMESCALE);
 #endif
-                  ticks = nextTick(top);
+                  ticks = nextTick(top, chip);
                   STATE(top);
                   STORE_PREV();
                }
@@ -1029,8 +1060,7 @@ int main(int argc, char** argv, char** env) {
 #else 
 #ifdef NEED_RGB
             // Show h/v sync in red
-            if (!hideSync && (top->top__DOT__vic_inst__DOT__vic_vga_sync__DOT__hsync_ah ||
-                top->top__DOT__vic_inst__DOT__vic_vga_sync__DOT__vsync_ah))
+            if (!hideSync && (top->HSYNC || top->VSYNC))
              SDL_SetRenderDrawColor(ren,
                 0b11111111,
                 0b0,
@@ -1287,7 +1317,7 @@ int main(int argc, char** argv, char** env) {
            break;
 
         // Advance simulation time. Each tick represents 1 picosecond.
-        ticks = nextTick(top);
+        ticks = nextTick(top, chip);
     }
 
     if (shadowVic) {

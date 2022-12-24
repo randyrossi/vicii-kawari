@@ -36,8 +36,10 @@
 `ifdef EFINIX
 // Efinix always has 4k page size
 `define FLASH_PAGE_RANGE   3:0
+`define FLASH_PAGE_RESET   4'b0
 `else
 `define FLASH_PAGE_RANGE   5:0
+`define FLASH_PAGE_RESET   6'b0
 `endif // EFINIX
 `else
 `ifdef WITH_4K
@@ -50,6 +52,7 @@
 `define BIT_EXT2_64K
 `define BIT_EXT3_64K
 `define FLASH_PAGE_RANGE   3:0
+`define FLASH_PAGE_RESET   4'b0
 `else
 `define VIDEO_RAM_WIDTH    15
 `define VIDEO_RAM_HI_WIDTH 7
@@ -62,8 +65,10 @@
 `ifdef EFINIX
 // Efinix always has 4k page size
 `define FLASH_PAGE_RANGE   3:0
+`define FLASH_PAGE_RESET   4'b0
 `else
 `define FLASH_PAGE_RANGE   5:0
+`define FLASH_PAGE_RESET   6'b0
 `endif // EFINIX
 `endif
 
@@ -390,6 +395,8 @@
 // Bits in DISPLAY_FLAGS2
 `define NTSC_50_BIT                  0
 `define PAL_60_BIT                   1
+`define EVEN_ODD_BIT                 2
+`define EVEN_ODD_FIELD_BIT           3
 
 `define EXT_REG_VARIANT_NAME1        8'h90
 `define EXT_REG_VARIANT_NAME2        8'h91

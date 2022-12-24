@@ -1,6 +1,7 @@
 all: newpal.prg newntsc.prg
 
 OBJS=main.o ../../common/data.o ../../common/util.o ../../common/init.o \
+     ../../common/flash.o \
      ../regtest/test_auto_inc_vmem_a.o \
      ../regtest/test_auto_inc_vmem_b.o \
      ../regtest/test_auto_dec_vmem_a.o \

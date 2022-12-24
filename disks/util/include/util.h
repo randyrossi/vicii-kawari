@@ -1,7 +1,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#define UTILITY_VERSION "1.3"
+#define UTILITY_VERSION "1.4"
 
 #define CLRSCRN printf ("%c",147) 
 #define HOME printf ("%c",19) 

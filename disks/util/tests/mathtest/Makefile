@@ -1,6 +1,7 @@
 all: mathtest.prg
 
 OBJS=../../common/main.o menu.o ../../common/util.o ../../common/data.o \
+     ../../common/flash.o \
      ../../common/init.o \
      test_umult.o \
      test_smult.o \

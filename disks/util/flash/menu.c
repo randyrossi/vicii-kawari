@@ -214,18 +214,17 @@ void upgrade_eeprom(void) {
    // Switch over to EEPROM
    use_device(DEVICE_TYPE_EEPROM);
    current_cfg_version = read_byte(CFG_VERSION);
-   SMPRINTF_1 ("CFG VERSION %d\n",current_cfg_version);
+   SMPRINTF_1 ("Cfg Version %02x\n",current_cfg_version);
    // As long as the current cfg version is higher than ours...
    while (current_cfg_version > MY_CFG_VERSION) {
-      while (SAVES_LOCKED) {
-         mprintf ("\nERROR: SAVES lock bit is enabled!\n");
-         mprintf ("Please put back the SAVES jumper\n");
-         mprintf ("to continue.\n\n");
-         press_any_key(TO_TRY_AGAIN);
-      }
-      SMPRINTF_1 ("Update EEPROM to %02x\n", current_cfg_version - 1);
+      //while (SAVES_LOCKED) {
+      //   mprintf ("\nERROR: SAVES lock bit is enabled!\n");
+      //   mprintf ("Please put back the SAVES jumper\n");
+      //   mprintf ("to continue.\n\n");
+      //   press_any_key(TO_TRY_AGAIN);
+      //}
       if (current_cfg_version == 0xff) {
-          // Bring us to 0xfe
+          // Bring us to 0xfe from 0xff
           // Initialize DISPLAY_FLAGS2
           write_byte(DISPLAY_FLAGS2, 0);
 
@@ -233,6 +232,7 @@ void upgrade_eeprom(void) {
           write_byte(CFG_VERSION, current_cfg_version - 1);
       }
       current_cfg_version--;
+      SMPRINTF_1 ("Cfg Version updated to %02x\n", current_cfg_version);
    }
    // Switch back to FLASH before we exit
    use_device(DEVICE_TYPE_FLASH);

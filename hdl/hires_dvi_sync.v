@@ -23,11 +23,11 @@
 // clk_dot4x. We can use a slower clock but get the same vertical refresh
 // rate by reducing the horizontal width.  This chart outlines the changes:
 //
-// standard  |clk_dot4x | orig_width   | clk_dvi   | dvi_width | xoffset
-// --------------------------------------------------------------------
-// 6567R8    |32.727272 | 1040 (520x2) | 26.590909 | 845       | 142
-// 6567R56A  |32.727272 | 1024 (512x2) | 26.590909 | 832       | 146
-// 6569      |31.527955 | 1008 (504x2) | 29.557458 | 945       | 30
+// standard |clk_dot4x | orig_width   | clk_dvi   | dvi_width | xoffset | frac
+// ----------------------------------------------------------------------------
+// 6567R8   |32.727272 | 1040 (520x2) | 26.590909 | 845       | 142     | 13/16
+// 6567R56A |32.727272 | 1024 (512x2) | 26.590909 | 832       | 146     | 13/16
+// 6569     |31.527955 | 1008 (504x2) | 29.557458 | 945       | 32      | 15/16
 //
 // The benefit is the DVI 10x pixel clock does not have to be as high
 // and we get better sync/pixel stability.  Also, we can chop off some
@@ -89,6 +89,8 @@ endmodule
         input hpolarity,
         input vpolarity,
         input enable_csync,
+        input even_odd_enable,
+        input even_odd_field,
 `ifdef CONFIGURABLE_TIMING
         input timing_change_in,
         input [7:0] timing_h_blank_ntsc,
@@ -120,6 +122,7 @@ endmodule
         output wire hsync,             // horizontal sync
         output wire vsync,             // vertical sync
         output wire active,
+        output wire ractive,
         output reg [3:0] pixel_color4,
         output reg half_bright
     );
@@ -127,6 +130,7 @@ endmodule
 reg [10:0] max_width; // compared to hcount which can be 2x
 reg [9:0] max_height; // compared to vcount which can be 2y
 reg [10:0] x_offset;
+reg [10:0] field_offset;
 
 reg [10:0] hs_sta; // compared against hcount which can be 2x
 reg [10:0] hs_end; // compared against hcount which can be 2x
@@ -203,6 +207,7 @@ assign active = ~(
            (h_count >= ha_end & h_count <= ha_sta) |
            (chip[0] ? ~vactive : vactive)
        );
+assign ractive = active;
 
 // These conditions determine whether we advance our h/v counts
 // based whether we are doubling X/Y resolutions or not.  See
@@ -211,6 +216,15 @@ wire advance;
 assign advance = (!is_native_y && !is_native_x) ||
        ((is_native_y ^ is_native_x) && (ff == 2'b01 || ff == 2'b11)) ||
        (is_native_y && is_native_x && ff == 2'b01);
+
+// For chips that have an odd hires width, we can't divide by 2 when using
+// native_x and get an even number. So we have to add 1 pixel to the max
+// width comparison every other line to split the difference.  This results
+// in some fuzziness on the right edge of the visible region but is
+// unavoidable. Only the 6567R56A has an even width using out 'zoomed in'
+// values, so all other chips should have the split.
+wire[10:0] native_split =
+    (is_native_x && chip != `CHIP6567R56A) ? {10'b0, v_count[0]} : 11'd0;
 
 always @ (posedge clk_dvi)
 begin
@@ -233,10 +247,24 @@ begin
         // 1xX & 1xY  | 1                  | 4x DIV 4 (native) | native_y & native_x
         ff <= ff + 2'b1;
         if (advance) begin
-            if (h_count < max_width) begin
-                h_count <= h_count + 10'b1;
+            if (h_count < (max_width + native_split)) begin
+                h_count <= h_count + 11'b1;
             end else begin
                 h_count <= 0;
+
+                // LG monitor 'even_odd' fix is used when the width is an
+                // odd number. Only the 6567R56A has an odd width using our
+                // 'zoomed in' values. So all other chips get this offset.
+                if (even_odd_enable && chip != `CHIP6567R56A)
+`ifdef HIRES_MODES
+                    field_offset <= {9'b0, ~even_odd_field ^ v_count[0], 1'b0};
+`else
+                    field_offset <= {10'b0, ~even_odd_field ^ v_count[0]};
+`endif
+                else
+                    field_offset <= 11'b0;
+
+
                 if (v_count < max_height) begin
                     v_count <= v_count + 9'b1;
                 end else begin
@@ -283,7 +311,7 @@ wire [3:0] dout1; // output color from line_buf_1
 // When the line buffer is being read from, we use h_count.
 `ifdef HIRES_MODES
 dvi_linebuf_RAM line_buf_0(pixel_color3, // din
-                       active_buf ? (is_native_x ? {1'b0, raster_x} : hires_raster_x) : (h_count + x_offset),  // addr
+                       active_buf ? (is_native_x ? {1'b0, raster_x} : hires_raster_x) : (h_count + x_offset + field_offset),  // addr
                        clk_dvi, // rclk
                        !active_buf, // re
                        clk_dot4x, // wclk
@@ -291,7 +319,7 @@ dvi_linebuf_RAM line_buf_0(pixel_color3, // din
                        dout0); // dout
 
 dvi_linebuf_RAM line_buf_1(pixel_color3,
-                       !active_buf ? (is_native_x ? {1'b0, raster_x} : hires_raster_x) : (h_count + x_offset),
+                       !active_buf ? (is_native_x ? {1'b0, raster_x} : hires_raster_x) : (h_count + x_offset + field_offset),
                        clk_dvi,
                        active_buf,
                        clk_dot4x,
@@ -299,7 +327,7 @@ dvi_linebuf_RAM line_buf_1(pixel_color3,
                        dout1);
 `else
 dvi_linebuf_RAM line_buf_0(pixel_color3,
-                       active_buf ? {1'b0, raster_x} : (h_count + x_offset),
+                       active_buf ? {1'b0, raster_x} : (h_count + x_offset + field_offset),
                        clk_dvi,
                        !active_buf,
                        clk_dot4x,
@@ -307,7 +335,7 @@ dvi_linebuf_RAM line_buf_0(pixel_color3,
                        dout0);
 
 dvi_linebuf_RAM line_buf_1(pixel_color3,
-                       !active_buf ? {1'b0, raster_x} : (h_count + x_offset),
+                       !active_buf ? {1'b0, raster_x} : (h_count + x_offset + field_offset),
                        clk_dvi,
                        active_buf,
                        clk_dot4x,
@@ -355,8 +383,8 @@ task set_params();
                 vs_end=10'd291;  // sync   2
 		                 // bporch 40 takes us to 311 + 20
                 max_height <= is_native_y ? 10'd311 : 10'd623;
-                max_width <= is_native_x ? 11'd472 : 11'd944;
-                x_offset <= is_native_x ? 10'd0 : 10'd30;
+                max_width <= is_native_x ? 11'd471 : 11'd944;
+                x_offset <= is_native_x ? 11'd16 : 11'd32;
             end
             `CHIP6567R8: begin
                 // WIDTH 520  HEIGHT 263
@@ -369,8 +397,8 @@ task set_params();
                 vs_end=10'd23;  // sync   4
                 va_sta=10'd27;  // bporch   3
                 max_height <= is_native_y ? 10'd262 : 10'd525;
-                max_width <= is_native_x ? 11'd519 : 11'd844; // NOTE: 1x is full res
-                x_offset <= is_native_x ? 10'd0 : 10'd142;
+                max_width <= is_native_x ? 11'd421 : 11'd844;
+                x_offset <= is_native_x ? 11'd71 : 11'd142;
             end
             `CHIP6567R56A: begin
                 // WIDTH 512  HEIGHT 262
@@ -383,8 +411,8 @@ task set_params();
                 vs_end=10'd23;  // sync   4
                 va_sta=10'd27;  // bporch   3
                 max_height <= is_native_y ? 10'd261 : 10'd523;
-                max_width <= is_native_x ? 11'd511 : 11'd831; // NOTE: 1x is full res
-                x_offset <= is_native_x ? 10'd0 : 10'd146;
+                max_width <= is_native_x ? 11'd415 : 11'd831;
+                x_offset <= is_native_x ? 11'd73 : 11'd146;
             end
         endcase
         // Adjust for 2x or 2y timing
@@ -421,8 +449,8 @@ task set_params_configurable();
                 va_end = vs_end + {2'b00, timing_v_bporch_pal} - 10'd311;
                 // HEIGHT 312
                 max_height <= is_native_y ? 10'd311 : 10'd623;
-                max_width <= is_native_x ? 11'd472 : 11'd944;
-                x_offset <= is_native_x ? 10'd0 : 10'd30;
+                max_width <= is_native_x ? 11'd471 : 11'd944;
+                x_offset <= is_native_x ? 11'd16 : 11'd32;
                 // Use this to generate code for static settings above
                 /*
                 $display("ha_end=11'd%d;  // start %d", ha_end, timing_h_blank_pal);
@@ -446,8 +474,8 @@ task set_params_configurable();
                 va_sta = vs_end + {2'b00, timing_v_bporch_ntsc};
                 // HEIGHT 263
                 max_height <= is_native_y ? 10'd262 : 10'd525;
-                max_width <= is_native_x ? 11'd519 : 11'd844; // NOTE: 1x is full res
-                x_offset <= is_native_x ? 10'd0 : 10'd142;
+                max_width <= is_native_x ? 11'd421 : 11'd844;
+                x_offset <= is_native_x ? 11'd71 : 11'd142;
                 // Use this to generate code for static settings above
                 /*
                 $display("ha_end=11'd%d;  // start %d", ha_end, timing_h_blank_ntsc);
@@ -472,8 +500,8 @@ task set_params_configurable();
                 va_sta = vs_end + {2'b00, timing_v_bporch_ntsc};
                 // HEIGHT 262
                 max_height <= is_native_y ? 10'd261 : 10'd523;
-                max_width <= is_native_x ? 11'd511 : 11'd831; // NOTE: 1x is full res
-                x_offset <= is_native_x ? 10'd0 : 10'd146;
+                max_width <= is_native_x ? 11'd415 : 11'd831;
+                x_offset <= is_native_x ? 11'd73 : 11'd146;
                 // Use this to generate code for static settings above
                 /*
                 $display("ha_end=11'd%d;  // start %d", ha_end, timing_h_blank_ntsc);

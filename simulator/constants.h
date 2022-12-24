@@ -51,8 +51,9 @@
 #define NTSC_6567R8_MAX_DOT_Y 262
 #define NTSC_6567R8_LAST_XPOS 0x1ff
 
+// 63 cycles per line
 #define PAL_6569_NUM_CYCLES 63
-#define PAL_6569_MAX_DOT_X 503 // 63 cycles per line
+#define PAL_6569_MAX_DOT_X 503
 #define PAL_6569_MAX_DOT_Y 311
 #define PAL_6569_LAST_XPOS 0x1f7
 
@@ -168,7 +169,17 @@
 #define V_LOAD_PIXELS top__DOT__vic_inst__DOT__vic_pixel_sequencer__DOT__load_pixels
 #define V_IRQ irq
 #define V_DOT4X clk_dot4x
+#define V_CLK_DVI clk_dvi
 #define V_COL4X clk_col4x
 #define V_COL16X clk_col16x
 #define V_REG11_DELAYED top__DOT__vic_inst__DOT__reg11_delayed
 #define V_LIGHTPEN_TRIGGERED top__DOT__vic_inst__DOT__vic_lightpen__DOT__light_pen_triggered
+
+// Source of rgb sync comes from different modules depending on FPGA
+#ifdef EFINIX
+#define HSYNC top__DOT__vic_inst__DOT__vic_dvi_sync__DOT__hsync_ah
+#define VSYNC top__DOT__vic_inst__DOT__vic_dvi_sync__DOT__vsync_ah
+#else
+#define HSYNC top__DOT__vic_inst__DOT__vic_vga_sync__DOT__hsync_ah
+#define VSYNC top__DOT__vic_inst__DOT__vic_vga_sync__DOT__vsync_ah
+#endif

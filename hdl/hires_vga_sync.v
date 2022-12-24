@@ -94,6 +94,7 @@ endmodule
         output wire hsync,             // horizontal sync
         output wire vsync,             // vertical sync
         output wire active,
+        output wire ractive,
         output reg [3:0] pixel_color4,
         output reg half_bright
     );
@@ -176,6 +177,7 @@ assign active = ~(
            (h_count >= ha_end & h_count <= ha_sta) |
            (chip[0] ? ~vactive : vactive)
        );
+assign ractive = active;
 
 // These conditions determine whether we advance our h/v counts
 // based whether we are doubling X/Y resolutions or not.  See

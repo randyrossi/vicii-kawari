@@ -1,6 +1,6 @@
 all: comped.prg
 
-OBJS=../../common/main.o menu.o ../../common/data.o ../../common/util.o ../../common/init.o
+OBJS=../../common/main.o menu.o ../../common/data.o ../../common/util.o ../../common/flash.o ../../common/init.o
 
 comped.prg: ${OBJS}
 	cl65 -o comped.prg ${OBJS}

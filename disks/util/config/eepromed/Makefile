@@ -1,6 +1,6 @@
 all: eepromed.prg
 
-OBJS=../../common/main.o menu.o ../../common/data.o ../../common/util.o ../../common/init.o
+OBJS=../../common/main.o menu.o ../../common/data.o ../../common/util.o ../../common/flash.o ../../common/init.o
 
 eepromed.prg: ${OBJS}
 	cl65 -o eepromed.prg ${OBJS}

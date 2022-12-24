@@ -6,8 +6,14 @@
 #include "init.h"
 #include "kawari.h"
 #include "util.h"
+#include "flash.h"
+
+#define MY_CFG_VERSION 0xfe
 
 static struct regs r;
+static unsigned char version_major = 0;
+static unsigned char version_minor = 0;
+static unsigned short version_short = 0;
 
 void set_rgb(void) {
    int reg;
@@ -53,11 +59,32 @@ void do_init(unsigned int board_int, int chip_model) {
    unsigned int reg;
    unsigned int chip;
    unsigned int bank;
+   unsigned char current_cfg_version;
+
+   // 1.12+ = 1*256+12 = 268
+   // It's still possible we get here with valid
+   // magic if we are forcing an init. So read
+   // the current cfg version.
+   current_cfg_version = 0xff;
+   if (version_short >= 268) {
+      POKE(VIDEO_MEM_1_LO, CFG_VERSION);
+      current_cfg_version = PEEK(VIDEO_MEM_1_VAL);
+   }
+   printf ("Cfg=0x%02x ",current_cfg_version);
 
    printf ("\nInitializing....");
 
    // Enable persistence
    POKE(VIDEO_MEM_FLAGS, PEEK(VIDEO_MEM_FLAGS) | VMEM_FLAG_PERSIST_BIT);
+
+   if (version_short >= 268) {
+      // Never make a cfg version go backwards
+      if (current_cfg_version > MY_CFG_VERSION) {
+         POKE(VIDEO_MEM_1_LO, CFG_VERSION);
+         SAFE_POKE(VIDEO_MEM_1_VAL, MY_CFG_VERSION);
+         printf ("w0x%02x ",MY_CFG_VERSION);
+      }
+   }
 
    // Display flags
    POKE(VIDEO_MEM_1_LO, DISPLAY_FLAGS);
@@ -130,6 +157,9 @@ int first_init()
 
    get_variant(variant);
    board_int = ascii_variant_to_board_int(variant);
+   version_major = get_version_major();
+   version_minor = get_version_minor();
+   version_short = version_minor + version_major * 256;
 
    CLRSCRN;
    if (board_int == BOARD_UNKNOWN) {
@@ -183,6 +213,9 @@ void init(int initPal)
 
    get_variant(variant);
    board_int = ascii_variant_to_board_int(variant);
+   version_major = get_version_major();
+   version_minor = get_version_minor();
+   version_short = version_minor + version_major * 256;
 
    CLRSCRN;
    if (board_int == BOARD_UNKNOWN) {

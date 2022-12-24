@@ -35,6 +35,9 @@ module top(
            input standard_sw,   // video standard toggle switch
            output clk_phi,      // output phi clock for CPU
            output clk_dot4x,    // pixel clock
+`ifdef WITH_DVI
+           input clk_dvi,       // pixel clock
+`endif
 `ifdef GEN_RGB
            output reg clk_rgb,      // pixel clock for analog RGB
            output active,
@@ -153,6 +156,11 @@ vicii vic_inst(
 `endif
           .standard_sw(standard_sw),
           .clk_dot4x(clk_dot4x),
+`ifdef EFINIX
+`ifdef WITH_DVI
+          .clk_dvi(clk_dvi),
+`endif
+`endif
           .clk_phi(clk_phi),
           .clk_col16x(clk_col16x),
 `ifdef NEED_RGB

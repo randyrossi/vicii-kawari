@@ -89,6 +89,8 @@ task read_ram(
 `endif
             else begin
                 case (ram_lo)
+                    `EXT_REG_CFG_VERSION:
+                        dbo <= cfg_version;
                     `EXT_REG_MAGIC_0:
                         dbo <= magic_1;
                     `EXT_REG_MAGIC_1:
@@ -124,7 +126,13 @@ task read_ram(
                               };
                     `EXT_REG_DISPLAY_FLAGS2:
                         dbo <= {
-                              6'b0, // reserved
+                              4'b0, // reserved
+`ifdef WITH_DVI
+                              even_odd_field,
+                              even_odd_enable,
+`else
+                              2'b0,
+`endif
 `ifdef GEN_LUMA_CHROMA
                               pal_60,
                               ntsc_50
@@ -322,6 +330,10 @@ task write_ram(
                 // persist them according to persist_eeprom
                 // implementation.
                 case (ram_lo)
+                    `EXT_REG_CFG_VERSION: begin
+                        cfg_version <= data;
+                        persist_eeprom(do_persist, `EXT_REG_CFG_VERSION, data);
+                    end
                     `EXT_REG_MAGIC_0: begin
                         magic_1 <= data;
                         persist_eeprom(do_persist, `EXT_REG_MAGIC_0, data);
@@ -393,13 +405,19 @@ task write_ram(
                     end
                     `EXT_REG_DISPLAY_FLAGS2:
                     begin
+`ifdef WITH_DVI
+                        even_odd_enable <= data[`EVEN_ODD_BIT];
+                        even_odd_field <= data[`EVEN_ODD_FIELD_BIT];
+`endif
 `ifdef GEN_LUMA_CHROMA
                         ntsc_50 <= data[`NTSC_50_BIT];
                         pal_60 <= data[`PAL_60_BIT];
 `endif
                         persist_eeprom(do_persist, `EXT_REG_DISPLAY_FLAGS2,
                                        {
-                                        6'b0, // reserved
+                                        4'b0, // reserved
+                                        data[`EVEN_ODD_FIELD_BIT],
+                                        data[`EVEN_ODD_BIT],
                                         data[`PAL_60_BIT],
                                         data[`NTSC_50_BIT]
                                        });

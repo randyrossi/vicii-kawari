@@ -117,6 +117,10 @@ module registers
            output reg [7:0] phasereg_o,
            output reg [3:0] amplitudereg_o,
 `endif
+`ifdef WITH_DVI
+           output reg even_odd_enable = 1'b0,
+           output reg even_odd_field = 1'b0,
+`endif
 
 `ifdef WITH_EXTENSIONS
 
@@ -203,6 +207,9 @@ reg [5:0] addr_latched;
 reg addr_latch_done;
 
 `ifdef WITH_EXTENSIONS
+// Default to min version. If we never read any eeprom values,
+// this is the value that will be returned.
+reg[7:0] cfg_version = 8'hff;
 reg[7:0] magic_1;
 reg[7:0] magic_2;
 reg[7:0] magic_3;
@@ -1247,7 +1254,7 @@ begin
                                             flash_bit_ctr <= 6'd0;
                                             flash_busy <= 1'b1;
                                             flash_verify_error <= 1'b0;
-                                            flash_page_ctr = 6'b0;
+                                            flash_page_ctr = `FLASH_PAGE_RESET;
                                             $display("start flash");
                                         end
 `endif
