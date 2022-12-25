@@ -2,21 +2,21 @@ Back to [README.md](../README.md)
 
 # Feature / PCB Design Matrix
 
-PCB Design             |Kawari-Large|Kawari-Mini |Kawari-POV|
------------------------|------------|------------|----------|
-Luma/Chroma            |Yes         |Yes         |Yes       |
-Extra RAM              |64K         |64K         |No        |
-Flash updates from C64 |Yes         |Yes         |Yes       |
-New Video Modes        |Yes         |Yes         |No        |
-Detect Reset           |Yes         |No          |No        |
-Analog RGB             |Yes         |No          |No        |
-NTSC/PAL               |Switch      |Switch      |Fixed     |
-Jumper Config MB Clk   |Yes         |Yes         |Yes       |
-HDMI                   |Yes         |No          |No        |
-Saveable Config        |Yes         |Yes         |No        |
-Old chips?             |Yes         |Yes         |No        |
-Current Draw           |~180ma      |TBD         |TBD       |
-Variants               |T,LD,LG     |LH          |LJ        |
+PCB Design             |Kawari-Large<br>Spartan|Kawari-Large<br>Trion|Kawari-Mini<br>Trion|Kawari-POV<br>Trion|
+-----------------------|------------|------|------------|----------|
+Luma/Chroma            |Yes         |Yes   |Yes         |Yes       |
+Extra RAM              |64K         |64K   |64K         |No        |
+Flash updates from C64 |Yes         |Yes   |Yes         |Yes       |
+New Video Modes        |Yes         |Yes   |Yes         |No        |
+Detect Reset           |Yes         |Yes   |No          |No        |
+Analog RGB             |Yes         |Yes   |No          |No        |
+NTSC/PAL               |Switch      |Switch|Switch      |Fixed     |
+Jumper Config MB Clk   |Yes         |Yes   |Yes         |Yes       |
+DVI                    |Yes         |Yes   |No          |No        |
+Saveable Config        |Yes         |Yes   |Yes         |No        |
+Old chips?             |Yes         |Yes   |Yes         |No        |
+Current Draw           |~180ma      |~300ma|~180ma      |TBD       |
+Variants               |T,LD,LG     |LG    |LH          |LJ        |
 
 # Jumpers
 
