@@ -312,24 +312,33 @@ The FPGA can be powered by the monitor through the HDMI cable and even though th
 
 Same reason as above. Kawari detects the switch only after a cold boot but if your monitor is still providing power to the board, it's not really cold booting. Workaround is described above.  The same problem will happen for other 'cold boot' settings.
 
+## Known DVI + Monitor Issues
+
+As noted above, the DVI resolutions used are not standard and may not sync or display properly on all monitors.  This table keeps track of known issues.
+
+Brand | Type    | Model       | Status
+------|---------|-------------|-------
+LG    | Monitor | 27UK850     | Monitor produces zig-zag effect for resolutions that have an odd width. Affects 6567R8, 6569R3, 6569R8.  Looking into compensating for this 'odd' behavior.
+Sony  | TV      | KDL-40S3000 | Does not sync to DVI signal.
+
 ## Hardware Compatibility Matrix
 
 Hardware                    | Status
 ----------------------------|----------------------------------
 Kung Fu Flash Cartridge     | Working as of v1.5 on all long board motherboard revisions I've tested.
-SuperCPU                    | Tested and works as long as the motherboard clock is used (jumper setting). Will not work with on-board oscillators.
+SuperCPU                    | Tested and works as long as the motherboard clock is used (jumper setting). Will not work with on-board oscillators (unless you have disabled the motherboard oscillator circuit and exported dot clock from the PCB back into the motherboard.)
 REU                         | Untested but should works as long as the motherboard clock is used.
-MK2 Reloaded                | Have firmware update that will work. Check back later for update.
+MK2 Reloaded                | Have firmware that appears to work. YMMV as this was not planned to be supported.
 The Final Cartridge         | No issues discovered so far.
 Ultimate 1541               | No issues discovered so far.
 Pi1541                      | Must turn off GraphIEC feature or else some demos will fail (same with real VIC-II's)
-Link232 Wifi Cartridge      | Works but requires motherboard clock jumper setting. Will not work with on-board oscillators.
-Turbo Chameleon             | Reported not working
-SaRuMan DRAM Replacement    | Can be made to work with a CAS/RAM timing change. Testing on a 250407 board is underway (Aug 6, 2022). Check back later for update.
+Link232 Wifi Cartridge      | Works but requires motherboard clock jumper setting. Will not work with on-board oscillators (unless dot clock is exported).
+Turbo Chameleon             | Reported not working. Reason unknown.  May work with alternate firmware.
+SaRuMan DRAM Replacement    | Have an alternate firmware that appears to work. May also work for other static RAM replacement modules. YMMV.
 
 ## Software Compatibility Matrix
 
-Software                | Status 
+Software                | Status
 ------------------------|----------
 errata (emulamer)       | End screen should slow reveal but quick revelals instead. Cause unknown.
 Uncensored (booze)      | Does not advance on disk 2 swap on my 326298 long board. Works on others. But loading directly from disk 2 does work and the rest of the demo plays.

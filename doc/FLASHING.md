@@ -4,7 +4,11 @@ Back to [README.md](../README.md)
 
 There are a number of ways you can flash new firmware to the Kawari board:
 
-## D64 files + Real Disk Drive
+## D81 file + KungFuFlash (fastest/easiest)
+
+Use a KungFuFlash card and select the .D81 disk you copied to the sdcard. Select FLASH.PRG to start.  Say 'No' when prompted to use a fast loader.  Just press enter when prompted to swap disks.
+
+## D64 files + Real Disk Drive (Slow)
 
 You can use a real 1541 disk drive provided you create physical disks from the provided .d64 files. There are a number of utility programs that can do this.  Once created, insert DISK 1 and type 
 
@@ -39,3 +43,4 @@ NOTE: It is a very good idea to check your 'Next' button actually works before t
 ## D81 file + SD2IEC (slow)
 
 If your SD2IEC supports it, you can mount the single D81 disk.  However, the fast loader cannot be used.  A fast loader cartridge may work if the SD2IEC supports it (ie. Epyx Fastload).  This method is likely to be very slow.
+
