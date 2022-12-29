@@ -43,24 +43,36 @@ The core is flexible and can be configured to support all three or any subset of
 
 By default, the DVI/RGB signals double the horizontal frequency from ~15.7khz to ~31.4khz (for 2X native height). The horizontal resolution is also doubled to support the 80 column mode.  However, the resolution scaling can be turned off for both width and height.  (NOTE: Turning off horizontal scaling will prevent hires modes from working properly.)
 
-Video        |Width|Height|Horiz Freq |Vert Freq  |Pixel Clock  |Suitable for
--------------|-----|------|-----------|-----------|-------------|---------------
-NTSC         |520  |263   |15.73khz   |59.82hz    |8.181 Mhz    |RGB
-NTSC(Old)    |512  |262   |15.98khz   |60.99hz    |8.181 Mhz    |RGB
-PAL-B        |504  |312   |15.63khz   |50.125hz   |7.881 Mhz    |RGB
-NTSC         |1040 |263   |15.73khz   |59.82hz    |16.363 Mhz   |RGB
-NTSC(Old)    |1024 |262   |15.98khz   |60.99hz    |16.363 Mhz   |RGB
-PAL-B        |1008 |312   |15.63khz   |50.125hz   |15.763 Mhz   |RGB
-NTSC         |520  |526   |31.46khz   |59.82hz    |16.363 Mhz   |RGB/DVI
-NTSC(Old)    |512  |524   |31.96khz   |60.99hz    |16.363 Mhz   |RGB/DVI
-PAL-B        |504  |624   |31.26khz   |50.125hz   |15.763 Mhz   |RGB/DVI
-NTSC         |1040 |526   |31.46khz   |59.82hz    |32.727 Mhz   |RGB/DVI
-NTSC(Old)    |1024 |524   |31.96khz   |60.99hz    |32.727 Mhz   |RGB/DVI
-PAL-B        |1008 |624   |31.26khz   |50.125hz   |31.527 Mhz   |RGB/DVI
+### Spartan Large Board DVI/RGB Signals
+
+Video        |Mx|My|Width|Height|Horiz Freq |Vert Freq  |Pixel Clock
+-------------|--|--|-----|------|-----------|-----------|-----------
+NTSC         |1x|1x|520  |263   |15.73khz   |59.82hz    |8.181 Mhz  
+NTSC(Old)    |1x|1x|512  |262   |15.98khz   |60.99hz    |8.181 Mhz  
+PAL-B        |1x|1x|504  |312   |15.63khz   |50.125hz   |7.881 Mhz  
+NTSC         |2x|1x|1040 |263   |15.73khz   |59.82hz    |16.363 Mhz 
+NTSC(Old)    |2x|1x|1024 |262   |15.98khz   |60.99hz    |16.363 Mhz 
+PAL-B        |2x|1x|1008 |312   |15.63khz   |50.125hz   |15.763 Mhz 
+NTSC         |1x|2x|520  |526   |31.46khz   |59.82hz    |16.363 Mhz 
+NTSC(Old)    |1x|2x|512  |524   |31.96khz   |60.99hz    |16.363 Mhz 
+PAL-B        |1x|2x|504  |624   |31.26khz   |50.125hz   |15.763 Mhz 
+NTSC         |2x|2x|1040 |526   |31.46khz   |59.82hz    |32.727 Mhz 
+NTSC(Old)    |2x|2x|1024 |524   |31.96khz   |60.99hz    |32.727 Mhz 
+PAL-B        |2x|2x|1008 |624   |31.26khz   |50.125hz   |31.527 Mhz 
+
+### Trion Large Board DVI/RGB Signals
+
+The Trion board RGB firmware has clock signals identical to the table above. The DVI firmware (full 2x/2Y resolution) is reduced to the following values:
+
+Video        |Mx|My|Width|Height|Horiz Freq |Vert Freq  |Pixel Clock
+-------------|--|--|-----|------|-----------|-----------|-----------
+NTSC         |2x|2x|845  |526   |31.46khz   |59.82hz    |26.590 Mhz 
+NTSC(Old)    |2x|2x|832  |524   |31.96khz   |60.99hz    |26.590 Mhz 
+PAL-B        |2x|2x|945  |624   |31.26khz   |50.125hz   |29.557 Mhz 
 
 ### More video stuff
 
-The DVI video modes are not standard and may not work with older monitors/TVs or capture cards.  The 15khz modes require a monitor that can handle that horizontal refresh rate.  If the device is configured for 15khz, DVI will not work.
+The DVI video modes are not standard and may not work with older monitors/TVs or capture cards.  The 15khz modes require a monitor that can handle that horizontal refresh rate.  If the device is configured for 15khz, DVI will usually not work as most monitors don't accept a 15khz horizontal refresh rate.
 
 The PCB has an unpopulated 10 pin analog header (1 +5V, 6 signal, 3 GND) that can wired to a monitor with a custom built cable.
 
