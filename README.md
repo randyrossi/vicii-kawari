@@ -319,6 +319,7 @@ As noted above, the DVI resolutions used are not standard and may not sync or di
 Brand | Type    | Model       | Status
 ------|---------|-------------|-------
 LG    | Monitor | 27UK850     | Monitor produces zig-zag effect for resolutions that have an odd width. Affects 6567R8, 6569R3, 6569R8.  Looking into compensating for this 'odd' behavior.
+LG    | Monitor | 27GL650F    | Same zig-zag problem as above.
 Sony  | TV      | KDL-40S3000 | Does not sync to DVI signal.
 
 ## Hardware Compatibility Matrix
