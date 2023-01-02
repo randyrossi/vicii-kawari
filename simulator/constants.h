@@ -34,11 +34,13 @@
 // Color 3.579545
 #define NTSC_HALF_4X_DOT_PS 15277   // half the period of 32.727272Mhz
 #define NTSC_HALF_4X_COLOR_PS 34921 // half the period of 14.318181Mhz
+#define NTSC_HALF_16X_COLOR_PS 8730 // half the period of col16x
 
 // Dot 7.8819888
 // Color 4.43361875
 #define PAL_HALF_4X_DOT_PS 15859   // half the period of 31.527955Mhz
 #define PAL_HALF_4X_COLOR_PS 28194 // half the period of 17.734475Mhz
+#define PAL_HALF_16X_COLOR_PS 7048 // half the period of col16x
 
 // Must match fpga design being simulated
 #define NTSC_6567R56A_NUM_CYCLES 64

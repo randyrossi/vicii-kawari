@@ -18,8 +18,6 @@
 
 `include "../common.vh"
 
-`define USE_MUX_HACK 1
-
 module top(
        input clk_col4x_ntsc, // from pin
        input clk_col4x_pal, // from pin
@@ -99,14 +97,9 @@ module top(
 // TODO - export dot clock for RGB header
 assign clk_dot4x_ext = 1'b0;
 
-`ifdef USE_MUX_HACK
 `define DOT_CLOCK_4X clk_dot4x
 `define COL_CLOCK_16X clk_col16x
-`else
-// Fix to one or the other for testing
-`define DOT_CLOCK_4X clk_dot4x_ntsc
-`define COL_CLOCK_16X clk_col16x_ntsc
-`endif
+`define COL_CLOCK_16X_4TM clk_col16x
 
 wire rst;
 `ifdef OUTPUT_DOT_CLOCK
@@ -123,14 +116,6 @@ assign cpu_reset = dot_clock_shift[3];
 assign cpu_reset = rst;
 `endif
 
-// ======== MUX HACK ==============
-// There seems to be no clock mux for the Trion
-// family. This is a hack to mux our clock. It
-// appears to work but produces a warning indicating
-// this might introduce extra clock skew.  However,
-// it doesn't seemt o be a problem.
-
-`ifdef USE_MUX_HACK
 wire clk_dot4x;
 // Put the muxed clock onto the clock tree
 EFX_GBUFCE mux1(
@@ -147,6 +132,13 @@ EFX_GBUFCE mux2(
     .CE(1'b1),
     .I(color_sel ? clk_col16x_pal : clk_col16x_ntsc),
     .O(clk_col16x)
+    );
+
+wire clk_col16x_4tm;
+EFX_GBUFCE mux2b(
+    .CE(1'b1),
+    .I(chip[0] ? clk_col16x_pal : clk_col16x_ntsc),
+    .O(clk_col16x_4tm)
     );
 
 (* syn_preserve = "true" *) reg ntsc_dot;// throw away signal for mux hack
@@ -179,7 +171,6 @@ always @(posedge clk_col16x_pal)
 begin
     pal_col <= ~pal_col;
 end
-`endif
 
 wire [7:0] dbo;
 wire [11:0] ado;
@@ -230,6 +221,7 @@ vicii vic_inst(
           .blue(blue),
 `endif
           .clk_col16x(`COL_CLOCK_16X),
+          .clk_col16x_4tm(`COL_CLOCK_16X_4TM),
 `ifdef GEN_LUMA_CHROMA
           .luma_sink(luma_sink),
           .luma(luma),

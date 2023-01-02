@@ -127,13 +127,6 @@ assign clk_dot4x_ext = dot_clock_shift[3];
 assign clk_dot4x_ext = 1'b0;
 `endif
 
-// ======== MUX HACK ==============
-// There seems to be no clock mux for the Trion
-// family. This is a hack to mux our clock. It
-// appears to work but produces a warning indicating
-// this might introduce extra clock skew.  However,
-// it doesn't seemt o be a problem.
-
 wire clk_dot4x;
 EFX_GBUFCE mux1(
     .CE(1'b1),
@@ -147,6 +140,13 @@ EFX_GBUFCE mux2(
     .CE(1'b1),
     .I(color_sel ? clk_col16x_pal : clk_col16x_ntsc),
     .O(clk_col16x)
+    );
+
+wire clk_col16x_4tm;
+EFX_GBUFCE mux2b(
+    .CE(1'b1),
+    .I(chip[0] ? clk_col16x_pal : clk_col16x_ntsc),
+    .O(clk_col16x_4tm)
     );
 
 `ifdef WITH_DVI
@@ -280,6 +280,7 @@ vicii vic_inst(
           .blue(blue),
 `endif
           .clk_col16x(clk_col16x),
+          .clk_col16x_4tm(clk_col16x_4tm),
 `ifdef GEN_LUMA_CHROMA
           .luma_sink(luma_sink),
           .luma(luma),

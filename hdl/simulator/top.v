@@ -163,6 +163,7 @@ vicii vic_inst(
 `endif
           .clk_phi(clk_phi),
           .clk_col16x(clk_col16x),
+          .clk_col16x_4tm(clk_col16x),
 `ifdef NEED_RGB
           .active(active),
           .hsync(hsync),

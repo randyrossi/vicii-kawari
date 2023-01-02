@@ -41,9 +41,11 @@ extern "C" {
 // constants.h for how much each tick represents.
 static vluint64_t ticks = 0;
 static vluint64_t half4XDotPS;
+static vluint64_t half16XColPS;
 static vluint64_t startTicks;
 static vluint64_t endTicks;
 static vluint64_t nextClk;
+static vluint64_t next16XColClk;
 static double col4xClk;
 static double col16xClk;
 static int nextClkCnt;
@@ -289,7 +291,9 @@ static int tick_scale_ntsc[] = {1,1,1,0,1,1,1,1,0,1,1,1,0,1,1,1};
 #endif
 #endif
 
-static vluint64_t nextTick(Vtop* top, int chip) {
+double col16xtick = 0;
+
+static vluint64_t nextTick(Vtop* top, VerilatedVcdC* tfp, int chip) {
    vluint64_t diff1 = nextClk - ticks;
 
    nextClk += half4XDotPS;
@@ -313,7 +317,27 @@ static vluint64_t nextTick(Vtop* top, int chip) {
 #endif
 
    top->V_COL4X = ~top->V_COL4X;
-   top->V_COL16X = ~top->V_COL16X;
+
+   // One tick of dot4x 
+   // = 9/4 ticks of col16x for PAL, 7/4 ticks of col16x for NTSC
+
+   if (chip & 1) {
+       col16xtick += 9.0f/4.0d;
+   } else {
+       col16xtick += 7.0f/4.0d;
+   }
+
+   next16XColClk = nextClk;
+   while (col16xtick >= 1) {
+       top->V_COL16X = ~top->V_COL16X;
+       top->eval();
+#if VM_TRACE
+       if (tfp) tfp->dump(next16XColClk / TICKS_TO_TIMESCALE);
+#endif
+       next16XColClk += half16XColPS;
+       col16xtick -= 1;
+   }
+
    nextClkCnt = (nextClkCnt + 1) % 32;
    return ticks + diff1;
 }
@@ -736,6 +760,7 @@ int main(int argc, char** argv, char** env) {
 
     if (isNtsc) {
        half4XDotPS = NTSC_HALF_4X_DOT_PS;
+       half16XColPS = NTSC_HALF_16X_COLOR_PS;
        switch (chip) {
           case CHIP6567R56A:
              screenWidth = NTSC_6567R56A_MAX_DOT_X+1;
@@ -755,6 +780,7 @@ int main(int argc, char** argv, char** env) {
        }
     } else {
        half4XDotPS = PAL_HALF_4X_DOT_PS;
+       half16XColPS = PAL_HALF_16X_COLOR_PS;
        switch (chip) {
           case CHIP6569R1:
           case CHIP6569R3:
@@ -837,7 +863,7 @@ int main(int argc, char** argv, char** env) {
 #endif
        STATE(top);
        STORE_PREV();
-       ticks = nextTick(top, chip);
+       ticks = nextTick(top, tfp, chip);
        cnt++;
     }
 
@@ -932,7 +958,7 @@ int main(int argc, char** argv, char** env) {
 #if VM_TRACE
 	          if (tfp) tfp->dump(ticks / TICKS_TO_TIMESCALE);
 #endif
-                  ticks = nextTick(top, chip);
+                  ticks = nextTick(top, tfp, chip);
                   STATE(top);
                   STORE_PREV();
                }
@@ -944,7 +970,7 @@ int main(int argc, char** argv, char** env) {
 #if VM_TRACE
 	          if (tfp) tfp->dump(ticks / TICKS_TO_TIMESCALE);
 #endif
-                  ticks = nextTick(top, chip);
+                  ticks = nextTick(top, tfp, chip);
                   STATE(top);
                   STORE_PREV();
                }
@@ -1317,7 +1343,7 @@ int main(int argc, char** argv, char** env) {
            break;
 
         // Advance simulation time. Each tick represents 1 picosecond.
-        ticks = nextTick(top, chip);
+        ticks = nextTick(top, tfp, chip);
     }
 
     if (shadowVic) {

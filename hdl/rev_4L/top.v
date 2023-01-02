@@ -139,13 +139,20 @@ always @(posedge clk_col4x_pal) chip_mux1 <= color_sel;
 always @(posedge clk_col4x_pal) chip_mux2 <= chip_mux1;
 
 // We select which color clock to enter the 2x clock gen (below)
-// based on the chip model by using a BUFGMUX. 1=PAL, 0 = NTSC
+// based on the chip model by using a BUFGMUX. 1=PAL, 0=NTSC
 wire clk_col4x;
 BUFGMUX colmux(
             .I0(clk_col4x_ntsc),
             .I1(clk_col4x_pal),
             .O(clk_col4x),
             .S(chip_mux2));
+
+wire clk_col4x_4tm;
+BUFGMUX colmux_4tm(
+            .I0(clk_col4x_ntsc),
+            .I1(clk_col4x_pal),
+            .O(clk_col4x_4tm),
+            .S(chip[0]));
 
 // From the 4x color clock, generate an 8x color clock
 // This is necessary to meet the minimum frequency of
@@ -159,6 +166,15 @@ x2_clockgen x2_clockgen(
                 .clk_out_x2(clk_col8x), // for PLL to gen dot4x
                 .clk_out_x4(clk_col16x), // for LUMA/CHROMA gen
                 .reset(rst));
+
+wire clk_col8x_4tm;
+wire clk_col16x_4tm;
+x2_clockgen x2_clockgen_4tm(
+                .clk_in(clk_col4x_4tm),
+                .clk_out_x2(clk_col8x_4tm), // for PLL to gen dot4x
+                .clk_out_x4(clk_col16x_4tm), // for LUMA/CHROMA gen
+                .reset(rst));
+
 
 `ifdef WITH_DVI
 wire tx0_pclkx10;
@@ -264,6 +280,7 @@ vicii vic_inst(
           .blue(blue),
 `endif
           .clk_col16x(clk_col16x),
+          .clk_col16x_4tm(clk_col16x_4tm),
 `ifdef GEN_LUMA_CHROMA
           .luma_sink(luma_sink),
           .luma(luma),
