@@ -126,13 +126,7 @@ task read_ram(
                               };
                     `EXT_REG_DISPLAY_FLAGS2:
                         dbo <= {
-                              4'b0, // reserved
-`ifdef WITH_DVI
-                              even_odd_field,
-                              even_odd_enable,
-`else
-                              2'b0,
-`endif
+                              6'b0, // reserved
 `ifdef GEN_LUMA_CHROMA
                               pal_60,
                               ntsc_50
@@ -405,19 +399,13 @@ task write_ram(
                     end
                     `EXT_REG_DISPLAY_FLAGS2:
                     begin
-`ifdef WITH_DVI
-                        even_odd_enable <= data[`EVEN_ODD_BIT];
-                        even_odd_field <= data[`EVEN_ODD_FIELD_BIT];
-`endif
 `ifdef GEN_LUMA_CHROMA
                         ntsc_50 <= data[`NTSC_50_BIT];
                         pal_60 <= data[`PAL_60_BIT];
 `endif
                         persist_eeprom(do_persist, `EXT_REG_DISPLAY_FLAGS2,
                                        {
-                                        4'b0, // reserved
-                                        data[`EVEN_ODD_FIELD_BIT],
-                                        data[`EVEN_ODD_BIT],
+                                        6'b0, // reserved
                                         data[`PAL_60_BIT],
                                         data[`NTSC_50_BIT]
                                        });

@@ -89,8 +89,6 @@ endmodule
         input hpolarity,
         input vpolarity,
         input enable_csync,
-        input even_odd_enable,
-        input even_odd_field,
 `ifdef CONFIGURABLE_TIMING
         input timing_change_in,
         input [7:0] timing_h_blank_ntsc,
@@ -130,7 +128,6 @@ endmodule
 reg [10:0] max_width; // compared to hcount which can be 2x
 reg [9:0] max_height; // compared to vcount which can be 2y
 reg [10:0] x_offset;
-reg [10:0] field_offset;
 
 reg [10:0] hs_sta; // compared against hcount which can be 2x
 reg [10:0] hs_end; // compared against hcount which can be 2x
@@ -252,19 +249,6 @@ begin
             end else begin
                 h_count <= 0;
 
-                // LG monitor 'even_odd' fix is used when the width is an
-                // odd number. Only the 6567R56A has an odd width using our
-                // 'zoomed in' values. So all other chips get this offset.
-                if (even_odd_enable && chip != `CHIP6567R56A)
-`ifdef HIRES_MODES
-                    field_offset <= {9'b0, ~even_odd_field ^ v_count[0], 1'b0};
-`else
-                    field_offset <= {10'b0, ~even_odd_field ^ v_count[0]};
-`endif
-                else
-                    field_offset <= 11'b0;
-
-
                 if (v_count < max_height) begin
                     v_count <= v_count + 9'b1;
                 end else begin
@@ -311,7 +295,7 @@ wire [3:0] dout1; // output color from line_buf_1
 // When the line buffer is being read from, we use h_count.
 `ifdef HIRES_MODES
 dvi_linebuf_RAM line_buf_0(pixel_color3, // din
-                       active_buf ? (is_native_x ? {1'b0, raster_x} : hires_raster_x) : (h_count + x_offset + field_offset),  // addr
+                       active_buf ? (is_native_x ? {1'b0, raster_x} : hires_raster_x) : (h_count + x_offset),  // addr
                        clk_dvi, // rclk
                        !active_buf, // re
                        clk_dot4x, // wclk
@@ -319,7 +303,7 @@ dvi_linebuf_RAM line_buf_0(pixel_color3, // din
                        dout0); // dout
 
 dvi_linebuf_RAM line_buf_1(pixel_color3,
-                       !active_buf ? (is_native_x ? {1'b0, raster_x} : hires_raster_x) : (h_count + x_offset + field_offset),
+                       !active_buf ? (is_native_x ? {1'b0, raster_x} : hires_raster_x) : (h_count + x_offset),
                        clk_dvi,
                        active_buf,
                        clk_dot4x,
@@ -327,7 +311,7 @@ dvi_linebuf_RAM line_buf_1(pixel_color3,
                        dout1);
 `else
 dvi_linebuf_RAM line_buf_0(pixel_color3,
-                       active_buf ? {1'b0, raster_x} : (h_count + x_offset + field_offset),
+                       active_buf ? {1'b0, raster_x} : (h_count + x_offset),
                        clk_dvi,
                        !active_buf,
                        clk_dot4x,
@@ -335,7 +319,7 @@ dvi_linebuf_RAM line_buf_0(pixel_color3,
                        dout0);
 
 dvi_linebuf_RAM line_buf_1(pixel_color3,
-                       !active_buf ? {1'b0, raster_x} : (h_count + x_offset + field_offset),
+                       !active_buf ? {1'b0, raster_x} : (h_count + x_offset),
                        clk_dvi,
                        active_buf,
                        clk_dot4x,

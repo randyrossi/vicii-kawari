@@ -117,10 +117,6 @@ module registers
            output reg [7:0] phasereg_o,
            output reg [3:0] amplitudereg_o,
 `endif
-`ifdef WITH_DVI
-           output reg even_odd_enable = 1'b0,
-           output reg even_odd_field = 1'b0,
-`endif
 
 `ifdef WITH_EXTENSIONS
 

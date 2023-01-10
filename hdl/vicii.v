@@ -907,11 +907,6 @@ wire vpolarity;
 wire ractive;
 `endif
 
-`ifdef WITH_DVI
-wire even_odd_enable;
-wire even_odd_field;
-`endif
-
 `ifdef GEN_LUMA_CHROMA
 wire [5:0] lumareg_o;
 wire [7:0] phasereg_o;
@@ -950,10 +945,6 @@ registers vic_registers(
 `endif
               .standard_sw(standard_sw),
               .clk_dot4x(clk_dot4x),
-`ifdef WITH_DVI
-              .even_odd_enable(even_odd_enable),
-              .even_odd_field(even_odd_field),
-`endif
 `ifdef EFINIX
 `ifdef WITH_DVI
               .clk_dvi(clk_dvi),
@@ -1329,8 +1320,6 @@ hires_dvi_sync vic_dvi_sync(
                    .pixel_color3(pixel_color3),
                    .hsync(hsync),
                    .vsync(vsync),
-                   .even_odd_enable(even_odd_enable),
-                   .even_odd_field(even_odd_field),
                    .active(active),
                    .ractive(ractive),
                    .pixel_color4(pixel_color4_vga),

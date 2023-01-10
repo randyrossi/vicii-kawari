@@ -41,16 +41,13 @@ static int raster_lines_line = -1;
 static int ntsc_50_line = -1;
 static int pal_60_line = -1;
 static int max_line = -1;
-static int even_odd_enable_line = -1;
-static int even_odd_field_line = -1;
 
 #define FIRST_CONFIG_LINE 4
 #define LABEL_ON_OFF 0
 #define LABEL_HI_LO 1
-#define LABEL_EVEN_ODD 2
 
-static char* label_true_string[] = {"ON ","HI","EVEN"};
-static char* label_false_string[] = {"OFF","LO","ODD "};
+static char* label_true_string[] = {"ON ","HI"};
+static char* label_false_string[] = {"OFF","LO"};
 
 static char* blank_line = "                                       ";
 
@@ -211,16 +208,6 @@ void show_info_line(void) {
         printf ("Makes using some PAL monitors possible. ");
         printf ("%s",blank_line);
     }
-    else if (line == even_odd_enable_line) {
-        printf ("Compensate for some monitors that don't ");
-        printf ("like odd horizontal resolutions. Does   ");
-        printf ("not affect 6567R8.                     ");
-    }
-    else if (line == even_odd_field_line) {
-        printf ("Specify which field (even or odd) when  ");
-        printf ("even/odd flag is enabled.               ");
-        printf ("%s",blank_line);
-    }
 }
 
 void save_changes(void)
@@ -340,14 +327,6 @@ void main_menu(void)
                 show_display_bit(DISPLAY_PAL_60_BIT, pal_60_line, LABEL_ON_OFF);
              }
           }
-          if (has_dvi && version_short >= 267) {
-             even_odd_enable_line = ln; ln++;
-             show_display_bit(DISPLAY_EVEN_ODD_BIT,
-                   even_odd_enable_line, LABEL_ON_OFF);
-             even_odd_field_line = ln; ln++;
-             show_display_bit(DISPLAY_EVEN_ODD_FIELD_BIT,
-                   even_odd_field_line, LABEL_EVEN_ODD);
-          }
           switch_line = ln; ln++;
           show_display_bit(DISPLAY_CHIP_INVERT_SWITCH, switch_line, LABEL_ON_OFF);
           locks_line = ln; ln++;
@@ -409,14 +388,6 @@ void main_menu(void)
           else if (line == pal_60_line && can_save) {
              next_display_flags ^= DISPLAY_PAL_60_BIT;
              show_display_bit(DISPLAY_PAL_60_BIT, pal_60_line, LABEL_ON_OFF);
-	  }
-          else if (line == even_odd_enable_line && can_save) {
-             next_display_flags ^= DISPLAY_EVEN_ODD_BIT;
-             show_display_bit(DISPLAY_EVEN_ODD_BIT, even_odd_enable_line, LABEL_ON_OFF);
-	  }
-          else if (line == even_odd_field_line && can_save) {
-             next_display_flags ^= DISPLAY_EVEN_ODD_FIELD_BIT;
-             show_display_bit(DISPLAY_EVEN_ODD_FIELD_BIT, even_odd_field_line, LABEL_EVEN_ODD);
 	  }
        } else if (r.a == 's') {
           save_changes();
