@@ -99,7 +99,7 @@ assign clk_dot4x_ext = 1'b0;
 
 `define DOT_CLOCK_4X clk_dot4x
 `define COL_CLOCK_16X clk_col16x
-`define COL_CLOCK_16X_4TM clk_col16x
+`define COL_CLOCK_16X_4TM clk_col16x_4tm
 
 wire rst;
 `ifdef OUTPUT_DOT_CLOCK
