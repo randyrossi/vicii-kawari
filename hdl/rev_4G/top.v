@@ -66,8 +66,8 @@ module top(
 `endif
            input standard_sw,   // video standard toggle switch
            output clk_phi,      // output phi clock for CPU
-`ifdef GEN_RGB
            output clk_dot4x_ext,// pixel clock
+`ifdef GEN_RGB
            output hsync,        // hsync signal for VGA/DVI
            output vsync,        // vsync signal for VGA/DVI
            output [5:0] red,    // red out for VGA/DVI or Composite Encoder
