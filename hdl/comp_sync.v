@@ -85,9 +85,9 @@ begin
               (raster_y < vblank_end | (raster_y == vblank_end & raster_x < hsync_end))
           );
     native_active <= ~(
-                      (raster_x >= hvisible_end & raster_x < hvisible_start) |
+                      (raster_x >= hvisible_end | raster_x < hvisible_start) |
                       (
-                          ((raster_y == vvisible_end & raster_x >= hvisible_end) | raster_y > vvisible_end) &
+                          ((raster_y == vvisible_end & raster_x < hvisible_end) | raster_y > vvisible_end) &
                           ((raster_y == vvisible_start & raster_x <= hvisible_start) | raster_y < vvisible_start)
                       )
                   );
@@ -95,14 +95,18 @@ end
 
 // NTSC: Each x is ~122.2 ns (.1222 us)
 // PAL : Each x is ~126.8 ns (.1268 us)
+`ifdef SIMULATOR_BOARD
+always @(posedge clk_dot4x)
+`else
 always @(chip)
+`endif
 case(chip)
     `CHIP6567R8:
     begin
-        hvisible_end = 10'd0;
-        hsync_start = 10'd8; // hvisible_end+8*.1222 = ~1us
-        hsync_end = 10'd45;    // hsync_start+37*.1222 = ~4.52us
-        hvisible_start = 10'd96; // hsync_start+88*.1222 = ~10.7us
+        hvisible_end = 10'd510;
+        hsync_start = 10'd10;
+        hsync_end = 10'd47;
+        hvisible_start = 10'd90;
         vvisible_end = 9'd13;
         vblank_start = 9'd14; // visible_end +9'd1
         vblank_end = 9'd22; // vblank_start + 9'd8;
@@ -110,10 +114,10 @@ case(chip)
     end
     `CHIP6567R56A:
     begin
-        hvisible_end = 10'd0;
-        hsync_start = 10'd8; // hvisible_end+8*.1222 = ~1us
-        hsync_end = 10'd45;    // hsync_start+37*.1222 = ~4.52us
-        hvisible_start = 10'd96; // hsync_start+88*.1222 = ~10.7us
+        hvisible_end = 10'd502;
+        hsync_start = 10'd10;
+        hsync_end = 10'd47;
+        hvisible_start = 10'd90;
         vvisible_end = 9'd13;
         vblank_start = 9'd14; // visible_end +9'd1
         vblank_end = 9'd22; // vblank_start + 9'd8;
@@ -121,10 +125,10 @@ case(chip)
     end
     `CHIP6569R1, `CHIP6569R3:
     begin
-        hvisible_end = 10'd0;
-        hsync_start = 10'd7;  // hvisible_end+7*.1269 = ~1us
-        hsync_end = 10'd44;      // hsync_start+37*.1269 = ~4.69us
-        hvisible_start =  10'd91; // hsync_start+84*.1269 = ~10.65us
+        hvisible_end = 10'd494;
+        hsync_start = 10'd10;
+        hsync_end = 10'd47;
+        hvisible_start =  10'd90;
         vvisible_end = 9'd300;
         vblank_start = 9'd301; // visible_end +9'd1
         vblank_end = 9'd309; // vblank_start + 9'd8;
@@ -269,7 +273,9 @@ end
 `else
 `define BURST_AMPLITUDE 4'd12
 `endif
-`define BURST_START (chip0_16 ? 10'd49 : 10'd50)
+
+// Make this hsync end + 5 ticks
+`define BURST_START 10'd52
 
 (* async_reg = "true" *) reg [8:0] raster_y_16_1;
 (* async_reg = "true" *) reg [8:0] raster_y_16;
