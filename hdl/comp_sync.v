@@ -63,7 +63,7 @@ reg [9:0] hsync_end;
 reg [9:0] hvisible_start;
 reg [8:0] vvisible_end;
 reg [8:0] vblank_start;
-reg [8:0] vblank_end;
+//reg [8:0] vblank_end;
 reg [8:0] vvisible_start;
 reg hSync;
 reg vSync;
@@ -80,10 +80,7 @@ assign luma_out = luma;
 always @(posedge clk_dot4x)
 begin
     hSync <= raster_x >= hsync_start && raster_x < hsync_end;
-    vSync <= (
-              ((raster_y == vblank_start & raster_x >= hsync_start) | raster_y > vblank_start) &
-              (raster_y < vblank_end | (raster_y == vblank_end & raster_x < hsync_end))
-          );
+    vSync <= (raster_y >= vvisible_end && raster_y <= vvisible_start);
     native_active <= ~(
                       (raster_x >= hvisible_end | raster_x < hvisible_start) |
                       (
@@ -109,7 +106,7 @@ case(chip)
         hvisible_start = 10'd90;
         vvisible_end = 9'd13;
         vblank_start = 9'd14; // visible_end +9'd1
-        vblank_end = 9'd22; // vblank_start + 9'd8;
+        //vblank_end = 9'd22; // vblank_start + 9'd8;
         vvisible_start = 9'd23; // vblank_end + 9'd1;
     end
     `CHIP6567R56A:
@@ -120,7 +117,7 @@ case(chip)
         hvisible_start = 10'd90;
         vvisible_end = 9'd13;
         vblank_start = 9'd14; // visible_end +9'd1
-        vblank_end = 9'd22; // vblank_start + 9'd8;
+        //vblank_end = 9'd22; // vblank_start + 9'd8;
         vvisible_start = 9'd23; // vblank_end + 9'd1;
     end
     `CHIP6569R1, `CHIP6569R3:
@@ -131,7 +128,7 @@ case(chip)
         hvisible_start =  10'd90;
         vvisible_end = 9'd300;
         vblank_start = 9'd301; // visible_end +9'd1
-        vblank_end = 9'd309; // vblank_start + 9'd8;
+        //vblank_end = 9'd309; // vblank_start + 9'd8;
         vvisible_start = 9'd310; // vblank_end + 9'd1;
     end
 endcase
@@ -237,6 +234,10 @@ begin
 `ifdef HAVE_LUMA_SINK
                luma_sink <= EQ;
 `endif
+            end
+            // This is visible start but it should be a blank line
+            vblank_start+9: begin
+               luma <= `BLANKING_LEVEL;
             end
             default: begin
                 luma <= ~hSync ? (~native_active ? `BLANKING_LEVEL : ((raster_x == hvisible_start && white_line) ? `WHITE_BURST : lumareg_o)) : 6'd0;

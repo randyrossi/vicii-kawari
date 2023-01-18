@@ -1102,7 +1102,16 @@ int main(int argc, char** argv, char** env) {
 #ifdef GEN_LUMA_CHROMA
             // Fallback to native pixel sequencer's pixel3 value
 	    // and lookup colors.
-	    if (top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__native_active || hideSync) {
+            int hss = top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__hsync_start;
+            int hse = top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__hsync_end;
+            int vss = top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__vblank_start;
+            //int vse = top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__vblank_end;
+            int vve = top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__vvisible_end;
+            int vvs = top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__vvisible_start;
+	    // This is the same condition in comp_sync.v
+            int vsync = (top->V_RASTER_LINE >= vve && top->V_RASTER_LINE <= vvs);
+            // If we're not in vsync or within native active range, show pixel colors
+	    if ((!vsync && top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__native_active) || hideSync) {
 	       int index = top->top__DOT__vic_inst__DOT__pixel_color3;
                SDL_SetRenderDrawColor(ren,
                 (native_rgb[index*3] << 2) | 0b11,
@@ -1110,19 +1119,10 @@ int main(int argc, char** argv, char** env) {
                 (native_rgb[index*3+2] << 2) | 0b11,
                 255);
 	    } else {
-               int hss = top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__hsync_start;
-               int hse = top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__hsync_end;
-               int vss = top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__vblank_start;
-               int vse = top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__vblank_end;
-	       // This is the same condition in comp_sync.v
-	       int vsync = (
-                    ((top->V_RASTER_LINE == vss & top->V_RASTER_X >= hss) |
-		         top->V_RASTER_LINE > vss) &
-                    (top->V_RASTER_LINE < vse |
-		         (top->V_RASTER_LINE == vse & top->V_RASTER_X < hse))
-               );
-
-	       if ((top->V_RASTER_X >= hss && top->V_RASTER_X < hse) || vsync) 
+               // NOTE: If we're in vsync show red color, except we omit vve and vss to match what comp_sync.v does
+               // (special cases)
+	       if ((top->V_RASTER_X >= hss && top->V_RASTER_X < hse) ||
+                      (vsync && top->V_RASTER_LINE != vve && top->V_RASTER_LINE != vvs))
                   SDL_SetRenderDrawColor(ren, 255,0,0,255);
 	       else
                   SDL_SetRenderDrawColor(ren, 0,0,0,255);
