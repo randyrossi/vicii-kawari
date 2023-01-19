@@ -237,7 +237,8 @@ begin
             end
             // This is visible start but it should be a blank line
             vblank_start+9: begin
-               luma <= `BLANKING_LEVEL;
+               luma <= ~hSync ? `BLANKING_LEVEL : 6'd0;
+               luma_sink <= hSync;
             end
             default: begin
                 luma <= ~hSync ? (~native_active ? `BLANKING_LEVEL : ((raster_x == hvisible_start && white_line) ? `WHITE_BURST : lumareg_o)) : 6'd0;
