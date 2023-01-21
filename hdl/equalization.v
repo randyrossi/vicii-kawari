@@ -19,34 +19,38 @@
 `include "common.vh"
 
 module EqualizationPulse(
+           input clk_dot4x,
            input [9:0] raster_x,
            input [1:0] chip,
            output reg EQ);
 
-always @*
+// NOTE: Ranges here need to be shifted up by 10'd10 which is the
+// hsync_start x position.  If this ever changes, these values need
+// to also change.
+always @(posedge clk_dot4x)
 case (chip)
     `CHIP6567R8:
-        EQ =		//  4% tH equalization width
-        (raster_x < 10'd21) ||
+        EQ <=		//  4% tH equalization width
+        (raster_x >= 10'd10 && raster_x < 10'd30) ||
         (
-            (raster_x >= 10'd260) &&	// 50%
-            (raster_x < 10'd281)		// 54%
+            (raster_x >= 10'd270) &&	// 50%
+            (raster_x < 10'd291)		// 54%
         )
         ;
     `CHIP6567R56A:
-        EQ =           //  4% tH equalization width
-        (raster_x < 10'd20) ||
+        EQ <=           //  4% tH equalization width
+        (raster_x >= 10'd10 && raster_x < 10'd30) ||
         (
-            (raster_x >= 10'd256) &&
-            (raster_x < 10'd276)
+            (raster_x >= 10'd266) &&    // 50%
+            (raster_x < 10'd286)             // 54%
         )
         ;
     `CHIP6569R1, `CHIP6569R3:
-        EQ =           //  4% tH equalization width
-        (raster_x < 10'd20) ||   // 4%
+        EQ <=           //  4% tH equalization width
+        (raster_x >= 10'd10 && raster_x < 10'd30) ||   // 4%
         (
-            (raster_x >= 10'd252) && // 50%
-            (raster_x < 10'd272)             // 54%
+            (raster_x >= 10'd262) && // 50%
+            (raster_x < 10'd282)             // 54%
         )
         ;
 endcase

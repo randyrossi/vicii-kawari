@@ -1102,7 +1102,7 @@ int main(int argc, char** argv, char** env) {
 #ifdef GEN_LUMA_CHROMA
             // Fallback to native pixel sequencer's pixel3 value
 	    // and lookup colors.
-            int hss = top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__hsync_start;
+            int hss = 10; // see comp_sync.v  top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__hsync_start;
             int hse = top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__hsync_end;
             int vss = top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__vblank_start;
             //int vse = top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__vblank_end;
@@ -1123,7 +1123,12 @@ int main(int argc, char** argv, char** env) {
                // (special cases)
 	       if ((top->V_RASTER_X >= hss && top->V_RASTER_X < hse) ||
                       (vsync && top->V_RASTER_LINE != vve && top->V_RASTER_LINE != vvs))
+#ifdef HAVE_LUMA_SINK
+                  SDL_SetRenderDrawColor(ren, 255*top->V_LUMA_SINK,0,0,255);
+#else
+                  // Only for old beta boards
                   SDL_SetRenderDrawColor(ren, 255,0,0,255);
+#endif
 	       else
                   SDL_SetRenderDrawColor(ren, 0,0,0,255);
 	    }

@@ -58,7 +58,7 @@ module comp_sync(
 
 reg [5:0] luma;
 reg [9:0] hvisible_end;
-reg [9:0] hsync_start;
+//reg [9:0] hsync_start; // now always 10'd10
 reg [9:0] hsync_end;
 reg [9:0] hvisible_start;
 reg [8:0] vvisible_end;
@@ -79,7 +79,9 @@ assign luma_out = luma;
 
 always @(posedge clk_dot4x)
 begin
-    hSync <= raster_x >= hsync_start && raster_x < hsync_end;
+    // NOTE hsync_start is hard coded to 10'd10 to save a register. If this ever
+    // changes, serration.v and equalization.v must also change.
+    hSync <= raster_x >= 10'd10 /* hsync_start */ && raster_x < hsync_end;
     vSync <= (raster_y >= vvisible_end && raster_y <= vvisible_start);
     native_active <= ~(
                       (raster_x >= hvisible_end | raster_x < hvisible_start) |
@@ -100,9 +102,10 @@ always @(chip)
 case(chip)
     `CHIP6567R8:
     begin
+        // 520x263
         hvisible_end = 10'd510;
-        hsync_start = 10'd10;
-        hsync_end = 10'd47;
+        //hsync_start = 10'd10;
+        hsync_end = 10'd49;      // .0075H
         hvisible_start = 10'd90;
         vvisible_end = 9'd13;
         vblank_start = 9'd14; // visible_end +9'd1
@@ -111,9 +114,10 @@ case(chip)
     end
     `CHIP6567R56A:
     begin
+        // 512x262
         hvisible_end = 10'd502;
-        hsync_start = 10'd10;
-        hsync_end = 10'd47;
+        //hsync_start = 10'd10;
+        hsync_end = 10'd48;       // .0075H
         hvisible_start = 10'd90;
         vvisible_end = 9'd13;
         vblank_start = 9'd14; // visible_end +9'd1
@@ -122,9 +126,10 @@ case(chip)
     end
     `CHIP6569R1, `CHIP6569R3:
     begin
+        // 504x312
         hvisible_end = 10'd494;
-        hsync_start = 10'd10;
-        hsync_end = 10'd47;
+        //hsync_start = 10'd10;
+        hsync_end = 10'd48;       // .0075H
         hvisible_start =  10'd90;
         vvisible_end = 9'd300;
         vblank_start = 9'd301; // visible_end +9'd1
@@ -147,6 +152,7 @@ endcase
 wire EQ, SE;
 EqualizationPulse ueqp1
                   (
+                      .clk_dot4x(clk_dot4x),
                       .raster_x(raster_x),
                       .chip(chip),
                       .EQ(EQ)
@@ -155,6 +161,7 @@ EqualizationPulse ueqp1
 // Compute Serration pulses
 SerrationPulse usep1
                (
+                   .clk_dot4x(clk_dot4x),
                    .raster_x(raster_x),
                    .chip(chip),
                    .SE(SE)
@@ -238,7 +245,9 @@ begin
             // This is visible start but it should be a blank line
             vblank_start+9: begin
                luma <= ~hSync ? `BLANKING_LEVEL : 6'd0;
+`ifdef HAVE_LUMA_SINK
                luma_sink <= hSync;
+`endif
             end
             default: begin
                 luma <= ~hSync ? (~native_active ? `BLANKING_LEVEL : ((raster_x == hvisible_start && white_line) ? `WHITE_BURST : lumareg_o)) : 6'd0;
@@ -276,8 +285,8 @@ end
 `define BURST_AMPLITUDE 4'd12
 `endif
 
-// Make this hsync end + 5 ticks
-`define BURST_START 10'd52
+// Make this hsync_end + 5 ticks
+`define BURST_START (chip[0] ? 10'd52 : 10'd54)
 
 (* async_reg = "true" *) reg [8:0] raster_y_16_1;
 (* async_reg = "true" *) reg [8:0] raster_y_16;

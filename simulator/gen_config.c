@@ -146,6 +146,7 @@ int main(int argc, char* argv[]) {
 	    case 0:
                     // The minimal config. Just a VIC-II.
 		    gen_luma_chroma(d);
+		    luma_sink(d);
                     // Add these to test hires modes in simulator
                     //configurable_rgb(d);
                     //hires_modes(d);
@@ -165,6 +166,7 @@ int main(int argc, char* argv[]) {
 		    break;
 	    case 2:
 		    gen_luma_chroma(d);
+		    luma_sink(d);
 		    have_eeprom(d);
 		    break;
 	    case 3:
