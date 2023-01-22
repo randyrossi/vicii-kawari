@@ -56,16 +56,16 @@
 // CAS falls because it is delayed to RAM.)
 
 // PAL CAS/RAS rise/fall times based on PAL col16x clock
-`define PAL_RAS_RISE 2
-`define PAL_RAS_FALL 12
-`define PAL_CAS_RISE 1
-`define PAL_CAS_FALL 15
+`define PAL_RAS_RISE 1
+`define PAL_RAS_FALL 10
+`define PAL_CAS_RISE 0
+`define PAL_CAS_FALL 13
 
 // NTSC CAS/RAS rise/fall times based on NTSC col16x clock
-`define NTSC_RAS_RISE 2
-`define NTSC_RAS_FALL 11
-`define NTSC_CAS_RISE 1
-`define NTSC_CAS_FALL 14
+`define NTSC_RAS_RISE 1
+`define NTSC_RAS_FALL 10
+`define NTSC_CAS_RISE 0
+`define NTSC_CAS_FALL 13
 
 // When do we set row address? (NTSC/PAL)
 `define MUX_ROW 2
@@ -75,6 +75,7 @@
 `define PAL_MUX_COL 5
 // When to apply post CAS fall bmm glitch (see above)
 `define CAS_GLITCH 10
+
 
 // Address generation
 module addressgen(
@@ -249,8 +250,8 @@ reg ntsc_ras_p;
 
 always @(posedge clk_col16x)
     if (rst) begin
-       pal_cas_ras <= 36'b000000000000000000000000000100000000;
-       ntsc_cas_ras <= 28'b0000000000000000000001000000;
+       pal_cas_ras <= 36'b000000000000000000000000000001000000;
+       ntsc_cas_ras <= 28'b0000000000000000000000100000;
     end
     else begin
        pal_cas_ras <= {pal_cas_ras[34:0], pal_cas_ras[35]};

@@ -1,0 +1,48 @@
+Charts to show relationship between color 16x and dot4x clocks to help determine cas/ras timing.
+
+NTSC
+----
+PPS:0                           1                           2                           3                           
+    _ooooooooooooooooooooooooooo_ooooooooooooooooooooooooooo_ooooooooooooooooooooooooooo_ooooooooooooooooooooooooooo
+    x...............x...............x...............x...............x...............x...............x...............
+NCR:0               1               2               3               4               5               6               
+
+PPS:4                           5                           6                           7                           
+    _ooooooooooooooooooooooooooo_ooooooooooooooooooooooooooo_ooooooooooooooooooooooooooo_ooooooooooooooooooooooooooo
+    x...............x...............x...............x...............x...............x...............x...............
+7               8               9               10              11              12              13               
+
+PPS:8                           9                           10                          11                          
+    _ooooooooooooooooooooooooooo_ooooooooooooooooooooooooooo_ooooooooooooooooooooooooooo_ooooooooooooooooooooooooooo
+    x...............x...............x...............x...............x...............x...............x...............
+14              15              16              17              18              19              20              
+
+PPS:12                          13                          14                          15                          
+    _ooooooooooooooooooooooooooo_ooooooooooooooooooooooooooo_ooooooooooooooooooooooooooo_ooooooooooooooooooooooooooo
+    x...............x...............x...............x...............x...............x...............x...............
+21              22              23              24              25              26              27              
+
+
+PAL
+---
+PPS:0                                   1                                   2                                   3                           
+    _ooooooooooooooooooooooooooooooooooo_ooooooooooooooooooooooooooooooooooo_ooooooooooooooooooooooooooooooooooo_ooooooooooooooooooooooooooooooooooo
+    x...............x...............x...............x...............x...............x...............x...............x...............x...............
+PCR:0               1               2               3               4               5               6               7               8
+
+PPS:4                                   5                                   6                                   7                           
+    _ooooooooooooooooooooooooooooooooooo_ooooooooooooooooooooooooooooooooooo_ooooooooooooooooooooooooooooooooooo_ooooooooooooooooooooooooooooooooooo
+    x...............x...............x...............x...............x...............x...............x...............x...............x...............
+PCR:9               10              11              12              13              14              15              16              17
+
+PPS:8                                   9                                   10                                  11                          
+    _ooooooooooooooooooooooooooooooooooo_ooooooooooooooooooooooooooooooooooo_ooooooooooooooooooooooooooooooooooo_ooooooooooooooooooooooooooooooooooo
+    x...............x...............x...............x...............x...............x...............x...............x...............x...............
+PCR:18              19              20              21              22              23              24              25              26
+
+PPS:12                                  13                                  14                                  15                          
+    _ooooooooooooooooooooooooooooooooooo_ooooooooooooooooooooooooooooooooooo_ooooooooooooooooooooooooooooooooooo_ooooooooooooooooooooooooooooooooooo
+    x...............x...............x...............x...............x...............x...............x...............x...............x...............
+PCR:27              28              29              30              31              32              33              34              35              
+
+
