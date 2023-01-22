@@ -839,6 +839,7 @@ wire dma_done;
 wire [15:0] dma_addr;
 `endif
 
+wire ras_i; // internally passed to registers
 // Address generation
 addressgen vic_addressgen(
                .rst(rst),
@@ -854,7 +855,8 @@ addressgen vic_addressgen(
                .vc(vc),
                .vm(vm),
                .rc(rc),
-               .ras(ras),
+               .ras_o(ras), // out to pad
+               .ras_i(ras_i), // out to registers.v
                .cas(cas),
                .bmm_old(bmm_delayed),
                .bmm_now(bmm),
@@ -959,7 +961,7 @@ registers vic_registers(
               .ce(ce),
               .rw(rw),
               .aec(aec),
-              .ras(ras),
+              .ras(ras_i), // from addressgen off dot4x clock only
               .adi(adi),
               .dbi(dbi[7:0]),
               .raster_line(raster_line_d), // advertise the delayed version

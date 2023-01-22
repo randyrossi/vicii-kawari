@@ -4,7 +4,7 @@ mkdir -p build
 MAJ=1
 MIN=12
 
-ALL="MAINLH DOTCLH MKIILH SARULH"
+ALL="MAINLH DOTCLH SARULH"
 
 for V in $ALL
 do

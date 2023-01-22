@@ -331,7 +331,8 @@ As noted above, the DVI resolutions used are not standard and may not sync or di
 Brand | Type    | Model       | Status
 ------|---------|-------------|-------
 LG    | Monitor | 27UK850     | Monitor produces zig-zag effect for resolutions that have an odd width. Affects 6567R8, 6569R3, 6569R8.  Looking into compensating for this 'odd' behavior.
-LG    | Monitor | 27GL650F    | Same zig-zag problem as above.
+LG    | Monitor | 27GL650F    | 1 user reported same zig-zag problem as above but I have the same monitor and it works for me.
+ACER  | Monitor | KA270HK     | Does not sync to DVI signal.
 Sony  | TV      | KDL-40S3000 | Does not sync to DVI signal.
 
 ## Hardware Compatibility Matrix
@@ -341,12 +342,12 @@ Hardware                    | Status
 Kung Fu Flash Cartridge     | Working as of v1.5 on all long board motherboard revisions I've tested.
 SuperCPU                    | Tested and works as long as the motherboard clock is used (jumper setting). Will not work with on-board oscillators (unless you have disabled the motherboard oscillator circuit and exported dot clock from the PCB back into the motherboard.)
 REU                         | Untested but should works as long as the motherboard clock is used.
-MK2 Reloaded                | Have firmware that appears to work. YMMV as this was not planned to be supported.
+MK2 Reloaded                | Not supported.
 The Final Cartridge         | No issues discovered so far.
 Ultimate 1541               | No issues discovered so far.
 Pi1541                      | Must turn off GraphIEC feature or else some demos will fail (same with real VIC-II's)
 Link232 Wifi Cartridge      | Works but requires motherboard clock jumper setting. Will not work with on-board oscillators (unless dot clock is exported).
-Turbo Chameleon             | Reported not working. Reason unknown.  May work with alternate firmware.
+Turbo Chameleon             | Reported to work with motherboard clock jumper setting.
 SaRuMan DRAM Replacement    | Have an alternate firmware that appears to work. May also work for other static RAM replacement modules. YMMV.
 
 ## Software Compatibility Matrix

@@ -55,34 +55,40 @@
 // first (old bmm) address. (The glitch can't happen too soon after
 // CAS falls because it is delayed to RAM.)
 
+// TODO: Run a full test of all long boards using SARUMAN_TIMING
+// and remove this condition if all tests pass.
+// See below for reason for RAS _P and _N rise/fall
+
 // PAL CAS/RAS rise/fall times based on PAL col16x clock
-`define PAL_RAS_RISE 1
-`define PAL_RAS_FALL 10
+`define PAL_RAS_RISE 0
 `define PAL_CAS_RISE 0
-`define PAL_CAS_FALL 13
+`define PAL_RAS_FALL 4
+`define PAL_MUX_COL 13
+`define PAL_CAS_FALL 6
 
 // NTSC CAS/RAS rise/fall times based on NTSC col16x clock
-`define NTSC_RAS_RISE 1
-`define NTSC_RAS_FALL 10
+`define NTSC_RAS_RISE 0
 `define NTSC_CAS_RISE 0
-`define NTSC_CAS_FALL 13
+`define NTSC_RAS_FALL 4
+`define NTSC_MUX_COL 11
+`define NTSC_CAS_FALL 6
 
-// When do we set row address? (NTSC/PAL)
+// Other:
+// NOTE: CAS_GLITCH [9] has worked the best for emulamer demos. Works well on
+// both DRAM and static RAM. [10] starts to miss pixels on static RAM.  With
+// [11] the characters will completely disappear.
+`define CAS_GLITCH 9
+// This can be this early because we calculate vic_addr in the same process
+// block as where ado is set.  It can't be earlier because cycle type needs
+// to be valid and it doesn't become valid until at least [2].
 `define MUX_ROW 2
-// When do we set col address? (NTSC)
-`define NTSC_MUX_COL 6
-// When do we set col address? (PAL)
-`define PAL_MUX_COL 5
-// When to apply post CAS fall bmm glitch (see above)
-`define CAS_GLITCH 10
-
 
 // Address generation
 module addressgen(
            input rst,
+           input [1:0] chip,
            input clk_dot4x,
            input clk_col16x,
-           input [1:0] chip,
            input [3:0] cycle_type,
 `ifdef WITH_RAM
            input dma_done,
@@ -105,7 +111,8 @@ module addressgen(
            input [47:0] sprite_mc_o,
            input [15:0] phi_phase_start,
            output reg [11:0] ado,
-           output ras,
+           output ras_o, // out to pad
+           output ras_i, // out to registers module (only dot4x driven)
            output cas
        );
 
@@ -118,8 +125,6 @@ reg [13:0] vic_addr;
 // Used to implement the post CAS bmm transition glitch. See above.
 reg [13:0] vic_addr_now;
 
-reg [35:0] pal_cas_ras;
-reg [27:0] ntsc_cas_ras;
 
 // Handle un-flattening inputs here
 assign sprite_ptr[0] = sprite_ptr_o[63:56];
@@ -229,65 +234,108 @@ begin
     end
     else begin
         // Apparently, if we don't do this at the beginning of our low AEC
-        // cycles, we get a lot of noisy address lines near the time the
-        // MK2 board wants to pick up the row address. It's not clear why
-        // this noise is present in the first place as we should own the
-        // bus at the time AEC goes low. So there should be no contention
-        // from any other device (i.e. CPU).
+        // cycles, we get a lot of noisy address lines near the beginning
+        // of the cycle. Not sure why this noise is present in the first place
+        // as we should own the bus at the time AEC goes low. So there should
+        // be no contention from any other device (i.e. CPU).
         if (phi_phase_start[1])
             ado <= 12'b0;
     end
 end
 
-assign cas = chip[0] ? pal_cas : ntsc_cas;
-assign ras = chip[0] ? pal_ras : (ntsc_ras_n | ntsc_ras_p);
+reg pal_cas_d4x;
+reg pal_ras_d4x;
+reg ntsc_cas_d4x;
+reg ntsc_ras_d4x;
 
-reg pal_cas;
-reg pal_ras;
-reg ntsc_cas;
-reg ntsc_ras_n;
-reg ntsc_ras_p;
+reg pal_cas_c16x;
+reg pal_ras_c16x;
+reg ntsc_cas_c16x;
+reg ntsc_ras_c16x;
 
+reg [35:0] pal_sr;
+reg [27:0] ntsc_sr;
+
+// See CAS_RAS_CLOCKS.txt for an explanation of what this is.
 always @(posedge clk_col16x)
+begin
     if (rst) begin
-       pal_cas_ras <= 36'b000000000000000000000000000001000000;
-       ntsc_cas_ras <= 28'b0000000000000000000000100000;
+       pal_sr <= 36'b000000000000000000000000000001000000;
+       ntsc_sr <= 28'b0000000000000000000000100000;
     end
     else begin
-       pal_cas_ras <= {pal_cas_ras[34:0], pal_cas_ras[35]};
-       ntsc_cas_ras <= {ntsc_cas_ras[26:0], ntsc_cas_ras[27]};
-
-       if (pal_cas_ras[`PAL_RAS_RISE])
-           pal_ras <= 1'b1;
-       else if (pal_cas_ras[`PAL_RAS_FALL])
-           pal_ras <= 1'b0;
-
-       if (pal_cas_ras[`PAL_CAS_RISE])
-           pal_cas <= 1'b1;
-       else if (pal_cas_ras[`PAL_CAS_FALL])
-           pal_cas <= 1'b0;
-
-       if (ntsc_cas_ras[`NTSC_RAS_RISE])
-           ntsc_ras_p <= 1'b1;
-       else if (ntsc_cas_ras[`NTSC_RAS_FALL])
-           ntsc_ras_p <= 1'b0;
-
-       if (ntsc_cas_ras[`NTSC_CAS_RISE])
-           ntsc_cas <= 1'b1;
-       else if (ntsc_cas_ras[`NTSC_CAS_FALL])
-           ntsc_cas <= 1'b0;
+       pal_sr <= {pal_sr[34:0], pal_sr[35]};
+       ntsc_sr <= {ntsc_sr[26:0], ntsc_sr[27]};
     end
+end
 
-// We need RAS to rise just after CAS but the NTSC col16x clock is not
-// fast enough. One full period (tick) is too long of a delay and
-// static ram modules start to fail. So we use the negative edge of the
-// clock and or the _p / _n signals to get the delay we need.
+// Use dot4x and handle CAS/RAS rise/fall points.
+always @(posedge clk_dot4x)
+begin
+       if (phi_phase_start[`PAL_RAS_RISE])
+           pal_ras_d4x <= 1'b1;
+       else if (phi_phase_start[`PAL_RAS_FALL])
+           pal_ras_d4x <= 1'b0;
+
+       if (phi_phase_start[`PAL_CAS_RISE])
+           pal_cas_d4x <= 1'b1;
+       else if (phi_phase_start[`PAL_CAS_FALL])
+           pal_cas_d4x <= 1'b0;
+
+       if (phi_phase_start[`NTSC_RAS_RISE])
+           ntsc_ras_d4x <= 1'b1;
+       else if (phi_phase_start[`NTSC_RAS_FALL])
+           ntsc_ras_d4x <= 1'b0;
+
+       if (phi_phase_start[`NTSC_CAS_RISE])
+           ntsc_cas_d4x <= 1'b1;
+       else if (phi_phase_start[`NTSC_CAS_FALL])
+           ntsc_cas_d4x <= 1'b0;
+end
+
+// The rise times from above are not sufficient to
+// accurately reproduce the timing of the real chip.
+// We need to use a higher resolution clock and use
+// it's positive and negative edges to shape our
+// rise times a bit.  These two process blocks
+// calculate a higher resolution pulse that we then
+// OR with the ones above to get the rise times
+// we want.  NOTE: If ras rises too far after cas,
+// static ram modules barf.  DRAM doesn't seem to
+// care though.
+
 always @(negedge clk_col16x)
 begin
-   if (ntsc_cas_ras[`NTSC_CAS_RISE+1])
-           ntsc_ras_n <= 1'b1;
-   else if (ntsc_cas_ras[`NTSC_CAS_RISE+3])
-           ntsc_ras_n <= 1'b0;
+   if (pal_sr[1])
+           pal_ras_c16x <= 1'b1;
+   else if (pal_sr[3])
+           pal_ras_c16x <= 1'b0;
+   if (ntsc_sr[1])
+           ntsc_ras_c16x <= 1'b1;
+   else if (ntsc_sr[3])
+           ntsc_ras_c16x <= 1'b0;
 end
+
+always @(posedge clk_col16x)
+begin
+   if (pal_sr[0])
+           pal_cas_c16x <= 1'b1;
+   else if (pal_sr[2])
+           pal_cas_c16x <= 1'b0;
+   if (ntsc_sr[0])
+           ntsc_cas_c16x <= 1'b1;
+   else if (ntsc_sr[2])
+           ntsc_cas_c16x <= 1'b0;
+end
+
+// Use the trick above to OR the two signals together. This results
+// in the first pulse of the faster clock 'extending' the cas/ras signals
+// on the rising edges to what we want them to look like.
+assign cas = chip[0] ? (pal_cas_d4x | pal_cas_c16x) : (ntsc_cas_d4x | ntsc_cas_c16x);
+assign ras_o = chip[0] ? (pal_ras_d4x | pal_ras_c16x) : (ntsc_ras_d4x | ntsc_ras_c16x);
+
+// This goes to the registers module and is only driven by dot4x. I *think* this prevents
+// some warnings about missing timing arcs.
+assign ras_i = chip[0] ? pal_ras_d4x : ntsc_ras_d4x;
 
 endmodule

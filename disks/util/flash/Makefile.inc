@@ -28,7 +28,7 @@
 #VARIANT 
 #     Variant name matching registers 0x90-0x9F
 #     One of : SIM | MAIN | MAINLD | MAINLG | MAINLH | MAINLJ
-#VARIANT=MKIILH
+#VARIANT=MAINLH
 #PAGE_SIZE
 #     Must be 4096 for efinix
 #     Must be 16k for spartan
