@@ -231,7 +231,7 @@ wire vic_write_db;
 wire [1:0] chip;
 `ifdef GEN_LUMA_CHROMA
 wire ntsc_50;
-wire pal_50;
+wire pal_60;
 `endif
 
 `ifndef GEN_RGB
