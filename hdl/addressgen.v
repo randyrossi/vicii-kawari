@@ -63,14 +63,14 @@
 `define PAL_RAS_RISE 0
 `define PAL_CAS_RISE 0
 `define PAL_RAS_FALL 4
-`define PAL_MUX_COL 13
+`define PAL_MUX_COL 5
 `define PAL_CAS_FALL 6
 
 // NTSC CAS/RAS rise/fall times based on NTSC col16x clock
 `define NTSC_RAS_RISE 0
 `define NTSC_CAS_RISE 0
 `define NTSC_RAS_FALL 4
-`define NTSC_MUX_COL 11
+`define NTSC_MUX_COL 5
 `define NTSC_CAS_FALL 6
 
 // Other:
