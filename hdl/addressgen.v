@@ -55,23 +55,23 @@
 // first (old bmm) address. (The glitch can't happen too soon after
 // CAS falls because it is delayed to RAM.)
 
-// TODO: Run a full test of all long boards using SARUMAN_TIMING
-// and remove this condition if all tests pass.
-// See below for reason for RAS _P and _N rise/fall
-
-// PAL CAS/RAS rise/fall times based on PAL col16x clock
+// PAL CAS/RAS rise/fall times based on PAL dot4x clock
 `define PAL_RAS_RISE 0
-`define PAL_CAS_RISE 0
+`define PAL_CAS_RISE_P 0
+`define PAL_CAS_RISE_N 1
 `define PAL_RAS_FALL 4
 `define PAL_MUX_COL 5
-`define PAL_CAS_FALL 6
+`define PAL_CAS_FALL_P 6
+`define PAL_CAS_FALL_N 7
 
-// NTSC CAS/RAS rise/fall times based on NTSC col16x clock
+// NTSC CAS/RAS rise/fall times based on NTSC dot4x clock
 `define NTSC_RAS_RISE 0
-`define NTSC_CAS_RISE 0
+`define NTSC_CAS_RISE_P 0
+`define NTSC_CAS_RISE_N 1
 `define NTSC_RAS_FALL 4
 `define NTSC_MUX_COL 5
-`define NTSC_CAS_FALL 6
+`define NTSC_CAS_FALL_P 6
+`define NTSC_CAS_FALL_N 7
 
 // Other:
 // NOTE: CAS_GLITCH [9] has worked the best for emulamer demos. Works well on
@@ -243,9 +243,11 @@ begin
     end
 end
 
-reg pal_cas_d4x;
+reg pal_cas_d4x_p;
+reg pal_cas_d4x_n;
 reg pal_ras_d4x;
-reg ntsc_cas_d4x;
+reg ntsc_cas_d4x_p;
+reg ntsc_cas_d4x_n;
 reg ntsc_ras_d4x;
 
 reg pal_cas_c16x;
@@ -277,21 +279,35 @@ begin
        else if (phi_phase_start[`PAL_RAS_FALL])
            pal_ras_d4x <= 1'b0;
 
-       if (phi_phase_start[`PAL_CAS_RISE])
-           pal_cas_d4x <= 1'b1;
-       else if (phi_phase_start[`PAL_CAS_FALL])
-           pal_cas_d4x <= 1'b0;
+       if (phi_phase_start[`PAL_CAS_RISE_P])
+           pal_cas_d4x_p <= 1'b1;
+       else if (phi_phase_start[`PAL_CAS_FALL_P])
+           pal_cas_d4x_p <= 1'b0;
 
        if (phi_phase_start[`NTSC_RAS_RISE])
            ntsc_ras_d4x <= 1'b1;
        else if (phi_phase_start[`NTSC_RAS_FALL])
            ntsc_ras_d4x <= 1'b0;
 
-       if (phi_phase_start[`NTSC_CAS_RISE])
-           ntsc_cas_d4x <= 1'b1;
-       else if (phi_phase_start[`NTSC_CAS_FALL])
-           ntsc_cas_d4x <= 1'b0;
+       if (phi_phase_start[`NTSC_CAS_RISE_P])
+           ntsc_cas_d4x_p <= 1'b1;
+       else if (phi_phase_start[`NTSC_CAS_FALL_P])
+           ntsc_cas_d4x_p <= 1'b0;
 end
+
+always @(negedge clk_dot4x)
+begin
+    if (phi_phase_start[`NTSC_CAS_RISE_N])
+        ntsc_cas_d4x_n <= 1'b1;
+    else if (phi_phase_start[`NTSC_CAS_FALL_N])
+        ntsc_cas_d4x_n <= 1'b0;
+
+    if (phi_phase_start[`PAL_CAS_RISE_N])
+        pal_cas_d4x_n <= 1'b1;
+    else if (phi_phase_start[`PAL_CAS_FALL_N])
+        pal_cas_d4x_n <= 1'b0;
+end
+
 
 // The rise times from above are not sufficient to
 // accurately reproduce the timing of the real chip.
@@ -331,7 +347,8 @@ end
 // Use the trick above to OR the two signals together. This results
 // in the first pulse of the faster clock 'extending' the cas/ras signals
 // on the rising edges to what we want them to look like.
-assign cas = chip[0] ? (pal_cas_d4x | pal_cas_c16x) : (ntsc_cas_d4x | ntsc_cas_c16x);
+
+assign cas = chip[0] ? (pal_cas_d4x_p | pal_cas_d4x_n | pal_cas_c16x) : (ntsc_cas_d4x_p | ntsc_cas_d4x_n | ntsc_cas_c16x);
 assign ras_o = chip[0] ? (pal_ras_d4x | pal_ras_c16x) : (ntsc_ras_d4x | ntsc_ras_c16x);
 
 // This goes to the registers module and is only driven by dot4x. I *think* this prevents
