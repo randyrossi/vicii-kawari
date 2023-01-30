@@ -358,7 +358,11 @@ begin
     if (in_burst)
     begin
         burstCount <= burstCount + 1'b1;
-        if (burstCount == 144) begin // 9 periods * 16 samples for one period
+        // This is supposed to be 9 periods according to video specs but the
+        // original chip does more like 20. I noticed that if we only do 9 and
+        // use the PAL clock from the motherboard, we produce a B/W image.
+        // Increased to 15 periods and this fixes the issue.
+        if (burstCount == 240) begin // 15 periods * 16 samples for one period
             in_burst <= 0;
             need_burst <= 0;
             burstCount <= 0;
