@@ -9,4 +9,3 @@ mkdir -p build
 
 # Just for flash disks...
 VARIANT=MAINLD make clean multiboot > build/LD.multiboot.MAIN.log
-VARIANT=SARULD make clean multiboot > build/LD.multiboot.SARU.log

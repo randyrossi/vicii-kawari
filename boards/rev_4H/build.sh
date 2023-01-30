@@ -2,9 +2,9 @@
 mkdir -p build
 
 MAJ=1
-MIN=12
+MIN=14
 
-ALL="MAINLH DOTCLH SARULH"
+ALL="MAINLH DOTCLH"
 
 for V in $ALL
 do
