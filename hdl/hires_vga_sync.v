@@ -130,11 +130,8 @@ wire csync_int;
 // The range checks on vsync must take into account the horizontal start and
 // end, otherwise we cut short the last line's scan too early and start it
 // too soon if hs_sta is > 0.
-assign hsync_ah = ((h_count >= hs_sta) & (h_count <= hs_end));
-assign vsync_ah = (
-           ((v_count == vs_sta & h_count >= hs_sta) | v_count > vs_sta) &
-           (v_count < vs_end | (v_count == vs_end & h_count < hs_end))
-       );
+assign hsync_ah = h_count >= hs_sta & h_count <= hs_end;
+assign vsync_ah = v_count >= vs_sta & v_count <= vs_end;
 assign csync_ah = hsync_ah | vsync_ah;
 
 // Turn to active low if poliarity flag says so
@@ -167,16 +164,13 @@ assign vsync = enable_csync ? 1'b0 : vsync_int;
 // For PAL, we have to invert the range because the blanking region crosses
 // 0. (See va_sta and va_end for PAL)
 wire vactive;
-assign vactive =
-               ((v_count == va_end & h_count >= ha_end) | v_count > va_end) &
-               ((v_count == va_sta & h_count < ha_sta) | v_count < va_sta);
+wire hactive;
+assign vactive = (v_count <= va_end || v_count >= va_sta);
+assign hactive = (h_count <= ha_end && h_count > ha_sta);
 
 // NOTE: For PAL, we invert the vactive because the blanking region crosses
 // 0. So consider va_sta and va_end as opposites of their names.
-assign active = ~(
-           (h_count >= ha_end & h_count <= ha_sta) |
-           (chip[0] ? ~vactive : vactive)
-       );
+assign active = (chip[0] ? ~vactive : vactive) & hactive;
 assign ractive = active;
 
 // These conditions determine whether we advance our h/v counts
@@ -287,8 +281,8 @@ task set_params();
                 // NOTE: For PAL, we invert the range va_sta and va_end
 		// because the blanking region crosses 0.  So va_sta is
 		// really active end and va_end is really active start.
-                ha_end=11'd0;  // start   0
-                hs_sta=11'd10;  // fporch  10
+                ha_end=11'd494;  // start   494
+                hs_sta=11'd0;  // fporch  10
                 hs_end=11'd70;  // sync  60
                 ha_sta=11'd90;  // bporch  20
                 va_end=10'd20;  // INVERTED above so actually va_sta
@@ -301,10 +295,10 @@ task set_params();
             end
             `CHIP6567R8: begin
                 // WIDTH 520  HEIGHT 263
-                ha_end=11'd0;  // start   0
-                hs_sta=11'd10;  // fporch  10
-                hs_end=11'd80;  // sync  70
-                ha_sta=11'd100;  // bporch  20
+                ha_end=11'd510;  // start   510
+                hs_sta=11'd0;  // fporch  10
+                hs_end=11'd70;  // sync  70
+                ha_sta=11'd90;  // bporch  20
                 va_end=10'd11;  // start  11
                 vs_sta=10'd19;  // fporch   8
                 vs_end=10'd22;  // sync   3
@@ -314,10 +308,10 @@ task set_params();
             end
             `CHIP6567R56A: begin
                 // WIDTH 512  HEIGHT 262
-                ha_end=11'd0;  // start   0
-                hs_sta=11'd10;  // fporch  10
-                hs_end=11'd80;  // sync  70
-                ha_sta=11'd100;  // bporch  20
+                ha_end=11'd502;  // start   502
+                hs_sta=11'd0;  // fporch  10
+                hs_end=11'd70;  // sync  70
+                ha_sta=11'd90;  // bporch  10
                 va_end=10'd11;  // start  11
                 vs_sta=10'd19;  // fporch   8
                 vs_end=10'd22;  // sync   3
@@ -346,10 +340,13 @@ task set_params_configurable();
     begin
         case (chip)
             `CHIP6569R1, `CHIP6569R3: begin
-                ha_end = {3'b000, timing_h_blank_pal};
+                ha_end = {3'b000, timing_h_blank_pal} + 10'd384;
                 hs_sta = ha_end + {3'b000, timing_h_fporch_pal};
+                if (hs_sta >= 10'd504) hs_sta = hs_sta - 10'd504;
                 hs_end = hs_sta + {3'b000, timing_h_sync_pal};
+                if (hs_end >= 10'd504) hs_end = hs_end - 10'd504;
                 ha_sta = hs_end + {3'b000, timing_h_bporch_pal};
+                if (ha_sta >= 10'd504) ha_sta = ha_sta - 10'd504;
                 // WIDTH 504
                 // NOTE: For PAL, we invert the range va_sta and va_end
 		// because the blanking region crosses 0.  So va_sta is
@@ -374,10 +371,14 @@ task set_params_configurable();
                 */
             end
             `CHIP6567R8: begin
-                ha_end = {3'b000, timing_h_blank_ntsc};
+                ha_end = {3'b000, timing_h_blank_ntsc} + 10'd384;
                 hs_sta = ha_end + {3'b000, timing_h_fporch_ntsc};
+                if (hs_sta >= 10'd520) hs_sta = hs_sta - 10'd520;
                 hs_end = hs_sta + {3'b000, timing_h_sync_ntsc};
+                if (hs_end >= 10'd520) hs_end = hs_end - 10'd520;
                 ha_sta = hs_end + {3'b000, timing_h_bporch_ntsc};
+                if (ha_sta >= 10'd520) hs_sta = hs_sta - 10'd520;
+                // WIDTH 520
                 va_end = {2'b00, timing_v_blank_ntsc};
                 vs_sta = va_end + {2'b00, timing_v_fporch_ntsc};
                 vs_end = vs_sta + {2'b00, timing_v_sync_ntsc};
@@ -398,10 +399,13 @@ task set_params_configurable();
                 */
             end
             `CHIP6567R56A: begin
-                ha_end = {3'b000, timing_h_blank_ntsc};
+                ha_end = {3'b000, timing_h_blank_ntsc} + 10'd384;
                 hs_sta = ha_end + {3'b000, timing_h_fporch_ntsc};
+                if (hs_sta >= 10'd512) hs_sta = hs_sta - 10'd512;
                 hs_end = hs_sta + {3'b000, timing_h_sync_ntsc};
+                if (hs_end >= 10'd512) hs_end = hs_end - 10'd512;
                 ha_sta = hs_end + {3'b000, timing_h_bporch_ntsc};
+                if (ha_sta >= 10'd512) ha_sta = ha_sta - 10'd512;
                 // WIDTH 512
                 va_end = {2'b00, timing_v_blank_ntsc};
                 vs_sta = va_end + {2'b00, timing_v_fporch_ntsc};

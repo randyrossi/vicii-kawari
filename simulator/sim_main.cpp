@@ -585,6 +585,7 @@ int main(int argc, char** argv, char** env) {
     int chip = CHIP6569R3;
     bool hideSync = false;
     bool isNtsc = false;
+    bool showActive = false;
 
     bool captureByTime = true;
     bool captureByFrame = false;
@@ -614,7 +615,7 @@ int main(int argc, char** argv, char** env) {
     int reti, reti2;
     char regex_buf[32];
 
-    while ((c = getopt (argc, argv, "kc:hs:d:wi:zbl:r:gtxq")) != -1)
+    while ((c = getopt (argc, argv, "akc:hs:d:wi:zbl:r:gtxq")) != -1)
     switch (c) {
       case 'q':
         scanline = false;
@@ -640,6 +641,9 @@ int main(int argc, char** argv, char** env) {
         break;
       case 'k':
         hideSync = true;
+        break;
+      case 'a':
+        showActive = true;
         break;
       case 's':
         startTicks = US_TO_TICKS(atol(optarg));
@@ -1083,6 +1087,14 @@ int main(int argc, char** argv, char** env) {
              double bb = top->blue * 255.0/63.0;
              SDL_SetRenderDrawColor(ren, rr, gg, bb, 255);
             }
+
+            // PURPLE ACTIVE AREA - DEBUGGING
+            if (showActive && (top->active))
+             SDL_SetRenderDrawColor(ren,
+                0b11111111,
+                0b0,
+                255,
+                0b0);
 #else 
 #ifdef NEED_RGB
             // Show h/v sync in red
@@ -1098,6 +1110,15 @@ int main(int argc, char** argv, char** env) {
              double bb = top->top__DOT__blue * 255.0/63.0;
              SDL_SetRenderDrawColor(ren, rr,gg,bb,255);
             }
+
+            // PURPLE ACTIVE AREA - DEBUGGING
+            if (showActive && (top->ACTIVE))
+             SDL_SetRenderDrawColor(ren,
+                0b11111111,
+                0b0,
+                255,
+                0b0);
+
 #else
 #ifdef GEN_LUMA_CHROMA
             // Fallback to native pixel sequencer's pixel3 value

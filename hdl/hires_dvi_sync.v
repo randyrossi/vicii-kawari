@@ -34,8 +34,8 @@
 // of the border area that is not normally visible anyway.
 //
 // NOTE: Even though this module has '1x' logic, it is not supported since
-// the widths are not evenly divisible by 2.  So turning on 1x will result
-// in no sync or bad picture.
+// the widths are not evenly divisible by 2.  So turning on 1x will make
+// no difference.
 
 // A block ram module to hold a single raster line of pixel colors
 module dvi_linebuf_RAM
@@ -210,18 +210,8 @@ assign ractive = active;
 // based whether we are doubling X/Y resolutions or not.  See
 // the table below for more info.
 wire advance;
-assign advance = (!is_native_y && !is_native_x) ||
-       ((is_native_y ^ is_native_x) && (ff == 2'b01 || ff == 2'b11)) ||
-       (is_native_y && is_native_x && ff == 2'b01);
-
-// For chips that have an odd hires width, we can't divide by 2 when using
-// native_x and get an even number. So we have to add 1 pixel to the max
-// width comparison every other line to split the difference.  This results
-// in some fuzziness on the right edge of the visible region but is
-// unavoidable. Only the 6567R56A has an even width using out 'zoomed in'
-// values, so all other chips should have the split.
-wire[10:0] native_split =
-    (is_native_x && chip != `CHIP6567R56A) ? {10'b0, v_count[0]} : 11'd0;
+assign advance = !is_native_y ||
+       (is_native_y && (ff == 2'b01 || ff == 2'b11));
 
 always @ (posedge clk_dvi)
 begin
@@ -244,7 +234,7 @@ begin
         // 1xX & 1xY  | 1                  | 4x DIV 4 (native) | native_y & native_x
         ff <= ff + 2'b1;
         if (advance) begin
-            if (h_count < (max_width + native_split)) begin
+            if (h_count < max_width) begin
                 h_count <= h_count + 11'b1;
             end else begin
                 h_count <= 0;
@@ -295,7 +285,7 @@ wire [3:0] dout1; // output color from line_buf_1
 // When the line buffer is being read from, we use h_count.
 `ifdef HIRES_MODES
 dvi_linebuf_RAM line_buf_0(pixel_color3, // din
-                       active_buf ? (is_native_x ? {1'b0, raster_x} : hires_raster_x) : (h_count + x_offset),  // addr
+                       active_buf ? hires_raster_x : (h_count + x_offset),  // addr
                        clk_dvi, // rclk
                        !active_buf, // re
                        clk_dot4x, // wclk
@@ -303,7 +293,7 @@ dvi_linebuf_RAM line_buf_0(pixel_color3, // din
                        dout0); // dout
 
 dvi_linebuf_RAM line_buf_1(pixel_color3,
-                       !active_buf ? (is_native_x ? {1'b0, raster_x} : hires_raster_x) : (h_count + x_offset),
+                       !active_buf ? hires_raster_x : (h_count + x_offset),
                        clk_dvi,
                        active_buf,
                        clk_dot4x,
@@ -367,8 +357,8 @@ task set_params();
                 vs_end=10'd291;  // sync   2
 		                 // bporch 40 takes us to 311 + 20
                 max_height <= is_native_y ? 10'd311 : 10'd623;
-                max_width <= is_native_x ? 11'd471 : 11'd944;
-                x_offset <= is_native_x ? 11'd16 : 11'd32;
+                max_width <= 11'd944;
+                x_offset <= 11'd32;
             end
             `CHIP6567R8: begin
                 // WIDTH 520  HEIGHT 263
@@ -381,8 +371,8 @@ task set_params();
                 vs_end=10'd23;  // sync   4
                 va_sta=10'd27;  // bporch   3
                 max_height <= is_native_y ? 10'd262 : 10'd525;
-                max_width <= is_native_x ? 11'd421 : 11'd844;
-                x_offset <= is_native_x ? 11'd71 : 11'd142;
+                max_width <= 11'd844;
+                x_offset <= 11'd142;
             end
             `CHIP6567R56A: begin
                 // WIDTH 512  HEIGHT 262
@@ -395,17 +385,17 @@ task set_params();
                 vs_end=10'd23;  // sync   4
                 va_sta=10'd27;  // bporch   3
                 max_height <= is_native_y ? 10'd261 : 10'd523;
-                max_width <= is_native_x ? 11'd415 : 11'd831;
-                x_offset <= is_native_x ? 11'd73 : 11'd146;
+                max_width <= 11'd831;
+                x_offset <= 11'd146;
             end
         endcase
         // Adjust for 2x or 2y timing
-        if (!is_native_x) begin
+        // Always 2x
             ha_end = { ha_end[9:0], 1'b0 };
             hs_sta = { hs_sta[9:0], 1'b0 };
             hs_end = { hs_end[9:0], 1'b0 };
             ha_sta = { ha_sta[9:0], 1'b0 };
-        end
+
         if (!is_native_y) begin
             va_end = { va_end[8:0], 1'b0 };
             vs_sta = { vs_sta[8:0], 1'b0 };
@@ -433,8 +423,8 @@ task set_params_configurable();
                 va_end = vs_end + {2'b00, timing_v_bporch_pal} - 10'd311;
                 // HEIGHT 312
                 max_height <= is_native_y ? 10'd311 : 10'd623;
-                max_width <= is_native_x ? 11'd471 : 11'd944;
-                x_offset <= is_native_x ? 11'd16 : 11'd32;
+                max_width <= 11'd944;
+                x_offset <= 11'd32;
                 // Use this to generate code for static settings above
                 /*
                 $display("ha_end=11'd%d;  // start %d", ha_end, timing_h_blank_pal);
@@ -458,8 +448,8 @@ task set_params_configurable();
                 va_sta = vs_end + {2'b00, timing_v_bporch_ntsc};
                 // HEIGHT 263
                 max_height <= is_native_y ? 10'd262 : 10'd525;
-                max_width <= is_native_x ? 11'd421 : 11'd844;
-                x_offset <= is_native_x ? 11'd71 : 11'd142;
+                max_width <= 11'd844;
+                x_offset <= 11'd142;
                 // Use this to generate code for static settings above
                 /*
                 $display("ha_end=11'd%d;  // start %d", ha_end, timing_h_blank_ntsc);
@@ -484,8 +474,8 @@ task set_params_configurable();
                 va_sta = vs_end + {2'b00, timing_v_bporch_ntsc};
                 // HEIGHT 262
                 max_height <= is_native_y ? 10'd261 : 10'd523;
-                max_width <= is_native_x ? 11'd415 : 11'd831;
-                x_offset <= is_native_x ? 11'd73 : 11'd146;
+                max_width <= 11'd831;
+                x_offset <= 11'd146;
                 // Use this to generate code for static settings above
                 /*
                 $display("ha_end=11'd%d;  // start %d", ha_end, timing_h_blank_ntsc);
@@ -500,12 +490,12 @@ task set_params_configurable();
             end
         endcase
         // Adjust for 2x or 2y timing
-        if (!is_native_x) begin
+        // Always 2x
             ha_end = { ha_end[9:0], 1'b0 };
             hs_sta = { hs_sta[9:0], 1'b0 };
             hs_end = { hs_end[9:0], 1'b0 };
             ha_sta = { ha_sta[9:0], 1'b0 };
-        end
+
         if (!is_native_y) begin
             va_end = { va_end[8:0], 1'b0 };
             vs_sta = { vs_sta[8:0], 1'b0 };

@@ -559,24 +559,29 @@ begin
 `endif
 `ifdef CONFIGURABLE_TIMING
         timing_change <= 1'b0;
-        timing_h_blank_ntsc <= 0;
 `ifdef ANALOG_RGB_TIMING
+        timing_h_blank_ntsc <= 126; // +384
         timing_h_fporch_ntsc <= 10;
         timing_h_sync_ntsc <= 70;
         timing_h_bporch_ntsc <= 20;
+        timing_h_blank_pal <= 110; // +384
+        timing_h_fporch_pal <= 10;
+        timing_h_sync_pal <= 60;
+        timing_h_bporch_pal <= 20;
 `else
+        timing_h_blank_ntsc <= 0;
         timing_h_fporch_ntsc <= 5;
         timing_h_sync_ntsc <= 35;
         timing_h_bporch_ntsc <= 40;
+        timing_h_blank_pal <= 0;
+        timing_h_fporch_pal <= 10;
+        timing_h_sync_pal <= 60;
+        timing_h_bporch_pal <= 20;
 `endif
         timing_v_blank_ntsc <= 11;
         timing_v_fporch_ntsc <= 8;
         timing_v_sync_ntsc <= 4;
         timing_v_bporch_ntsc <= 3;
-        timing_h_blank_pal <= 0;
-        timing_h_fporch_pal <= 10;
-        timing_h_sync_pal <= 60;
-        timing_h_bporch_pal <= 20;
         timing_v_blank_pal <= 28; // represents 284 (284-256)
         timing_v_fporch_pal <= 5;
         timing_v_sync_pal <= 2;

@@ -182,7 +182,9 @@
 #ifdef EFINIX
 #define HSYNC top__DOT__vic_inst__DOT__vic_dvi_sync__DOT__hsync_ah
 #define VSYNC top__DOT__vic_inst__DOT__vic_dvi_sync__DOT__vsync_ah
+#define ACTIVE top__DOT__vic_inst__DOT__vic_dvi_sync__DOT__active
 #else
 #define HSYNC top__DOT__vic_inst__DOT__vic_vga_sync__DOT__hsync_ah
 #define VSYNC top__DOT__vic_inst__DOT__vic_vga_sync__DOT__vsync_ah
+#define ACTIVE top__DOT__vic_inst__DOT__vic_vga_sync__DOT__active
 #endif

@@ -18,7 +18,7 @@ static int current_bp[4];
 
 static int defaults[] = {
 	// ntsc
-        0,  // start   0
+        126,  // start + 384 = 510 // Okay for R8 but R56A should be 502
         10,  // fporch  10
         70,  // sync  70
         20,  // bporch  20
@@ -28,7 +28,7 @@ static int defaults[] = {
         2,  // bporch   2
 
 	// pal
-        0,  // start   0
+        110,  // start   0 + 384 = 494
         10,  // fporch  10
         60,  // sync  60
         20,  // bporch  20
