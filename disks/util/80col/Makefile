@@ -1,4 +1,4 @@
-all: 80col-51200.prg
+all: 80col-51200.prg 80col-loader.prg
 
 %.prg: %.asm
 	acme --cpu 6510 $<

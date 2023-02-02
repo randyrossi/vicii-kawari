@@ -1,0 +1,12 @@
+5 rem header to enable 80 columns for basic programs
+10 if peek(828)=169 and peek(829)=11 and peek(830)=162 then goto 110
+20 data 169,11,162,84,160,3,32,189
+30 data 255,169,4,162,8,160,1,32
+40 data 186,255,169,0,32,213,255,96
+50 data 56,48,67,79,76,45,53,49
+60 data 50,48,48,-1
+70 p=828
+80 read a:if a=-1 goto 100
+90 poke p,a:p=p+1:goto 80
+100 sys 828: poke 51298,96
+110 sys 51200 : print "{clr}";
