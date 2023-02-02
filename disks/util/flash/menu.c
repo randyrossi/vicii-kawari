@@ -528,8 +528,10 @@ void main_menu(void)
        mprintf ("If you are flashing a FORKED kawari,\n");
        mprintf ("this is expected. Proceed ONLY if\n");
        mprintf ("you know what you are doing.\n");
-       mprintf ("Press any key to continue.\n");
+       mprintf ("This can brick your device.\n");
+       mprintf ("Are you sure? (y/N).\n");
        WAITKEY;
+       if (r.a != 'y') return;
     }
 
     mprintf ("\nUse fast loader (Y/n) ?");
