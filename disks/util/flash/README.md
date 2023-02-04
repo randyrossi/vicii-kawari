@@ -25,18 +25,3 @@ This board is labeled VICII-Kawari LH Revision 1.3 or 1.4
 [1.5 active](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.5_LH_multiboot.zip)
 
 NOTE: Rev1.3's bottom socket cannot be removed . Rev1.4's bottom socket can be removed.
-
-History
--------
-
-Version | Type | Notes
---------|------|------
-0.1 | Fallback | (beta) shipped with most beta boards
-0.2 | Active   | (beta) shipped with most beta boards
-0.3 | Fallback | (beta) shipped with some beta boards
-0.4 | Active   | (beta) shipped with some beta boards
-0.7 | Fallback | (beta) fixes flashing issue on beta board fallback image
-0.8 | Active   | (beta) first published update for beta board
-1.4 | Fallback | first release with all features
-1.5 | Active   | first release with all features
-1.8 | Active   | fixed analog rgb timing issue for ntsc

@@ -10,18 +10,18 @@ We ask that all forks do the following:
 
 1. Keep the extra register activation [REGISTERS.md](REGISTERS.md) (i.e POKEing "VIC2" into 0x3f) functional along with the 'reserved' 0x3b-0x3f extra mem access mechanism. The extra mem registers 0x83 (VERSION), 0x90-0x9f (VARIANT) should also remain functional. This will allow a single upstream configuration utilty to successfully talk to your variant and at least display the variant name and its version. You are free to use an additional extra register activation sequence for your own scheme.
 
-2. Replace the 'main' variant prefix with your own unique string. This can be any name you wish as long as you do not use the word 'main'.  This value will be displayed to users by the configuration utility. It will point users to your fork where they can find a custom config utility for your variant (if needed). The variant suffix is also used to match hardware to flash image builds.
+2. Replace the 4 character variant prefix with your own unique string. This can be any name you wish as long as you do not use the reserved MAIN, DOTC, MRGB, MDVI.  This value will be displayed to users by the configuration utility. It will point users to your fork where they can find a custom config utility for your variant (if needed). The variant suffix is also used to match hardware to flash image builds.
 
     No suffix = beta board
-    4SB = small board w/ hardware config B
-    4LC = large board w/ hardware config C
-    4LD = large board w/ hardware config D
+    LH = Trion Mini
+    LG = Trion Large
+    LD = Spartan Large
 
 3. Forks should only release 'multiboot' images,  never 'golden' images.  The 'golden' image is the fallback image that will boot if the active image should fail.
 
 ## Variant Identifier
 
-The variant identifier is found in common.vh file.  Your fork should change the PETSCII values for the prefix (i.e. something other than MAIN)
+The variant identifier is found in common.vh file.  Your fork should change the PETSCII values for the prefix (which MUST be 4 characters). Reserved prefixes are:  MAIN, DOTC, MDVI and MRGB.  The 5th and 6th characters must match the board version LD (large spartan), LH (Trion Mini) or LG (Trion Large).
 
 ## Versioning
 

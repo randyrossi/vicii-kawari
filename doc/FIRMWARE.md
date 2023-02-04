@@ -24,7 +24,7 @@ Download firmware updates here: [README.md](../disks/util/flash/README.md)
 
 Version | Notes
 --------|--------
-1.11    | Adds NTSC_50 and PAL_60
+1.14    | Composite/s-video was shifted from original - fixed (NTSC/PAL)<br>Analog RGB video was shifted 10 pixels - fixed (NTSC/PAL)<br>Fixed B/W only image when using motherboard PAL clock (some monitors)<br>Made luma vertical blanking closer to NTSC/PAL spec<br>Add NTSC50 and PAL60 options (YMMV)<br>Fix dot clock not available on DVI builds (large)<nr>Set addr/moved CAS/RAS fall times earlier in cycle for some slower DRAMs<br>Single build that works with both DRAM and static ram modules (DIY Chris, Saruman)
 1.10    | Active image for Large Trion
 1.9     | Fallback image for Large Trion
 1.8     | Fixes #6 - Analog RGB issue, NTSC VGA picture was dark or had no blue

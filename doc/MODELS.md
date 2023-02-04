@@ -16,7 +16,7 @@ DVI                    |Yes         |Yes   |No          |No        |
 Saveable Config        |Yes         |Yes   |Yes         |No        |
 Old chips?             |Yes         |Yes   |Yes         |No        |
 Current Draw           |~180ma      |~300ma|~180ma      |TBD       |
-Variants               |T,LD        |LG    |LH          |LJ        |
+Variants               |(null),LD   |LG    |LH          |LJ        |
 
 # Jumpers
 

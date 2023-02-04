@@ -124,7 +124,7 @@ run:
 	x64sc flash.prg
 
 clean:
-	rm -rf *.o *.prg *.d64 *.d81 tmp stripped.bit multi_hex_to_bit
+	rm -rf *.o *.prg *.d64 *.d81 tmp stripped.bit multi_hex_to_bit autoswap.lst
 	$(MAKE) -C third_party clean
 
 # For Spartan6 devices, we need to skip over the first X
