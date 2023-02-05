@@ -549,7 +549,7 @@ end
 reg [`NUM_SPRITES-1:0] collision;
 always @*
     for (n = 0; n < `NUM_SPRITES; n = n + 1)
-        collision[n] = sprite_cur_pixel[n][1];
+        collision[n] = sprite_mmc_d[n] ? (sprite_cur_pixel[n][1] | sprite_cur_pixel[n][0]) : sprite_cur_pixel[n][1];
 
 reg m2m_triggered;
 always @(posedge clk_dot4x)
