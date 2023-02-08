@@ -617,44 +617,46 @@ When BIT 6 of the VIDEO_MEM_FLAGS register is set, the first 256 bytes of video 
 
 ### All registers
 
-Location | Name | Description | Capability Requirement | Can be saved?
+Location | Name | Since | Description | Capability Requirement | Can be saved?
 ---------|------|-------------|------------------------|---------------------
-0x00 - 0x03 | MAGIC BYTES | EEPROM Magic Bytes | N/A | Y
-0x04 | DISPLAY_FLAGS | See below | NONE | Y
-0x05 | EEPROM_BANK | EEPROM Bank | HAVE_EEPROM | N
-0x1f | CHIP_MODEL | Chip Model Select (0=6567R8, 1=6569R3, 2=6567R56A, 3=6569R1) | NONE | Y
-0x20 - 0x3f | UNUSED | Unused | NONE | N/A
-0x40 - 0x7f | PAL_RGB | 4x16 array of RGBx (4th byte unused) | CONFIG_RGB | Y
-0x80 | BLACK_LEVEL | Composite black level (0-63) | CONFIG_COMPOSITE | Y
-0x81 | BURST_AMPLITUDE | Composite color burst amplitude (1-15, 0 = no color burst) | CONFIG_COMPOSITE | Y
-0x83 | VERSION | Version (high nibble major, low nibble minor) - Read Only | NONE | N/A
-0x85 | CURSOR_LO | Hires Cursor lo byte | HIRES_MODES | N/A
-0x86 | CURSOR_HI | Hires Cursor hi byte | HIRES_MODES | N/A
-0x87 | CAP_LO    | Capability Bits lo byte (Read Only)| NONE | N/A
-0x88 | CAP_HI    | Capability Bits hi byte (Read Only)| NONE | N/A
-0x89 | TIMING_CHANGE | HDMI/VGA Timing change signal - Bit 1  | CONFIG_TIMING | N
-0x8a - 0x8f | Reserved | Reserved | NONE | N/A
-0x90 - 0x9f | VARIANT_NAME | Variant Name | NONE | N/A
-0xa0 - 0xaf | LUMA_LEVELS | Composite luma levels for colors (0-63) | CONFIG_COMPOSITE
-0xb0 - 0xbf | PHASE_VALUES | Composite phase values for colors (0-255 representing 0-359 degrees) | CONFIG_COMPOSITE | Y
-0xc0 - 0xcf | AMPL_VALUES | Composite amplitude values for colors (1-15, 0 = no modulation) | CONFIG_COMPOSITE | Y
-0xd0 | VGA_HBLANK | HDMI/VGA NTSC H blank start | CONFIG_TIMING | N
-0xd1 | VGA_FPORCH | HDMI/VGA NTSC H front porch | CONFIG_TIMING | N
-0xd2 | VGA_SPULSE | HDMI/VGA NTSC H sync pulse | CONFIG_TIMING | N
-0xd3 | VGA_BPORCH | HDMI/VGA NTSC H back porch | CONFIG_TIMING | N
-0xd4 | VGA_VBLANK | HDMI/VGA NTSC V blank start | CONFIG_TIMING | N
-0xd5 | VGA_FPORCH | HDMI/VGA NTSC V front porch | CONFIG_TIMING | N
-0xd6 | VGA_SPULSE | HDMI/VGA NTSC V sync pulse | CONFIG_TIMING | N
-0xd7 | VGA_BPORCH | HDMI/VGA NTSC V back porch | CONFIG_TIMING | N
-0xd8 | VGA_HBLANK | HDMI/VGA PAL H blank start | CONFIG_TIMING | N
-0xd9 | VGA_FPORCH | HDMI/VGA PAL H front porch | CONFIG_TIMING | N
-0xda | VGA_SPULSE | HDMI/VGA PAL H sync pulse | CONFIG_TIMING | N
-0xdb | VGA_BPORCH | HDMI/VGA PAL H back porch | CONFIG_TIMING | N
-0xdc | VGA_VBLANK | HDMI/VGA PAL V blank start | CONFIG_TIMING | N
-0xdd | VGA_FPORCH | HDMI/VGA PAL V front porch | CONFIG_TIMING | N
-0xde | VGA_SPULSE | HDMI/VGA PAL V sync pulse | CONFIG_TIMING | N
-0xdf | VGA_BPORCH | HDMI/VGA PAL V back porch | CONFIG_TIMING | N
-0xe0 - 0xff | UNUSED | Unused | NONE | N/A
+0x00 - 0x03 | MAGIC BYTES | 1.4 | EEPROM Magic Bytes | N/A | Y
+0x04 | DISPLAY_FLAGS | 1.4 | See below | NONE | Y
+0x05 | EEPROM_BANK | 1.4 | EEPROM Bank | HAVE_EEPROM | N
+0x06 | DISPLAY_FLAGS2 | 1.12 | See below | HAVE_EEPROM | Y
+0x07 | CFG_VERSION | 1.12 | See below | HAVE_EEPROM | N
+0x1f | CHIP_MODEL | 1.4 | Chip Model Select (0=6567R8, 1=6569R3, 2=6567R56A, 3=6569R1) | NONE | Y
+0x20 - 0x3f | UNUSED | 1.4 | Unused | NONE | N/A
+0x40 - 0x7f | PAL_RGB | 1.4 | 4x16 array of RGBx (4th byte unused) | CONFIG_RGB | Y
+0x80 | BLACK_LEVEL | 1.4 | Composite black level (0-63) | CONFIG_COMPOSITE | Y
+0x81 | BURST_AMPLITUDE | 1.4 | Composite color burst amplitude (1-15, 0 = no color burst) | CONFIG_COMPOSITE | Y
+0x83 | VERSION | 1.4 | Version (high nibble major, low nibble minor) - Read Only | NONE | N/A
+0x85 | CURSOR_LO | 1.4 | Hires Cursor lo byte | HIRES_MODES | N/A
+0x86 | CURSOR_HI | 1.4 | Hires Cursor hi byte | HIRES_MODES | N/A
+0x87 | CAP_LO    | 1.4 | Capability Bits lo byte (Read Only)| NONE | N/A
+0x88 | CAP_HI    | 1.4 | Capability Bits hi byte (Read Only)| NONE | N/A
+0x89 | TIMING_CHANGE | 1.4 | HDMI/VGA Timing change signal - Bit 1  | CONFIG_TIMING | N
+0x8a - 0x8f | Reserved | 1.4 | Reserved | NONE | N/A
+0x90 - 0x9f | VARIANT_NAME | 1.4 | Variant Name | NONE | N/A
+0xa0 - 0xaf | LUMA_LEVELS | 1.4 | Composite luma levels for colors (0-63) | CONFIG_COMPOSITE
+0xb0 - 0xbf | PHASE_VALUES | 1.4 | Composite phase values for colors (0-255 representing 0-359 degrees) | CONFIG_COMPOSITE | Y
+0xc0 - 0xcf | AMPL_VALUES | 1.4 | Composite amplitude values for colors (1-15, 0 = no modulation) | CONFIG_COMPOSITE | Y
+0xd0 | VGA_HBLANK | 1.4 | HDMI/VGA NTSC H blank start | CONFIG_TIMING | N
+0xd1 | VGA_FPORCH | 1.4 | HDMI/VGA NTSC H front porch | CONFIG_TIMING | N
+0xd2 | VGA_SPULSE | 1.4 | HDMI/VGA NTSC H sync pulse | CONFIG_TIMING | N
+0xd3 | VGA_BPORCH | 1.4 | HDMI/VGA NTSC H back porch | CONFIG_TIMING | N
+0xd4 | VGA_VBLANK | 1.4 | HDMI/VGA NTSC V blank start | CONFIG_TIMING | N
+0xd5 | VGA_FPORCH | 1.4 | HDMI/VGA NTSC V front porch | CONFIG_TIMING | N
+0xd6 | VGA_SPULSE | 1.4 | HDMI/VGA NTSC V sync pulse | CONFIG_TIMING | N
+0xd7 | VGA_BPORCH | 1.4 | HDMI/VGA NTSC V back porch | CONFIG_TIMING | N
+0xd8 | VGA_HBLANK | 1.4 | HDMI/VGA PAL H blank start | CONFIG_TIMING | N
+0xd9 | VGA_FPORCH | 1.4 | HDMI/VGA PAL H front porch | CONFIG_TIMING | N
+0xda | VGA_SPULSE | 1.4 | HDMI/VGA PAL H sync pulse | CONFIG_TIMING | N
+0xdb | VGA_BPORCH | 1.4 | HDMI/VGA PAL H back porch | CONFIG_TIMING | N
+0xdc | VGA_VBLANK | 1.4 | HDMI/VGA PAL V blank start | CONFIG_TIMING | N
+0xdd | VGA_FPORCH | 1.4 | HDMI/VGA PAL V front porch | CONFIG_TIMING | N
+0xde | VGA_SPULSE | 1.4 | HDMI/VGA PAL V sync pulse | CONFIG_TIMING | N
+0xdf | VGA_BPORCH | 1.4 | HDMI/VGA PAL V back porch | CONFIG_TIMING | N
+0xe0 - 0xff |   | UNUSED | Unused | NONE | N/A
 
 ### RGB Color Registers (For DVI/VGA)
 
