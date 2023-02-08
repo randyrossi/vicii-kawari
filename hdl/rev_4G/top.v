@@ -135,7 +135,12 @@ EFX_GBUFCE mux1(
     );
 
 wire clk_col16x;
+`ifdef GEN_LUMA_CHROMA
 wire color_sel = chip[0] ? (~ntsc_50) : (pal_60);
+`else
+wire color_sel = chip[0];
+`endif
+
 EFX_GBUFCE mux2(
     .CE(1'b1),
     .I(color_sel ? clk_col16x_pal : clk_col16x_ntsc),
