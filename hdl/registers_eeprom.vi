@@ -104,16 +104,23 @@ task handle_persist(input is_reset);
             end
             else if (~clk8 && !state_ctr[14])
                 state_ctr <= state_ctr + 15'b1;
-            else if (state_ctr[14]) begin
+            else if (eeprom_state == `EEPROM_READ &&
+                         state_ctr[2] && eeprom_warm_up_cycle) begin
+                // Warm up is only a few cycles
+                eeprom_warm_up_cycle <= 1'b0;
+                state_ctr <= 15'd0;
+                $display("short warmup scan");
+            end else if (eeprom_state == `EEPROM_READ &&
+                         addr_lo == `PER_CHIP_REG_START && !eeprom_warm_up_cycle
+                             && is_reset) begin
+                // Warm up is only a few cycles
+                state_ctr <= 15'b100000000000000;
+                $display("short reset scan");
+            end else if (state_ctr[14]) begin
                 // End of state
                 case (eeprom_state)
                     `EEPROM_READ:
-                        if (eeprom_warm_up_cycle) begin
-                            // We just cycled once through all 256 registers
-                            eeprom_warm_up_cycle <= 1'b0;
-                            state_ctr <= 15'd0;
-                        end
-                        else if (is_reset) begin
+                        if (is_reset) begin
                             $display("rst <= 0, chip restored");
                             // First pass was to set chip during reset
                             rst <= 0; // out of reset
@@ -121,9 +128,6 @@ task handle_persist(input is_reset);
                             // so leave eeprom_state set to EEPROM_READ
                             state_ctr <= 15'd0;
                             magic <= 0; // reset our magic counter again
-                            // We could do another warm up cycle before hitting
-                            // the eeprom again. But doesn't seem necessary.
-                            //eeprom_warm_up_cycle <= 1'b1;
                         end else begin
                             $display("registers restored");
                             eeprom_state <= `EEPROM_IDLE;
