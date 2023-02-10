@@ -160,6 +160,14 @@ task read_ram(
                         dbo <= `VARIANT_SUFFIX_3;
                     `EXT_REG_VARIANT_NAME8:
                         dbo <= `VARIANT_SUFFIX_4;
+                    `EXT_REG_VARIANT_NAME9:
+                        dbo <= `VARIANT_SUFFIX_5;
+                    `EXT_REG_VARIANT_NAME10:
+                        dbo <= `VARIANT_SUFFIX_6;
+                    `EXT_REG_VARIANT_NAME11:
+                        dbo <= `VARIANT_SUFFIX_7;
+                    `EXT_REG_VARIANT_NAME12:
+                        dbo <= `VARIANT_SUFFIX_8;
 
 `ifdef GEN_LUMA_CHROMA
 `ifdef CONFIGURABLE_LUMAS

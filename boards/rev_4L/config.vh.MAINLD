@@ -4,15 +4,23 @@
 `define VERSION_MAJOR 8'd0
 `define VERSION_MINOR 8'd0
 
+// Branch
 `define VARIANT_NAME1   8'h4D  // M
 `define VARIANT_NAME2   8'h41  // A
 `define VARIANT_NAME3   8'h49  // I
 `define VARIANT_NAME4   8'h4E  // N
 
+// Board
 `define VARIANT_SUFFIX_1 8'd76 // L
-`define VARIANT_SUFFIX_2 8'd68 // D
+`define VARIANT_SUFFIX_2 8'h44 // D
+
+// Variant
 `define VARIANT_SUFFIX_3 8'd0
 `define VARIANT_SUFFIX_4 8'd0
+`define VARIANT_SUFFIX_5 8'd0
+`define VARIANT_SUFFIX_6 8'd0
+`define VARIANT_SUFFIX_7 8'd0
+`define VARIANT_SUFFIX_8 8'd0
 
 `define WITH_EXTENSIONS 1
 `define WITH_RAM 1

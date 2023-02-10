@@ -10,8 +10,16 @@ We ask that all forks do the following:
 
 1. Keep the extra register activation [REGISTERS.md](REGISTERS.md) (i.e POKEing "VIC2" into 0x3f) functional along with the 'reserved' 0x3b-0x3f extra mem access mechanism. The extra mem registers 0x83 (VERSION), 0x90-0x9f (VARIANT) should also remain functional. This will allow a single upstream configuration utilty to successfully talk to your variant and at least display the variant name and its version. You are free to use an additional extra register activation sequence for your own scheme.
 
-2. Replace the 4 character variant prefix with your own unique string. This can be any name you wish as long as you do not use the reserved MAIN, DOTC, MRGB, MDVI.  This value will be displayed to users by the configuration utility. It will point users to your fork where they can find a custom config utility for your variant (if needed). The variant suffix is also used to match hardware to flash image builds.
+2. The format for build strings is:
 
+    <BRANCH><BOARD>[-SUBVARIANT]
+
+    BRANCH must be 4 characters. i.e. MAIN
+    BOARD must be 2 characters. i.e. LH
+    SUBVARIANT can be up 4 chars (plus 1 for the dash) and is optional. i.e. -DOTC
+
+Replace the 4 character variant BRANCH with your own unique string. This can be any name you wish as long as you do not use the reserved 'MAIN'.  This value will be displayed to users by the configuration utility. It will point users to your fork where they can find a custom config utility for your variant (if needed). 
+Board codes are:
     No suffix = beta board
     LH = Trion Mini
     LG = Trion Large
@@ -21,7 +29,7 @@ We ask that all forks do the following:
 
 ## Variant Identifier
 
-The variant identifier is found in common.vh file.  Your fork should change the PETSCII values for the prefix (which MUST be 4 characters). Reserved prefixes are:  MAIN, DOTC, MDVI and MRGB.  The 5th and 6th characters must match the board version LD (large spartan), LH (Trion Mini) or LG (Trion Large).
+The variant identifier is defined in each config.vh.\* file.  Your fork should change the PETSCII values for the prefix (which MUST be 4 characters). MAIN is a reserved branch name. The 5th and 6th characters must match the board version LD (large spartan), LH (Trion Mini) or LG (Trion Large).
 
 ## Versioning
 

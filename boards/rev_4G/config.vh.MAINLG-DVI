@@ -6,15 +6,23 @@
 
 `define EFINIX
 
+// Branch
 `define VARIANT_NAME1   8'h4D  // M
-`define VARIANT_NAME2   8'h44  // D
-`define VARIANT_NAME3   8'h56  // V
-`define VARIANT_NAME4   8'h49  // I
+`define VARIANT_NAME2   8'h41  // A
+`define VARIANT_NAME3   8'h49  // I
+`define VARIANT_NAME4   8'h4E  // N
 
-`define VARIANT_SUFFIX_1 8'd76 // L
-`define VARIANT_SUFFIX_2 8'd71 // G
-`define VARIANT_SUFFIX_3 8'd0
-`define VARIANT_SUFFIX_4 8'd0
+// Board
+`define VARIANT_SUFFIX_1 8'h4C // L
+`define VARIANT_SUFFIX_2 8'h47 // G
+
+// Variant
+`define VARIANT_SUFFIX_3 8'h2B // -
+`define VARIANT_SUFFIX_4 8'h44 // D
+`define VARIANT_SUFFIX_5 8'h56 // V
+`define VARIANT_SUFFIX_6 8'h49 // I
+`define VARIANT_SUFFIX_7 8'h0
+`define VARIANT_SUFFIX_8 8'h0
 
 `define WITH_EXTENSIONS 1
 `define GEN_LUMA_CHROMA 1
