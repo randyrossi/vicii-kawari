@@ -285,8 +285,12 @@ end
 `define BURST_AMPLITUDE 4'd12
 `endif
 
-// Make this hsync_end + 5 ticks
-`define BURST_START (chip[0] ? 10'd52 : 10'd54)
+// Make this hsync_end + 4 ticks
+// !!! Keep this valid for hsync_end set below:
+// 6567R8 = 49 + 4 = 53
+// 6567R56A = 48 + 4 = 52
+// 6569R* = 48 + 4 = 52
+`define BURST_START (chip == `CHIP6567R8 ? 10'd53 : 10'd52)
 
 (* async_reg = "true" *) reg [8:0] raster_y_16_1;
 (* async_reg = "true" *) reg [8:0] raster_y_16;
@@ -361,8 +365,9 @@ begin
         // This is supposed to be 9 periods according to video specs but the
         // original chip does more like 20. I noticed that if we only do 9 and
         // use the PAL clock from the motherboard, we produce a B/W image.
-        // Increased to 15 periods and this fixes the issue.
-        if (burstCount == 240) begin // 15 periods * 16 samples for one period
+        // Increased to 15 periods for PAL
+        // One less for NTSC
+        if ((chip[0] && burstCount == 240) || (~chip[0] && burstCount == 224)) begin
             in_burst <= 0;
             need_burst <= 0;
             burstCount <= 0;
