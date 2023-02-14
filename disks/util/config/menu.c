@@ -276,7 +276,7 @@ void main_menu(void)
        printf ("S/LUM burst    :\n");
        if (version_short >= 267) {
           printf ("NTSC 50        :\n");
-          printf ("PAL  60        :\n");
+          //printf ("PAL  60        :\n");
        }
     }
     if (has_dvi && version_short >= 267) {
