@@ -618,7 +618,7 @@ When BIT 6 of the VIDEO_MEM_FLAGS register is set, the first 256 bytes of video 
 ### All registers
 
 Location | Name | Since | Description | Capability Requirement | Can be saved?
----------|------|-------------|------------------------|---------------------
+---------|------|-------|-------------|------------------------|---------------------
 0x00 - 0x03 | MAGIC BYTES | 1.4 | EEPROM Magic Bytes | N/A | Y
 0x04 | DISPLAY_FLAGS | 1.4 | See below | NONE | Y
 0x05 | EEPROM_BANK | 1.4 | EEPROM Bank | HAVE_EEPROM | N
