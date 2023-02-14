@@ -706,6 +706,17 @@ Bit 8        | Reserved
 * Double x resolution is required for 80 column mode or any hires mode.
 * If CSYNC is enabled, polarity is controlled by HSync Polarity
 
+DISPLAY_FLAGS2| Function
+-------------|-------
+Bit 1        | NTSC 50 Enable/Disable
+Bit 2        | Unused
+Bit 3        | Unused
+Bit 4        | Unused
+Bit 5        | Unused
+Bit 6        | Unused
+Bit 7        | Unused
+Bit 8        | Unused
+
 CAP_LO|Description
 ------|--------
 Bit 1 | Has analog RGB out
