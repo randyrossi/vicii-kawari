@@ -39,7 +39,7 @@ static int switch_line = -1;
 static int locks_line = -1;
 static int raster_lines_line = -1;
 static int ntsc_50_line = -1;
-static int pal_60_line = -1;
+//static int pal_60_line = -1;
 static int max_line = -1;
 
 #define FIRST_CONFIG_LINE 4
@@ -203,11 +203,11 @@ void show_info_line(void) {
         printf ("Makes using some NTSC monitors possible.");
         printf ("%s",blank_line);
     }
-    else if (line == pal_60_line) {
-        printf ("Uses PAL color encoding for NTSC chips. ");
-        printf ("Makes using some PAL monitors possible. ");
-        printf ("%s",blank_line);
-    }
+    //else if (line == pal_60_line) {
+    //    printf ("Uses PAL color encoding for NTSC chips. ");
+    //    printf ("Makes using some PAL monitors possible. ");
+    //    printf ("%s",blank_line);
+    //}
 }
 
 void save_changes(void)
@@ -323,8 +323,8 @@ void main_menu(void)
              if (version_short >= 267) {
                 ntsc_50_line = ln; ln++;
                 show_display_bit(DISPLAY_NTSC_50_BIT, ntsc_50_line, LABEL_ON_OFF);
-                pal_60_line = ln; ln++;
-                show_display_bit(DISPLAY_PAL_60_BIT, pal_60_line, LABEL_ON_OFF);
+                //pal_60_line = ln; ln++;
+                //show_display_bit(DISPLAY_PAL_60_BIT, pal_60_line, LABEL_ON_OFF);
              }
           }
           switch_line = ln; ln++;
@@ -385,10 +385,10 @@ void main_menu(void)
              next_display_flags ^= DISPLAY_NTSC_50_BIT;
              show_display_bit(DISPLAY_NTSC_50_BIT, ntsc_50_line, LABEL_ON_OFF);
 	  }
-          else if (line == pal_60_line && can_save) {
-             next_display_flags ^= DISPLAY_PAL_60_BIT;
-             show_display_bit(DISPLAY_PAL_60_BIT, pal_60_line, LABEL_ON_OFF);
-	  }
+          //else if (line == pal_60_line && can_save) {
+          //   next_display_flags ^= DISPLAY_PAL_60_BIT;
+          //   show_display_bit(DISPLAY_PAL_60_BIT, pal_60_line, LABEL_ON_OFF);
+	  //}
        } else if (r.a == 's') {
           save_changes();
           need_refresh=1;

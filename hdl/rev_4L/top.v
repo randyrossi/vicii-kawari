@@ -94,10 +94,6 @@ wire active;
 wire rst;
 wire clk_dot4x;
 wire [1:0] chip;
-`ifdef GEN_LUMA_CHROMA
-wire ntsc_50;
-wire pal_60;
-`endif
 
 `ifdef OUTPUT_DOT_CLOCK
 // NOTE: This hack will only work breadbins that use
@@ -134,8 +130,7 @@ reg chip_mux1;
 reg chip_mux2;
 // Not sure if this matter but let's use the faster
 // clock to handle CBC between chip[0] and chip_mux2.
-wire color_sel = chip[0] ? (~ntsc_50) : (pal_60);
-always @(posedge clk_col4x_pal) chip_mux1 <= color_sel;
+always @(posedge clk_col4x_pal) chip_mux1 <= chip[0];
 always @(posedge clk_col4x_pal) chip_mux2 <= chip_mux1;
 
 // We select which color clock to enter the 2x clock gen (below)
@@ -146,13 +141,6 @@ BUFGMUX colmux(
             .I1(clk_col4x_pal),
             .O(clk_col4x),
             .S(chip_mux2));
-
-wire clk_col4x_4tm;
-BUFGMUX colmux_4tm(
-            .I0(clk_col4x_ntsc),
-            .I1(clk_col4x_pal),
-            .O(clk_col4x_4tm),
-            .S(chip[0]));
 
 // From the 4x color clock, generate an 8x color clock
 // This is necessary to meet the minimum frequency of
@@ -166,15 +154,6 @@ x2_clockgen x2_clockgen(
                 .clk_out_x2(clk_col8x), // for PLL to gen dot4x
                 .clk_out_x4(clk_col16x), // for LUMA/CHROMA gen
                 .reset(rst));
-
-wire clk_col8x_4tm;
-wire clk_col16x_4tm;
-x2_clockgen x2_clockgen_4tm(
-                .clk_in(clk_col4x_4tm),
-                .clk_out_x2(clk_col8x_4tm), // for PLL to gen dot4x
-                .clk_out_x4(clk_col16x_4tm), // for LUMA/CHROMA gen
-                .reset(rst));
-
 
 `ifdef WITH_DVI
 wire tx0_pclkx10;
@@ -280,13 +259,12 @@ vicii vic_inst(
           .blue(blue),
 `endif
           .clk_col16x(clk_col16x),
-          .clk_col16x_4tm(clk_col16x_4tm),
+          .clk_col16x_4tm(clk_col16x),
 `ifdef GEN_LUMA_CHROMA
           .luma_sink(luma_sink),
           .luma(luma),
           .chroma(chroma),
-          .ntsc_50(ntsc_50),
-          .pal_60(pal_60),
+          .ntsc_50(1'b0), // not supported on this board
 `endif
           .adi(adl[5:0]),
           .ado(ado),

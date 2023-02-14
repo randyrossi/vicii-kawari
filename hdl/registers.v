@@ -112,7 +112,7 @@ module registers
 `ifdef GEN_LUMA_CHROMA
            output reg white_line = 1'b1,
            output reg ntsc_50 = 1'b0,
-           output reg pal_60 = 1'b0,
+           //output reg pal_60 = 1'b0,
            output reg [5:0] lumareg_o,
            output reg [7:0] phasereg_o,
            output reg [3:0] amplitudereg_o,

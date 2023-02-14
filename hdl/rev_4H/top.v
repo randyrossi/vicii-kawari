@@ -126,7 +126,7 @@ EFX_GBUFCE mux1(
 
 wire clk_col16x;
 `ifdef GEN_LUMA_CHROMA
-wire color_sel = chip[0] ? (~ntsc_50) : (pal_60);
+wire color_sel = chip[0] ? (~ntsc_50) : 1'b0; //was (pal_60)
 `else
 wire color_sel = chip[0];
 `endif
@@ -185,7 +185,7 @@ wire vic_write_db;
 wire [1:0] chip;
 `ifdef GEN_LUMA_CHROMA
 wire ntsc_50;
-wire pal_60;
+//wire pal_60;
 `endif
 
 // Instantiate the vicii with our clocks and pins.
@@ -231,7 +231,7 @@ vicii vic_inst(
           .luma(luma),
           .chroma(chroma),
           .ntsc_50(ntsc_50),
-          .pal_60(pal_60),
+          //.pal_60(pal_60),
 `endif
           .adi(adl_IN),
           .ado(ado),

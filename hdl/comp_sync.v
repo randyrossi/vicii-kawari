@@ -39,7 +39,7 @@ module comp_sync(
 `ifdef GEN_LUMA_CHROMA
            input white_line,
            input ntsc_50,
-           input pal_60,
+           //input pal_60,
 `ifdef HAVE_LUMA_SINK
            output reg luma_sink,
 `endif
@@ -344,7 +344,7 @@ always @(posedge clk_col16x) burst_amplitude_16 <= burst_amplitude_ms;
 
 (* async_reg = "true" *) reg colsel_0;
 (* async_reg = "true" *) reg colsel_1;
-always @(posedge clk_col16x) colsel_0 <= chip[0] ? (~ntsc_50) : (pal_60);
+always @(posedge clk_col16x) colsel_0 <= chip[0] ? (~ntsc_50) : 1'b0; // was (pal_60);
 always @(posedge clk_col16x) colsel_1 <= colsel_0;
 
 (* async_reg = "true" *) reg[1:0] chip_0_16x;

@@ -107,7 +107,7 @@ wire rst;
 wire [1:0] chip;
 `ifdef GEN_LUMA_CHROMA
 wire ntsc_50;
-wire pal_60;
+//wire pal_60;
 `endif
 
 `ifndef GEN_RGB
@@ -177,7 +177,7 @@ vicii vic_inst(
           .luma(luma),
           .chroma(chroma),
           .ntsc_50(ntsc_50),
-          .pal_60(pal_60),
+          //.pal_60(pal_60),
 `endif
           .adi(adl[5:0]),
           .ado(ado),

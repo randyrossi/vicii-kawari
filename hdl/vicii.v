@@ -65,7 +65,7 @@ module vicii
            output [5:0] luma,
            output [5:0] chroma,
            output ntsc_50,
-           output pal_60,
+           //output pal_60,
 `endif
 
 `ifdef NEED_RGB
@@ -1037,7 +1037,7 @@ registers vic_registers(
 `ifdef GEN_LUMA_CHROMA
               .white_line(white_line),
               .ntsc_50(ntsc_50),
-              .pal_60(pal_60),
+              //.pal_60(pal_60),
               .lumareg_o(lumareg_o),
               .phasereg_o(phasereg_o),
               .amplitudereg_o(amplitudereg_o),
@@ -1253,7 +1253,7 @@ comp_sync vic_comp_sync(
 `ifdef GEN_LUMA_CHROMA
               .white_line(white_line),
               .ntsc_50(ntsc_50),
-              .pal_60(pal_60),
+              //.pal_60(pal_60),
 `ifndef REV_3_BOARD
               .luma_sink(luma_sink),
 `endif

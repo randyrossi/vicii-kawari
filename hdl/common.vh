@@ -394,7 +394,7 @@
 
 // Bits in DISPLAY_FLAGS2
 `define NTSC_50_BIT                  0
-`define PAL_60_BIT                   1
+`define PAL_60_BIT                   1     // reserved, unused for now
 
 `define EXT_REG_VARIANT_NAME1        8'h90
 `define EXT_REG_VARIANT_NAME2        8'h91
