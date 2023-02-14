@@ -55,6 +55,18 @@ void set_amplitudes(int chip_model) {
    }
 }
 
+void set_black_levels(int chip_model) {
+   int reg;
+   POKE(VIDEO_MEM_1_LO, BLACK_LEVEL);
+   SAFE_POKE(VIDEO_MEM_1_VAL, black_levels[chip_model]);
+}
+
+void set_burst_levels(int chip_model) {
+   int reg;
+   POKE(VIDEO_MEM_1_LO, BURST_AMPLITUDE);
+   SAFE_POKE(VIDEO_MEM_1_VAL, burst_levels[chip_model]);
+}
+
 void do_init(unsigned int board_int, int chip_model) {
    unsigned int reg;
    unsigned int chip;
@@ -113,12 +125,12 @@ void do_init(unsigned int board_int, int chip_model) {
       // Black level
       reg = BLACK_LEVEL;
       POKE(VIDEO_MEM_1_LO, reg);
-      SAFE_POKE(VIDEO_MEM_1_VAL, DEFAULT_BLANKING_LEVEL);
+      SAFE_POKE(VIDEO_MEM_1_VAL, black_levels[chip]);
 
       // Burst amplitude
       reg = BURST_AMPLITUDE;
       POKE(VIDEO_MEM_1_LO, reg);
-      SAFE_POKE(VIDEO_MEM_1_VAL, DEFAULT_BURST_AMPLITUDE);
+      SAFE_POKE(VIDEO_MEM_1_VAL, burst_levels[chip]);
 
       // Turn off vic roll register
       reg = 0xfb;

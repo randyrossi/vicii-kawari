@@ -55,8 +55,8 @@ void do_init() {
       set_phases_mem(chip);
       set_amplitudes_mem(chip);
 
-      mem[chip*256+BLACK_LEVEL] = DEFAULT_BLANKING_LEVEL;
-      mem[chip*256+BURST_AMPLITUDE] = DEFAULT_BURST_AMPLITUDE;
+      mem[chip*256+BLACK_LEVEL] = black_levels[chip];
+      mem[chip*256+BURST_AMPLITUDE] = burst_levels[chip];
    }
 
    mem[MAGIC_0] = 86;

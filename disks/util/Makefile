@@ -36,6 +36,6 @@ clean:
 	$(MAKE) -C 80col clean
 	$(MAKE) -C novaterm clean
 	$(MAKE) -C tests clean
-	$(MAKE) -C flash -f Makefile.LH clean
+	$(MAKE) -C flash -f Makefile.MAIN clean
 	$(MAKE) -C ansii clean
 	rm -f *.d64

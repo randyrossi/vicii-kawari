@@ -15,5 +15,7 @@ void set_rgb(void);
 void set_lumas(unsigned int variant_num, int chip_model);
 void set_phases(int chip_model);
 void set_amplitudes(int chip_model);
+void set_black_levels(int chip_model);
+void set_burst_levels(int chip_model);
 
 #endif
