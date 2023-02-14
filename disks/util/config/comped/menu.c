@@ -68,6 +68,7 @@ void main_menu(void)
     int luma, phase, amplitude;
     int v;
     int refresh_all = 1;
+    int refresh_values = 1;
     int store_current = 1;
     int text = PEEK(646L);
     int border = PEEK(53280L);
@@ -103,48 +104,52 @@ void main_menu(void)
         WAITKEY;
     }
 
-    CLRSCRN;
-    printf ("VIC-II Kawari Composite Settings Editor\n\n");
+           POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
 
-    POKE(VIDEO_MEM_FLAGS, VMEM_FLAG_REGS_BIT);
+           get_variant(variant);
+           board_int = ascii_variant_to_board_int(variant);
+           model = get_chip_model();
 
-    get_variant(variant);
-    board_int = ascii_variant_to_board_int(variant);
-
-    printf ("CHIP:   ");
-    model = get_chip_model();
-    switch (model) {
-       case CHIP6567R8:   printf ("6567R8    "); break;
-       case CHIP6567R56A: printf ("6567R56A  "); break;
-       case CHIP6569R3:   printf ("6569R3    "); break;
-       case CHIP6569R1:   printf ("6569R1    "); break;
-       default:           printf ("??????    "); break;
-    }
-    printf ("Lu PH Amp Black Color\n");
-    for (color=0; color < 16; color++) {
-        POKE(646,1);
-	printf ("%s ", color_name[color]);
-        POKE(646,color);
-	printf ("%c        %c", 18, 146);
-        POKE(646,1);
-	if (color == 0)
-           printf ("            Level Burst");
-        else if (color == 3)
-           printf ("            + increase");
-        else if (color == 4)
-           printf ("            - decrease");
-	printf ("\n");
-    }
-
-    printf ("\n");
-    printf ("S to save changes     %c to switch sides\n",95);
-    printf ("R to revert changes   t inc text color\n");
-    printf ("J default for chip    H inc brd color\n");
-    printf ("Q to quit             G inc bg color\n");
 
     for (;;) {
-
         if (refresh_all) {
+           CLRSCRN;
+           printf ("VIC-II Kawari Composite Settings Editor\n\n");
+
+           printf ("CHIP:   ");
+           switch (model) {
+              case CHIP6567R8:   printf ("6567R8    "); break;
+              case CHIP6567R56A: printf ("6567R56A  "); break;
+              case CHIP6569R3:   printf ("6569R3    "); break;
+              case CHIP6569R1:   printf ("6569R1    "); break;
+              default:           printf ("??????    "); break;
+           }
+           printf ("Lu PH Amp Black Color\n");
+           for (color=0; color < 16; color++) {
+               POKE(646,1);
+	       printf ("%s ", color_name[color]);
+               POKE(646,color);
+	       printf ("%c        %c", 18, 146);
+               POKE(646,1);
+	       if (color == 0)
+                  printf ("            Level Burst");
+               else if (color == 3)
+                  printf ("            + increase");
+               else if (color == 4)
+                  printf ("            - decrease");
+	       printf ("\n");
+           }
+
+           printf ("\n");
+           printf ("S to save changes    %c to switch sides\n",95);
+           printf ("R to revert changes  t inc text color\n");
+           printf ("J select preset      H inc brd color\n");
+           printf ("Q to quit            G inc bg color\n");
+           refresh_all = 0;
+           refresh_values = 1;
+        }
+
+        if (refresh_values) {
             for (color=0; color < 16; color++) {
 	        POKE(VIDEO_MEM_1_LO, 0xa0 + color);
 	        luma = PEEK(VIDEO_MEM_1_VAL);
@@ -175,7 +180,7 @@ void main_menu(void)
             TOXY(34,4);
             printf ("%02x",v);
 
-	    refresh_all = 0;
+	    refresh_values = 0;
 	    store_current = 0;
        }
 
@@ -273,19 +278,24 @@ void main_menu(void)
 	    POKE(VIDEO_MEM_1_VAL, current_black_level);
             POKE(VIDEO_MEM_1_LO, BURST_AMPLITUDE);
 	    POKE(VIDEO_MEM_1_VAL, current_color_burst);
-	    refresh_all = 1;
+	    refresh_values = 1;
        }
        else if (key == 'j')  {
             model = get_chip_model();
-            set_lumas(board_int, model);
-            set_phases(model);
-            set_amplitudes(model);
+            // TODO: Support multiple presets, for now only one possible from dialog.
+            if (dialog(model) == 0) {
+               set_lumas(board_int, model);
+               set_phases(model);
+               set_amplitudes(model);
+               set_black_levels(model);
+               set_burst_levels(model);
+            }
 	    refresh_all = 1;
        }
        else if (key == 's')  {
 	    save_changes();
 	    store_current = 1;
-	    refresh_all = 1;
+	    refresh_values = 1;
        }
        else if (key == 95)  {
             side = 1 - side;
@@ -297,7 +307,7 @@ void main_menu(void)
        else if (key == 't')  {
             text = (text + 1) % 16;
             POKE(646, text);
-	    refresh_all = 1;
+	    refresh_values = 1;
        } else if (key == 'h')  {
 	    border = (border + 1 ) % 16;
             POKE(53280L, border);

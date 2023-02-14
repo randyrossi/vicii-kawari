@@ -61,4 +61,6 @@ unsigned int get_flash_page_size(void);
 unsigned short get_capability_bits(void);
 unsigned char get_cfg_version(void);
 
+int dialog(int chip);
+
 #endif

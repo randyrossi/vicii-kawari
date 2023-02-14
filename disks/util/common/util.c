@@ -1,6 +1,7 @@
 #include <6502.h>
 #include <peekpoke.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "util.h"
 #include "kawari.h"
@@ -173,4 +174,66 @@ unsigned char get_cfg_version(void)
    POKE(VIDEO_MEM_1_IDX, 0);
    POKE(VIDEO_MEM_1_LO, CFG_VERSION);
    return PEEK(VIDEO_MEM_1_VAL);
+}
+
+// TODO: Turn this into a generic dialog some day
+// For now, specific to selecting color presets
+#define NUM_CHOICES 2
+int dialog(int chip)
+{
+   struct regs r;
+   char choice[42];
+   int selection = 0;
+   int ln = 10;
+   int i;
+   int key;
+
+   char *choices[4][2] ={
+      {"Longboard-Adrian's Digital Basement", "Cancel                             "},
+      {"Longboard-Mark (TheRetroChannel)   ", "Cancel                             "},
+      {"Longboard-Mark (TheRetroChannel)   ", "Cancel                             "},
+      {"Longboard-Mark (TheRetroChannel)   ", "Cancel                             "},
+   };
+
+   TOXY(2,ln++);
+   printf ("%c                                   %c  ",18,146);
+   for (i=0;i<NUM_CHOICES;i++) {
+      TOXY(2,ln++);
+      sprintf (choice,"%c%s%c", 18, choices[chip][i],146);
+      printf ("%s",choice);
+   }
+   TOXY(2,ln++);
+   printf ("%c                                   %c  ",18,146);
+
+   while (1) {
+      // Show selected line
+      POKE(646,6);
+      TOXY(2,11+selection);
+      sprintf (choice,"%c%s%c", 18, choices[chip][selection],146);
+      printf ("%s",choice);
+      POKE(646,1);
+
+      WAITKEY;
+      key = r.a;
+
+      // Unhilight current line
+      POKE(646,1);
+      TOXY(2,11+selection);
+      sprintf (choice,"%c%s%c", 18, choices[chip][selection],146);
+      printf ("%s",choice);
+
+      if (key == CRSR_DOWN) {
+         selection++; if (selection >= NUM_CHOICES) selection = NUM_CHOICES-1;
+      }
+      else if (key == CRSR_UP) {
+         selection--; if (selection < 0) selection = 0;
+      }
+      else if (key == 13) {
+         break;
+      }
+   }
+
+   // Last choice is always cancel
+   if (selection == NUM_CHOICES-1) selection = -1; // indicate cancel
+   return selection;
 }
