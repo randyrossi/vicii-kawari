@@ -3,7 +3,7 @@ include Makefile.inc
 DISKNUMS=1 2 3 4 5
 NAME=kawari
 VERSION=1.14
-FPGA=efinix_t20_pre
+FPGA=efinix_t20
 START_ADDRESS=679936
 IMAGE_SIZE=679936
 TYPE=multiboot
