@@ -43,12 +43,8 @@ module dvi
 reg [23:0] video_data = 24'd0;
 reg [5:0] control_data = 6'd0;
 
-always @(posedge clk_pixel)
-begin
-   video_data <= rgb;
-   // ctrl3, ctrl2, ctrl1, ctrl0, vsync, hsync
-   control_data <= {4'b0000, {vsync, hsync}};
-end
+always @(posedge clk_pixel) video_data <= rgb;
+always @(posedge clk_pixel) control_data <= {4'b0000, {vsync, hsync}};
 
 // All logic below relates to the production and output of the 10-bit TMDS code.
 wire [9:0] tmds_b;
