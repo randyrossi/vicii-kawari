@@ -340,13 +340,13 @@ task set_params_configurable();
     begin
         case (chip)
             `CHIP6569R1, `CHIP6569R3: begin
-                ha_end = {3'b000, timing_h_blank_pal} + 10'd384;
+                ha_end = {3'b000, timing_h_blank_pal} + 11'd384;
                 hs_sta = ha_end + {3'b000, timing_h_fporch_pal};
-                if (hs_sta >= 10'd504) hs_sta = hs_sta - 10'd504;
+                if (hs_sta >= 11'd504) hs_sta = hs_sta - 11'd504;
                 hs_end = hs_sta + {3'b000, timing_h_sync_pal};
-                if (hs_end >= 10'd504) hs_end = hs_end - 10'd504;
+                if (hs_end >= 11'd504) hs_end = hs_end - 11'd504;
                 ha_sta = hs_end + {3'b000, timing_h_bporch_pal};
-                if (ha_sta >= 10'd504) ha_sta = ha_sta - 10'd504;
+                if (ha_sta >= 11'd504) ha_sta = ha_sta - 11'd504;
                 // WIDTH 504
                 // NOTE: For PAL, we invert the range va_sta and va_end
 		// because the blanking region crosses 0.  So va_sta is
@@ -371,13 +371,13 @@ task set_params_configurable();
                 */
             end
             `CHIP6567R8: begin
-                ha_end = {3'b000, timing_h_blank_ntsc} + 10'd384;
+                ha_end = {3'b000, timing_h_blank_ntsc} + 11'd384;
                 hs_sta = ha_end + {3'b000, timing_h_fporch_ntsc};
-                if (hs_sta >= 10'd520) hs_sta = hs_sta - 10'd520;
+                if (hs_sta >= 11'd520) hs_sta = hs_sta - 11'd520;
                 hs_end = hs_sta + {3'b000, timing_h_sync_ntsc};
-                if (hs_end >= 10'd520) hs_end = hs_end - 10'd520;
+                if (hs_end >= 11'd520) hs_end = hs_end - 11'd520;
                 ha_sta = hs_end + {3'b000, timing_h_bporch_ntsc};
-                if (ha_sta >= 10'd520) hs_sta = hs_sta - 10'd520;
+                if (ha_sta >= 11'd520) hs_sta = hs_sta - 11'd520;
                 // WIDTH 520
                 va_end = {2'b00, timing_v_blank_ntsc};
                 vs_sta = va_end + {2'b00, timing_v_fporch_ntsc};
@@ -399,13 +399,13 @@ task set_params_configurable();
                 */
             end
             `CHIP6567R56A: begin
-                ha_end = {3'b000, timing_h_blank_ntsc} + 10'd384;
+                ha_end = {3'b000, timing_h_blank_ntsc} + 11'd384;
                 hs_sta = ha_end + {3'b000, timing_h_fporch_ntsc};
-                if (hs_sta >= 10'd512) hs_sta = hs_sta - 10'd512;
+                if (hs_sta >= 11'd512) hs_sta = hs_sta - 11'd512;
                 hs_end = hs_sta + {3'b000, timing_h_sync_ntsc};
-                if (hs_end >= 10'd512) hs_end = hs_end - 10'd512;
+                if (hs_end >= 11'd512) hs_end = hs_end - 11'd512;
                 ha_sta = hs_end + {3'b000, timing_h_bporch_ntsc};
-                if (ha_sta >= 10'd512) ha_sta = ha_sta - 10'd512;
+                if (ha_sta >= 11'd512) ha_sta = ha_sta - 11'd512;
                 // WIDTH 512
                 va_end = {2'b00, timing_v_blank_ntsc};
                 vs_sta = va_end + {2'b00, timing_v_fporch_ntsc};

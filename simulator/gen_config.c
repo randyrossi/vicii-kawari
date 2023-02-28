@@ -137,6 +137,10 @@ int main(int argc, char* argv[]) {
        printf ("`define VARIANT_SUFFIX_2 8'd0\n");
        printf ("`define VARIANT_SUFFIX_3 8'd0\n");
        printf ("`define VARIANT_SUFFIX_4 8'd0\n");
+       printf ("`define VARIANT_SUFFIX_5 8'd0\n");
+       printf ("`define VARIANT_SUFFIX_6 8'd0\n");
+       printf ("`define VARIANT_SUFFIX_7 8'd0\n");
+       printf ("`define VARIANT_SUFFIX_8 8'd0\n");
     }
 
     switch (config) {
