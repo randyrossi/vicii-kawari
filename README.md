@@ -328,12 +328,13 @@ Same reason as above. Kawari detects the switch only after a cold boot but if yo
 
 As noted above, the DVI resolutions used are not standard and may not sync or display properly on all monitors.  This table keeps track of known issues.
 
-Brand | Type    | Model       | Status
-------|---------|-------------|-------
-LG    | Monitor | 27UK850     | Monitor produces zig-zag effect for resolutions that have an odd width. Affects 6567R8, 6569R3, 6569R8.  Looking into compensating for this 'odd' behavior.
-LG    | Monitor | 27GL650F    | 1 user reported same zig-zag problem as above but I have the same monitor and it works for me.
-ACER  | Monitor | KA270HK     | Does not sync to DVI signal.
-Sony  | TV      | KDL-40S3000 | Does not sync to DVI signal.
+Brand   | Type    | Model             | Status
+--------|---------|-------------------|-------
+LG      | Monitor | 27UK850           | Monitor produces zig-zag effect for resolutions that have an odd width. Affects 6567R8, 6569R3, 6569R8.  Looking into compensating for this 'odd' behavior.
+LG      | Monitor | 27GL650F          | One user reported same zig-zag problem as above but I have the same monitor and it works for me.
+Samsung | Monitor | SyncMaster 2443SW | Complains with Optimimum Resolution message after 1 minute. Then goes black.
+ACER    | Monitor | KA270HK           | Does not sync to DVI signal.
+Sony    | TV      | KDL-40S3000       | Does not sync to DVI signal.
 
 ## Hardware Compatibility Matrix
 
