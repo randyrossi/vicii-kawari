@@ -57,7 +57,6 @@ module vicii
 `endif
            output clk_phi,
            input clk_col16x,
-           input clk_col16x_4tm,
 `ifdef GEN_LUMA_CHROMA
 `ifndef REV_3_BOARD
            output luma_sink,
@@ -839,14 +838,12 @@ wire dma_done;
 wire [15:0] dma_addr;
 `endif
 
-wire ras_i; // internally passed to registers
 // Address generation
 addressgen vic_addressgen(
                .rst(rst),
                .chip(chip),
                .cycle_type(cycle_type),
                .clk_dot4x(clk_dot4x),
-               .clk_col16x(clk_col16x_4tm),
                .cb(cb),
 `ifdef WITH_RAM
                .dma_done(dma_done),
@@ -855,8 +852,7 @@ addressgen vic_addressgen(
                .vc(vc),
                .vm(vm),
                .rc(rc),
-               .ras_o(ras), // out to pad
-               .ras_i(ras_i), // out to registers.v
+               .ras(ras),
                .cas(cas),
                .bmm_old(bmm_delayed),
                .bmm_now(bmm),
@@ -961,7 +957,7 @@ registers vic_registers(
               .ce(ce),
               .rw(rw),
               .aec(aec),
-              .ras(ras_i), // from addressgen off dot4x clock only
+              .ras(ras),
               .adi(adi),
               .dbi(dbi[7:0]),
               .raster_line(raster_line_d), // advertise the delayed version

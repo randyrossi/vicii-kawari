@@ -74,7 +74,7 @@ E16    HEAD   blue[3]         O   QUIETIO 2 LVCMOS33
 D16    HEAD   blue[4]         O   QUIETIO 2 LVCMOS33
 B16    HEAD   blue[5]         O   QUIETIO 2 LVCMOS33
 
-A13   HEAD   clk_rgb         O   SLOW 4 LVCMOS33
+A13   HEAD   clk_dot_ext     O   SLOW 4 LVCMOS33
 B14   HEAD   hsync           O   SLOW 4 LVCMOS33
 A14   HEAD   vsync           O   SLOW 4 LVCMOS33
 

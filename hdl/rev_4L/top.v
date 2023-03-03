@@ -57,7 +57,7 @@ module top(
            input standard_sw,   // video standard toggle switch
            output clk_phi,      // output phi clock for CPU
 `ifdef GEN_RGB
-           output clk_rgb,      // pixel clock
+           output clk_dot_ext,  // dot clock
            output hsync,        // hsync signal for analog RGB
            output vsync,        // vsync signal for analog RGB
            output [5:0] red,    // red out for analog RGB
@@ -104,9 +104,9 @@ wire [1:0] chip;
 // motherboard without the clock circuit being disabled.
 reg[3:0] dot_clock_shift = 4'b1100;
 always @(posedge clk_dot4x) dot_clock_shift <= {dot_clock_shift[2:0], dot_clock_shift[3]};
-assign clk_rgb = dot_clock_shift[3];
+assign clk_dot_ext = dot_clock_shift[3];
 `else
-assign clk_rgb = 1'b0;
+assign clk_dot_ext = 1'b0;
 `endif
 
 `ifdef WITH_SPI
@@ -222,6 +222,10 @@ wire [11:0] ado;
 wire vic_write_ab;
 wire vic_write_db;
 
+`ifdef GEN_LUMA_CHROMA
+wire ntsc_50;
+`endif
+
 // Instantiate the vicii with our clocks and pins.
 vicii vic_inst(
           .rst(rst),
@@ -259,12 +263,11 @@ vicii vic_inst(
           .blue(blue),
 `endif
           .clk_col16x(clk_col16x),
-          .clk_col16x_4tm(clk_col16x),
 `ifdef GEN_LUMA_CHROMA
           .luma_sink(luma_sink),
           .luma(luma),
           .chroma(chroma),
-          .ntsc_50(1'b0), // not supported on this board
+          .ntsc_50(ntsc_50),
 `endif
           .adi(adl[5:0]),
           .ado(ado),

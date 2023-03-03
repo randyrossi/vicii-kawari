@@ -99,7 +99,6 @@ assign clk_dot4x_ext = 1'b0;
 
 `define DOT_CLOCK_4X clk_dot4x
 `define COL_CLOCK_16X clk_col16x
-`define COL_CLOCK_16X_4TM clk_col16x_4tm
 
 wire rst;
 `ifdef OUTPUT_DOT_CLOCK
@@ -136,13 +135,6 @@ EFX_GBUFCE mux2(
     .CE(1'b1),
     .I(color_sel ? clk_col16x_pal : clk_col16x_ntsc),
     .O(clk_col16x)
-    );
-
-wire clk_col16x_4tm;
-EFX_GBUFCE mux2b(
-    .CE(1'b1),
-    .I(chip[0] ? clk_col16x_pal : clk_col16x_ntsc),
-    .O(clk_col16x_4tm)
     );
 
 (* syn_preserve = "true" *) reg ntsc_dot;// throw away signal for mux hack
@@ -225,7 +217,6 @@ vicii vic_inst(
           .blue(blue),
 `endif
           .clk_col16x(`COL_CLOCK_16X),
-          .clk_col16x_4tm(`COL_CLOCK_16X_4TM),
 `ifdef GEN_LUMA_CHROMA
           .luma_sink(luma_sink),
           .luma(luma),

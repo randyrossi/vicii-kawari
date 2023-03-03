@@ -147,13 +147,6 @@ EFX_GBUFCE mux2(
     .O(clk_col16x)
     );
 
-wire clk_col16x_4tm;
-EFX_GBUFCE mux2b(
-    .CE(1'b1),
-    .I(chip[0] ? clk_col16x_pal : clk_col16x_ntsc),
-    .O(clk_col16x_4tm)
-    );
-
 `ifdef WITH_DVI
 wire clk_dvi;
 EFX_GBUFCE mux3(
@@ -285,7 +278,6 @@ vicii vic_inst(
           .blue(blue),
 `endif
           .clk_col16x(clk_col16x),
-          .clk_col16x_4tm(clk_col16x_4tm),
 `ifdef GEN_LUMA_CHROMA
           .luma_sink(luma_sink),
           .luma(luma),

@@ -88,7 +88,6 @@ module addressgen(
            input rst,
            input [1:0] chip,
            input clk_dot4x,
-           input clk_col16x,
            input [3:0] cycle_type,
 `ifdef WITH_RAM
            input dma_done,
@@ -111,8 +110,7 @@ module addressgen(
            input [47:0] sprite_mc_o,
            input [15:0] phi_phase_start,
            output reg [11:0] ado,
-           output ras_o, // out to pad
-           output ras_i, // out to registers module (only dot4x driven)
+           output ras,
            output cas
        );
 
@@ -250,27 +248,6 @@ reg ntsc_cas_d4x_p;
 reg ntsc_cas_d4x_n;
 reg ntsc_ras_d4x;
 
-reg pal_cas_c16x;
-reg pal_ras_c16x;
-reg ntsc_cas_c16x;
-reg ntsc_ras_c16x;
-
-reg [35:0] pal_sr;
-reg [27:0] ntsc_sr;
-
-// See CAS_RAS_CLOCKS.txt for an explanation of what this is.
-always @(posedge clk_col16x)
-begin
-    if (rst) begin
-       pal_sr <= 36'b000000000000000000000000000001000000;
-       ntsc_sr <= 28'b0000000000000000000000100000;
-    end
-    else begin
-       pal_sr <= {pal_sr[34:0], pal_sr[35]};
-       ntsc_sr <= {ntsc_sr[26:0], ntsc_sr[27]};
-    end
-end
-
 // Use dot4x and handle CAS/RAS rise/fall points.
 always @(posedge clk_dot4x)
 begin
@@ -308,51 +285,7 @@ begin
         pal_cas_d4x_n <= 1'b0;
 end
 
-
-// The rise times from above are not sufficient to
-// accurately reproduce the timing of the real chip.
-// We need to use a higher resolution clock and use
-// it's positive and negative edges to shape our
-// rise times a bit.  These two process blocks
-// calculate a higher resolution pulse that we then
-// OR with the ones above to get the rise times
-// we want.  NOTE: If ras rises too far after cas,
-// static ram modules barf.  DRAM doesn't seem to
-// care though.
-
-always @(negedge clk_col16x)
-begin
-   if (pal_sr[1])
-           pal_ras_c16x <= 1'b1;
-   else if (pal_sr[3])
-           pal_ras_c16x <= 1'b0;
-   if (ntsc_sr[1])
-           ntsc_ras_c16x <= 1'b1;
-   else if (ntsc_sr[3])
-           ntsc_ras_c16x <= 1'b0;
-end
-
-always @(posedge clk_col16x)
-begin
-   if (pal_sr[0])
-           pal_cas_c16x <= 1'b1;
-   else if (pal_sr[2])
-           pal_cas_c16x <= 1'b0;
-   if (ntsc_sr[0])
-           ntsc_cas_c16x <= 1'b1;
-   else if (ntsc_sr[2])
-           ntsc_cas_c16x <= 1'b0;
-end
-
-// Use the trick above to OR the two signals together. This results
-// in the first pulse of the faster clock 'extending' the cas/ras signals
-// on the rising edges to what we want them to look like.
-
-assign cas = chip[0] ? (pal_cas_d4x_p | pal_cas_d4x_n | pal_cas_c16x) : (ntsc_cas_d4x_p | ntsc_cas_d4x_n | ntsc_cas_c16x);
-assign ras_o = chip[0] ? (pal_ras_d4x | pal_ras_c16x) : (ntsc_ras_d4x | ntsc_ras_c16x);
-
-// This goes to the registers module and is only driven by dot4x. I *think* this prevents
-// some warnings about missing timing arcs.
-assign ras_i = chip[0] ? pal_ras_d4x : ntsc_ras_d4x;
+assign cas = chip[0] ? (pal_cas_d4x_p | pal_cas_d4x_n) : (ntsc_cas_d4x_p | ntsc_cas_d4x_n);
+assign ras = chip[0] ? (pal_ras_d4x) : (ntsc_ras_d4x);
 
 endmodule
