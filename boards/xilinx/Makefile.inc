@@ -3,11 +3,11 @@ all: program
 # This is the build that gets booted unless there's
 # a fallback situation.
 MULTIBOOT_MAJOR=1
-MULTIBOOT_MINOR=13
+MULTIBOOT_MINOR=14
 
 # This is the golden master stable fallback image.
 GOLDEN_MAJOR=1
-GOLDEN_MINOR=14
+GOLDEN_MINOR=13
 
 # Use this makefile to create a multiboot image.
 #
