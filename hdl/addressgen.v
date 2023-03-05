@@ -56,22 +56,26 @@
 // CAS falls because it is delayed to RAM.)
 
 // PAL CAS/RAS rise/fall times based on PAL dot4x clock
-`define PAL_RAS_RISE 0
-`define PAL_CAS_RISE_P 0
-`define PAL_CAS_RISE_N 1
-`define PAL_RAS_FALL 4
+`define PAL_RAS_RISE_P 15
+`define PAL_RAS_RISE_N 15
+`define PAL_CAS_RISE_P 15
+`define PAL_CAS_RISE_N 15
+`define PAL_RAS_FALL_P 3
+`define PAL_RAS_FALL_N 3
 `define PAL_MUX_COL 5
-`define PAL_CAS_FALL_P 6
-`define PAL_CAS_FALL_N 7
+`define PAL_CAS_FALL_P 5
+`define PAL_CAS_FALL_N 6
 
 // NTSC CAS/RAS rise/fall times based on NTSC dot4x clock
-`define NTSC_RAS_RISE 0
-`define NTSC_CAS_RISE_P 0
-`define NTSC_CAS_RISE_N 1
-`define NTSC_RAS_FALL 4
+`define NTSC_RAS_RISE_P 15
+`define NTSC_RAS_RISE_N 15
+`define NTSC_CAS_RISE_P 15
+`define NTSC_CAS_RISE_N 15
+`define NTSC_RAS_FALL_P 3
+`define NTSC_RAS_FALL_N 3
 `define NTSC_MUX_COL 5
-`define NTSC_CAS_FALL_P 6
-`define NTSC_CAS_FALL_N 7
+`define NTSC_CAS_FALL_P 5
+`define NTSC_CAS_FALL_N 6
 
 // Other:
 // NOTE: CAS_GLITCH [9] has worked the best for emulamer demos. Works well on
@@ -110,8 +114,8 @@ module addressgen(
            input [47:0] sprite_mc_o,
            input [15:0] phi_phase_start,
            output reg [11:0] ado,
-           output ras,
-           output cas
+           output reg ras,
+           output reg cas
        );
 
 // Destinations for flattened inputs that need to be sliced back into an array
@@ -243,28 +247,30 @@ end
 
 reg pal_cas_d4x_p;
 reg pal_cas_d4x_n;
-reg pal_ras_d4x;
+reg pal_ras_d4x_p;
+reg pal_ras_d4x_n;
 reg ntsc_cas_d4x_p;
 reg ntsc_cas_d4x_n;
-reg ntsc_ras_d4x;
+reg ntsc_ras_d4x_p;
+reg ntsc_ras_d4x_n;
 
 // Use dot4x and handle CAS/RAS rise/fall points.
 always @(posedge clk_dot4x)
 begin
-       if (phi_phase_start[`PAL_RAS_RISE])
-           pal_ras_d4x <= 1'b1;
-       else if (phi_phase_start[`PAL_RAS_FALL])
-           pal_ras_d4x <= 1'b0;
+       if (phi_phase_start[`PAL_RAS_RISE_P])
+           pal_ras_d4x_p <= 1'b1;
+       else if (phi_phase_start[`PAL_RAS_FALL_P])
+           pal_ras_d4x_p <= 1'b0;
 
        if (phi_phase_start[`PAL_CAS_RISE_P])
            pal_cas_d4x_p <= 1'b1;
        else if (phi_phase_start[`PAL_CAS_FALL_P])
            pal_cas_d4x_p <= 1'b0;
 
-       if (phi_phase_start[`NTSC_RAS_RISE])
-           ntsc_ras_d4x <= 1'b1;
-       else if (phi_phase_start[`NTSC_RAS_FALL])
-           ntsc_ras_d4x <= 1'b0;
+       if (phi_phase_start[`NTSC_RAS_RISE_P])
+           ntsc_ras_d4x_p <= 1'b1;
+       else if (phi_phase_start[`NTSC_RAS_FALL_P])
+           ntsc_ras_d4x_p <= 1'b0;
 
        if (phi_phase_start[`NTSC_CAS_RISE_P])
            ntsc_cas_d4x_p <= 1'b1;
@@ -274,6 +280,16 @@ end
 
 always @(negedge clk_dot4x)
 begin
+    if (phi_phase_start[`NTSC_RAS_RISE_N])
+        ntsc_ras_d4x_n <= 1'b1;
+    else if (phi_phase_start[`NTSC_RAS_FALL_N])
+        ntsc_ras_d4x_n <= 1'b0;
+
+    if (phi_phase_start[`PAL_RAS_RISE_N])
+        pal_ras_d4x_n <= 1'b1;
+    else if (phi_phase_start[`PAL_RAS_FALL_N])
+        pal_ras_d4x_n <= 1'b0;
+
     if (phi_phase_start[`NTSC_CAS_RISE_N])
         ntsc_cas_d4x_n <= 1'b1;
     else if (phi_phase_start[`NTSC_CAS_FALL_N])
@@ -285,7 +301,10 @@ begin
         pal_cas_d4x_n <= 1'b0;
 end
 
-assign cas = chip[0] ? (pal_cas_d4x_p | pal_cas_d4x_n) : (ntsc_cas_d4x_p | ntsc_cas_d4x_n);
-assign ras = chip[0] ? (pal_ras_d4x) : (ntsc_ras_d4x);
+always @(posedge clk_dot4x)
+begin
+   cas <= chip[0] ? (pal_cas_d4x_p | pal_cas_d4x_n) : (ntsc_cas_d4x_p | ntsc_cas_d4x_n);
+   ras <= chip[0] ? (pal_ras_d4x_p | pal_ras_d4x_n) : (ntsc_ras_d4x_p | ntsc_ras_d4x_n);
+end
 
 endmodule
