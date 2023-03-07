@@ -97,9 +97,6 @@ module top(
 // TODO - export dot clock for RGB header
 assign clk_dot4x_ext = 1'b0;
 
-`define DOT_CLOCK_4X clk_dot4x
-`define COL_CLOCK_16X clk_col16x
-
 wire rst;
 `ifdef OUTPUT_DOT_CLOCK
 // NOTE: This hack will only work breadbins that use
@@ -109,7 +106,7 @@ wire rst;
 // The unit with this hack should NEVER be plugged into a
 // motherboard without the clock circuit being disabled.
 reg[3:0] dot_clock_shift = 4'b1100;
-always @(posedge `DOT_CLOCK_4X) dot_clock_shift <= {dot_clock_shift[2:0], dot_clock_shift[3]};
+always @(posedge clk_dot4x) dot_clock_shift <= {dot_clock_shift[2:0], dot_clock_shift[3]};
 assign cpu_reset = dot_clock_shift[3];
 `else
 assign cpu_reset = rst;
@@ -135,6 +132,13 @@ EFX_GBUFCE mux2(
     .CE(1'b1),
     .I(color_sel ? clk_col16x_pal : clk_col16x_ntsc),
     .O(clk_col16x)
+    );
+
+wire clk_col16x_4tm;
+EFX_GBUFCE mux2b(
+    .CE(1'b1),
+    .I(chip[0] ? clk_col16x_pal : clk_col16x_ntsc),
+    .O(clk_col16x_4tm)
     );
 
 (* syn_preserve = "true" *) reg ntsc_dot;// throw away signal for mux hack
@@ -206,7 +210,7 @@ vicii vic_inst(
           .spi_c(spi_c),
 `endif
 `endif // WITH_EXTENSIONS
-          .clk_dot4x(`DOT_CLOCK_4X),
+          .clk_dot4x(clk_dot4x),
           .clk_phi(clk_phi),
 `ifdef NEED_RGB
           .active(active),
@@ -216,7 +220,8 @@ vicii vic_inst(
           .green(green),
           .blue(blue),
 `endif
-          .clk_col16x(`COL_CLOCK_16X),
+          .clk_col16x(clk_col16x),
+          .clk_col16x_4tm(clk_col16x_4tm),
 `ifdef GEN_LUMA_CHROMA
           .luma_sink(luma_sink),
           .luma(luma),

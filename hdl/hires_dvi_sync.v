@@ -320,7 +320,6 @@ begin
             if (raster_x == 0)
                 active_buf = ~active_buf;
         end
-
     end
 end
 

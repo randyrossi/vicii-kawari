@@ -23,7 +23,7 @@
         <efx:design_file name="../../hdl/serration.v" version="default" library="default"/>
         <efx:design_file name="../../hdl/equalization.v" version="default" library="default"/>
         <efx:design_file name="../../hdl/pixel_sequencer.v" version="default" library="default"/>
-        <efx:design_file name="../../hdl/addressgen.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/addressgen_efinix.v" version="default" library="default"/>
         <efx:design_file name="../../hdl/rev_4G/top.v" version="default" library="default"/>
         <efx:design_file name="../../hdl/hires_pixel_sequencer.v" version="default" library="default"/>
         <efx:design_file name="../../hdl/hires_addressgen.v" version="default" library="default"/>

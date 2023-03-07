@@ -85,19 +85,12 @@ module serializer
     reg [9:0] tmds_shift_clk_pixel = 10'b0000011111;
     always @(posedge clk_pixel_x10)
         tmds_shift_clk_pixel <= 
-           load ? 10'b0000011111 :
-              {tmds_shift_clk_pixel[0], tmds_shift_clk_pixel[9:1]};
+           load ? 10'b0000011111 : tmds_shift_clk_pixel >> 1;
+              //{tmds_shift_clk_pixel[0], tmds_shift_clk_pixel[9:1]};
 
     // Final output for both data and clock signals.
-    always @(posedge clk_pixel_x10)
-    begin
-       tmds[0] <= tmds_shift0[0];
-       tmds[1] <= tmds_shift1[0];
-       tmds[2] <= tmds_shift2[0];
-    end
-
-    always @(posedge clk_pixel_x10)
-    begin
-        tmds_clock <= tmds_shift_clk_pixel[0];
-    end
+    always @(posedge clk_pixel_x10) tmds[0] <= tmds_shift0[0];
+    always @(posedge clk_pixel_x10) tmds[1] <= tmds_shift1[0];
+    always @(posedge clk_pixel_x10) tmds[2] <= tmds_shift2[0];
+    always @(posedge clk_pixel_x10) tmds_clock <= tmds_shift_clk_pixel[0];
 endmodule

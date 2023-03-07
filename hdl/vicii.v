@@ -57,6 +57,9 @@ module vicii
 `endif
            output clk_phi,
            input clk_col16x,
+`ifdef EFINIX
+           input clk_col16x_4tm,
+`endif
 `ifdef GEN_LUMA_CHROMA
 `ifndef REV_3_BOARD
            output luma_sink,
@@ -844,6 +847,9 @@ addressgen vic_addressgen(
                .chip(chip),
                .cycle_type(cycle_type),
                .clk_dot4x(clk_dot4x),
+`ifdef EFINIX
+               .clk_col16x(clk_col16x_4tm),
+`endif
                .cb(cb),
 `ifdef WITH_RAM
                .dma_done(dma_done),

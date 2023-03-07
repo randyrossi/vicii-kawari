@@ -57,24 +57,24 @@
 
 // PAL CAS/RAS rise/fall times based on PAL dot4x clock
 `define PAL_RAS_RISE_P 15
-`define PAL_RAS_RISE_N 15
+`define PAL_RAS_RISE_N 0
 `define PAL_CAS_RISE_P 15
-`define PAL_CAS_RISE_N 15
+`define PAL_CAS_RISE_N 0
 `define PAL_RAS_FALL_P 3
-`define PAL_RAS_FALL_N 3
+`define PAL_RAS_FALL_N 4
 `define PAL_MUX_COL 5
-`define PAL_CAS_FALL_P 5
-`define PAL_CAS_FALL_N 6
+`define PAL_CAS_FALL_P 6
+`define PAL_CAS_FALL_N 7
 
 // NTSC CAS/RAS rise/fall times based on NTSC dot4x clock
 `define NTSC_RAS_RISE_P 15
-`define NTSC_RAS_RISE_N 15
+`define NTSC_RAS_RISE_N 0
 `define NTSC_CAS_RISE_P 15
-`define NTSC_CAS_RISE_N 15
-`define NTSC_RAS_FALL_P 3
-`define NTSC_RAS_FALL_N 3
-`define NTSC_MUX_COL 5
-`define NTSC_CAS_FALL_P 5
+`define NTSC_CAS_RISE_N 0
+`define NTSC_RAS_FALL_P 4
+`define NTSC_RAS_FALL_N 5
+`define NTSC_MUX_COL 6
+`define NTSC_CAS_FALL_P 7
 `define NTSC_CAS_FALL_N 6
 
 // Other:
@@ -114,8 +114,8 @@ module addressgen(
            input [47:0] sprite_mc_o,
            input [15:0] phi_phase_start,
            output reg [11:0] ado,
-           output reg ras,
-           output reg cas
+           output ras,
+           output cas
        );
 
 // Destinations for flattened inputs that need to be sliced back into an array
@@ -301,10 +301,7 @@ begin
         pal_cas_d4x_n <= 1'b0;
 end
 
-always @(posedge clk_dot4x)
-begin
-   cas <= chip[0] ? (pal_cas_d4x_p | pal_cas_d4x_n) : (ntsc_cas_d4x_p | ntsc_cas_d4x_n);
-   ras <= chip[0] ? (pal_ras_d4x_p | pal_ras_d4x_n) : (ntsc_ras_d4x_p | ntsc_ras_d4x_n);
-end
+assign cas = chip[0] ? (pal_cas_d4x_p | pal_cas_d4x_n) : (ntsc_cas_d4x_p | ntsc_cas_d4x_n);
+assign ras = chip[0] ? (pal_ras_d4x_p | pal_ras_d4x_n) : (ntsc_ras_d4x_p | ntsc_ras_d4x_n);
 
 endmodule
