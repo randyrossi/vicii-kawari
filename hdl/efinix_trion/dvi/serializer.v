@@ -49,9 +49,12 @@ module serializer
     // positive edge of the slow clock.  The tmds_control flag
     // toggles each posedge and we will detect transitions on
     // the fast clock to signal load.
-    reg[9:0] tmds_control = 10'b0000000001;
+    reg[9:0] tmds_control;
     always @(posedge clk_pixel_x10)
-        tmds_control <= { tmds_control[0], tmds_control[9:1] };
+      if (reset)
+         tmds_control <= 10'b0000000001;
+      else
+         tmds_control <= { tmds_control[0], tmds_control[9:1] };
 
     // Trigger load signal when we see a transition on the shift register.
     // This will latch the data from tmds_internal just as we shift
@@ -82,11 +85,15 @@ module serializer
     end
 
     // This is a fast clock generator signal
-    reg [9:0] tmds_shift_clk_pixel = 10'b0000011111;
-    always @(posedge clk_pixel_x10)
-        tmds_shift_clk_pixel <= 
-           load ? 10'b0000011111 : tmds_shift_clk_pixel >> 1;
-              //{tmds_shift_clk_pixel[0], tmds_shift_clk_pixel[9:1]};
+    //reg [9:0] tmds_shift_clk_pixel;
+    reg [9:0] tmds_shift_clk_pixel;
+    always @(posedge clk_pixel_x10) begin
+       if (reset)
+          tmds_shift_clk_pixel <= 10'b0000011111;
+       else
+          tmds_shift_clk_pixel <= 
+              load ? 10'b0000011111 : tmds_shift_clk_pixel >> 1;
+    end
 
     // Final output for both data and clock signals.
     always @(posedge clk_pixel_x10) tmds[0] <= tmds_shift0[0];

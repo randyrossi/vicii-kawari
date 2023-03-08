@@ -330,7 +330,7 @@ assign ls245_data_oe = 1'b0;
 dvi dvi_tx0 (
    .clk_pixel    (clk_dvi),
    .clk_pixel_x10(clk_dvi_x10),
-   .reset        (1'b0),
+   .reset        (rst),
    .rgb          ({red, 2'b0, green, 2'b0, blue, 2'b0}),
    .hsync        (hsync),
    .vsync        (vsync),

@@ -163,6 +163,9 @@ vicii vic_inst(
 `endif
           .clk_phi(clk_phi),
           .clk_col16x(clk_col16x),
+`ifdef EFINIX
+          .clk_col16x_4tm(clk_col16x),
+`endif
 `ifdef NEED_RGB
           .active(active),
           .hsync(hsync),
@@ -247,7 +250,7 @@ end
 dvi dvi_tx0 (
    .clk_pixel    (c2),
    .clk_pixel_x10(c1),
-   .reset        (1'b0),
+   .reset        (rst),
    .rgb          ({red_scaled[7:0], green_scaled[7:0], blue_scaled[7:0]}),
    .hsync        (hsync),
    .vsync        (vsync),

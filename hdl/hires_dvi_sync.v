@@ -342,8 +342,8 @@ task set_params();
 		// really active end and va_end is really active start.
                 ha_end=11'd494;  // start   494
                 hs_sta=11'd0;  // fporch  10
-                hs_end=11'd70;  // sync  60
-                ha_sta=11'd90;  // bporch  20
+                hs_end=11'd64;  // sync  64
+                ha_sta=11'd80;  // bporch  16
                 va_end=10'd20;  // INVERTED above so actually va_sta
                 va_sta=10'd284;  // INVERTED above so actually va_end
                 vs_sta=10'd289;  // fporch   5
@@ -351,7 +351,7 @@ task set_params();
 		                 // bporch 40 takes us to 311 + 20
                 max_height <= is_native_y ? 10'd311 : 10'd623;
                 max_width <= 11'd944;
-                x_offset <= 11'd32;
+                x_offset <= 11'd40;
             end
             `CHIP6567R8: begin
                 // WIDTH 520  HEIGHT 263
