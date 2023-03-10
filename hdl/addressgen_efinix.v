@@ -262,11 +262,19 @@ always @(posedge clk_col16x)
 begin
     if (rst) begin
        pal_sr <= 36'b000000000000000000000000000001000000;
+    end
+    else begin
+       pal_sr <= {pal_sr[34:0], pal_sr[35]};
+    end
+end
+
+always @(posedge clk_col16x)
+begin
+    if (rst) begin
        ntsc_sr <= 28'b0000000000000000000000100000;
     end
     else begin
-       pal_sr <= pal_sr << 1; //{pal_sr[34:0], pal_sr[35]};
-       ntsc_sr <= ntsc_sr << 1; //{ntsc_sr[26:0], ntsc_sr[27]};
+       ntsc_sr <= {ntsc_sr[26:0], ntsc_sr[27]};
     end
 end
 
