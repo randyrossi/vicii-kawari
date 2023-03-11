@@ -914,7 +914,6 @@ wire show_raster_lines;
 wire enable_csync;
 wire hpolarity;
 wire vpolarity;
-wire ractive;
 `endif
 
 `ifdef GEN_LUMA_CHROMA
@@ -1024,14 +1023,14 @@ registers vic_registers(
               .emmc(emmc),
               .embc(embc),
               .erst(erst),
-              // 'ractive' is not active for a pin, it is used to set RGB to 0
+              // 'active' is not active for a pin, it is used to set RGB to 0
               // during blanking intervals and we need it to line up with
               // the active period for whatever video standard we are
               // producing
               .pixel_color3(pixel_color3), // always native
 `ifdef NEED_RGB
               .pixel_color4(pixel_color4_vga), // from scan doubler
-              .active(ractive),
+              .active(active),
               .half_bright(is_native_y ? 1'b0 :
                            (show_raster_lines & half_bright)),
               .red(red), // out
@@ -1334,7 +1333,6 @@ hires_dvi_sync vic_dvi_sync(
                    .hsync(hsync),
                    .vsync(vsync),
                    .active(active),
-                   .ractive(ractive),
                    .pixel_color4(pixel_color4_vga),
                    .half_bright(half_bright)
                );
@@ -1386,7 +1384,6 @@ hires_vga_sync vic_vga_sync(
                    .hsync(hsync),
                    .vsync(vsync),
                    .active(active),
-                   .ractive(ractive),
                    .pixel_color4(pixel_color4_vga),
                    .half_bright(half_bright)
                );

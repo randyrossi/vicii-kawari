@@ -117,10 +117,9 @@ endmodule
         input [10:0] hires_raster_x,
 `endif
         input [3:0] pixel_color3,
-        output wire hsync,             // horizontal sync
-        output wire vsync,             // vertical sync
-        output wire active,
-        output wire ractive,
+        output reg hsync,             // horizontal sync
+        output reg vsync,             // vertical sync
+        output reg active,
         output reg [3:0] pixel_color4,
         output reg half_bright
     );
@@ -138,7 +137,9 @@ reg [9:0] vs_end; // compared against vcount which can be 2y
 reg [9:0] va_sta; // compared against vcount which can be 2y
 reg [9:0] va_end; // compared against vcount which can be 2y
 
+`ifdef CONFIGURABLE_TIMING
 reg timing_change;
+`endif
 reg is_native_x;
 reg is_native_y;
 reg [10:0] h_count;  // output x position
@@ -167,38 +168,22 @@ assign vsync_int = vpolarity ? vsync_ah : ~vsync_ah;
 assign csync_int = hpolarity ? csync_ah : ~csync_ah;
 
 // Assign hsync/vsync or combine to csync if needed
-assign hsync = enable_csync ? csync_int : hsync_int;
-assign vsync = enable_csync ? 1'b0 : vsync_int;
+always @ (posedge clk_dvi)
+begin
+   hsync <= enable_csync ? csync_int : hsync_int;
+   vsync <= enable_csync ? 1'b0 : vsync_int;
+end
 
 // active: high during active pixel drawing
-// Find the union within the range vae<->vas and hae<->has and negate it.
-//
-//            ae as
-//             |  |
-// xxxxxxxxxxxxx  xxx
-// xxxxxxxxxxxxx  xxx
-// xxxxxxxxxxxxx  xxx
-// xxxxxxxxxxxxx  xxx
-// xxxxxxxxxxxxx  xxx
-// xxxxxxxxxxxxx  xxx
-// xxxxxxxxxxxxx  xxx-ae
-//
-// xxxxxxxxxxxxx  xxx-as
-// xxxxxxxxxxxxx  xxx
-// Same logic as above for h/v sync except for active ranges.  Also need
-// to treat first and last active lines special so we don't start active
-// too soon or end it too early when ha_end > 0
-// For PAL, we have to invert the range because the blanking region crosses
-// 0. (See va_sta and va_end for PAL)
 wire vactive;
 wire hactive;
 assign vactive = (v_count <= va_end || v_count >= va_sta);
-assign hactive = (h_count <= ha_end && h_count > ha_sta);
+assign hactive = (h_count <= ha_end && h_count >= ha_sta);
 
-// NOTE: For PAL, we invert the vactive because the blanking region crosses
-// 0. So consider va_sta and va_end as opposites of their names.
-assign active = (chip[0] ? ~vactive : vactive) & hactive;
-assign ractive = active;
+always @ (posedge clk_dvi)
+begin
+   active <= vactive & hactive;
+end
 
 // These conditions determine whether we advance our h/v counts
 // based whether we are doubling X/Y resolutions or not.  See
@@ -245,7 +230,7 @@ begin
             end
         end
         if (raster_x == 0 && raster_y == 0) begin
-            v_count <= max_height;
+            //v_count <= max_height;
 
             if (is_native_x_in != is_native_x || is_native_y_in != is_native_y
 `ifdef CONFIGURABLE_TIMING
@@ -337,18 +322,14 @@ task set_params();
         case (chip)
             `CHIP6569R1, `CHIP6569R3: begin
                 // WIDTH 504  HEIGHT 312
-                // NOTE: For PAL, we invert the range va_sta and va_end
-		// because the blanking region crosses 0.  So va_sta is
-		// really active end and va_end is really active start.
                 ha_end=11'd494;  // start   494
                 hs_sta=11'd0;  // fporch  10
                 hs_end=11'd64;  // sync  64
                 ha_sta=11'd80;  // bporch  16
-                va_end=10'd20;  // INVERTED above so actually va_sta
-                va_sta=10'd284;  // INVERTED above so actually va_end
-                vs_sta=10'd289;  // fporch   5
-                vs_end=10'd291;  // sync   2
-		                 // bporch 40 takes us to 311 + 20
+                va_end=10'd300;  // start 300
+                vs_sta=10'd301;  // fporch   1
+                vs_end=10'd309;  // sync   8
+                va_sta=10'd310;  // bporch   1
                 max_height <= is_native_y ? 10'd311 : 10'd623;
                 max_width <= 11'd944;
                 x_offset <= 11'd40;
@@ -359,10 +340,10 @@ task set_params();
                 hs_sta=11'd6;  // fporch  16
                 hs_end=11'd38;  // sync 32
                 ha_sta=11'd44;  // bporch  16
-                va_end=10'd11;  // start  11
-                vs_sta=10'd19;  // fporch   8
-                vs_end=10'd21;  // sync   2
-                va_sta=10'd24;  // bporch   3
+                va_end=10'd13;  // start  13
+                vs_sta=10'd14;  // fporch   1
+                vs_end=10'd22;  // sync   8
+                va_sta=10'd23;  // bporch   1
                 max_height <= is_native_y ? 10'd262 : 10'd525;
                 max_width <= 11'd844;
                 x_offset <= 11'd130;
@@ -373,10 +354,10 @@ task set_params();
                 hs_sta=11'd6;  // fporch  16
                 hs_end=11'd38;  // sync  32
                 ha_sta=11'd44;  // bporch  16
-                va_end=10'd11;  // start  11
-                vs_sta=10'd19;  // fporch   8
-                vs_end=10'd21;  // sync   2
-                va_sta=10'd24;  // bporch   3
+                va_end=10'd13;  // start  13
+                vs_sta=10'd14;  // fporch   1
+                vs_end=10'd22;  // sync   8
+                va_sta=10'd23;  // bporch   1
                 max_height <= is_native_y ? 10'd261 : 10'd523;
                 max_width <= 11'd831;
                 x_offset <= 11'd130;
@@ -410,13 +391,10 @@ task set_params_configurable();
                 ha_sta = hs_end + {3'b000, timing_h_bporch_pal};
                 if (ha_sta >= 11'd504) ha_sta = ha_sta - 11'd504;
                 // WIDTH 504
-                // NOTE: For PAL, we invert the range va_sta and va_end
-		// because the blanking region crosses 0.  So va_sta is
-		// really active end and va_end is really active start.
-                va_sta = {2'b01, timing_v_blank_pal}; // starts at 256
-                vs_sta = va_sta + {2'b00, timing_v_fporch_pal};
+                va_end = {2'b01, timing_v_blank_pal}; // starts at 256
+                vs_sta = va_end + {2'b00, timing_v_fporch_pal};
                 vs_end = vs_sta + {2'b00, timing_v_sync_pal};
-                va_end = vs_end + {2'b00, timing_v_bporch_pal} - 10'd311;
+                va_sta = vs_end + {2'b00, timing_v_bporch_pal};
                 // HEIGHT 312
                 max_height <= is_native_y ? 10'd311 : 10'd623;
                 max_width <= 11'd944;
