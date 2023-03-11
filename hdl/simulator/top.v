@@ -32,6 +32,7 @@ module top(
 `ifdef HIRES_RESET
            input cpu_reset_i,
 `endif
+           input[1:0] sim_chip, // only used by sim to pass in cmd line chip
            input standard_sw,   // video standard toggle switch
            output clk_phi,      // output phi clock for CPU
            output clk_dot4x,    // pixel clock
@@ -154,6 +155,7 @@ vicii vic_inst(
 `ifdef HIRES_RESET
           .cpu_reset_i(cpu_reset_i),
 `endif
+          .sim_chip(sim_chip),
           .standard_sw(standard_sw),
           .clk_dot4x(clk_dot4x),
 `ifdef EFINIX

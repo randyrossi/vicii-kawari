@@ -701,7 +701,7 @@ Bit 4        | Enable CSYNC on HSYNC pin (VSYNC held low)
 Bit 5        | RGB VSync Polarity (0=active low, 1=active high)
 Bit 6        | RGB HSync Polarity (0=active low, 1=active high)
 Bit 7        | External switch state (0=not inverting saved chip, 1=inverting saved chip)
-Bit 8        | Reserved
+Bit 8        | Enable/disable max luma on first pixel for each rasterline (composite out only)
 
 * Double x resolution is required for 80 column mode or any hires mode.
 * If CSYNC is enabled, polarity is controlled by HSync Polarity

@@ -28,6 +28,9 @@ module registers
 `ifdef HIRES_RESET
            input cpu_reset_i,
 `endif
+`ifdef SIMULATOR_BOARD
+           input[1:0] sim_chip,
+`endif
            input standard_sw,
            input clk_dot4x,
            input clk_dvi,
@@ -499,7 +502,7 @@ begin
         den <= `TRUE;
 `endif
 `ifdef HAVE_FLASH
-        flash_busy <= 1'b0;
+        //flash_busy <= 1'b0;
 `endif
         //ec <= `BLACK;
         //b0c <= `BLACK;
@@ -542,12 +545,12 @@ begin
         //handle_sprite_crunch <= `FALSE;
 
 `ifdef NEED_RGB
-        last_raster_lines <= 1'b0;
-        last_is_native_y <= 1'b0;
-        last_is_native_x <= 1'b0;
-        last_enable_csync <= 1'b0;
-        last_hpolarity <= 1'b0;
-        last_vpolarity <= 1'b0;
+        //last_raster_lines <= 1'b0;
+        //last_is_native_y <= 1'b0;
+        //last_is_native_x <= 1'b0;
+        //last_enable_csync <= 1'b0;
+        //last_hpolarity <= 1'b0;
+        //last_vpolarity <= 1'b0;
 `endif
 
 `ifdef WITH_EXTENSIONS
@@ -588,12 +591,12 @@ begin
         timing_v_bporch_pal <= 40; // NOTE: crosses 0, we sub 311 and invert sta/end
 `endif
 
-        extra_regs_activation_ctr <= 2'b0;
+        //extra_regs_activation_ctr <= 2'b0;
 
-        flag_port_1_func <= 2'b0;
-        flag_port_2_func <= 2'b0;
-        flag_regs_overlay <= 1'b0;
-        flag_persist <= 1'b0;
+        //flag_port_1_func <= 2'b0;
+        //flag_port_2_func <= 2'b0;
+        //flag_regs_overlay <= 1'b0;
+        //flag_persist <= 1'b0;
 
 `ifdef SIMULATOR_BOARD
         extra_regs_activated <= 1'b1;
@@ -684,16 +687,16 @@ begin
         */
 
 `else // SIMULATION_BOARD
-        extra_regs_activated <= 1'b0;
+        //extra_regs_activated <= 1'b0;
 `ifdef HIRES_MODES
-        hires_mode <= 3'b000;
-        hires_enabled <= 1'b0;
-        hires_allow_bad <= 1'b0;
-        hires_char_pixel_base <= 3'b0;
-        hires_matrix_base <= 4'b0000; // ignored
-        hires_color_base <= 4'b0000; // ignored
-        hires_cursor_hi <= 8'b0;
-        hires_cursor_lo <= 8'b0;
+        //hires_mode <= 3'b000;
+        //hires_enabled <= 1'b0;
+        //hires_allow_bad <= 1'b0;
+        //hires_char_pixel_base <= 3'b0;
+        //hires_matrix_base <= 4'b0000; // ignored
+        //hires_color_base <= 4'b0000; // ignored
+        //hires_cursor_hi <= 8'b0;
+        //hires_cursor_lo <= 8'b0;
 `endif // HIRES_MODES
 
 `endif // SIMULATOR_BOARD

@@ -856,7 +856,11 @@ int main(int argc, char** argv, char** env) {
     top->cpu_reset_i = 1;
 #endif
     
+#if HAVE_EEPROM
+    top->sim_chip = chip;
+#else
     top->V_CHIP = chip;
+#endif
 
     int cnt = 0;
     while (top->V_RST) {
@@ -896,12 +900,15 @@ int main(int argc, char** argv, char** env) {
     top->V_CB = 2; //  010
     top->V_YSCROLL = 3; //  011
 #ifdef NEED_RGB
-    // Set the simulator to use the scan doubler but
-    // we are hard wired to do 2x and 1y. Any other
+    // NOTE: We are hard wired to do 2x and 1y. Any other
     // configuration will require some work to the
-    // way rendering is done.
+    // way rendering is done. If we have registers_eeprom, let
+    // that module set is_native_y as if it came from a the
+    // eeprom. Otherwise, just force it here.
+#ifndef HAVE_EEPROM
     top->top__DOT__vic_inst__DOT__is_native_y = 1;
     top->top__DOT__vic_inst__DOT__is_native_x = 0;
+#endif
 #else
     // NO RGB? We will fallback to native res and we will use
     // the color index coming out of the pixel sequencer

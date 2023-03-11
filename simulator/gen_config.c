@@ -20,6 +20,8 @@
 #define FOR_CONFIG 0
 #define FOR_COMPILE 1
 
+int is_efinix = 0;
+
 struct _Define {
    int id;
    int defined_for_config;
@@ -113,7 +115,7 @@ void with_math(int d) { printcfg(d, WITH_MATH); with_ext(d); }
 // NOTE: Blitter only works with 64k a.t.m.
 // TODO: Fix this and also math reg requirement.
 void with_blitter(int d) { printcfg(d, WITH_BLITTER); hires_modes(d); with_64k(d); with_math(d);}
-void efinix(int d) { printcfg(d, EFINIX); }
+void efinix(int d) { printcfg(d, EFINIX); is_efinix = 1;}
 
 int main(int argc, char* argv[]) {
 
@@ -216,5 +218,13 @@ int main(int argc, char* argv[]) {
 		    break;
 
     }
+
+    // Can't think of a batter way to do this.
+    if (is_efinix) {
+        system("cp ../hdl/addressgen_efinix.v ../hdl/addressgen.v");
+    } else {
+        system("cp ../hdl/addressgen_spartan.v ../hdl/addressgen.v");
+    }
+
     return 0;
 }

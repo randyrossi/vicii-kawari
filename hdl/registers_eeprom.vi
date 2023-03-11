@@ -112,8 +112,7 @@ task handle_persist(input is_reset);
                             // We just cycled once through all 256 registers
                             eeprom_warm_up_cycle <= 1'b0;
                             state_ctr <= 15'd0;
-                        end
-                        else if (is_reset) begin
+                        end else if (is_reset) begin
                             $display("rst <= 0, chip restored");
                             // First pass was to set chip during reset
                             rst <= 0; // out of reset
@@ -160,8 +159,124 @@ task handle_persist(input is_reset);
                             // 25-32 : 8 bit value read
                             if (state_val >= 1 && state_val <= 32)
                                 delayed_c <= 0;
+`ifdef SIMULATOR_BOARD
+// Simulate reading data from eeprom. This simulates reading sane
+// data from the eeprom.  Not to be included in real builds.
+else if (state_val == 33) begin
+    case (addr_lo)
+       `EXT_REG_MAGIC_0: data <= 8'd86;
+       `EXT_REG_MAGIC_1: data <= 8'd73;
+       `EXT_REG_MAGIC_2: data <= 8'd67;
+       `EXT_REG_MAGIC_3: data <= 8'd50;
+       `EXT_REG_DISPLAY_FLAGS: data <= 8'd130; // white_line + native_y
+       `EXT_REG_EEPROM_BANK: data <= 8'd0;
+       `EXT_REG_DISPLAY_FLAGS2: data <= 8'd0;
+       `EXT_REG_CFG_VERSION: data <= 8'hfe;
+       `EXT_REG_CHIP_MODEL: data <= { 6'b0, sim_chip};
+       `EXT_REG_BLANKING: data <= 8'h15;
+       `EXT_REG_BURSTAMP: data <= 8'h0a;
+        8'd64: data <= 8'd0;
+        8'd65: data <= 8'd0;
+        8'd66: data <= 8'd0;
+        8'd68: data <= 8'd63;
+        8'd69: data <= 8'd63;
+        8'd70: data <= 8'd63;
+        8'd72: data <= 8'd43;
+        8'd73: data <= 8'd10;
+        8'd74: data <= 8'd10;
+        8'd76: data <= 8'd24;
+        8'd77: data <= 8'd54;
+        8'd78: data <= 8'd51;
+        8'd80: data <= 8'd44;
+        8'd81: data <= 8'd15;
+        8'd82: data <= 8'd45;
+        8'd84: data <= 8'd18;
+        8'd85: data <= 8'd49;
+        8'd86: data <= 8'd18;
+        8'd88: data <= 8'd13;
+        8'd89: data <= 8'd14;
+        8'd90: data <= 8'd49;
+        8'd92: data <= 8'd57;
+        8'd93: data <= 8'd59;
+        8'd94: data <= 8'd19;
+        8'd96: data <= 8'd45;
+        8'd97: data <= 8'd22;
+        8'd98: data <= 8'd7;
+        8'd100: data <= 8'd26;
+        8'd101: data <= 8'd14;
+        8'd102: data <= 8'd2;
+        8'd104: data <= 8'd58;
+        8'd105: data <= 8'd29;
+        8'd106: data <= 8'd27;
+        8'd108: data <= 8'd19;
+        8'd109: data <= 8'd19;
+        8'd110: data <= 8'd19;
+        8'd112: data <= 8'd33;
+        8'd113: data <= 8'd33;
+        8'd114: data <= 8'd33;
+        8'd116: data <= 8'd41;
+        8'd117: data <= 8'd62;
+        8'd118: data <= 8'd39;
+        8'd120: data <= 8'd28;
+        8'd121: data <= 8'd31;
+        8'd122: data <= 8'd57;
+        8'd124: data <= 8'd45;
+        8'd125: data <= 8'd45;
+        8'd126: data <= 8'd45;
+        8'd160: data <= 8'd12;
+        8'd161: data <= 8'd63;
+        8'd162: data <= 8'd24;
+        8'd163: data <= 8'd42;
+        8'd164: data <= 8'd27;
+        8'd165: data <= 8'd35;
+        8'd166: data <= 8'd21;
+        8'd167: data <= 8'd50;
+        8'd168: data <= 8'd27;
+        8'd169: data <= 8'd21;
+        8'd170: data <= 8'd35;
+        8'd171: data <= 8'd24;
+        8'd172: data <= 8'd33;
+        8'd173: data <= 8'd50;
+        8'd174: data <= 8'd33;
+        8'd175: data <= 8'd42;
+        8'd176: data <= 8'h00;
+        8'd177: data <= 8'h00;
+        8'd178: data <= 8'h50;
+        8'd179: data <= 8'hd0;
+        8'd180: data <= 8'h26;
+        8'd181: data <= 8'ha0;
+        8'd182: data <= 8'hf1;
+        8'd183: data <= 8'h78;
+        8'd184: data <= 8'h5b;
+        8'd185: data <= 8'h6c;
+        8'd186: data <= 8'h50;
+        8'd187: data <= 8'h00;
+        8'd188: data <= 8'h00;
+        8'd189: data <= 8'ha8;
+        8'd190: data <= 8'hf1;
+        8'd191: data <= 8'h00;
+        8'd192: data <= 8'h00;
+        8'd193: data <= 8'h00;
+        8'd194: data <= 8'h0d;
+        8'd195: data <= 8'h0c;
+        8'd196: data <= 8'h0f;
+        8'd197: data <= 8'h0f;
+        8'd198: data <= 8'h0f;
+        8'd199: data <= 8'h0e;
+        8'd200: data <= 8'h0f;
+        8'd201: data <= 8'h0b;
+        8'd202: data <= 8'h0c;
+        8'd203: data <= 8'h00;
+        8'd204: data <= 8'h00;
+        8'd205: data <= 8'h0e;
+        8'd206: data <= 8'h0d;
+        8'd207: data <= 8'h00;
+       default: data <= 8'd255;
+    endcase
+end
+`endif
                             else if (state_val == 34) begin
-                                $display("GOT %d for ADDR %d (magic %d)",
+                                $display("GOT %d for ADDR %02x (magic %d)",
                                          data, addr_lo, magic);
                                 case (addr_lo)
                                     `EXT_REG_MAGIC_0: begin
@@ -207,15 +322,37 @@ task handle_persist(input is_reset);
 // chip models but only the same standard as what standard_sw configures us
 // to be.
 `ifdef NO_CLOCK_MUX
+    $display("chip <= %d",{data[1], standard_sw ? chip[0] : ~chip[0]});
                                         chip <= {data[1], standard_sw ? chip[0] : ~chip[0]};
                                         eeprom_bank <= {data[1], standard_sw ? chip[0] : ~chip[0]};
 `else
 // Otherwise, we can restore any chip model and the standard_sw is used to
 // toggle NTSC or PAL operation from the saved value.
+    $display("chip <= %d",{data[1], standard_sw ? data[0] : ~data[0]});
                                         chip <= {data[1], standard_sw ? data[0] : ~data[0]};
                                         eeprom_bank <= {data[1], standard_sw ? data[0] : ~data[0]};
 `endif
                                         // EEPROM bank always starts off same as chip
+                                      end
+                                      else if (addr_lo == `EXT_REG_DISPLAY_FLAGS) begin
+`ifdef GEN_LUMA_CHROMA
+                                        white_line <= data[`WHITE_LINE_BIT];
+`endif
+`ifdef NEED_RGB
+                                        last_raster_lines <= data[`SHOW_RASTER_LINES_BIT];
+                                        last_is_native_y <= data[`IS_NATIVE_Y_BIT]; // 15khz
+                                        last_is_native_x <= data[`IS_NATIVE_X_BIT];
+                                        last_enable_csync <= data[`ENABLE_CSYNC_BIT];
+                                        last_hpolarity <= data[`HPOLARITY_BIT];
+                                        last_vpolarity <= data[`VPOLARITY_BIT];
+`endif // NEED_RGB
+
+                                      end
+                                      else if (addr_lo == `EXT_REG_DISPLAY_FLAGS2) begin
+`ifdef GEN_LUMA_CHROMA
+                                        ntsc_50 <= data[`NTSC_50_BIT];
+                                        //pal_60 <= data[`PAL_60_BIT];
+`endif
                                       end
                                     end else begin
                                         // For 2nd pass, write to registers

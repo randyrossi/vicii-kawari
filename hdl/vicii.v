@@ -47,6 +47,9 @@ module vicii
 `ifdef HIRES_RESET
            input cpu_reset_i,
 `endif
+`ifdef SIMULATOR_BOARD
+           input[1:0] sim_chip,
+`endif
            input standard_sw,
            output rst,
            input clk_dot4x,
@@ -431,9 +434,10 @@ assign cycle_num = raster_x[9:3];
 reg allow_bad_lines;
 always @(posedge clk_dot4x)
 begin
-    if (rst)
-        allow_bad_lines = `FALSE;
-    else if (~clk_phi && phi_phase_start[1]) begin
+    //if (rst)
+    //    allow_bad_lines = `FALSE;
+    //else
+    if (~clk_phi && phi_phase_start[1]) begin
         // Use raster_line_d here on [1] before it transitions
         // to the next line in the low cycle so we can catch
         // den on the last cycle of line 48.  den01-49-1.prg
@@ -470,10 +474,11 @@ end
 // Raise raster irq once per raster line
 reg [8:0] raster_irq_compare_d;
 always @(posedge clk_dot4x) begin
-    if (rst) begin
-        irst <= `FALSE;
-        raster_irq_triggered <= `FALSE;
-    end else begin
+    //if (rst) begin
+    //    irst <= `FALSE;
+    //    raster_irq_triggered <= `FALSE;
+    //end else
+    begin
         if (clk_phi)
             raster_irq_compare_d <= raster_irq_compare;
         // To pass rasterirq_hold.prg, we have to make sure raster_irq_compare
@@ -639,9 +644,10 @@ hires_matrix vic_hires_matrix(
 // Handle when ba should go low due to c-access. We can use xpos
 // here since there are no repeats within this range.
 always @(*)
-    if (rst)
-        ba_chars = 1'b0;
-    else begin
+    //if (rst)
+    //    ba_chars = 1'b0;
+    //else
+    begin
         if ((xpos >= chars_ba_start || xpos < chars_ba_end) && badline)
             ba_chars = 1'b0;
         else
@@ -946,6 +952,9 @@ registers vic_registers(
               .rst(rst),
 `ifdef HIRES_RESET
               .cpu_reset_i(cpu_reset_i),
+`endif
+`ifdef SIMULATOR_BOARD
+              .sim_chip(sim_chip),
 `endif
               .standard_sw(standard_sw),
               .clk_dot4x(clk_dot4x),
