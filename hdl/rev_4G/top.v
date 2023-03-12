@@ -113,6 +113,11 @@ module top(
 wire rst;
 assign cpu_reset = rst;
 
+reg rst_dvi_1;
+reg rst_dvi;
+always @ (posedge clk_dvi) rst_dvi_1 <= rst;
+always @ (posedge clk_dvi) rst_dvi <= rst_dvi_1;
+
 `ifdef OUTPUT_DOT_CLOCK
 // NOTE: This hack will only work breadbins that use
 // 8701 clock ICs and that IC MUST be removed.
@@ -248,6 +253,9 @@ wire [5:0] blue;
 // Instantiate the vicii with our clocks and pins.
 vicii vic_inst(
           .rst(rst),
+`ifdef WITH_DVI
+          .rst_dvi(rst_dvi),
+`endif
           .chip(chip),
           .rw_ctl(rw_ctl),
 `ifdef HIRES_RESET
@@ -330,7 +338,7 @@ assign ls245_data_oe = 1'b0;
 dvi dvi_tx0 (
    .clk_pixel    (clk_dvi),
    .clk_pixel_x10(clk_dvi_x10),
-   .reset        (rst),
+   .reset        (rst_dvi),
    .rgb          ({red, 2'b0, green, 2'b0, blue, 2'b0}),
    .hsync        (hsync),
    .vsync        (vsync),

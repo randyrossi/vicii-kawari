@@ -109,6 +109,7 @@ endmodule
         input [7:0] timing_v_bporch_pal,
 `endif
         input wire rst,
+        input wire rst_dvi,
         input [1:0] chip,
         input [9:0] raster_x, // native res counters
         input [8:0] raster_y, // native res counters
@@ -140,8 +141,18 @@ reg [9:0] va_end; // compared against vcount which can be 2y
 `ifdef CONFIGURABLE_TIMING
 reg timing_change;
 `endif
+reg is_native_x_in_dvi_1;
+reg is_native_x_in_dvi;
+reg is_native_y_in_dvi_1;
+reg is_native_y_in_dvi;
 reg is_native_x;
 reg is_native_y;
+
+always @ (posedge clk_dvi) is_native_x_in_dvi_1 <= is_native_x_in;
+always @ (posedge clk_dvi) is_native_x_in_dvi <= is_native_x_in_dvi_1;
+always @ (posedge clk_dvi) is_native_y_in_dvi_1 <= is_native_y_in;
+always @ (posedge clk_dvi) is_native_y_in_dvi <= is_native_y_in_dvi_1;
+
 reg [10:0] h_count;  // output x position
 reg [9:0] v_count;  // output y position
 reg [1:0] ff;
@@ -167,11 +178,16 @@ assign hsync_int = hpolarity ? hsync_ah : ~hsync_ah;
 assign vsync_int = vpolarity ? vsync_ah : ~vsync_ah;
 assign csync_int = hpolarity ? csync_ah : ~csync_ah;
 
+reg enable_csync_dvi_1;
+reg enable_csync_dvi;
+always @ (posedge clk_dvi) enable_csync_dvi_1 <= enable_csync;
+always @ (posedge clk_dvi) enable_csync_dvi <= enable_csync_dvi_1;
+
 // Assign hsync/vsync or combine to csync if needed
 always @ (posedge clk_dvi)
 begin
-   hsync <= enable_csync ? csync_int : hsync_int;
-   vsync <= enable_csync ? 1'b0 : vsync_int;
+   hsync <= enable_csync_dvi ? csync_int : hsync_int;
+   vsync <= enable_csync_dvi ? 1'b0 : vsync_int;
 end
 
 // active: high during active pixel drawing
@@ -194,7 +210,7 @@ assign advance = !is_native_y ||
 
 always @ (posedge clk_dvi)
 begin
-    if (rst)
+    if (rst_dvi)
     begin
         //h_count <= 0;
         //v_count <= 0;
@@ -229,17 +245,17 @@ begin
                     half_bright <= 0;
             end
         end
-        if (raster_x == 0 && raster_y == 0) begin
+        if (raster_x_dvi == 0 && raster_y_dvi == 0) begin
             //v_count <= max_height;
 
-            if (is_native_x_in != is_native_x || is_native_y_in != is_native_y
+            if (is_native_x_in_dvi != is_native_x || is_native_y_in_dvi != is_native_y
 `ifdef CONFIGURABLE_TIMING
                     || timing_change_in != timing_change
 `endif
                )
             begin
-                is_native_x = is_native_x_in;
-                is_native_y = is_native_y_in;
+                is_native_x = is_native_x_in_dvi;
+                is_native_y = is_native_y_in_dvi;
 `ifdef CONFIGURABLE_TIMING
                 timing_change <= timing_change_in;
                 set_params_configurable();
@@ -258,6 +274,15 @@ reg active_buf;
 // Cover the max possible here. Not all may be used depending on chip.
 wire [3:0] dout0; // output color from line_buf_0
 wire [3:0] dout1; // output color from line_buf_1
+
+reg [9:0] raster_x_dvi_1;
+reg [9:0] raster_x_dvi;
+always @(posedge clk_dvi) raster_x_dvi_1 <= raster_x;
+always @(posedge clk_dvi) raster_x_dvi <= raster_x_dvi_1;
+reg [8:0] raster_y_dvi_1;
+reg [8:0] raster_y_dvi;
+always @(posedge clk_dvi) raster_y_dvi_1 <= raster_y;
+always @(posedge clk_dvi) raster_y_dvi <= raster_y_dvi_1;
 
 // When the line buffer is being written to, we use raster_x (the VIC native
 // resolution x) as the address.

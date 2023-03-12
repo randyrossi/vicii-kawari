@@ -78,15 +78,13 @@ module serializer
 
     // Fast clock picks up the data on load signal, just as we finished
     // shifting out the last but from the previous load.
-    always @(posedge clk_pixel_x10) begin
-       tmds_shift0 <= load ? tmds_internal0_2 : tmds_shift0 >> 1;
-       tmds_shift1 <= load ? tmds_internal1_2 : tmds_shift1 >> 1;
-       tmds_shift2 <= load ? tmds_internal2_2 : tmds_shift2 >> 1;
-    end
+    always @(posedge clk_pixel_x10) tmds_shift0 <= load ? tmds_internal0_2 : tmds_shift0 >> 1;
+    always @(posedge clk_pixel_x10) tmds_shift1 <= load ? tmds_internal1_2 : tmds_shift1 >> 1;
+    always @(posedge clk_pixel_x10) tmds_shift2 <= load ? tmds_internal2_2 : tmds_shift2 >> 1;
 
     // This is a fast clock generator signal
     //reg [9:0] tmds_shift_clk_pixel;
-    reg [9:0] tmds_shift_clk_pixel;
+    (* async_reg="true" *) reg [9:0] tmds_shift_clk_pixel;
     always @(posedge clk_pixel_x10) begin
        if (reset)
           tmds_shift_clk_pixel <= 10'b0000011111;

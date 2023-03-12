@@ -112,6 +112,7 @@ module addressgen(
            input [15:0] phi_phase_start,
            output reg [11:0] ado,
            output ras,
+           output ras_registers,
            output cas
        );
 
@@ -357,5 +358,9 @@ end
 
 assign cas = chip[0] ? (pal_cas_d4x_p | pal_cas_d4x_n | pal_cas_c16x) : (ntsc_cas_d4x_p | ntsc_cas_d4x_n | ntsc_cas_c16x);
 assign ras = chip[0] ? (pal_ras_d4x | pal_ras_c16x) : (ntsc_ras_d4x | ntsc_ras_c16x);
+
+// This goes to the registers module and is only driven by dot4x. Avoids having
+// to use a synchronizer chain.
+assign ras_registers = chip[0] ? pal_ras_d4x : ntsc_ras_d4x;
 
 endmodule

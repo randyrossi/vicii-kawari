@@ -136,6 +136,15 @@ assign cpu_reset = dot_clock_shift[3];
 assign cpu_reset = rst;
 `endif
 
+`ifdef EFINIX
+`ifdef WITH_DVI
+reg rst_dvi_1;
+reg rst_dvi;
+always @ (posedge clk_dvi) rst_dvi_1 <= rst;
+always @ (posedge clk_dvi) rst_dvi <= rst_dvi_1;
+`endif
+`endif
+
 wire [7:0] dbo;
 wire [11:0] ado;
 
@@ -161,6 +170,7 @@ vicii vic_inst(
 `ifdef EFINIX
 `ifdef WITH_DVI
           .clk_dvi(clk_dvi),
+          .rst_dvi(rst_dvi),
 `endif
 `endif
           .clk_phi(clk_phi),

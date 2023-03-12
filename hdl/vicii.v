@@ -56,6 +56,7 @@ module vicii
 `ifdef EFINIX
 `ifdef WITH_DVI
            input clk_dvi,
+           input rst_dvi,
 `endif
 `endif
            output clk_phi,
@@ -847,6 +848,11 @@ wire dma_done;
 wire [15:0] dma_addr;
 `endif
 
+// ras signal driven only by dot4x for registers module
+`ifdef EFINIX
+wire ras_registers;
+`endif
+
 // Address generation
 addressgen vic_addressgen(
                .rst(rst),
@@ -865,6 +871,9 @@ addressgen vic_addressgen(
                .vm(vm),
                .rc(rc),
                .ras(ras),
+`ifdef EFINIX
+               .ras_registers(ras_registers),
+`endif
                .cas(cas),
                .bmm_old(bmm_delayed),
                .bmm_now(bmm),
@@ -971,7 +980,11 @@ registers vic_registers(
               .ce(ce),
               .rw(rw),
               .aec(aec),
+`ifdef EFINIX
+              .ras(ras_registers),
+`else
               .ras(ras),
+`endif
               .adi(adi),
               .dbi(dbi[7:0]),
               .raster_line(raster_line_d), // advertise the delayed version
@@ -1295,6 +1308,7 @@ comp_sync vic_comp_sync(
 `define HAVE_SYNC_MODULE 1
 hires_dvi_sync vic_dvi_sync(
                    .rst(rst),
+                   .rst_dvi(rst_dvi),
                    .clk_dot4x(clk_dot4x),
                    .clk_dvi(clk_dvi),
                    .dot_rising(dot_rising),
