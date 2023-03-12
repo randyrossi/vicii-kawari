@@ -113,10 +113,12 @@ module top(
 wire rst;
 assign cpu_reset = rst;
 
+`ifdef WITH_DVI
 reg rst_dvi_1;
 reg rst_dvi;
 always @ (posedge clk_dvi) rst_dvi_1 <= rst;
 always @ (posedge clk_dvi) rst_dvi <= rst_dvi_1;
+`endif
 
 `ifdef OUTPUT_DOT_CLOCK
 // NOTE: This hack will only work breadbins that use
