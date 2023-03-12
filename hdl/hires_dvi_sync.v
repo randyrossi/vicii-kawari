@@ -169,8 +169,9 @@ wire csync_int;
 // The range checks on vsync must take into account the horizontal start and
 // end, otherwise we cut short the last line's scan too early and start it
 // too soon if hs_sta is > 0.
-assign hsync_ah = h_count >= hs_sta & h_count <= hs_end;
-assign vsync_ah = v_count >= vs_sta & v_count <= vs_end;
+assign hsync_ah = h_count >= hs_sta & h_count < hs_end;
+assign vsync_ah = ((v_count == vs_end & h_count < hs_end) | v_count < vs_end) &
+                  ((v_count == vs_sta & h_count >= hs_sta) | v_count > vs_sta);
 assign csync_ah = hsync_ah | vsync_ah;
 
 // Turn to active low if poliarity flag says so
@@ -191,14 +192,15 @@ begin
 end
 
 // active: high during active pixel drawing
-wire vactive;
-wire hactive;
-assign vactive = (v_count <= va_end || v_count >= va_sta);
-assign hactive = (h_count <= ha_end && h_count >= ha_sta);
-
 always @ (posedge clk_dvi)
 begin
-   active <= vactive & hactive;
+   active <= ~(
+              (h_count >= ha_end | h_count <= ha_sta) |
+              (
+                 ((v_count == va_end & h_count <= ha_end) | v_count > va_end) &
+                 ((v_count == va_sta & h_count <= ha_sta) | v_count < va_sta)
+              )
+              );
 end
 
 // These conditions determine whether we advance our h/v counts
@@ -236,13 +238,11 @@ begin
 
                 if (v_count < max_height) begin
                     v_count <= v_count + 9'b1;
+                    half_bright <= ~half_bright;
                 end else begin
                     v_count <= 0;
-                end
-                if (chip[0] ? vactive : ~vactive)
-                    half_bright <= ~half_bright;
-                else
                     half_bright <= 0;
+                end
             end
         end
         if (raster_x_dvi == 0 && raster_y_dvi == 0) begin
