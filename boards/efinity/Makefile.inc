@@ -10,5 +10,8 @@ vicii.hex:  config
 	efx_pnr --circuit "vicii" --family "Trion" --device "${FPGA}" --operating_conditions "${TIMING}" --pack --place --route --vdb_file "work_syn/vicii.vdb" --use_vdb_file "on" --place_file "outflow/vicii.place" --route_file "outflow/vicii.route" --sdc_file "vicii.sdc" --sync_file "outflow/vicii.interface.csv" --optimization_level "TIMING_3" --seed "1" --work_dir "work_pnr" --output_dir "outflow" --timing_analysis "on" --load_delay_matrix
 	efx_pgm --source "work_pnr/vicii.lbf" --dest "build/kawari_multiboot_${VARIANT}_${VERSION_MAJOR}.${VERSION_MINOR}.hex" --device "${FPGA}" --family "Trion" --periph "outflow/vicii.lpf" --interface_designer_settings "outflow/vicii_or.ini" --enable_external_master_clock "off" --oscillator_clock_divider "${CDIV}" --active_capture_clk_edge "posedge" --spi_low_power_mode "on" --io_weak_pullup "on" --enable_roms "smart" --mode "active" --width "4" --release_tri_then_reset "on"
 
+sweep:  config
+	efx_run_pnr_sweep.py vicii.xml sweep_seeds
+
 clean:
 	rm -rf outflow ip work_pnr work_pt work_syn vicii.vdb
