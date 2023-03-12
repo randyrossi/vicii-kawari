@@ -149,71 +149,92 @@ int main(int argc, char* argv[]) {
             // !!! When using simulator for cycle by cycle stepping,
             // make sure to turn OFF RGB/HIRES so that native pixel sequencer
             // values are used.
+
+            // LUMA/CHROMA ONLY
 	    case 0:
-                    // The minimal config. Just a VIC-II.
+                    // The minimal config. Just a fixed VIC-II.
 		    gen_luma_chroma(d);
 		    luma_sink(d);
-                    // Add these to test hires modes in simulator
-                    //configurable_rgb(d);
-                    //hires_modes(d);
-                    //gen_rgb(d);
-                    //with_64k(d);
-                    //with_blitter(d);
 		    break;
+
+            // TEST SUITE CONFIG
 	    case 1:
 		    // Use this config for generating test results
 		    // since it hides sync lines.
 		    gen_luma_chroma(d);
 		    luma_sink(d);
 		    have_flash(d);
+		    have_eeprom(d);
 		    with_dvi(d);
 		    hires_modes(d);
 		    hide_sync(d);
 		    break;
+
+            // EFINIX with RGB
 	    case 2:
+                    efinix(d);
 		    gen_luma_chroma(d);
 		    luma_sink(d);
-		    have_eeprom(d);
-		    break;
-	    case 3:
-		    with_dvi(d);
 		    gen_rgb(d);
+		    hires_modes(d);
 		    break;
+
+            // EFINIX with DVI
+	    case 3:
+                    efinix(d);
+		    gen_luma_chroma(d);
+		    luma_sink(d);
+		    with_dvi(d);
+		    hires_modes(d);
+		    break;
+
+            // TEST PATTERN
 	    case 4:
 		    test_pattern(d);
 		    break;
+
+            // Just DVI
 	    case 5:
                     // Test we don't have to output RGB to have DVI
 		    with_dvi(d);
 		    break;
+
+            // Don't need LUMA/CHROMA, can have memory without hires
 	    case 6:
-		    gen_rgb(d);
-		    configurable_rgb(d);
-		    configurable_lumas(d);
-		    configurable_timing(d);
+		    with_dvi(d);
+		    //configurable_rgb(d);
+		    //configurable_lumas(d);
+		    //configurable_timing(d);
                     with_64k(d);
 		    break;
+
+            // Flash but no eeprom
 	    case 7:
-	            // Just a vic replacement config. No extensions.
 		    gen_luma_chroma(d);
-		    luma_sink(d);
+                    have_flash(d);
 		    break;
+
+            // Extensions but no optional features.
 	    case 8:
-	            // Extensions but no other optional features enabled.
 		    gen_luma_chroma(d);
 		    with_ext(d);
-                    with_math(d);
 		    break;
+
+            // Just with 4k, no video outputs
 	    case 9:
 		    with_4k(d);
 		    break;
+
+            // Misc. combo
 	    case 10:
 		    gen_rgb(d);
                     with_64k(d);
                     with_blitter(d);
+                    with_math(d);
                     with_dvi(d);
                     efinix(d);
 		    break;
+
 	    default:
 		    break;
 
