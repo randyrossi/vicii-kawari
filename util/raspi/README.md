@@ -41,6 +41,8 @@ Note: The solder bridges were meant to be temporarily closed and then re-opened 
 
    The files must be binary (.bit) files. Use the multi_hex_to_bit utility in the flash directory to convert .hex files to .bit.  The .hex files must be created using Efinity tools where the fallback image appears in slot 0 and the active image appears in slot 2.  The .bit files must match the expected file sizes exactly (as in the examples).
 
+   The Kawari will NOT BOOT if you have the RST pin still connected to Pin 25 (GND) of the Pi.  It is best to disconnect all wires from the Pi before booting the Kawari.  The connections will likely interfere with the FPGA loading the bitstream from the flash device. (You can leave the wires soldered, just disconnect from the Pi header)
+
 ## Examples
 
 #### Flash Mini
