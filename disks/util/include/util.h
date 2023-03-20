@@ -8,6 +8,7 @@
 #define TOXY(X,Y) r.a=0;r.x=Y;r.y=X;r.flags=0;r.pc=58634L;_sys(&r)
 
 #define WAITKEY do { r.pc=0xF13E; _sys(&r); } while (r.a == 0)
+#define GETKEY r.pc=0xF13E; _sys(&r);
 
 #define CRSR_UP 145
 #define CRSR_DOWN 17
