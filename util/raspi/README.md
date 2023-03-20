@@ -10,19 +10,21 @@ A utility to flash Kawari boards from Raspberry Pi.
     Answer "Yes" when asked to enable the SPI interface.
     Reboot the Pi for the change to take effect
 
-## Top programming
+## Top programming pad arrangements
 
-    For the Mini:
+    For the Mini (rev 1.3 or 1.4):
 
-    MISO  CS    +3V  RST (left side of solder bridge)
+    MISO  CS    +3V  RST (left pad of solder bridge)
     GND   MOSI  CLK
 
-    For the Large:
+    For the Large (rev 1.2):
 
          RST (bottom pad of solder bridge)
     GND  CS
     MISO MOSI
     CLK  +3V
+
+Note: The solder bridges were meant to be temporarily closed and then re-opened for programming.  But if you plan on programming multiple times, better to solder a wire to the left or bottom pad (depending on mini / large).
 
 ## Wiring
 
@@ -30,7 +32,7 @@ A utility to flash Kawari boards from Raspberry Pi.
     MISO -> PIN 21
     CLK -> PIN 23
     GND -> PIN 20
-    RST (from solder bridge) -> Pin 25
+    RST (from solder bridge) -> Pin 25 (or just temp bridge the solder bridge)
 
 ## Usage
 
