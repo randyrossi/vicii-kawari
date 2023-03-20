@@ -31,6 +31,7 @@ Note: The solder bridges were meant to be temporarily closed and then re-opened 
     MOSI -> PIN 19
     MISO -> PIN 21
     CLK -> PIN 23
+    CS -> PIN 24
     GND -> PIN 20
     RST (from solder bridge) -> Pin 25 (or just temp bridge the solder bridge)
 
