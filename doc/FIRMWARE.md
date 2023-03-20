@@ -7,9 +7,8 @@ Variant| Description
 Main | Used for stock C64's with DRAM.
 DotClock | For Mini boards only. Activates dot clock on pin 3 of Mini board's LS07D chip. Used to export dot clock back into motherboard. Cartridges that expect pin 6 dot clock signal will then work on both video standards. NOTE: This prevents RST header from being used but seems not necessary anyway.
 Static RAM | Gets Kawari working on boards with DIY Chris and/or Saruman static RAM modules installed.
-MK-II | Gets Kawari working on MK-II boards with fixed static RAM timing expecatations.
 
-NOTE: I am trying to get one build that will work across all RAM types so separate static ram and MK-II builds will hopefully not be necessary in the future.
+NOTE: I am trying to get one build that will work across all RAM types so separate static ram builds will hopefully not be necessary in the future.
 
 Board         | Main | DotClock | Static RAM
 --------------|------|----------|------------
