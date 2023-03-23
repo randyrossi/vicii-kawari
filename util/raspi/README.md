@@ -10,7 +10,9 @@ A utility to flash Kawari boards from Raspberry Pi.
     Answer "Yes" when asked to enable the SPI interface.
     Reboot the Pi for the change to take effect
 
-## Top programming pad arrangements
+## Top of board programming pad arrangements
+
+    There is a 2x3 array of pads (+ 7th solder bridge) on the top of the board.
 
     For the Mini (rev 1.3 or 1.4):
 
@@ -34,6 +36,10 @@ Note: The solder bridges were meant to be temporarily closed and then re-opened 
     CS -> PIN 24
     GND -> PIN 20
     RST (from solder bridge) -> Pin 25 (or just temp bridge the solder bridge)
+
+## Power
+
+    The board must be powered by a +5V source.  You can use the C64's VIC-II socket as the power source or wire your own directly to pin 20 (GND) and pin 40 (+5V) of the bottom socket.
 
 ## Usage
 
