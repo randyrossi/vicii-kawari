@@ -150,10 +150,7 @@ always @ (posedge clk_dot4x)
 begin
    active <= ~(
               (h_count >= ha_end | h_count <= ha_sta) |
-              (
-                 ((v_count == va_end & h_count <= ha_end) | v_count > va_end) &
-                 ((v_count == va_sta & h_count <= ha_sta) | v_count < va_sta)
-              )
+              (v_count >= va_end && v_count <= va_sta)
               );
 end
 
