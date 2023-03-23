@@ -14,12 +14,12 @@ A utility to flash Kawari boards from Raspberry Pi.
 
 There is a 2x3 array of pads (+ 7th solder bridge) on the top of the board.
 
-### For the Mini (rev 1.3 or 1.4):
+### For the Mini (rev 1.3 or 1.4 - bottom of board)
 
     MISO  CS    +3V  RST (left pad of solder bridge)
     GND   MOSI  CLK
 
-### For the Large (rev 1.2):
+### For the Large (rev 1.2 - right side of board)
 
          RST (bottom pad of solder bridge)
     GND  CS
