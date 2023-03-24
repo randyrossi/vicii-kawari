@@ -108,7 +108,7 @@ class SPIFlash(object):
         for page in range(max_page):
             start = page * self.FLASH_PAGE_SIZE
             end = start + self.FLASH_PAGE_SIZE
-            
+
             write_buffer = data[start:end]
             self.write_page(page, write_buffer)
             if verify and bytearray(write_buffer) != self.read_page(page):
@@ -125,6 +125,7 @@ if __name__ == "__main__":
        print ("Where operation is read | write")
        sys.exit()
 
+    operation = sys.argv[1]
     filename = sys.argv[2]
     size = int(sys.argv[3])
 
@@ -158,9 +159,18 @@ if __name__ == "__main__":
         with open(filename, "rb") as fp:
             flash.write_chip(fp.read())
 
-        # Read data to read_back.bin
-        with open("read_back.bin", "wb") as fp:
+        # Read data to read_back.bit
+        with open("read_back.bit", "wb") as fp:
             fp.write(flash.read_chip())
+
+        # Do a verification check
+        with open(filename, "rb") as f1, open("read_back.bit", "rb") as f2:
+            file1_contents = f1.read()
+            file2_contents = f2.read()
+            if file1_contents == file2_contents:
+                print("Verification OK.")
+            else:
+                print("Verificatoin failed.")
 
     elif operation == 'read':
         # Read data to filename
