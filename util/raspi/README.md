@@ -1,8 +1,8 @@
 # flash.py
 
-A utility to flash Kawari boards from Raspberry Pi.
+A utility to flash Mini/Large Trion VIC-II Kawari boards using a Raspberry Pi. (Spartan6 boards require a Xilinx JTAG programmer.)
 
-## Enable
+## Enable the SPI interface on the Raspberry Pi
 
     sudo raspi-config
     Select "Interfacing Options"
@@ -10,7 +10,7 @@ A utility to flash Kawari boards from Raspberry Pi.
     Answer "Yes" when asked to enable the SPI interface.
     Reboot the Pi for the change to take effect
 
-## Top of board programming pad arrangements
+## Programming pad arrangements (top side of boards)
 
 There is a 2x3 array of pads (+ 7th solder bridge) on the top of the board.
 
