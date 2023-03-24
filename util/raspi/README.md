@@ -43,7 +43,7 @@ The board must be powered by a +5V source.  You can use the C64's VIC-II socket 
 
 ## Usage
 
-   python flash.py read|write filename size
+   python3 flash.py read|write filename size
 
 The files must be binary (.bit) files. Use the multi_hex_to_bit utility in the flash directory to convert .hex files to .bit.  The .hex files must be created using Efinity tools where the fallback image appears in slot 0 and the active image appears in slot 2.  The .bit files must match the expected file sizes exactly (as in the examples).
 
