@@ -441,9 +441,12 @@ void main_menu(void)
     mprintf ("When using the fast loader, the garbage\n");
     mprintf ("at the top of the screen is normal. If\n");
     mprintf ("you have your own fast loader cartridge\n");
-    mprintf ("select N when prompted. If you are\n");
-    mprintf ("using a Pi1541, remember to add ALL\n");
-    mprintf ("disks to your queue.\n\n");
+    mprintf ("select N when prompted.\n\n");
+    mprintf ("IMPORTANT: If you are using using a\n");
+    mprintf ("Pi1541, you MUST add ALL disks to your\n");
+    mprintf ("queue in advance. If you fail to load\n");
+    mprintf ("the next disk, don't turn off the\n");
+    mprintf ("machine. Soft reset and try again.\n");
 
     press_any_key(TO_CONTINUE);
 
@@ -522,16 +525,12 @@ void main_menu(void)
 
     // Check variant matches
     if (image_board_int != current_board_int) {
-       mprintf ("\nWARNING: This flash image does NOT\n");
-       mprintf ("match the board number. The image\n");
-       mprintf ("may be incompatible with this board.\n");
-       mprintf ("If you are flashing a FORKED kawari,\n");
-       mprintf ("this is expected. Proceed ONLY if\n");
-       mprintf ("you know what you are doing.\n");
-       mprintf ("This can brick your device.\n");
-       mprintf ("Are you sure? (y/N).\n");
-       WAITKEY;
-       if (r.a != 'y') return;
+       mprintf ("\nERROR: This flash image does NOT\n");
+       mprintf ("match the board. The image is likely\n");
+       mprintf ("incompatible with this board. If you\n");
+       mprintf ("think this in an error, you will have\n");
+       mprintf ("to manually override the info file.\n");
+       exit(0);
     }
 
     mprintf ("\nUse fast loader (Y/n) ?");
