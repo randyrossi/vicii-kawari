@@ -1,4 +1,5 @@
 import sys
+import os
 from spidev import SpiDev
 
 class SPIFlash(object):
@@ -120,19 +121,35 @@ class SPIFlash(object):
 
 if __name__ == "__main__":
 
-    if len(sys.argv) < 4:
-       print ("Usage flash <operation> <flash.bin> <size>")
+    if len(sys.argv) < 3:
+       print ("Usage flash <operation> <flash.bin>")
        print ("Where operation is read | write")
        sys.exit()
 
     operation = sys.argv[1]
     filename = sys.argv[2]
-    size = int(sys.argv[3])
+
+    if operation == 'write':
+        file_stats = os.stat(filename)
+        size = file_stats.st_size
+    elif operation == "read":
+        if len(sys.argv) < 4:
+            print ("read requires size argument after filename")
+            sys.exit()
+        else:
+            size = int(sys.argv[3])
+    else:
+        print ("unknown operation")
+        sys.exit()
 
     # SPI0  GPIO10 PIN19 MOSI
     #       GPIO9  PIN21 MISO
     #       GPIO11 PIN23 CLK
     #       GPIO8  PIN24 CS
+    #              PIN20 GND
+    #              PIN25 RST
+
+    print ("bistream file is ", size," bytes")
 
     if size % 256 != 0:
        print ("Size must be multiple of 256")

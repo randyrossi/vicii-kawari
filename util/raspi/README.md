@@ -51,18 +51,14 @@ The Kawari will NOT BOOT if you have the RST pin still connected to Pin 25 (GND)
 
 ## Examples
 
-#### Flash Mini
+#### Flash to PCB
 
-   python3 flash.py write mini.bit 1318912
+   python3 flash.py write bitstream.bit
 
-#### Read Mini
+#### Read from Mini PCB
 
    python3 flash.py read read_back.bit 1318912
 
-#### Flash Large
-
-   python3 flash.py write large.bit 1359872
-
-#### Read Large
+#### Read from Large PCB
 
    python3 flash.py read read_back.bit 1359872
