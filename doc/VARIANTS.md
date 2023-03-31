@@ -29,7 +29,7 @@ Revision 1.4 of the Efinix Trion based board (200).
 
     TYPE: Mini            FPGA: T20Q144C3
     VARIANT CODE: LH      FLASH: W25Q16JVSSIM    EEPROM: M95160-DRDW8
-    BUILD CODES: MAINLH DOTCLH
+    BUILD CODES: MAINLH MAINLH-DOTC
 
 ![alt text](https://raw.githubusercontent.com/randyrossi/vicii-kawari/main/doc/images/4LH_Jumpers.png)
 
@@ -39,7 +39,7 @@ Revision 1.2 of the Large Efinix Trion based board (200).
 
     TYPE: Large            FPGA: T20FBGA256
     VARIANT CODE: LG       FLASH: W25Q16JVSSIM    EEPROM: M95160-DRDW8
-    BUILD CODES: MDVILG MRGBLG
+    BUILD CODES: MAINLG-DVI MAINLG-RGB
 
 ![alt text](https://raw.githubusercontent.com/randyrossi/vicii-kawari/main/doc/images/4LG_Jumpers.png)
 

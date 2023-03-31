@@ -1,21 +1,42 @@
 Back to [README.md](../README.md)
 
-# Firmware Downloads
+# READ THIS BEFORE FLASHING!
 
-Variant| Description
--------|---------------
-Main | Used for stock C64's with DRAM.
-DotClock | For Mini boards only. Activates dot clock on pin 3 of Mini board's LS07D chip. Used to export dot clock back into motherboard. Cartridges that expect pin 6 dot clock signal will then work on both video standards. NOTE: This prevents RST header from being used but seems not necessary anyway.
-Static RAM | Gets Kawari working on boards with DIY Chris and/or Saruman static RAM modules installed.
+When using the individual .D64 files, please make sure you are actually able to swap disks! (using SD2IEC, Pi1541, etc).  For the Pi1541, you must mount ALL DISKS into your queue before starting the flash operation.  For the SD2IEC, please make sure your 'Next' button works as expected.  For the .D81, you can just press RETURN when prompted to swap disks.
 
-NOTE: I am trying to get one build that will work across all RAM types so separate static ram builds will hopefully not be necessary in the future.
+If you begin flashing and are unable to swap disks, soft reset the machine, fix the issue and try again.  If you power off the machine without a successfuly flash after it was started, you will have to boot into the **fallback** image to fix it.  See [FLASHING.md](FLASHING.md) for the different options on flashing these files.
 
-Board         | Main | DotClock | Static RAM
---------------|------|----------|------------
-Spartan β Large | [1.5](https://accentual.com/vicii-kawari/downloads/flash/T/kawari_flash_1.5_T_multiboot.zip) | [1.8](https://accentual.com/vicii-kawari/downloads/flash/T/kawari_flash_1.8_DOTC_T_multiboot.zip) | [1.6](https://accentual.com/vicii-kawari/downloads/flash/T/kawari_flash_1.6_SARUT_multiboot.zip)
-Spartan Large | [1.8](https://accentual.com/vicii-kawari/downloads/flash/LD/kawari_flash_1.8_LD_multiboot.zip) | [1.8](https://accentual.com/vicii-kawari/downloads/flash/LD/kawari_flash_1.8_DOTC_LD_multiboot.zip) | N/A
-Trion Mini    | [1.5](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.5_LH_multiboot.zip) | [1.6](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.6_DOTCLH_multiboot.zip) | [1.6](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.6_SARULH_multiboot.zip)
-Trion Large   | [1.10/DVI](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.10_MAINLG_DVI_multiboot.zip), [1.10/RGB](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.10_MAINLG_RGB_multiboot.zip) | N/R | [1.11/DVI](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.11_SARULG_DVI_multiboot.zip), [1.11/RGB](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.11_SARULG_RGB_multiboot.zip)
+# Active Image updates
+
+These firmware files will update the **active** image on your board.  This is probably what you want to do...
+Board         | Firmware Link| Description
+--------------|------|---------
+Trion Mini    | [1.14](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.14_MAINLH_multiboot.zip) | For the 'Mini' board.
+Trion Large w/ DVI   | [1.15 with DVI ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.15_MAINLG-DVI_multiboot.zip) | Enables DVI output via the micro-HDMI port. The RGB header is not enabled in this build (however, the CLK pin will be enabled with a dot clock signal). Regular Composite/S-Video out the regular rear jack is always available.
+Trion Large w/ RGB   | [1.15 with RGB ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.15_MAINLG-RGB_multiboot.zip) | Enables RGB output via the RGB header. DVI output is disabled in this build. Regular Composite/S-Video out the regular rear jack is always available.
+
+# Fallback Image updates
+
+These firmware files will update the **fallback** image on your board.  The fallback image is used to restore a failed active image and is booted only when certain pads are shorted during a cold boot.  Versions before 1.14 were not compatible with systems with SRAM.  If you intend on using the board with SRAM, it may be a good idea to also update your fallback image.  That way, the board will still boot into fallback mode on those systems.  To check what version your fallback image is, load the CONFIG util after booting the device into fallback mode.  You can boot the device into fallback mode by shorting the fallback pads together during a cold boot (see [VARIANTS.md](VARIANTS.md)) for how to do that on each device type.
+
+Board         | Firmware Link| Description
+--------------|------|---------
+Trion Mini    | [1.14](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.14_MAINLH_golden.zip) | Fallback for the Mini board.
+Trion Large w/ DVI   | [1.15 with DVI ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.15_MAINLG-DVI_golden.zip) | Fallback for the large board.  (There is no RGB enabled fallback, always DVI.)
+
+# Specialty Builds
+
+Board         | Firmware Link| Description
+--------------|------|---------
+Trion Mini    | [1.14](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.14_MAINLH-DOTC_multiboot.zip) | A custom 'active' image build that exports a dot clock signal out Pin 3 of the 74LS06D chip.  This can be passed through a 33 Ohm resistor into the motherboard to provide a dot clock for both NTSC and PAL while still using the on board oscillators. Please only flash this if you know what you are doing.
+
+# PSA - 2023/03/31
+
+There was a firmware version 1.6 + Dot Clock mod that was released for the Mini.  Flashing this version would get your board 'stuck' on 1.6 even after you flashed active image updates.  This is because it was set to flash to the fallback area by mistake.  To fix this, just flash the fallback mini update above.  Then your board will boot to the last active image you flashed and your fallback switch will function again.
+
+# HELP! Both my fallback and active images won't boot!
+
+You may have to restore the board using a Raspberry Pi (or other programmer).  See [FLASHING WITH A RASPBERRY PI](../util/raspi/README.md)
 
 # Firmware History
 
@@ -23,6 +44,7 @@ Download firmware updates here: [README.md](../disks/util/flash/README.md)
 
 Version | Notes
 --------|--------
+1.15    | Fixed some DVI signal stability issues. Also made RGB H/V sync match that of composite.
 1.14    | Composite/s-video was shifted from original - fixed (NTSC/PAL)<br>Analog RGB video was shifted 10 pixels - fixed (NTSC/PAL)<br>Fixed B/W only image when using motherboard PAL clock (some monitors)<br>Made luma vertical blanking closer to NTSC/PAL spec<br>Add NTSC50 and PAL60 options (YMMV)<br>Fix dot clock not available on DVI builds (large)<nr>Set addr/moved CAS/RAS fall times earlier in cycle for some slower DRAMs<br>Single build that works with both DRAM and static ram modules (DIY Chris, Saruman)
 1.10    | Active image for Large Trion
 1.9     | Fallback image for Large Trion

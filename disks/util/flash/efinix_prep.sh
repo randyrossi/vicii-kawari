@@ -14,7 +14,7 @@ then
   echo "Usage: ./efinix_prep.sh <hex.file> <type> <variant> <version>"
   echo
   echo "        where <type> is golden or multiboot"
-  echo "        where <variant> is MAINLH|DOTCLH|MDVILG|MRGBLG"
+  echo "        where <variant> is MAINLH|MAINLH-DOTC|MAINLG-DVI|MAINLG-RGB"
   exit
 fi
 
