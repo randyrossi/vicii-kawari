@@ -33,6 +33,8 @@ Revision 1.4 of the Efinix Trion based board (200).
 
 ![alt text](https://raw.githubusercontent.com/randyrossi/vicii-kawari/main/doc/images/4LH_Jumpers.png)
 
+MINI FALLBACK FIRMWARE ACTIVATION - SHORT JP2 pads together and cold boot.
+
 ## Large Trion Board (Rev 1.2)
 
 Revision 1.2 of the Large Efinix Trion based board (200).
@@ -43,6 +45,5 @@ Revision 1.2 of the Large Efinix Trion based board (200).
 
 ![alt text](https://raw.githubusercontent.com/randyrossi/vicii-kawari/main/doc/images/4LG_Jumpers.png)
 
-## POV Trion Board
+LARGE FALLBACK FIRMWARE ACTIVATION - SHORT TP1 and TP2 pads together and cold boot.
 
-    TBD
