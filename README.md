@@ -9,7 +9,7 @@ The PCB interfaces with a real C64 address and data bus through the VIC-II socke
 
 ## Resources
 
-[Utility and Demo Disks](http://accentual.com/vicii-kawari/downloads/prog)
+[Utility and Demo Disks](http://accentual.com/vicii-kawari/downloads/prog) - Utilty and demo disk download area<br>
 [Forum Server](https://accentual.com/forum) - Discussions, ask questions<br>
 [Discord Server](https://discord.gg/KZcRBfZh8z) - Chat about stuff, ask questions<br>
 [Report Issues](https://github.com/randyrossi/vicii-kawari/issues) - File bugs/issues<br>
