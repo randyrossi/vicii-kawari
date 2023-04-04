@@ -1,4 +1,5 @@
-VERSION=1.4
+# Make this match define in util.h
+VERSION=1.5
 
 all: kawari_util_$(VERSION)
 

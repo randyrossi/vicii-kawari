@@ -279,10 +279,6 @@ void main_menu(void)
           //printf ("PAL  60        :\n");
        }
     }
-    if (has_dvi && version_short >= 267) {
-       printf ("Odd Fix Enable :\n");
-       printf ("Even/Odd Field :\n");
-    }
     printf ("External Switch:\n");
     printf ("Locked Func    :\n");
     printf ("\n");
