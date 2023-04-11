@@ -502,7 +502,7 @@ begin
         den <= `TRUE;
 `endif
 `ifdef HAVE_FLASH
-        //flash_busy <= 1'b0;
+        flash_busy <= 1'b0;
 `endif
         //ec <= `BLACK;
         //b0c <= `BLACK;

@@ -1,5 +1,4 @@
 verilog work "../../hdl/videoram.v"
-verilog work "../../hdl/sinewave.v"
 verilog work "../../hdl/serration.v"
 verilog work "../../hdl/lumareg.v"
 verilog work "../../hdl/equalization.v"

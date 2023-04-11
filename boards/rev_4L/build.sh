@@ -3,9 +3,9 @@
 mkdir -p build
 
 # Full image for programmer
-#VARIANT=MAIN make clean golden > build/LD.golden.MAIN.log
-#VARIANT=MAIN make clean multiboot > build/LD.multiboot.MAIN.log
-#VARIANT=MAIN make mcs
+#VARIANT=MAINLD make clean golden > build/LD.golden.MAIN.log
+#VARIANT=MAINLD make clean multiboot > build/LD.multiboot.MAIN.log
+#VARIANT=MAINLD make mcs
 
 # Just for flash disks...
 VARIANT=MAINLD make clean multiboot > build/LD.multiboot.MAIN.log
