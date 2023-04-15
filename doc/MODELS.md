@@ -13,6 +13,7 @@ Analog RGB             |Yes         |Yes   |No          |No        |
 NTSC/PAL               |Switch      |Switch|Switch      |Fixed     |
 Jumper Config MB Clk   |Yes         |Yes   |Yes         |Yes       |
 DVI                    |Yes         |Yes   |No          |No        |
+NTSC 50                |Yes         |Yes   |Yes         |No        |
 Saveable Config        |Yes         |Yes   |Yes         |No        |
 Old chips?             |Yes         |Yes   |Yes         |No        |
 Current Draw           |~180ma      |~300ma|~180ma      |TBD       |
@@ -47,8 +48,11 @@ PCB can be configured via jumper to use the mother board clock for either NTSC o
 ## Old Chips
 PCB can be configured to act as older NTSC and PAL models 6567R56A or 6569R1.
 
-## HDMI
+## DVI
 PCB can output DVI over a HDMI connector (no audio).
+
+## NTSC 50
+Switch available to use NTSC color encoding with a PAL video signal. Allows color displays on 1702 or 1084 monitors (use VHOLD to get sync).
 
 ## Detect Reset
 PCB can optionally connect to RESET line of motherboard.  This will restore colors to default values and turn off hires video modes after a soft reset.
