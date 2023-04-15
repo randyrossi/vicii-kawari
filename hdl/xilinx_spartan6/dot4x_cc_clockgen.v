@@ -68,12 +68,12 @@ PLL_ADV #(
             .BANDWIDTH("LOW"), // "HIGH", "LOW" or "OPTIMIZED"
 
             // CLKFBOUT stuff
-            .CLKFBOUT_MULT(16),
+            .CLKFBOUT_MULT(8),
             .CLKFBOUT_PHASE(0.0),
 
             // Set the clock period (ns) of input clocks and reference jitter
             .REF_JITTER(0.100),
-            .CLKIN1_PERIOD(28.190), // period for 35.468950Mhz (pal color x 8)
+            .CLKIN1_PERIOD(14.09), // Period of PAL 16x color (NTSC would be 17.46)
 
             .CLKOUT0_DIVIDE(14),
             .CLKOUT0_DUTY_CYCLE(0.5),

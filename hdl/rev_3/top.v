@@ -103,7 +103,7 @@ reg[3:0] dot_clock_shift = 4'b1100;
 always @(posedge clk_dot4x) dot_clock_shift <= {dot_clock_shift[2:0], dot_clock_shift[3]};
 assign clk_dot_ext = dot_clock_shift[3];
 `else
-assign clk_dot_ext = 1'b0; 
+assign clk_dot_ext = 1'b0;
 `endif
 
 `ifdef WITH_SPI
@@ -123,34 +123,41 @@ wire [5:0] blue;
 `endif
 `endif
 
-reg chip_mux1;
-reg chip_mux2;
-// Not sure if this matter but let's use the faster
-// clock to handle CBC between chip[0] and chip_mux2.
-always @(posedge clk_col4x_pal) chip_mux1 <= chip[0];
-always @(posedge clk_col4x_pal) chip_mux2 <= chip_mux1;
+// Create 4x color clocks for both ntsc and pal
+ntsc_col16x ntsc_col16x(.clk_in(clk_col4x_ntsc),
+                        .clk_col16x(clk_col16x_ntsc),
+                        .reset(1'b0));
 
-// We select which color clock to enter the 2x clock gen (below)
-// based on the chip model by using a BUFGMUX. 1=PAL, 0=NTSC
-wire clk_col4x;
-BUFGMUX colmux(
-            .I0(clk_col4x_ntsc),
-            .I1(clk_col4x_pal),
-            .O(clk_col4x),
-            .S(chip_mux2));
+pal_col16x pal_col16x(.clk_in(clk_col4x_pal),
+                        .clk_col16x(clk_col16x_pal),
+                        .reset(1'b0));
 
-// From the 4x color clock, generate an 8x color clock
+wire clk_col16x_4tm; // must be used to generate dot4x (and possibly later for cas/ras module)
+wire clk_col16x; // must be used exclusively for chroma generation
+
+// This will select which clock 
+`ifdef GEN_LUMA_CHROMA
+wire color_sel = chip[0] ? (~ntsc_50) : 1'b0; // was (pal_60);
+`else
+wire color_sel = chip[0];
+`endif
+
+BUFGMUX colmux2(
+            .I0(clk_col16x_ntsc),
+            .I1(clk_col16x_pal),
+            .O(clk_col16x_4tm),
+            .S(chip[0]));
+
+BUFGMUX colmux3(
+            .I0(clk_col16x_ntsc),
+            .I1(clk_col16x_pal),
+            .O(clk_col16x),
+            .S(color_sel));
+
+// From the 4x color clock, generate an 16x color clock
 // This is necessary to meet the minimum frequency of
 // the PLL_ADV where we further multiple/divide it into
-// a 4x dot clock. We also generate a col16x clock for
-// our chroma generator.
-wire clk_col8x;
-wire clk_col16x;
-x2_clockgen x2_clockgen(
-                .clk_in(clk_col4x),
-                .clk_out_x2(clk_col8x), // for PLL to gen dot4x
-                .clk_out_x4(clk_col16x), // for LUMA/CHROMA gen
-                .reset(rst));
+// a 4x dot clock.
 
 `ifdef WITH_DVI
 wire tx0_pclkx10;
@@ -159,13 +166,8 @@ wire tx0_serdesstrobe;
 `endif
 
 // dot4x clock generator
-// If we have color clocks, pass in the col8x clock
-// which will produce an accurate dot4x clock.
-// Otherwise, we are using the system 50mhz clock
-// and we use a dynamically configured PLL to get us
-// as close as possible.
 clockgen mojo_clockgen(
-             .src_clock(clk_col8x),  // with color clocks, we generate dot4x from clk_col8x
+             .src_clock(clk_col16x_4tm),  // we generate dot4x from the col16x
              .clk_dot4x(clk_dot4x),
              .chip(chip)
 `ifdef WITH_DVI
