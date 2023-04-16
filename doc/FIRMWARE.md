@@ -14,7 +14,8 @@ Board         | Firmware Link| Description
 Trion Mini    | [1.14](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.14_MAINLH_multiboot.zip) | For the 'Mini' board.
 Trion Large w/ DVI   | [1.15 with DVI ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.15_MAINLG-DVI_multiboot.zip) | Enables DVI output via the micro-HDMI port. The RGB header is not enabled in this build (however, the CLK pin will be enabled with a dot clock signal). Regular Composite/S-Video out the regular rear jack is always available.
 Trion Large w/ RGB   | [1.15 with RGB ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.15_MAINLG-RGB_multiboot.zip) | Enables RGB output via the RGB header. DVI output is disabled in this build. Regular Composite/S-Video out the regular rear jack is always available.
-
+Spartan Large | [1.15](https://accentual.com/vicii-kawari/downloads/flash/LD/kawari_flash_1.15_MAINLD_multiboot.zip) | Only 7 of these boards were produced. Both DVI and RGB are enabled. (This model is unlikely to work with the EVO64)
+Spartan Large (Beta) | [1.15](https://accentual.com/vicii-kawari/downloads/flash/T/kawari_flash_1.15_MAIN_multiboot.zip) | Only 10 of these boards were produced. Both DVI and RGB are enabled. (This model is unlikely to work with the EVO64)
 # Fallback Image updates
 
 These firmware files will update the **fallback** image on your board.  The fallback image is used to restore a failed active image and is booted only when certain pads are shorted during a cold boot.  Versions before 1.14 were not compatible with systems with SRAM.  If you intend on using the board with SRAM, it may be a good idea to also update your fallback image.  That way, the board will still boot into fallback mode on those systems.  To check what version your fallback image is, load the CONFIG util after booting the device into fallback mode.  You can boot the device into fallback mode by shorting the fallback pads together during a cold boot (see [VARIANTS.md](VARIANTS.md)) for how to do that on each device type.
@@ -32,11 +33,15 @@ Trion Mini    | [1.14](https://accentual.com/vicii-kawari/downloads/flash/LH/kaw
 
 # PSA - 2023/03/31
 
-There was a firmware version 1.6 + Dot Clock mod that was released for the Mini.  Flashing this version would get your board 'stuck' on 1.6 even after you flashed active image updates.  This is because it was set to flash to the fallback area by mistake.  To fix this, just flash the fallback mini update above.  Then your board will boot to the last active image you flashed and your fallback switch will function again.
+There was a firmware version 1.6 + Dot Clock mod that was released for the Mini.  Flashing this version would get your board 'stuck' on 1.6 even after you flashed active image updates.  This is because it was set to flash to the fallback area by mistake.  To fix this, just flash the **fallback** mini update above.  Then your board will boot to the last active image you flashed and your fallback switch will function again.
 
 # HELP! Both my fallback and active images won't boot!
 
-You may have to restore the board using a Raspberry Pi (or other programmer).  See [FLASHING WITH A RASPBERRY PI](../util/raspi/README.md)
+You may have to restore the board using a programmer.
+
+For Trion boards, you can use a Raspberry Pi. See [FLASHING WITH A RASPBERRY PI](../util/raspi/README.md).
+
+For Spartan6 boards, a Xilinx programmer and ISE 14.7 is required to flash an .mcs file. Contact me if you need this.
 
 # Firmware History
 
