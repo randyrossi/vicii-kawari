@@ -545,7 +545,7 @@ The base pointer for the source and destination must be specified as well as the
 
 1. Set the blitter source rectangle information
 2. Set the blitter destination rectangle information, raster operation + flags and execute
-3. Check 0xd03c == 0 for done
+3. Check 0xd03d == 0 for done
 
 ### Setting Blitter Source Info
 
