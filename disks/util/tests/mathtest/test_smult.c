@@ -57,5 +57,7 @@ int smult_1(void) {
       EXPECT_EQ(smult(o1,o2) , a);
       EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
    }
+
+   return 0;
 }
 

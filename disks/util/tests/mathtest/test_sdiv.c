@@ -52,5 +52,7 @@ int sdiv_1(void) {
       EXPECT_EQ(sdiv(o1,o2) , o1/o2);
       EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
    }
+
+   return 0;
 }
 

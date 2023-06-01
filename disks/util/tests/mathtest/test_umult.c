@@ -56,4 +56,6 @@ int umult_1(void) {
       EXPECT_EQ(umult(o1,o2) , a);
       EXPECT_EQ(PEEK(OPER) & DIVZ, 0);
    }
+
+   return 0;
 }
