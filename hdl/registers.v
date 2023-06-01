@@ -1814,9 +1814,9 @@ $display("blit src avail reduced to %d", blit_src_avail);
                    end else begin
                       if (blit_src_align == 2'd1)
                          blit_s = { blit_s[5:0], 2'b0 };
-                      else if (blit_dst_align == 2'd2)
+                      else if (blit_src_align == 2'd2)
                          blit_s = { blit_s[3:0], 4'b0 };
-                      else if (blit_dst_align == 2'd3)
+                      else if (blit_src_align == 2'd3)
                          blit_s = { blit_s[1:0], 6'b0 };
                       blit_src_avail = 4 - blit_src_align;
 $display("blit src avail reduced to %d", blit_src_avail);
