@@ -1871,8 +1871,11 @@ $display("blit src avail reduced to %d", blit_src_avail);
                    // with whatever we have left in the dst
                    if (PIXELS_PER_BYTE == 3'd2)
                       blit_o = { blit_o[3:0], blit_d[7:4] };
-                   else
+                      blit_d = { blit_d[3:0], 4'b0 };
+                   else begin
                       blit_o = { blit_o[5:0], blit_d[7:6] };
+                      blit_d = { blit_d[5:0], 2'b0 };
+                   end
                 end
                 blit_dst_avail = blit_dst_avail - 1;
                 blit_out_avail = blit_out_avail + 1;
