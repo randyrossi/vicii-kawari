@@ -1869,10 +1869,10 @@ $display("blit src avail reduced to %d", blit_src_avail);
                    // We can get here if we wrote blit_width pixels but didn't
                    // fill out the output byte yet. So we simply need to pad
                    // with whatever we have left in the dst
-                   if (PIXELS_PER_BYTE == 3'd2)
+                   if (PIXELS_PER_BYTE == 3'd2) begin
                       blit_o = { blit_o[3:0], blit_d[7:4] };
                       blit_d = { blit_d[3:0], 4'b0 };
-                   else begin
+                   end else begin
                       blit_o = { blit_o[5:0], blit_d[7:6] };
                       blit_d = { blit_d[5:0], 2'b0 };
                    end
