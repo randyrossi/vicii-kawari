@@ -28,9 +28,4 @@ void main_menu(void)
     RUN_TEST(vmem_b);
     RUN_TEST(vmem_idx_a);
     RUN_TEST(vmem_idx_b);
-    RUN_TEST1(vmem_copy, 1);
-    RUN_TEST1(vmem_copy, 2);
-    RUN_TEST(vmem_copy_overlap);
-    RUN_TEST(vmem_fill);
-    RUN_TEST(dma);
 }

@@ -9,9 +9,9 @@ OBJS=main.o ../../common/data.o ../../common/util.o ../../common/init.o \
      ../regtest/test_noop_vmem.o \
      ../regtest/test_vmem.o \
      ../regtest/test_vmem_idx.o \
-     ../regtest/test_copy.o \
-     ../regtest/test_fill.o \
-     ../regtest/test_dma.o \
+     ../copyfill/test_copy.o \
+     ../copyfill/test_fill.o \
+     ../dma/test_dma.o \
      ../mathtest/test_umult.o \
      ../mathtest/test_smult.o \
      ../mathtest/test_udiv.o \

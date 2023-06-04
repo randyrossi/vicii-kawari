@@ -15,9 +15,3 @@ int vmem_a(void);
 int vmem_b(void);
 int vmem_idx_a(void);
 int vmem_idx_b(void);
-
-int vmem_copy(int dir);
-int vmem_copy_overlap(void);
-int vmem_fill(void);
-
-int dma(void);
