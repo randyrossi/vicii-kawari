@@ -15,4 +15,5 @@ void main_menu(void)
     CLRSCRN;
     printf ("VIC-II Kawari Test Suite\n\n");
     RUN_TEST(dma);
+    RUN_TEST(dma_irq);
 }

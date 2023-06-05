@@ -3,7 +3,9 @@ all: dma.prg
 OBJS=../../common/main.o menu.o ../../common/data.o ../../common/util.o \
      ../../common/flash.o \
      ../../common/init.o \
-     test_dma.o
+     test_dma.o \
+     test_dma_irq.o \
+     tests.o
 
 dma.prg: $(OBJS)
 	cl65 -o dma.prg $(OBJS)
