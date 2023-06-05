@@ -374,6 +374,17 @@ Perform DMA Function Value| Meaning
 
 \* The upper 2 bits of all DRAM src/dest addresses are controlled by the CIA chip. That is, DRAM accesses for DMA transfers will point to the same 16k bank the CIA chip points the VIC to. The upper two bits of all DRAM addresses specified in the registers above are effectively ignored.
 
+### DMA IRQ (firmware 1.16 or higher)
+
+When extra registers are enabled, an additional IRQ control bit is available in 0xD01A and status bit in 0xD019 (firmware v1.16 or higher). Enabling the control bit 4 (value 16) will raise an interrupt with the CPU and the interrupt routine located at $314/$315 will be executed.  Clear the interrupt by writing bit 4 (16) to the IRQST register as you would other types of interrupts.
+
+This is an alternative method for detecting when the DMA operation is complete. It avoids polling which can waste CPU cycles that could used for other operations while the DMA transfer is in progress.  The polling method is used in samples below.  However, the IRQ method is more flexible as you are able to chain multiple DMA operations together with no wasted CPU cycles.
+
+Register | Name | 7 | 6 | 5 | 4  | 3 |  2 |  1 | 0
+---------|------|---|---|---|----|---|----|----|---
+D019     |IRQST |IRQ|   |   |IDMA|ILP|IMMC|IMBC|IRST
+D01A     |IRQEN |   |   |   |EDMA|ELP|EMMC|EMBC|ERST
+
 ### VMEM to VMEM Copy Example (DMA)
 
         LDA <SRC_ADDR
@@ -397,9 +408,9 @@ Perform DMA Function Value| Meaning
         LDA #1
         STA VIDEO_MEM_1_VAL   ; Perform copy (start to end)
 
-    waitdone
+    polldone
         LDA VIDEO_MEM_2_IDX   ; wait for done
-        bne waitdone
+        bne polldone
 
 * Copy is finished when VIDEO_MEM_1_IDX == 0 && VIDEO_MEM_2_IDX == 0
 * These values do not change while copy is performed so just checking
@@ -451,9 +462,9 @@ VIDEO_MEM_2_VAL | Unused
         LDA #4
         STA VIDEO_MEM_1_VAL   ; Perform fill
 
-    waitdone
+    polldone
         LDA VIDEO_MEM_2_IDX   ; wait for done
-        bne waitdone
+        bne polldone
 
 * Fill is finished when VIDEO_MEM_1_IDX == 0 && VIDEO_MEM_2_IDX == 0
 * These values do not change while copy is performed so just checking
@@ -494,9 +505,9 @@ Chip    | Non visible gfx lines | Cycles / line | Bytes Filled / Frame
         LDA #8                ; Perform DMA op 
         STA VIDEO_MEM_FLAGS
 
-    waitdone
+    polldone
         LDA VIDEO_MEM_2_IDX   ; wait for done
-        bne waitdone
+        bne polldone
 
 ### VMEM to DRAM copy example (DMA)
 
@@ -521,9 +532,9 @@ Chip    | Non visible gfx lines | Cycles / line | Bytes Filled / Frame
         LDA #16               ; Perform DMA op 
         STA VIDEO_MEM_FLAGS
 
-    waitdone
+    polldone
         LDA VIDEO_MEM_2_IDX   ; wait for done
-        bne waitdone
+        bne polldone
 
 * VIC-II Kawari uses idle graphics fetch cycles (as well as idle cycles) to perform DRAM to VMEM or VMEM to DRAM transfers. On raster lines less than 51 and greater than 250 (i.e when graphics fetches are in idle state), at least 40 bytes will be transfered each raster line. The actual number depends on the chip model since there are 2-4 additional idle cycles. When graphics fetches are not in idle state (i.e. usually in the visible gfx region) only 2-4 bytes are transfered each raster line.  Rough calculations on the number of bytes that can be transfered per second are provided below.
 
@@ -545,7 +556,7 @@ The base pointer for the source and destination must be specified as well as the
 
 1. Set the blitter source rectangle information
 2. Set the blitter destination rectangle information, raster operation + flags and execute
-3. Check 0xd03d == 0 for done
+3. Check 0xd03d == 0 for done (or use IRQ - v1.16+)
 
 ### Setting Blitter Source Info
 

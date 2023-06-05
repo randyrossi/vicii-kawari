@@ -48,6 +48,9 @@ module registers
            input immc,
            input imbc,
            input irst,
+`ifdef WITH_RAM
+           output reg idma,
+`endif
            input [7:0] sprite_m2m,
            input [7:0] sprite_m2d,
            input [7:0] lpx,
@@ -70,6 +73,9 @@ module registers
            output reg imbc_clr,
            output reg immc_clr,
            output reg ilp_clr,
+`ifdef WITH_RAM
+           output reg idma_clr,
+`endif
            output reg [8:0] raster_irq_compare,
            output reg [7:0] sprite_en,
            output reg [7:0] sprite_xe,
@@ -92,6 +98,9 @@ module registers
            output reg emmc,
            output reg embc,
            output reg erst,
+`ifdef WITH_RAM
+           output reg edma,
+`endif
            // pixel_color3 is from native res pixel sequencer and should be used
            // to look up luma/phase/chroma values
            input [3:0] pixel_color3,
@@ -522,6 +531,7 @@ begin
         //imbc_clr <= `FALSE;
         //immc_clr <= `FALSE;
         //ilp_clr <= `FALSE;
+        //idma_clr <= `FALSE;
         //raster_irq_compare <= 9'b0;
         //sprite_en <= 8'b0;
         //sprite_xe <= 8'b0;
@@ -541,6 +551,7 @@ begin
         //embc <= `FALSE;
         //emmc <= `FALSE;
         //elp <= `FALSE;
+        //edma <= `FALSE;
         //dbo[7:0] <= 8'd0;
         //handle_sprite_crunch <= `FALSE;
 
@@ -750,6 +761,11 @@ begin
 `endif
 `endif // WITH_EXTENSIONS
 
+`ifdef WITH_RAM
+        if (idma_clr)
+            idma <= `FALSE;
+`endif
+
         if (phi_phase_start[`DATA_DAV_PLUS_1]) begin
             if (!clk_phi) begin
                 // always clear these immediately after they may
@@ -758,6 +774,7 @@ begin
                 imbc_clr <= `FALSE;
                 immc_clr <= `FALSE;
                 ilp_clr <= `FALSE;
+                idma_clr <= `FALSE;
                 m2m_clr <= `FALSE;
                 m2d_clr <= `FALSE;
             end
@@ -860,9 +877,9 @@ begin
                     end
                     // NOTE: Our irq is inverted already
                     /* 0x19 */ `REG_INTERRUPT_STATUS:
-                        dbo[7:0] <= {irq, 3'b111, ilp, immc, imbc, irst};
+                        dbo[7:0] <= {irq, extra_regs_activated ? {2'b11 , idma} : 3'b111, ilp, immc, imbc, irst};
                     /* 0x1a */ `REG_INTERRUPT_CONTROL:
-                        dbo[7:0] <= {4'b1111, elp, emmc, embc, erst};
+                        dbo[7:0] <= {1'b1, extra_regs_activated ? {2'b11, edma} : 3'b111, elp, emmc, embc, erst};
                     /* 0x1b */ `REG_SPRITE_PRIORITY:
                         dbo[7:0] <= sprite_pri;
                     /* 0x1c */ `REG_SPRITE_MULTICOLOR_MODE:
@@ -1104,12 +1121,18 @@ begin
                         imbc_clr <= dbi[1];
                         immc_clr <= dbi[2];
                         ilp_clr <= dbi[3];
+`ifdef WITH_RAM
+                        idma_clr <= dbi[4];
+`endif
                     end
                     /* 0x1a */ `REG_INTERRUPT_CONTROL: begin
                         erst <= dbi[0];
                         embc <= dbi[1];
                         emmc <= dbi[2];
                         elp <= dbi[3];
+`ifdef WITH_RAM
+                        edma <= dbi[4];
+`endif
                     end
                     /* 0x1b */ `REG_SPRITE_PRIORITY:
                         sprite_pri <= dbi[7:0];
@@ -1637,6 +1660,7 @@ begin
             video_ram_copy_done <= 1'b1;
             port_idx_1 <= 8'b0; // signal done
             port_idx_2 <= 8'b0;
+            idma <= `TRUE;
         end
         // Handle VMEM block fill here
         if (video_ram_fill_num > 0) begin
@@ -1650,6 +1674,7 @@ begin
             video_ram_fill_done <= 1'b1;
             port_idx_1 <= 8'b0; // signal done
             port_idx_2 <= 8'b0;
+            idma <= `TRUE;
         end
         // Handle DMA here
         if (!aec && video_dma_copy_num > 0 && (cycle_type == `VIC_LI || cycle_type == `VIC_LG && idle)) begin
@@ -1691,6 +1716,7 @@ begin
            dma_done <= 1'b1;
            port_idx_1 <= 8'b0; // signal done
            port_idx_2 <= 8'b0;
+           idma <= `TRUE;
         end
 `ifdef WITH_BLITTER
         // HANDLE blit here
@@ -1918,6 +1944,7 @@ $display("blit next src line");
 
                       // If we've done all the lines, we are done our blit.
                       if (blit_line == blit_height) begin
+                         idma <= `TRUE;
                          blit_done <= 1'b1;
                          port_hi_2 <= 0; // signal done
                       end

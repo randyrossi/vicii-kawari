@@ -264,6 +264,7 @@ reg irst;
 wire ilp;
 wire immc;
 wire imbc;
+wire idma;
 
 // Interrupt latches for $d019, these are set HIGH when an interrupt of that
 // type occurs. They are not automatically cleared by the VIC.
@@ -271,6 +272,7 @@ wire irst_clr;
 wire imbc_clr;
 wire immc_clr;
 wire ilp_clr;
+wire idma_clr;
 
 // Interrupt enable registers for $d01a, these determine if these types of
 // interrupts will make irq low.
@@ -278,6 +280,7 @@ wire erst;
 wire embc;
 wire emmc;
 wire elp;
+wire edma;
 
 // If enabled, what raster line do we trigger irq for irst?
 wire [8:0] raster_irq_compare;
@@ -508,7 +511,11 @@ end
 // C64 works.  Even if you set raster_irq_compare to 11, when you first enable
 // erst, your ISR will get called immediately on the next line. Then, only afer
 // you clear the interrupt will you actually get the ISR on the desired line.
-assign irq = (ilp & elp) | (immc & emmc) | (imbc & embc) | (irst & erst);
+assign irq = (ilp & elp) | (immc & emmc) | (imbc & embc) | (irst & erst)
+`ifdef WITH_RAM
+   | (idma & edma)
+`endif
+;
 
 // DRAM refresh counter
 always @(posedge clk_dot4x)
@@ -993,6 +1000,9 @@ registers vic_registers(
               .immc(immc),
               .imbc(imbc),
               .irst(irst),
+`ifdef WITH_RAM
+              .idma(idma),
+`endif
               .sprite_m2m(sprite_m2m),
               .sprite_m2d(sprite_m2d),
               .lpx(lpx),
@@ -1014,6 +1024,9 @@ registers vic_registers(
               .imbc_clr(imbc_clr),
               .immc_clr(immc_clr),
               .ilp_clr(ilp_clr),
+`ifdef WITH_RAM
+              .idma_clr(idma_clr),
+`endif
               .raster_irq_compare(raster_irq_compare),
               .sprite_en(sprite_en),
               .sprite_xe(sprite_xe),
@@ -1036,6 +1049,9 @@ registers vic_registers(
               .emmc(emmc),
               .embc(embc),
               .erst(erst),
+`ifdef WITH_RAM
+              .edma(edma),
+`endif
               // 'active' is not active for a pin, it is used to set RGB to 0
               // during blanking intervals and we need it to line up with
               // the active period for whatever video standard we are

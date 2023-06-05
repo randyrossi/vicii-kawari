@@ -6,6 +6,8 @@
 #include "kawari.h"
 #include "menu.h"
 #include "init.h"
+#include "../copyfill/tests.h"
+#include "../dma/tests.h"
 #include "../regtest/tests.h"
 #include "../mathtest/tests.h"
 #include "../regtest/macros.h"

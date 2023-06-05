@@ -9,6 +9,7 @@ subdirs:
 	$(MAKE) -C copyfill
 	$(MAKE) -C dma
 	$(MAKE) -C blitter
+	$(MAKE) -C hires
 
 clean:
 	$(MAKE) -C lumatest clean
@@ -19,3 +20,4 @@ clean:
 	$(MAKE) -C copyfill clean
 	$(MAKE) -C dma clean
 	$(MAKE) -C blitter clean
+	$(MAKE) -C hires clean
