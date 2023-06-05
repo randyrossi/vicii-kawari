@@ -3,8 +3,11 @@ all: copyfill.prg
 OBJS=../../common/main.o menu.o ../../common/data.o ../../common/util.o \
      ../../common/flash.o \
      ../../common/init.o \
+     ../../common/hires.o \
      test_copy.o \
-     test_fill.o
+     test_copy_irq.o \
+     test_fill.o \
+     tests.o
 
 copyfill.prg: $(OBJS)
 	cl65 -o copyfill.prg $(OBJS)
