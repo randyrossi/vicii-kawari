@@ -3,7 +3,7 @@ int vmem_copy_overlap(void);
 int vmem_fill(void);
 
 int test_copy_irq(void);
-
+int test_fill_irq(void);
 
 void fill(unsigned int addr,
           unsigned int size,
