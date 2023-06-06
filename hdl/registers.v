@@ -774,7 +774,9 @@ begin
                 imbc_clr <= `FALSE;
                 immc_clr <= `FALSE;
                 ilp_clr <= `FALSE;
+`ifdef WITH_RAM
                 idma_clr <= `FALSE;
+`endif
                 m2m_clr <= `FALSE;
                 m2d_clr <= `FALSE;
             end
@@ -877,9 +879,21 @@ begin
                     end
                     // NOTE: Our irq is inverted already
                     /* 0x19 */ `REG_INTERRUPT_STATUS:
-                        dbo[7:0] <= {irq, extra_regs_activated ? {2'b11 , idma} : 3'b111, ilp, immc, imbc, irst};
+`ifdef WITH_RAM
+                        dbo[7:0] <= {irq, 
+                           extra_regs_activated ? {2'b11 , idma} : 3'b111,
+                               ilp, immc, imbc, irst};
+`else
+                        dbo[7:0] <= {irq, 3'b111, ilp, immc, imbc, irst};
+`endif
                     /* 0x1a */ `REG_INTERRUPT_CONTROL:
-                        dbo[7:0] <= {1'b1, extra_regs_activated ? {2'b11, edma} : 3'b111, elp, emmc, embc, erst};
+`ifdef WITH_RAM
+                        dbo[7:0] <= {1'b1, 
+                           extra_regs_activated ? {2'b11, edma} : 3'b111,
+                               elp, emmc, embc, erst};
+`else
+                        dbo[7:0] <= {1'b1, 3'b111, elp, emmc, embc, erst};
+`endif
                     /* 0x1b */ `REG_SPRITE_PRIORITY:
                         dbo[7:0] <= sprite_pri;
                     /* 0x1c */ `REG_SPRITE_MULTICOLOR_MODE:
