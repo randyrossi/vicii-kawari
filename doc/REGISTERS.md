@@ -145,7 +145,16 @@ VIDEO_MODE1 | Description
 BIT 3-1     | CHAR_PIXEL_BASE
 BIT 4       | HIRES ALLOW BADLINES ON LORES MODES (0=no, 1=yes)
 BIT 5       | HIRES ENABLE
-BIT 8-6     | HIRES MODE (000=TEXT, 001=640x200, 010=320x200, 011=640x200, 100=160x200)
+BIT 8-6     | HIRES MODE
+
+HIRES MODE | Description
+-----------|------------
+000 | 80 Column Text
+001 | 640x200x16 8x8 color cells (low color nibble=foreground, d020 background)
+010 | 320x200x16
+011 | 640x200x16
+100 | 160x200x16
+
 
 VIDEO_MODE2 | Description
 ------------|------------
