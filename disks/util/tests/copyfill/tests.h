@@ -2,6 +2,7 @@ int vmem_copy(int dir);
 int vmem_copy_overlap(void);
 int vmem_fill(void);
 
+int test_copy_overlay(void);
 int test_copy_irq(void);
 int test_fill_irq(void);
 

@@ -66,7 +66,7 @@ module top(
 `endif
            input standard_sw,   // video standard toggle switch
            output clk_phi,      // output phi clock for CPU
-           output clk_dot4x_ext,// pixel clock
+           output clk_dot_ext,  // pixel clock
 `ifdef GEN_RGB
            output hsync,        // hsync signal for VGA/DVI
            output vsync,        // vsync signal for VGA/DVI
@@ -129,9 +129,9 @@ always @ (posedge clk_dvi) rst_dvi <= rst_dvi_1;
 // motherboard without the clock circuit being disabled.
 reg[3:0] dot_clock_shift = 4'b1100;
 always @(posedge clk_dot4x) dot_clock_shift <= {dot_clock_shift[2:0], dot_clock_shift[3]};
-assign clk_dot4x_ext = dot_clock_shift[3];
+assign clk_dot_ext = dot_clock_shift[3];
 `else
-assign clk_dot4x_ext = 1'b0;
+assign clk_dot_ext = 1'b0;
 `endif
 
 wire clk_dot4x;

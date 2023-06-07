@@ -1660,7 +1660,7 @@ begin
             end else if (video_ram_copy_state == 2'b10) begin
                 // write
                 // NOTE: Ability to write into overlay with copy added in 1.16
-                if (flags_regs_overlay) {
+                if (flag_regs_overlay) begin
                    write_ram(
                       .overlay(1'b1),
                       .ram_lo(video_ram_copy_dst[7:0]),
@@ -1669,11 +1669,11 @@ begin
                       .data(video_ram_data_out_a),
                       .from_cpu(1'b1),
                       .do_persist(1'b0));
-                } else {
+                end else begin
                    video_ram_wr_a <= 1'b1;
                    video_ram_addr_a <= video_ram_copy_dst[ram_width-1:0];
                    video_ram_data_in_a <= video_ram_data_out_a;
-                }
+                end
                 video_ram_copy_num <= video_ram_copy_num - 16'b1;
                 if (video_ram_copy_dir) begin
                     video_ram_copy_src <= video_ram_copy_src - 16'b1;

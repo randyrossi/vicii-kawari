@@ -427,6 +427,10 @@ D01A     |IRQEN |   |   |   |EDMA|ELP|EMMC|EMBC|ERST
 * 8 bytes are moved each 6510 cycle.
 * Max copy is 65535 bytes
 
+NOTE: Since firmware 1.16, DMA copy operation can use the overlay regs
+as a destination (not a source). This is meant to quickly swap in
+palettes without having to use the CPU.
+
 The following table estimates the number of bytes that can be moved
 if move operations are restricted to non-graphics raster lines. (NOTE:
 move can be invoked any time.)

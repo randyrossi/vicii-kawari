@@ -21,5 +21,6 @@
 `define WITH_RAM 1
 `define WITH_4K 1
 `define HAVE_FLASH 1
+`define OUTPUT_DOT_CLOCK 1
 
 `endif // config_vh_

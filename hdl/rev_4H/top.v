@@ -59,7 +59,7 @@ module top(
            input standard_sw,   // video standard toggle switch
            output clk_phi,      // output phi clock for CPU
 `ifdef GEN_RGB
-           output clk_dot4x_ext,// pixel clock for VGA/DVI
+           output clk_dot_ext,  // pixel clock
            output hsync,        // hsync signal for VGA/DVI
            output vsync,        // vsync signal for VGA/DVI
            output [5:0] red,    // red out for VGA/DVI or Composite Encoder
@@ -94,19 +94,34 @@ module top(
            output ls245_data_oe    // OE for data bus transceiver
 );
 
-// TODO - export dot clock for RGB header
-assign clk_dot4x_ext = 1'b0;
+`ifdef OUTPUT_DOT_CLOCK
+
+`define HAVE_DOT_CLOCK_REGS 1
+reg[3:0] dot_clock_shift = 4'b1100;
+always @(posedge clk_dot4x) begin
+   dot_clock_shift <= {dot_clock_shift[2:0], dot_clock_shift[3]};
+end
+assign clk_dot_ext = dot_clock_shift[3];
+`endif
 
 wire rst;
-`ifdef OUTPUT_DOT_CLOCK
-// NOTE: This hack will only work breadbins that use
-// 8701 clock ICs and that IC MUST be removed.
-// i.e. 250425 250466
+`ifdef DOT_CLOCK_ON_74LS05
+// NOTE: Hack to get the dot clock on Pin 3 of the 74LS05
+// instead of the reset signal.
+// A wire must be soldered and a 33 ohm resistor added
+// before plugging into the motherboard.
+// For boards that have it, the 8701 clock ICs must be
+// removed. i.e. 250425 250466
+// For other boards, the clock circuit must be disabled.
 // This will NOT currently work on short board motherboards
 // The unit with this hack should NEVER be plugged into a
 // motherboard without the clock circuit being disabled.
+`ifndef HAVE_DOT_CLOCK_REGS
 reg[3:0] dot_clock_shift = 4'b1100;
-always @(posedge clk_dot4x) dot_clock_shift <= {dot_clock_shift[2:0], dot_clock_shift[3]};
+always @(posedge clk_dot4x) begin
+   dot_clock_shift <= {dot_clock_shift[2:0], dot_clock_shift[3]};
+end
+`endif
 assign cpu_reset = dot_clock_shift[3];
 `else
 assign cpu_reset = rst;

@@ -6,6 +6,7 @@ OBJS=../../common/main.o menu.o ../../common/data.o ../../common/util.o \
      ../../common/hires.o \
      test_copy.o \
      test_copy_irq.o \
+     test_copy_overlay.o \
      test_fill.o \
      test_fill_irq.o \
      tests.o

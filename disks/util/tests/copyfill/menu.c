@@ -21,5 +21,6 @@ void main_menu(void)
     if (is_version_min(1,16)) {
        RUN_TEST(test_copy_irq);
        RUN_TEST(test_fill_irq);
+       RUN_TEST(test_copy_overlay);
     }
 }
