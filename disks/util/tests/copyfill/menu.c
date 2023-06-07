@@ -18,6 +18,8 @@ void main_menu(void)
     RUN_TEST1(vmem_copy, 2);
     RUN_TEST(vmem_copy_overlap);
     RUN_TEST(vmem_fill);
-    RUN_TEST(test_copy_irq);
-    RUN_TEST(test_fill_irq);
+    if (is_version_min(1,16)) {
+       RUN_TEST(test_copy_irq);
+       RUN_TEST(test_fill_irq);
+    }
 }

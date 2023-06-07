@@ -15,5 +15,7 @@ void main_menu(void)
     CLRSCRN;
     printf ("VIC-II Kawari Test Suite\n\n");
     RUN_TEST(dma);
-    RUN_TEST(dma_irq);
+    if (is_version_min(1,16)) {
+       RUN_TEST(dma_irq);
+    }
 }

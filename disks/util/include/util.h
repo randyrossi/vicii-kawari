@@ -52,8 +52,13 @@ unsigned char wait_key_or_change(unsigned char current_switch_val,
                                  unsigned char *new_switch_val,
                                  unsigned char *new_lock_bits);
 
+// NOTE: Requires overlay already enabled
 unsigned char get_version_major(void);
+// NOTE: Requires overlay already enabled
 unsigned char get_version_minor(void);
+
+int is_version_min(int major, int minor);
+
 unsigned char get_lock_bits(void);
 unsigned char get_chip_model(void);
 void get_variant(unsigned char* dest);

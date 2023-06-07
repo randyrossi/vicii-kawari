@@ -94,6 +94,20 @@ unsigned char get_version_minor(void)
    return PEEK(VIDEO_MEM_1_VAL);
 }
 
+int is_version_min(int major, int minor)
+{
+   int need;
+   int have;
+   unsigned char flag;
+
+   flag = PEEK(53311L);
+   POKE(53311,32);
+   have = get_version_major()*256+get_version_minor();
+   need = major * 256 + minor;
+   POKE (53311L,flag);
+   return have >= need;
+}
+
 unsigned char get_lock_bits(void)
 {
    return PEEK(SPI_REG) & 56;

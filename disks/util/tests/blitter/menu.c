@@ -12,6 +12,8 @@
 
 void main_menu(void)
 {
+unsigned char maj;
+unsigned char min;
     CLRSCRN;
     printf ("VIC-II Kawari Test Suite\n\n");
 
@@ -20,8 +22,11 @@ void main_menu(void)
     RUN_TEST(test_160x200x16_blit);
     RUN_TEST(test_320x200x16_blit);
     RUN_TEST(test_640x200x4_blit);
-    RUN_TEST(test_blit_irq);
-    RUN_TEST(test_blit_op);
+
+    if (is_version_min(1,16)) {
+       RUN_TEST(test_blit_irq);
+       RUN_TEST(test_blit_op);
+    }
 
     HIRES_OFF();
 }
