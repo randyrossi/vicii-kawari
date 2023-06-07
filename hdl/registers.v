@@ -1352,9 +1352,12 @@ begin
                                 port_lo_1 <= dbi[7:0];
                             `VIDEO_MEM_1_VAL:
                             begin
-                                if (!flag_regs_overlay &&
-                                        flag_port_1_func == 2'b11 &&
-                                        flag_port_2_func == 2'b11)
+                                // NOTE: Prior to 1.16, this included !overlay
+                                // flag too but prevented us from dma copying
+                                // into overlay regs from vram.  So was removed
+                                // should matter much but is a subtle diff.
+                                if (flag_port_1_func == 2'b11 &&
+                                    flag_port_2_func == 2'b11)
                                 begin
 `ifdef WITH_RAM
                                     // block copy or fill operation
@@ -1656,9 +1659,21 @@ begin
                 video_ram_addr_a <= video_ram_copy_src[ram_width-1:0];
             end else if (video_ram_copy_state == 2'b10) begin
                 // write
-                video_ram_wr_a <= 1'b1;
-                video_ram_addr_a <= video_ram_copy_dst[ram_width-1:0];
-                video_ram_data_in_a <= video_ram_data_out_a;
+                // NOTE: Ability to write into overlay with copy added in 1.16
+                if (flags_regs_overlay) {
+                   write_ram(
+                      .overlay(1'b1),
+                      .ram_lo(video_ram_copy_dst[7:0]),
+                      .ram_hi(8'd0),
+                      .ram_idx(8'd0),
+                      .data(video_ram_data_out_a),
+                      .from_cpu(1'b1),
+                      .do_persist(1'b0));
+                } else {
+                   video_ram_wr_a <= 1'b1;
+                   video_ram_addr_a <= video_ram_copy_dst[ram_width-1:0];
+                   video_ram_data_in_a <= video_ram_data_out_a;
+                }
                 video_ram_copy_num <= video_ram_copy_num - 16'b1;
                 if (video_ram_copy_dir) begin
                     video_ram_copy_src <= video_ram_copy_src - 16'b1;
