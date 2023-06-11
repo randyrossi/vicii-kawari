@@ -4,7 +4,7 @@ mkdir -p build
 MAJ=1
 MIN=16
 
-ALL="MAINLG-DVI"
+ALL="MAINLG-DVI MAINLG-RGB"
 for V in $ALL
 do
    if [ "$1" = "sweep" ]

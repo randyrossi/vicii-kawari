@@ -17,3 +17,7 @@ set_clock_groups -exclusive -group {clk_col4x_pal clk_dot4x_pal clk_col16x_pal c
 
 set_false_path -from clk_dot4x_ntsc -to clk_col16x_ntsc
 set_false_path -from clk_dot4x_pal -to clk_col16x_pal
+set_false_path -from clk_dot4x -to clk_col16x
+set_false_path -from clk_dot4x_pal -to clk_dvi_pal
+set_false_path -from clk_dot4x_ntsc -to clk_dvi_ntsc
+set_false_path -from clk_dot4x -to clk_dvi

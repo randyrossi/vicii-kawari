@@ -138,21 +138,6 @@ reg [9:0] vs_end; // compared against vcount which can be 2y
 reg [9:0] va_sta; // compared against vcount which can be 2y
 reg [9:0] va_end; // compared against vcount which can be 2y
 
-`ifdef CONFIGURABLE_TIMING
-reg timing_change;
-`endif
-reg is_native_x_in_dvi_1;
-reg is_native_x_in_dvi;
-reg is_native_y_in_dvi_1;
-reg is_native_y_in_dvi;
-reg is_native_x;
-reg is_native_y;
-
-always @ (posedge clk_dvi) is_native_x_in_dvi_1 <= is_native_x_in;
-always @ (posedge clk_dvi) is_native_x_in_dvi <= is_native_x_in_dvi_1;
-always @ (posedge clk_dvi) is_native_y_in_dvi_1 <= is_native_y_in;
-always @ (posedge clk_dvi) is_native_y_in_dvi <= is_native_y_in_dvi_1;
-
 reg [10:0] h_count;  // output x position
 reg [9:0] v_count;  // output y position
 reg [1:0] ff;
@@ -179,16 +164,11 @@ assign hsync_int = hpolarity ? hsync_ah : ~hsync_ah;
 assign vsync_int = vpolarity ? vsync_ah : ~vsync_ah;
 assign csync_int = hpolarity ? csync_ah : ~csync_ah;
 
-reg enable_csync_dvi_1;
-reg enable_csync_dvi;
-always @ (posedge clk_dvi) enable_csync_dvi_1 <= enable_csync;
-always @ (posedge clk_dvi) enable_csync_dvi <= enable_csync_dvi_1;
-
 // Assign hsync/vsync or combine to csync if needed
 always @ (posedge clk_dvi)
 begin
-   hsync <= enable_csync_dvi ? csync_int : hsync_int;
-   vsync <= enable_csync_dvi ? 1'b0 : vsync_int;
+   hsync <= enable_csync ? csync_int : hsync_int;
+   vsync <= enable_csync ? 1'b0 : vsync_int;
 end
 
 // active: high during active pixel drawing
@@ -204,21 +184,14 @@ end
 // based whether we are doubling X/Y resolutions or not.  See
 // the table below for more info.
 wire advance;
-assign advance = !is_native_y ||
-       (is_native_y && (ff == 2'b01 || ff == 2'b11));
+assign advance = !is_native_y_in ||
+       (is_native_y_in && (ff == 2'b01 || ff == 2'b11));
 
 always @ (posedge clk_dvi)
 begin
     if (rst_dvi)
     begin
-        //h_count <= 0;
-        //v_count <= 0;
         ff <= 2'b01;
-`ifdef CONFIGURABLE_TIMING
-        set_params_configurable();
-`else
-        set_params();
-`endif
     end else begin
         // Resolution | advance on counter | pixel clock       | case
         // -------------------------------------------------------------------------
@@ -240,25 +213,6 @@ begin
                     v_count <= 0;
                     half_bright <= 0;
                 end
-            end
-        end
-        if (raster_x_dvi == 0 && raster_y_dvi == 0) begin
-            //v_count <= max_height;
-
-            if (is_native_x_in_dvi != is_native_x || is_native_y_in_dvi != is_native_y
-`ifdef CONFIGURABLE_TIMING
-                    || timing_change_in != timing_change
-`endif
-               )
-            begin
-                is_native_x = is_native_x_in_dvi;
-                is_native_y = is_native_y_in_dvi;
-`ifdef CONFIGURABLE_TIMING
-                timing_change <= timing_change_in;
-                set_params_configurable();
-`else
-                set_params();
-`endif
             end
         end
     end
@@ -339,7 +293,7 @@ always @(posedge clk_dvi) begin
 end
 
 `ifndef CONFIGURABLE_TIMING
-task set_params();
+always @(chip, is_native_y_in)
     begin
         case (chip)
             `CHIP6569R1, `CHIP6569R3: begin
@@ -352,7 +306,7 @@ task set_params();
                 vs_sta=10'd301;  // fporch   1
                 vs_end=10'd309;  // sync   8
                 va_sta=10'd310;  // bporch   1
-                max_height <= is_native_y ? 10'd311 : 10'd623;
+                max_height <= is_native_y_in ? 10'd311 : 10'd623;
                 max_width <= 11'd944;
                 x_offset <= 11'd40;
             end
@@ -366,7 +320,7 @@ task set_params();
                 vs_sta=10'd14;  // fporch   1
                 vs_end=10'd22;  // sync   8
                 va_sta=10'd23;  // bporch   1
-                max_height <= is_native_y ? 10'd262 : 10'd525;
+                max_height <= is_native_y_in ? 10'd262 : 10'd525;
                 max_width <= 11'd844;
                 x_offset <= 11'd130;
             end
@@ -380,7 +334,7 @@ task set_params();
                 vs_sta=10'd14;  // fporch   1
                 vs_end=10'd22;  // sync   8
                 va_sta=10'd23;  // bporch   1
-                max_height <= is_native_y ? 10'd261 : 10'd523;
+                max_height <= is_native_y_in ? 10'd261 : 10'd523;
                 max_width <= 11'd831;
                 x_offset <= 11'd130;
             end
@@ -392,16 +346,15 @@ task set_params();
             hs_end = { hs_end[9:0], 1'b0 };
             ha_sta = { ha_sta[9:0], 1'b0 };
 
-        if (!is_native_y) begin
+        if (!is_native_y_in) begin
             va_end = { va_end[8:0], 1'b0 };
             vs_sta = { vs_sta[8:0], 1'b0 };
             vs_end = { vs_end[8:0], 1'b0 };
             va_sta = { va_sta[8:0], 1'b0 };
         end
     end
-endtask
 `else
-task set_params_configurable();
+always @(chip, is_native_y_in)
     begin
         case (chip)
             `CHIP6569R1, `CHIP6569R3: begin
@@ -418,7 +371,7 @@ task set_params_configurable();
                 vs_end = vs_sta + {2'b00, timing_v_sync_pal};
                 va_sta = vs_end + {2'b00, timing_v_bporch_pal};
                 // HEIGHT 312
-                max_height <= is_native_y ? 10'd311 : 10'd623;
+                max_height <= is_native_y_in ? 10'd311 : 10'd623;
                 max_width <= 11'd944;
                 x_offset <= 11'd32;
                 // Use this to generate code for static settings above
@@ -446,7 +399,7 @@ task set_params_configurable();
                 vs_end = vs_sta + {2'b00, timing_v_sync_ntsc};
                 va_sta = vs_end + {2'b00, timing_v_bporch_ntsc};
                 // HEIGHT 263
-                max_height <= is_native_y ? 10'd262 : 10'd525;
+                max_height <= is_native_y_in ? 10'd262 : 10'd525;
                 max_width <= 11'd844;
                 x_offset <= 11'd142;
                 // Use this to generate code for static settings above
@@ -475,7 +428,7 @@ task set_params_configurable();
                 vs_end = vs_sta + {2'b00, timing_v_sync_ntsc};
                 va_sta = vs_end + {2'b00, timing_v_bporch_ntsc};
                 // HEIGHT 262
-                max_height <= is_native_y ? 10'd261 : 10'd523;
+                max_height <= is_native_y_in ? 10'd261 : 10'd523;
                 max_width <= 11'd831;
                 x_offset <= 11'd146;
                 // Use this to generate code for static settings above
@@ -498,14 +451,13 @@ task set_params_configurable();
             hs_end = { hs_end[9:0], 1'b0 };
             ha_sta = { ha_sta[9:0], 1'b0 };
 
-        if (!is_native_y) begin
+        if (!is_native_y_in) begin
             va_end = { va_end[8:0], 1'b0 };
             vs_sta = { vs_sta[8:0], 1'b0 };
             vs_end = { vs_end[8:0], 1'b0 };
             va_sta = { va_sta[8:0], 1'b0 };
         end
     end
-endtask
 `endif
 
 endmodule
