@@ -111,3 +111,9 @@ Path Begin    : dvi_tx0/serializer/tmds_shift1[0]~FF|CLK
 Path End      : dvi_tx0/serializer/dffrs_55/tmds_data_g~FF|D
 Launch Clock  : clk_dvi10x_pal (RISE)
 Capture Clock : clk_dvi10x_pal (RISE)
+
+Path Begin    : vic_inst/vic_comp_sync/phaseCounter[0]_2~FF|CLK
+Path End      : vic_inst/vic_comp_sync/phaseCounter[0]_2~FF|D
+Launch Clock  : clk_col16x_pal (RISE)
+Capture Clock : clk_col16x_pal (RISE)
+

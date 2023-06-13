@@ -249,7 +249,6 @@ A Novaterm 9.6c 80 column video driver is available.  Use this driver with a use
 
 In addition to the 80 column text mode, three bitmap modes have been added for you to experiment with:
 
-    640x200 16 color - Every 8x8 cell can be one of 16 foreground colors or the background color.
     320x200 16 color - Every pixel can be set to one of 16 colors.
     640x200 4 colors - Every pixel can be set to one of 4 colors.
     160x200 16 colors - Every pixel can be set to one of 16 colors.

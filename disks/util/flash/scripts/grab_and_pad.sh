@@ -14,12 +14,13 @@
 # This will bypass the strip step.
 
 SRC_DIR=../../../boards
-VERSION=1.15
+VERSION=1.16
 
 # List of BOARD:CODE:FILE to make flash disk sets for...
 # FILE will be grabbed from the board build dir 
 #VARIANTS="rev_4G:MAINLG-DVI:kawari_multiboot_MAINLG-DVI_${VERSION}.hex rev_4G:MAINLG-RGB:kawari_multiboot_MAINLG-RGB_${VERSION}.hex rev_4H:MAINLH:kawari_multiboot_MAINLH_${VERSION}.hex rev_4H:MAINLH-DOTC:kawari_multiboot_MAINLH-DOTC_${VERSION}.hex"
 
+#VARIANTS="rev_4H:MAINLH:kawari_multiboot_MAINLH_${VERSION}.hex"
 VARIANTS="rev_4G:MAINLG-DVI:kawari_multiboot_MAINLG-DVI_${VERSION}.hex"
 
 for VARIANT in $VARIANTS
