@@ -11,9 +11,9 @@ If you begin flashing and are unable to swap disks, soft reset the machine, fix 
 These firmware files will update the **active** image on your board.  This is probably what you want to do...
 Board         | Firmware Link| Description
 --------------|------|---------
-Trion Mini    | [1.14](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.14_MAINLH_multiboot.zip) | For the 'Mini' board.
-Trion Large w/ DVI   | [1.15 with DVI ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.15_MAINLG-DVI_multiboot.zip) | Enables DVI output via the micro-HDMI port. The RGB header is not enabled in this build (however, the CLK pin will be enabled with a dot clock signal). Regular Composite/S-Video out the regular rear jack is always available.
-Trion Large w/ RGB   | [1.15 with RGB ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.15_MAINLG-RGB_multiboot.zip) | Enables RGB output via the RGB header. DVI output is disabled in this build. Regular Composite/S-Video out the regular rear jack is always available.
+Trion Mini    | [1.16](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.16_MAINLH_multiboot.zip) | For the 'Mini' board.
+Trion Large w/ DVI   | [1.16 with DVI ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.16_MAINLG-DVI_multiboot.zip) | Enables DVI output via the micro-HDMI port. The RGB header is not enabled in this build (however, the CLK pin will be enabled with a dot clock signal). Regular Composite/S-Video out the regular rear jack is always available.
+Trion Large w/ RGB   | [1.16 with RGB ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.16_MAINLG-RGB_multiboot.zip) | Enables RGB output via the RGB header. DVI output is disabled in this build. Regular Composite/S-Video out the regular rear jack is always available.
 Spartan Large | [1.15](https://accentual.com/vicii-kawari/downloads/flash/LD/kawari_flash_1.15_MAINLD_multiboot.zip) | Only 7 of these boards were produced. Both DVI and RGB are enabled. (This model is unlikely to work with the EVO64)
 Spartan Large (Beta) | [1.15](https://accentual.com/vicii-kawari/downloads/flash/T/kawari_flash_1.15_MAIN_multiboot.zip) | Only 10 of these boards were produced. Both DVI and RGB are enabled. (This model is unlikely to work with the EVO64)
 # Fallback Image updates
@@ -22,14 +22,14 @@ These firmware files will update the **fallback** image on your board.  The fall
 
 Board         | Firmware Link| Description
 --------------|------|---------
-Trion Mini    | [1.14](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.14_MAINLH_golden.zip) | Fallback for the Mini board.
-Trion Large w/ DVI   | [1.15 with DVI ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.15_MAINLG-DVI_golden.zip) | Fallback for the large board.  (There is no RGB enabled fallback, always DVI.)
+Trion Mini    | [1.16](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.16_MAINLH_golden.zip) | Fallback for the Mini board.
+Trion Large w/ DVI   | [1.16 with DVI ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.16_MAINLG-DVI_golden.zip) | Fallback for the large board.  (There is no RGB enabled fallback, always DVI.)
 
 # Specialty Builds
 
 Board         | Firmware Link| Description
 --------------|------|---------
-Trion Mini    | [1.14](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.14_MAINLH-DOTC_multiboot.zip) | A custom 'active' image build that exports a dot clock signal out Pin 3 of the 74LS06D chip.  This can be passed through a 33 Ohm resistor into the motherboard to provide a dot clock for both NTSC and PAL while still using the on board oscillators. Please only flash this if you know what you are doing.
+Trion Mini    | [1.16](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.16_MAINLH-DOTC_multiboot.zip) | A custom 'active' image build that exports a dot clock signal out Pin 3 of the 74LS06D chip.  This can be passed through a 33 Ohm resistor into the motherboard to provide a dot clock for both NTSC and PAL while still using the on board oscillators. Please only flash this if you know what you are doing.
 
 # PSA - 2023/03/31
 
@@ -49,6 +49,7 @@ Download firmware updates here: [README.md](../disks/util/flash/README.md)
 
 Version | Notes
 --------|--------
+1.16    | Fixed 2 blitter bugs. Added IRQ status/control bits for DMA operations.
 1.15    | Fixed some DVI signal stability issues. Also made RGB H/V sync match that of composite.
 1.14    | Composite/s-video was shifted from original - fixed (NTSC/PAL)<br>Analog RGB video was shifted 10 pixels - fixed (NTSC/PAL)<br>Fixed B/W only image when using motherboard PAL clock (some monitors)<br>Made luma vertical blanking closer to NTSC/PAL spec<br>Add NTSC50 and PAL60 options (YMMV)<br>Fix dot clock not available on DVI builds (large)<nr>Set addr/moved CAS/RAS fall times earlier in cycle for some slower DRAMs<br>Single build that works with both DRAM and static ram modules (DIY Chris, Saruman)
 1.10    | Active image for Large Trion
