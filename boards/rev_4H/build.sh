@@ -4,7 +4,7 @@ mkdir -p build
 MAJ=1
 MIN=16
 
-ALL="MAINLH MAINLH-DOTC"
+ALL="MAINLH MAINLH-DOTC-1.2 MAINLH-DOTC-1.5"
 
 for V in $ALL
 do

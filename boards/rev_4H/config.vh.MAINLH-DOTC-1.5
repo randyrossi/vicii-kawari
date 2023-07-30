@@ -1,3 +1,6 @@
+// For rev 1.5 of Mini (LH). Will use the added CLK
+// header instead of the hacked 74LS06D pin.
+
 `ifndef config_vh_
 `define config_vh_
 
@@ -35,6 +38,6 @@
 `define HAVE_EEPROM 1
 `define HAVE_FLASH 1
 `define WITH_BLITTER 1
-`define DOT_CLOCK_ON_74LS05 1
+`define OUTPUT_DOT_CLOCK 1
 
 `endif // config_vh_

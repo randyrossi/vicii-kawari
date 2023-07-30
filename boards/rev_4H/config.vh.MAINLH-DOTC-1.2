@@ -1,3 +1,7 @@
+// Used on Mini (LH) revisions less than 1.5
+// to export dot clock off the 74LS06D. Revision
+// 1.5 or higher PCBs should use the '1.5'
+// version that uses the added CLK header.
 `ifndef config_vh_
 `define config_vh_
 
@@ -17,12 +21,12 @@
 `define VARIANT_SUFFIX_2 8'h48 // H
 
 // Variant
-`define VARIANT_SUFFIX_3 8'd0
-`define VARIANT_SUFFIX_4 8'd0
-`define VARIANT_SUFFIX_5 8'd0
-`define VARIANT_SUFFIX_6 8'd0
-`define VARIANT_SUFFIX_7 8'd0
-`define VARIANT_SUFFIX_8 8'd0
+`define VARIANT_SUFFIX_3 8'h2b // -
+`define VARIANT_SUFFIX_4 8'h44 // D
+`define VARIANT_SUFFIX_5 8'h4F // O
+`define VARIANT_SUFFIX_6 8'h54 // T
+`define VARIANT_SUFFIX_7 8'h43 // C
+`define VARIANT_SUFFIX_8 8'h0
 
 `define WITH_EXTENSIONS 1
 `define GEN_LUMA_CHROMA 1
@@ -35,5 +39,6 @@
 `define HAVE_EEPROM 1
 `define HAVE_FLASH 1
 `define WITH_BLITTER 1
+`define DOT_CLOCK_ON_74LS05 1
 
 `endif // config_vh_
