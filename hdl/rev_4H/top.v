@@ -58,13 +58,8 @@ module top(
 `endif
            input standard_sw,   // video standard toggle switch
            output clk_phi,      // output phi clock for CPU
-`ifdef GEN_RGB
+`ifdef OUTPUT_DOT_CLOCK
            output clk_dot_ext,  // pixel clock
-           output hsync,        // hsync signal for VGA/DVI
-           output vsync,        // vsync signal for VGA/DVI
-           output [5:0] red,    // red out for VGA/DVI or Composite Encoder
-           output [5:0] green,  // green out for VGA/DVI or Composite Encoder
-           output [5:0] blue,   // blue out for VGA/DVI or Composite Encoder
 `endif
 
            input [5:0] adl_IN, // address (lower 6 bits input)
@@ -227,14 +222,6 @@ vicii vic_inst(
 `endif // WITH_EXTENSIONS
           .clk_dot4x(clk_dot4x),
           .clk_phi(clk_phi),
-`ifdef NEED_RGB
-          .active(active),
-          .hsync(hsync),
-          .vsync(vsync),
-          .red(red),
-          .green(green),
-          .blue(blue),
-`endif
           .clk_col16x(clk_col16x),
           .clk_col16x_4tm(clk_col16x_4tm),
 `ifdef GEN_LUMA_CHROMA
