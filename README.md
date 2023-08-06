@@ -345,11 +345,12 @@ SuperCPU                    | Tested and works as long as the motherboard clock 
 REU                         | Untested but should works as long as the motherboard clock is used.
 MK2 Reloaded                | Not supported.
 The Final Cartridge         | No issues discovered so far.
-Ultimate 1541               | No issues discovered so far.
+Ultimate 1541               | Recent firmware may be required. (3.10j)
 Pi1541                      | Must turn off GraphIEC feature or else some demos will fail (same with real VIC-II's)
 Link232 Wifi Cartridge      | Works but requires motherboard clock jumper setting. Will not work with on-board oscillators (unless dot clock is exported).
 Turbo Chameleon             | Reported to work with motherboard clock jumper setting.
-SaRuMan DRAM Replacement    | Have an alternate firmware that appears to work. May also work for other static RAM replacement modules. YMMV.
+SaRuMan DRAM Replacement    | Works with Kawari firmare 1.14+
+StrikeTerm w/ UP9600 Modem  | Must load 80col.kawari before selecting UP9600 modem
 
 ## Software Compatibility Matrix
 
