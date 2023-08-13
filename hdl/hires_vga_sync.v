@@ -272,8 +272,8 @@ task set_params();
                 // WIDTH 520  HEIGHT 263
                 ha_end=11'd510;  // start   510
                 hs_sta=11'd10;  // fporch  20
-                hs_end=11'd49;  // sync  70
-                ha_sta=11'd90;  // bporch  20
+                hs_end=11'd49;  // sync  39
+                ha_sta=11'd90;  // bporch  41
                 va_end=10'd13;  // start  13
                 vs_sta=10'd14;  // fporch   1
                 vs_end=10'd22;  // sync   8
@@ -284,9 +284,9 @@ task set_params();
             `CHIP6567R56A: begin
                 // WIDTH 512  HEIGHT 262
                 ha_end=11'd502;  // start   502
-                hs_sta=11'd10;  // fporch  10
-                hs_end=11'd48;  // sync  70
-                ha_sta=11'd90;  // bporch  10
+                hs_sta=11'd10;  // fporch  20
+                hs_end=11'd48;  // sync  38
+                ha_sta=11'd90;  // bporch  42
                 va_end=10'd13;  // start  13
                 vs_sta=10'd14;  // fporch   1
                 vs_end=10'd22;  // sync   8
