@@ -67,9 +67,11 @@ The Trion board RGB firmware has clock signals identical to the table above. The
 
 Video        |Mx|My|Width|Height|Horiz Freq |Vert Freq  |Pixel Clock
 -------------|--|--|-----|------|-----------|-----------|-----------
-NTSC         |2x|2x|845  |526   |31.46khz   |59.82hz    |26.590 Mhz 
-NTSC(Old)    |2x|2x|832  |524   |31.96khz   |60.99hz    |26.590 Mhz 
-PAL-B        |2x|2x|945  |624   |31.26khz   |50.125hz   |29.557 Mhz 
+NTSC         |2x|2x|716  |506   |31.46khz   |59.82hz    |26.590 Mhz
+NTSC(Old)    |2x|2x|704  |504   |31.96khz   |60.99hz    |26.590 Mhz
+PAL-B        |2x|2x|732  |542   |31.26khz   |50.125hz   |29.557 Mhz
+
+NOTE: These are updated values for firmware 1.17. Previous firmware versions may report different values.
 
 ### More video stuff
 
@@ -111,13 +113,9 @@ NOTE: The CLK pin (dot clock) is disabled as it is not necessary for analog conn
 
 A SCART adapter should be possible but has not been built/tested.
 
-## How can I find out if my VGA/DVI/HDMI monitor supports the video?
-You can try these xrandr commands on Linux to test out a 50hz mode very similar to the one Kawari outputs. Replace DP-1 with your active HDMI or DP device:
+## How can I find out if my DVI/HDMI monitor supports the video modes?
 
-    xrandr --delmode DP-1 my50hzmode
-    xrandr --newmode my50hzmode 35.52 966 976 1072 1136 604 606 612 624 -hsync -vsync
-    xrandr --addmode DP-1 my50hzmode
-    xrandr --output DP-1 --mode my50hzmode
+You can try the xrandr helper scripts inside [monitor_tests](util/monitor_tests) directory in this repository.  These are scripts meant to test the 60hz/50hz modes from your Ubuntu Linux machine. See [README.md](util/monitor_tests/README.md) for a description on how to use them.
 
 ## DVI limitations
 
