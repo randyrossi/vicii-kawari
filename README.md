@@ -69,7 +69,7 @@ Video        |Mx|My|Width|Height|Horiz Freq |Vert Freq  |Pixel Clock
 -------------|--|--|-----|------|-----------|-----------|-----------
 NTSC         |2x|2x|716  |506   |31.46khz   |59.82hz    |26.590 Mhz
 NTSC(Old)    |2x|2x|704  |504   |31.96khz   |60.99hz    |26.590 Mhz
-PAL-B        |2x|2x|732  |542   |31.26khz   |50.125hz   |29.557 Mhz
+PAL-B        |2x|2x|732  |604   |31.26khz   |50.125hz   |29.557 Mhz
 
 NOTE: These are updated values for firmware 1.17. Previous firmware versions may report different values.
 

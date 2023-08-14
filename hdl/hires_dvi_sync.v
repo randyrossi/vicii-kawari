@@ -186,7 +186,7 @@ always @ (posedge clk_dvi)
 begin
    active <= ~(
               (h_count > ha_end | h_count <= ha_sta) |
-              (chip[0] ? ~vactive : vactive) // to handle va straddling 0
+              (vactive)
               );
 end
 
@@ -285,7 +285,11 @@ always @(posedge clk_dvi) begin
 end
 
 `ifndef CONFIGURABLE_TIMING
+`ifdef SIMULATOR_BOARD
+always @(posedge clk_dvi)
+`else
 always @(chip, is_native_y_in)
+`endif
     begin
         case (chip)
             `CHIP6569R1, `CHIP6569R3: begin
@@ -294,10 +298,10 @@ always @(chip, is_native_y_in)
                 hs_sta=11'd0;  // fporch  21 - always 2x
                 hs_end=11'd128;  // sync  64 - always 2x
                 ha_sta=11'd192;  // bporch  32 - always 2x
-                va_end=10'd20;  // boprch 41 - actually va_sta due to pal straddle 0
-                vs_sta=10'd284;  // start 284
-                vs_end=10'd289;  // fporch  5
-                va_sta=10'd291;  // vsync 2 - actually va_end due to pal straddle 0
+                va_end=10'd300;  // start 300
+                vs_sta=10'd301;  // fporch   1
+                vs_end=10'd309;  // sync   8
+                va_sta=10'd310;  // bporch   1
                 max_height = is_native_y_in ? 10'd311 : 10'd623;
                 max_width = 11'd944;
                 x_offset = 11'd38;
@@ -345,10 +349,8 @@ always @(chip, is_native_y_in)
 // There are restrictions on the values that can be placed into the timing
 // registers that the TIMED program will not enforce.  For example, any
 // hs_sta value must end up being>=0. Otherwise, the range comparison
-// for hsync will not make sense.  Also, for PAL, the active start/end
-// must straddle 0, otherwise the inverted range logic doesn't make sense.
-// Sync ranges must never straddle 0 for any chip.  Active range must not
-// straddle 0 for chips other than PAL.
+// for hsync will not make sense.
+// Ranges must never straddle 0 for any chip.
 always @(chip, is_native_y_in)
     begin
         case (chip)
@@ -361,14 +363,14 @@ always @(chip, is_native_y_in)
                 ha_sta = hs_end + {3'b000, timing_h_bporch_pal};
                 if (ha_sta >= 11'd945) ha_sta = ha_sta - 11'd945;
                 // WIDTH 945
-                va_end = {2'b00, timing_v_blank_pal}; // < 256
-                vs_sta = va_end + {2'b01, timing_v_fporch_pal}; // min +256
+                va_end = {2'b01, timing_v_blank_pal}; // starts at 256
+                vs_sta = va_end + {2'b00, timing_v_fporch_pal};
                 vs_end = vs_sta + {2'b00, timing_v_sync_pal};
                 va_sta = vs_end + {2'b00, timing_v_bporch_pal};
                 // HEIGHT 312(624)
-                max_height <= is_native_y_in ? 10'd311 : 10'd623;
-                max_width <= 11'd944;
-                x_offset <= 11'd38;
+                max_height = is_native_y_in ? 10'd311 : 10'd623;
+                max_width = 11'd944;
+                x_offset = 11'd38;
             end
             `CHIP6567R8: begin
                 ha_end = {3'b000, timing_h_blank_ntsc} + 11'd768;
@@ -384,9 +386,9 @@ always @(chip, is_native_y_in)
                 vs_end = vs_sta + {2'b00, timing_v_sync_ntsc};
                 va_sta = vs_end + {2'b00, timing_v_bporch_ntsc};
                 // HEIGHT 263(526)
-                max_height <= is_native_y_in ? 10'd262 : 10'd525;
-                max_width <= 11'd844;
-                x_offset <= 11'd136;
+                max_height = is_native_y_in ? 10'd262 : 10'd525;
+                max_width = 11'd844;
+                x_offset = 11'd136;
             end
             `CHIP6567R56A: begin
                 ha_end = {3'b000, timing_h_blank_ntsc} + 11'd768;
@@ -402,9 +404,9 @@ always @(chip, is_native_y_in)
                 vs_end = vs_sta + {2'b00, timing_v_sync_ntsc};
                 va_sta = vs_end + {2'b00, timing_v_bporch_ntsc};
                 // HEIGHT 262(524)
-                max_height <= is_native_y_in ? 10'd261 : 10'd523;
-                max_width <= 11'd831;
-                x_offset <= 11'd142;
+                max_height = is_native_y_in ? 10'd261 : 10'd523;
+                max_width = 11'd831;
+                x_offset = 11'd142;
             end
         endcase
 
