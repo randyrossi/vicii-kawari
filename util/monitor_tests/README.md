@@ -16,13 +16,13 @@ before switching to a different mode to test.
 
 ## For Spartan devices:
 
-./spartan_6569.sh
-./spartan_6567R56A.sh
-./spartan_6567R8.sh
+    ./spartan_6569.sh
+    ./spartan_6567R56A.sh
+    ./spartan_6567R8.sh
 
 ## For Trion devices (firmware 1.17+):
 
-./trion_6569.sh
-./trion_6567R56A.sh
-./trion_6567R8.sh
+    ./trion_6569.sh
+    ./trion_6567R56A.sh
+    ./trion_6567R8.sh
 
