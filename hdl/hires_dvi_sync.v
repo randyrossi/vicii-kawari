@@ -27,7 +27,7 @@
 // ----------------------------------------------------------------------------
 // 6567R8   |32.727272 | 1040 (520x2) | 26.590909 | 845       | 136     | 13/16
 // 6567R56A |32.727272 | 1024 (512x2) | 26.590909 | 832       | 142     | 13/16
-// 6569     |31.527955 | 1008 (504x2) | 29.557458 | 945       | 38      | 15/16
+// 6569     |31.527955 | 1008 (504x2) | 29.557458 | 945       | 46      | 15/16
 //
 // The benefit is the DVI 10x pixel clock does not have to be as high
 // and we get better sync/pixel stability.  Also, we can chop off some
@@ -156,10 +156,8 @@ wire csync_int;
 
 // Active high
 assign hsync_ah = h_count >= hs_sta & h_count < hs_end;
-assign vsync_ah = (
-           ((v_count == vs_sta & h_count >= hs_sta) | v_count > vs_sta) &
-           (v_count < vs_end | (v_count == vs_end & h_count < hs_end))
-       );
+assign vsync_ah = ((v_count == vs_end & h_count < hs_end) | v_count < vs_end) &
+                  ((v_count == vs_sta & h_count >= hs_sta) | v_count > vs_sta);
 assign csync_ah = hsync_ah | vsync_ah;
 
 // Turn to active low if poliarity flag says so
@@ -294,24 +292,24 @@ always @(chip, is_native_y_in)
         case (chip)
             `CHIP6569R1, `CHIP6569R3: begin
                 // WIDTH 945  HEIGHT 312(624)
-                ha_end=11'd924; // start 924 - always 2x
-                hs_sta=11'd0;  // fporch  21 - always 2x
-                hs_end=11'd128;  // sync  64 - always 2x
-                ha_sta=11'd192;  // bporch  32 - always 2x
+                ha_end=11'd936; // start 936 - always 2x
+                hs_sta=11'd0;  // fporch  9 - always 2x
+                hs_end=11'd128;  // sync  128 - always 2x
+                ha_sta=11'd136;  // bporch  8 - always 2x
                 va_end=10'd300;  // start 300
                 vs_sta=10'd301;  // fporch   1
                 vs_end=10'd309;  // sync   8
                 va_sta=10'd310;  // bporch   1
                 max_height = is_native_y_in ? 10'd311 : 10'd623;
                 max_width = 11'd944;
-                x_offset = 11'd38;
+                x_offset = 11'd46;
             end
             `CHIP6567R8: begin
                 // WIDTH 845  HEIGHT 263(526)
-                ha_end=11'd812; // start 812 - always 2x
-                hs_sta=11'd0;  // fporch 33 - always 2x
+                ha_end=11'd842; // start 842 - always 2x
+                hs_sta=11'd0;  // fporch 3 - always 2x
                 hs_end=11'd64;  // sync 64 - always 2x
-                ha_sta=11'd96;  // bporch  32 - always 2x
+                ha_sta=11'd66;  // bporch  2 - always 2x
                 va_end=10'd13;  // start  13
                 vs_sta=10'd14;  // fporch   1
                 vs_end=10'd22;  // sync   8
@@ -322,10 +320,10 @@ always @(chip, is_native_y_in)
             end
             `CHIP6567R56A: begin
                 // WIDTH 832  HEIGHT 262(524)
-                ha_end=11'd800;  // start 800 - always 2x
-                hs_sta=11'd0;  // fporch  32 - always 2x
+                ha_end=11'd828;  // start 829 - always 2x
+                hs_sta=11'd0;  // fporch  4 - always 2x
                 hs_end=11'd64;  // sync  64 - always 2x
-                ha_sta=11'd96;  // bporch  32 - always 2x
+                ha_sta=11'd66;  // bporch  2 - always 2x
                 va_end=10'd13;  // start  13
                 vs_sta=10'd14;  // fporch   1
                 vs_end=10'd22;  // sync   8
@@ -370,7 +368,7 @@ always @(chip, is_native_y_in)
                 // HEIGHT 312(624)
                 max_height = is_native_y_in ? 10'd311 : 10'd623;
                 max_width = 11'd944;
-                x_offset = 11'd38;
+                x_offset = 11'd46;
             end
             `CHIP6567R8: begin
                 ha_end = {3'b000, timing_h_blank_ntsc} + 11'd768;
