@@ -150,22 +150,14 @@ module registers
 `endif
 `ifdef CONFIGURABLE_TIMING
            output reg timing_change,
-           output reg [7:0] timing_h_blank_ntsc,
-           output reg [7:0] timing_h_fporch_ntsc,
-           output reg [7:0] timing_h_sync_ntsc,
-           output reg [7:0] timing_h_bporch_ntsc,
-           output reg [7:0] timing_v_blank_ntsc,
-           output reg [7:0] timing_v_fporch_ntsc,
-           output reg [7:0] timing_v_sync_ntsc,
-           output reg [7:0] timing_v_bporch_ntsc,
-           output reg [7:0] timing_h_blank_pal,
-           output reg [7:0] timing_h_fporch_pal,
-           output reg [7:0] timing_h_sync_pal,
-           output reg [7:0] timing_h_bporch_pal,
-           output reg [7:0] timing_v_blank_pal,
-           output reg [7:0] timing_v_fporch_pal,
-           output reg [7:0] timing_v_sync_pal,
-           output reg [7:0] timing_v_bporch_pal,
+           output reg [7:0] timing_h_blank,
+           output reg [7:0] timing_h_fporch,
+           output reg [7:0] timing_h_sync,
+           output reg [7:0] timing_h_bporch,
+           output reg [7:0] timing_v_blank,
+           output reg [7:0] timing_v_fporch,
+           output reg [7:0] timing_v_sync,
+           output reg [7:0] timing_v_bporch,
 `endif
 `ifdef HIRES_MODES
            input [ram_width-1:0] video_ram_addr_b,
@@ -574,34 +566,21 @@ begin
 `ifdef CONFIGURABLE_TIMING
         timing_change <= 1'b0;
 `ifdef ANALOG_RGB_TIMING
-        timing_h_blank_ntsc <= 126; // +384
-        timing_h_fporch_ntsc <= 10;
-        timing_h_sync_ntsc <= 70;
-        timing_h_bporch_ntsc <= 20;
-        timing_h_blank_pal <= 110; // +384
-        timing_h_fporch_pal <= 10;
-        timing_h_sync_pal <= 60;
-        timing_h_bporch_pal <= 20;
+        timing_h_blank <= 126; // +384
+        timing_h_fporch <= 10;
+        timing_h_sync <= 70;
+        timing_h_bporch <= 20;
 `else
-        timing_h_blank_ntsc <= 0;
-        timing_h_fporch_ntsc <= 5;
-        timing_h_sync_ntsc <= 35;
-        timing_h_bporch_ntsc <= 40;
-        timing_h_blank_pal <= 0;
-        timing_h_fporch_pal <= 10;
-        timing_h_sync_pal <= 60;
-        timing_h_bporch_pal <= 20;
+        timing_h_blank <= 84;
+        timing_h_fporch <= 30;
+        timing_h_sync <= 64;
+        timing_h_bporch <= 68;
 `endif
-        timing_v_blank_ntsc <= 11;
-        timing_v_fporch_ntsc <= 8;
-        timing_v_sync_ntsc <= 4;
-        timing_v_bporch_ntsc <= 3;
-        timing_v_blank_pal <= 28; // represents 284 (284-256)
-        timing_v_fporch_pal <= 5;
-        timing_v_sync_pal <= 2;
-        timing_v_bporch_pal <= 40; // NOTE: crosses 0, we sub 311 and invert sta/end
+        timing_v_blank <= 74;
+        timing_v_fporch <= 38;
+        timing_v_sync <= 5;
+        timing_v_bporch <= 5;
 `endif
-
         //extra_regs_activation_ctr <= 2'b0;
 
         //flag_port_1_func <= 2'b0;

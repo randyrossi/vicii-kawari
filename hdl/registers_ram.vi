@@ -195,37 +195,21 @@ task read_ram(
                     `EXT_REG_TIMING_CHANGE:
                         dbo <= {7'b0, timing_change};
                     8'hd0:
-                        dbo <= timing_h_blank_ntsc;
+                        dbo <= timing_h_blank;
                     8'hd1:
-                        dbo <= timing_h_fporch_ntsc;
+                        dbo <= timing_h_fporch;
                     8'hd2:
-                        dbo <= timing_h_sync_ntsc;
+                        dbo <= timing_h_sync;
                     8'hd3:
-                        dbo <= timing_h_bporch_ntsc;
+                        dbo <= timing_h_bporch;
                     8'hd4:
-                        dbo <= timing_v_blank_ntsc;
+                        dbo <= timing_v_blank;
                     8'hd5:
-                        dbo <= timing_v_fporch_ntsc;
+                        dbo <= timing_v_fporch;
                     8'hd6:
-                        dbo <= timing_v_sync_ntsc;
+                        dbo <= timing_v_sync;
                     8'hd7:
-                        dbo <= timing_v_bporch_ntsc;
-                    8'hd8:
-                        dbo <= timing_h_blank_pal;
-                    8'hd9:
-                        dbo <= timing_h_fporch_pal;
-                    8'hda:
-                        dbo <= timing_h_sync_pal;
-                    8'hdb:
-                        dbo <= timing_h_bporch_pal;
-                    8'hdc:
-                        dbo <= timing_v_blank_pal;
-                    8'hdd:
-                        dbo <= timing_v_fporch_pal;
-                    8'hde:
-                        dbo <= timing_v_sync_pal;
-                    8'hdf:
-                        dbo <= timing_v_bporch_pal;
+                        dbo <= timing_v_bporch;
 `endif
                     default: ;
                 endcase
@@ -453,67 +437,35 @@ task write_ram(
                         timing_change <= data[0];
 
                     8'hd0: begin
-                        timing_h_blank_ntsc <= data;
+                        timing_h_blank <= data;
                         persist_eeprom(do_persist, ram_lo, data);
                     end
                     8'hd1: begin
-                        timing_h_fporch_ntsc <= data;
+                        timing_h_fporch <= data;
                         persist_eeprom(do_persist, ram_lo, data);
                     end
                     8'hd2: begin
-                        timing_h_sync_ntsc <= data;
+                        timing_h_sync <= data;
                         persist_eeprom(do_persist, ram_lo, data);
                     end
                     8'hd3: begin
-                        timing_h_bporch_ntsc <= data;
+                        timing_h_bporch <= data;
                         persist_eeprom(do_persist, ram_lo, data);
                     end
                     8'hd4: begin
-                        timing_v_blank_ntsc <= data;
+                        timing_v_blank <= data;
                         persist_eeprom(do_persist, ram_lo, data);
                     end
                     8'hd5: begin
-                        timing_v_fporch_ntsc <= data;
+                        timing_v_fporch <= data;
                         persist_eeprom(do_persist, ram_lo, data);
                     end
                     8'hd6: begin
-                        timing_v_sync_ntsc <= data;
+                        timing_v_sync <= data;
                         persist_eeprom(do_persist, ram_lo, data);
                     end
                     8'hd7: begin
-                        timing_v_bporch_ntsc <= data;
-                        persist_eeprom(do_persist, ram_lo, data);
-                    end
-                    8'hd8: begin
-                        timing_h_blank_pal <= data;
-                        persist_eeprom(do_persist, ram_lo, data);
-                    end
-                    8'hd9: begin
-                        timing_h_fporch_pal <= data;
-                        persist_eeprom(do_persist, ram_lo, data);
-                    end
-                    8'hda: begin
-                        timing_h_sync_pal <= data;
-                        persist_eeprom(do_persist, ram_lo, data);
-                    end
-                    8'hdb: begin
-                        timing_h_bporch_pal <= data;
-                        persist_eeprom(do_persist, ram_lo, data);
-                    end
-                    8'hdc: begin
-                        timing_v_blank_pal <= data;
-                        persist_eeprom(do_persist, ram_lo, data);
-                    end
-                    8'hdd: begin
-                        timing_v_fporch_pal <= data;
-                        persist_eeprom(do_persist, ram_lo, data);
-                    end
-                    8'hde: begin
-                        timing_v_sync_pal <= data;
-                        persist_eeprom(do_persist, ram_lo, data);
-                    end
-                    8'hdf: begin
-                        timing_v_bporch_pal <= data;
+                        timing_v_bporch <= data;
                         persist_eeprom(do_persist, ram_lo, data);
                     end
 `endif

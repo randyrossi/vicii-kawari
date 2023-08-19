@@ -648,22 +648,14 @@ Location | Name | Since | Description | Capability Requirement | Can be saved?
 0xa0 - 0xaf | LUMA_LEVELS | 1.4 | Composite luma levels for colors (0-63) | CONFIG_COMPOSITE
 0xb0 - 0xbf | PHASE_VALUES | 1.4 | Composite phase values for colors (0-255 representing 0-359 degrees) | CONFIG_COMPOSITE | Y
 0xc0 - 0xcf | AMPL_VALUES | 1.4 | Composite amplitude values for colors (1-15, 0 = no modulation) | CONFIG_COMPOSITE | Y
-0xd0 | VGA_HBLANK | 1.4 | HDMI/VGA NTSC H blank start | CONFIG_TIMING | N
-0xd1 | VGA_FPORCH | 1.4 | HDMI/VGA NTSC H front porch | CONFIG_TIMING | N
-0xd2 | VGA_SPULSE | 1.4 | HDMI/VGA NTSC H sync pulse | CONFIG_TIMING | N
-0xd3 | VGA_BPORCH | 1.4 | HDMI/VGA NTSC H back porch | CONFIG_TIMING | N
-0xd4 | VGA_VBLANK | 1.4 | HDMI/VGA NTSC V blank start | CONFIG_TIMING | N
-0xd5 | VGA_FPORCH | 1.4 | HDMI/VGA NTSC V front porch | CONFIG_TIMING | N
-0xd6 | VGA_SPULSE | 1.4 | HDMI/VGA NTSC V sync pulse | CONFIG_TIMING | N
-0xd7 | VGA_BPORCH | 1.4 | HDMI/VGA NTSC V back porch | CONFIG_TIMING | N
-0xd8 | VGA_HBLANK | 1.4 | HDMI/VGA PAL H blank start | CONFIG_TIMING | N
-0xd9 | VGA_FPORCH | 1.4 | HDMI/VGA PAL H front porch | CONFIG_TIMING | N
-0xda | VGA_SPULSE | 1.4 | HDMI/VGA PAL H sync pulse | CONFIG_TIMING | N
-0xdb | VGA_BPORCH | 1.4 | HDMI/VGA PAL H back porch | CONFIG_TIMING | N
-0xdc | VGA_VBLANK | 1.4 | HDMI/VGA PAL V blank start | CONFIG_TIMING | N
-0xdd | VGA_FPORCH | 1.4 | HDMI/VGA PAL V front porch | CONFIG_TIMING | N
-0xde | VGA_SPULSE | 1.4 | HDMI/VGA PAL V sync pulse | CONFIG_TIMING | N
-0xdf | VGA_BPORCH | 1.4 | HDMI/VGA PAL V back porch | CONFIG_TIMING | N
+0xd0 | VGA_HBLANK | 1.4 | HDMI/VGA H blank start | CONFIG_TIMING | N
+0xd1 | VGA_FPORCH | 1.4 | HDMI/VGA H front porch | CONFIG_TIMING | N
+0xd2 | VGA_SPULSE | 1.4 | HDMI/VGA H sync pulse | CONFIG_TIMING | N
+0xd3 | VGA_BPORCH | 1.4 | HDMI/VGA H back porch | CONFIG_TIMING | N
+0xd4 | VGA_VBLANK | 1.4 | HDMI/VGA V blank start | CONFIG_TIMING | N
+0xd5 | VGA_FPORCH | 1.4 | HDMI/VGA V front porch | CONFIG_TIMING | N
+0xd6 | VGA_SPULSE | 1.4 | HDMI/VGA V sync pulse | CONFIG_TIMING | N
+0xd7 | VGA_BPORCH | 1.4 | HDMI/VGA V back porch | CONFIG_TIMING | N
 0xe0 - 0xff |   | UNUSED | Unused | NONE | N/A
 
 ### RGB Color Registers (For DVI/VGA)

@@ -1,4 +1,4 @@
-<efx:project xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="vicii" description="" last_change_date="Sun Jun 11 2023 13:48:05" location="/shared/Vivado/vicii-kawari/boards/rev_4G" sw_version="2021.2.323.6.17" last_run_state="pass" last_run_tool="efx_map" last_run_flow="syn" config_result_in_sync="sync" design_ood="sync" place_ood="sync" route_ood="sync" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
+<efx:project xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="vicii" description="" last_change_date="Sat Aug 19 2023 22:06:48" location="/shared/Vivado/vicii-kawari/boards/rev_4G" sw_version="2021.2.323.6.17" last_run_state="pass" last_run_tool="efx_map" last_run_flow="syn" config_result_in_sync="sync" design_ood="sync" place_ood="sync" route_ood="sync" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
     <efx:device_info>
         <efx:family name="Trion" />
         <efx:device name="T20F256" />
@@ -66,8 +66,8 @@
         <efx:param name="work_dir" value="work_pnr" value_type="e_string" />
         <efx:param name="verbose" value="off" value_type="e_bool" />
         <efx:param name="load_delaym" value="on" value_type="e_bool" />
-        <efx:param name="optimization_level" value="TIMING_3" value_type="e_option" />
-        <efx:param name="seed" value="5" value_type="e_integer" />
+        <efx:param name="optimization_level" value="TIMING_1" value_type="e_option" />
+        <efx:param name="seed" value="4" value_type="e_integer" />
     </efx:place_and_route>
     <efx:bitstream_generation tool_name="efx_pgm">
         <efx:param name="mode" value="active" value_type="e_option" />

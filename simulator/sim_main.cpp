@@ -286,7 +286,17 @@ static void CHECK(Vtop *top, int cond, int line) {
 #ifdef EFINIX
 #ifdef WITH_DVI
 static long tc = 0;
-static int tick_scale_pal[] = {1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1};
+
+// The fraction of dot4x to dviclk changes between our two
+// alternate PAL clocks. The dot clock can be switched at build
+// time between 29MHZ and 27MHZ (See c64_clock_finder.c)
+#ifdef PAL_29MHZ
+static int tick_scale_pal[] = {1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1};
+#endif
+#ifdef PAL_27MHZ
+static int tick_scale_pal[] = {1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1};
+#endif
+
 static int tick_scale_ntsc[] = {1,1,1,0,1,1,1,1,0,1,1,1,0,1,1,1};
 #endif
 #endif

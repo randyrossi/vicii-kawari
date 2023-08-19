@@ -39,5 +39,6 @@
 `define HAVE_FLASH 1
 `define WITH_BLITTER 1
 `define OUTPUT_DOT_CLOCK 1
+`define PAL_29MHZ 1
 
 `endif // config_vh_

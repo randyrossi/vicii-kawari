@@ -16,6 +16,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define FOR_CONFIG 0
 #define FOR_COMPILE 1
@@ -120,13 +121,20 @@ void efinix(int d) { printcfg(d, EFINIX); is_efinix = 1;}
 int main(int argc, char* argv[]) {
 
     int config = -1;
+    char *pal_res;
     if (argc > 1)
-       config = atoi(argv[1]);
+       pal_res = argv[1];
+    if (argc > 2)
+       config = atoi(argv[2]);
 
     int d = FOR_CONFIG;
-    if (argc > 2) {
-        d = FOR_COMPILE;
+    if (argc > 3) {
+       d = FOR_COMPILE;
        printf ("-DSIMULATOR_BOARD=1 ");
+       if (strcmp(pal_res, "29MHZ") == 0)
+           printf ("-DPAL_29MHZ=1 ");
+       else if (strcmp(pal_res, "27MHZ") == 0)
+           printf ("-DPAL_27MHZ=1 ");
     } else {
        printf ("`define VERSION_MAJOR 8'd0\n");
        printf ("`define VERSION_MINOR 8'd2\n");
@@ -143,6 +151,10 @@ int main(int argc, char* argv[]) {
        printf ("`define VARIANT_SUFFIX_6 8'd0\n");
        printf ("`define VARIANT_SUFFIX_7 8'd0\n");
        printf ("`define VARIANT_SUFFIX_8 8'd0\n");
+       if (strcmp(pal_res, "29MHZ") == 0)
+           printf ("`define PAL_29MHZ 1\n");
+       else if (strcmp(pal_res, "27MHZ") == 0)
+           printf ("`define PAL_27MHZ 1\n");
     }
 
     switch (config) {
@@ -153,7 +165,7 @@ int main(int argc, char* argv[]) {
             // LUMA/CHROMA ONLY
 	    case 0:
                     // The minimal config. Just a fixed VIC-II.
-		    gen_luma_chroma(d);
+                    gen_luma_chroma(d);
 		    luma_sink(d);
 		    break;
 

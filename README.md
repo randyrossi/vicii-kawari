@@ -44,7 +44,7 @@ The core is flexible and can be configured to support all three or any subset of
 
 By default, the DVI/RGB signals double the horizontal frequency from ~15.7khz to ~31.4khz (for 2X native height). The horizontal resolution is also doubled to support the 80 column mode.  However, the resolution scaling can be turned off for both width and height.  (NOTE: Turning off horizontal scaling will prevent hires modes from working properly.)
 
-### Spartan Large Board DVI/RGB Signals
+### Spartan Large Board DVI & RGB Signals
 
 Video        |Mx|My|Width|Height|Horiz Freq |Vert Freq  |Pixel Clock
 -------------|--|--|-----|------|-----------|-----------|-----------
@@ -61,17 +61,20 @@ NTSC         |2x|2x|1040 |526   |31.46khz   |59.82hz    |32.727 Mhz
 NTSC(Old)    |2x|2x|1024 |524   |31.96khz   |60.99hz    |32.727 Mhz 
 PAL-B        |2x|2x|1008 |624   |31.26khz   |50.125hz   |31.527 Mhz 
 
-### Trion Large Board DVI/RGB Signals
+### Trion Large Board DVI & RGB Signals
 
-The Trion board RGB firmware has clock signals identical to the table above. The DVI firmware (full 2x/2Y resolution) is reduced to the following values:
+The Trion board RGB firmware has resolutions identical to the table above. 
+
+The DVI firmware (full 2x/2Y resolution) is reduced to the following values:
 
 Video        |Mx|My|Width|Height|Horiz Freq |Vert Freq  |Pixel Clock
 -------------|--|--|-----|------|-----------|-----------|-----------
-NTSC         |2x|2x|716  |506   |31.46khz   |59.82hz    |26.590 Mhz
-NTSC(Old)    |2x|2x|704  |504   |31.96khz   |60.99hz    |26.590 Mhz
-PAL-B        |2x|2x|732  |604   |31.26khz   |50.125hz   |29.557 Mhz
+NTSC         |2x|2x|738  |506   |31.46khz   |59.82hz    |26.590 Mhz
+NTSC(Old)    |2x|2x|726  |504   |31.96khz   |60.99hz    |26.590 Mhz
+PAL-B        |2x|2x|768  |576   |31.26khz   |50.125hz   |29.557 Mhz
+PAL-B (alt)  |2x|2x|720  |576   |31.26khz   |50.125hz   |27.586 Mhz
 
-NOTE: These are updated values for firmware 1.17. Previous firmware versions may report different values.
+NOTE: These are updated values for firmware 1.17. Previous firmware versions may report different values and may have less compatibility with monitors.  The 'native x' and 'native y' (a.k.a 15khz) options from CONFIG program no longer have any effect on Trion DVI output.
 
 ### More video stuff
 

@@ -945,22 +945,14 @@ wire [3:0] burst_amplitude;
 
 `ifdef CONFIGURABLE_TIMING
 wire timing_change;
-wire [7:0] timing_h_blank_ntsc;
-wire [7:0] timing_h_fporch_ntsc;
-wire [7:0] timing_h_sync_ntsc;
-wire [7:0] timing_h_bporch_ntsc;
-wire [7:0] timing_v_blank_ntsc;
-wire [7:0] timing_v_fporch_ntsc;
-wire [7:0] timing_v_sync_ntsc;
-wire [7:0] timing_v_bporch_ntsc;
-wire [7:0] timing_h_blank_pal;
-wire [7:0] timing_h_fporch_pal;
-wire [7:0] timing_h_sync_pal;
-wire [7:0] timing_h_bporch_pal;
-wire [7:0] timing_v_blank_pal;
-wire [7:0] timing_v_fporch_pal;
-wire [7:0] timing_v_sync_pal;
-wire [7:0] timing_v_bporch_pal;
+wire [7:0] timing_h_blank;
+wire [7:0] timing_h_fporch;
+wire [7:0] timing_h_sync;
+wire [7:0] timing_h_bporch;
+wire [7:0] timing_v_blank;
+wire [7:0] timing_v_fporch;
+wire [7:0] timing_v_sync;
+wire [7:0] timing_v_bporch;
 `endif
 
 registers vic_registers(
@@ -1100,22 +1092,14 @@ registers vic_registers(
 `endif
 `ifdef CONFIGURABLE_TIMING
               .timing_change(timing_change),
-              .timing_h_blank_ntsc(timing_h_blank_ntsc),
-              .timing_h_fporch_ntsc(timing_h_fporch_ntsc),
-              .timing_h_sync_ntsc(timing_h_sync_ntsc),
-              .timing_h_bporch_ntsc(timing_h_bporch_ntsc),
-              .timing_v_blank_ntsc(timing_v_blank_ntsc),
-              .timing_v_fporch_ntsc(timing_v_fporch_ntsc),
-              .timing_v_sync_ntsc(timing_v_sync_ntsc),
-              .timing_v_bporch_ntsc(timing_v_bporch_ntsc),
-              .timing_h_blank_pal(timing_h_blank_pal),
-              .timing_h_fporch_pal(timing_h_fporch_pal),
-              .timing_h_sync_pal(timing_h_sync_pal),
-              .timing_h_bporch_pal(timing_h_bporch_pal),
-              .timing_v_blank_pal(timing_v_blank_pal),
-              .timing_v_fporch_pal(timing_v_fporch_pal),
-              .timing_v_sync_pal(timing_v_sync_pal),
-              .timing_v_bporch_pal(timing_v_bporch_pal),
+              .timing_h_blank(timing_h_blank),
+              .timing_h_fporch(timing_h_fporch),
+              .timing_h_sync(timing_h_sync),
+              .timing_h_bporch(timing_h_bporch),
+              .timing_v_blank(timing_v_blank),
+              .timing_v_fporch(timing_v_fporch),
+              .timing_v_sync(timing_v_sync),
+              .timing_v_bporch(timing_v_bporch),
 `endif
 `ifdef HIRES_MODES
               .video_ram_addr_b(video_ram_addr_b),
@@ -1335,22 +1319,14 @@ hires_dvi_sync vic_dvi_sync(
                    .vpolarity(vpolarity),
 `ifdef CONFIGURABLE_TIMING
                    .timing_change_in(timing_change),
-                   .timing_h_blank_ntsc(timing_h_blank_ntsc),
-                   .timing_h_fporch_ntsc(timing_h_fporch_ntsc),
-                   .timing_h_sync_ntsc(timing_h_sync_ntsc),
-                   .timing_h_bporch_ntsc(timing_h_bporch_ntsc),
-                   .timing_v_blank_ntsc(timing_v_blank_ntsc),
-                   .timing_v_fporch_ntsc(timing_v_fporch_ntsc),
-                   .timing_v_sync_ntsc(timing_v_sync_ntsc),
-                   .timing_v_bporch_ntsc(timing_v_bporch_ntsc),
-                   .timing_h_blank_pal(timing_h_blank_pal),
-                   .timing_h_fporch_pal(timing_h_fporch_pal),
-                   .timing_h_sync_pal(timing_h_sync_pal),
-                   .timing_h_bporch_pal(timing_h_bporch_pal),
-                   .timing_v_blank_pal(timing_v_blank_pal),
-                   .timing_v_fporch_pal(timing_v_fporch_pal),
-                   .timing_v_sync_pal(timing_v_sync_pal),
-                   .timing_v_bporch_pal(timing_v_bporch_pal),
+                   .timing_h_blank(timing_h_blank),
+                   .timing_h_fporch(timing_h_fporch),
+                   .timing_h_sync(timing_h_sync),
+                   .timing_h_bporch(timing_h_bporch),
+                   .timing_v_blank(timing_v_blank),
+                   .timing_v_fporch(timing_v_fporch),
+                   .timing_v_sync(timing_v_sync),
+                   .timing_v_bporch(timing_v_bporch),
 `endif // CONFIGURABLE_TIMING
                    .raster_x(raster_x),
                    .raster_y(raster_line),
@@ -1386,22 +1362,14 @@ hires_vga_sync vic_vga_sync(
                    .vpolarity(vpolarity),
 `ifdef CONFIGURABLE_TIMING
                    .timing_change_in(timing_change),
-                   .timing_h_blank_ntsc(timing_h_blank_ntsc),
-                   .timing_h_fporch_ntsc(timing_h_fporch_ntsc),
-                   .timing_h_sync_ntsc(timing_h_sync_ntsc),
-                   .timing_h_bporch_ntsc(timing_h_bporch_ntsc),
-                   .timing_v_blank_ntsc(timing_v_blank_ntsc),
-                   .timing_v_fporch_ntsc(timing_v_fporch_ntsc),
-                   .timing_v_sync_ntsc(timing_v_sync_ntsc),
-                   .timing_v_bporch_ntsc(timing_v_bporch_ntsc),
-                   .timing_h_blank_pal(timing_h_blank_pal),
-                   .timing_h_fporch_pal(timing_h_fporch_pal),
-                   .timing_h_sync_pal(timing_h_sync_pal),
-                   .timing_h_bporch_pal(timing_h_bporch_pal),
-                   .timing_v_blank_pal(timing_v_blank_pal),
-                   .timing_v_fporch_pal(timing_v_fporch_pal),
-                   .timing_v_sync_pal(timing_v_sync_pal),
-                   .timing_v_bporch_pal(timing_v_bporch_pal),
+                   .timing_h_blank(timing_h_blank),
+                   .timing_h_fporch(timing_h_fporch),
+                   .timing_h_sync(timing_h_sync),
+                   .timing_h_bporch(timing_h_bporch),
+                   .timing_v_blank(timing_v_blank),
+                   .timing_v_fporch(timing_v_fporch),
+                   .timing_v_sync(timing_v_sync),
+                   .timing_v_bporch(timing_v_bporch),
 `endif // CONFIGURABLE_TIMING
                    .raster_x(raster_x),
                    .raster_y(raster_line),

@@ -14,14 +14,20 @@
 # This will bypass the strip step.
 
 SRC_DIR=../../../boards
-VERSION=1.16
+VERSION=1.17
 
 # List of BOARD:CODE:FILE to make flash disk sets for...
 # FILE will be grabbed from the board build dir 
 #VARIANTS="rev_4G:MAINLG-DVI:kawari_multiboot_MAINLG-DVI_${VERSION}.hex rev_4G:MAINLG-RGB:kawari_multiboot_MAINLG-RGB_${VERSION}.hex rev_4H:MAINLH:kawari_multiboot_MAINLH_${VERSION}.hex rev_4H:MAINLH-DOTC:kawari_multiboot_MAINLH-DOTC_${VERSION}.hex"
 
-#VARIANTS="rev_4H:MAINLH:kawari_multiboot_MAINLH_${VERSION}.hex"
-VARIANTS="rev_4G:MAINLG-DVI:kawari_multiboot_MAINLG-DVI_${VERSION}.hex"
+# board dir build
+#VARIANTS="rev_4G:MAINLG-DVI:kawari_multiboot_MAINLG-DVI-29MHZ_${VERSION}.hex"
+
+# 27MHZ from sweep
+VARIANTS="rev_4G:MAINLG-DVI:../sweep_27/seed_2/outflow/vicii.hex"
+
+# 29MHZ from sweep
+#VARIANTS="rev_4G:MAINLG-DVI:../sweep_29/seed_7/outflow/vicii.hex"
 
 for VARIANT in $VARIANTS
 do
@@ -60,6 +66,7 @@ do
    make -f Makefile.${CODE} clean
    make multi_hex_to_bit
 
+   echo ./multi_hex_to_bit $HEX_FILE stripped.bit
    ./multi_hex_to_bit $HEX_FILE stripped.bit
 
    SIZE=`wc -c stripped.bit | awk '{print $1}'`

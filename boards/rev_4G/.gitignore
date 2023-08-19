@@ -8,3 +8,5 @@ luma_rev4.bin
 sine.bin
 vicii.vdb
 build/**
+vicii.peri.xml
+vicii.sdc
