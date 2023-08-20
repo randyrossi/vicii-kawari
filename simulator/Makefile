@@ -28,11 +28,13 @@ SIM_CONFIG = 3
 
 # 32MHZ | 29MHZ | 27MHZ
 #PAL_RES = 32MHZ
+#PAL_RES = 15MHZ
 PAL_RES = 29MHZ
 #PAL_RES = 27MHZ
 
 # 32MHZ | 26MHZ
 #NTSC_RES = 32MHZ
+#NTSC_RES = 16MHZ
 NTSC_RES = 26MHZ
 
 ######################################################################

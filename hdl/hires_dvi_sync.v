@@ -51,14 +51,22 @@
 `define PAL_MAX_WIDTH 11'd1007
 `define PAL_WIDTH 11'd1008
 `define PAL_OFFSET 11'd0
+`define PAL_CONFIGURABLE_OFFSET 11'd768
+`elsif PAL_15MHZ
+`define PAL_MAX_WIDTH 11'd503
+`define PAL_WIDTH 11'd504
+`define PAL_OFFSET 11'd0
+`define PAL_CONFIGURABLE_OFFSET 11'd384
 `elsif PAL_27MHZ
 `define PAL_MAX_WIDTH 11'd881
 `define PAL_WIDTH 11'd882
 `define PAL_OFFSET 11'd98
+`define PAL_CONFIGURABLE_OFFSET 11'd768
 `elsif PAL_29MHZ
 `define PAL_MAX_WIDTH 11'd944
 `define PAL_WIDTH 11'd945
 `define PAL_OFFSET 11'd78
+`define PAL_CONFIGURABLE_OFFSET 11'd768
 `endif
 
 `ifdef NTSC_32MHZ
@@ -68,6 +76,15 @@
 `define NTSCR56_MAX_WIDTH 11'd1023
 `define NTSCR56_WIDTH 11'd1024
 `define NTSCR56_OFFSET 11'd0
+`define NTSC_CONFIGURABLE_OFFSET 11'd768
+`elsif NTSC_16MHZ
+`define NTSCR8_MAX_WIDTH 11'd519
+`define NTSCR8_WIDTH 11'd520
+`define NTSCR8_OFFSET 11'd0
+`define NTSCR56_MAX_WIDTH 11'd513
+`define NTSCR56_WIDTH 11'd512
+`define NTSCR56_OFFSET 11'd0
+`define NTSC_CONFIGURABLE_OFFSET 11'd384
 `elsif NTSC_26MHZ
 `define NTSCR8_MAX_WIDTH 11'd844
 `define NTSCR8_WIDTH 11'd845
@@ -75,6 +92,7 @@
 `define NTSCR56_MAX_WIDTH 11'd831
 `define NTSCR56_WIDTH 11'd832
 `define NTSCR56_OFFSET 11'd142
+`define NTSC_CONFIGURABLE_OFFSET 11'd768
 `endif
 
 // A block ram module to hold a single raster line of pixel colors
@@ -146,7 +164,9 @@ endmodule
         input [9:0] raster_x, // native res counters
         input [8:0] raster_y, // native res counters
         input [9:0] xpos,
+`ifdef HIRES_MODES
         input [10:0] hires_raster_x,
+`endif
         input [3:0] pixel_color3,
         output reg hsync,             // horizontal sync
         output reg vsync,             // vertical sync
@@ -218,9 +238,6 @@ begin
               );
 end
 
-// These conditions determine whether we advance our h/v counts
-// based whether we are doubling X/Y resolutions or not.  See
-// the table below for more info.
 wire advance;
 assign advance = 1'b1;
 
@@ -272,11 +289,23 @@ reg [8:0] raster_y_dvi;
 always @(posedge clk_dvi) raster_y_dvi_1 <= raster_y;
 always @(posedge clk_dvi) raster_y_dvi <= raster_y_dvi_1;
 
+`ifdef PAL_15MHZ
+`ifndef NTSC_16MHZ
+ERROR "Must define both PAL AND NTSC to HALF DOT CLOCK"
+`endif
+`ifdef HIRES_MODES
+ERROR "Can't define HIRES_MODES for HALF DOT CLOCK RES"
+`endif
+`define BUF_X_COUNTER {1'b0, raster_x}
+`else
+`define BUF_X_COUNTER hires_raster_x
+`endif
+
 // When the line buffer is being written to, we use raster_x (the VIC native
 // resolution x) as the address.
 // When the line buffer is being read from, we use h_count.
 dvi_linebuf_RAM line_buf_0(pixel_color3, // din
-                       active_buf ? hires_raster_x : (h_count + x_offset),  // addr
+                       active_buf ? `BUF_X_COUNTER : (h_count + x_offset),  // addr
                        clk_dvi, // rclk
                        !active_buf, // re
                        clk_dot4x, // wclk
@@ -284,7 +313,7 @@ dvi_linebuf_RAM line_buf_0(pixel_color3, // din
                        dout0); // dout
 
 dvi_linebuf_RAM line_buf_1(pixel_color3,
-                       !active_buf ? hires_raster_x : (h_count + x_offset),
+                       !active_buf ? `BUF_X_COUNTER : (h_count + x_offset),
                        clk_dvi,
                        active_buf,
                        clk_dot4x,
@@ -326,6 +355,12 @@ always @(chip)
                 hs_sta=11'd0;  // fporch  10
                 hs_end=11'd64;  // sync  64
                 ha_sta=11'd132;  // bporch 68
+`elsif PAL_15MHZ
+                // WIDTH 504  HEIGHT 312(624)
+                ha_end=11'd494; // start 494
+                hs_sta=11'd0;  // fporch  10
+                hs_end=11'd32;  // sync  32
+                ha_sta=11'd66;  // bporch 34
 `elsif PAL_27MHZ
                 // WIDTH 882  HEIGHT 312(624)
                 ha_end=11'd852; // start 852
@@ -354,6 +389,12 @@ always @(chip)
                 hs_sta=11'd0;  // fporch 10
                 hs_end=11'd64;  // sync 64
                 ha_sta=11'd88;  // bporch  24
+`elsif NTSC_16MHZ
+                // WIDTH 520  HEIGHT 263(526)
+                ha_end=11'd510; // start 510
+                hs_sta=11'd0;  // fporch 10
+                hs_end=11'd32;  // sync 32
+                ha_sta=11'd44;  // bporch  24
 `elsif NTSC_26MHZ
                 // WIDTH 845  HEIGHT 263(526)
                 ha_end=11'd826; // start 826
@@ -407,7 +448,7 @@ always @(chip, timing_change_in)
     begin
         case (chip)
             `CHIP6569R1, `CHIP6569R3: begin
-                ha_end = {3'b000, timing_h_blank} + 11'd768;
+                ha_end = {3'b000, timing_h_blank} + `PAL_CONFIGURABLE_OFFSET;
                 hs_sta = ha_end + {3'b000, timing_h_fporch};
                 if (hs_sta >= `PAL_WIDTH) hs_sta = hs_sta - `PAL_WIDTH;
                 hs_end = hs_sta + {3'b000, timing_h_sync};
@@ -428,7 +469,7 @@ always @(chip, timing_change_in)
                 x_offset = `PAL_OFFSET;
             end
             `CHIP6567R8: begin
-                ha_end = {3'b000, timing_h_blank} + 11'd768;
+                ha_end = {3'b000, timing_h_blank} + `NTSC_CONFIGURABLE_OFFSET;
                 hs_sta = ha_end + {3'b000, timing_h_fporch};
                 if (hs_sta >= `NTSCR8_WIDTH) hs_sta = hs_sta - `NTSCR8_WIDTH;
                 hs_end = hs_sta + {3'b000, timing_h_sync};
@@ -446,7 +487,7 @@ always @(chip, timing_change_in)
                 x_offset = `NTSCR8_OFFSET;
             end
             `CHIP6567R56A: begin
-                ha_end = {3'b000, timing_h_blank} + 11'd768;
+                ha_end = {3'b000, timing_h_blank} + `NTSC_CONFIGURABLE_OFFSET;
                 hs_sta = ha_end + {3'b000, timing_h_fporch};
                 if (hs_sta >= `NTSCR56_WIDTH) hs_sta = hs_sta - `NTSCR56_WIDTH;
                 hs_end = hs_sta + {3'b000, timing_h_sync};

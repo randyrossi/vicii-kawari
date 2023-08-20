@@ -79,13 +79,13 @@ Launch Clock  : clk_dot4x_pal (RISE)
 Capture Clock : clk_dot4x_pal (RISE)
 Reason        : There are many ticks between the change and when it is read.
 --
-
-These are definitely not okay...
-
 Path Begin    : vic_inst/vic_dvi_sync/h_count[1]~FF|CLK
 Path End      : vic_inst/vic_dvi_sync/h_count[1]~FF|D
 Launch Clock  : clk_dvi_pal (RISE)
 Capture Clock : clk_dvi_pal (RISE)
+Reason        : Missing one transition at the start of a line is not a big deal.
+
+These are definitely not okay...
 
 Path Begin    : vic_inst/vic_addressgen/pal_sr[N]~FF|CLK
 Path End      : vic_inst/vic_addressgen/pal_sr[N]~FF|D

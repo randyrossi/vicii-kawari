@@ -293,6 +293,9 @@ static long tc = 0;
 #ifdef PAL_32MHZ
 static int tick_scale_pal[] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
 #endif
+#ifdef PAL_15MHZ
+static int tick_scale_pal[] = {1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0};
+#endif
 #ifdef PAL_29MHZ
 static int tick_scale_pal[] = {1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1};
 #endif
@@ -302,6 +305,9 @@ static int tick_scale_pal[] = {1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1};
 
 #ifdef NTSC_32MHZ
 static int tick_scale_ntsc[] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+#endif
+#ifdef NTSC_16MHZ
+static int tick_scale_ntsc[] = {1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0};
 #endif
 #ifdef NTSC_26MHZ
 static int tick_scale_ntsc[] = {1,1,1,0,1,1,1,1,0,1,1,1,0,1,1,1};
