@@ -75,7 +75,7 @@ module vicii
 `endif
 
 `ifdef NEED_RGB
-           output active,
+           output reg active,
            output hsync,
            output vsync,
            output [5:0] red,
@@ -125,6 +125,16 @@ wire [9:0] xpos;
 wire [9:0] raster_x;
 wire [8:0] raster_line;
 reg [3:0] pixel_color3;
+
+`ifdef NEED_RGB
+// We want the active signal we export to transition after
+// it takes effect in the sync module (dvi or vga) so that
+// we don't rise/fall too early before pixels go to black
+// from the logic in registers.  So we delay our exported
+// signal by 1 tick.
+wire active_pre;
+always @(posedge clk_dot4x) active <= active_pre;
+`endif
 
 // BA must go low 3 cycles before any dma access on a PHI
 // HIGH phase.
@@ -1051,7 +1061,7 @@ registers vic_registers(
               .pixel_color3(pixel_color3), // always native
 `ifdef NEED_RGB
               .pixel_color4(pixel_color4_vga), // from scan doubler
-              .active(active),
+              .active(active_pre),
               .half_bright(is_native_y ? 1'b0 :
                            (show_raster_lines & half_bright)),
               .red(red), // out
@@ -1338,7 +1348,7 @@ hires_dvi_sync vic_dvi_sync(
                    .pixel_color3(pixel_color3),
                    .hsync(hsync),
                    .vsync(vsync),
-                   .active(active),
+                   .active(active_pre),
                    .pixel_color4(pixel_color4_vga),
                    .half_bright(half_bright)
                );
@@ -1381,7 +1391,7 @@ hires_vga_sync vic_vga_sync(
                    .pixel_color3(pixel_color3),
                    .hsync(hsync),
                    .vsync(vsync),
-                   .active(active),
+                   .active(active_pre),
                    .pixel_color4(pixel_color4_vga),
                    .half_bright(half_bright)
                );
