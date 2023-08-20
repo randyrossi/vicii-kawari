@@ -47,14 +47,34 @@
 // look fuzzy on monitors as they scale up a small image.  It seems better to
 // always double the horizontal width, at least for DVI output.
 
-`ifdef PAL_27MHZ
+`ifdef PAL_32MHZ
+`define PAL_MAX_WIDTH 11'd1007
+`define PAL_WIDTH 11'd1008
+`define PAL_OFFSET 11'd0
+`elsif PAL_27MHZ
 `define PAL_MAX_WIDTH 11'd881
 `define PAL_WIDTH 11'd882
 `define PAL_OFFSET 11'd98
-`else // 29 Mhz
+`elsif PAL_29MHZ
 `define PAL_MAX_WIDTH 11'd944
 `define PAL_WIDTH 11'd945
 `define PAL_OFFSET 11'd78
+`endif
+
+`ifdef NTSC_32MHZ
+`define NTSCR8_MAX_WIDTH 11'd1039
+`define NTSCR8_WIDTH 11'd1040
+`define NTSCR8_OFFSET 11'd0
+`define NTSCR56_MAX_WIDTH 11'd1023
+`define NTSCR56_WIDTH 11'd1024
+`define NTSCR56_OFFSET 11'd0
+`elsif NTSC_26MHZ
+`define NTSCR8_MAX_WIDTH 11'd844
+`define NTSCR8_WIDTH 11'd845
+`define NTSCR8_OFFSET 11'd133
+`define NTSCR56_MAX_WIDTH 11'd831
+`define NTSCR56_WIDTH 11'd832
+`define NTSCR56_OFFSET 11'd142
 `endif
 
 // A block ram module to hold a single raster line of pixel colors
@@ -186,15 +206,15 @@ assign nvactive =
                (v_count >= va_end) &
                ((v_count == va_sta & h_count < ha_sta) | v_count < va_sta);
 assign pvactive =
-               (v_count >= va_sta) &
-               ((v_count == va_end & h_count >= ha_sta) | v_count < va_end);
+               (v_count < va_sta) |
+               ((v_count != va_end | h_count < ha_sta) & v_count >= va_end);
 
 // active: high during active pixel drawing
 always @ (posedge clk_dvi)
 begin
    active <= ~(
               (h_count > ha_end | h_count <= ha_sta) |
-              (chip[0] ? ~pvactive : nvactive)
+              (chip[0] ? pvactive : nvactive)
               );
 end
 
@@ -300,13 +320,19 @@ always @(chip)
     begin
         case (chip)
             `CHIP6569R1, `CHIP6569R3: begin
-`ifdef PAL_27MHZ
+`ifdef PAL_32MHZ
+                // WIDTH 1008  HEIGHT 312(624)
+                ha_end=11'd998; // start 998
+                hs_sta=11'd0;  // fporch  10
+                hs_end=11'd64;  // sync  64
+                ha_sta=11'd132;  // bporch 68
+`elsif PAL_27MHZ
                 // WIDTH 882  HEIGHT 312(624)
                 ha_end=11'd852; // start 852
                 hs_sta=11'd0;  // fporch  30
                 hs_end=11'd64;  // sync  64
                 ha_sta=11'd132;  // bporch 68
-`else // 29 Mhz
+`elsif PAL_29MHZ
                 // WIDTH 945  HEIGHT 312(624)
                 ha_end=11'd914; // start 914
                 hs_sta=11'd0;  // fporch  31
@@ -322,32 +348,48 @@ always @(chip)
                 x_offset = `PAL_OFFSET;
             end
             `CHIP6567R8: begin
+`ifdef NTSC_32MHZ
+                // WIDTH 1040  HEIGHT 263(526)
+                ha_end=11'd1030; // start 1030
+                hs_sta=11'd0;  // fporch 10
+                hs_end=11'd64;  // sync 64
+                ha_sta=11'd88;  // bporch  24
+`elsif NTSC_26MHZ
                 // WIDTH 845  HEIGHT 263(526)
                 ha_end=11'd826; // start 826
                 hs_sta=11'd0;  // fporch 19
                 hs_end=11'd64;  // sync 64
                 ha_sta=11'd88;  // bporch  24
+`endif
                 va_end=10'd26;  // start  26
                 vs_sta=10'd28;  // fporch   2
                 vs_end=10'd44;  // sync   16
                 va_sta=10'd46;  // bporch   2
                 max_height = 10'd525;
-                max_width = 11'd844;
-                x_offset = 11'd136;
+                max_width = `NTSCR8_MAX_WIDTH;
+                x_offset = `NTSCR8_OFFSET;
             end
             `CHIP6567R56A: begin
+`ifdef NTSC_32MHZ
+                // WIDTH 1024  HEIGHT 262(524)
+                ha_end=11'd1014;  // start 1014
+                hs_sta=11'd0;  // fporch  10
+                hs_end=11'd64;  // sync  64
+                ha_sta=11'd88;  // bporch  24
+`elsif NTSC_26MHZ
                 // WIDTH 832  HEIGHT 262(524)
                 ha_end=11'd814;  // start 814
                 hs_sta=11'd0;  // fporch  18
                 hs_end=11'd64;  // sync  64
                 ha_sta=11'd88;  // bporch  24
+`endif
                 va_end=10'd26;  // start  26
                 vs_sta=10'd28;  // fporch   2
                 vs_end=10'd44;  // sync   16
                 va_sta=10'd46;  // bporch   2
                 max_height = 10'd523;
-                max_width = 11'd831;
-                x_offset = 11'd142;
+                max_width = `NTSCR56_MAX_WIDTH;
+                x_offset = `NTSCR56_OFFSET;
             end
         endcase
     end
@@ -388,11 +430,11 @@ always @(chip, timing_change_in)
             `CHIP6567R8: begin
                 ha_end = {3'b000, timing_h_blank} + 11'd768;
                 hs_sta = ha_end + {3'b000, timing_h_fporch};
-                if (hs_sta >= 11'd845) hs_sta = hs_sta - 11'd845;
+                if (hs_sta >= `NTSCR8_WIDTH) hs_sta = hs_sta - `NTSCR8_WIDTH;
                 hs_end = hs_sta + {3'b000, timing_h_sync};
-                if (hs_end >= 11'd845) hs_end = hs_end - 11'd845;
+                if (hs_end >= `NTSCR8_WIDTH) hs_end = hs_end - `NTSCR8_WIDTH;
                 ha_sta = hs_end + {3'b000, timing_h_bporch};
-                if (ha_sta >= 11'd845) ha_sta = ha_sta - 11'd845;
+                if (ha_sta >= `NTSCR8_WIDTH) ha_sta = ha_sta - `NTSCR8_WIDTH;
                 // WIDTH 845
                 va_end = {2'b00, timing_v_blank};
                 vs_sta = va_end + {2'b00, timing_v_fporch};
@@ -400,17 +442,17 @@ always @(chip, timing_change_in)
                 va_sta = vs_end + {2'b00, timing_v_bporch};
                 // HEIGHT 263(526)
                 max_height = 10'd525;
-                max_width = 11'd844;
-                x_offset = 11'd136;
+                max_width = `NTSCR8_MAX_WIDTH;
+                x_offset = `NTSCR8_OFFSET;
             end
             `CHIP6567R56A: begin
                 ha_end = {3'b000, timing_h_blank} + 11'd768;
                 hs_sta = ha_end + {3'b000, timing_h_fporch};
-                if (hs_sta >= 11'd832) hs_sta = hs_sta - 11'd832;
+                if (hs_sta >= `NTSCR56_WIDTH) hs_sta = hs_sta - `NTSCR56_WIDTH;
                 hs_end = hs_sta + {3'b000, timing_h_sync};
-                if (hs_end >= 11'd832) hs_end = hs_end - 11'd832;
+                if (hs_end >= `NTSCR56_WIDTH) hs_end = hs_end - `NTSCR56_WIDTH
                 ha_sta = hs_end + {3'b000, timing_h_bporch};
-                if (ha_sta >= 11'd832) ha_sta = ha_sta - 11'd832;
+                if (ha_sta >= `NTSCR56_WIDTH) ha_sta = ha_sta - `NTSCR56_WIDTH
                 // WIDTH 832
                 va_end = {2'b00, timing_v_blank};
                 vs_sta = va_end + {2'b00, timing_v_fporch};
@@ -418,8 +460,8 @@ always @(chip, timing_change_in)
                 va_sta = vs_end + {2'b00, timing_v_bporch};
                 // HEIGHT 262(524)
                 max_height = 10'd523;
-                max_width = 11'd831;
-                x_offset = 11'd142;
+                max_width = `NTSCR56_MAX_WIDTH;
+                x_offset = `NTSCR56_OFFSET;
             end
         endcase
 

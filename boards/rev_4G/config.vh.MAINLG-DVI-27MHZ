@@ -40,5 +40,6 @@
 `define WITH_BLITTER 1
 `define OUTPUT_DOT_CLOCK 1
 `define PAL_27MHZ 1
+`define NTSC_26MHZ 1
 
 `endif // config_vh_

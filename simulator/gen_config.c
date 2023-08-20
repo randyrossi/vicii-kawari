@@ -121,20 +121,31 @@ void efinix(int d) { printcfg(d, EFINIX); is_efinix = 1;}
 int main(int argc, char* argv[]) {
 
     int config = -1;
+    char *ntsc_res;
     char *pal_res;
     if (argc > 1)
-       pal_res = argv[1];
+       ntsc_res = argv[1];
     if (argc > 2)
-       config = atoi(argv[2]);
+       pal_res = argv[2];
+    if (argc > 3)
+       config = atoi(argv[3]);
 
     int d = FOR_CONFIG;
-    if (argc > 3) {
+    if (argc > 4) {
        d = FOR_COMPILE;
        printf ("-DSIMULATOR_BOARD=1 ");
-       if (strcmp(pal_res, "29MHZ") == 0)
+       if (strcmp(pal_res, "32MHZ") == 0)
+           printf ("-DPAL_32MHZ=1 ");
+       else if (strcmp(pal_res, "29MHZ") == 0)
            printf ("-DPAL_29MHZ=1 ");
        else if (strcmp(pal_res, "27MHZ") == 0)
            printf ("-DPAL_27MHZ=1 ");
+
+       if (strcmp(ntsc_res, "32MHZ") == 0)
+           printf ("-DNTSC_32MHZ=1 ");
+       else if (strcmp(ntsc_res, "26MHZ") == 0)
+           printf ("-DNTSC_26MHZ=1 ");
+
     } else {
        printf ("`define VERSION_MAJOR 8'd0\n");
        printf ("`define VERSION_MINOR 8'd2\n");
@@ -151,10 +162,17 @@ int main(int argc, char* argv[]) {
        printf ("`define VARIANT_SUFFIX_6 8'd0\n");
        printf ("`define VARIANT_SUFFIX_7 8'd0\n");
        printf ("`define VARIANT_SUFFIX_8 8'd0\n");
-       if (strcmp(pal_res, "29MHZ") == 0)
+       if (strcmp(pal_res, "32MHZ") == 0)
+           printf ("`define PAL_32MHZ 1\n");
+       else if (strcmp(pal_res, "29MHZ") == 0)
            printf ("`define PAL_29MHZ 1\n");
        else if (strcmp(pal_res, "27MHZ") == 0)
            printf ("`define PAL_27MHZ 1\n");
+
+       if (strcmp(ntsc_res, "32MHZ") == 0)
+           printf ("`define NTSC_32MHZ 1\n");
+       else if (strcmp(ntsc_res, "26MHZ") == 0)
+           printf ("`define NTSC_26MHZ 1\n");
     }
 
     switch (config) {

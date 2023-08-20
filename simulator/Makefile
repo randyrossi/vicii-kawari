@@ -23,9 +23,17 @@
 # 9 = 4K Video Ram
 # 10 = Misc
 
+# Efinix config. Use PAL 29MHZ and NTSC 26MHZ clocks for DVI
 SIM_CONFIG = 3
-# 29MHZ | 27MHZ
+
+# 32MHZ | 29MHZ | 27MHZ
+#PAL_RES = 32MHZ
 PAL_RES = 29MHZ
+#PAL_RES = 27MHZ
+
+# 32MHZ | 26MHZ
+#NTSC_RES = 32MHZ
+NTSC_RES = 26MHZ
 
 ######################################################################
 # Check for sanity to avoid later confusion
@@ -73,10 +81,10 @@ VI_INC = ../hdl/registers_eeprom.vi ../hdl/registers_ram.vi ../hdl/registers_eep
 # Use -DHIRES_TEXT -DHIRES_BITMAP1 -DHIRES_BITMAP2 -DHIRES_BITMAP3 -DHIRES_BITMAP4 for other modes
 # Add -DVIC_ROLL=1 for vic_roll branch
 obj_dir/Vtop: $(VTOP_DEPS) gen_config $(VI_INC)
-	@(./gen_config $(PAL_RES) $(SIM_CONFIG) > ../hdl/config.vh)
+	@(./gen_config $(NTSC_RES) $(PAL_RES) $(SIM_CONFIG) > ../hdl/config.vh)
 	$(VERILATOR) -D$(KAWARI_FLAGS) --top-module top --trace -cc  --exe \
 	    -I../hdl $(VERILOG_SOURCES) -I../hdl/dvi sim_main.cpp log.cpp \
-	    -CFLAGS "-g `./gen_config $(PAL_RES) $(SIM_CONFIG) defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
+	    -CFLAGS "-g `./gen_config $(NTSC_RES) $(PAL_RES) $(SIM_CONFIG) defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
 
 default: obj_dir/Vtop
@@ -109,102 +117,102 @@ gen_config.o: gen_config.c
 	cc -c gen_config.c -o gen_config.o
 
 config_test_0: gen_config
-	@(./gen_config $(PAL_RES) 0 > ../hdl/config.vh)
+	@(./gen_config $(NTSC_RES) $(PAL_RES) 0 > ../hdl/config.vh)
 	$(MAKE) mostlyclean
 	$(MAKE) vicii_ipc.o
 	$(VERILATOR) --top-module top --trace -cc  --exe \
 		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
-	               -CFLAGS "-g `./gen_config $(PAL_RES) 0 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
+	               -CFLAGS "-g `./gen_config $(NTSC_RES) $(PAL_RES) 0 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
 
 config_test_1: gen_config
-	@(./gen_config $(PAL_RES) 1 > ../hdl/config.vh)
+	@(./gen_config $(NTSC_RES) $(PAL_RES) 1 > ../hdl/config.vh)
 	$(MAKE) mostlyclean
 	$(MAKE) vicii_ipc.o
 	$(VERILATOR) --top-module top --trace -cc  --exe \
 		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
-	               -CFLAGS "-g `./gen_config $(PAL_RES) 1 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
+	               -CFLAGS "-g `./gen_config $(NTSC_RES) $(PAL_RES) 1 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
 
 config_test_2: gen_config
-	@(./gen_config $(PAL_RES) 2 > ../hdl/config.vh)
+	@(./gen_config $(NTSC_RES) $(PAL_RES) 2 > ../hdl/config.vh)
 	$(MAKE) mostlyclean
 	$(MAKE) vicii_ipc.o
 	$(VERILATOR) --top-module top --trace -cc  --exe \
 		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
-	               -CFLAGS "-g `./gen_config $(PAL_RES) 2 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
+	               -CFLAGS "-g `./gen_config $(NTSC_RES) $(PAL_RES) 2 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
 
 config_test_3: gen_config
-	@(./gen_config $(PAL_RES) 3 > ../hdl/config.vh)
+	@(./gen_config $(NTSC_RES) $(PAL_RES) 3 > ../hdl/config.vh)
 	$(MAKE) mostlyclean
 	$(MAKE) vicii_ipc.o
 	$(VERILATOR) --top-module top --trace -cc  --exe \
 		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
-	               -CFLAGS "-g `./gen_config $(PAL_RES) 3 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
+	               -CFLAGS "-g `./gen_config $(NTSC_RES) $(PAL_RES) 3 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
 
 config_test_4: gen_config
-	@(./gen_config $(PAL_RES) 4 > ../hdl/config.vh)
+	@(./gen_config $(NTSC_RES) $(PAL_RES) 4 > ../hdl/config.vh)
 	$(MAKE) mostlyclean
 	$(MAKE) vicii_ipc.o
 	$(VERILATOR) --top-module top --trace -cc  --exe \
 		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
-	               -CFLAGS "-g `./gen_config $(PAL_RES) 4 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
+	               -CFLAGS "-g `./gen_config $(NTSC_RES) $(PAL_RES) 4 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
 
 config_test_5: gen_config
-	@(./gen_config $(PAL_RES) 5 > ../hdl/config.vh)
+	@(./gen_config $(NTSC_RES) $(PAL_RES) 5 > ../hdl/config.vh)
 	$(MAKE) mostlyclean
 	$(MAKE) vicii_ipc.o
 	$(VERILATOR) --top-module top --trace -cc  --exe \
 		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
-	               -CFLAGS "-g `./gen_config $(PAL_RES) 5 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
+	               -CFLAGS "-g `./gen_config $(NTSC_RES) $(PAL_RES) 5 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
 
 config_test_6: gen_config
-	@(./gen_config $(PAL_RES) 6 > ../hdl/config.vh)
+	@(./gen_config $(NTSC_RES) $(PAL_RES) 6 > ../hdl/config.vh)
 	$(MAKE) mostlyclean
 	$(MAKE) vicii_ipc.o
 	$(VERILATOR) --top-module top --trace -cc  --exe \
 		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
-	               -CFLAGS "-g `./gen_config $(PAL_RES) 6 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
+	               -CFLAGS "-g `./gen_config $(NTSC_RES) $(PAL_RES) 6 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
 
 config_test_7: gen_config
-	@(./gen_config $(PAL_RES) 7 > ../hdl/config.vh)
+	@(./gen_config $(NTSC_RES) $(PAL_RES) 7 > ../hdl/config.vh)
 	$(MAKE) mostlyclean
 	$(MAKE) vicii_ipc.o
 	$(VERILATOR) --top-module top --trace -cc  --exe \
 		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
-	               -CFLAGS "-g `./gen_config $(PAL_RES) 7 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
+	               -CFLAGS "-g `./gen_config $(NTSC_RES) $(PAL_RES) 7 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
 
 config_test_8: gen_config
-	@(./gen_config $(PAL_RES) 8 > ../hdl/config.vh)
+	@(./gen_config $(NTSC_RES) $(PAL_RES) 8 > ../hdl/config.vh)
 	$(MAKE) mostlyclean
 	$(MAKE) vicii_ipc.o
 	$(VERILATOR) --top-module top --trace -cc  --exe \
 		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
-	               -CFLAGS "-g `./gen_config $(PAL_RES) 8 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
+	               -CFLAGS "-g `./gen_config $(NTSC_RES) $(PAL_RES) 8 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
 
 config_test_9: gen_config
-	@(./gen_config $(PAL_RES) 9 > ../hdl/config.vh)
+	@(./gen_config $(NTSC_RES) $(PAL_RES) 9 > ../hdl/config.vh)
 	$(MAKE) mostlyclean
 	$(MAKE) vicii_ipc.o
 	$(VERILATOR) --top-module top --trace -cc  --exe \
 		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
-	               -CFLAGS "-g `./gen_config $(PAL_RES) 9 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
+	               -CFLAGS "-g `./gen_config $(NTSC_RES) $(PAL_RES) 9 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
 
 config_test_10: gen_config
-	@(./gen_config $(PAL_RES) 10 > ../hdl/config.vh)
+	@(./gen_config $(NTSC_RES) $(PAL_RES) 10 > ../hdl/config.vh)
 	$(MAKE) mostlyclean
 	$(MAKE) vicii_ipc.o
 	$(VERILATOR) --top-module top --trace -cc  --exe \
 		-I../hdl $(VERILOG_SOURCES) sim_main.cpp log.cpp \
-	               -CFLAGS "-g `./gen_config $(PAL_RES) 10 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
+	               -CFLAGS "-g `./gen_config $(NTSC_RES) $(PAL_RES) 10 defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
 
 

@@ -39,5 +39,6 @@
 `define HAVE_FLASH 1
 `define WITH_BLITTER 1
 `define OUTPUT_DOT_CLOCK 1
+// Dot clock is always 32MHZ for both NTSC/PAL
 
 `endif // config_vh_
