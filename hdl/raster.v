@@ -50,7 +50,7 @@ reg start_of_line;
 // cycle_bit : The pixel number within the cycle.
 // 0-7
 // NOTE: similar to above, cycle_bit not valid until 2nd tick within low phase of phi
-wire [2:0] cycle_bit;
+wire [2:0] cycle_bit /* verilator public_flat */;
 
 // The cycle_bit (0-7) is taken from the raster_x
 assign cycle_bit = raster_x[2:0];

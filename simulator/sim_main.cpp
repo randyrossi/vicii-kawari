@@ -27,6 +27,7 @@
 #include <regex.h>
 
 #include "Vtop.h"
+#include "Vtop___024root.h"
 #include "constants.h"
 
 #if VM_TRACE
@@ -168,7 +169,7 @@ static void HEADER(Vtop *top) {
 }
 
 static void STATE(Vtop *top) {
-   if ((top->V_DOT4X & 1) == 0) return;
+   if ((top->rootp->V_DOT4X & 1) == 0) return;
 
    if(HASCHANGED(OUT_DOT) && RISING(OUT_DOT))
       HEADER(top);
@@ -210,50 +211,50 @@ static void STATE(Vtop *top) {
    " %01d"
    ,
 
-   top->V_RST ? 'R' : HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ',
-   top->V_DOT4X ? 1 : 0,
+   top->rootp->V_RST ? 'R' : HASCHANGED(OUT_DOT) && RISING(OUT_DOT) ? '*' : ' ',
+   top->rootp->V_DOT4X ? 1 : 0,
    nextClkCnt,
-   top->V_XPOS,
-   top->V_CYCLE_NUM,
-   top->V_CLK_DOT & 8 ? 1 : 0,
-   top->clk_phi,
-   top->V_CYCLE_BIT,
-   top->irq,
-   top->ba,
-   top->aec,
-   cycleToChar(top->V_CYCLE_TYPE),
-   top->ras,
-   top->cas,
-   top->V_RASTER_X,
-   top->V_RASTER_LINE,
-   top->V_RASTER_LINE_D,
-   top->adl,
-   top->V_ADO,
-   top->V_DBI,
-   top->V_DBO,
-   top->rw,
-   top->ce,
-   top->V_REFC,
+   top->rootp->V_XPOS,
+   top->rootp->V_CYCLE_NUM,
+   top->rootp->V_CLK_DOT & 8 ? 1 : 0,
+   top->rootp->clk_phi,
+   top->rootp->V_CYCLE_BIT,
+   top->rootp->irq,
+   top->rootp->ba,
+   top->rootp->aec,
+   cycleToChar(top->rootp->V_CYCLE_TYPE),
+   top->rootp->ras,
+   top->rootp->cas,
+   top->rootp->V_RASTER_X,
+   top->rootp->V_RASTER_LINE,
+   top->rootp->V_RASTER_LINE_D,
+   top->rootp->adl,
+   top->rootp->V_ADO,
+   top->rootp->V_DBI,
+   top->rootp->V_DBO,
+   top->rootp->rw,
+   top->rootp->ce,
+   top->rootp->V_REFC,
 
-   //toBin(16, top->V_RASR),
-   //toBin(16, top->V_CASR),
+   //toBin(16, top->rootp->V_RASR),
+   //toBin(16, top->rootp->V_CASR),
 
-   toBin(16, top->V_PPS),
-   toBin(32, top->V_PHIR),
+   toBin(16, top->rootp->V_PPS),
+   toBin(32, top->rootp->V_PHIR),
    " ",
 
-   //toBin(16, top->V_DOTRISINGR),
-   //toBin(32, top->V_DOTR),
+   //toBin(16, top->rootp->V_DOTRISINGR),
+   //toBin(32, top->rootp->V_DOTR),
    //" ",
 
-   top->V_BADLINE,
+   top->rootp->V_BADLINE,
 
-   top->V_SPRITE_MC[0],
-   top->V_SPRITE_MCBASE[0],
-   top->V_RC,
-   top->V_VICADDR,
-   top->V_BMM
-   //top->V_NEXTCHAR
+   top->rootp->V_SPRITE_MC[0],
+   top->rootp->V_SPRITE_MCBASE[0],
+   top->rootp->V_RC,
+   top->rootp->V_VICADDR,
+   top->rootp->V_BMM
+   //top->rootp->V_NEXTCHAR
    );
 }
 
@@ -323,17 +324,17 @@ static vluint64_t nextTick(Vtop* top, VerilatedVcdC* tfp, int chip) {
 
    nextClk += half4XDotPS;
 
-   top->V_DOT4X = ~top->V_DOT4X;
+   top->rootp->V_DOT4X = ~top->rootp->V_DOT4X;
    
 #ifdef EFINIX
 #ifdef WITH_DVI
    // Emulate our dvi clock in the correct fraction of the dot4x clock
    if (chip & 1) {
       if (tick_scale_pal[tc])
-         top->V_CLK_DVI = ~top->V_CLK_DVI;
+         top->rootp->V_CLK_DVI = ~top->rootp->V_CLK_DVI;
    } else {
       if (tick_scale_ntsc[tc])
-         top->V_CLK_DVI = ~top->V_CLK_DVI;
+         top->rootp->V_CLK_DVI = ~top->rootp->V_CLK_DVI;
    }
 
    tc++;
@@ -341,20 +342,20 @@ static vluint64_t nextTick(Vtop* top, VerilatedVcdC* tfp, int chip) {
 #endif
 #endif
 
-   top->V_COL4X = ~top->V_COL4X;
+   top->rootp->V_COL4X = ~top->rootp->V_COL4X;
 
    // One tick of dot4x 
    // = 9/4 ticks of col16x for PAL, 7/4 ticks of col16x for NTSC
 
    if (chip & 1) {
-       col16xtick += 9.0f/4.0d;
+       col16xtick += 9.0/4.0;
    } else {
-       col16xtick += 7.0f/4.0d;
+       col16xtick += 7.0f/4.0;
    }
 
    next16XColClk = nextClk;
    while (col16xtick >= 1) {
-       top->V_COL16X = ~top->V_COL16X;
+       top->rootp->V_COL16X = ~top->rootp->V_COL16X;
        top->eval();
 #if VM_TRACE
        if (tfp) tfp->dump(next16XColClk / TICKS_TO_TIMESCALE);
@@ -374,227 +375,227 @@ static void drawPixel(SDL_Renderer* ren, int x,int y) {
 
 // Initial sync
 static void regs_vice_to_fpga(Vtop* top, struct vicii_state* state) {
-       top->V_IDLE = state->idle;
+       top->rootp->V_IDLE = state->idle;
 
        // Sync registers
        unsigned char val = state->vice_reg[0x11];
-       top->V_YSCROLL = val & 7;
-       top->V_RSEL = val & 8 ? 1 : 0;
-       top->V_DEN = val & 16 ? 1 : 0;
-       top->V_BMM = val & 32 ? 1 : 0;
-       top->V_ECM = val & 64 ? 1 : 0;
+       top->rootp->V_YSCROLL = val & 7;
+       top->rootp->V_RSEL = val & 8 ? 1 : 0;
+       top->rootp->V_DEN = val & 16 ? 1 : 0;
+       top->rootp->V_BMM = val & 32 ? 1 : 0;
+       top->rootp->V_ECM = val & 64 ? 1 : 0;
        int rasterCmp8 = (val & 128) << 1;
 
        val = state->vice_reg[0x12];
-       top->V_RASTERCMP = val | rasterCmp8;
-       top->V_RASTERCMP_D = val | rasterCmp8;
+       top->rootp->V_RASTERCMP = val | rasterCmp8;
+       top->rootp->V_RASTERCMP_D = val | rasterCmp8;
 
-       top->V_LPX = state->vice_reg[0x13];
-       top->V_LPY = state->vice_reg[0x14];
+       top->rootp->V_LPX = state->vice_reg[0x13];
+       top->rootp->V_LPY = state->vice_reg[0x14];
 
        val = state->vice_reg[0x16];
-       top->V_XSCROLL = val & 7;
-       top->V_CSEL = val & 8 ? 1 : 0;
-       top->V_MCM = val & 16 ? 1 : 0;
-       top->V_RES = val & 32 ? 1 : 0;
+       top->rootp->V_XSCROLL = val & 7;
+       top->rootp->V_CSEL = val & 8 ? 1 : 0;
+       top->rootp->V_MCM = val & 16 ? 1 : 0;
+       top->rootp->V_RES = val & 32 ? 1 : 0;
 
        val = state->vice_reg[0x18];
-       top->V_CB = (val & 14) >> 1;
-       top->V_VM = (val & 240) >> 4;
+       top->rootp->V_CB = (val & 14) >> 1;
+       top->rootp->V_VM = (val & 240) >> 4;
 
        val = state->vice_reg[0x19];
-       //top->V_IRST_CLR = val & 1;
-       //top->V_IMBC_CLR = val & 2 ? 1 : 0;
-       //top->V_IMMC_CLR = val & 4 ? 1 : 0;
-       //top->V_ILP_CLR =  val & 8 ? 1 : 0;
+       //top->rootp->V_IRST_CLR = val & 1;
+       //top->rootp->V_IMBC_CLR = val & 2 ? 1 : 0;
+       //top->rootp->V_IMMC_CLR = val & 4 ? 1 : 0;
+       //top->rootp->V_ILP_CLR =  val & 8 ? 1 : 0;
 
        val = state->vice_reg[0x1A];
-       top->V_ERST = val & 1;
-       top->V_EMBC = val & 2 ? 1 : 0;
-       top->V_EMMC = val & 4 ? 1 : 0;
-       top->V_ELP = val & 8 ? 1 : 0;
+       top->rootp->V_ERST = val & 1;
+       top->rootp->V_EMBC = val & 2 ? 1 : 0;
+       top->rootp->V_EMMC = val & 4 ? 1 : 0;
+       top->rootp->V_ELP = val & 8 ? 1 : 0;
 
        val = state->vice_reg[0x20];
-       top->V_EC = val & 15 | 0x11110000;
+       top->rootp->V_EC = val & 15 | 0x11110000;
        val = state->vice_reg[0x21];
-       top->V_B0C = val & 15 | 0x11110000;
+       top->rootp->V_B0C = val & 15 | 0x11110000;
        val = state->vice_reg[0x22];
-       top->V_B1C = val & 15 | 0x11110000;
+       top->rootp->V_B1C = val & 15 | 0x11110000;
        val = state->vice_reg[0x23];
-       top->V_B2C = val & 15 | 0b11110000;
+       top->rootp->V_B2C = val & 15 | 0b11110000;
        val = state->vice_reg[0x24];
-       top->V_B3C = val & 15 | 0b11110000;
+       top->rootp->V_B3C = val & 15 | 0b11110000;
 
-       top->V_VC = state->vc;
-       top->V_RC = state->rc;
-       top->V_VCBASE = state->vc_base;
+       top->rootp->V_VC = state->vc;
+       top->rootp->V_RC = state->rc;
+       top->rootp->V_VCBASE = state->vc_base;
 
-       top->V_ALLOW_BAD_LINES = state->allow_bad_lines;
-       top->V_REG11_DELAYED = state->reg11_delayed;
+       top->rootp->V_ALLOW_BAD_LINES = state->allow_bad_lines;
+       top->rootp->V_REG11_DELAYED = state->reg11_delayed;
 
-       top->V_SPRITE_X[0] = state->vice_reg[0x00] | ((state->vice_reg[0x10] & 1) << 8);
-       top->V_SPRITE_Y[0] = state->vice_reg[0x01];
-       top->V_SPRITE_X[1] = state->vice_reg[0x02] | ((state->vice_reg[0x10] & 2) << 7);
-       top->V_SPRITE_Y[1] = state->vice_reg[0x03];
-       top->V_SPRITE_X[2] = state->vice_reg[0x04] | ((state->vice_reg[0x10] & 4) << 6);
-       top->V_SPRITE_Y[2] = state->vice_reg[0x05];
-       top->V_SPRITE_X[3] = state->vice_reg[0x06] | ((state->vice_reg[0x10] & 8) << 5);
-       top->V_SPRITE_Y[3] = state->vice_reg[0x07];
-       top->V_SPRITE_X[4] = state->vice_reg[0x08] | ((state->vice_reg[0x10] & 16) << 4);
-       top->V_SPRITE_Y[4] = state->vice_reg[0x09];
-       top->V_SPRITE_X[5] = state->vice_reg[0x0a] | ((state->vice_reg[0x10] & 32) << 3);
-       top->V_SPRITE_Y[5] = state->vice_reg[0x0b];
-       top->V_SPRITE_X[6] = state->vice_reg[0x0c] | ((state->vice_reg[0x10] & 64) << 2);
-       top->V_SPRITE_Y[6] = state->vice_reg[0x0d];
-       top->V_SPRITE_X[7] = state->vice_reg[0x0e] | ((state->vice_reg[0x10] & 128) << 1);
-       top->V_SPRITE_Y[7] = state->vice_reg[0x0f];
+       top->rootp->V_SPRITE_X[0] = state->vice_reg[0x00] | ((state->vice_reg[0x10] & 1) << 8);
+       top->rootp->V_SPRITE_Y[0] = state->vice_reg[0x01];
+       top->rootp->V_SPRITE_X[1] = state->vice_reg[0x02] | ((state->vice_reg[0x10] & 2) << 7);
+       top->rootp->V_SPRITE_Y[1] = state->vice_reg[0x03];
+       top->rootp->V_SPRITE_X[2] = state->vice_reg[0x04] | ((state->vice_reg[0x10] & 4) << 6);
+       top->rootp->V_SPRITE_Y[2] = state->vice_reg[0x05];
+       top->rootp->V_SPRITE_X[3] = state->vice_reg[0x06] | ((state->vice_reg[0x10] & 8) << 5);
+       top->rootp->V_SPRITE_Y[3] = state->vice_reg[0x07];
+       top->rootp->V_SPRITE_X[4] = state->vice_reg[0x08] | ((state->vice_reg[0x10] & 16) << 4);
+       top->rootp->V_SPRITE_Y[4] = state->vice_reg[0x09];
+       top->rootp->V_SPRITE_X[5] = state->vice_reg[0x0a] | ((state->vice_reg[0x10] & 32) << 3);
+       top->rootp->V_SPRITE_Y[5] = state->vice_reg[0x0b];
+       top->rootp->V_SPRITE_X[6] = state->vice_reg[0x0c] | ((state->vice_reg[0x10] & 64) << 2);
+       top->rootp->V_SPRITE_Y[6] = state->vice_reg[0x0d];
+       top->rootp->V_SPRITE_X[7] = state->vice_reg[0x0e] | ((state->vice_reg[0x10] & 128) << 1);
+       top->rootp->V_SPRITE_Y[7] = state->vice_reg[0x0f];
 
-       top->V_SPRITE_EN = state->vice_reg[0x15];
-       top->V_SPRITE_YE = state->vice_reg[0x17];
-       top->V_SPRITE_PRI = state->vice_reg[0x1b];
-       top->V_SPRITE_MMC = state->vice_reg[0x1c];
-       top->V_SPRITE_XE = state->vice_reg[0x1d];
+       top->rootp->V_SPRITE_EN = state->vice_reg[0x15];
+       top->rootp->V_SPRITE_YE = state->vice_reg[0x17];
+       top->rootp->V_SPRITE_PRI = state->vice_reg[0x1b];
+       top->rootp->V_SPRITE_MMC = state->vice_reg[0x1c];
+       top->rootp->V_SPRITE_XE = state->vice_reg[0x1d];
 
-       top->V_SPRITE_M2M = state->vice_reg[0x1e];
-       top->V_SPRITE_M2D = state->vice_reg[0x1f];
+       top->rootp->V_SPRITE_M2M = state->vice_reg[0x1e];
+       top->rootp->V_SPRITE_M2D = state->vice_reg[0x1f];
 
-       top->V_SPRITE_MC0 = state->vice_reg[0x25];
-       top->V_SPRITE_MC1 = state->vice_reg[0x26];
+       top->rootp->V_SPRITE_MC0 = state->vice_reg[0x25];
+       top->rootp->V_SPRITE_MC1 = state->vice_reg[0x26];
 
-       top->V_SPRITE_DMA = 0;
+       top->rootp->V_SPRITE_DMA = 0;
        for (int n=0, b=1;n<8;n++,b=b*2) {
-          top->V_SPRITE_MC[n] = state->mc[n];
-          top->V_SPRITE_MCBASE[n] = state->mcbase[n];
-          top->V_SPRITE_YE_FF[n] = state->ye_ff[n];
-	  top->V_SPRITE_DMA |= state->sprite_dma[n] ? b : 0;
-          top->V_SPRITE_COL[n] = state->vice_reg[0x27+n];
+          top->rootp->V_SPRITE_MC[n] = state->mc[n];
+          top->rootp->V_SPRITE_MCBASE[n] = state->mcbase[n];
+          top->rootp->V_SPRITE_YE_FF[n] = state->ye_ff[n];
+	  top->rootp->V_SPRITE_DMA |= state->sprite_dma[n] ? b : 0;
+          top->rootp->V_SPRITE_COL[n] = state->vice_reg[0x27+n];
        }
 
-       top->V_RASTER_IRQ_TRIGGERED = state->raster_irq_triggered;
-       top->V_IRST = state->irst;
-       top->V_IMBC = state->imbc;
-       if (state->vice_reg[0x1f] != 0) top->V_M2D_TRIGGERED = 1;
-       top->V_IMMC = state->immc;
-       if (state->vice_reg[0x1e] != 0) top->V_M2M_TRIGGERED = 1;
-       top->V_ILP = state->ilp;
+       top->rootp->V_RASTER_IRQ_TRIGGERED = state->raster_irq_triggered;
+       top->rootp->V_IRST = state->irst;
+       top->rootp->V_IMBC = state->imbc;
+       if (state->vice_reg[0x1f] != 0) top->rootp->V_M2D_TRIGGERED = 1;
+       top->rootp->V_IMMC = state->immc;
+       if (state->vice_reg[0x1e] != 0) top->rootp->V_M2M_TRIGGERED = 1;
+       top->rootp->V_ILP = state->ilp;
 
-       top->V_VBORDER = state->vborder;
-       top->V_MAIN_BORDER = state->main_border;
-       top->V_SET_VBORDER = state->set_vborder;
+       top->rootp->V_VBORDER = state->vborder;
+       top->rootp->V_MAIN_BORDER = state->main_border;
+       top->rootp->V_SET_VBORDER = state->set_vborder;
 
-       top->V_LIGHTPEN_TRIGGERED = state->light_pen_triggered;
+       top->rootp->V_LIGHTPEN_TRIGGERED = state->light_pen_triggered;
 
        // We need to populate our char buf from VICE's
        for (int i=0;i < 40; i++) {
-           top->V_CHAR_BUF[i] = state->char_buf[i] | (state->color_buf[i] << 8);
+           top->rootp->V_CHAR_BUF[i] = state->char_buf[i] | (state->color_buf[i] << 8);
        }
 }
 
 static void regs_fpga_to_vice(Vtop* top, struct vicii_state* state) {
        state->fpga_reg[0x11] =
-          (top->V_YSCROLL & 0x7) |
-          (top->V_RSEL ? 8 : 0) |
-          (top->V_DEN  ? 16 : 0) |
-          (top->V_BMM  ? 32 : 0) |
-          (top->V_ECM  ? 64 : 0) |
-          ((top->V_RASTER_LINE_D & 256) ? 128 : 0);
+          (top->rootp->V_YSCROLL & 0x7) |
+          (top->rootp->V_RSEL ? 8 : 0) |
+          (top->rootp->V_DEN  ? 16 : 0) |
+          (top->rootp->V_BMM  ? 32 : 0) |
+          (top->rootp->V_ECM  ? 64 : 0) |
+          ((top->rootp->V_RASTER_LINE_D & 256) ? 128 : 0);
 
        state->fpga_reg[0x12] =
-          top->V_RASTER_LINE_D & 0xff;
+          top->rootp->V_RASTER_LINE_D & 0xff;
 
-       state->fpga_reg[0x13] = top->V_LPX;
-       state->fpga_reg[0x14] = top->V_LPY;
+       state->fpga_reg[0x13] = top->rootp->V_LPX;
+       state->fpga_reg[0x14] = top->rootp->V_LPY;
 
        state->fpga_reg[0x16] =
-          (top->V_XSCROLL & 0x7) |
-          (top->V_CSEL ? 8 : 0) |
-          (top->V_MCM ? 16 : 0) |
-          (top->V_RES ? 32 : 0) |
+          (top->rootp->V_XSCROLL & 0x7) |
+          (top->rootp->V_CSEL ? 8 : 0) |
+          (top->rootp->V_MCM ? 16 : 0) |
+          (top->rootp->V_RES ? 32 : 0) |
           0b11000000;
 
        state->fpga_reg[0x18] = 1 |
-          ((top->V_CB & 0x7) << 1) |
-          ((top->V_VM & 0xf) << 4);
+          ((top->rootp->V_CB & 0x7) << 1) |
+          ((top->rootp->V_VM & 0xf) << 4);
 
        state->fpga_reg[0x19] =
-	  (top->V_IRQ ? 128 : 0) |
-          (top->V_IRST ? 1 : 0) |
-          (top->V_IMBC ? 2 : 0) |
-          (top->V_IMMC ? 4 : 0) |
-          (top->V_ILP ? 8 : 0) |
+	  (top->rootp->V_IRQ ? 128 : 0) |
+          (top->rootp->V_IRST ? 1 : 0) |
+          (top->rootp->V_IMBC ? 2 : 0) |
+          (top->rootp->V_IMMC ? 4 : 0) |
+          (top->rootp->V_ILP ? 8 : 0) |
           0b01110000;
 
        state->fpga_reg[0x1A] =
-          (top->V_ERST  ? 1 : 0) |
-          (top->V_EMBC  ? 2 : 0) |
-          (top->V_EMMC  ? 4 : 0) |
-          (top->V_ELP   ? 8 : 0) |
+          (top->rootp->V_ERST  ? 1 : 0) |
+          (top->rootp->V_EMBC  ? 2 : 0) |
+          (top->rootp->V_EMMC  ? 4 : 0) |
+          (top->rootp->V_ELP   ? 8 : 0) |
           0b11110000;
 
        state->fpga_reg[0x20] =
-          (top->V_EC & 15) | 0b11110000;
+          (top->rootp->V_EC & 15) | 0b11110000;
        state->fpga_reg[0x21] =
-          (top->V_B0C & 15) | 0b11110000;
+          (top->rootp->V_B0C & 15) | 0b11110000;
        state->fpga_reg[0x22] =
-          (top->V_B1C & 15) | 0b11110000;
+          (top->rootp->V_B1C & 15) | 0b11110000;
        state->fpga_reg[0x23] =
-          (top->V_B2C & 15) | 0b11110000;
+          (top->rootp->V_B2C & 15) | 0b11110000;
        state->fpga_reg[0x24] =
-          (top->V_B3C & 15) | 0b11110000;
+          (top->rootp->V_B3C & 15) | 0b11110000;
 
-       state->vc = top->V_VC;
-       state->vc_base = top->V_VCBASE;
-       state->rc = top->V_RC;
+       state->vc = top->rootp->V_VC;
+       state->vc_base = top->rootp->V_VCBASE;
+       state->rc = top->rootp->V_RC;
 
-       state->allow_bad_lines = top->V_ALLOW_BAD_LINES;
-       state->reg11_delayed = top->V_REG11_DELAYED;
+       state->allow_bad_lines = top->rootp->V_ALLOW_BAD_LINES;
+       state->reg11_delayed = top->rootp->V_REG11_DELAYED;
 
-       state->fpga_reg[0x00] = top->V_SPRITE_X[0] & 0xff;
-       state->fpga_reg[0x01] = top->V_SPRITE_Y[0];
-       state->fpga_reg[0x02] = top->V_SPRITE_X[1] & 0xff;
-       state->fpga_reg[0x03] = top->V_SPRITE_Y[1];
-       state->fpga_reg[0x04] = top->V_SPRITE_X[2] & 0xff;
-       state->fpga_reg[0x05] = top->V_SPRITE_Y[2];
-       state->fpga_reg[0x06] = top->V_SPRITE_X[3] & 0xff;
-       state->fpga_reg[0x07] = top->V_SPRITE_Y[3];
-       state->fpga_reg[0x08] = top->V_SPRITE_X[4] & 0xff;
-       state->fpga_reg[0x09] = top->V_SPRITE_Y[4];
-       state->fpga_reg[0x0a] = top->V_SPRITE_X[5] & 0xff;
-       state->fpga_reg[0x0b] = top->V_SPRITE_Y[5];
-       state->fpga_reg[0x0c] = top->V_SPRITE_X[6] & 0xff;
-       state->fpga_reg[0x0d] = top->V_SPRITE_Y[6];
-       state->fpga_reg[0x0e] = top->V_SPRITE_X[7] & 0xff;
-       state->fpga_reg[0x0f] = top->V_SPRITE_Y[7];
-       state->fpga_reg[0x10] = ((top->V_SPRITE_X[0] & 256) >> 8) |
-                               ((top->V_SPRITE_X[1] & 256) >> 7) |
-                               ((top->V_SPRITE_X[2] & 256) >> 6) |
-                               ((top->V_SPRITE_X[3] & 256) >> 5) |
-                               ((top->V_SPRITE_X[4] & 256) >> 4) |
-                               ((top->V_SPRITE_X[5] & 256) >> 3) |
-                               ((top->V_SPRITE_X[6] & 256) >> 2) |
-                               ((top->V_SPRITE_X[7] & 256) >> 1);
+       state->fpga_reg[0x00] = top->rootp->V_SPRITE_X[0] & 0xff;
+       state->fpga_reg[0x01] = top->rootp->V_SPRITE_Y[0];
+       state->fpga_reg[0x02] = top->rootp->V_SPRITE_X[1] & 0xff;
+       state->fpga_reg[0x03] = top->rootp->V_SPRITE_Y[1];
+       state->fpga_reg[0x04] = top->rootp->V_SPRITE_X[2] & 0xff;
+       state->fpga_reg[0x05] = top->rootp->V_SPRITE_Y[2];
+       state->fpga_reg[0x06] = top->rootp->V_SPRITE_X[3] & 0xff;
+       state->fpga_reg[0x07] = top->rootp->V_SPRITE_Y[3];
+       state->fpga_reg[0x08] = top->rootp->V_SPRITE_X[4] & 0xff;
+       state->fpga_reg[0x09] = top->rootp->V_SPRITE_Y[4];
+       state->fpga_reg[0x0a] = top->rootp->V_SPRITE_X[5] & 0xff;
+       state->fpga_reg[0x0b] = top->rootp->V_SPRITE_Y[5];
+       state->fpga_reg[0x0c] = top->rootp->V_SPRITE_X[6] & 0xff;
+       state->fpga_reg[0x0d] = top->rootp->V_SPRITE_Y[6];
+       state->fpga_reg[0x0e] = top->rootp->V_SPRITE_X[7] & 0xff;
+       state->fpga_reg[0x0f] = top->rootp->V_SPRITE_Y[7];
+       state->fpga_reg[0x10] = ((top->rootp->V_SPRITE_X[0] & 256) >> 8) |
+                               ((top->rootp->V_SPRITE_X[1] & 256) >> 7) |
+                               ((top->rootp->V_SPRITE_X[2] & 256) >> 6) |
+                               ((top->rootp->V_SPRITE_X[3] & 256) >> 5) |
+                               ((top->rootp->V_SPRITE_X[4] & 256) >> 4) |
+                               ((top->rootp->V_SPRITE_X[5] & 256) >> 3) |
+                               ((top->rootp->V_SPRITE_X[6] & 256) >> 2) |
+                               ((top->rootp->V_SPRITE_X[7] & 256) >> 1);
 
-       state->fpga_reg[0x15] = top->V_SPRITE_EN;
-       state->fpga_reg[0x17] = top->V_SPRITE_YE;
-       state->fpga_reg[0x1b] = top->V_SPRITE_PRI;
-       state->fpga_reg[0x1c] = top->V_SPRITE_MMC;
-       state->fpga_reg[0x1d] = top->V_SPRITE_XE;
-       state->fpga_reg[0x1e] = top->V_SPRITE_M2M;
-       state->fpga_reg[0x1f] = top->V_SPRITE_M2D;
-       state->fpga_reg[0x25] = top->V_SPRITE_MC0 | 0xf0;
-       state->fpga_reg[0x26] = top->V_SPRITE_MC1 | 0xf0;
+       state->fpga_reg[0x15] = top->rootp->V_SPRITE_EN;
+       state->fpga_reg[0x17] = top->rootp->V_SPRITE_YE;
+       state->fpga_reg[0x1b] = top->rootp->V_SPRITE_PRI;
+       state->fpga_reg[0x1c] = top->rootp->V_SPRITE_MMC;
+       state->fpga_reg[0x1d] = top->rootp->V_SPRITE_XE;
+       state->fpga_reg[0x1e] = top->rootp->V_SPRITE_M2M;
+       state->fpga_reg[0x1f] = top->rootp->V_SPRITE_M2D;
+       state->fpga_reg[0x25] = top->rootp->V_SPRITE_MC0 | 0xf0;
+       state->fpga_reg[0x26] = top->rootp->V_SPRITE_MC1 | 0xf0;
 
        for (int n=0,b=1;n<8;n++,b=b*2) {
-          state->mc[n] = top->V_SPRITE_MC[n];
-          state->mcbase[n] = top->V_SPRITE_MCBASE[n];
-          state->ye_ff[n] = top->V_SPRITE_YE_FF[n];
-          state->sprite_dma[n] = top->V_SPRITE_DMA & b ? 1 : 0;
-          state->fpga_reg[0x27+n] = top->V_SPRITE_COL[n] | 0xf0;
+          state->mc[n] = top->rootp->V_SPRITE_MC[n];
+          state->mcbase[n] = top->rootp->V_SPRITE_MCBASE[n];
+          state->ye_ff[n] = top->rootp->V_SPRITE_YE_FF[n];
+          state->sprite_dma[n] = top->rootp->V_SPRITE_DMA & b ? 1 : 0;
+          state->fpga_reg[0x27+n] = top->rootp->V_SPRITE_COL[n] | 0xf0;
        }
 
        // Tell VICE what our char buf looks like or comparison
        for (int i=0; i < 40; i++) {
-	  state->fpga_char_buf[i] = top->V_CHAR_BUF[i];
+	  state->fpga_char_buf[i] = top->rootp->V_CHAR_BUF[i];
        }
 }
 
@@ -857,38 +858,38 @@ int main(int argc, char** argv, char** env) {
     }
 
     // Add new input/output here.
-    signal_src8[OUT_DOT] = &top->V_CLK_DOT;
-    signal_src8[OUT_DOT_RISING] = &top->V_CLK_DOT;
+    signal_src8[OUT_DOT] = &top->rootp->V_CLK_DOT;
+    signal_src8[OUT_DOT_RISING] = &top->rootp->V_CLK_DOT;
     signal_width[OUT_DOT_RISING] = 4; // 4 bit shif reg
     signal_bit[OUT_DOT_RISING] = 0b1111; // mask to get values
 
     HEADER(top);
 
     // Video standard toggle switch should be HIGH simulating PULLUP
-    top->standard_sw = 1;
+    top->rootp->standard_sw = 1;
 #if WITH_EXTENSIONS
     // cfg reset is held HIGH simulating pullup
 #if HAVE_EEPROM
-    top->cfg_reset = 1;
+    top->rootp->cfg_reset = 1;
 #endif
     // simulate SHORTED for config pins
-    top->cfg1 = 0; // spi_lock
-    top->cfg2 = 0; // extensions_lock
-    top->cfg3 = 0; // persistence_lock
+    top->rootp->cfg1 = 0; // spi_lock
+    top->rootp->cfg2 = 0; // extensions_lock
+    top->rootp->cfg3 = 0; // persistence_lock
 #endif
     // cpu_reset_i is held HIGH simulating pullup
 #if HIRES_RESET
-    top->cpu_reset_i = 1;
+    top->rootp->cpu_reset_i = 1;
 #endif
     
 #if HAVE_EEPROM
-    top->sim_chip = chip;
+    top->rootp->sim_chip = chip;
 #else
-    top->V_CHIP = chip;
+    top->rootp->V_CHIP = chip;
 #endif
 
     int cnt = 0;
-    while (top->V_RST) {
+    while (top->rootp->V_RST) {
        top->eval();
        nextClkCnt = 0;
 #if VM_TRACE
@@ -907,23 +908,23 @@ int main(int argc, char** argv, char** env) {
     startTicks = ticks;
     endTicks = startTicks + durationTicks;
 
-    top->lp = 1;
-    top->rw = 1;
-    top->ce = 1;
-    top->lp = 1;
-    top->adl = 0;
-    top->V_DBI = 0;
-    top->V_DEN = 1;
-    top->V_CSEL = 1;
-    top->V_RSEL = 1;
-    top->V_VBORDER = 1;
-    top->V_MAIN_BORDER = 1;
-    top->V_SET_VBORDER = 1;
-    top->V_B0C = 6;
-    top->V_EC = 14;
-    top->V_VM = 1; // 0001
-    top->V_CB = 2; //  010
-    top->V_YSCROLL = 3; //  011
+    top->rootp->lp = 1;
+    top->rootp->rw = 1;
+    top->rootp->ce = 1;
+    top->rootp->lp = 1;
+    top->rootp->adl = 0;
+    top->rootp->V_DBI = 0;
+    top->rootp->V_DEN = 1;
+    top->rootp->V_CSEL = 1;
+    top->rootp->V_RSEL = 1;
+    top->rootp->V_VBORDER = 1;
+    top->rootp->V_MAIN_BORDER = 1;
+    top->rootp->V_SET_VBORDER = 1;
+    top->rootp->V_B0C = 6;
+    top->rootp->V_EC = 14;
+    top->rootp->V_VM = 1; // 0001
+    top->rootp->V_CB = 2; //  010
+    top->rootp->V_YSCROLL = 3; //  011
 #ifdef NEED_RGB
     // NOTE: We are hard wired to do 2x and 1y. Any other
     // configuration will require some work to the
@@ -931,8 +932,8 @@ int main(int argc, char** argv, char** env) {
     // that module set is_native_y as if it came from a the
     // eeprom. Otherwise, just force it here.
 #ifndef HAVE_EEPROM
-    top->top__DOT__vic_inst__DOT__is_native_y = 1;
-    top->top__DOT__vic_inst__DOT__is_native_x = 0;
+    top->rootp->top__DOT__vic_inst__DOT__is_native_y = 1;
+    top->rootp->top__DOT__vic_inst__DOT__is_native_x = 0;
 #endif
 #else
     // NO RGB? We will fallback to native res and we will use
@@ -987,9 +988,9 @@ int main(int argc, char** argv, char** env) {
                while (true) {
                   top->eval();
 
-		  if (top->V_CYCLE_NUM == state->cycle_num &&
-				  top->V_RASTER_LINE == state->raster_line &&
-				  top->clk_phi) break;
+		  if (top->rootp->V_CYCLE_NUM == state->cycle_num &&
+				  top->rootp->V_RASTER_LINE == state->raster_line &&
+				  top->rootp->clk_phi) break;
 
 #if VM_TRACE
 	          if (tfp) tfp->dump(ticks / TICKS_TO_TIMESCALE);
@@ -1014,10 +1015,10 @@ int main(int argc, char** argv, char** env) {
 	       regs_vice_to_fpga(top, state);
 
                // Our next tick will bring us high so we should be low right now.
-               CHECK(top, ~top->clk_phi, __LINE__);
+               CHECK(top, ~top->rootp->clk_phi, __LINE__);
 
                LOG(LOG_INFO, "synced FPGA to cycle=%u, raster_line=%u, xpos=%03x, bmm=%d, mcm=%d, ecm=%d",
-                  state->cycle_num, state->raster_line, state->xpos, top->V_BMM, top->V_MCM, top->V_ECM);
+                  state->cycle_num, state->raster_line, state->xpos, top->rootp->V_BMM, top->rootp->V_MCM, top->rootp->V_ECM);
 
 	      // Respond to IPC immediately after 1 more tick. This will land us 4 ticks into the
 	      // high phase which is where VICE ipc hook expects us to be.
@@ -1033,18 +1034,18 @@ int main(int argc, char** argv, char** env) {
            // Simulate cs and rw going back high. This is the same
            // timing as what vice hook does when it lowers ce for the
            // CPU writes on the phi high side.
-           if (top->clk_phi == 0 && nextClkCnt == 4) {
+           if (top->rootp->clk_phi == 0 && nextClkCnt == 4) {
               state->ce = 1;
               state->rw = 1;
            }
 
            // VICE -> SIM state sync
-           top->adl = state->addr_to_sim;
-           top->dbl = state->data_to_sim & 0xff;
-           top->dbh = (state->data_to_sim >> 8) & 0xf;
-           top->ce = state->ce;
-           top->rw = state->rw;
-	   top->lp = state->lp;
+           top->rootp->adl = state->addr_to_sim;
+           top->rootp->dbl = state->data_to_sim & 0xff;
+           top->rootp->dbh = (state->data_to_sim >> 8) & 0xf;
+           top->rootp->ce = state->ce;
+           top->rootp->rw = state->rw;
+	   top->rootp->lp = state->lp;
 
         }
 
@@ -1053,7 +1054,7 @@ int main(int argc, char** argv, char** env) {
 
         if (shadowVic) {
            if (state->flags & VICII_OP_BUS_ACCESS) {
-              CHECK(top, top->clk_phi, __LINE__);
+              CHECK(top, top->rootp->clk_phi, __LINE__);
            }
 	}
 
@@ -1073,29 +1074,29 @@ int main(int argc, char** argv, char** env) {
           if (HASCHANGED(OUT_DOT) && RISING(OUT_DOT)) {
              // AEC should always be low in first phase. But AEC is
 	     // slightly delayed so don't check this when bit cycle is 0
-             if (top->V_CYCLE_BIT > 0 && top->V_CYCLE_BIT < 4) {
-               CHECK(top, top->aec == 0, __LINE__);
+             if (top->rootp->V_CYCLE_BIT > 0 && top->rootp->V_CYCLE_BIT < 4) {
+               CHECK(top, top->rootp->aec == 0, __LINE__);
              }
 
              // Make sure xpos is what we expect at key points
-             if (top->V_CYCLE_NUM == 12 && top->V_CYCLE_BIT == 4)
-               CHECK (top, top->V_XPOS == 0, __LINE__); // rollover
+             if (top->rootp->V_CYCLE_NUM == 12 && top->rootp->V_CYCLE_BIT == 4)
+               CHECK (top, top->rootp->V_XPOS == 0, __LINE__); // rollover
 
-             if (top->V_CYCLE_NUM == 0 && top->V_CYCLE_BIT == 0)
+             if (top->rootp->V_CYCLE_NUM == 0 && top->rootp->V_CYCLE_BIT == 0)
                if (chip == CHIP6569R1 || chip == CHIP6569R3)
-                  CHECK (top, top->V_XPOS == 0x194, __LINE__); // reset
+                  CHECK (top, top->rootp->V_XPOS == 0x194, __LINE__); // reset
                else
-                  CHECK (top, top->V_XPOS == 0x19c, __LINE__); // reset
+                  CHECK (top, top->rootp->V_XPOS == 0x19c, __LINE__); // reset
 
              if (chip == CHIP6567R8)
-               if (top->V_CYCLE_NUM == 61 && (top->V_CYCLE_BIT == 0 || top->V_CYCLE_BIT == 4))
-                  CHECK (top, top->V_XPOS == 0x184, __LINE__); // repeat cases
-               else if (top->V_CYCLE_NUM == 62 && top->V_CYCLE_BIT == 0)
-                  CHECK (top, top->V_XPOS == 0x184, __LINE__); // repeat case
+               if (top->rootp->V_CYCLE_NUM == 61 && (top->rootp->V_CYCLE_BIT == 0 || top->rootp->V_CYCLE_BIT == 4))
+                  CHECK (top, top->rootp->V_XPOS == 0x184, __LINE__); // repeat cases
+               else if (top->rootp->V_CYCLE_NUM == 62 && top->rootp->V_CYCLE_BIT == 0)
+                  CHECK (top, top->rootp->V_XPOS == 0x184, __LINE__); // repeat case
 
              // Refresh counter is supposed to reset at raster 0
-             //if (top->V_RASTER_X == 0 && top->V_RASTER_LINE == 0) TODO Put back
-             //   CHECK (top, top->V_REFC == 0xff, __LINE__);
+             //if (top->rootp->V_RASTER_X == 0 && top->rootp->V_RASTER_LINE == 0) TODO Put back
+             //   CHECK (top, top->rootp->V_REFC == 0xff, __LINE__);
 
           }
 
@@ -1104,19 +1105,19 @@ int main(int argc, char** argv, char** env) {
 	  // update every other dot clock tick.
 	  // dot_rising[1] || dot_rising[3]
           if (showWindow && HASCHANGED(OUT_DOT_RISING) &&
-			  (top->V_CLK_DOT == 2 || top->V_CLK_DOT == 8)) {
+			  (top->rootp->V_CLK_DOT == 2 || top->rootp->V_CLK_DOT == 8)) {
 #ifdef GEN_RGB
             // Show h/v sync in red
-            if (!hideSync && (!top->hsync || !top->vsync))
+            if (!hideSync && (!top->rootp->hsync || !top->rootp->vsync))
              SDL_SetRenderDrawColor(ren,
                 0b11111111,
                 0b0,
                 0b0,
                 255);
             else {
-             double rr = top->red * 255.0/63.0;
-             double gg = top->green * 255.0/63.0;
-             double bb = top->blue * 255.0/63.0;
+             double rr = top->rootp->red * 255.0/63.0;
+             double gg = top->rootp->green * 255.0/63.0;
+             double bb = top->rootp->blue * 255.0/63.0;
              SDL_SetRenderDrawColor(ren, rr, gg, bb, 255);
             }
 
@@ -1130,16 +1131,16 @@ int main(int argc, char** argv, char** env) {
 #else 
 #ifdef NEED_RGB
             // Show h/v sync in red
-            if (!hideSync && (top->HSYNC || top->VSYNC))
+            if (!hideSync && (top->rootp->HSYNC || top->rootp->VSYNC))
              SDL_SetRenderDrawColor(ren,
                 0b11111111,
                 0b0,
                 0b0,
                 255);
             else {
-             double rr = top->top__DOT__red * 255.0/63.0;
-             double gg = top->top__DOT__green * 255.0/63.0;
-             double bb = top->top__DOT__blue * 255.0/63.0;
+             double rr = top->rootp->top__DOT__red * 255.0/63.0;
+             double gg = top->rootp->top__DOT__green * 255.0/63.0;
+             double bb = top->rootp->top__DOT__blue * 255.0/63.0;
              SDL_SetRenderDrawColor(ren, rr,gg,bb,255);
             }
 
@@ -1155,17 +1156,17 @@ int main(int argc, char** argv, char** env) {
 #ifdef GEN_LUMA_CHROMA
             // Fallback to native pixel sequencer's pixel3 value
 	    // and lookup colors.
-            int hss = 10; // see comp_sync.v  top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__hsync_start;
-            int hse = top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__hsync_end;
-            int vss = top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__vblank_start;
-            //int vse = top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__vblank_end;
-            int vve = top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__vvisible_end;
-            int vvs = top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__vvisible_start;
+            int hss = 10; // see comp_sync.v  top->rootp->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__hsync_start;
+            int hse = top->rootp->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__hsync_end;
+            int vss = top->rootp->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__vblank_start;
+            //int vse = top->rootp->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__vblank_end;
+            int vve = top->rootp->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__vvisible_end;
+            int vvs = top->rootp->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__vvisible_start;
 	    // This is the same condition in comp_sync.v
-            int vsync = (top->V_RASTER_LINE >= vve && top->V_RASTER_LINE <= vvs);
+            int vsync = (top->rootp->V_RASTER_LINE >= vve && top->rootp->V_RASTER_LINE <= vvs);
             // If we're not in vsync or within native active range, show pixel colors
-	    if ((!vsync && top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__native_active) || hideSync) {
-	       int index = top->top__DOT__vic_inst__DOT__pixel_color3;
+	    if ((!vsync && top->rootp->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__native_active) || hideSync) {
+	       int index = top->rootp->top__DOT__vic_inst__DOT__pixel_color3;
                SDL_SetRenderDrawColor(ren,
                 (native_rgb[index*3] << 2) | 0b11,
                 (native_rgb[index*3+1] << 2) | 0b11,
@@ -1174,10 +1175,10 @@ int main(int argc, char** argv, char** env) {
 	    } else {
                // NOTE: If we're in vsync show red color, except we omit vve and vss to match what comp_sync.v does
                // (special cases)
-	       if ((top->V_RASTER_X >= hss && top->V_RASTER_X < hse) ||
-                      (vsync && top->V_RASTER_LINE != vve && top->V_RASTER_LINE != vvs))
+	       if ((top->rootp->V_RASTER_X >= hss && top->rootp->V_RASTER_X < hse) ||
+                      (vsync && top->rootp->V_RASTER_LINE != vve && top->rootp->V_RASTER_LINE != vvs))
 #ifdef HAVE_LUMA_SINK
-                  SDL_SetRenderDrawColor(ren, 255*top->V_LUMA_SINK,0,0,255);
+                  SDL_SetRenderDrawColor(ren, 255*top->rootp->V_LUMA_SINK,0,0,255);
 #else
                   // Only for old beta boards
                   SDL_SetRenderDrawColor(ren, 255,0,0,255);
@@ -1190,20 +1191,20 @@ int main(int argc, char** argv, char** env) {
 #endif
 #endif
 #endif
-	     int hoffset = top->V_CLK_DOT == 2 ? 0 : 1;
+	     int hoffset = top->rootp->V_CLK_DOT == 2 ? 0 : 1;
              drawPixel(ren,
-                top->V_RASTER_X*2+hoffset,
-                top->V_RASTER_LINE
+                top->rootp->V_RASTER_X*2+hoffset,
+                top->rootp->V_RASTER_LINE
              );
 
              // Show updated pixels per raster line
-             if (prevY != top->V_RASTER_LINE) {
-                prevY = top->V_RASTER_LINE;
+             if (prevY != top->rootp->V_RASTER_LINE) {
+                prevY = top->rootp->V_RASTER_LINE;
 
                 if (scanline) {
                    for (int xx=0; xx < 504; xx++) {
                      SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
-                     drawPixel(ren, xx*2, top->V_RASTER_LINE+1);
+                     drawPixel(ren, xx*2, top->rootp->V_RASTER_LINE+1);
                    }
                 }
 
@@ -1221,48 +1222,48 @@ int main(int argc, char** argv, char** env) {
         }
 
         if (shadowVic) {
-           state->irq = top->irq;
-           state->irst = top->V_IRST;
-           state->immc = top->V_IMMC;
-           state->imbc = top->V_IMBC;
-           state->ilp = top->V_ILP;
-           state->ba = top->ba;
-           state->badline = top->V_BADLINE;
-           state->aec = top->aec;
-           state->phi = top->clk_phi;
-	   state->addr_from_sim = top->V_VICADDR;
+           state->irq = top->rootp->irq;
+           state->irst = top->rootp->V_IRST;
+           state->immc = top->rootp->V_IMMC;
+           state->imbc = top->rootp->V_IMBC;
+           state->ilp = top->rootp->V_ILP;
+           state->ba = top->rootp->ba;
+           state->badline = top->rootp->V_BADLINE;
+           state->aec = top->rootp->aec;
+           state->phi = top->rootp->clk_phi;
+	   state->addr_from_sim = top->rootp->V_VICADDR;
 
            // We have to simulate the ROM glitch and keep VICE
            // happy with address comparisons.
            // See addressgen.v for the description of the glitch.
-           if (top->V_CYCLE_TYPE == VIC_LG) {
-               if (top->V_BMM_DELAYED != top->V_BMM) {
-                  uint16_t from_addr = top->V_VICADDR + state->vice_vbank_phi1;
-                  uint16_t to_addr = top->V_VICADDR_NOW + state->vice_vbank_phi1;
+           if (top->rootp->V_CYCLE_TYPE == VIC_LG) {
+               if (top->rootp->V_BMM_DELAYED != top->rootp->V_BMM) {
+                  uint16_t from_addr = top->rootp->V_VICADDR + state->vice_vbank_phi1;
+                  uint16_t to_addr = top->rootp->V_VICADDR_NOW + state->vice_vbank_phi1;
                   // This is the same cheat VICE uses. But we implement the glitch
                   // the 'real' way on the actual hardware.  This is just for VICE
                   // sync comparison to keep address match happy.
                   if ((from_addr & 0x7000) != 0x1000 && (to_addr & 0x7000) == 0x1000) {
-                      state->addr_from_sim = (top->V_VICADDR & 0xff) | (top->V_VICADDR_NOW & 0xff00);
+                      state->addr_from_sim = (top->rootp->V_VICADDR & 0xff) | (top->rootp->V_VICADDR_NOW & 0xff00);
                   }
                }
            }
 
-	   state->cycle_num = top->V_CYCLE_NUM;
-	   state->xpos = top->V_XPOS;
-	   state->raster_line = top->V_RASTER_LINE_D;
+	   state->cycle_num = top->rootp->V_CYCLE_NUM;
+	   state->xpos = top->rootp->V_XPOS;
+	   state->raster_line = top->rootp->V_RASTER_LINE_D;
            state->cycleByCycleStepping = cycleByCycle;
-	   state->idle = top->V_IDLE;
-	   state->allow_bad_lines = top->V_ALLOW_BAD_LINES;
-	   state->reg11_delayed = top->V_REG11_DELAYED;
-	   state->vborder = top->V_VBORDER;
-	   state->main_border = top->V_MAIN_BORDER;
-	   state->pps = top->V_PPS;
-	   state->dot4x = top->V_DOT4X ? 1 : 0;
+	   state->idle = top->rootp->V_IDLE;
+	   state->allow_bad_lines = top->rootp->V_ALLOW_BAD_LINES;
+	   state->reg11_delayed = top->rootp->V_REG11_DELAYED;
+	   state->vborder = top->rootp->V_VBORDER;
+	   state->main_border = top->rootp->V_MAIN_BORDER;
+	   state->pps = top->rootp->V_PPS;
+	   state->dot4x = top->rootp->V_DOT4X ? 1 : 0;
 
-           if (top->ce == 0 && top->rw == 1) {
+           if (top->rootp->ce == 0 && top->rootp->rw == 1) {
               // Chip selected and read, set data in state
-              state->data_from_sim = top->V_DBO;
+              state->data_from_sim = top->rootp->V_DBO;
            }
            regs_fpga_to_vice(top, state);
 
@@ -1274,18 +1275,18 @@ int main(int argc, char** argv, char** env) {
 
            // After we have one full frame, exit the loop.
            if (captureByFrame &&
-              top->V_XPOS == captureByFrameStopXpos &&
-                 top->V_RASTER_LINE == captureByFrameStopYpos) {
+              top->rootp->V_XPOS == captureByFrameStopXpos &&
+                 top->rootp->V_RASTER_LINE == captureByFrameStopYpos) {
               state->flags &= ~VICII_OP_CAPTURE_START;
               ipc_receive_done(ipc);
               break;
            }
 	   if (viceCapture) {
               if (viceCaptureWaitLine1) {
-		     if (top->V_XPOS == 0 && top->V_RASTER_LINE == 0) {
+		     if (top->rootp->V_XPOS == 0 && top->rootp->V_RASTER_LINE == 0) {
 		         viceCaptureWaitLine1 = false;
 		     }
-	      } else if (top->V_XPOS == lastXPos && top->V_RASTER_LINE == screenHeight - 1) {
+	      } else if (top->rootp->V_XPOS == lastXPos && top->rootp->V_RASTER_LINE == screenHeight - 1) {
 		 state->flags |= VICII_OP_CAPTURE_ABORT;
                  ipc_receive_done(ipc);
 
@@ -1313,21 +1314,21 @@ int main(int argc, char** argv, char** env) {
               break;
            }
 
-	   if (cycleByCycle && top->clk_phi != last_phase) {
+	   if (cycleByCycle && top->rootp->clk_phi != last_phase) {
                printf ("FINISHED PHASE %d (now cycle=%d, line=%d, xpos=%03x)\n",
-                     last_phase+1, top->V_CYCLE_NUM,
-                           top->V_RASTER_LINE, top->V_XPOS);
+                     last_phase+1, top->rootp->V_CYCLE_NUM,
+                           top->rootp->V_RASTER_LINE, top->rootp->V_XPOS);
 
-               printf ("   VCBASE=%02d   VADDR=%04x\n", top->V_VCBASE, top->V_VICADDR);
-               printf ("   VC=%03d     CTYPE=%d\n", top->V_VC, top->V_CYCLE_TYPE);
-               printf ("   CB=%03d     CHARPTR=%02x\n", top->V_CB, top->V_NEXTCHAR);
-               printf ("   XPOS=%04d   RC=%d\n", top->V_XPOS, top->V_RC);
-               printf ("   BMM=%02d    SPRNUM=%d\n", top->V_BMM, top->V_SPRITE_CNT);
-               printf ("   MCM=%d\n", top->V_MCM);
-               printf ("   ECM=%d\n", top->V_ECM);
+               printf ("   VCBASE=%02d   VADDR=%04x\n", top->rootp->V_VCBASE, top->rootp->V_VICADDR);
+               printf ("   VC=%03d     CTYPE=%d\n", top->rootp->V_VC, top->rootp->V_CYCLE_TYPE);
+               printf ("   CB=%03d     CHARPTR=%02x\n", top->rootp->V_CB, top->rootp->V_NEXTCHAR);
+               printf ("   XPOS=%04d   RC=%d\n", top->rootp->V_XPOS, top->rootp->V_RC);
+               printf ("   BMM=%02d    SPRNUM=%d\n", top->rootp->V_BMM, top->rootp->V_SPRITE_CNT);
+               printf ("   MCM=%d\n", top->rootp->V_MCM);
+               printf ("   ECM=%d\n", top->rootp->V_ECM);
                printf ("\n");
 
-	       last_phase = top->clk_phi;
+	       last_phase = top->rootp->clk_phi;
 	   }
 
            if (cycleByCycle && ticksUntilPhase == 0) {
@@ -1373,11 +1374,11 @@ int main(int argc, char** argv, char** env) {
                                           tmp_state.fpga_reg[n],
 					     toBin(8,tmp_state.fpga_reg[n]));
                                     }
-                                    printf ("IDLE %d\n", top->V_IDLE);
-                                    printf ("CYCLE_TYPE  %d\n", top->V_CYCLE_TYPE);
-                                    printf ("CHAR NEXT  %x\n", top->V_CHAR_NEXT);
-                                    printf ("CB %s\n", toBin(3,top->V_CB));
-                                    printf ("VM %s\n", toBin(4,top->V_VM));
+                                    printf ("IDLE %d\n", top->rootp->V_IDLE);
+                                    printf ("CYCLE_TYPE  %d\n", top->rootp->V_CYCLE_TYPE);
+                                    printf ("CHAR NEXT  %x\n", top->rootp->V_CHAR_NEXT);
+                                    printf ("CB %s\n", toBin(3,top->rootp->V_CB));
+                                    printf ("VM %s\n", toBin(4,top->rootp->V_VM));
 				    break;
 			       default:
 				  break;
