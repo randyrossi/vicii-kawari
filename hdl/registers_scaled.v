@@ -2104,9 +2104,6 @@ assign ired1 = (linebuf_color[17:12] * weight1);
 assign ired2 = (linebuf_color[35:30] * weight2);
 assign ired = (ired1 + ired2) / 10;
 
-wire [10:0] max_scale_raddr;
-wire [10:0] max_scale_waddr;
-wire [10:0] start_scale_raddr;
 
 // Read this as:
 // IsPal ? PalVal otherwise is NTSCR56A? NTSCR56AVal otherwise NTSCR8Val
@@ -2116,13 +2113,30 @@ wire [10:0] start_scale_raddr;
 // start raddr is chosen to center the gfx area
 // then max raddr is shifted up but that amount
 //
-// PAL       1007 , 881 / .9 = 978 + 40 = 1018
-// NTSCR56A  1039 , 844 / .9 = 937 + 80 = 1017
-// NTSCR8    1017 , 832 / .9 = 923 + 80 = 1003
+// PAL       1007 , 881 / .9 = 978 + 42 = 1020
+// NTSCR56A  1017 , 832 / .9 = 923 + 80 = 1003
+// NTSCR8    1039 , 844 / .9 = 937 + 78 = 1015
 //
+`ifndef SIMULATOR_BOARD
+wire [10:0] max_scale_raddr;
+wire [10:0] max_scale_waddr;
+wire [10:0] start_scale_raddr;
 assign max_scale_waddr = chip[0] ? 11'd1007 : (chip[1] ? 11'd1023 : 11'd1039);
-assign max_scale_raddr = chip[0] ? 11'd1018 : (chip[1] ? 11'd1003 : 11'd1017);
-assign start_scale_raddr = chip[0] ? 11'd40 : (chip[1] ? 11'd80 : 11'd80);
+assign max_scale_raddr = chip[0] ? 11'd1020 : (chip[1] ? 11'd1009 : 11'd1015);
+assign start_scale_raddr = chip[0] ? 11'd42 : (chip[1] ? 11'd86 : 11'd78);
+`else
+// Simulator build doesn't handle continuous
+// assignments properly?
+reg [10:0] max_scale_raddr;
+reg [10:0] max_scale_waddr;
+reg [10:0] start_scale_raddr;
+always @(posedge clk_dot4x)
+begin
+max_scale_waddr = chip[0] ? 11'd1007 : (chip[1] ? 11'd1023 : 11'd1039);
+max_scale_raddr = chip[0] ? 11'd1020 : (chip[1] ? 11'd1009 : 11'd1015);
+start_scale_raddr = chip[0] ? 11'd42 : (chip[1] ? 11'd86 : 11'd78);
+end
+`endif
 
 // This handles our write counter when we
 // translate index values to rgb values

@@ -60,12 +60,12 @@
 `elsif PAL_27MHZ
 `define PAL_MAX_WIDTH 11'd881
 `define PAL_WIDTH 11'd882
-`define PAL_OFFSET 11'd98
+`define PAL_OFFSET 11'd100
 `define PAL_CONFIGURABLE_OFFSET 11'd768
 `elsif PAL_29MHZ
 `define PAL_MAX_WIDTH 11'd944
 `define PAL_WIDTH 11'd945
-`define PAL_OFFSET 11'd78
+`define PAL_OFFSET 11'd70
 `define PAL_CONFIGURABLE_OFFSET 11'd768
 `endif
 
@@ -88,10 +88,10 @@
 `elsif NTSC_26MHZ
 `define NTSCR8_MAX_WIDTH 11'd844
 `define NTSCR8_WIDTH 11'd845
-`define NTSCR8_OFFSET 11'd133
+`define NTSCR8_OFFSET 11'd131
 `define NTSCR56_MAX_WIDTH 11'd831
 `define NTSCR56_WIDTH 11'd832
-`define NTSCR56_OFFSET 11'd142
+`define NTSCR56_OFFSET 11'd139
 `define NTSC_CONFIGURABLE_OFFSET 11'd768
 `endif
 
@@ -374,10 +374,10 @@ always @(chip)
                 hs_end=11'd64;  // sync  64
                 ha_sta=11'd132;  // bporch 68
 `endif
-                va_end=10'd586;  // start 586
-                vs_sta=10'd0;  // fporch   38
-                vs_end=10'd5;  // sync   5
-                va_sta=10'd10;  // bporch   5
+                va_end=10'd588;  // start 586
+                vs_sta=10'd2;  // fporch   36
+                vs_end=10'd7;  // sync   5
+                va_sta=10'd12;  // bporch   5
                 max_height = 10'd623;
                 max_width = `PAL_MAX_WIDTH; 
                 x_offset = `PAL_OFFSET;
@@ -400,12 +400,12 @@ always @(chip)
                 ha_end=11'd826; // start 826
                 hs_sta=11'd0;  // fporch 19
                 hs_end=11'd64;  // sync 64
-                ha_sta=11'd88;  // bporch  24
+                ha_sta=11'd94;  // bporch  30
 `endif
-                va_end=10'd26;  // start  26
-                vs_sta=10'd28;  // fporch   2
-                vs_end=10'd44;  // sync   16
-                va_sta=10'd46;  // bporch   2
+                va_end=10'd24;  // start  24
+                vs_sta=10'd26;  // fporch   2
+                vs_end=10'd42;  // sync   16
+                va_sta=10'd44;  // bporch   2
                 max_height = 10'd525;
                 max_width = `NTSCR8_MAX_WIDTH;
                 x_offset = `NTSCR8_OFFSET;
@@ -424,10 +424,10 @@ always @(chip)
                 hs_end=11'd64;  // sync  64
                 ha_sta=11'd88;  // bporch  24
 `endif
-                va_end=10'd26;  // start  26
-                vs_sta=10'd28;  // fporch   2
-                vs_end=10'd44;  // sync   16
-                va_sta=10'd46;  // bporch   2
+                va_end=10'd24;  // start  24
+                vs_sta=10'd26;  // fporch   2
+                vs_end=10'd42;  // sync   16
+                va_sta=10'd44;  // bporch   2
                 max_height = 10'd523;
                 max_width = `NTSCR56_MAX_WIDTH;
                 x_offset = `NTSCR56_OFFSET;

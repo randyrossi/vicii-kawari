@@ -28,14 +28,36 @@ SIM_CONFIG = 3
 
 # 32MHZ | 29MHZ | 27MHZ
 #PAL_RES = 32MHZ
-#PAL_RES = 15MHZ
-PAL_RES = 29MHZ
+#PAL_RES = 29MHZ
 #PAL_RES = 27MHZ
+#PAL_RES = 15MHZ
 
 # 32MHZ | 26MHZ
 #NTSC_RES = 32MHZ
+#NTSC_RES = 26MHZ
 #NTSC_RES = 16MHZ
-NTSC_RES = 26MHZ
+
+# Default PAL 29MHZ and NTSC 26MHZ
+ifeq ($(PAL_RES),)
+PAL_RES=29MHZ
+endif
+ifeq ($(NTSC_RES),)
+NTSC_RES=26MHZ
+endif
+
+# Default No scaling
+ifeq ($(SCALED),)
+SCALED_SUFFIX=
+SCALED_MSG=Unscaled
+else
+SCALED_SUFFIX=_scaled
+SCALED_MSG=Scaled
+endif
+
+$(info **************************************************************)
+$(info Building NTSC=$(NTSC_RES) PAL=$(PAL_RES) SCALING=$(SCALED_MSG))
+$(info **************************************************************)
+$(info )
 
 ######################################################################
 # Check for sanity to avoid later confusion
@@ -63,11 +85,11 @@ endif
 
 VERILOG_SOURCES = ../hdl/simulator/top.v ../hdl/vicii.v ../hdl/common.vh \
 		  ../hdl/equalization.v  ../hdl/pixel_sequencer.v \
-                  ../hdl/registers.v  ../hdl/comp_sync.v ../hdl/border.v \
+                  ../hdl/registers$(SCALED_SUFFIX).v  ../hdl/comp_sync.v ../hdl/border.v \
 	          ../hdl/lightpen.v ../hdl/raster.v ../hdl/divide.v \
 	          ../hdl/serration.v  ../hdl/bus_access.v ../hdl/cycles.v \
                   ../hdl/matrix.v ../hdl/sprites.v  ../hdl/hires_vga_sync.v \
-                  ../hdl/hires_dvi_sync.v \
+                  ../hdl/hires_dvi_sync$(SCALED_SUFFIX).v ../hdl/scaler.v \
 		  ../hdl/videoram.v ../hdl/colorreg.v \
 		  ../hdl/sinewave.v ../hdl/testpattern.v ../hdl/lumareg.v \
 		  ../hdl/hires_matrix.v ../hdl/hires_addressgen.v ../hdl/hires_pixel_sequencer.v \
@@ -82,11 +104,13 @@ VI_INC = ../hdl/registers_eeprom.vi ../hdl/registers_ram.vi ../hdl/registers_eep
 
 # Use -DHIRES_TEXT -DHIRES_BITMAP1 -DHIRES_BITMAP2 -DHIRES_BITMAP3 -DHIRES_BITMAP4 for other modes
 # Add -DVIC_ROLL=1 for vic_roll branch
-obj_dir/Vtop: $(VTOP_DEPS) gen_config $(VI_INC)
+obj_dir/Vtop: gen_config $(VTOP_DEPS) $(VI_INC)
 	@(./gen_config $(NTSC_RES) $(PAL_RES) $(SIM_CONFIG) > ../hdl/config.vh)
 	$(VERILATOR) -D$(KAWARI_FLAGS) --top-module top --trace -cc  --exe \
 	    -I../hdl $(VERILOG_SOURCES) -I../hdl/dvi sim_main.cpp log.cpp \
-	    -CFLAGS "-g `./gen_config $(NTSC_RES) $(PAL_RES) $(SIM_CONFIG) defs`" -LDFLAGS '../vicii_ipc.o -lSDL2'
+	    -CFLAGS \
+            "-g `./gen_config $(NTSC_RES) $(PAL_RES) $(SIM_CONFIG) defs`" \
+            -LDFLAGS '../vicii_ipc.o -lSDL2'
 	$(MAKE) -j 4 -C obj_dir -f Vtop.mk
 
 default: obj_dir/Vtop

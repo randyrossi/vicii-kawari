@@ -626,6 +626,7 @@ int main(int argc, char** argv, char** env) {
     struct vicii_ipc* ipc;
     bool keyPressToQuit = true;
     bool viceCapture = false;
+    bool endCapture = false;
     bool scanline = true;
 
     // Default to 16.7us starting at 0
@@ -640,7 +641,7 @@ int main(int argc, char** argv, char** env) {
     int reti, reti2;
     char regex_buf[32];
 
-    while ((c = getopt (argc, argv, "akc:hs:d:wi:zbl:r:gtxq")) != -1)
+    while ((c = getopt (argc, argv, "akc:hs:d:wi:zbl:r:gtxqy")) != -1)
     switch (c) {
       case 'q':
         scanline = false;
@@ -689,9 +690,13 @@ int main(int argc, char** argv, char** env) {
         printf ("  -k        : hide sync lines\n");
         printf ("  -t        : enable tracing to session.vcd\n");
         printf ("  -x        : sync with VICE and save a frame before exiting\n");
+        printf ("  -y        : save a frame before exiting\n");
         exit(0);
       case 'x':
 	viceCapture = true;
+	break;
+      case 'y':
+	endCapture = true;
 	break;
       case '?':
         if (optopt == 't' || optopt == 's') {
@@ -953,6 +958,7 @@ int main(int argc, char** argv, char** env) {
     int ticksUntilPhase = 0;
     bool showState = true;
     bool viceCaptureWaitLine1 = true;
+    bool endCaptureWaitLine1 = true;
     while (!Verilated::gotFinish()) {
 
         // Are we shadowing from VICE? Wait for sync data, then
@@ -1220,6 +1226,22 @@ int main(int argc, char** argv, char** env) {
           }
         }
 
+	   if (endCapture) {
+              if (endCaptureWaitLine1) {
+		     if (top->V_XPOS == 0 && top->V_RASTER_LINE == 0) {
+		         endCaptureWaitLine1 = false;
+		     }
+	      } else if (top->V_XPOS == lastXPos && top->V_RASTER_LINE == screenHeight - 1) {
+               SDL_Surface *sshot = SDL_CreateRGBSurface(0, screenWidth*2, screenHeight*2,
+                   32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+               SDL_RenderReadPixels(ren, NULL, SDL_PIXELFORMAT_ARGB8888,
+                                    sshot->pixels, sshot->pitch);
+               SDL_SaveBMP(sshot, "screenshot.bmp");
+               SDL_FreeSurface(sshot);
+               exit(0);
+	     }
+	   }
+
         if (shadowVic) {
            state->irq = top->irq;
            state->irst = top->V_IRST;
@@ -1286,17 +1308,17 @@ int main(int argc, char** argv, char** env) {
 		         viceCaptureWaitLine1 = false;
 		     }
 	      } else if (top->V_XPOS == lastXPos && top->V_RASTER_LINE == screenHeight - 1) {
-		 state->flags |= VICII_OP_CAPTURE_ABORT;
-                 ipc_receive_done(ipc);
+               state->flags |= VICII_OP_CAPTURE_ABORT;
+               ipc_receive_done(ipc);
 
-                 SDL_Surface *sshot = SDL_CreateRGBSurface(0, screenWidth*2, screenHeight*2,
-                     32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
-                 SDL_RenderReadPixels(ren, NULL, SDL_PIXELFORMAT_ARGB8888,
-                                      sshot->pixels, sshot->pitch);
-                 SDL_SaveBMP(sshot, "screenshot.bmp");
-                 SDL_FreeSurface(sshot);
-                 exit(0);
-	      }
+               SDL_Surface *sshot = SDL_CreateRGBSurface(0, screenWidth*2, screenHeight*2,
+                   32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+               SDL_RenderReadPixels(ren, NULL, SDL_PIXELFORMAT_ARGB8888,
+                                    sshot->pixels, sshot->pitch);
+               SDL_SaveBMP(sshot, "screenshot.bmp");
+               SDL_FreeSurface(sshot);
+               exit(0);
+	     }
 	   }
 
            ticksUntilDone--;
