@@ -2114,7 +2114,7 @@ assign ired = (ired1 + ired2) / 10;
 // then max raddr is shifted up but that amount
 //
 // PAL       1007 , 881 / .9 = 978 + 42 = 1020
-// NTSCR56A  1017 , 832 / .9 = 923 + 80 = 1003
+// NTSCR56A  1017 , 832 / .9 = 923 + 80 = 1009
 // NTSCR8    1039 , 844 / .9 = 937 + 78 = 1015
 //
 `ifndef SIMULATOR_BOARD
