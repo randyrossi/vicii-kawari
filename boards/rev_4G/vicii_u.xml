@@ -1,0 +1,97 @@
+<efx:project xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="vicii" description="" last_change_date="Fri Aug 25 2023 18:46:23" location="/shared/Vivado/vicii-kawari/boards/rev_4G" sw_version="2021.2.323.6.17" last_run_state="pass" last_run_tool="efx_map" last_run_flow="syn" config_result_in_sync="sync" design_ood="sync" place_ood="sync" route_ood="sync" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
+    <efx:device_info>
+        <efx:family name="Trion" />
+        <efx:device name="T20F256" />
+        <efx:timing_model name="C4" />
+    </efx:device_info>
+    <efx:design_info def_veri_version="verilog_2k" def_vhdl_version="vhdl_2008">
+        <efx:top_module name="top" />
+        <efx:design_file name="../../hdl/bus_access.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/sprites.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/sinewave.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/border.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/testpattern.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/lightpen.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/lumareg.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/cycles.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/matrix.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/comp_sync.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/vicii.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/registers.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/raster.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/serration.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/equalization.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/pixel_sequencer.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/addressgen_efinix.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/rev_4G/top.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/hires_pixel_sequencer.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/hires_addressgen.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/colorreg.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/hires_matrix.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/hires_vga_sync.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/hires_dvi_sync.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/divide.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/videoram_efinix.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/efinix_trion/dvi/dvi.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/efinix_trion/dvi/serializer.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/efinix_trion/dvi/tmds_channel.v" version="default" library="default" />
+        <efx:top_vhdl_arch name="" />
+    </efx:design_info>
+    <efx:constraint_info>
+        <efx:sdc_file name="vicii.sdc" />
+        <efx:inter_file name="" />
+    </efx:constraint_info>
+    <efx:sim_info />
+    <efx:misc_info />
+    <efx:ip_info />
+    <efx:synthesis tool_name="efx_map">
+        <efx:param name="work_dir" value="work_syn" value_type="e_string" />
+        <efx:param name="write_efx_verilog" value="on" value_type="e_bool" />
+        <efx:param name="mode" value="speed" value_type="e_option" />
+        <efx:param name="max_ram" value="-1" value_type="e_integer" />
+        <efx:param name="max_mult" value="-1" value_type="e_integer" />
+        <efx:param name="infer-clk-enable" value="3" value_type="e_option" />
+        <efx:param name="infer-sync-set-reset" value="1" value_type="e_option" />
+        <efx:param name="fanout-limit" value="0" value_type="e_integer" />
+        <efx:param name="bram_output_regs_packing" value="1" value_type="e_option" />
+        <efx:param name="retiming" value="1" value_type="e_option" />
+        <efx:param name="seq_opt" value="1" value_type="e_option" />
+        <efx:param name="blast_const_operand_adders" value="1" value_type="e_option" />
+        <efx:param name="operator-sharing" value="0" value_type="e_option" />
+        <efx:param name="optimize-adder-tree" value="0" value_type="e_option" />
+        <efx:param name="mult_input_regs_packing" value="1" value_type="e_option" />
+        <efx:param name="mult_output_regs_packing" value="1" value_type="e_option" />
+    </efx:synthesis>
+    <efx:place_and_route tool_name="efx_pnr">
+        <efx:param name="work_dir" value="work_pnr" value_type="e_string" />
+        <efx:param name="verbose" value="off" value_type="e_bool" />
+        <efx:param name="load_delaym" value="on" value_type="e_bool" />
+        <efx:param name="optimization_level" value="TIMING_1" value_type="e_option" />
+        <efx:param name="seed" value="5" value_type="e_integer" />
+    </efx:place_and_route>
+    <efx:bitstream_generation tool_name="efx_pgm">
+        <efx:param name="mode" value="active" value_type="e_option" />
+        <efx:param name="width" value="4" value_type="e_option" />
+        <efx:param name="enable_roms" value="smart" value_type="e_option" />
+        <efx:param name="spi_low_power_mode" value="on" value_type="e_bool" />
+        <efx:param name="io_weak_pullup" value="on" value_type="e_bool" />
+        <efx:param name="oscillator_clock_divider" value="DIV8" value_type="e_option" />
+        <efx:param name="bitstream_compression" value="off" value_type="e_bool" />
+        <efx:param name="enable_external_master_clock" value="off" value_type="e_bool" />
+        <efx:param name="active_capture_clk_edge" value="posedge" value_type="e_option" />
+        <efx:param name="jtag_usercode" value="0xFFFFFFFF" value_type="e_string" />
+        <efx:param name="release_tri_then_reset" value="on" value_type="e_bool" />
+        <efx:param name="cold_boot" value="off" value_type="e_bool" />
+        <efx:param name="cascade" value="off" value_type="e_option" />
+        <efx:param name="generate_bit" value="on" value_type="e_bool" />
+        <efx:param name="generate_bitbin" value="off" value_type="e_bool" />
+        <efx:param name="generate_hex" value="on" value_type="e_bool" />
+        <efx:param name="generate_hexbin" value="off" value_type="e_bool" />
+        <efx:param name="four_byte_addressing" value="off" value_type="e_bool" />
+    </efx:bitstream_generation>
+    <efx:debugger>
+        <efx:param name="work_dir" value="work_dbg" value_type="e_string" />
+        <efx:param name="auto_instantiation" value="off" value_type="e_bool" />
+        <efx:param name="profile" value="NONE" value_type="e_string" />
+    </efx:debugger>
+</efx:project>
