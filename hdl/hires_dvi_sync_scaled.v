@@ -88,10 +88,10 @@
 `elsif NTSC_26MHZ
 `define NTSCR8_MAX_WIDTH 11'd844
 `define NTSCR8_WIDTH 11'd845
-`define NTSCR8_OFFSET 11'd131 // no effect here, see registers.v
+`define NTSCR8_OFFSET 11'd130 // no effect here, see registers.v
 `define NTSCR56_MAX_WIDTH 11'd831
 `define NTSCR56_WIDTH 11'd832
-`define NTSCR56_OFFSET 11'd139 // no effect here, see registers.v
+`define NTSCR56_OFFSET 11'd138 // no effect here, see registers.v
 `define NTSC_CONFIGURABLE_OFFSET 11'd768
 `endif
 
