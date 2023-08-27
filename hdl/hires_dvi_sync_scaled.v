@@ -493,9 +493,9 @@ always @(chip, timing_change_in)
                 hs_sta = ha_end + {3'b000, timing_h_fporch};
                 if (hs_sta >= `NTSCR56_WIDTH) hs_sta = hs_sta - `NTSCR56_WIDTH;
                 hs_end = hs_sta + {3'b000, timing_h_sync};
-                if (hs_end >= `NTSCR56_WIDTH) hs_end = hs_end - `NTSCR56_WIDTH
+                if (hs_end >= `NTSCR56_WIDTH) hs_end = hs_end - `NTSCR56_WIDTH;
                 ha_sta = hs_end + {3'b000, timing_h_bporch};
-                if (ha_sta >= `NTSCR56_WIDTH) ha_sta = ha_sta - `NTSCR56_WIDTH
+                if (ha_sta >= `NTSCR56_WIDTH) ha_sta = ha_sta - `NTSCR56_WIDTH;
                 // WIDTH 832
                 va_end = {2'b00, timing_v_blank};
                 vs_sta = va_end + {2'b00, timing_v_fporch};
