@@ -359,21 +359,23 @@ always @(chip)
                 ha_sta=11'd66;  // bporch 34
 `elsif PAL_27MHZ
                 // WIDTH 882  HEIGHT 312(624)
-                ha_end=11'd852; // start 852
-                hs_sta=11'd0;  // fporch  30
+                ha_end=11'd852; // start 852 (84)
+                hs_sta=11'd0;  // fporch  30 (wrap 882)
                 hs_end=11'd64;  // sync  64
                 ha_sta=11'd132;  // bporch 68
 `elsif PAL_29MHZ
                 // WIDTH 945  HEIGHT 312(624)
-                ha_end=11'd914; // start 914
-                hs_sta=11'd0;  // fporch  31
+                // 782x576 (non-standard)
+                ha_end=11'd914; // start 914 (146)
+                hs_sta=11'd0;  // fporch  31 (wrap 945)
                 hs_end=11'd64;  // sync  64
                 ha_sta=11'd132;  // bporch 68
 `endif
-                va_end=10'd588;  // start 586
-                vs_sta=10'd2;  // fporch   36
-                vs_end=10'd7;  // sync   5
-                va_sta=10'd12;  // bporch   5
+                va_end=10'd592;  // start 592 (80)
+                vs_sta=10'd7;  // fporch   39 (624 wrap)
+                vs_end=10'd12;  // sync   5
+                va_sta=10'd17;  // bporch   5
+                // 576p = 592-17+1
                 max_height = 10'd623;
                 max_width = `PAL_MAX_WIDTH; 
                 x_offset = `PAL_OFFSET;
@@ -392,16 +394,18 @@ always @(chip)
                 hs_end=11'd32;  // sync 32
                 ha_sta=11'd44;  // bporch  24
 `elsif NTSC_26MHZ
+                // 720x480
                 // WIDTH 845  HEIGHT 263(526)
-                ha_end=11'd826; // start 826
-                hs_sta=11'd0;  // fporch 19
-                hs_end=11'd64;  // sync 64
-                ha_sta=11'd94;  // bporch  30
+                ha_end=11'd826; // start 826 (58)
+                hs_sta=11'd11;  // fporch 30 (wrap 845)
+                hs_end=11'd75;  // sync 64
+                ha_sta=11'd106;  // bporch  31
 `endif
-                va_end=10'd24;  // start  24
-                vs_sta=10'd26;  // fporch   2
-                vs_end=10'd42;  // sync   16
-                va_sta=10'd44;  // bporch   2
+                va_end=10'd26;  // start  26
+                vs_sta=10'd28;  // fporch   2
+                vs_end=10'd50;  // sync   22
+                va_sta=10'd72;  // bporch   22
+                // 480p = 526-(72-26)
                 max_height = 10'd525;
                 max_width = `NTSCR8_MAX_WIDTH;
                 x_offset = `NTSCR8_OFFSET;
@@ -414,16 +418,18 @@ always @(chip)
                 hs_end=11'd64;  // sync  64
                 ha_sta=11'd88;  // bporch  24
 `elsif NTSC_26MHZ
+                // 724x480
                 // WIDTH 832  HEIGHT 262(524)
-                ha_end=11'd814;  // start 814
-                hs_sta=11'd0;  // fporch  18
-                hs_end=11'd64;  // sync  64
-                ha_sta=11'd88;  // bporch  24
+                ha_end=11'd814;  // start 814 (46)
+                hs_sta=11'd2;  // fporch  20 (wrap 832)
+                hs_end=11'd66;  // sync  64
+                ha_sta=11'd90;  // bporch  24
 `endif
-                va_end=10'd24;  // start  24
-                vs_sta=10'd26;  // fporch   2
-                vs_end=10'd42;  // sync   16
-                va_sta=10'd44;  // bporch   2
+                // 480p = 524-(70-26)
+                va_end=10'd26;  // start  26
+                vs_sta=10'd28;  // fporch   2
+                vs_end=10'd50;  // sync  22
+                va_sta=10'd70;  // bporch  20
                 max_height = 10'd523;
                 max_width = `NTSCR56_MAX_WIDTH;
                 x_offset = `NTSCR56_OFFSET;
