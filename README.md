@@ -30,7 +30,7 @@ Kawari-Large | Yes | Yes        | Yes         | Yes
 Kawari-Mini  | No  | No         | Yes         | Yes
 Kawari-POV   | No  | No         | Yes         | No
 
-'POV' Stands for Plain Old VIC and is meant to be nothing more than a VIC-II replacement (no extra features)
+'POV' Stands for Plain Old VIC and is meant to be nothing more than a VIC-II replacement with no extra features other than the ability to flash the device.  Kawari-POV has never been produced but is possible using the Mini PCB design with some parts omitted.
 
 For a chart breaking down all features available or missing for a particular board design, please see [MODELS.md](doc/MODELS.md)
 
@@ -42,11 +42,11 @@ Luma/Chroma  | A/V Jack   |Regular S/LUM output at rear of computer (composite o
 
 The core is flexible and can be configured to support all three or any subset of these video options provided the hardware can support it.
 
-By default, the DVI/RGB signals double the horizontal frequency from ~15.7khz to ~31.4khz (for 2X native height). The horizontal resolution is also doubled to support the 80 column mode.  However, the resolution scaling can be turned off for both width and height.  (NOTE: Turning off horizontal scaling will prevent hires modes from working properly.)
+By default, the DVI/RGB signals double the horizontal frequency from ~15.7khz to ~31.4khz (for 2X native height). The horizontal resolution is also doubled to support the 80 column mode.  The spartan boards support turning off scaling for both DVI and RGB output.  The Trion boards no longer support 1x scaling (either width/height). (NOTE: Turning off horizontal scaling will prevent hires modes from working properly.)
 
 ### Spartan Large Board DVI & RGB Signals
 
-Video        |Mx|My|Width|Height|Horiz Freq |Vert Freq  |Pixel Clock
+Video        |Sx|Sy|Width|Height|Horiz Freq |Vert Freq  |Pixel Clock
 -------------|--|--|-----|------|-----------|-----------|-----------
 NTSC         |1x|1x|520  |263   |15.73khz   |59.82hz    |8.181 Mhz  
 NTSC(Old)    |1x|1x|512  |262   |15.98khz   |60.99hz    |8.181 Mhz  
@@ -61,26 +61,31 @@ NTSC         |2x|2x|1040 |526   |31.46khz   |59.82hz    |32.727 Mhz
 NTSC(Old)    |2x|2x|1024 |524   |31.96khz   |60.99hz    |32.727 Mhz 
 PAL-B        |2x|2x|1008 |624   |31.26khz   |50.125hz   |31.527 Mhz 
 
-### Trion Large Board DVI & RGB Signals
+The Trion board RGB firmware has resolutions identical to the spartan table above.
 
-The Trion board RGB firmware has resolutions identical to the table above. 
+### Trion Large Board DVI (Default - 1.17)
 
 The DVI firmware (full 2x/2Y resolution) is reduced to the following values:
 
-Video        |Mx|My|Width|Height|Horiz Freq |Vert Freq  |Pixel Clock
--------------|--|--|-----|------|-----------|-----------|-----------
-NTSC         |2x|2x|738  |506   |31.46khz   |59.82hz    |26.590 Mhz
-NTSC(Old)    |2x|2x|726  |504   |31.96khz   |60.99hz    |26.590 Mhz
-PAL-B        |2x|2x|768  |576   |31.26khz   |50.125hz   |29.557 Mhz
-PAL-B (alt)  |2x|2x|720  |576   |31.26khz   |50.125hz   |27.586 Mhz
+Video        |Sx|Sy|Vis. Width  |Vis. Height|Horiz Freq |Vert Freq  |Pixel Clock
+-------------|--|--|------------|-----------|-----------|-----------|-----------
+NTSC         |2x|2x|720         |480        |31.46khz   |59.82hz    |26.590 Mhz
+NTSC(Old)    |2x|2x|724         |480        |31.96khz   |60.99hz    |26.590 Mhz
+PAL-B        |2x|2x|782         |576        |31.26khz   |50.125hz   |29.557 Mhz
 
-NOTE: These are updated values for firmware 1.17. Previous firmware versions may report different values and may have less compatibility with monitors.  The 'native x' and 'native y' (a.k.a 15khz) options from CONFIG program no longer have any effect on Trion DVI output.
+### Alternate Trion DVI Firmware (1.17)
 
-### More video stuff
+The default Trion DVI firmware may not work on all monitors/TVs as it outputs resolutions that are not standard.  Also, the video tends to be more 'stretched' even using a 4:3 aspect ratio setting on the monitor.  If your display doesn't show the PAL video mode, you can try an alternate DVI firmware with a mode closer to the 720x576 standard. This is more likely to work for older TVs/monitors.  However, please be aware the C64's native video modes are scaled by 1.8x rather than 2x to get a better aspect ratio and more border space. Although regular C64 video modes will look okay, the Kawari's extended hi-resolution modes (80 column, 640x200) will look pixelated as those modes are effectively downscaled 10:9. This an unfortunate trade-off to using this video timing.
 
-The DVI video modes are not standard and may not work with older monitors/TVs or capture cards.  The 15khz modes require a monitor that can handle that horizontal refresh rate.  If the device is configured for 15khz, DVI will usually not work as most monitors don't accept a 15khz horizontal refresh rate.
+Video        |Sx  |Sy|Vis. Width  |Vis. Height|Horiz Freq |Vert Freq  |Pixel Clock
+-------------|----|--|------------|-----------|-----------|-----------|-----------
+PAL-B        |1.8x|2x|720         |576        |31.26khz   |50.125hz   |27.586 Mhz
+NTSC         |1.8x|2x|720         |480        |31.46khz   |59.82hz    |26.590 Mhz
+NTSC(Old)    |1.8x|2x|724         |480        |31.96khz   |60.99hz    |26.590 Mhz
 
-The PCB has an unpopulated 10 pin analog header (1 +5V, 6 signal, 3 GND) that can wired to a monitor with a custom built cable.
+### Analog RGB Output
+
+Both the Spartan & Trion PCBs have an unpopulated 10 pin analog header (1 +5V, 6 signal, 3 GND) that can wired to a monitor with a custom built cable.
 
     +5V CLK GND RED GRN
     GND VSY HSY BLU GND
