@@ -34,6 +34,7 @@ do
    IFS=':'
    VAR=""
    RES=""
+   OPT=""
    for ENTRY in $V
    do
       if [ "$VAR" = "" ]; then
