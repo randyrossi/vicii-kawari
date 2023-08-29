@@ -2122,8 +2122,8 @@ wire [10:0] max_scale_raddr;
 wire [10:0] max_scale_waddr;
 wire [10:0] start_scale_raddr;
 assign max_scale_waddr = chip[0] ? 11'd1007 : (chip[1] ? 11'd1023 : 11'd1039);
-assign max_scale_raddr = chip[0] ? 11'd1022 : (chip[1] ? 11'd1013 : 11'd1015);
-assign start_scale_raddr = chip[0] ? 11'd44 : (chip[1] ? 11'd90 : 11'd78);
+assign max_scale_raddr = chip[0] ? 11'd1026 : (chip[1] ? 11'd1013 : 11'd1015);
+assign start_scale_raddr = chip[0] ? 11'd48 : (chip[1] ? 11'd90 : 11'd78);
 `else
 // Simulator build doesn't handle continuous
 // assignments properly?
@@ -2133,8 +2133,8 @@ reg [10:0] start_scale_raddr;
 always @(posedge clk_dot4x)
 begin
 max_scale_waddr = chip[0] ? 11'd1007 : (chip[1] ? 11'd1023 : 11'd1039);
-max_scale_raddr = chip[0] ? 11'd1022 : (chip[1] ? 11'd1013 : 11'd1015);
-start_scale_raddr = chip[0] ? 11'd44 : (chip[1] ? 11'd90 : 11'd78);
+max_scale_raddr = chip[0] ? 11'd1026 : (chip[1] ? 11'd1013 : 11'd1015);
+start_scale_raddr = chip[0] ? 11'd48 : (chip[1] ? 11'd90 : 11'd78);
 end
 `endif
 
