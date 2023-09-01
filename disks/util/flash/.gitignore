@@ -1,7 +1,5 @@
 info
-kawari_multiboot*.bit
-kawari_golden*.bit
-*multi.hex
+*.bit
 load_bytes
 stripped.bit
 *.zip

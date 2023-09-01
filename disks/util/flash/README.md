@@ -2,13 +2,13 @@
 
 See [FIRMWARE](../../../doc/FIRMWARE.md) for latest firmware files.
 
-# How to make a flash disk (Trion)
+# build_efinix.sh
 
-1. Build a vicii.hex file.  See boards/rev_4H or boards/rev_4G directories.
-2. Use efinity_pgm.sh to create a multi.hex file.  Slot 0 gets the fallback image.  Slot 2 gets the active image. (They can be different versions)
-3. Use multi_hex_to_bit tool to convert the multi.hex file into a .bit file.  It must be named according to the naming convention expected in Makefile.inc.
-4. Edit the Makefile.MAINLH, Makefile.MAINLG-DVI, Makefile.MAINLG-RGB (etc) file to build either a golden (fallback) or multiboot (active) flash disk.  The start address and type will change.
-5. Use make -f Makefile.VARIANT zip to create the flash disks and zip file.
+Builds all Mini/Large flash disks for both active and fallback images.
+
+# build_spartan.sh
+
+Builds beta and final spartan large flash disks for both active and fallback.
 
 # Beta Board
 
@@ -23,7 +23,7 @@ This board is the final hardware revision using the Spartan6 FPGA. It has the la
 
 # Final Trion Mini (Luma/Chroma only) Board
 
-This board is labeled VICII-Kawari LH Revision 1.3 or 1.4
+This board is labeled VICII-Kawari LH Revision 1.3, 1.4
 
 NOTE: Rev1.3's bottom socket cannot be removed. Rev1.4's bottom socket can be removed.
 
