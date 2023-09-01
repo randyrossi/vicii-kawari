@@ -21,13 +21,13 @@ VERSION=1.17
 #VARIANTS="rev_4G:MAINLG-DVI:kawari_multiboot_MAINLG-DVI_${VERSION}.hex rev_4G:MAINLG-RGB:kawari_multiboot_MAINLG-RGB_${VERSION}.hex rev_4H:MAINLH:kawari_multiboot_MAINLH_${VERSION}.hex rev_4H:MAINLH-DOTC:kawari_multiboot_MAINLH-DOTC_${VERSION}.hex"
 
 # board dir build
-#VARIANTS="rev_4G:MAINLG-DVI:kawari_multiboot_MAINLG-DVI-27MHZ_${VERSION}.hex"
+#VARIANTS="rev_4G:MAINLG-DVI:kawari_multiboot_MAINLG-DVI-27MHZ-S_${VERSION}.hex"
 
 # 27MHZ from sweep
-#VARIANTS="rev_4G:MAINLG-DVI:../sweep_27_scaled/seed_2/outflow/vicii.hex"
+#VARIANTS="rev_4G:MAINLG-DVI:../sweep_27_scaled/seed_1/outflow/vicii.hex"
 
 # 29MHZ from sweep
-VARIANTS="rev_4G:MAINLG-DVI:../sweep_29_unscaled/seed_7/outflow/vicii.hex"
+VARIANTS="rev_4G:MAINLG-DVI:../sweep_29_unscaled/seed_4/outflow/vicii.hex"
 
 for VARIANT in $VARIANTS
 do

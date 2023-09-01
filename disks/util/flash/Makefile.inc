@@ -35,7 +35,7 @@
 #PAGE_SIZE=4096
 
 # Do not edit below this line
-all: subdirs ask d64 d81 tools
+all: checkfile subdirs ask d64 d81 tools
 
 ask:
 	@echo -------------------------------------------
@@ -43,12 +43,17 @@ ask:
 	@echo FROM: ${SOURCE_IMG}
 	@echo -------------------------------------------
 	@echo -n Press enter to continue, Cntrl-C to abort:
-	@read dummy
+	#@read dummy
 
 subdirs:
 	$(MAKE) -C third_party
 
 SOURCE_IMG=kawari_$(TYPE)_$(VARIANT)_$(VERSION).bit
+
+checkfile:
+	@if [ ! -f $(SOURCE_IMG) ]; \
+	then echo "Missing $(SOURCE_IMG)"; exit 1; \
+	fi
 
 # Max 29 files to cover size of SpX16
 FILENUMS=000 001 002 003 004 005 006 007 008 009 010 011 012 013 014 015 016 017 018 019 \
