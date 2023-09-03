@@ -3,14 +3,19 @@
 # This script makes sure the Efinix builds were assembled
 # from multi.hex files properly.
 #
-# HOWTO: Move all the .zips to check into a subdir called 'latest'
-# Run this script from one level up
+# HOWTO: ./check_efinix.sh <dir_with_zips>
 #
 # MAINLH Golden builds should have 0a 10 00 location bytes
 # MAINLG Golden builds should have 0a 60 00 location bytes
 # All Multiboot builds should have 00 00 00 location bytes
 
-FILES=`ls -1 latest`
+if [ "$1" = "" ]
+then
+   echo "Usage: ./check_efinix <dir_with_zips>"
+   exit
+fi
+
+FILES=`ls -1 $1`
 
 for f in $FILES
 do
@@ -19,7 +24,7 @@ do
 
    pushd tmp > /dev/null 2> /dev/null
    echo -n $f"," > report.txt
-   unzip ../latest/$f > /dev/null 2> /dev/null
+   unzip ../$1/$f  > /dev/null 2> /dev/null
    strings flash.d81 | grep Generated | sed 's/Generated: //' | tr -d '\n' >> report.txt
 
    echo -n "," >> report.txt
