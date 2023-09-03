@@ -936,7 +936,14 @@ int main(int argc, char** argv, char** env) {
     // that module set is_native_y as if it came from a the
     // eeprom. Otherwise, just force it here.
 #ifndef HAVE_EEPROM
+
+#ifdef EFINIX
+    // Efinix DVI doesn't support native y
+    top->top__DOT__vic_inst__DOT__is_native_y = 0;
+#else
     top->top__DOT__vic_inst__DOT__is_native_y = 1;
+#endif
+
     top->top__DOT__vic_inst__DOT__is_native_x = 0;
 #endif
 #else
@@ -1196,11 +1203,24 @@ int main(int argc, char** argv, char** env) {
 #endif
 #endif
 #endif
+             // top->V_CLK_DOT is 2 or 8
 	     int hoffset = top->V_CLK_DOT == 2 ? 0 : 1;
-             drawPixel(ren,
-                top->V_RASTER_X*2+hoffset,
-                top->V_RASTER_LINE
-             );
+             if (top->top__DOT__vic_inst__DOT__is_native_y) {
+               drawPixel(ren,
+                  top->V_RASTER_X*2+hoffset,
+                  top->V_RASTER_LINE
+               );
+             } else {
+               // Draw fatter pixels for double y
+               drawPixel(ren,
+                  top->V_RASTER_X*4+hoffset*2,
+                  top->V_RASTER_LINE
+               );
+               drawPixel(ren,
+                  top->V_RASTER_X*4+1+hoffset*2,
+                  top->V_RASTER_LINE
+               );
+             }
 
              // Show updated pixels per raster line
              if (prevY != top->V_RASTER_LINE) {
