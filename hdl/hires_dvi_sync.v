@@ -405,10 +405,10 @@ always @(chip)
                 hs_end=11'd75;  // sync 64
                 ha_sta=11'd106;  // bporch  31
 `endif
-                va_end=10'd26;  // start  26
-                vs_sta=10'd28;  // fporch   2
-                vs_end=10'd50;  // sync   22
-                va_sta=10'd72;  // bporch   22
+                va_end=10'd22;  // start  22
+                vs_sta=10'd24;  // fporch   2
+                vs_end=10'd46;  // sync   22
+                va_sta=10'd66;  // bporch   22
                 // 480p = 526-(72-26)
                 max_height = 10'd525;
                 max_width = `NTSCR8_MAX_WIDTH;
@@ -430,10 +430,10 @@ always @(chip)
                 ha_sta=11'd90;  // bporch  24
 `endif
                 // 480p = 524-(70-26)
-                va_end=10'd26;  // start  26
-                vs_sta=10'd28;  // fporch   2
-                vs_end=10'd50;  // sync  22
-                va_sta=10'd70;  // bporch  20
+                va_end=10'd22;  // start  22
+                vs_sta=10'd24;  // fporch   2
+                vs_end=10'd46;  // sync  22
+                va_sta=10'd66;  // bporch  20
                 max_height = 10'd523;
                 max_width = `NTSCR56_MAX_WIDTH;
                 x_offset = `NTSCR56_OFFSET;
