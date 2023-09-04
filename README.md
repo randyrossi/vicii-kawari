@@ -87,9 +87,9 @@ PAL-B        |2x|2x|782         |576        |31.26khz   |50.125hz   |29.557 Mhz
 
 Video        |Sample|Notes
 -------------|------|------
-NTSC         |![NTSC Scaled](doc/images/6567R8-26MHZ-U.jpg "NTSC Scaled")|Less border area but new hires modes fully defined
-NTSC(Old)    |![NTSC(Old) Scaled](doc/images/6567R8-26MHZ-U.jpg "NTSC Scaled")|Less border area but new hires modes fully defined
-PAL-B        |![PAL Scaled](doc/images/6569-29MHZ-U.jpg "PAL Scaled")|Less compatibility but new hires modes fully defined
+NTSC         |![NTSC Scaled](doc/images/6567R8-26MHZ-U.png "NTSC Scaled")|Less border area but new hires modes fully defined
+NTSC(Old)    |![NTSC(Old) Scaled](doc/images/6567R8-26MHZ-U.png "NTSC Scaled")|Less border area but new hires modes fully defined
+PAL-B        |![PAL Scaled](doc/images/6569-29MHZ-U.png "PAL Scaled")|Less compatibility but new hires modes fully defined
 
 If your monitor does not support the non-standard PAL-B mode, see 'Alternate Trion DVI Firmware' below.
 
@@ -105,9 +105,9 @@ PAL-B        |1.8x|2x|720         |576        |31.26khz   |50.125hz   |27.586 Mh
 
 Video        |Sample|Notes
 -------------|------|------
-NTSC         |![NTSC Scaled](doc/images/6567R8-26MHZ-S.jpg "NTSC Scaled")|More border area but new hires modes will look pixelated. Regular C64 video modes not affected by scaling.
-NTSC(Old)    |![NTSC(Old) Scaled](doc/images/6567R8-26MHZ-S.jpg "NTSC Scaled")|More border area but new hires modes will look pixelated. Regular C64 video modes not affected by scaling.
-PAL-B        |![PAL Scaled](doc/images/6569-27MHZ-S.jpg "PAL Scaled")|Better compatibility but new hires modes will look pixelated. Regular C64 video modes not affected by scaling.
+NTSC         |![NTSC Scaled](doc/images/6567R8-26MHZ-S.png "NTSC Scaled")|More border area but new hires modes will look pixelated. Regular C64 video modes not affected by scaling.
+NTSC(Old)    |![NTSC(Old) Scaled](doc/images/6567R8-26MHZ-S.png "NTSC Scaled")|More border area but new hires modes will look pixelated. Regular C64 video modes not affected by scaling.
+PAL-B        |![PAL Scaled](doc/images/6569-27MHZ-S.png "PAL Scaled")|Better compatibility but new hires modes will look pixelated. Regular C64 video modes not affected by scaling.
 
 ### Analog RGB Output
 

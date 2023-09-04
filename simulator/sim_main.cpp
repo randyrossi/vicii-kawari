@@ -779,7 +779,7 @@ int main(int argc, char** argv, char** env) {
        switch (chip) {
           case CHIP6567R8:
           case CHIP6567R56A:
-             durationTicks = US_TO_TICKS(16700L);
+             durationTicks = US_TO_TICKS(17000L);
              break;
           case CHIP6569R1:
           case CHIP6569R3:
@@ -1205,31 +1205,51 @@ int main(int argc, char** argv, char** env) {
 #endif
              // top->V_CLK_DOT is 2 or 8
 	     int hoffset = top->V_CLK_DOT == 2 ? 0 : 1;
+
+             int rl = top->V_RASTER_LINE;
+
+             // This shifts everything up for NTSC so we can see
+             // the whole screen like on a monitor.  The value 25
+             // here should be close to the vstart values for the chips.
+             switch (chip) {
+                case CHIP6567R8:
+                   rl-= 25;
+                   if (rl < 0) rl+=263;
+                   break;
+                case CHIP6567R56A:
+                   rl-= 25;
+                   if (rl < 0) rl+=262;
+                   break;
+                case CHIP6569R1:
+                default:
+                   break;
+             }
+
              if (top->top__DOT__vic_inst__DOT__is_native_y) {
                drawPixel(ren,
                   top->V_RASTER_X*2+hoffset,
-                  top->V_RASTER_LINE
+                  rl
                );
              } else {
                // Draw fatter pixels for double y
                drawPixel(ren,
                   top->V_RASTER_X*4+hoffset*2,
-                  top->V_RASTER_LINE
+                  rl
                );
                drawPixel(ren,
                   top->V_RASTER_X*4+1+hoffset*2,
-                  top->V_RASTER_LINE
+                  rl
                );
              }
 
              // Show updated pixels per raster line
-             if (prevY != top->V_RASTER_LINE) {
-                prevY = top->V_RASTER_LINE;
+             if (prevY != rl) {
+                prevY = rl;
 
                 if (scanline) {
                    for (int xx=0; xx < 504; xx++) {
                      SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
-                     drawPixel(ren, xx*2, top->V_RASTER_LINE+1);
+                     drawPixel(ren, xx*2, rl+1);
                    }
                 }
 
@@ -1246,21 +1266,6 @@ int main(int argc, char** argv, char** env) {
           }
         }
 
-	   if (endCapture) {
-              if (endCaptureWaitLine1) {
-		     if (top->V_XPOS == 0 && top->V_RASTER_LINE == 0) {
-		         endCaptureWaitLine1 = false;
-		     }
-	      } else if (top->V_XPOS == lastXPos && top->V_RASTER_LINE == screenHeight - 1) {
-               SDL_Surface *sshot = SDL_CreateRGBSurface(0, screenWidth*2, screenHeight*2,
-                   32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
-               SDL_RenderReadPixels(ren, NULL, SDL_PIXELFORMAT_ARGB8888,
-                                    sshot->pixels, sshot->pitch);
-               SDL_SaveBMP(sshot, "screenshot.bmp");
-               SDL_FreeSurface(sshot);
-               exit(0);
-	     }
-	   }
 
         if (shadowVic) {
            state->irq = top->irq;
@@ -1451,6 +1456,18 @@ int main(int argc, char** argv, char** env) {
     }
 
     if (showWindow) {
+
+       // Instead of waiting for a key, do the capture if requested
+       if (endCapture) {
+          SDL_Surface *sshot = SDL_CreateRGBSurface(0, screenWidth*2, screenHeight*2,
+             32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+          SDL_RenderReadPixels(ren, NULL, SDL_PIXELFORMAT_ARGB8888,
+             sshot->pixels, sshot->pitch);
+          SDL_SaveBMP(sshot, "screenshot.bmp");
+          SDL_FreeSurface(sshot);
+          exit(0);
+       }
+
        bool quit = false;
        while (!quit && keyPressToQuit) {
           while (SDL_PollEvent(&event)) {
