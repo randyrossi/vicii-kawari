@@ -105,9 +105,9 @@ PAL-B        |1.8x|2x|720         |576        |31.26khz   |50.125hz   |27.586 Mh
 
 Video        |Sample|Notes
 -------------|------|------
-NTSC         |![NTSC Scaled](doc/images/6567R8-26MHZ-S.png "NTSC Scaled")|More border area but new hires modes will look pixelated. Regular C64 video modes not affected by scaling.
-NTSC(Old)    |![NTSC(Old) Scaled](doc/images/6567R8-26MHZ-S.png "NTSC Scaled")|More border area but new hires modes will look pixelated. Regular C64 video modes not affected by scaling.
-PAL-B        |![PAL Scaled](doc/images/6569-27MHZ-S.png "PAL Scaled")|Better compatibility but new hires modes will look pixelated. Regular C64 video modes not affected by scaling.
+NTSC         |![NTSC Scaled](doc/images/6567R8-26MHZ-S.png "NTSC Scaled")|More border area but new hires modes will look pixelated. Regular C64 video modes not affected by scaling. More compatible resolution.
+NTSC(Old)    |![NTSC(Old) Scaled](doc/images/6567R8-26MHZ-S.png "NTSC Scaled")|More border area but new hires modes will look pixelated. Regular C64 video modes not affected by scaling. More compatible resolution.
+PAL-B        |![PAL Scaled](doc/images/6569-27MHZ-S.png "PAL Scaled")|Better compatibility but new hires modes will look pixelated. Regular C64 video modes not affected by scaling. More compatible resolution.
 
 ### Analog RGB Output
 
