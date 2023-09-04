@@ -88,10 +88,10 @@
 `elsif NTSC_26MHZ
 `define NTSCR8_MAX_WIDTH 11'd844
 `define NTSCR8_WIDTH 11'd845
-`define NTSCR8_OFFSET 11'd130
+`define NTSCR8_OFFSET 11'd140
 `define NTSCR56_MAX_WIDTH 11'd831
 `define NTSCR56_WIDTH 11'd832
-`define NTSCR56_OFFSET 11'd142
+`define NTSCR56_OFFSET 11'd150
 `define NTSC_CONFIGURABLE_OFFSET 11'd768
 `endif
 
@@ -403,13 +403,12 @@ always @(chip)
                 ha_end=11'd826; // start 826 (58)
                 hs_sta=11'd11;  // fporch 30 (wrap 845)
                 hs_end=11'd75;  // sync 64
-                ha_sta=11'd106;  // bporch  31
+                ha_sta=11'd86;  // bporch  11
 `endif
-                va_end=10'd22;  // start  22
-                vs_sta=10'd24;  // fporch   2
-                vs_end=10'd46;  // sync   22
-                va_sta=10'd66;  // bporch   22
-                // 480p = 526-(72-26)
+                va_end=10'd26;  // start  26
+                vs_sta=10'd28;  // fporch   2
+                vs_end=10'd50;  // sync   22
+                va_sta=10'd52;  // bporch   2
                 max_height = 10'd525;
                 max_width = `NTSCR8_MAX_WIDTH;
                 x_offset = `NTSCR8_OFFSET;
@@ -427,13 +426,12 @@ always @(chip)
                 ha_end=11'd814;  // start 814 (46)
                 hs_sta=11'd2;  // fporch  20 (wrap 832)
                 hs_end=11'd66;  // sync  64
-                ha_sta=11'd90;  // bporch  24
+                ha_sta=11'd78;  // bporch  12
 `endif
-                // 480p = 524-(70-26)
-                va_end=10'd22;  // start  22
-                vs_sta=10'd24;  // fporch   2
-                vs_end=10'd46;  // sync  22
-                va_sta=10'd66;  // bporch  20
+                va_end=10'd28;  // start  28
+                vs_sta=10'd30;  // fporch   2
+                vs_end=10'd52;  // sync  22
+                va_sta=10'd54;  // bporch  2
                 max_height = 10'd523;
                 max_width = `NTSCR56_MAX_WIDTH;
                 x_offset = `NTSCR56_OFFSET;
@@ -497,9 +495,9 @@ always @(chip, timing_change_in)
                 hs_sta = ha_end + {3'b000, timing_h_fporch};
                 if (hs_sta >= `NTSCR56_WIDTH) hs_sta = hs_sta - `NTSCR56_WIDTH;
                 hs_end = hs_sta + {3'b000, timing_h_sync};
-                if (hs_end >= `NTSCR56_WIDTH) hs_end = hs_end - `NTSCR56_WIDTH
+                if (hs_end >= `NTSCR56_WIDTH) hs_end = hs_end - `NTSCR56_WIDTH;
                 ha_sta = hs_end + {3'b000, timing_h_bporch};
-                if (ha_sta >= `NTSCR56_WIDTH) ha_sta = ha_sta - `NTSCR56_WIDTH
+                if (ha_sta >= `NTSCR56_WIDTH) ha_sta = ha_sta - `NTSCR56_WIDTH;
                 // WIDTH 832
                 va_end = {2'b00, timing_v_blank};
                 vs_sta = va_end + {2'b00, timing_v_fporch};

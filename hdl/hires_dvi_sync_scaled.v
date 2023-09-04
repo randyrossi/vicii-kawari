@@ -60,7 +60,7 @@
 `elsif PAL_27MHZ
 `define PAL_MAX_WIDTH 11'd881
 `define PAL_WIDTH 11'd882
-`define PAL_OFFSET 11'd100 // no effect here, see registers.v
+`define PAL_OFFSET 11'd102 // no effect here, see registers.v
 `define PAL_CONFIGURABLE_OFFSET 11'd768
 `elsif PAL_29MHZ
 `define PAL_MAX_WIDTH 11'd944
@@ -88,10 +88,10 @@
 `elsif NTSC_26MHZ
 `define NTSCR8_MAX_WIDTH 11'd844
 `define NTSCR8_WIDTH 11'd845
-`define NTSCR8_OFFSET 11'd130 // no effect here, see registers.v
+`define NTSCR8_OFFSET 11'd140 // no effect here, see registers.v
 `define NTSCR56_MAX_WIDTH 11'd831
 `define NTSCR56_WIDTH 11'd832
-`define NTSCR56_OFFSET 11'd138 // no effect here, see registers.v
+`define NTSCR56_OFFSET 11'd150 // no effect here, see registers.v
 `define NTSC_CONFIGURABLE_OFFSET 11'd768
 `endif
 
@@ -401,11 +401,11 @@ always @(chip)
                 hs_end=11'd75;  // sync 64
                 ha_sta=11'd106;  // bporch  31
 `endif
-                va_end=10'd26;  // start  26
-                vs_sta=10'd28;  // fporch   2
-                vs_end=10'd50;  // sync   22
-                va_sta=10'd72;  // bporch   22
-                // 480p = 526-(72-26)
+                va_end=10'd20;  // start  20
+                vs_sta=10'd22;  // fporch   2
+                vs_end=10'd44;  // sync   22
+                va_sta=10'd66;  // bporch   22
+                // 480p = 526-(66-20)
                 max_height = 10'd525;
                 max_width = `NTSCR8_MAX_WIDTH;
                 x_offset = `NTSCR8_OFFSET;
@@ -425,11 +425,11 @@ always @(chip)
                 hs_end=11'd66;  // sync  64
                 ha_sta=11'd90;  // bporch  24
 `endif
-                // 480p = 524-(70-26)
-                va_end=10'd26;  // start  26
-                vs_sta=10'd28;  // fporch   2
-                vs_end=10'd50;  // sync  22
-                va_sta=10'd70;  // bporch  20
+                // 480p = 524-(66-22)
+                va_end=10'd22;  // start  22
+                vs_sta=10'd24;  // fporch   2
+                vs_end=10'd46;  // sync  22
+                va_sta=10'd66;  // bporch  20
                 max_height = 10'd523;
                 max_width = `NTSCR56_MAX_WIDTH;
                 x_offset = `NTSCR56_OFFSET;

@@ -80,8 +80,8 @@ The default DVI firmware (full 2x/2Y resolution) is reduced to the following val
 
 Video        |Sx|Sy|Vis. Width  |Vis. Height|Horiz Freq |Vert Freq  |Pixel Clock
 -------------|--|--|------------|-----------|-----------|-----------|-----------
-NTSC         |2x|2x|720         |480        |31.46khz   |59.82hz    |26.590 Mhz
-NTSC(Old)    |2x|2x|724         |480        |31.96khz   |60.99hz    |26.590 Mhz
+NTSC         |2x|2x|740         |500        |31.46khz   |59.82hz    |26.590 Mhz
+NTSC(Old)    |2x|2x|736         |498        |31.96khz   |60.99hz    |26.590 Mhz
 PAL-B        |2x|2x|782         |576        |31.26khz   |50.125hz   |29.557 Mhz
 
 
