@@ -70,7 +70,7 @@ There are two firmware options for DVI output on the Trion boards but there are 
 Firmware | Variant Code | Trade-off
 ---------|--------------|----------
 Default  | DVI          | Less visible border area esp. for NTSC chips. Less compatible PAL mode.  Some monitors won't display it.  However, you get fully defined hires (80 column and 640x200) modes
-Scaled   | DVS         | More visible border area for NTSC chips. More compatible PAL mode. However, you will get pixelated hires (80 column and 640x200) modes as the output is scaled.
+Scaled   | DVS         | More visible border area for NTSC chips. More compatible PAL mode. However, you will get pixelated hires (80 column and 640x200) modes as the output is scaled.  Regular C64 video modes will still look fine.
 
 If you are not interested in the extended features and are having trouble with the PAL mode on your monitor, try the alternate firmware.  The modes are summarized below:
 
@@ -107,7 +107,7 @@ Video        |Sample|Notes
 -------------|------|------
 NTSC         |![NTSC Scaled](doc/images/6567R8-26MHZ-S.jpg "NTSC Scaled")|More border area but new hires modes will look pixelated
 NTSC(Old)    |![NTSC(Old) Scaled](doc/images/6567R8-26MHZ-S.jpg "NTSC Scaled")|More border area but new hires modes will look pixelated
-PAL-B        |![PAL Scaled](doc/images/6569-27MHZ-S.jpg "PAL Scaled")|Better compatibility but new hires modes will look pixelated
+PAL-B        |![PAL Scaled](doc/images/6569-27MHZ-S.jpg "PAL Scaled")|Better compatibility but new hires modes will look pixelated. Regular C64 video modes not affected by scaling.
 
 ### Analog RGB Output
 
