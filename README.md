@@ -63,9 +63,20 @@ PAL-B        |2x|2x|1008 |624   |31.26khz   |50.125hz   |31.527 Mhz
 
 The Trion board RGB firmware has resolutions identical to the spartan table above.
 
-### Trion Large Board DVI (Default - 1.17)
+### Trion Large Board DVI Options (1.17)
 
-The DVI firmware (full 2x/2Y resolution) is reduced to the following values:
+There are two firmware options for DVI output on the Trion boards but there are trade-offs to be aware of.
+
+Firmware | Variant Code | Trade-off
+---------|--------------|----------
+Default  | DVI          | Less visible border area esp. for NTSC chips. Less compatible PAL mode.  Some monitors won't display it.  However, you get fully defined hires (80 column and 640x200) modes
+Scaled   | DVS         | More visible border area for NTSC chips. More compatible PAL mode. However, you will get pixelated hires (80 column and 640x200) modes as the output is scaled.
+
+If you are not interested in the extended features and are having trouble with the PAL mode on your monitor, try the alternate firmware.  The modes are summarized below:
+
+#### Trion Large Board DVI (Default - 1.17)
+
+The default DVI firmware (full 2x/2Y resolution) is reduced to the following values:
 
 Video        |Sx|Sy|Vis. Width  |Vis. Height|Horiz Freq |Vert Freq  |Pixel Clock
 -------------|--|--|------------|-----------|-----------|-----------|-----------
@@ -73,15 +84,30 @@ NTSC         |2x|2x|720         |480        |31.46khz   |59.82hz    |26.590 Mhz
 NTSC(Old)    |2x|2x|724         |480        |31.96khz   |60.99hz    |26.590 Mhz
 PAL-B        |2x|2x|782         |576        |31.26khz   |50.125hz   |29.557 Mhz
 
-### Alternate Trion DVI Firmware (1.17)
+
+Video        |Sample|Notes
+-------------|------|------
+NTSC         |![NTSC Scaled](doc/images/6567R8-26MHZ-U.jpg "NTSC Scaled")|Less border area but new hires modes fully defined
+NTSC(Old)    |![NTSC(Old) Scaled](doc/images/6567R8-26MHZ-U.jpg "NTSC Scaled")|Less border area but new hires modes fully defined
+PAL-B        |![PAL Scaled](doc/images/6569-29MHZ-U.jpg "PAL Scaled")|Less compatibility but new hires modes fully defined
+
+If your monitor does not support the non-standard PAL-B mode, see 'Alternate Trion DVI Firmware' below.
+
+#### Alternate Trion DVI Firmware (Scaled - 1.17)
 
 The default Trion DVI firmware may not work on all monitors/TVs as it outputs resolutions that are not standard.  Also, the video tends to be more 'stretched' even using a 4:3 aspect ratio setting on the monitor.  If your display doesn't show the PAL video mode, you can try an alternate DVI firmware with a mode closer to the 720x576 standard. This is more likely to work for older TVs/monitors.  However, please be aware the C64's native video modes are scaled by 1.8x rather than 2x to get a better aspect ratio and more border space. Although regular C64 video modes will look okay, the Kawari's extended hi-resolution modes (80 column, 640x200) will look pixelated as those modes are effectively downscaled 10:9. This an unfortunate trade-off to using this video timing.
 
 Video        |Sx  |Sy|Vis. Width  |Vis. Height|Horiz Freq |Vert Freq  |Pixel Clock
 -------------|----|--|------------|-----------|-----------|-----------|-----------
-PAL-B        |1.8x|2x|720         |576        |31.26khz   |50.125hz   |27.586 Mhz
 NTSC         |1.8x|2x|720         |480        |31.46khz   |59.82hz    |26.590 Mhz
 NTSC(Old)    |1.8x|2x|724         |480        |31.96khz   |60.99hz    |26.590 Mhz
+PAL-B        |1.8x|2x|720         |576        |31.26khz   |50.125hz   |27.586 Mhz
+
+Video        |Sample|Notes
+-------------|------|------
+NTSC         |![NTSC Scaled](doc/images/6567R8-26MHZ-S.jpg "NTSC Scaled")|More border area but new hires modes will look pixelated
+NTSC(Old)    |![NTSC(Old) Scaled](doc/images/6567R8-26MHZ-S.jpg "NTSC Scaled")|More border area but new hires modes will look pixelated
+PAL-B        |![PAL Scaled](doc/images/6569-27MHZ-S.jpg "PAL Scaled")|Better compatibility but new hires modes will look pixelated
 
 ### Analog RGB Output
 
