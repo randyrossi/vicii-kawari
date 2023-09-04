@@ -29,9 +29,12 @@ Trion Large w/ DVI (480p/576p - Scaled) | [1.17 with 480p/576p DVI ](https://acc
 
 # Specialty Builds
 
+WARNING: These specialty builds are provided for fun/experimentation purposes only.  Please flash them only if you know exactly what you're doing.
+
 Board         | Firmware Link| Description
 --------------|------|---------
-Trion Mini    | [1.16](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.16_MAINLH-DOTC_multiboot.zip) | A custom 'active' image build that exports a dot clock signal out Pin 3 of the 74LS06D chip.  This can be passed through a 33 Ohm resistor into the motherboard to provide a dot clock for both NTSC and PAL while still using the on board oscillators. Please only flash this if you know what you are doing.
+Trion Mini (Board REV 1.2-1.4) | [1.16](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.16_MAINLH-DOTC-1.2_multiboot.zip) | A custom 'active' image build that exports a dot clock signal out Pin 3 of the 74LS06D chip.  This can be passed through a 33 Ohm resistor into the motherboard to provide a dot clock for both NTSC and PAL while still using the on board oscillators. Please only flash this if you know what you are doing.
+Trion Mini (Board REV 1.5) | [1.16](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.16_MAINLH-DOTC-1.5_multiboot.zip) | Same as above except the dedicated CLK pad is used instead of having to hack into the 74LS06D.  NOTE: A 33ohm resistor is already on this version of the board (unlike the large).  Please only flash this if you know what you are doing.
 
 # PSA - 2023/03/31
 
