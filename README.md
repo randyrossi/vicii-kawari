@@ -87,9 +87,9 @@ PAL-B        |2x|2x|782         |576        |31.26khz   |50.125hz   |29.557 Mhz
 
 Video        |Sample|Notes
 -------------|------|------
-NTSC         |![NTSC Scaled](doc/images/6567R8-26MHZ-U.png "NTSC Scaled")|Less border area but new hires modes fully defined
-NTSC(Old)    |![NTSC(Old) Scaled](doc/images/6567R8-26MHZ-U.png "NTSC Scaled")|Less border area but new hires modes fully defined
-PAL-B        |![PAL Scaled](doc/images/6569-29MHZ-U.png "PAL Scaled")|Less compatibility but new hires modes fully defined
+NTSC         |![NTSC Scaled](doc/images/6567R8-26MHZ-U.png "NTSC Scaled")|Less border area but new hires modes fully defined. Non-standard resolution may confuse some monitors.
+NTSC(Old)    |![NTSC(Old) Scaled](doc/images/6567R8-26MHZ-U.png "NTSC Scaled")|Less border area but new hires modes fully defined. Non-standard resolution may confuse some monitors.
+PAL-B        |![PAL Scaled](doc/images/6569-29MHZ-U.png "PAL Scaled")|Less compatibility but new hires modes fully defined. Non-standard resolution may confuse some monitors.
 
 If your monitor does not support the non-standard PAL-B mode, see 'Alternate Trion DVI Firmware' below.
 
