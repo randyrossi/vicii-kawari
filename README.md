@@ -1,6 +1,6 @@
 # VIC-II Kawari
 
-IMPORTANT PSA! The v1.17 firmware on some Kawari large boards shipped from VGP recently contained a bug causing DVI video instability. If you received one of these devices, please flash the updated v1.17 firmware from the [FIRMWARE](doc/FIRMWARE.md) page to correct the issue. I apologize for the inconvenience. Refer to [FLASHING](doc/FLASHING.md) for instructions on how to update the firmware.
+**IMPORTANT PSA! The v1.17 firmware on some Kawari large boards shipped from VGP recently contained a bug causing DVI video instability. If you received one of these devices, please flash the updated v1.17 firmware from the [FIRMWARE](doc/FIRMWARE.md) page to correct the issue. I apologize for the inconvenience. Refer to [FLASHING](doc/FLASHING.md) for instructions on how to update the firmware.**
 
 ## What is VIC-II Kawari?
 VIC-II Kawari is a hardware replacement for the VIC-II (Video Interface Chip II) found in Commodore 64 home computers. In addition to being compatible with the original VIC-II 6567/6569 chips, some extra features are also available. See [REGISTERS.md](doc/REGISTERS.md)
