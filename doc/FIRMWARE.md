@@ -25,7 +25,7 @@ Board         | Firmware Link| Description
 --------------|------|---------
 Trion Mini    | [1.16](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.16_MAINLH_golden.zip) | Fallback for the Mini board.
 Trion Large w/ DVI   | [1.17 with Non-Std DVI ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.17_MAINLG-DVI-29MHZ-U_golden.zip) | Fallback for the large board.  (There is no RGB enabled fallback, always DVI.)
-Trion Large w/ DVI (480p/576p - Scaled) | [1.17 with 480p/576p DVI ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.17_MAINLG-DVI-29MHZ-S_golden.zip) | Fallback for the large board but with the 'more standard' 480p/576p video modes.  (There is no RGB enabled fallback, always DVI.)
+Trion Large w/ DVI (480p/576p - Scaled) | [1.17 with 480p/576p DVI ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.17_MAINLG-DVI-27MHZ-S_golden.zip) | Fallback for the large board but with the 'more standard' 480p/576p video modes.  (There is no RGB enabled fallback, always DVI.)
 
 # Specialty Builds
 
