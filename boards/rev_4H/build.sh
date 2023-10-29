@@ -2,7 +2,7 @@
 mkdir -p build
 
 MAJ=1
-MIN=16
+MIN=17
 
 ALL="MAINLH MAINLH-DOTC-1.2 MAINLH-DOTC-1.5"
 

@@ -53,6 +53,7 @@ enum DefineValues {
    WITH_MATH,            // include math registers
    WITH_4K,              // select 4K for ram
    WITH_BLITTER,         // include blitter
+   LUMACODE,        // include lumacode
    EFINIX,
 };
 
@@ -77,6 +78,7 @@ Define defines[] = {
   {WITH_MATH ,0,0,"WITH_MATH"},
   {WITH_4K ,0,0,"WITH_4K"},
   {WITH_BLITTER ,0,0,"WITH_BLITTER"},
+  {LUMACODE ,0,0,"LUMACODE"},
   {EFINIX ,0,0,"EFINIX"},
 };
 
@@ -116,6 +118,7 @@ void with_math(int d) { printcfg(d, WITH_MATH); with_ext(d); }
 // NOTE: Blitter only works with 64k a.t.m.
 // TODO: Fix this and also math reg requirement.
 void with_blitter(int d) { printcfg(d, WITH_BLITTER); hires_modes(d); with_64k(d); with_math(d);}
+void lumacode(int d) { printcfg(d, LUMACODE); }
 void efinix(int d) { printcfg(d, EFINIX); is_efinix = 1;}
 
 int main(int argc, char* argv[]) {
@@ -192,10 +195,12 @@ int main(int argc, char* argv[]) {
 
             // EFINIX with DVI
 	    case 3:
+                    lumacode(d);
                     efinix(d);
 		    gen_luma_chroma(d);
+		    configurable_lumas(d);
 		    luma_sink(d);
-		    with_dvi(d);
+		    //with_dvi(d);
 		    hires_modes(d);
 		    break;
 

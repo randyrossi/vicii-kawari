@@ -1,5 +1,5 @@
 # Make this match define in util.h
-VERSION=1.5
+VERSION=1.6
 
 all: kawari_util_$(VERSION)
 
@@ -37,6 +37,6 @@ clean:
 	$(MAKE) -C 80col clean
 	$(MAKE) -C novaterm clean
 	$(MAKE) -C tests clean
-	$(MAKE) -C flash -f Makefile.MAIN clean
+	$(MAKE) -C flash clean
 	$(MAKE) -C ansii clean
 	rm -f *.d64

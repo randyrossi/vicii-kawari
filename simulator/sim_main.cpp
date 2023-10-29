@@ -1178,12 +1178,35 @@ int main(int argc, char** argv, char** env) {
             int vsync = (top->V_RASTER_LINE >= vve && top->V_RASTER_LINE <= vvs);
             // If we're not in vsync or within native active range, show pixel colors
 	    if ((!vsync && top->top__DOT__vic_inst__DOT__vic_comp_sync__DOT__native_active) || hideSync) {
+#ifdef LUMACODE
+             if (top->top__DOT__vic_inst__DOT__lumacode) {
+	       int lp1 = top->top__DOT__vic_inst__DOT__lumacode_p1;
+	       int lp2 = top->top__DOT__vic_inst__DOT__lumacode_p2;
+	       int lcff = top->top__DOT__vic_inst__DOT__vic_registers__DOT__lumacode_ff;
+               if (lcff == 0 || lcff ==1 )
+               SDL_SetRenderDrawColor(ren,
+                ((lp1*16) << 2) | 0b11,
+                ((lp1*16) << 2) | 0b11,
+                ((lp1*16) << 2) | 0b11,
+                255);
+               else {
+               SDL_SetRenderDrawColor(ren,
+                ((lp2*16) << 2) | 0b11,
+                ((lp2*16) << 2) | 0b11,
+                ((lp2*16) << 2) | 0b11,
+                255);
+               }
+             } else {
+#endif
 	       int index = top->top__DOT__vic_inst__DOT__pixel_color3;
                SDL_SetRenderDrawColor(ren,
                 (native_rgb[index*3] << 2) | 0b11,
                 (native_rgb[index*3+1] << 2) | 0b11,
                 (native_rgb[index*3+2] << 2) | 0b11,
                 255);
+#ifdef LUMACODE
+             }
+#endif
 	    } else {
                // NOTE: If we're in vsync show red color, except we omit vve and vss to match what comp_sync.v does
                // (special cases)
@@ -1225,7 +1248,7 @@ int main(int argc, char** argv, char** env) {
                    break;
              }
 
-             if (top->top__DOT__vic_inst__DOT__is_native_y) {
+             if (1) { //top->top__DOT__vic_inst__DOT__is_native_y) {
                drawPixel(ren,
                   top->V_RASTER_X*2+hoffset,
                   rl

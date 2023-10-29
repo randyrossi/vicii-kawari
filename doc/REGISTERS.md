@@ -710,7 +710,7 @@ DISPLAY_FLAGS2| Function
 -------------|-------
 Bit 1        | NTSC 50 Enable/Disable
 Bit 2        | Unused
-Bit 3        | Unused
+Bit 3        | Lumacode Enable/Disable
 Bit 4        | Unused
 Bit 5        | Unused
 Bit 6        | Unused

@@ -14,27 +14,137 @@ struct regs r;
 
 char* color_name[16];
 
+unsigned short current_display_flags;
 int current_luma[16];
 int current_phase[16];
 int current_amplitude[16];
 int current_black_level;
 int current_color_burst;
 
+// LUMACODE
+// Even though only the first 4 luma values are ever used in lumacode
+// encoding, we'll just repeat the pattern for the other colors too.
+// These values should correspond to the following voltages:
+// if luma is pulled up by a 120 ohm resistor to 5V and terminated
+// to GND via a 75 ohm resistor. Use 1% tolerance for best results.
+//
+// On the analog board, settings are:
+//     Clock Multiplier: x6
+//     Phase: 3 (180 degrees)
+//     Half Pixel Shift: Off
+//     Range: auto
+//     Pixel H Offset: 6
+//     Sync on G: Off
+//     75 ohm Termination: Off
+//     Voltage Hi  : 1.79
+//     Voltage Lo  : 1.54
+//     Voltage Sync: .87
+//     Voltage Mid : 1.67
+//
+// If you get sparkles, remember you can adjust both the voltage
+// levels on the analog board and the luma levels on COMPED to find
+// noise free settings.
+//
+// NOTES: The voltage levels have to be higher because there is a lot
+// of switching noise from the transceivers.  So the gap has to 
+// be 'wide' enough to avoid this noise.  We also can't change the
+// resistor values on the board obviously so that limits the options
+// but these resistor values appear to work.
+
+int luma_lumacode[16] = {
+    0x00, 0x1c, 0x30, 0x3f, 0x00, 0x1c, 0x30, 0x3f, 0x00, 0x1c, 0x30, 0x3f, 0x00, 0x1c, 0x30, 0x3f
+};
+
+int phase_lumacode[16] = {
+   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+int amplitude_lumacode[16] = {
+   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+int black_level_lumacode = 0x00;
+int burst_level_lumacode = 0x00;
+
 void save_changes(void)
 {
    int reg;
+
+   // Turn on persist
    POKE(VIDEO_MEM_FLAGS, PEEK(VIDEO_MEM_FLAGS) | VMEM_FLAG_PERSIST_BIT);
+
+   // Display flags2
+   POKE(VIDEO_MEM_1_LO, DISPLAY_FLAGS2);
+   SAFE_POKE(VIDEO_MEM_1_VAL, PEEK(VIDEO_MEM_1_VAL));
+
+   // Luma/Phase/Angle regs...
    for (reg=0xa0;reg<=0xcf;reg++) {
       POKE(VIDEO_MEM_1_LO, reg);
       SAFE_POKE(VIDEO_MEM_1_VAL, PEEK(VIDEO_MEM_1_VAL));
    }
+
+   // Black Level
    reg = BLACK_LEVEL;
    POKE(VIDEO_MEM_1_LO, reg);
    SAFE_POKE(VIDEO_MEM_1_VAL, PEEK(VIDEO_MEM_1_VAL));
+
+   // Burst Level
    reg = BURST_AMPLITUDE;
    POKE(VIDEO_MEM_1_LO, reg);
    SAFE_POKE(VIDEO_MEM_1_VAL, PEEK(VIDEO_MEM_1_VAL));
+
+   // Turn off persist
    POKE(VIDEO_MEM_FLAGS, PEEK(VIDEO_MEM_FLAGS) & ~VMEM_FLAG_PERSIST_BIT);
+}
+
+unsigned short get_display_flags(void)
+{
+   unsigned short display_flags;
+   POKE(VIDEO_MEM_1_LO,DISPLAY_FLAGS);
+   display_flags = PEEK(VIDEO_MEM_1_VAL);
+   POKE(VIDEO_MEM_1_LO,DISPLAY_FLAGS2);
+   display_flags = display_flags | (PEEK(VIDEO_MEM_1_VAL) << 8);
+   return display_flags;
+}
+
+void set_display_flags(unsigned short flags)
+{
+   POKE(VIDEO_MEM_1_LO, DISPLAY_FLAGS);
+   SAFE_POKE(VIDEO_MEM_1_VAL, flags & 0xff);
+   POKE(VIDEO_MEM_1_LO, DISPLAY_FLAGS2);
+   SAFE_POKE(VIDEO_MEM_1_VAL, flags >> 8);
+}
+
+void set_lumacode(int enable)
+{
+   unsigned short display_flags = get_display_flags();
+   if (enable) {
+      display_flags = display_flags | DISPLAY_LUMACODE_BIT;
+   } else
+      display_flags = display_flags & ~DISPLAY_LUMACODE_BIT;
+   set_display_flags(display_flags);
+}
+
+void set_lumacode_values()
+{
+   int reg;
+   for (reg=0;reg<16;reg++) {
+      POKE(VIDEO_MEM_1_LO, reg+0xa0);
+      SAFE_POKE(VIDEO_MEM_1_VAL, luma_lumacode[reg]);
+      POKE(VIDEO_MEM_1_LO, reg+0xb0);
+      SAFE_POKE(VIDEO_MEM_1_VAL, phase_lumacode[reg]);
+      POKE(VIDEO_MEM_1_LO, reg+0xc0);
+      SAFE_POKE(VIDEO_MEM_1_VAL, amplitude_lumacode[reg]);
+   }
+
+   reg = BLACK_LEVEL;
+   POKE(VIDEO_MEM_1_LO, reg);
+   SAFE_POKE(VIDEO_MEM_1_VAL, black_level_lumacode);
+
+   // Burst Level
+   reg = BURST_AMPLITUDE;
+   POKE(VIDEO_MEM_1_LO, reg);
+   SAFE_POKE(VIDEO_MEM_1_VAL, burst_level_lumacode);
 }
 
 int handle_input(unsigned char key, unsigned char key_val,
@@ -73,6 +183,7 @@ void main_menu(void)
     int text = PEEK(646L);
     int border = PEEK(53280L);
     int background = PEEK(53281L);
+    int selection;
     unsigned char model;
     unsigned char input_state = 0;
     unsigned char input_char;
@@ -110,8 +221,8 @@ void main_menu(void)
            board_int = ascii_variant_to_board_int(variant);
            model = get_chip_model();
 
-
     for (;;) {
+        current_display_flags = get_display_flags();
         if (refresh_all) {
            CLRSCRN;
            printf ("VIC-II Kawari Composite Settings Editor\n\n");
@@ -137,6 +248,13 @@ void main_menu(void)
                   printf ("            + increase");
                else if (color == 4)
                   printf ("            - decrease");
+               else if (color == 6)
+                  printf ("            [L]umacode");
+               else if (color == 7)
+                  if (current_display_flags & DISPLAY_LUMACODE_BIT)
+                     printf ("            ENABLED");
+                  else
+                     printf ("            DISABLED");
 	       printf ("\n");
            }
 
@@ -283,12 +401,17 @@ void main_menu(void)
        else if (key == 'j')  {
             model = get_chip_model();
             // TODO: Support multiple presets, for now only one possible from dialog.
-            if (dialog(model) == 0) {
+            selection = dialog(board_int, model);
+            if (selection == 0) {
                set_lumas(board_int, model);
                set_phases(model);
                set_amplitudes(model);
                set_black_levels(model);
                set_burst_levels(model);
+               set_lumacode(0);
+            } else if (selection == 1) {
+               set_lumacode(1);
+               set_lumacode_values();
             }
 	    refresh_all = 1;
        }
@@ -299,6 +422,15 @@ void main_menu(void)
        }
        else if (key == 95)  {
             side = 1 - side;
+       }
+       else if (key == 'l')  {
+            // Toggle lumacode
+            if (current_display_flags & DISPLAY_LUMACODE_BIT)
+               set_lumacode(0);
+            else
+               set_lumacode(1);
+            
+	    refresh_all = 1;
        }
        else if (key == 'q')  {
             CLRSCRN;

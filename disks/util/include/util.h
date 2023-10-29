@@ -1,7 +1,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#define UTILITY_VERSION "1.5"
+#define UTILITY_VERSION "1.6"
 
 #define CLRSCRN printf ("%c",147) 
 #define HOME printf ("%c",19) 
@@ -67,6 +67,6 @@ unsigned int get_flash_page_size(void);
 unsigned short get_capability_bits(void);
 unsigned char get_cfg_version(void);
 
-int dialog(int chip);
+int dialog(int board, int chip);
 
 #endif

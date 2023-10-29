@@ -134,6 +134,10 @@ module registers
            // pixel_color3 is from native res pixel sequencer and should be used
            // to look up luma/phase/chroma values
            input [3:0] pixel_color3,
+`ifdef LUMACODE
+           input [1:0] lumacode_p1,
+           input [1:0] lumacode_p2,
+`endif
            // pixel_color4 is from the scan doubler and should be used to look up
            // RGB color register ram, 4 bit address.
 `ifdef NEED_RGB
@@ -153,6 +157,10 @@ module registers
 `endif
 `ifdef GEN_LUMA_CHROMA
            output reg white_line = 1'b1,
+`ifdef LUMACODE
+           output reg lumacode = 1'b0,
+`endif
+           output reg lumacode = 1'b0,
            output reg ntsc_50 = 1'b0,
            //output reg pal_60 = 1'b0,
            output reg [5:0] lumareg_o,
@@ -504,6 +512,10 @@ end
 
 `endif
 
+// Lumacode : pixel_color3 is an index from 0-15
+//            4 valid luma values are placed in luma registers 0-3
+//            low phase of pixel : luma_value = luma_reg[pixel_color3[1:0]]
+//            hi phase of pixel : luma_value = luma_reg[pixel_color3[3:2]]
 `ifdef CONFIGURABLE_LUMAS
 LUMA_REGS luma_regs(clk_dot4x,
                     luma_regs_wr_a, // write to luma ram
@@ -511,7 +523,17 @@ LUMA_REGS luma_regs(clk_dot4x,
                     luma_regs_data_in_a,
                     luma_regs_data_out_a,
                     1'b0, // we never write to port b
+`ifdef LUMACODE
+                    lumacode ?
+                        (lumacode_ff[1] ?
+                             // First half pixel
+                             {2'b0, lumacode_p1 } :
+                             // Second half pixel
+                             {2'b0, lumacode_p2 }) :
+                        pixel_color3, // read addr for luma lookups
+`else
                     pixel_color3, // read addr for luma lookups
+`endif
                     18'b0, // we never write to port b
                     luma_regs_data_out_b // read value for luma lookups
                    );
@@ -2237,9 +2259,15 @@ end
 // Use make_luma_bin.c to generate the code
 // for the non-configurable sections.
 `ifdef GEN_LUMA_CHROMA
+`ifdef LUMACODE
+reg [1:0] lumacode_ff = 2'd3; // important for alignment
+`endif
 always @(posedge clk_dot4x)
 begin
 `ifdef CONFIGURABLE_LUMAS
+`ifdef LUMACODE
+    lumacode_ff <= lumacode_ff + 2'd1;
+`endif
     lumareg_o <= luma_regs_data_out_b[17:12];
     phasereg_o <= luma_regs_data_out_b[11:4];
     amplitudereg_o <= luma_regs_data_out_b[3:0];

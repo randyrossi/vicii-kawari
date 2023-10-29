@@ -350,6 +350,7 @@ end
                                       end
                                       else if (addr_lo == `EXT_REG_DISPLAY_FLAGS2) begin
 `ifdef GEN_LUMA_CHROMA
+                                        lumacode <= data[`LUMACODE_BIT];
                                         ntsc_50 <= data[`NTSC_50_BIT];
                                         //pal_60 <= data[`PAL_60_BIT];
 `endif

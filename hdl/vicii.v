@@ -937,6 +937,9 @@ wire [5:0] lumareg_o;
 wire [7:0] phasereg_o;
 wire [3:0] amplitudereg_o;
 wire white_line;
+`ifdef LUMACODE
+wire lumacode;
+`endif
 `ifdef CONFIGURABLE_LUMAS
 wire [5:0] blanking_level;
 wire [3:0] burst_amplitude;
@@ -1049,6 +1052,10 @@ registers vic_registers(
               // the active period for whatever video standard we are
               // producing
               .pixel_color3(pixel_color3), // always native
+`ifdef LUMACODE
+              .lumacode_p1(lumacode_p1),
+              .lumacode_p2(lumacode_p2),
+`endif
 `ifdef NEED_RGB
               .pixel_color4(pixel_color4_vga), // from scan doubler
               .active(active),
@@ -1067,6 +1074,9 @@ registers vic_registers(
 
 `ifdef GEN_LUMA_CHROMA
               .white_line(white_line),
+`ifdef LUMACODE
+              .lumacode(lumacode),
+`endif
               .ntsc_50(ntsc_50),
               //.pal_60(pal_60),
               .lumareg_o(lumareg_o),
@@ -1163,6 +1173,12 @@ wire [3:0] hires_pixel_color1;
 wire hires_stage1;
 `endif
 
+// According to https://github.com/c0pperdragon/LumaCode/wiki/VIC-II-dizer-(for-the-C64-computer)
+`ifdef LUMACODE
+reg[1:0] lumacode_p1;
+reg[1:0] lumacode_p2;
+`endif
+
 always @(posedge clk_dot4x)
 begin
 `ifdef TEST_PATTERN
@@ -1180,8 +1196,49 @@ begin
         pixel_color3 <= hires_pixel_color1;
     else
 `endif
-        if (stage1)
+        if (stage1) begin
             pixel_color3 <= pixel_color1;
+
+`ifdef LUMACODE
+            case (pixel_color1)
+               4'd0: lumacode_p1 <= 2'd0;
+               4'd1: lumacode_p1 <= 2'd3;
+               4'd2: lumacode_p1 <= 2'd0;
+               4'd3: lumacode_p1 <= 2'd1;
+               4'd4: lumacode_p1 <= 2'd0;
+               4'd5: lumacode_p1 <= 2'd3;
+               4'd6: lumacode_p1 <= 2'd0;
+               4'd7: lumacode_p1 <= 2'd2;
+               4'd8: lumacode_p1 <= 2'd2;
+               4'd9: lumacode_p1 <= 2'd1;
+               4'd10: lumacode_p1 <= 2'd3;
+               4'd11: lumacode_p1 <= 2'd1;
+               4'd12: lumacode_p1 <= 2'd1;
+               4'd13: lumacode_p1 <= 2'd3;
+               4'd14: lumacode_p1 <= 2'd2;
+               4'd15: lumacode_p1 <= 2'd2;
+            endcase
+
+            case (pixel_color1)
+               4'd0: lumacode_p2 <= 2'd0;
+               4'd1: lumacode_p2 <= 2'd3;
+               4'd2: lumacode_p2 <= 2'd2;
+               4'd3: lumacode_p2 <= 2'd3;
+               4'd4: lumacode_p2 <= 2'd3;
+               4'd5: lumacode_p2 <= 2'd0;
+               4'd6: lumacode_p2 <= 2'd1;
+               4'd7: lumacode_p2 <= 2'd3;
+               4'd8: lumacode_p2 <= 2'd0;
+               4'd9: lumacode_p2 <= 2'd0;
+               4'd10: lumacode_p2 <= 2'd1;
+               4'd11: lumacode_p2 <= 2'd1;
+               4'd12: lumacode_p2 <= 2'd2;
+               4'd13: lumacode_p2 <= 2'd2;
+               4'd14: lumacode_p2 <= 2'd1;
+               4'd15: lumacode_p2 <= 2'd2;
+            endcase
+`endif // LUMACODE
+        end
 `endif
 end
 

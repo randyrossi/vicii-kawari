@@ -101,7 +101,7 @@ int is_version_min(int major, int minor)
    unsigned char flag;
 
    flag = PEEK(53311L);
-   POKE(53311,32);
+   POKE(53311L,32);
    have = get_version_major()*256+get_version_minor();
    need = major * 256 + minor;
    POKE (53311L,flag);
@@ -191,9 +191,9 @@ unsigned char get_cfg_version(void)
 }
 
 // TODO: Turn this into a generic dialog some day
-// For now, specific to selecting color presets
-#define NUM_CHOICES 2
-int dialog(int chip)
+// For now, specific to selecting color presets and only for COMPED
+#define MAX_CHOICES 3
+int dialog(int board, int chip)
 {
    struct regs r;
    char choice[42];
@@ -201,19 +201,38 @@ int dialog(int chip)
    int ln = 10;
    int i;
    int key;
+   int num_choices = 0;
 
-   char *choices[4][2] ={
-      {"Longboard-Adrian's Digital Basement", "Cancel                             "},
-      {"Longboard-Mark (TheRetroChannel)   ", "Cancel                             "},
-      {"Longboard-Mark (TheRetroChannel)   ", "Cancel                             "},
-      {"Longboard-Mark (TheRetroChannel)   ", "Cancel                             "},
-   };
+   char *choices[MAX_CHOICES];
+   switch (chip) {
+      case CHIP6567R8:
+         choices[num_choices] = "Longboard-Adrian's Digital Basement";
+         break;
+      case CHIP6569R3:
+      case CHIP6567R56A:
+      case CHIP6569R1:
+         choices[num_choices] = "Longboard-Mark (TheRetroChannel)   ";
+         break;
+      default:
+         choices[num_choices] = "Not available";
+   }
+   num_choices++;
+
+   // For now, only Mini has lumacode
+   if (board == BOARD_REV_4LH || board == BOARD_SIM) {
+      choices[num_choices] = "Lumacode                           ";
+      num_choices++;
+   }
+
+   choices[num_choices] = "Cancel                             ";
+   num_choices++;
+   
 
    TOXY(2,ln++);
    printf ("%c                                   %c  ",18,146);
-   for (i=0;i<NUM_CHOICES;i++) {
+   for (i=0;i<num_choices;i++) {
       TOXY(2,ln++);
-      sprintf (choice,"%c%s%c", 18, choices[chip][i],146);
+      sprintf (choice,"%c%s%c", 18, choices[i],146);
       printf ("%s",choice);
    }
    TOXY(2,ln++);
@@ -223,7 +242,7 @@ int dialog(int chip)
       // Show selected line
       POKE(646,6);
       TOXY(2,11+selection);
-      sprintf (choice,"%c%s%c", 18, choices[chip][selection],146);
+      sprintf (choice,"%c%s%c", 18, choices[selection],146);
       printf ("%s",choice);
       POKE(646,1);
 
@@ -233,11 +252,11 @@ int dialog(int chip)
       // Unhilight current line
       POKE(646,1);
       TOXY(2,11+selection);
-      sprintf (choice,"%c%s%c", 18, choices[chip][selection],146);
+      sprintf (choice,"%c%s%c", 18, choices[selection],146);
       printf ("%s",choice);
 
       if (key == CRSR_DOWN) {
-         selection++; if (selection >= NUM_CHOICES) selection = NUM_CHOICES-1;
+         selection++; if (selection >= num_choices) selection = num_choices-1;
       }
       else if (key == CRSR_UP) {
          selection--; if (selection < 0) selection = 0;
@@ -248,6 +267,6 @@ int dialog(int chip)
    }
 
    // Last choice is always cancel
-   if (selection == NUM_CHOICES-1) selection = -1; // indicate cancel
+   if (selection == num_choices-1) selection = -1; // indicate cancel
    return selection;
 }
