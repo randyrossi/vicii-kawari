@@ -2,6 +2,10 @@
 
 Kawari Mini firmare v1.17+ supports LumaCode. LumaCode is an interface for transferring digital video from retro computers. To display a LumaCode video signal, an RGB2HDMI Raspberry Pi hat and analog companion board is required. For more information on LumaCode, see [LumaCode Overview](https://github.com/c0pperdragon/LumaCode/wiki/Overview).  I purchased my RGB2HDMI and Analog Board from [retrohackshack.com](https://retrohackshack.com/product/rgbtohdmi)
 
+Experimental Firmware: [Mini 1.17](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.17_MAINLH_multiboot.zip)
+
+Utility Disk 1.6 with updated COMPED.PRG: [Utility_1.6](https://accentual.com/vicii-kawari/downloads/prog/kawari_util_1.6.d64)
+
 You do not need the VIC-II-dizer sub-board in the VIC-II socket as you would with a genuine VIC-II chip.  The Kawari can output a signal similar to what the VIC-II-dizer outputs directly from its luma output pin (15). It's unknown at this time whether the VIC-II-dizer will work with a Kawari (please report if you have one to try).
 
 # Switch to lumacode using COMPED
@@ -57,9 +61,9 @@ After soldering and adding some heat shrink tubin to protect from shorts, this i
 
 ![alt text](https://raw.githubusercontent.com/randyrossi/vicii-kawari/main/doc/images/lumacode/IMG_0320.jpg)
 
-Plug the Red wire into the socket's header pin 40 (+5V)
-Plug the Green wire into the socket's header pin 20 (GND)
-Plug the Orange wire into the socket's header pin 15 (LUMA)
+    Plug the Red wire into the socket's header pin 40 (+5V)
+    Plug the Green wire into the socket's header pin 20 (GND)
+    Plug the Orange wire into the socket's header pin 15 (LUMA)
 
 ![alt text](https://raw.githubusercontent.com/randyrossi/vicii-kawari/main/doc/images/lumacode/IMG_0323.jpg)
 
@@ -119,7 +123,6 @@ Now plug the Kawari, the extra socket into the VIC-II socket of your motherboard
 ![alt text](https://raw.githubusercontent.com/randyrossi/vicii-kawari/main/doc/images/lumacode/IMG_0326.jpg)
 
 Now boot and you should see a stable HDMI image from your Pi's HDMI port.  The green light on your RGB2HDMI board may flash for a bit while it attempts to detect sync.
-
 
 ![alt text](https://raw.githubusercontent.com/randyrossi/vicii-kawari/main/doc/images/lumacode/IMG_0327.jpg)
 
