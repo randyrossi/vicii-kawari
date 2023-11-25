@@ -202,6 +202,7 @@ int dialog(int board, int chip)
    int i;
    int key;
    int num_choices = 0;
+   int is_min_for_lumacode = 0;
 
    char *choices[MAX_CHOICES];
    switch (chip) {
@@ -219,7 +220,8 @@ int dialog(int board, int chip)
    num_choices++;
 
    // For now, only Mini has lumacode
-   if (board == BOARD_REV_4LH || board == BOARD_SIM) {
+   is_min_for_lumacode = is_version_min(1,17);
+   if (is_min_for_lumacode && (board == BOARD_REV_4LH || board == BOARD_SIM)) {
       choices[num_choices] = "Lumacode                           ";
       num_choices++;
    }
