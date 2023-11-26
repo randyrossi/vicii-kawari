@@ -184,12 +184,14 @@ void main_menu(void)
     int border = PEEK(53280L);
     int background = PEEK(53281L);
     int selection;
+    int has_lumacode = 0;
     unsigned char model;
     unsigned char input_state = 0;
     unsigned char input_char;
     unsigned char input_val;
     unsigned char variant[16];
     unsigned int board_int;
+
 
     color_name[0] = "black  ";
     color_name[1] = "white  ";
@@ -221,6 +223,8 @@ void main_menu(void)
            board_int = ascii_variant_to_board_int(variant);
            model = get_chip_model();
 
+    has_lumacode = is_version_min(1,17) & (board_int == BOARD_REV_4LH || board_int == BOARD_SIM);
+
     for (;;) {
         current_display_flags = get_display_flags();
         if (refresh_all) {
@@ -248,9 +252,9 @@ void main_menu(void)
                   printf ("            + increase");
                else if (color == 4)
                   printf ("            - decrease");
-               else if (color == 6)
+               else if (color == 6 && has_lumacode)
                   printf ("            [L]umacode");
-               else if (color == 7)
+               else if (color == 7 && has_lumacode)
                   if (current_display_flags & DISPLAY_LUMACODE_BIT)
                      printf ("            ENABLED");
                   else
@@ -423,7 +427,7 @@ void main_menu(void)
        else if (key == 95)  {
             side = 1 - side;
        }
-       else if (key == 'l')  {
+       else if (key == 'l' && has_lumacode)  {
             // Toggle lumacode
             if (current_display_flags & DISPLAY_LUMACODE_BIT)
                set_lumacode(0);

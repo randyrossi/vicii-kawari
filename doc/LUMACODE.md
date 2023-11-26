@@ -75,7 +75,7 @@ Now plug the Kawari into the socket.  Here is what it looks like from above:
 
 # RGB2HDMI Side Connection
 
-That takes care of the Kawari side connection.  The analog board connection can either go directly to the analog board or you can connect the GND and LUMA wires to the RF modulator as described by the VIC-II-dizer mod link above.  In my case, I went straight to the analog board.  If you chose to use the RF modulator's RCA jack, you will then need to build or buy your own RCA ![LumaCode Cable For RGB2HDMI](https://www.tindie.com/products/c0pperdragon/lumacode-cable-for-rgbtohdmi/).  However, this cable pretty much the same as what is described here except the other end of the cable is an RCA connector.
+That takes care of the Kawari side connection.  The analog board connection can either go directly to the analog board or you can connect the GND and LUMA wires to the RF modulator as described by the VIC-II-dizer mod link above.  In my case, I went straight to the analog board.  If you chose to use the RF modulator's RCA jack, you will then need to build or buy your own RCA [LumaCode Cable For RGB2HDMI](https://www.tindie.com/products/c0pperdragon/lumacode-cable-for-rgbtohdmi/).  However, this cable pretty much the same as what is described here except the other end of the cable is an RCA connector.
 
 On the other end of your cable, attach three more female jumpers. These will plug directly into the analog board's 6-pin connector.  The two orange jumpers are split from the luma 'signal' wire.  The remaining GND wire is black in this picture:
 
