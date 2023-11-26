@@ -132,4 +132,8 @@ Now boot and you should see a stable HDMI image from your Pi's HDMI port.  The g
 
 With the Kawari, you can adjust both the voltage comparitor ranges on the RGB2HDMI board AND/OR the luma levels in COMPED.  The default values for luma levels 0, 1, 2 & 3 should be sufficient.  However, if you notice some 'sparkling' artifacts, it is worth trying the COMPED program to adjust levels 0, 1 & 2 to see if you can eliminate them.  I don't recommend adjusting level 3 because the voltage 'difference' is quite large (the luma levels adjustments from COMPED are not linear).
 
+# Fallback to older firmware
+
+If your fallback firmware is below 1.17, when it boots, the luma levels will be too close together to make any text out.  You will either have to blind load COMPED.PRG and press 'J' then hit return, or short the Kawari's config reset jumpers to get a working display again.
+
 Good Luck!
