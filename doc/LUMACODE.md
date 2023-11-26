@@ -79,7 +79,7 @@ That takes care of the Kawari side connection.  The analog board connection can 
 
 On the other end of your cable, attach three more female jumpers. These will plug directly into the analog board's 6-pin connector.  The two orange jumpers are split from the luma 'signal' wire.  The remaining GND wire is black in this picture:
 
-![alt text](https://raw.githubusercontent.com/randyrossi/vicii-kawari/main/doc/images/lumacode/IMG_0325.jpg)
+![alt text](https://raw.githubusercontent.com/randyrossi/vicii-kawari/main/doc/images/lumacode/IMG_0311.jpg)
 
 With the RGB2HDMI board's buttons on the top side, the black (GND) wire will plug into the bottom left most pin on the 6-pin header.  The two orange (LUMA) wires will plug into the top left two pins as shown here:
 
