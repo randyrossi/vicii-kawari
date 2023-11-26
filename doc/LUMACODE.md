@@ -1,6 +1,8 @@
 # LumaCode (Experimental)
 
-Kawari Mini firmare v1.17+ supports LumaCode. LumaCode is an interface for transferring digital video from retro computers. To display a LumaCode video signal, an RGB2HDMI Raspberry Pi hat and analog companion board is required. For more information on LumaCode, see [LumaCode Overview](https://github.com/c0pperdragon/LumaCode/wiki/Overview).  I purchased my RGB2HDMI and Analog Board from [retrohackshack.com](https://retrohackshack.com/product/rgbtohdmi)
+NOTE: The mod described on this page experimental. Try at your own risk!
+
+Kawari Mini firmare v1.17+ can generate LumaCode. LumaCode is an interface for transferring digital video from retro computers. To display a LumaCode video signal, an RGB2HDMI Raspberry Pi hat and analog companion board is required. For more information on LumaCode, see [LumaCode Overview](https://github.com/c0pperdragon/LumaCode/wiki/Overview).  I purchased my RGB2HDMI and Analog Board from [retrohackshack.com](https://retrohackshack.com/product/rgbtohdmi)
 
 Experimental Firmware: [Mini 1.17](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.17_MAINLH_multiboot.zip)
 
