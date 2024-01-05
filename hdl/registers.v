@@ -128,7 +128,7 @@ module registers
 `ifdef GEN_LUMA_CHROMA
            output reg white_line = 1'b1,
 `ifdef LUMACODE
-           output reg lumacode = 1'b1,
+           output reg lumacode = 1'b0,
 `endif
            output reg ntsc_50 = 1'b0,
            //output reg pal_60 = 1'b0,

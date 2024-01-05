@@ -160,7 +160,6 @@ module registers
 `ifdef LUMACODE
            output reg lumacode = 1'b0,
 `endif
-           output reg lumacode = 1'b0,
            output reg ntsc_50 = 1'b0,
            //output reg pal_60 = 1'b0,
            output reg [5:0] lumareg_o,
