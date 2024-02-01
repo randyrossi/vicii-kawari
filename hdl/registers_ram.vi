@@ -128,7 +128,11 @@ task read_ram(
                         dbo <= {
                               5'b0, // reserved
 `ifdef GEN_LUMA_CHROMA
+`ifdef LUMACODE
                               lumacode,
+`else
+                              1'b0,
+`endif
                               1'b0, // was pal_60,
                               ntsc_50
 `else
@@ -393,7 +397,9 @@ task write_ram(
                     `EXT_REG_DISPLAY_FLAGS2:
                     begin
 `ifdef GEN_LUMA_CHROMA
+`ifdef LUMACODE
                         lumacode <= data[`LUMACODE_BIT];
+`endif
                         ntsc_50 <= data[`NTSC_50_BIT];
                         //pal_60 <= data[`PAL_60_BIT];
 `endif

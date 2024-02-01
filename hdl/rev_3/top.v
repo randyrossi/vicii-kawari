@@ -55,8 +55,8 @@ module top(
 `endif
            input standard_sw,   // video standard toggle switch
            output clk_phi,      // output phi clock for CPU
-`ifdef GEN_RGB
            output clk_dot_ext,  // dot clock
+`ifdef GEN_RGB
            output hsync,        // hsync signal for analog RGB
            output vsync,        // vsync signal for analog RGB
            output [5:0] red,    // red out for analog RGB
