@@ -10,9 +10,13 @@ There are two different versions, one for RGB based video output (DVI, Analog RG
 
 It should be possible to install both palettes in one program but this has not been done yet. So chose the prg depending on what output type you have connected.  Otherwise, you will see a garbage image.
 
+The loop code is different between RGB and HSV.  I'm not entirely sure why but it seems the value of something loaded into the accumulator makes a difference (64 vs 48) so the cycle count is different.
+
 ## Notes
 
 The quality of the image is better in RGB than HSV.  This might be due to RGB having a better dynamic range than the HSV output. The color conversion utility from RGB to HSV is also not that great.  In both versions, the image has a horizontal 'sliced' look to it because the palette is chosen per raster line.  So there are noticible color changes from line to line.  This could probably be improved with a better conversion algorithm.
+
+Please note this is a proof of concept only for the sake of interest.  It is not a polished utility that can view any arbitrary jpg from the C64.  The tools here were hastily put together and not everything is documented.
 
 ## Format
 
