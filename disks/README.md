@@ -33,3 +33,8 @@ tests/regted    | Test suite for extended registers
 tests/rgbtest   | Test util to check analog RGB on oscilloscope
 tests/lumatest  | Test util to check luma signal on oscilloscope
 tests/mathtest  | Math function test suite
+
+krps.d64    | Description
+------------|-------------
+krps-rgb    | RGB version of experimental raster line palette switch
+krps-hsv    | HSV version of experimental raster line palette switch
