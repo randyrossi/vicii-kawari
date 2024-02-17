@@ -55,33 +55,45 @@
 // first (old bmm) address. (The glitch can't happen too soon after
 // CAS falls because it is delayed to RAM.)
 
-// PAL CAS/RAS rise/fall times based on PAL dot4x clock
-`define PAL_RAS_RISE 0
-`define PAL_CAS_RISE_P 0
-`define PAL_CAS_RISE_N 1
-`define PAL_RAS_FALL 4
-`define PAL_MUX_COL 5
-`define PAL_CAS_FALL_P 6
-`define PAL_CAS_FALL_N 7
+// PAL CAS/RAS rise/fall times based on PAL clocks
+`define PAL_D4X_RAS_RISE_P 0
+`define PAL_D4X_CAS_RISE_P 0
+`define PAL_D4X_CAS_RISE_N 1
+`define PAL_D4X_RAS_FALL_P 4
+`define PAL_D4X_CAS_FALL_P 6
+`define PAL_D4X_CAS_FALL_N 7
 
-// NTSC CAS/RAS rise/fall times based on NTSC dot4x clock
-`define NTSC_RAS_RISE 0
-`define NTSC_CAS_RISE_P 0
-`define NTSC_CAS_RISE_N 1
-`define NTSC_RAS_FALL 4
-`define NTSC_MUX_COL 5
-`define NTSC_CAS_FALL_P 6
-`define NTSC_CAS_FALL_N 7
+`define PAL_C16X_RAS_RISE_N 1
+`define PAL_C16X_RAS_FALL_N 3
+`define PAL_C16X_CAS_RISE_P 0
+`define PAL_C16X_CAS_FALL_P 2
+
+`define PAL_D4X_MUX_COL_P 5
+
+// NTSC CAS/RAS rise/fall times based on NTSC clocks
+`define NTSC_D4X_RAS_RISE_P 0
+`define NTSC_D4X_CAS_RISE_P 0
+`define NTSC_D4X_CAS_RISE_N 1
+`define NTSC_D4X_RAS_FALL_P 4
+`define NTSC_D4X_CAS_FALL_P 6
+`define NTSC_D4X_CAS_FALL_N 7
+
+`define NTSC_C16X_RAS_RISE_N 1
+`define NTSC_C16X_RAS_FALL_N 3
+`define NTSC_C16X_CAS_RISE_P 0
+`define NTSC_C16X_CAS_FALL_P 2
+
+`define NTSC_D4X_MUX_COL_P 5
 
 // Other:
 // NOTE: CAS_GLITCH [9] has worked the best for emulamer demos. Works well on
 // both DRAM and static RAM. [10] starts to miss pixels on static RAM.  With
 // [11] the characters will completely disappear.
-`define CAS_GLITCH 9
+`define D4X_CAS_GLITCH_P 9
 // This can be this early because we calculate vic_addr in the same process
 // block as where ado is set.  It can't be earlier because cycle type needs
 // to be valid and it doesn't become valid until at least [2].
-`define MUX_ROW 2
+`define D4X_MUX_ROW_P 2
 
 // Address generation
 module addressgen(
@@ -220,13 +232,13 @@ begin
     // ROW first, COL second
     // This makes ado valid as early as MUX_ROW + 1
     if (!aec) begin
-        if (phi_phase_start[`MUX_ROW]) begin
+        if (phi_phase_start[`D4X_MUX_ROW_P]) begin
             ado <= {vic_addr[11:8], vic_addr[7:0] };
-        end else if (chip[0] && phi_phase_start[`PAL_MUX_COL]) begin
+        end else if (chip[0] && phi_phase_start[`PAL_D4X_MUX_COL_P]) begin
             ado <= {vic_addr[11:8], {2'b11, vic_addr[13:8]}};
-        end else if (~chip[0] && phi_phase_start[`NTSC_MUX_COL]) begin
+        end else if (~chip[0] && phi_phase_start[`NTSC_D4X_MUX_COL_P]) begin
             ado <= {vic_addr[11:8], {2'b11, vic_addr[13:8]}};
-        end else if (phi_phase_start[`CAS_GLITCH]) begin
+        end else if (phi_phase_start[`D4X_CAS_GLITCH_P]) begin
             // This is the post CAS address change glitch. The 8565 would not
             // do this.  If you want to 'fix' the 6569 bug, remove this block.
             ado <= {vic_addr_now[11:8], {2'b11, vic_addr_now[13:8]}};
@@ -245,15 +257,15 @@ end
 
 reg pal_cas_d4x_p;
 reg pal_cas_d4x_n;
-reg pal_ras_d4x;
+reg pal_ras_d4x_p;
 reg ntsc_cas_d4x_p;
 reg ntsc_cas_d4x_n;
-reg ntsc_ras_d4x;
+reg ntsc_ras_d4x_p;
 
-reg pal_cas_c16x;
-reg pal_ras_c16x;
-reg ntsc_cas_c16x;
-reg ntsc_ras_c16x;
+reg pal_cas_c16x_p;
+reg pal_ras_c16x_n;
+reg ntsc_cas_c16x_p;
+reg ntsc_ras_c16x_n;
 
 reg [35:0] pal_sr;
 reg [27:0] ntsc_sr;
@@ -282,37 +294,37 @@ end
 // Use dot4x and handle CAS/RAS rise/fall points.
 always @(posedge clk_dot4x)
 begin
-       if (phi_phase_start[`PAL_RAS_RISE])
-           pal_ras_d4x <= 1'b1;
-       else if (phi_phase_start[`PAL_RAS_FALL])
-           pal_ras_d4x <= 1'b0;
+       if (phi_phase_start[`PAL_D4X_RAS_RISE_P])
+           pal_ras_d4x_p <= 1'b1;
+       else if (phi_phase_start[`PAL_D4X_RAS_FALL_P])
+           pal_ras_d4x_p <= 1'b0;
 
-       if (phi_phase_start[`PAL_CAS_RISE_P])
+       if (phi_phase_start[`PAL_D4X_CAS_RISE_P])
            pal_cas_d4x_p <= 1'b1;
-       else if (phi_phase_start[`PAL_CAS_FALL_P])
+       else if (phi_phase_start[`PAL_D4X_CAS_FALL_P])
            pal_cas_d4x_p <= 1'b0;
 
-       if (phi_phase_start[`NTSC_RAS_RISE])
-           ntsc_ras_d4x <= 1'b1;
-       else if (phi_phase_start[`NTSC_RAS_FALL])
-           ntsc_ras_d4x <= 1'b0;
+       if (phi_phase_start[`NTSC_D4X_RAS_RISE_P])
+           ntsc_ras_d4x_p <= 1'b1;
+       else if (phi_phase_start[`NTSC_D4X_RAS_FALL_P])
+           ntsc_ras_d4x_p <= 1'b0;
 
-       if (phi_phase_start[`NTSC_CAS_RISE_P])
+       if (phi_phase_start[`NTSC_D4X_CAS_RISE_P])
            ntsc_cas_d4x_p <= 1'b1;
-       else if (phi_phase_start[`NTSC_CAS_FALL_P])
+       else if (phi_phase_start[`NTSC_D4X_CAS_FALL_P])
            ntsc_cas_d4x_p <= 1'b0;
 end
 
 always @(negedge clk_dot4x)
 begin
-    if (phi_phase_start[`NTSC_CAS_RISE_N])
+    if (phi_phase_start[`NTSC_D4X_CAS_RISE_N])
         ntsc_cas_d4x_n <= 1'b1;
-    else if (phi_phase_start[`NTSC_CAS_FALL_N])
+    else if (phi_phase_start[`NTSC_D4X_CAS_FALL_N])
         ntsc_cas_d4x_n <= 1'b0;
 
-    if (phi_phase_start[`PAL_CAS_RISE_N])
+    if (phi_phase_start[`PAL_D4X_CAS_RISE_N])
         pal_cas_d4x_n <= 1'b1;
-    else if (phi_phase_start[`PAL_CAS_FALL_N])
+    else if (phi_phase_start[`PAL_D4X_CAS_FALL_N])
         pal_cas_d4x_n <= 1'b0;
 end
 
@@ -328,39 +340,40 @@ end
 // static ram modules barf.  DRAM doesn't seem to
 // care though.
 
+
 always @(negedge clk_col16x)
 begin
-   if (pal_sr[1])
-           pal_ras_c16x <= 1'b1;
-   else if (pal_sr[3])
-           pal_ras_c16x <= 1'b0;
-   if (ntsc_sr[1])
-           ntsc_ras_c16x <= 1'b1;
-   else if (ntsc_sr[3])
-           ntsc_ras_c16x <= 1'b0;
+   if (pal_sr[`PAL_C16X_RAS_RISE_N])
+           pal_ras_c16x_n <= 1'b1;
+   else if (pal_sr[`PAL_C16X_RAS_FALL_N])
+           pal_ras_c16x_n <= 1'b0;
+   if (ntsc_sr[`NTSC_C16X_RAS_RISE_N])
+           ntsc_ras_c16x_n <= 1'b1;
+   else if (ntsc_sr[`NTSC_C16X_RAS_FALL_N])
+           ntsc_ras_c16x_n <= 1'b0;
 end
 
 always @(posedge clk_col16x)
 begin
-   if (pal_sr[0])
-           pal_cas_c16x <= 1'b1;
-   else if (pal_sr[2])
-           pal_cas_c16x <= 1'b0;
-   if (ntsc_sr[0])
-           ntsc_cas_c16x <= 1'b1;
-   else if (ntsc_sr[2])
-           ntsc_cas_c16x <= 1'b0;
+   if (pal_sr[`PAL_C16X_CAS_RISE_P])
+           pal_cas_c16x_p <= 1'b1;
+   else if (pal_sr[`PAL_C16X_CAS_FALL_P])
+           pal_cas_c16x_p <= 1'b0;
+   if (ntsc_sr[`NTSC_C16X_CAS_RISE_P])
+           ntsc_cas_c16x_p <= 1'b1;
+   else if (ntsc_sr[`NTSC_C16X_CAS_FALL_P])
+           ntsc_cas_c16x_p <= 1'b0;
 end
 
 // Use the trick above to OR the two signals together. This results
 // in the first pulse of the faster clock 'extending' the cas/ras signals
 // on the rising edges to what we want them to look like.
 
-assign cas = chip[0] ? (pal_cas_d4x_p | pal_cas_d4x_n | pal_cas_c16x) : (ntsc_cas_d4x_p | ntsc_cas_d4x_n | ntsc_cas_c16x);
-assign ras = chip[0] ? (pal_ras_d4x | pal_ras_c16x) : (ntsc_ras_d4x | ntsc_ras_c16x);
+assign cas = chip[0] ? (pal_cas_d4x_p | pal_cas_d4x_n | pal_cas_c16x_p) : (ntsc_cas_d4x_p | ntsc_cas_d4x_n | ntsc_cas_c16x_p);
+assign ras = chip[0] ? (pal_ras_d4x_p | pal_ras_c16x_n) : (ntsc_ras_d4x_p | ntsc_ras_c16x_n);
 
 // This goes to the registers module and is only driven by dot4x. Avoids having
 // to use a synchronizer chain.
-assign ras_registers = chip[0] ? pal_ras_d4x : ntsc_ras_d4x;
+assign ras_registers = chip[0] ? pal_ras_d4x_p : ntsc_ras_d4x_p;
 
 endmodule
