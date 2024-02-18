@@ -4,7 +4,7 @@ wave: wave.c
 	gcc -o wave wave.c
 
 logic: wave
-	./wave > session.vcd
+	./wave -v 17 -s ntsc > session.vcd
 	gtkwave session.vcd --script session.tcl
 
 clean:
