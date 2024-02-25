@@ -2,7 +2,7 @@
 mkdir -p build
 
 MAJ=1
-MIN=17
+MIN=18
 
 # MAINLG-DVI:29MHZ:U
 #    Unscaled output. Irregular resolutions. This is/was the default
@@ -28,7 +28,7 @@ MIN=17
 # MAINLG-RGB:32MHZ:U
 #    This the one and only full resolution analog RGB build.
 #
-ALL="MAINLG-DVI:29MHZ:U MAINLG-DVI:27MHZ:S"
+ALL="MAINLG-DVI:29MHZ:U MAINLG-DVI:27MHZ:S MAINLG-RGB:32MHZ:U"
 for V in $ALL
 do
    IFS=':'
