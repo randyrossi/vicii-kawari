@@ -56,32 +56,28 @@
 // CAS falls because it is delayed to RAM.)
 
 // PAL CAS/RAS rise/fall times based on PAL clocks
-`define PAL_D4X_RAS_RISE_P 0
+`define PAL_D4X_RAS_RISE_P 1
 `define PAL_D4X_CAS_RISE_P 0
 `define PAL_D4X_CAS_RISE_N 1
 `define PAL_D4X_RAS_FALL_P 4
 `define PAL_D4X_CAS_FALL_P 6
 `define PAL_D4X_CAS_FALL_N 7
 
-`define PAL_C16X_RAS_RISE_N 1
-`define PAL_C16X_RAS_FALL_N 3
-`define PAL_C16X_CAS_RISE_P 0
-`define PAL_C16X_CAS_FALL_P 2
+`define PAL_C16X_RAS_RISE_P 1
+`define PAL_C16X_RAS_FALL_P 4
 
 `define PAL_D4X_MUX_COL_P 5
 
 // NTSC CAS/RAS rise/fall times based on NTSC clocks
-`define NTSC_D4X_RAS_RISE_P 0
+`define NTSC_D4X_RAS_RISE_P 1
 `define NTSC_D4X_CAS_RISE_P 0
 `define NTSC_D4X_CAS_RISE_N 1
 `define NTSC_D4X_RAS_FALL_P 4
 `define NTSC_D4X_CAS_FALL_P 6
 `define NTSC_D4X_CAS_FALL_N 7
 
-`define NTSC_C16X_RAS_RISE_N 1
-`define NTSC_C16X_RAS_FALL_N 3
-`define NTSC_C16X_CAS_RISE_P 0
-`define NTSC_C16X_CAS_FALL_P 2
+`define NTSC_C16X_RAS_RISE_P 1
+`define NTSC_C16X_RAS_FALL_P 4
 
 `define NTSC_D4X_MUX_COL_P 5
 
@@ -262,10 +258,8 @@ reg ntsc_cas_d4x_p;
 reg ntsc_cas_d4x_n;
 reg ntsc_ras_d4x_p;
 
-reg pal_cas_c16x_p;
-reg pal_ras_c16x_n;
-reg ntsc_cas_c16x_p;
-reg ntsc_ras_c16x_n;
+reg pal_ras_c16x_p;
+reg ntsc_ras_c16x_p;
 
 reg [35:0] pal_sr;
 reg [27:0] ntsc_sr;
@@ -341,36 +335,24 @@ end
 // care though.
 
 
-always @(negedge clk_col16x)
-begin
-   if (pal_sr[`PAL_C16X_RAS_RISE_N])
-           pal_ras_c16x_n <= 1'b1;
-   else if (pal_sr[`PAL_C16X_RAS_FALL_N])
-           pal_ras_c16x_n <= 1'b0;
-   if (ntsc_sr[`NTSC_C16X_RAS_RISE_N])
-           ntsc_ras_c16x_n <= 1'b1;
-   else if (ntsc_sr[`NTSC_C16X_RAS_FALL_N])
-           ntsc_ras_c16x_n <= 1'b0;
-end
-
 always @(posedge clk_col16x)
 begin
-   if (pal_sr[`PAL_C16X_CAS_RISE_P])
-           pal_cas_c16x_p <= 1'b1;
-   else if (pal_sr[`PAL_C16X_CAS_FALL_P])
-           pal_cas_c16x_p <= 1'b0;
-   if (ntsc_sr[`NTSC_C16X_CAS_RISE_P])
-           ntsc_cas_c16x_p <= 1'b1;
-   else if (ntsc_sr[`NTSC_C16X_CAS_FALL_P])
-           ntsc_cas_c16x_p <= 1'b0;
+   if (pal_sr[`PAL_C16X_RAS_RISE_P])
+           pal_ras_c16x_p <= 1'b1;
+   else if (pal_sr[`PAL_C16X_RAS_FALL_P])
+           pal_ras_c16x_p <= 1'b0;
+   if (ntsc_sr[`NTSC_C16X_RAS_RISE_P])
+           ntsc_ras_c16x_p <= 1'b1;
+   else if (ntsc_sr[`NTSC_C16X_RAS_FALL_P])
+           ntsc_ras_c16x_p <= 1'b0;
 end
 
 // Use the trick above to OR the two signals together. This results
 // in the first pulse of the faster clock 'extending' the cas/ras signals
 // on the rising edges to what we want them to look like.
 
-assign cas = chip[0] ? (pal_cas_d4x_p | pal_cas_d4x_n | pal_cas_c16x_p) : (ntsc_cas_d4x_p | ntsc_cas_d4x_n | ntsc_cas_c16x_p);
-assign ras = chip[0] ? (pal_ras_d4x_p | pal_ras_c16x_n) : (ntsc_ras_d4x_p | ntsc_ras_c16x_n);
+assign cas = chip[0] ? (pal_cas_d4x_p | pal_cas_d4x_n) : (ntsc_cas_d4x_p | ntsc_cas_d4x_n);
+assign ras = chip[0] ? (pal_ras_d4x_p | pal_ras_c16x_p) : (ntsc_ras_d4x_p | ntsc_ras_c16x_p);
 
 // This goes to the registers module and is only driven by dot4x. Avoids having
 // to use a synchronizer chain.
