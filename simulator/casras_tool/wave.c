@@ -8,7 +8,7 @@
 
 // This matches the verilator behavior in terms of when a signal becomes
 // valid when we set a register based on pos or neg edge of the clock.
-#define POS_TICK(n) (n+1)
+#define POS_TICK(n) ((n+1)%num_dc)
 #define NEG_TICK(n) (n)
 #define UNUSED() (-1)
 
@@ -32,6 +32,8 @@ int *cas_wave_cc_n;
 int *clk_phi;
 int *clk_cc; // dot4x
 int *clk_dc; // col16x
+
+int num_repeats = 10;
 
 void init_signals(int n) {
 
@@ -98,24 +100,22 @@ void output_wave(int num_points) {
    printf ("\n");
 
    int tick=0;
-   for (int j=0;j<10;j++) {
-      for (int i=0;i<num_points;i++) {
-         printf ("#%d\n",tick);
-         printf ("%dc\n",clk_phi[i]);
-         printf ("%da\n",clk_cc[i]);
-         printf ("%db\n",clk_dc[i]);
-         printf ("%dA\n",ras_wave_cc_p[i]);
-         printf ("%dB\n",ras_wave_cc_n[i]);
-         printf ("%dC\n",cas_wave_cc_p[i]);
-         printf ("%dD\n",cas_wave_cc_n[i]);
-         printf ("%dE\n",cas_wave[i]);
-         printf ("%dF\n",ras_wave[i]);
-         printf ("%dG\n",ras_wave_dc_p[i]);
-         printf ("%dH\n",cas_wave_dc_p[i]);
-         printf ("%dI\n",ras_wave_dc_n[i]);
-         printf ("%dJ\n",cas_wave_dc_n[i]);
-         tick++;
-      }
+   for (int i=0;i<num_points * num_repeats;i++) {
+      printf ("#%d\n",tick);
+      printf ("%dc\n",clk_phi[i]);
+      printf ("%da\n",clk_cc[i]);
+      printf ("%db\n",clk_dc[i]);
+      printf ("%dA\n",ras_wave_cc_p[i]);
+      printf ("%dB\n",ras_wave_cc_n[i]);
+      printf ("%dC\n",cas_wave_cc_p[i]);
+      printf ("%dD\n",cas_wave_cc_n[i]);
+      printf ("%dE\n",cas_wave[i]);
+      printf ("%dF\n",ras_wave[i]);
+      printf ("%dG\n",ras_wave_dc_p[i]);
+      printf ("%dH\n",cas_wave_dc_p[i]);
+      printf ("%dI\n",ras_wave_dc_n[i]);
+      printf ("%dJ\n",cas_wave_dc_n[i]);
+      tick++;
    }
 }
 
@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
 
    int num_points = num_cc_points * num_dc_points;
 
-   init_signals(num_points);
+   init_signals(num_points * num_repeats);
  
    int ras_rise_dc_p;
    int ras_fall_dc_p;
@@ -243,10 +243,10 @@ int main(int argc, char *argv[])
       cas_rise_cc_n = UNUSED();
       cas_fall_cc_n = UNUSED();
    } else if (firmware_version >= 18) {
-      ras_rise_dc_p = POS_TICK(1);
+      ras_rise_dc_p = POS_TICK(0);
       ras_fall_dc_p = POS_TICK(4);
 
-      cas_rise_dc_p = POS_TICK(0);
+      cas_rise_dc_p = POS_TICK(15);
       cas_fall_dc_p = POS_TICK(6);
 
       ras_rise_dc_n = UNUSED();
@@ -255,14 +255,14 @@ int main(int argc, char *argv[])
       cas_rise_dc_n = NEG_TICK(1);
       cas_fall_dc_n = NEG_TICK(7);
 
-      ras_rise_cc_p = POS_TICK(1);
-      ras_fall_cc_p = POS_TICK(4);
+      ras_rise_cc_p = UNUSED();
+      ras_fall_cc_p = UNUSED();
 
-      ras_rise_cc_n = UNUSED();
-      ras_fall_cc_n = UNUSED();
+      ras_rise_cc_n = NEG_TICK(0);
+      ras_fall_cc_n = NEG_TICK(3);
 
-      cas_rise_cc_p = UNUSED();
-      cas_fall_cc_p = UNUSED();
+      cas_rise_cc_p = POS_TICK(0);
+      cas_fall_cc_p = POS_TICK(2);
 
       cas_rise_cc_n = UNUSED();
       cas_fall_cc_n = UNUSED();
@@ -271,10 +271,10 @@ int main(int argc, char *argv[])
    // Each signal arrays hold enough points to represent positive and negative edges for both clocks  
    // So as we iterate over the points, we determine whether we are on a positive or negative edge
    // for dot4x or col16x
-   for (int i=0;i<num_points;i++) {
+   for (int i=0;i<num_points * num_repeats;i++) {
 
-      int cc_tick = i / (num_dc_points * 2); // this is the col16x tick #
-      int dc_tick = i / (num_cc_points * 2); // this is the dot4x tick #
+      int cc_tick = (i / (num_dc_points * 2)) % num_cc; // this is the col16x tick #
+      int dc_tick = (i / (num_cc_points * 2)) % num_dc; // this is the dot4x tick #
 
       // Now determine whether we are at a positive or negative edge
 
@@ -315,8 +315,7 @@ int main(int argc, char *argv[])
       if (pos_dc) cur_dc = 1;
       if (neg_dc) cur_dc = 0;
 
-      if (pos_dc && dc_tick==0) cur_phi = 1;
-      if (pos_dc && dc_tick==8) cur_phi = 0;
+      if (pos_dc && dc_tick==0) cur_phi = 1 - cur_phi;
 
       if (pos_dc && dc_tick==ras_rise_dc_p) cur_ras_dc_p = 1;
       if (pos_dc && dc_tick==ras_fall_dc_p) cur_ras_dc_p = 0;
@@ -361,21 +360,11 @@ int main(int argc, char *argv[])
 
       // For CAS/RAS, we combine several signals:
 
-      if (firmware_version <= 17) {
-         // See addressgen_efinix.v
-         // assign cas = chip[0] ? (pal_cas_d4x_p | pal_cas_d4x_n | pal_cas_c16x_p) : (ntsc_cas_d4x_p | ntsc_cas_d4x_n | ntsc_cas_c16x_p);
-         // assign ras = chip[0] ? (pal_ras_d4x | pal_ras_c16x_n) : (ntsc_ras_d4x | ntsc_ras_c16x_n);
-
-         cas_wave[i] = cas_wave_dc_p[i] | cas_wave_dc_n[i] | cas_wave_cc_p[i];
-         ras_wave[i] = ras_wave_dc_p[i] | ras_wave_cc_n[i];
-      } else if (firmware_version >= 18) {
-         // See addressgen_efinix.v
-         // assign cas = chip[0] ? (pal_cas_d4x_p | pal_cas_d4x_n) : (ntsc_cas_d4x_p | ntsc_cas_d4x_n);
-         // assign ras = chip[0] ? (pal_ras_d4x_p | pal_ras_c16x_p) : (ntsc_ras_d4x_p | ntsc_ras_c16x_p);
-
-         cas_wave[i] = cas_wave_dc_p[i] | cas_wave_dc_n[i];
-         ras_wave[i] = ras_wave_dc_p[i] | ras_wave_cc_p[i];
-      }
+      // See addressgen_efinix.v
+      // assign cas = chip[0] ? (pal_cas_d4x_p | pal_cas_d4x_n | pal_cas_c16x_p) : (ntsc_cas_d4x_p | ntsc_cas_d4x_n | ntsc_cas_c16x_p);
+      // assign ras = chip[0] ? (pal_ras_d4x | pal_ras_c16x_n) : (ntsc_ras_d4x | ntsc_ras_c16x_n);
+      cas_wave[i] = cas_wave_dc_p[i] | cas_wave_dc_n[i] | cas_wave_cc_p[i];
+      ras_wave[i] = ras_wave_dc_p[i] | ras_wave_cc_n[i];
    }
 
    output_wave(num_points);
