@@ -57,30 +57,30 @@
 
 // PAL CAS/RAS rise/fall times based on PAL clocks
 `define PAL_D4X_RAS_RISE_P 0
-`define PAL_D4X_CAS_RISE_P 15
+`define PAL_D4X_CAS_RISE_P 0
 `define PAL_D4X_CAS_RISE_N 1
 `define PAL_D4X_RAS_FALL_P 4
 `define PAL_D4X_CAS_FALL_P 6
 `define PAL_D4X_CAS_FALL_N 7
 
-`define PAL_C16X_RAS_RISE_N 0
+`define PAL_C16X_RAS_RISE_N 1
 `define PAL_C16X_RAS_FALL_N 3
-`define PAL_C16X_CAS_RISE_P 1
+`define PAL_C16X_CAS_RISE_P 0
 `define PAL_C16X_CAS_FALL_P 2
 
 `define PAL_D4X_MUX_COL_P 5
 
 // NTSC CAS/RAS rise/fall times based on NTSC clocks
 `define NTSC_D4X_RAS_RISE_P 0
-`define NTSC_D4X_CAS_RISE_P 15
+`define NTSC_D4X_CAS_RISE_P 0
 `define NTSC_D4X_CAS_RISE_N 1
 `define NTSC_D4X_RAS_FALL_P 4
 `define NTSC_D4X_CAS_FALL_P 6
 `define NTSC_D4X_CAS_FALL_N 7
 
-`define NTSC_C16X_RAS_RISE_N 0
+`define NTSC_C16X_RAS_RISE_N 1
 `define NTSC_C16X_RAS_FALL_N 3
-`define NTSC_C16X_CAS_RISE_P 1
+`define NTSC_C16X_CAS_RISE_P 0
 `define NTSC_C16X_CAS_FALL_P 2
 
 `define NTSC_D4X_MUX_COL_P 5
