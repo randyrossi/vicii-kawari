@@ -5,6 +5,7 @@ set pickedsigs [list]
 
 lappend pickedsigs "TOP.clk_phi"
 lappend pickedsigs "TOP.ras"
+lappend pickedsigs "TOP.addr"
 lappend pickedsigs "TOP.cas"
 lappend pickedsigs "TOP.clk_cc"
 lappend pickedsigs "TOP.clk_dc"
