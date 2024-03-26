@@ -792,11 +792,9 @@ sprites vic_sprites(
 // seems to quell noise at the start of AEC low cycle (source
 // remains a mystery)
 // Provide a delayed version of aec in aec2
-reg aec2;
 always @(posedge clk_dot4x)
 begin
     aec <= ba ? clk_phi : ba3 & clk_phi;
-    aec2 <= aec;
 end
 
 // For reference, on LS245's:
@@ -823,7 +821,8 @@ assign vic_write_db = (rw && ~ce);
 // This used to be simply ~aec.  But instead we use
 // ~(aec | aec2) so that we switch to output an extra tick after aec
 // falls but still switch back to input with rising aec.
-assign vic_write_ab = ~(aec | aec2);
+//assign vic_write_ab = ~(aec | aec2);
+assign vic_write_ab = ~aec;
 
 // For data bus direction, use inverse of vic_write_db
 assign ls245_data_dir = ~vic_write_db;

@@ -261,32 +261,59 @@ int main(int argc, char *argv[])
 
       addr_mux_p = POS_TICK(5);
    } else if (firmware_version >= 18) {
-      // Still matches 17 for now...
-      ras_rise_dc_p = POS_TICK(0);
-      ras_fall_dc_p = POS_TICK(4);
+      if (standard == NTSC) {
+        ras_rise_dc_p = POS_TICK(0);
+        ras_fall_dc_p = POS_TICK(4);
 
-      cas_rise_dc_p = POS_TICK(0);
-      cas_fall_dc_p = POS_TICK(6);
+        cas_rise_dc_p = POS_TICK(0);
+        cas_fall_dc_p = POS_TICK(6);
 
-      ras_rise_dc_n = UNUSED();
-      ras_fall_dc_n = UNUSED();
+        ras_rise_dc_n = UNUSED();
+        ras_fall_dc_n = UNUSED();
 
-      cas_rise_dc_n = NEG_TICK(1);
-      cas_fall_dc_n = NEG_TICK(7);
+        cas_rise_dc_n = NEG_TICK(1);
+        cas_fall_dc_n = NEG_TICK(7);
 
-      ras_rise_cc_p = UNUSED();
-      ras_fall_cc_p = UNUSED();
+        ras_rise_cc_p = UNUSED();
+        ras_fall_cc_p = UNUSED();
 
-      ras_rise_cc_n = NEG_TICK(1);
-      ras_fall_cc_n = NEG_TICK(3);
+        ras_rise_cc_n = NEG_TICK(1);
+        ras_fall_cc_n = NEG_TICK(9);
 
-      cas_rise_cc_p = POS_TICK(1);
-      cas_fall_cc_p = POS_TICK(2);
+        cas_rise_cc_p = POS_TICK(1);
+        cas_fall_cc_p = POS_TICK(2);
 
-      cas_rise_cc_n = UNUSED();
-      cas_fall_cc_n = UNUSED();
+        cas_rise_cc_n = UNUSED();
+        cas_fall_cc_n = UNUSED();
 
-      addr_mux_p = POS_TICK(5);
+        addr_mux_p = POS_TICK(6);
+      } else {
+        ras_rise_dc_p = POS_TICK(0);
+        ras_fall_dc_p = POS_TICK(4);
+
+        cas_rise_dc_p = POS_TICK(0);
+        cas_fall_dc_p = POS_TICK(5);
+
+        ras_rise_dc_n = UNUSED();
+        ras_fall_dc_n = UNUSED();
+
+        cas_rise_dc_n = NEG_TICK(1);
+        cas_fall_dc_n = NEG_TICK(6);
+
+        ras_rise_cc_p = UNUSED();
+        ras_fall_cc_p = UNUSED();
+
+        ras_rise_cc_n = NEG_TICK(2);
+        ras_fall_cc_n = NEG_TICK(11);
+
+        cas_rise_cc_p = POS_TICK(1);
+        cas_fall_cc_p = POS_TICK(14);
+
+        cas_rise_cc_n = UNUSED();
+        cas_fall_cc_n = UNUSED();
+
+        addr_mux_p = POS_TICK(5);
+      }
    }
 
    // Each signal arrays hold enough points to represent positive and negative edges for both clocks  

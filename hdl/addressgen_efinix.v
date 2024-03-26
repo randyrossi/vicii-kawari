@@ -60,13 +60,13 @@
 `define PAL_D4X_CAS_RISE_P 0
 `define PAL_D4X_CAS_RISE_N 1
 `define PAL_D4X_RAS_FALL_P 4
-`define PAL_D4X_CAS_FALL_P 6
-`define PAL_D4X_CAS_FALL_N 7
+`define PAL_D4X_CAS_FALL_P 5
+`define PAL_D4X_CAS_FALL_N 6
 
-`define PAL_C16X_RAS_RISE_N 1
-`define PAL_C16X_RAS_FALL_N 3
-`define PAL_C16X_CAS_RISE_P 0
-`define PAL_C16X_CAS_FALL_P 2
+`define PAL_C16X_RAS_RISE_N 2
+`define PAL_C16X_RAS_FALL_N 11
+`define PAL_C16X_CAS_RISE_P 1
+`define PAL_C16X_CAS_FALL_P 14
 
 `define PAL_D4X_MUX_COL_P 5
 
@@ -79,11 +79,11 @@
 `define NTSC_D4X_CAS_FALL_N 7
 
 `define NTSC_C16X_RAS_RISE_N 1
-`define NTSC_C16X_RAS_FALL_N 3
-`define NTSC_C16X_CAS_RISE_P 0
+`define NTSC_C16X_RAS_FALL_N 9
+`define NTSC_C16X_CAS_RISE_P 1
 `define NTSC_C16X_CAS_FALL_P 2
 
-`define NTSC_D4X_MUX_COL_P 5
+`define NTSC_D4X_MUX_COL_P 6
 
 // Other:
 // NOTE: CAS_GLITCH [9] has worked the best for emulamer demos. Works well on
