@@ -22,9 +22,12 @@ For those testing firmware (Thank you!), here are some some guidelines to avoid 
 
 # Known Issues (Not Kawari)
 
+Issue|Description|Board|Details
+-----|-----------|-----|-------
 1 | Ghostbusters loaded from disk hangs on title screen | 250407 | Known to be caused by GAL PLA w/ Lattice 25ns GALs. Interesting though that the Ghostbusters cartridge when loaded by Kung Fu Flash does NOT crash this way.
 2 | Fix if Felix Jr hangs after title animation         | 250407 | Same as #1
 3 | Ghostbusters opening speech and laugh inaudible at startup. Music plays fast. After pressing RUN/STOP + RESTORE, speech + laugh now audible and speed is normal | 250407 | Happens when loading cartridge using Kung Fu Flash. Doesn't appear to happen when loading from disk.
-4 | The kernel revision can change how some games/demos show color.  See #4 above. (Higher Level, Quality - Father Time, Galencia Trainer)
-5 | Checkerboard pattern using replacement RF modulator from VGP media.  Solution was to jumper JPLUM1 on the RF modulator for the Long Boards.
-6 | Sparkle bug - Caused by original CHAR ROM 901225-01 from the first week of 1983. The ROM timing must be a bit slower.  The -02 revisions fix the issue. 
+4 | The kernel revision can change how some games/demos show color. | Any | See #4 above , (Higher Level, Quality - Father Time, Galencia Trainer)
+5 | Checkerboard pattern using replacement RF modulator from VGP media.  | Any| Solution was to jumper JPLUM1 on the RF modulator for the Long Boards.
+6 | Sparkle bug | Any | Caused by original CHAR ROM 901225-01 from the first week of 1983. The ROM timing must be a bit slower. The -02 revisions fix the issue. 
+
