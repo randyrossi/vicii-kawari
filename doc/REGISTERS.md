@@ -547,7 +547,7 @@ Chip    | Idle RL             | Active RL | Bytes/Idle RL | Bytes/Active RL| Byt
 
 The blitter modifies graphics data in a region of video memory (dest) using data in another region of video memory (source) according to the specified operation (rasterOp).  Video mem flags for both ports 1 & 2 functions must be set to DMA (3) for the blitter to execute. The blitter only operates on the extended video ram (VRAM), not DRAM.
 
-The base pointer for the source and destination must be specified as well as the source and destination stride. The source and destination coordinates (x,y) of a rectangle (w,h) must also be specified.  For both 320x200x16 and 640x200x4 resolutions, the stride is 160.  However, you can keep an off-screen bitmap of any stride if needed. It is up to the caller to ensure the stride is sufficient to contain the width of the rectangle. Pixel depth is always determined by the current resolution in VIDEO_MODE1 (bits 6-7). The blitter only works with bitmap modes 160x200, 320x200 or 640x200.  Using the blitter with other modes is undefined behavior.  The caller may check 0xd03c == 0 to determine whether the blitter operation is complete. (or use IRQ in v1.16+, see below)
+The base pointer for the source and destination must be specified as well as the source and destination stride. The source and destination coordinates (x,y) of a rectangle (w,h) must also be specified.  For both 320x200x16 and 640x200x4 resolutions, the stride is 160.  However, you can keep an off-screen bitmap of any stride if needed. It is up to the caller to ensure the stride is sufficient to contain the width of the rectangle. Pixel depth is always determined by the current resolution in VIDEO_MODE1 (bits 6-7). The blitter only works with bitmap modes 160x200, 320x200 or 640x200.  Using the blitter with other modes is undefined behavior.  The caller may check 0xd03d == 0 to determine whether the blitter operation is complete. (or use IRQ in v1.16+, see below)
 
 ### Operating the blitter is as follows:
 
@@ -567,9 +567,9 @@ Register| Param | Description
 0xd036 | Src Ptr Hi byte | The base pointer to bitmap data (hi byte)
 0xd039 | Src X Lo Byte | The x coordinate for the rectangle (lo byte)
 0xd03a | Src X Hi Byte | The x coordinate for the rectangle (hi byte)
-0xd03b | Src Y Lo Byte | The y coordinate for the rectangle
-0xd03c | Src Stride | The source bitmap stride
-0xd03d | Set | Set blitter src with value of 32
+0xd03c | Src Y Lo Byte | The y coordinate for the rectangle
+0xd03d | Src Stride | The source bitmap stride
+0xd03b | Set | Set blitter src with value of 32
 
 ### Setting Blitter Dest Info & Execute
 
@@ -583,9 +583,9 @@ Register| Param | Description
 0xd036 | Dst Ptr Hi byte | The base pointer to bitmap data (hi byte)
 0xd039 | Dst X Lo Byte | The x coordinate for the rectangle (lo byte)
 0xd03a | Dst X Hi Byte | The x coordinate for the rectangle (hi byte)
-0xd03b | Dst Y Lo Byte | The y coordinate for the rectangle
-0xd03c | Dst Stride | The destination bitmap stride
-0xd03d | Set Reg | Set blitter dst and perform blit op with value of 64
+0xd03c | Dst Y Lo Byte | The y coordinate for the rectangle
+0xd03d | Dst Stride | The destination bitmap stride
+0xd03b | Set Reg | Set blitter dst and perform blit op with value of 64
 
 ### Blitter flags
 
@@ -600,8 +600,8 @@ If set, the transparency bit tells the blitter to consider any pixel with a colo
 Value | Description
 ------|------------
 0 | DST = SRC
-1 | DST = SRC | DST
-2 | DST = SRC & DST
+1 | DST = SRC OR DST
+2 | DST = SRC AND DST
 3 | DST = SRC XOR DST
 4-7 | Unused
 
