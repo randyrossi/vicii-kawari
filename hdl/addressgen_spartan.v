@@ -106,7 +106,7 @@ module addressgen(
            input ecm_now,
            input ecm_old,
            input idle,
-           input [7:0] refc,
+           input refc_hold,
            input [7:0] char_ptr,
            input aec,
            input [2:0] sprite_cnt,
@@ -147,12 +147,22 @@ assign sprite_mc[5] = sprite_mc_o[17:12];
 assign sprite_mc[6] = sprite_mc_o[11:6];
 assign sprite_mc[7] = sprite_mc_o[5:0];
 
+// DRAM refresh counter
+reg [7:0] refc;
+
 always @(posedge clk_dot4x)
 begin
+    if (rst)
+        refc <= 8'hff;
     case(cycle_type)
         `VIC_LR: begin
             vic_addr = {6'b111111, refc};
             vic_addr_now = vic_addr;
+
+            if (refc_hold | rst)
+                refc <= 8'hff;
+            else if (phi_phase_start[2])
+                refc <= refc - 8'h01; // about to leave this cycle
         end
         `VIC_LG: begin
             if (idle) begin

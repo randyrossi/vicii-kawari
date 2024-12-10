@@ -2,7 +2,7 @@
 mkdir -p build
 
 MAJ=1
-MIN=18
+MIN=19
 
 # MAINLG-DVI:29MHZ:U
 #    Unscaled output. Irregular resolutions. This is/was the default

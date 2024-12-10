@@ -96,7 +96,7 @@
 #define V_EC top__DOT__vic_inst__DOT__ec
 #define V_PHIR top__DOT__vic_inst__DOT__phi_gen
 #define V_DOTR top__DOT__vic_inst__DOT__dot_gen
-#define V_REFC top__DOT__vic_inst__DOT__refc
+#define V_REFC top__DOT__vic_inst__DOT__vic_addressgen__DOT__refc
 #define V_ERST top__DOT__vic_inst__DOT__erst
 #define V_EMBC top__DOT__vic_inst__DOT__embc
 #define V_EMMC top__DOT__vic_inst__DOT__emmc

@@ -231,9 +231,6 @@ reg ecm_delayed;
 // half-phase.
 wire [3:0] cycle_type;
 
-// DRAM refresh counter
-reg [7:0] refc;
-
 // Current sprite number for dma cycles
 wire [2:0] sprite_cnt;
 
@@ -516,19 +513,6 @@ assign irq = (ilp & elp) | (immc & emmc) | (imbc & embc) | (irst & erst)
    | (idma & edma)
 `endif
 ;
-
-// DRAM refresh counter
-always @(posedge clk_dot4x)
-    if (rst)
-        refc <= 8'hff;
-    else if (phi_phase_start[1]) begin // cycle_type is about to transition
-        // Decrement at the start of the phase when cycle_type is still valid
-        // for the previous half cycle.
-        if (cycle_num == 1 && raster_line == 9'd0)
-            refc <= 8'hff;
-        else if (cycle_type == `VIC_LR)
-            refc <= refc - 8'd1; // decrements at END of LR cycle
-    end
 
 // Handle border
 wire main_border;
@@ -882,7 +866,7 @@ addressgen vic_addressgen(
                .ecm_old(ecm_delayed),
                .ecm_now(ecm),
                .idle(idle),
-               .refc(refc),
+               .refc_hold(raster_line == raster_y_max),
                .char_ptr(char_next[7:0]),
                .aec(aec),
                .sprite_cnt(sprite_cnt),

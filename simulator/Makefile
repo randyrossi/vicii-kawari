@@ -89,7 +89,7 @@ VERILOG_SOURCES = ../hdl/simulator/top.v ../hdl/vicii.v ../hdl/common.vh \
 	          ../hdl/lightpen.v ../hdl/raster.v ../hdl/divide.v \
 	          ../hdl/serration.v  ../hdl/bus_access.v ../hdl/cycles.v \
                   ../hdl/matrix.v ../hdl/sprites.v  ../hdl/hires_vga_sync.v \
-                  ../hdl/hires_dvi_sync$(SCALED_SUFFIX).v ../hdl/scaler.v \
+                  ../hdl/hires_dvi_sync$(SCALED_SUFFIX).v \
 		  ../hdl/videoram.v ../hdl/colorreg.v \
 		  ../hdl/sinewave.v ../hdl/testpattern.v ../hdl/lumareg.v \
 		  ../hdl/hires_matrix.v ../hdl/hires_addressgen.v ../hdl/hires_pixel_sequencer.v \

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VER=1.18
+VER=1.19
 
 echo "Large - 29MHZ Unscaled"
 
