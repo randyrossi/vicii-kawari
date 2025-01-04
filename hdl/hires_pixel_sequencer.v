@@ -34,7 +34,6 @@ module hires_pixel_sequencer(
            input vborder,
            input [3:0] color_base,
            output reg [3:0] hires_pixel_color1,
-           output reg hires_stage1,
            output reg hires_is_background_pixel,
            input hires_enabled,
            input [2:0] hires_mode,
@@ -83,8 +82,6 @@ wire visible_d;
 assign visible = cycle_num >= 15 && cycle_num <= 54;
 assign visible_d = cycle_num_delayed >= 15 && cycle_num_delayed <= 54;
 
-reg hires_stage0;
-
 // Transfer read character pixels and char values into waiting*[0] so they
 // are available at the first dot of PHI2
 always @(posedge clk_dot4x)
@@ -120,7 +117,8 @@ begin
         end
     end
 
-    if (hires_stage0) begin
+    // stage 0
+    if (dot_rising[2] | dot_rising[0]) begin
         b0c_d2 <= b0c;
         ec_d2 <= ec;
     end
@@ -133,10 +131,8 @@ reg[1:0] hires_ff;
 reg main_border_stage0;
 always @(posedge clk_dot4x)
 begin
-    if (hires_stage0)
-        hires_stage0 <= 1'b0;
+    // stage 1
     if (dot_rising[1] || dot_rising[3]) begin
-        hires_stage0 <= 1'b1;
         main_border_stage0 <= main_border;
 
         // load pixels when xscroll matches pixel 0-7
@@ -213,11 +209,8 @@ end
 
 always @(posedge clk_dot4x)
 begin
-    // This is the last stage of our hires mode.
-    if (hires_stage1)
-        hires_stage1 <= 1'b0;
-    if (hires_stage0) begin
-        hires_stage1 <= 1'b1;
+    // stage0
+    if (dot_rising[2] | dot_rising[0]) begin
 
         if (main_border_stage0)
             hires_pixel_color1 <= ec_d2;

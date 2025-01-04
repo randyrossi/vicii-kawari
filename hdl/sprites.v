@@ -53,6 +53,7 @@ module sprites(
            input [7:0] last_bus,
            input [3:0] cycle_type,
            input dot_rising_1,
+           input dot_rising_2,
            input phi_phase_start_m2clr,
            input phi_phase_start_1,
            input phi_phase_start_dav,
@@ -75,7 +76,6 @@ module sprites(
            input hires_enabled,
            input hires_is_background_pixel,
 `endif
-           input stage0,
            input imbc_clr,
            input immc_clr,
            input [6:0] sprite_dmachk1,
@@ -436,7 +436,7 @@ begin
 // to work for Efinix Trion. *sigh*
 `ifdef EFINIX
             // Now delay sprite stuff by 6 pixels so that these
-            // signals are valid by stage0 in the pixel sequencer.
+            // signals are valid by dot_rising[2] in the pixel sequencer.
             // This ensures things like priority splits happen when
             // the current pixel is actually overlayed in the gfx
             // pipeline. Same for mmc splits.
@@ -506,7 +506,7 @@ always @(posedge clk_dot4x)
 begin
         if (dot_rising_1) begin
             // Now delay sprite stuff by 6 pixels so that these
-            // signals are valid by stage0 in the pixel sequencer.
+            // signals are valid by dot_rising[2] in the pixel sequencer.
             // This ensures things like priority splits happen when
             // the current pixel is actually overlayed in the gfx
             // pipeline. Same for mmc splits.
@@ -613,7 +613,7 @@ always @(posedge clk_dot4x)
         // This triggers at the same time the sprite stage of the pixel
         // sequencer works.  So sprite to data collisions happen on the
         // delayed sprite pixels that overwrite any gfx pixels.
-        if (stage0) begin
+        if (dot_rising_2) begin
             for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
                 if (((sprite_mmc_d[n] && sprite_cur_pixel[n] != 0) || // multicolor
                         (!sprite_mmc_d[n] && sprite_cur_pixel[n][1] != 0)) & // non multicolor

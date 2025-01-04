@@ -50,8 +50,6 @@ module pixel_sequencer(
            input [3:0] sprite_mc1,  // delayed before use
            input vborder,
            output reg is_background_pixel0,
-           output reg stage0,
-           output reg stage1,
            output reg [3:0] pixel_color1,
 `ifdef HIRES_MODES
            // Added to let low res sprites 'shine through' to hires sequencer.
@@ -124,7 +122,7 @@ assign visible = cycle_num >= 15 && cycle_num <= 54;
 assign visible_d = cycle_num_delayed >= 15 && cycle_num_delayed <= 54;
 
 // For color splits to work on sprites, we need to delay
-// register changes by 2 pixels and to become valid by stage0
+// register changes by 2 pixels and to become valid by dot_rising[2]
 always @(posedge clk_dot4x)
 begin
     if (dot_rising[1]) begin
@@ -168,7 +166,7 @@ begin
         end
     end
 
-    if (stage0) begin
+    if (dot_rising[2]) begin
         b0c_d2 <= b0c;
         b1c_d2 <= b1c;
         b2c_d2 <= b2c;
@@ -189,14 +187,11 @@ reg [4:0] pixel_value;
 reg main_border_stage0;
 always @(posedge clk_dot4x)
 begin
-    if (stage0)
-        stage0 <= 1'b0;
-
     // First tick of a pixel
     if (dot_rising[1]) begin
         // We 'work' on several stages of a pixel over the next 3 dot4x
-        // ticks. It begins here when we set stage0 high.
-        stage0 <= 1'b1;
+        // ticks. It begins here on dot_rising[1] which is the first pixel.
+        // (See vicii.v : order is 1 2 3 0)
         main_border_stage0 <= main_border;
 
         if (cycle_bit == 4) begin
@@ -268,13 +263,10 @@ begin
     end
 end
 
-// Handle display modes in stage0
+// Handle display modes on dot_rising[2]
 always @(posedge clk_dot4x)
 begin
-    if (stage1)
-        stage1 <= 1'b0;
-    if (stage0) begin
-        stage1 <= 1'b1;
+    if (dot_rising[2]) begin
         // Switch on pixel_value's vidmode and then use lower 2 bits for
         // color interpretation.
         // ECM, BMM, MCM, PX1, PX0

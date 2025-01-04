@@ -324,7 +324,6 @@ wire rsel; // border row select
 wire csel; // border column select
 wire mcm; // multi color mode
 
-wire stage0;
 wire is_background_pixel0;
 `ifdef HIRES_MODES
 wire hires_is_background_pixel;
@@ -726,6 +725,7 @@ sprites vic_sprites(
             .dbi8(dbi[7:0]),
             .last_bus(last_bus),
             .dot_rising_1(dot_rising[1]),
+            .dot_rising_2(dot_rising[2]),
             .phi_phase_start_m2clr(phi_phase_start[`M2CLR_CHECK]),
             .phi_phase_start_1(phi_phase_start[1]),
             .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
@@ -749,7 +749,6 @@ sprites vic_sprites(
             .hires_enabled(hires_enabled),
             .hires_is_background_pixel(hires_is_background_pixel),
 `endif
-            .stage0(stage0),
             .imbc_clr(imbc_clr),
             .immc_clr(immc_clr),
             .sprite_dmachk1(sprite_dmachk1),
@@ -1146,10 +1145,8 @@ TEST_PATTERN vic_testpattern(.clk(clk_dot4x),
 
 // Select between hires and lores
 wire [3:0] pixel_color1;
-wire stage1;
 `ifdef HIRES_MODES
 wire [3:0] hires_pixel_color1;
-wire hires_stage1;
 `endif
 
 // According to https://github.com/c0pperdragon/LumaCode/wiki/VIC-II-dizer-(for-the-C64-computer)
@@ -1171,11 +1168,11 @@ begin
 `else
 
 `ifdef HIRES_MODES
-    if (hires_enabled && !hires_sprite_active && hires_stage1)
+    if (hires_enabled && !hires_sprite_active && (dot_rising[3] | dot_rising[1]))
         pixel_color3 <= hires_pixel_color1;
     else
 `endif
-        if (stage1) begin
+        if (dot_rising[3]) begin
             pixel_color3 <= pixel_color1;
 
 `ifdef LUMACODE
@@ -1258,8 +1255,6 @@ pixel_sequencer vic_pixel_sequencer(
                     .sprite_mc0(sprite_mc0),
                     .sprite_mc1(sprite_mc1),
                     .is_background_pixel0(is_background_pixel0),
-                    .stage0(stage0),
-                    .stage1(stage1),
                     .pixel_color1(pixel_color1),
 `ifdef HIRES_MODES
                     .hires_sprite_active(hires_sprite_active),
@@ -1289,7 +1284,6 @@ hires_pixel_sequencer vic_hires_pixel_sequencer(
                           .vborder(top_bot_border_d5),
                           .color_base(hires_color_base),
                           .hires_pixel_color1(hires_pixel_color1),
-                          .hires_stage1(hires_stage1),
                           .hires_enabled(hires_enabled),
                           .hires_mode(hires_mode),
                           .hires_pixel_data(hires_pixel_data),
