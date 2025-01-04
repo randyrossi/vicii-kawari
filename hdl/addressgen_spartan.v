@@ -152,16 +152,14 @@ reg [7:0] refc;
 
 always @(posedge clk_dot4x)
 begin
-    if (rst)
+    if (rst | refc_hold)
         refc <= 8'hff;
     case(cycle_type)
         `VIC_LR: begin
             vic_addr = {6'b111111, refc};
             vic_addr_now = vic_addr;
 
-            if (refc_hold | rst)
-                refc <= 8'hff;
-            else if (phi_phase_start[2])
+            if (phi_phase_start[2] && !refc_hold)
                 refc <= refc - 8'h01; // about to leave this cycle
         end
         `VIC_LG: begin
