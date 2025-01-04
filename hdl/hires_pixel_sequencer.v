@@ -23,9 +23,8 @@ module hires_pixel_sequencer(
            input clk_dot4x,
            input clk_phi,
            input [3:0] dot_rising,
-           input phi_phase_start_dav,
            input phi_phase_start_pl,
-           input phi_phase_start_10,
+           input phi_phase_start_4,
            input [6:0] cycle_num,
            input [2:0] cycle_bit,
            input [2:0] xscroll,
@@ -52,7 +51,6 @@ integer n;
 // Various delay registers
 reg [2:0] xscroll_delayed;
 reg [2:0] xscroll_delayed0;
-reg [6:0] cycle_num_delayed0;
 reg [6:0] cycle_num_delayed1;
 reg [6:0] cycle_num_delayed;
 
@@ -60,19 +58,16 @@ reg hires_cursor_delayed0;
 reg hires_cursor_delayed1;
 reg hires_cursor_delayed2;
 reg hires_cursor_delayed3;
-reg hires_cursor_delayed4;
 reg hires_cursor_delayed;
 reg [7:0] hires_pixel_data_delayed0;
 reg [7:0] hires_pixel_data_delayed1;
 reg [7:0] hires_pixel_data_delayed2;
 reg [7:0] hires_pixel_data_delayed3;
-reg [7:0] hires_pixel_data_delayed4;
 reg [7:0] hires_pixel_data_delayed;
 reg [7:0] hires_color_data_delayed0;
 reg [7:0] hires_color_data_delayed1;
 reg [7:0] hires_color_data_delayed2;
 reg [7:0] hires_color_data_delayed3;
-reg [7:0] hires_color_data_delayed4;
 reg [7:0] hires_color_data_delayed;
 
 // pixels being shifted and the associated char (for color info)
@@ -94,38 +89,30 @@ reg hires_stage0;
 // are available at the first dot of PHI2
 always @(posedge clk_dot4x)
 begin
-    if (phi_phase_start_dav) begin
-        cycle_num_delayed0 <= cycle_num;
-        cycle_num_delayed1 <= cycle_num_delayed0;
-
-        xscroll_delayed0 <= xscroll;
-    end
-
-    if (phi_phase_start_10) begin
-        hires_cursor_delayed0 <= hires_cursor;
-        hires_cursor_delayed1 <= hires_cursor_delayed0;
-        hires_cursor_delayed2 <= hires_cursor_delayed1;
-        hires_cursor_delayed3 <= hires_cursor_delayed2;
-        hires_cursor_delayed4 <= hires_cursor_delayed3;
+    if (phi_phase_start_4) begin
         hires_pixel_data_delayed0 <= hires_pixel_data;
         hires_pixel_data_delayed1 <= hires_pixel_data_delayed0;
         hires_pixel_data_delayed2 <= hires_pixel_data_delayed1;
         hires_pixel_data_delayed3 <= hires_pixel_data_delayed2;
-        hires_pixel_data_delayed4 <= hires_pixel_data_delayed3;
         hires_color_data_delayed0 <= hires_color_data;
         hires_color_data_delayed1 <= hires_color_data_delayed0;
         hires_color_data_delayed2 <= hires_color_data_delayed1;
         hires_color_data_delayed3 <= hires_color_data_delayed2;
-        hires_color_data_delayed4 <= hires_color_data_delayed3;
     end
 
     if (phi_phase_start_pl) begin
-        hires_cursor_delayed <= hires_cursor_delayed4;
-        hires_pixel_data_delayed <= hires_pixel_data_delayed4;
-        hires_color_data_delayed <= hires_color_data_delayed4;
+        xscroll_delayed0 <= xscroll;
+        hires_cursor_delayed0 <= hires_cursor;
+        hires_cursor_delayed1 <= hires_cursor_delayed0;
+        hires_cursor_delayed2 <= hires_cursor_delayed1;
+        hires_cursor_delayed3 <= hires_cursor_delayed2;
+        hires_cursor_delayed <= hires_cursor_delayed3;
+        hires_pixel_data_delayed <= hires_pixel_data_delayed3;
+        hires_color_data_delayed <= hires_color_data_delayed3;
     end
 
     if (!clk_phi && phi_phase_start_pl) begin
+        cycle_num_delayed1 <= cycle_num;
         cycle_num_delayed <= cycle_num_delayed1;
 
         if (visible && !vborder) begin

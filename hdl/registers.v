@@ -626,7 +626,7 @@ begin
         hires_matrix_base <= 4'b11;
         // Cursor top left
         hires_cursor_hi <= 8'h18;
-        hires_cursor_lo <= 8'b00;
+        hires_cursor_lo <= 8'h00;
 	`endif
 	`ifdef HIRES_BITMAP1
         hires_enabled <= 1'b1;
