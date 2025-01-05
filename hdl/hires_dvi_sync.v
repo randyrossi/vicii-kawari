@@ -142,8 +142,6 @@ endmodule
         input wire clk_dot4x,
         input wire clk_dvi,
         input [3:0] dot_rising,
-        input is_native_y_in,
-        input is_native_x_in,
         input hpolarity,
         input vpolarity,
         input enable_csync,
@@ -190,7 +188,6 @@ reg [9:0] va_end; // compared against vcount which can be 2y
 
 reg [10:0] h_count;  // output x position
 reg [9:0] v_count;  // output y position
-reg [1:0] ff;
 
 wire hsync_ah;
 wire vsync_ah;
@@ -238,35 +235,21 @@ begin
               );
 end
 
-wire advance;
-assign advance = 1'b1;
-
 always @ (posedge clk_dvi)
 begin
-    if (rst_dvi)
-    begin
-        ff <= 2'b01;
-    end else begin
-        // Resolution | advance on counter | pixel clock       | case
-        // -------------------------------------------------------------------------
-        // 2xX & 2xY  | 0,1,2,3            | 4x DIV 1          | !native_y && !native_x
-        // 2xX & 1xY  | 1,3                | 4x DIV 2          | native_y && !native_x
-        // 1xX & 2xY  | 1,3                | 4x DIV 2          | !native_y && native_x
-        // 1xX & 1xY  | 1                  | 4x DIV 4 (native) | native_y & native_x
-        ff <= ff + 2'b1;
-        if (advance) begin
-            if (h_count < max_width) begin
-                h_count <= h_count + 11'b1;
-            end else begin
-                h_count <= 0;
+    if (!rst_dvi) begin
+        // NOTE: H/W half resolution feature was removed
+        if (h_count < max_width) begin
+            h_count <= h_count + 11'b1;
+        end else begin
+            h_count <= 0;
 
-                if (v_count < max_height) begin
-                    v_count <= v_count + 9'b1;
-                    half_bright <= ~half_bright;
-                end else begin
-                    v_count <= 0;
-                    half_bright <= 0;
-                end
+            if (v_count < max_height) begin
+                v_count <= v_count + 9'b1;
+                half_bright <= ~half_bright;
+            end else begin
+                v_count <= 0;
+                half_bright <= 0;
             end
         end
     end

@@ -1341,8 +1341,6 @@ hires_dvi_sync vic_dvi_sync(
                    .clk_dot4x(clk_dot4x),
                    .clk_dvi(clk_dvi),
                    .dot_rising(dot_rising),
-                   .is_native_y_in(is_native_y),
-                   .is_native_x_in(is_native_x),
                    .enable_csync(enable_csync),
                    .hpolarity(hpolarity),
                    .vpolarity(vpolarity),
