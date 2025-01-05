@@ -12,6 +12,7 @@ echo $i
 echo ================================
 pushd $i
 ../../check_timing.sh
+../../check_resources.sh
 popd
 fi
 done
