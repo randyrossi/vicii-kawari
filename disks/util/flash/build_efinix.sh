@@ -1,7 +1,72 @@
-#!/bin/sh
+#!/bin/bash
 
 VER=1.19
 
+# Golden points to fallback at 0a6000 for LG and 0a1000 for LH builds
+# Active points to nothing 000000
+# $1 = filename
+# $2 = octal row position to find the pointer
+show_start_bytes()
+{
+   echo -n "$1 Golden = "
+   od -t x1 ${1} | grep 0000500 | sed 's/^0000500 .. .. .. .. .. .. .. .. //' | sed 's/.. .. .. .. ..$//' | tr -d '\n'
+   echo
+   echo -n "$1 Active = "
+   od -t x1 ${1} | grep ${2} | sed "s/^${2} .. .. .. .. .. .. .. .. //" | sed 's/.. .. .. .. ..$//' | tr -d '\n'
+   echo
+}
+
+ls -l hex/multi/${VER}/kawari_${VER}_${VER}_multi_LG_DVI-29MHZ-U.hex
+ls -l hex/multi/${VER}/kawari_${VER}_${VER}_multi_LG_DVI-27MHZ-S.hex
+ls -l hex/multi/${VER}/kawari_${VER}_${VER}_multi_LG_RGB-32MHZ-U.hex
+ls -l hex/multi/${VER}/kawari_${VER}_${VER}_multi_LH.hex
+ls -l hex/multi/${VER}/kawari_${VER}_${VER}_multi_LH-DOTC-1.2.hex
+ls -l hex/multi/${VER}/kawari_${VER}_${VER}_multi_LH-DOTC-1.5.hex
+
+echo "=================="
+echo "Check source files"
+echo "=================="
+read n
+echo
+
+mkdir -p tmp/bit/${VER}
+
+./multi_hex_to_bit hex/multi/${VER}/kawari_${VER}_${VER}_multi_LG_DVI-29MHZ-U.hex tmp/bit/${VER}/kawari_${VER}_${VER}_multi_LG_DVI-29MHZ-U.bit
+./multi_hex_to_bit hex/multi/${VER}/kawari_${VER}_${VER}_multi_LG_DVI-27MHZ-S.hex tmp/bit/${VER}/kawari_${VER}_${VER}_multi_LG_DVI-27MHZ-S.bit
+./multi_hex_to_bit hex/multi/${VER}/kawari_${VER}_${VER}_multi_LG_RGB-32MHZ-U.hex tmp/bit/${VER}/kawari_${VER}_${VER}_multi_LG_RGB-32MHZ-U.bit
+./multi_hex_to_bit hex/multi/${VER}/kawari_${VER}_${VER}_multi_LH.hex tmp/bit/${VER}/kawari_${VER}_${VER}_multi_LH.bit
+./multi_hex_to_bit hex/multi/${VER}/kawari_${VER}_${VER}_multi_LH-DOTC-1.2.hex tmp/bit/${VER}/kawari_${VER}_${VER}_multi_LH-DOTC-1.2.bit
+./multi_hex_to_bit hex/multi/${VER}/kawari_${VER}_${VER}_multi_LH-DOTC-1.5.hex tmp/bit/${VER}/kawari_${VER}_${VER}_multi_LH-DOTC-1.5.bit
+
+show_start_bytes tmp/bit/${VER}/kawari_${VER}_${VER}_multi_LG_DVI-29MHZ-U.bit 2460500
+show_start_bytes tmp/bit/${VER}/kawari_${VER}_${VER}_multi_LG_DVI-27MHZ-S.bit 2460500
+show_start_bytes tmp/bit/${VER}/kawari_${VER}_${VER}_multi_LG_RGB-32MHZ-U.bit 2460500
+show_start_bytes tmp/bit/${VER}/kawari_${VER}_${VER}_multi_LH.bit 2410500
+show_start_bytes tmp/bit/${VER}/kawari_${VER}_${VER}_multi_LH-DOTC-1.2.bit 2410500
+show_start_bytes tmp/bit/${VER}/kawari_${VER}_${VER}_multi_LH-DOTC-1.5.bit 2410500
+
+echo
+echo "=================="
+echo "Check start addrs"
+echo "=================="
+read n
+
+strings tmp/bit/${VER}/kawari_${VER}_${VER}_multi_LG_DVI-29MHZ-U.bit | grep Generated > tmp/bit/${VER}/kawari_${VER}_${VER}_multi_LG_DVI-29MHZ-U.txt
+strings tmp/bit/${VER}/kawari_${VER}_${VER}_multi_LG_DVI-27MHZ-S.bit | grep Generated > tmp/bit/${VER}/kawari_${VER}_${VER}_multi_LG_DVI-27MHZ-S.txt
+strings tmp/bit/${VER}/kawari_${VER}_${VER}_multi_LG_RGB-32MHZ-U.bit | grep Generated > tmp/bit/${VER}/kawari_${VER}_${VER}_multi_LG_RGB-32MHZ-U.txt
+strings tmp/bit/${VER}/kawari_${VER}_${VER}_multi_LH.bit | grep Generated > tmp/bit/${VER}/kawari_${VER}_${VER}_multi_LH.txt
+strings tmp/bit/${VER}/kawari_${VER}_${VER}_multi_LH-DOTC-1.2.bit | grep Generated > tmp/bit/${VER}/kawari_${VER}_${VER}_multi_LH-DOTC-1.2.txt
+strings tmp/bit/${VER}/kawari_${VER}_${VER}_multi_LH-DOTC-1.5.bit | grep Generated > tmp/bit/${VER}/kawari_${VER}_${VER}_multi_LH-DOTC-1.5.txt
+
+pushd tmp/bit/${VER} > /dev/null
+grep Generated *.txt 
+popd > /dev/null
+echo "==========="
+echo "Check dates"
+echo "==========="
+read n
+
+echo
 echo "Large - 29MHZ Unscaled"
 
 ./efinix_prep.sh hex/multi/${VER}/kawari_${VER}_${VER}_multi_LG_DVI-29MHZ-U.hex \
