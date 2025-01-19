@@ -10,7 +10,7 @@ VMEM_B_HI = $d03d
 VMEM_B_LO = $d03c
 VMEM_B_VAL = $d03e
 
-_copy_5000_0000:
+_copy_6000_0000:
         ; put first arg into pg_size
         sta pg_size+1
         sei         ; disable interrupts
@@ -20,7 +20,7 @@ _copy_5000_0000:
         lda $fb
         sta savefb
 
-        lda #$50    ; load high byte of $5000
+        lda #$60    ; load high byte of $6000
         sta $fc     ; store it in a free location we use as vector
         ldy #$00    ; init counter with 0
         sty $fb     ; store it as low byte in the $FB/$FC vector
@@ -58,4 +58,4 @@ savefc:
 savefb:
 .BYTE   0
 
-.export _copy_5000_0000
+.export _copy_6000_0000

@@ -67,14 +67,14 @@ FILENUMS=000 001 002 003 004 005 006 007 008 009 010 011 012 013 014 015 016 017
          160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179
 
 OBJS=main.o menu.o ../common/util.o \
-     ../common/flash.o crt0.o loader_loader.o copy.o compare.o
+     ../common/flash.o crt0.o loader_loader.o copy.o compare.o checksum_asm.o
 
 EXPERT_OBJS=main.o expert.o ../common/util.o ../common/flash.o copy.o
 
 # Make an info file for flash program to read
-# $9000 dest
+# $a004 dest
 info_file: load_bytes
-	./load_bytes 0 144 > info
+	./load_bytes 4 160 > info
 	# name, max 31 chars, petscii
 	echo $(NAME) >> info
 	# version string
@@ -93,6 +93,10 @@ info_file: load_bytes
 # Util to output 2 load bytes
 load_bytes: load_bytes.c
 	gcc load_bytes.c -o load_bytes
+
+# Utility to compute checksum bytes
+checksum: checksum.c
+	gcc checksum.c -o checksum
 
 flash.prg: ${OBJS}
 	ld65 -o flash.prg ${OBJS} /usr/share/cc65/lib/c64.lib \
@@ -122,6 +126,9 @@ copy.o: copy.s
 compare.o: compare.s
 	ca65 compare.s -o compare.o
 
+checksum_asm.o: checksum_asm.s
+	ca65 checksum_asm.s -o checksum_asm.o
+
 %.o: %.c
 	cl65 --include-dir ../include -c $*.c -o $*.o
 
@@ -145,8 +152,8 @@ clean:
 # page size.
 #
 # Then prefix each file with load bytes
-# $5000 dest for every chunk
-image_files:
+# $6000 dest for every chunk
+image_files: load_bytes checksum
 	mkdir -p tmp
 	if [ "$(FPGA)" = "spartan6_x16" ]; then \
 	   dd skip=1 bs=89 if=$(SOURCE_IMG) > stripped.bit; \
@@ -169,15 +176,21 @@ image_files:
 	split -a 3 -d -b $(PAGE_SIZE) stripped.bit tmp/img_
 	for NUM in $(FILENUMS); do \
            if [ -e tmp/img_$$NUM ]; then \
-	   ./load_bytes 0 80 > tmp/img_d64_$$NUM; \
+	   ./load_bytes 0 96 > tmp/img_d64_$$NUM; \
 	   cat tmp/img_$$NUM >> tmp/img_d64_$$NUM; \
+	   ./checksum tmp/img_$$NUM >> tmp/img_d64_$$NUM; \
 	   fi \
 	done
 
 SIZE=$(shell du -b flash.prg | cut -f1)
 
+# Need to make sure our program doesn't leave too little
+# space for heap. Our load buffer is at 0x6000 and the
+# progrm starts at 0x801 which leaves 22527 bytes but
+# we want at least 2048 for stack space. So put an upper
+# limit of 20478 for program size.
 checksize:
-	if [ $(SIZE) -gt 16384 ]; then \
+	if [ $(SIZE) -gt 20478 ]; then \
 	    echo "ERROR: flash.prg too large" ; exit 1 ; \
 	fi
 

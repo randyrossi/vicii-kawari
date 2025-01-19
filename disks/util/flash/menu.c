@@ -22,14 +22,17 @@
 #define MY_CFG_VERSION 0xfe
 
 // Program starts at 0x801.
-// 0x5000-0x8fff is used for 16k flash load space
-// 0x9000 is used first as scratch space for into then fast loader
-// Program should not exceed ~14k to leave at least 4k heap space,
+// 0x6000-0x9fff is used for 16k flash load space (or 4k for efinix)
+// 0xa004 is used first as scratch space for info file, then fast loader.
+// (A bit past a000 due to extra checksum bytes for 16k page sizes)
+// Program should not exceed ~20k to leave at least 2k heap space,
 // otherwise heap may get corrupted by flash tmp writes since it
 // wants to grow upwards starting from the end of the code.
+// Stack starts at 0xcfff and grows down. End of available space
+// after scratch space and loader is approx 10k.
 
 #define FLASH_VERSION_MAJOR 1
-#define FLASH_VERSION_MINOR 3
+#define FLASH_VERSION_MINOR 4
 
 // Use a combination of direct SPI access and bulk
 // SPI write operations provided by hardware to flash
@@ -69,8 +72,14 @@ unsigned char scratch[SCRATCH_SIZE];
 unsigned char use_fast_loader;
 
 void load_loader(void);
-void copy_5000_0000(unsigned char num_256b_pages);
+void copy_6000_0000(unsigned char num_256b_pages);
 void compare(void);
+void check_6000(unsigned char num_iter);
+
+extern unsigned char chk1;
+extern unsigned char chk2;
+extern unsigned char chk3;
+extern unsigned char chk4;
 
 void sys64738() {
     r.pc = (unsigned) 64738L;
@@ -95,8 +104,17 @@ void mprintf(unsigned char* text) {
    }
 }
 
+unsigned char wants_to_quit(void) {
+    mprintf("q to quit, any other to try again\n");
+    WAITKEY;
+    if (r.a == 'q') {
+        return 1;
+    }
+    return 0;
+}
+
 void press_any_key(int code) {
-   mprintf ("Press any key");
+   mprintf ("\nPress any key");
    if (code == TO_CONTINUE) mprintf (" to continue.\n");
    if (code == TO_EXIT) mprintf (" to exit.\n");
    if (code == TO_TRY_AGAIN) mprintf (" try again.\n");
@@ -154,7 +172,7 @@ void read_string(unsigned long* addr) {
        scratch[SCRATCH_SIZE-1] = '\0';
 }
 
-// Load the fast loader into $9000
+// Load the fast loader into $a004
 unsigned char slow_load(void) {
     r.pc = (unsigned) &load_loader;
     r.x = (unsigned char)(&filename[0]);
@@ -166,25 +184,81 @@ unsigned char slow_load(void) {
 
 // Call the fast loader's initialization routine
 void init_fast_loader(void) {
-    r.pc = 36864L;
+    r.pc = 40964L; // $a004
     _sys(&r);
 }
 
-// Fast load next 16k segment into $5000-$8FFF
+// Fast load next 16k segment into $6000-$9FFF
 // Return non-zero on failure to load file.
 unsigned char fast_load() {
-    r.pc = 36867L;
+    r.pc = 40967L; // $a007
     r.x = (unsigned char)(&filename[0]);
     r.y = (unsigned)(&filename[0]) >> 8;
     _sys(&r);
     return r.a;
 }
 
-unsigned char load() {
-   if (use_fast_loader)
-      return fast_load();
+// Use the asm routine to compute the checksum
+// and compare to the one stored at the end of
+// the page just loaded.
+// Return 0 if they are not the same.
+int checksum_matches(unsigned long page_size)
+{
+   unsigned long location;
+   unsigned long *checksum;
+   unsigned long *stored_checksum;
+   char c[4];
+   char sc[4];
+
+   check_6000(page_size == 16384 ? 64 : 16);
+       
+   c[3] = chk1;
+   c[2] = chk2;
+   c[1] = chk3;
+   c[0] = chk4;
+   //c[0] = 0xff; // Uncomment to test forcing bad checksum path
+
+   checksum = (unsigned long*) &c[0];
+
+   if (page_size == 16384)
+     location = 0xA000L; // $6000 + 16k
    else
-      return slow_load();
+     location = 0x7000L; // $6000 + 4k
+
+   sc[3] = PEEK(location);
+   location++;
+   sc[2] = PEEK(location);
+   location++;
+   sc[1] = PEEK(location);
+   location++;
+   sc[0] = PEEK(location);
+
+   stored_checksum = (unsigned long*) &sc[0];
+
+   return *stored_checksum == *checksum;
+}
+
+// Return
+// 1 = file not found or could not be loaded
+// 2 = checksum fail
+unsigned char load(unsigned long page_size) {
+   unsigned char ret;
+   if (use_fast_loader)
+      ret = fast_load();
+   else
+      ret = slow_load();
+
+   if (ret == 0) {
+       // File found and loaded
+       if (!checksum_matches(page_size)) {
+          return 2; // checksum failure
+       }
+   } else {
+       // Could not load file
+       return 1;
+   }
+
+   return 0;
 }
 
 void fast_start(void) {
@@ -238,6 +312,37 @@ void upgrade_eeprom(void) {
    use_device(DEVICE_TYPE_FLASH);
 }
 
+// Should be called before begin_flash to make sure
+// loading from disk is trustworthy.
+int test_disk(long num_to_read, unsigned long page_size) {
+    unsigned char abs_filenum;
+    unsigned char ret;
+
+    mprintf("\nTesting drive reliability with first\n");
+    mprintf("few pages. Please be patient.\n");
+
+    while (num_to_read > 0) {
+       sprintf (filename,"i%03d", abs_filenum);
+       SMPRINTF_2("%ld:LOAD %s,", num_to_read, filename);
+
+       ret = load(page_size);
+       if (ret == 1) {
+            mprintf("\nFile not found.\n");
+            press_any_key(TO_EXIT);
+            return -1;
+       } else if (ret == 2) {
+            mprintf("\nChecksum failure. Bad drive?\n");
+            press_any_key(TO_EXIT);
+            return -1;
+       }
+
+       mprintf("OK!\n");
+       num_to_read -= page_size;
+       abs_filenum++;
+    }
+    return 0;
+}
+
 // Flash files are spread across 4 disks
 // This routine erases the flash
 void begin_flash(long num_to_write, unsigned long start_addr, unsigned long page_size, unsigned long num_disks) {
@@ -248,6 +353,7 @@ void begin_flash(long num_to_write, unsigned long start_addr, unsigned long page
     unsigned int n;
     unsigned int max_file = (page_size == 16384 ? MAX_FILE_PER_DISK_16K : MAX_FILE_PER_DISK_4K);
     unsigned int max_disk = num_disks - 1;
+    unsigned char ret;
 
     // If we had chosen a start address dividible by 64k, we
     // could have used 64k page erase.  Oh well.  At least
@@ -269,12 +375,22 @@ void begin_flash(long num_to_write, unsigned long start_addr, unsigned long page
     while (num_to_write > 0) {
        // Set next filename
        sprintf (filename,"i%03d", abs_filenum);
-       SMPRINTF_2("%ld:READ %s,", num_to_write, filename);
 
-       while (load()) {
-            mprintf("\nFile not found.\n");
-            press_any_key(TO_TRY_AGAIN);
+       while (1)
+       {
             SMPRINTF_2("%ld:READ %s,", num_to_write, filename);
+            ret = load(page_size);
+            if (ret == 0) break;
+            else if (ret == 1) {
+                mprintf("\nFile not found.\n");
+                if (wants_to_quit())
+                   return;
+            }
+            else if (ret == 2) {
+                mprintf("\nChecksum failure. Bad drive?\n");
+                if (wants_to_quit())
+                   return;
+            }
        }
 
        mprintf ("COPY,");
@@ -282,12 +398,12 @@ void begin_flash(long num_to_write, unsigned long start_addr, unsigned long page
        // Pad remaining bytes
        if (num_to_write < page_size) {
            for (n=num_to_write; n < page_size; n++) {
-              POKE(0x5000L+n, 0xff);
+              POKE(0x6000L+n, 0xff);
            }
        }
 
-       // Transfer $5000 - $8fff into video memory @ $0000
-       copy_5000_0000(page_size == 16384 ? 64 : 16);
+       // Transfer $6000 - $9fff into video memory @ $0000
+       copy_6000_0000(page_size == 16384 ? 64 : 16);
 
        // Tell kawari to flash it from vmem 0x0000 to the flash address
        POKE(VIDEO_MEM_FLAGS, 0);
@@ -330,6 +446,7 @@ void begin_verify(long num_to_read, unsigned long start_addr, unsigned long page
     unsigned int n;
     unsigned int max_file = (page_size == 16384 ? MAX_FILE_PER_DISK_16K : MAX_FILE_PER_DISK_4K);
     unsigned int max_disk = num_disks - 1;
+    unsigned char ret;
 
     filenum = 0;
     abs_filenum = 0;
@@ -340,12 +457,22 @@ void begin_verify(long num_to_read, unsigned long start_addr, unsigned long page
     while (num_to_read > 0) {
        // Set next filename
        sprintf (filename,"i%03d", abs_filenum);
-       SMPRINTF_2("%ld:READ %s,", num_to_read, filename);
 
-       while (load()) {
-            mprintf("\nFile not found.\n");
-            press_any_key(TO_TRY_AGAIN);
+       while (1)
+       {
             SMPRINTF_2("%ld:READ %s,", num_to_read, filename);
+            ret = load(page_size);
+            if (ret == 0) break;
+            else if (ret == 1) {
+                mprintf("\nFile not found.\n");
+                if (wants_to_quit())
+                   return;
+            }
+            else if (ret == 2) {
+                mprintf("\nChecksum failure. Bad drive?\n");
+                if (wants_to_quit())
+                   return;
+            }
        }
 
        // Tell kawari to read from flash to 0x0000
@@ -364,13 +491,12 @@ void begin_verify(long num_to_read, unsigned long start_addr, unsigned long page
        // Wait for flash to be done and verified
        mprintf ("VERIFY,");
 
-
        // Set the number of bytes to compare
-       // vmem 0x0000 with mem 0x5000
+       // vmem 0x0000 with mem 0x6000
        n = num_to_read >= page_size ? page_size : num_to_read;
 
 // For testing in sim
-//copy_5000_0000(page_size == 16384 ? 64 : 16);
+//copy_6000_0000(page_size == 16384 ? 64 : 16);
 
        POKE(0xfe,(n >> 8) & 0xff);
        POKE(0xfd,(n & 0xff));
@@ -414,6 +540,7 @@ void main_menu(void)
     unsigned char variant[16];
     unsigned int current_board_int;
     unsigned int image_board_int;
+    unsigned char skip_reliability_test = 0;
 
     clrscr();
 
@@ -447,6 +574,7 @@ void main_menu(void)
     mprintf ("queue in advance. If you fail to load\n");
     mprintf ("the next disk, don't turn off the\n");
     mprintf ("machine. Soft reset and try again.\n");
+    mprintf ("Please turn OFF the GraphIEC feature.\n");
 
     press_any_key(TO_CONTINUE);
 
@@ -499,8 +627,8 @@ void main_menu(void)
        press_any_key(TO_TRY_AGAIN);
     }
 
-    // Info is now at $9000
-    tmp_addr=0x9000;
+    // Info is now at $a004
+    tmp_addr=0xa004;
 
     read_string(&tmp_addr);
     SMPRINTF_1 ("Image name   :%s\n", scratch);
@@ -530,7 +658,10 @@ void main_menu(void)
        mprintf ("incompatible with this board. If you\n");
        mprintf ("think this in an error, you will have\n");
        mprintf ("to manually override the info file.\n");
-       exit(0);
+       if (current_board_int != BOARD_SIM)
+       {
+          exit(0);
+       }
     }
 
     mprintf ("\nUse fast loader (Y/n) ?");
@@ -550,6 +681,12 @@ void main_menu(void)
     fast_start();
 
     for (;;) {
+       mprintf ("\n");
+       if (skip_reliability_test) {
+          mprintf ("T - Enable drive reliability test\n");
+       } else {
+          mprintf ("T - Skip drive reliability test\n");
+       }
        if (use_fast_loader) {
           mprintf ("D - Disable fastloader\n");
        } else {
@@ -560,6 +697,16 @@ void main_menu(void)
        mprintf ("R - Reset\n");
        WAITKEY;
        if (r.a == 'f') {
+          // Test 8 pages worth for 4k pages and 2 pages worth for 16k
+          if (!skip_reliability_test && test_disk(32768L, page_size) != 0) {
+             mprintf ("Drive reliability check failed!\n");
+             if (use_fast_loader) {
+                mprintf ("Try turning off the fast loader.\n");
+             }
+             mprintf ("Aborting flash!\n");
+             press_any_key(TO_NOTHING);
+             continue;
+          }
           upgrade_eeprom();
           begin_flash(num_to_write, start_addr, page_size, num_disks);
        } else if (r.a == 'v') {
@@ -574,6 +721,8 @@ void main_menu(void)
           WAITKEY;
           if (r.a == 'y') sys64738();
           mprintf ("\n");
+       } else if (r.a == 't') {
+          skip_reliability_test = 1 - skip_reliability_test;
        }
        //else if (r.a == 'q') {
        //   break;

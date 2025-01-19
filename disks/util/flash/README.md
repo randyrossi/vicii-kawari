@@ -69,3 +69,9 @@ This board is labeled VICII-Kawari LG Revision 1.2
 ## Make zips
 
    ./build_efinix.sh
+
+## Move all zips into v#.## folder
+
+   ./check_efinish.sh v#.##
+
+   For final check

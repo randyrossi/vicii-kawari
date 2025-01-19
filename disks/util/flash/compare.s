@@ -30,8 +30,9 @@ _compare:
 
 	ldy #0
 iter:
+        ; Expect data at $6000
 	lda VMEM_A_HI
-	adc #$50
+	adc #$60
 	sta $fc
 	lda VMEM_A_LO
 	sta $fb

@@ -13,7 +13,7 @@
 #define SCRATCH_SIZE 32
 unsigned char scratch[SCRATCH_SIZE];
 
-void copy_5000_0000(void);
+void copy_6000_0000(void);
 
 static struct regs r;
 
@@ -110,7 +110,7 @@ void expert(void) {
           printf ("m read 256 from vmem\n");
           printf ("f bulk flash read to vmem\n");
           printf ("g bulk flash write from vmem\n");
-          printf ("c copy 0x5000 DRAM to 0x0000 VMEM\n");
+          printf ("c copy 0x6000 DRAM to 0x0000 VMEM\n");
           printf ("l fill 16k VMEM with pattern\n");
           printf ("s get spi status reg\n");
           break;
@@ -183,9 +183,9 @@ void expert(void) {
           POKE(SPI_REG, FLASH_BULK_OP | FLASH_BULK_WRITE);
           printf("VERIFY %d\n", wait_verify());
           break;
-        case 'c': // COPY 0x5000 to vmem 0x000
-          printf ("\nCopy 0x5000 DRAM to 0x000 VMEM\n");
-          copy_5000_0000();
+        case 'c': // COPY 0x6000 to vmem 0x000
+          printf ("\nCopy 0x6000 DRAM to 0x000 VMEM\n");
+          copy_6000_0000();
           break;
         case 'l': // FILL 16k vmem with pattern
           POKE(VIDEO_MEM_FLAGS, 1);
