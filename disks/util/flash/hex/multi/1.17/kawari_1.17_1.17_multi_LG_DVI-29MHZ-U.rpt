@@ -1,0 +1,12 @@
+**** Efinity Programming Tool Generation Report *****
+Time: 2023-09-07 11:11
+
+Generated Multi Image output file: /shared/Vivado/vicii-kawari/disks/util/flash/hex/multi/1.17/new.hex
+Device: T20F256
+Image type: external
+CBSEL[1:0]  Flash Address  Length      Input Image File
+     2'b00  0x00000000     0x000a5d14  /shared/Vivado/vicii-kawari/disks/util/flash/hex/single/1.17/kawari_MAINLG-DVI-29MHZ-U_1.17.hex
+     2'b01  0x000a6000     0x00000000  <blank>
+     2'b10  0x000a6000     0x000a5d14  /shared/Vivado/vicii-kawari/disks/util/flash/hex/single/1.17/kawari_MAINLG-DVI-29MHZ-U_1.17.hex
+     2'b11  0x0014c000     0x00000000  <blank>
+
