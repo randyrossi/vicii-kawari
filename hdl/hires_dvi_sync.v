@@ -315,12 +315,9 @@ begin
     end
 end
 
-reg active_buf_1;
-reg active_buf_2;
-always @(posedge clk_dvi) active_buf_1 <= active_buf;
-always @(posedge clk_dvi) active_buf_2 <= active_buf_1;
 always @(posedge clk_dvi) begin
-    pixel_color4 <= active_buf_2 ? dout1 : dout0;
+    // Ignore domain crossing error caused by this line
+    pixel_color4 <= active_buf ? dout1 : dout0;
 end
 
 `ifndef CONFIGURABLE_TIMING
