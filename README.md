@@ -384,7 +384,7 @@ Pi1541                      | Must turn off GraphIEC feature or else some demos 
 Link232 Wifi Cartridge      | Works but requires motherboard clock jumper setting. Will not work with on-board oscillators (unless dot clock is exported).
 Turbo Chameleon             | Reported to work with motherboard clock jumper setting.
 SaRuMan DRAM Replacement    | Lyonte LY62W1024RL-55SL 2010 I220111A08W1S - Works with Kawari firmare 1.14+
-SaRuMan DRAM Replacement    | ISSI IS61C1024AL-12HLI DSK493X1 2239 - There was a batch of Saruman's made with these SRAM chips and 1.14-1.16 does not work.  Firmware 1.18 fixes the issue.
+SaRuMan DRAM Replacement    | ISSI IS61C1024AL-12HLI DSK493X1 2239 - There was a batch of Saruman's made with these SRAM chips and it does not work with the Kawari.  Unfortunately, my attempts to meet the different timing of this device have failed (or introduced regressions).
 StrikeTerm w/ UP9600 Modem  | Must load 80col.kawari before selecting UP9600 modem
 
 ## Software Compatibility Matrix
