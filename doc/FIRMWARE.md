@@ -54,6 +54,7 @@ Download firmware updates here: [README.md](../disks/util/flash/README.md)
 
 Version | Notes
 --------|--------
+1.19    | Fixed DRAM refresh pattern not matching original chip. Some internal optimizations.
 1.17    | Added 480p/576p version of DVI firmware for monitors that don't like to sync to the default. Also cenetered stuff better.
 1.16    | Fixed 2 blitter bugs. Added IRQ status/control bits for DMA operations.
 1.15    | Fixed some DVI signal stability issues. Also made RGB H/V sync match that of composite.
