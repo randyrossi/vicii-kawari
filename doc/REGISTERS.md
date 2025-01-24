@@ -500,7 +500,7 @@ Chip    | Non visible gfx lines | Cycles / line | Bytes Filled / Frame
         STA VIDEO_MEM_FLAGS
 
         LDA #8                ; Perform DMA op 
-        STA VIDEO_MEM_FLAGS
+        STA VIDEO_MEM_1_VAL
 
     polldone
         LDA VIDEO_MEM_2_IDX   ; wait for done
@@ -527,7 +527,7 @@ Chip    | Non visible gfx lines | Cycles / line | Bytes Filled / Frame
         STA VIDEO_MEM_FLAGS
 
         LDA #16               ; Perform DMA op 
-        STA VIDEO_MEM_FLAGS
+        STA VIDEO_MEM_1_VAL
 
     polldone
         LDA VIDEO_MEM_2_IDX   ; wait for done
