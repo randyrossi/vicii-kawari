@@ -563,8 +563,8 @@ Register| Param | Description
 0xd030 | Width Lo | The rectangle width lo byte
 0xd031 | Height Hi | The rectangle height hi byte (only lowest 2 bits are valid)
 0xd032 | Height Lo  | The rectangle height lo byte
-0xd035 | Src Ptr Lo Byte | The base pointer to bitmap data (lo byte)
-0xd036 | Src Ptr Hi byte | The base pointer to bitmap data (hi byte)
+0xd035 | Src Ptr Hi Byte | The base pointer to bitmap data (hi byte)
+0xd036 | Src Ptr Lo byte | The base pointer to bitmap data (lo byte)
 0xd039 | Src X Lo Byte | The x coordinate for the rectangle (lo byte)
 0xd03a | Src X Hi Byte | The x coordinate for the rectangle (hi byte)
 0xd03c | Src Y Lo Byte | The y coordinate for the rectangle
@@ -579,8 +579,8 @@ Register| Param | Description
 0xd030 | Unused |
 0xd031 | Unused | 
 0xd032 | Unused | 
-0xd035 | Dst Ptr Lo Byte | The base pointer to bitmap data (lo byte)
-0xd036 | Dst Ptr Hi byte | The base pointer to bitmap data (hi byte)
+0xd035 | Dst Ptr Hi Byte | The base pointer to bitmap data (hi byte)
+0xd036 | Dst Ptr Lo byte | The base pointer to bitmap data (lo byte)
 0xd039 | Dst X Lo Byte | The x coordinate for the rectangle (lo byte)
 0xd03a | Dst X Hi Byte | The x coordinate for the rectangle (hi byte)
 0xd03c | Dst Y Lo Byte | The y coordinate for the rectangle
