@@ -65,7 +65,7 @@ PAL-B        |2x|2x|1008 |624   |31.26khz   |50.125hz   |31.527 Mhz
 
 The Trion board RGB firmware has resolutions identical to the spartan table above.
 
-### Trion Large Board DVI Options (1.17)
+### Trion Large Board DVI Options
 
 There are two firmware options for DVI output on the Trion boards but there are trade-offs to be aware of.
 
@@ -76,7 +76,7 @@ Scaled   | DVS         | More visible border area for NTSC chips. More compatibl
 
 If you are not interested in the extended features and are having trouble with the PAL mode on your monitor, try the alternate firmware.  The modes are summarized below:
 
-#### Trion Large Board DVI (Default - 1.17)
+#### Trion Large Board DVI (Default)
 
 The default DVI firmware (full 2x/2Y resolution) is reduced to the following values:
 
@@ -95,7 +95,7 @@ PAL-B        |![PAL Scaled](doc/images/6569-29MHZ-U.png "PAL Scaled")|Less compa
 
 If your monitor does not support the non-standard PAL-B mode, see 'Alternate Trion DVI Firmware' below.
 
-#### Alternate Trion DVI Firmware (Scaled - 1.17)
+#### Alternate Trion DVI Firmware (Scaled)
 
 The default Trion DVI firmware may not work on all monitors/TVs as it outputs resolutions that are not standard.  Also, the video tends to be more 'stretched' even using a 4:3 aspect ratio setting on the monitor.  If your display doesn't show the PAL video mode, you can try an alternate DVI firmware with a mode closer to the 720x576 standard. This is more likely to work for older TVs/monitors.  However, please be aware the C64's native video modes are scaled by 1.8x rather than 2x to get a better aspect ratio and more border space. Although regular C64 video modes will look okay, the Kawari's extended hi-resolution modes (80 column, 640x200) will look pixelated as those modes are effectively downscaled 10:9. This an unfortunate trade-off to using this video timing.
 
@@ -386,6 +386,7 @@ Turbo Chameleon             | Reported to work with motherboard clock jumper set
 SaRuMan DRAM Replacement    | Lyonte LY62W1024RL-55SL 2010 I220111A08W1S - Works with Kawari firmare 1.14+
 SaRuMan DRAM Replacement    | ISSI IS61C1024AL-12HLI DSK493X1 2239 - There was a batch of Saruman's made with these SRAM chips and it does not work with the Kawari.  Unfortunately, my attempts to meet the different timing of this device have failed (or introduced regressions).
 StrikeTerm w/ UP9600 Modem  | Must load 80col.kawari before selecting UP9600 modem
+SPL HD-64 HDMI Modulator    | Must use v1.19+ firmware, previous versions did not match refresh pattern of original chip and 'confused' this product
 
 ## Software Compatibility Matrix
 
