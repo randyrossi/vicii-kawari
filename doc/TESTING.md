@@ -1,48 +1,70 @@
-# Software Testing
+# Testing Checklists
 
-## Flash Test
+# Hardware Permutations
 
-Test                      | Check
---------------------------|----------------------
-Load                      | Flash identified, Verify 1.0
-Erase 4K@512000           | Verify 0xff
-Boots to golden           | Verify 0.9
-Flash multiboot           |
-   Try wrong variant      | Get warning
-   Try wrong disk         | Retry forever
-Reboot                    | Verify 1.0
-Verify golden             | Should succeed
+Test                   | Complete
+-----------------------|---------
+Genuine 6510           |
+Replacement 6510       |
+Genuine DRAM           |
+Static DRAM Saruman    |
+Static DRAM CBM        |
+Genuine PLA            |
+Replacement PLA J-PLA  |
+Evo64                  |
 
-# Test Matrix For New Hardware
+# VideoStandard Tests
 
-Check | Tool | Result
-------|-------|------
-Done LED Lights Up | |
-Boot opposite standard on uninitialized board | Temp jumper switch
-On board oscillator for NTSC | Manual check |
-On board oscillator for PAL | Manual check |
-Motherboard oscillator for native std| Manual check |
-Red resistor ladder | RGBTEST |
-Green resisor ladder | RGBTEST |
-Blue resistor ladder | RGBTEST |
-Luma resistor ladder | LUMATEST |
-Reset detect | Ball demo + soft reset |
-Spi lock detect | CONFIG |
-Extensions lock detect | CONFIG |
-Save lock detect | CONFIG |
-Init board as PAL & Reboot | CONFIG |
-Eeprom check | EEPROM UTIL |
-Boot opposite standard w/ hw switch | Temp jumper switch |
-Eeprom check again | EEPROM UTIL |
-80 Column Mode | 80COLUMN-51200 |
-Flash test | FLASHTEST |
-Math test | MATHTEST |
-Regs test | REGSTEGS |
-CSYNC | CONFIG |
-HPOL | CONFIG |
-VPOL | CONFIG |
-NATIVEX | CONFIG |
-15KHZ | CONFIG |
-RASTERLINES ON + BOOT| CONFIG |
-RASTERLINES OFF + BOOT| CONFIG |
-Cfg Reset | Jumper |
+Test               | Complete 
+-------------------|---------
+PAL Fallback Boot  |
+PAL Active Boot    |
+NTSC Fallback Boot |
+NTSC Active Boot   |
+
+# Hardware Tests
+
+Test                   | LH | LG-DVI-U | LG-DVI-S  | LG RGB
+-----------------------|----|----------|-----------|--------
+Flash from & boot to   |    |          |           |
+15Khz ON/OFF           |    |          |           |
+Video Standard Switch  |    |          |           |
+Config Reset Detect    |    |          |           |
+Flash Lock Detect      |    |          |           |
+Extensions Lock Detect |    |          |           |
+Save Lock Detect       |    |          |           |
+
+# PAL Software Tests
+
+Test                   | LH | LG-DVI-U | LG-DVI-S  | LG RGB
+-----------------------|----|----------|-----------|--------
+New Pal                |    |          |           |
+DonkeyKongJr           |    |          |           |
+Ghostbusters           |    |          |           |
+SuperMario             |    |          |           |
+Gianna Sis Intro       |    |          |           |
+Galancia               |    |          |           |
+Edge of Disgrace       |    |          |           |
+Errata                 |    |          |           |
+Conclusion             |    |          |           |
+Lunatico               |    |          |           |
+Krestage 2             |    |          |           |
+Krestage 3             |    |          |           |
+Nine                   |    |          |           |
+Next Level             |    |          |           |
+Uncensored             |    |          |           |
+Comaland               |    |          |           |
+Super Zaxxon Crt       |    |          |           |
+
+# NTSC Software Tests
+
+Test                   | LH | LG-DVI-U | LG-DVI-S  | LG RGB
+-----------------------|----|----------|-----------|--------
+New Ntsc               |    |          |           |
+DonkeyKongJr           |    |          |           |
+Ghostbusters           |    |          |           |
+SuperMario             |    |          |           |
+Father Time            |    |          |           |
+Pitfall Baloon Jump    |    |          |           |
+Super Zaxxon Crt       |    |          |           |
+
