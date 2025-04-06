@@ -66,7 +66,7 @@
         <efx:param name="work_dir" value="work_pnr" value_type="e_string" />
         <efx:param name="verbose" value="off" value_type="e_bool" />
         <efx:param name="load_delaym" value="on" value_type="e_bool" />
-        <efx:param name="optimization_level" value="CONGESTION_3" value_type="e_option" />
+        <efx:param name="optimization_level" value="TIMING_3" value_type="e_option" />
         <efx:param name="seed" value="5" value_type="e_integer" />
     </efx:place_and_route>
     <efx:bitstream_generation tool_name="efx_pgm">
