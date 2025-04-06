@@ -1,0 +1,12 @@
+**** Efinity Programming Tool Generation Report *****
+Time: 2025-04-06 10:55
+
+Generated Multi Image output file: /shared/Vivado/vicii-kawari/boards/rev_4G/run_sweep_264d8c7cd87f/seed_9/outflow/multi.hex
+Device: T20F256
+Image type: external
+CBSEL[1:0]  Flash Address  Length      Input Image File
+     2'b00  0x00000000     0x000a5d14  /shared/Vivado/vicii-kawari/boards/rev_4G/run_sweep_264d8c7cd87f/seed_9/outflow/vicii.hex
+     2'b01  0x000a6000     0x00000000  <blank>
+     2'b10  0x000a6000     0x000a5d14  /shared/Vivado/vicii-kawari/boards/rev_4G/run_sweep_264d8c7cd87f/seed_9/outflow/vicii.hex
+     2'b11  0x0014c000     0x00000000  <blank>
+

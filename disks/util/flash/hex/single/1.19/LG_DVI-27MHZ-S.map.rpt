@@ -1,0 +1,714 @@
+Synthesis report for project vicii
+Generated at: Apr 05, 2025 21:58:52
+Copyright (C) 2013 - 2021 Efinix Inc. All rights reserved.
+
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+
+Top-level Entity Name : top
+### ### File List (begin) ### ### ###
+/shared/Vivado/vicii-kawari/hdl/bus_access.v
+/shared/Vivado/vicii-kawari/hdl/sprites.v
+/shared/Vivado/vicii-kawari/hdl/sinewave.v
+/shared/Vivado/vicii-kawari/hdl/border.v
+/shared/Vivado/vicii-kawari/hdl/testpattern.v
+/shared/Vivado/vicii-kawari/hdl/lightpen.v
+/shared/Vivado/vicii-kawari/hdl/lumareg.v
+/shared/Vivado/vicii-kawari/hdl/cycles.v
+/shared/Vivado/vicii-kawari/hdl/matrix.v
+/shared/Vivado/vicii-kawari/hdl/comp_sync.v
+/shared/Vivado/vicii-kawari/hdl/vicii.v
+/shared/Vivado/vicii-kawari/hdl/registers_scaled.v
+/shared/Vivado/vicii-kawari/hdl/raster.v
+/shared/Vivado/vicii-kawari/hdl/serration.v
+/shared/Vivado/vicii-kawari/hdl/equalization.v
+/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v
+/shared/Vivado/vicii-kawari/hdl/addressgen_efinix.v
+/shared/Vivado/vicii-kawari/hdl/rev_4G/top.v
+/shared/Vivado/vicii-kawari/hdl/hires_pixel_sequencer.v
+/shared/Vivado/vicii-kawari/hdl/hires_addressgen.v
+/shared/Vivado/vicii-kawari/hdl/colorreg.v
+/shared/Vivado/vicii-kawari/hdl/hires_matrix.v
+/shared/Vivado/vicii-kawari/hdl/hires_vga_sync.v
+/shared/Vivado/vicii-kawari/hdl/hires_dvi_sync_scaled.v
+/shared/Vivado/vicii-kawari/hdl/divide.v
+/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v
+/shared/Vivado/vicii-kawari/hdl/efinix_trion/dvi/dvi.v
+/shared/Vivado/vicii-kawari/hdl/efinix_trion/dvi/serializer.v
+/shared/Vivado/vicii-kawari/hdl/efinix_trion/dvi/tmds_channel.v
+### ### File List (end) ### ### ###
+
+### ### Pre-optimizations and mapping (begin) ### ### ###
+"MEM|SYN-0677" : Zero initialization of uninitialized memory block 'sprite_cur_pixel1'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:109)
+"MEM|SYN-0677" : Zero initialization of uninitialized memory block 'sprite_cur_pixel2'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:110)
+"MEM|SYN-0677" : Zero initialization of uninitialized memory block 'sprite_cur_pixel3'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:111)
+"MEM|SYN-0677" : Zero initialization of uninitialized memory block 'sprite_cur_pixel4'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:112)
+"MEM|SYN-0677" : Zero initialization of uninitialized memory block 'sprite_cur_pixel5'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:113)
+"MEM|SYN-0677" : Zero initialization of uninitialized memory block 'sprite_cur_pixel6'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:114)
+"MEM|SYN-0677" : Zero initialization of uninitialized memory block 'sprite_mcbase'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:117)
+"MEM|SYN-0677" : Zero initialization of uninitialized memory block 'sprite_xe_ff'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:118)
+"MEM|SYN-0677" : Zero initialization of uninitialized memory block 'sprite_ye_ff'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:119)
+"MEM|SYN-0677" : Zero initialization of uninitialized memory block 'sprite_pixels_shifting'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:124)
+"MEM|SYN-0677" : Zero initialization of uninitialized memory block 'sprite_x_d'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:130)
+"MEM|SYN-0677" : Zero initialization of uninitialized memory block 'sprite_x_d2'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:131)
+"MEM|SYN-0677" : Zero initialization of uninitialized memory block 'char_buf'. (/shared/Vivado/vicii-kawari/hdl/bus_access.v:49)
+"MEM|SYN-0677" : Zero initialization of uninitialized memory block 'ram_dual_port'. (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:49)
+"MEM|SYN-0677" : Zero initialization of uninitialized memory block 'ram_loc'. (/shared/Vivado/vicii-kawari/hdl/registers_scaled.v:36)
+"MEM|SYN-0677" : Zero initialization of uninitialized memory block 'sprite_col_d1'. (/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v:102)
+"MEM|SYN-0677" : Zero initialization of uninitialized memory block 'sprite_col_d2'. (/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v:103)
+"MEM|SYN-0677" : Zero initialization of uninitialized memory block 'ram_single_port'. (/shared/Vivado/vicii-kawari/hdl/hires_dvi_sync_scaled.v:115)
+MEM|SYN : Mapping into logic memory block "sprite_pixels_shifting" with multiple readers
+"@ /shared/Vivado/vicii-kawari/hdl/sprites.v (124)" MEM|SYN : Mapping into logic memory block "sprite_x_d" with multiple readers
+"@ /shared/Vivado/vicii-kawari/hdl/sprites.v (130)" MEM|SYN : Mapping into logic memory block "sprite_x_d2" with multiple readers
+"@ /shared/Vivado/vicii-kawari/hdl/sprites.v (131)" MEM|SYN : Mapping into logic memory block "vic_sprites/sprite_pixels_shifting" with multiple readers
+"@ /shared/Vivado/vicii-kawari/hdl/sprites.v (124)" MEM|SYN : Mapping into logic memory block "vic_sprites/sprite_x_d" with multiple readers
+"@ /shared/Vivado/vicii-kawari/hdl/sprites.v (130)" MEM|SYN : Mapping into logic memory block "vic_sprites/sprite_x_d2" with multiple readers
+"@ /shared/Vivado/vicii-kawari/hdl/sprites.v (131)" MEM|SYN : Mapping into logic memory block "vic_inst/vic_sprites/sprite_pixels_shifting" with multiple readers
+"@ /shared/Vivado/vicii-kawari/hdl/sprites.v (124)" MEM|SYN : Mapping into logic memory block "vic_inst/vic_sprites/sprite_x_d" with multiple readers
+"@ /shared/Vivado/vicii-kawari/hdl/sprites.v (130)" MEM|SYN : Mapping into logic memory block "vic_inst/vic_sprites/sprite_x_d2" with multiple readers
+"@ /shared/Vivado/vicii-kawari/hdl/sprites.v (131)" "MEM|SYN-0655" : Mapping into logic memory block 'vic_inst/vic_sprites/sprite_cur_pixel1'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:109)
+"MEM|SYN-0655" : Mapping into logic memory block 'vic_inst/vic_sprites/sprite_cur_pixel2'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:110)
+"MEM|SYN-0655" : Mapping into logic memory block 'vic_inst/vic_sprites/sprite_cur_pixel3'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:111)
+"MEM|SYN-0655" : Mapping into logic memory block 'vic_inst/vic_sprites/sprite_cur_pixel4'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:112)
+"MEM|SYN-0655" : Mapping into logic memory block 'vic_inst/vic_sprites/sprite_cur_pixel5'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:113)
+"MEM|SYN-0655" : Mapping into logic memory block 'vic_inst/vic_sprites/sprite_cur_pixel6'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:114)
+"MEM|SYN-0655" : Mapping into logic memory block 'vic_inst/vic_sprites/sprite_mcbase'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:117)
+"MEM|SYN-0655" : Mapping into logic memory block 'vic_inst/vic_sprites/sprite_xe_ff'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:118)
+"MEM|SYN-0655" : Mapping into logic memory block 'vic_inst/vic_sprites/sprite_ye_ff'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:119)
+"MEM|SYN-0655" : Mapping into logic memory block 'vic_inst/vic_sprites/sprite_pixels_shifting'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:124)
+"MEM|SYN-0655" : Mapping into logic memory block 'vic_inst/vic_sprites/sprite_x_d'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:130)
+"MEM|SYN-0655" : Mapping into logic memory block 'vic_inst/vic_sprites/sprite_x_d2'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:131)
+"MEM|SYN-0655" : Mapping into logic memory block 'vic_inst/vic_pixel_sequencer/sprite_col_d1'. (/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v:102)
+"MEM|SYN-0655" : Mapping into logic memory block 'vic_inst/vic_pixel_sequencer/sprite_col_d2'. (/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v:103)
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/addressgen_efinix.v (325)" removed instance : vic_inst/vic_addressgen/i110
+@ "/shared/Vivado/vicii-kawari/hdl/addressgen_efinix.v (325)" representative instance : vic_inst/vic_addressgen/i108
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4603/i1
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4602/i1
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4603/i2
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4602/i2
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4603/i3
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4602/i3
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4603/i4
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4602/i4
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4603/i5
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4602/i5
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4603/i6
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4602/i6
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4603/i7
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4602/i7
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4603/i8
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4602/i8
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4603/i9
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4602/i9
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4603/i10
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4602/i10
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4603/i11
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4602/i11
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4603/i12
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4602/i12
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4603/i13
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4602/i13
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4603/i14
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4602/i14
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4603/i15
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4602/i15
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4603/i16
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4602/i16
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4601/i16
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4600/i16
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4601/i1
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4600/i1
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4601/i2
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4600/i2
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4601/i3
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4600/i3
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4601/i4
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4600/i4
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4601/i5
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4600/i5
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4601/i6
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4600/i6
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4601/i7
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4600/i7
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4601/i8
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4600/i8
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4601/i9
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4600/i9
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4601/i10
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4600/i10
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4601/i11
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4600/i11
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4601/i12
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4600/i12
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4601/i13
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4600/i13
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4601/i14
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4600/i14
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" removed instance : vic_inst/vic_registers/dff_4601/i15
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2086)" representative instance : vic_inst/vic_registers/dff_4600/i15
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" removed instance : vic_inst/vic_registers/u_divider/dff_51/i8
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" representative instance : vic_inst/vic_registers/u_divider/dff_52/i8
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/hires_pixel_sequencer.v (126)" removed instance : vic_inst/vic_hires_pixel_sequencer/dff_45/i3
+@ "/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v (176)" representative instance : vic_inst/vic_pixel_sequencer/dff_104/i3
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/hires_pixel_sequencer.v (126)" removed instance : vic_inst/vic_hires_pixel_sequencer/dff_55/i3
+@ "/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v (176)" representative instance : vic_inst/vic_pixel_sequencer/dff_108/i3
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/hires_pixel_sequencer.v (126)" removed instance : vic_inst/vic_hires_pixel_sequencer/dff_45/i2
+@ "/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v (176)" representative instance : vic_inst/vic_pixel_sequencer/dff_104/i2
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/hires_pixel_sequencer.v (126)" removed instance : vic_inst/vic_hires_pixel_sequencer/dff_55/i2
+@ "/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v (176)" representative instance : vic_inst/vic_pixel_sequencer/dff_108/i2
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/hires_pixel_sequencer.v (126)" removed instance : vic_inst/vic_hires_pixel_sequencer/dff_45/i1
+@ "/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v (176)" representative instance : vic_inst/vic_pixel_sequencer/dff_104/i1
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/hires_pixel_sequencer.v (126)" removed instance : vic_inst/vic_hires_pixel_sequencer/dff_55/i1
+@ "/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v (176)" representative instance : vic_inst/vic_pixel_sequencer/dff_108/i1
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" removed instance : vic_inst/vic_registers/u_divider/dff_51/i15
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" representative instance : vic_inst/vic_registers/u_divider/dff_52/i15
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" removed instance : vic_inst/vic_registers/u_divider/dff_51/i7
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" representative instance : vic_inst/vic_registers/u_divider/dff_52/i7
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" removed instance : vic_inst/vic_registers/u_divider/dff_51/i14
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" representative instance : vic_inst/vic_registers/u_divider/dff_52/i14
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" removed instance : vic_inst/vic_registers/u_divider/dff_51/i6
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" representative instance : vic_inst/vic_registers/u_divider/dff_52/i6
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" removed instance : vic_inst/vic_registers/u_divider/dff_51/i13
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" representative instance : vic_inst/vic_registers/u_divider/dff_52/i13
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" removed instance : vic_inst/vic_registers/u_divider/dff_51/i5
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" representative instance : vic_inst/vic_registers/u_divider/dff_52/i5
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" removed instance : vic_inst/vic_registers/u_divider/dff_51/i12
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" representative instance : vic_inst/vic_registers/u_divider/dff_52/i12
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" removed instance : vic_inst/vic_registers/u_divider/dff_51/i4
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" representative instance : vic_inst/vic_registers/u_divider/dff_52/i4
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" removed instance : vic_inst/vic_registers/u_divider/dff_51/i11
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" representative instance : vic_inst/vic_registers/u_divider/dff_52/i11
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" removed instance : vic_inst/vic_registers/u_divider/dff_51/i3
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" representative instance : vic_inst/vic_registers/u_divider/dff_52/i3
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" removed instance : vic_inst/vic_registers/u_divider/dff_51/i10
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" representative instance : vic_inst/vic_registers/u_divider/dff_52/i10
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" removed instance : vic_inst/vic_registers/u_divider/dff_51/i2
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" representative instance : vic_inst/vic_registers/u_divider/dff_52/i2
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" removed instance : vic_inst/vic_registers/u_divider/dff_51/i9
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" representative instance : vic_inst/vic_registers/u_divider/dff_52/i9
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" removed instance : vic_inst/vic_registers/u_divider/dff_51/i1
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" representative instance : vic_inst/vic_registers/u_divider/dff_52/i1
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" removed instance : vic_inst/vic_registers/s_divider/dff_51/i1
+@ "/shared/Vivado/vicii-kawari/hdl/divide.v (78)" representative instance : vic_inst/vic_registers/s_divider/dff_52/i1
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v (264)" removed instance : vic_inst/vic_pixel_sequencer/dff_184/i5
+@ "/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v (264)" representative instance : vic_inst/vic_pixel_sequencer/i180
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v (264)" removed instance : vic_inst/vic_pixel_sequencer/dff_184/i4
+@ "/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v (264)" representative instance : vic_inst/vic_pixel_sequencer/i179
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v (264)" removed instance : vic_inst/vic_pixel_sequencer/dff_184/i3
+@ "/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v (264)" representative instance : vic_inst/vic_pixel_sequencer/i178
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/addressgen_efinix.v (338)" removed instance : vic_inst/vic_addressgen/i118
+@ "/shared/Vivado/vicii-kawari/hdl/addressgen_efinix.v (338)" representative instance : vic_inst/vic_addressgen/i119
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/addressgen_efinix.v (325)" removed instance : vic_inst/vic_addressgen/i111
+@ "/shared/Vivado/vicii-kawari/hdl/addressgen_efinix.v (325)" representative instance : vic_inst/vic_addressgen/i109
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2230)" removed instance : vic_inst/vic_registers/output_color[6]~FF_brt_2_brt_45
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2230)" representative instance : vic_inst/vic_registers/output_color[8]~FF_brt_51
+FF|OPT : Flip-flop optimization by equivalence checking
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2230)" removed instance : vic_inst/vic_registers/output_color[0]~FF_brt_0_brt_34
+@ "/shared/Vivado/vicii-kawari/hdl/registers_scaled.v (2230)" representative instance : vic_inst/vic_registers/output_color[2]~FF_brt_38
+
+Mapping success.
+### ### Mapping (end) ### ### ###
+
+### ### Post-optimizations and re-synthesis (begin) ### ### ###
+
+Post-optimizations and re-synthesis success.
+### ### Post-optimizations and re-synthesis (end) ### ### ###
+
+### ### EFX_FF CE enables (begin) ### ### ###
+Total number of enable signals: 273
+Enable signal <vic_inst/vic_registers/n27518>, number of controlling flip flops: 3
+Enable signal <clk_phi>, number of controlling flip flops: 9
+Enable signal <vic_inst/n483>, number of controlling flip flops: 1
+Enable signal <vic_inst/n1599>, number of controlling flip flops: 1
+Enable signal <vic_inst/dot_rising[0]_2>, number of controlling flip flops: 27
+Enable signal <vic_inst/n745>, number of controlling flip flops: 3
+Enable signal <vic_inst/n1443>, number of controlling flip flops: 3
+Enable signal <ceg_net5>, number of controlling flip flops: 4
+Enable signal <vic_inst/dot_rising[1]_2>, number of controlling flip flops: 255
+Enable signal <ceg_net3681>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_lightpen/n120>, number of controlling flip flops: 16
+Enable signal <vic_inst/ilp_clr>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_lightpen/start_of_frame>, number of controlling flip flops: 1
+Enable signal <ceg_net60>, number of controlling flip flops: 9
+Enable signal <vic_inst/vic_raster/n699>, number of controlling flip flops: 10
+Enable signal <ceg_net18>, number of controlling flip flops: 1
+Enable signal <ceg_net68>, number of controlling flip flops: 11
+Enable signal <vic_inst/vic_raster/n700>, number of controlling flip flops: 9
+Enable signal <vic_inst/vic_raster/n701>, number of controlling flip flops: 6
+Enable signal <ceg_net28>, number of controlling flip flops: 3
+Enable signal <ceg_net136>, number of controlling flip flops: 10
+Enable signal <ceg_net113>, number of controlling flip flops: 1
+Enable signal <ceg_net185>, number of controlling flip flops: 10
+Enable signal <ceg_net246>, number of controlling flip flops: 3
+Enable signal <ceg_net251>, number of controlling flip flops: 11
+Enable signal <ceg_net256>, number of controlling flip flops: 1
+Enable signal <ceg_net262>, number of controlling flip flops: 11
+Enable signal <vic_inst/vic_hires_matrix/n450>, number of controlling flip flops: 8
+Enable signal <ceg_net460>, number of controlling flip flops: 3
+Enable signal <ceg_net448>, number of controlling flip flops: 14
+Enable signal <ceg_net510>, number of controlling flip flops: 4
+Enable signal <ceg_net3699>, number of controlling flip flops: 3
+Enable signal <ceg_net3704>, number of controlling flip flops: 3
+Enable signal <ceg_net3696>, number of controlling flip flops: 3
+Enable signal <ceg_net533>, number of controlling flip flops: 6
+Enable signal <ceg_net537>, number of controlling flip flops: 1
+Enable signal <ceg_net541>, number of controlling flip flops: 1
+Enable signal <vic_inst/phi_phase_start[0]_2>, number of controlling flip flops: 97
+Enable signal <rst_2>, number of controlling flip flops: 175
+Enable signal <vic_inst/vic_sprites/n6829>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_sprites/n6830>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_sprites/n6348>, number of controlling flip flops: 216
+Enable signal <ceg_net546>, number of controlling flip flops: 8
+Enable signal <ceg_net551>, number of controlling flip flops: 1
+Enable signal <ceg_net556>, number of controlling flip flops: 1
+Enable signal <ceg_net561>, number of controlling flip flops: 1
+Enable signal <ceg_net566>, number of controlling flip flops: 1
+Enable signal <ceg_net571>, number of controlling flip flops: 1
+Enable signal <ceg_net648>, number of controlling flip flops: 6
+Enable signal <ceg_net690>, number of controlling flip flops: 6
+Enable signal <ceg_net732>, number of controlling flip flops: 6
+Enable signal <ceg_net767>, number of controlling flip flops: 6
+Enable signal <ceg_net802>, number of controlling flip flops: 6
+Enable signal <ceg_net858>, number of controlling flip flops: 6
+Enable signal <ceg_net900>, number of controlling flip flops: 6
+Enable signal <ceg_net904>, number of controlling flip flops: 1
+Enable signal <ceg_net908>, number of controlling flip flops: 1
+Enable signal <ceg_net912>, number of controlling flip flops: 1
+Enable signal <ceg_net916>, number of controlling flip flops: 1
+Enable signal <ceg_net920>, number of controlling flip flops: 1
+Enable signal <ceg_net924>, number of controlling flip flops: 1
+Enable signal <ceg_net928>, number of controlling flip flops: 1
+Enable signal <ceg_net932>, number of controlling flip flops: 1
+Enable signal <ceg_net936>, number of controlling flip flops: 1
+Enable signal <ceg_net940>, number of controlling flip flops: 1
+Enable signal <ceg_net944>, number of controlling flip flops: 1
+Enable signal <ceg_net948>, number of controlling flip flops: 1
+Enable signal <ceg_net952>, number of controlling flip flops: 1
+Enable signal <ceg_net956>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_sprites/n6714>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_sprites/n6715>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_sprites/n6716>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_sprites/n6717>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_sprites/n6718>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_sprites/n6719>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_sprites/n6720>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_sprites/n6721>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_sprites/n6722>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_sprites/n6723>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_sprites/n6724>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_sprites/n6725>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_sprites/n6726>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_sprites/n6727>, number of controlling flip flops: 1
+Enable signal <ceg_net996>, number of controlling flip flops: 1
+Enable signal <ceg_net1001>, number of controlling flip flops: 1
+Enable signal <ceg_net1006>, number of controlling flip flops: 1
+Enable signal <ceg_net1011>, number of controlling flip flops: 1
+Enable signal <ceg_net1016>, number of controlling flip flops: 1
+Enable signal <ceg_net1021>, number of controlling flip flops: 1
+Enable signal <ceg_net1026>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_bus_access/n985>, number of controlling flip flops: 6
+Enable signal <vic_inst/vic_bus_access/n186>, number of controlling flip flops: 20
+Enable signal <ceg_net3754>, number of controlling flip flops: 8
+Enable signal <ceg_net3786>, number of controlling flip flops: 8
+Enable signal <ceg_net3818>, number of controlling flip flops: 8
+Enable signal <ceg_net3850>, number of controlling flip flops: 8
+Enable signal <ceg_net3882>, number of controlling flip flops: 8
+Enable signal <ceg_net3914>, number of controlling flip flops: 8
+Enable signal <ceg_net3946>, number of controlling flip flops: 8
+Enable signal <ceg_net3978>, number of controlling flip flops: 8
+Enable signal <ceg_net3993>, number of controlling flip flops: 12
+Enable signal <vic_inst/phi_phase_start[4]_2>, number of controlling flip flops: 65
+Enable signal <vic_inst/phi_phase_start[6]_2>, number of controlling flip flops: 1
+Enable signal <vic_inst/phi_phase_start[7]_2>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_addressgen/pal_sr[3]_2>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_addressgen/ntsc_sr[3]_2>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_addressgen/pal_sr[2]_2>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_addressgen/ntsc_sr[2]_2>, number of controlling flip flops: 1
+Enable signal <ceg_net1434>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_hires_addressgen/n273>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_hires_addressgen/n274>, number of controlling flip flops: 8
+Enable signal <ceg_net1552>, number of controlling flip flops: 16
+Enable signal <~ceg_net1623>, number of controlling flip flops: 82
+Enable signal <ceg_net1648>, number of controlling flip flops: 16
+Enable signal <ceg_net2122>, number of controlling flip flops: 16
+Enable signal <ceg_net4990>, number of controlling flip flops: 8
+Enable signal <ceg_net4024>, number of controlling flip flops: 15
+Enable signal <ceg_net4031>, number of controlling flip flops: 2
+Enable signal <ceg_net4305>, number of controlling flip flops: 3
+Enable signal <vic_inst/vic_registers/n27101>, number of controlling flip flops: 1
+Enable signal <ceg_net1764>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_registers/n42482>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_registers/n27106>, number of controlling flip flops: 1
+Enable signal <ceg_net5208>, number of controlling flip flops: 1
+Enable signal <ceg_net1777>, number of controlling flip flops: 1
+Enable signal <ceg_net4998>, number of controlling flip flops: 1
+Enable signal <ceg_net5213>, number of controlling flip flops: 1
+Enable signal <ceg_net5083>, number of controlling flip flops: 16
+Enable signal <ceg_net1801>, number of controlling flip flops: 1
+Enable signal <ceg_net4066>, number of controlling flip flops: 8
+Enable signal <ceg_net2373>, number of controlling flip flops: 2
+Enable signal <ceg_net4469>, number of controlling flip flops: 2
+Enable signal <ceg_net5098>, number of controlling flip flops: 6
+Enable signal <ceg_net2421>, number of controlling flip flops: 2
+Enable signal <vic_inst/vic_registers/n29199>, number of controlling flip flops: 2
+Enable signal <ceg_net4508>, number of controlling flip flops: 2
+Enable signal <vic_inst/vic_registers/n29205>, number of controlling flip flops: 8
+Enable signal <ceg_net2474>, number of controlling flip flops: 16
+Enable signal <ceg_net4536>, number of controlling flip flops: 8
+Enable signal <ceg_net1843>, number of controlling flip flops: 1
+Enable signal <ceg_net2533>, number of controlling flip flops: 20
+Enable signal <vic_inst/vic_registers/n42732>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n29208>, number of controlling flip flops: 32
+Enable signal <ceg_net1850>, number of controlling flip flops: 1
+Enable signal <ceg_net2605>, number of controlling flip flops: 8
+Enable signal <ceg_net2637>, number of controlling flip flops: 8
+Enable signal <ceg_net1878>, number of controlling flip flops: 1
+Enable signal <ceg_net2646>, number of controlling flip flops: 4
+Enable signal <ceg_net2658>, number of controlling flip flops: 4
+Enable signal <ceg_net1889>, number of controlling flip flops: 1
+Enable signal <ceg_net1893>, number of controlling flip flops: 5
+Enable signal <ceg_net1913>, number of controlling flip flops: 1
+Enable signal <ceg_net1917>, number of controlling flip flops: 1
+Enable signal <ceg_net1921>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_registers/n29213>, number of controlling flip flops: 6
+Enable signal <ceg_net1925>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_registers/n29219>, number of controlling flip flops: 4
+Enable signal <ceg_net4088>, number of controlling flip flops: 1
+Enable signal <ceg_net1937>, number of controlling flip flops: 2
+Enable signal <vic_inst/vic_registers/n45336>, number of controlling flip flops: 4
+Enable signal <ceg_net1940>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_registers/n45507>, number of controlling flip flops: 4
+Enable signal <vic_inst/vic_registers/n45525>, number of controlling flip flops: 4
+Enable signal <vic_inst/vic_registers/n45540>, number of controlling flip flops: 4
+Enable signal <vic_inst/vic_registers/n45549>, number of controlling flip flops: 4
+Enable signal <vic_inst/vic_registers/n45564>, number of controlling flip flops: 4
+Enable signal <vic_inst/vic_registers/n45614>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n45617>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n45670>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n45673>, number of controlling flip flops: 7
+Enable signal <vic_inst/vic_registers/n43447>, number of controlling flip flops: 5
+Enable signal <vic_inst/vic_registers/n45720>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n45726>, number of controlling flip flops: 6
+Enable signal <vic_inst/vic_registers/n45788>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n45830>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n43529>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n45866>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n46513>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n40833>, number of controlling flip flops: 2
+Enable signal <vic_inst/vic_registers/n42716>, number of controlling flip flops: 8
+Enable signal <ceg_net4092>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_registers/n44330>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n44360>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n44362>, number of controlling flip flops: 2
+Enable signal <ceg_net2662>, number of controlling flip flops: 8
+Enable signal <ceg_net1953>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n42748>, number of controlling flip flops: 6
+Enable signal <ceg_net1957>, number of controlling flip flops: 16
+Enable signal <ceg_net1961>, number of controlling flip flops: 16
+Enable signal <ceg_net2946>, number of controlling flip flops: 16
+Enable signal <ceg_net2958>, number of controlling flip flops: 2
+Enable signal <ceg_net3070>, number of controlling flip flops: 32
+Enable signal <ceg_net4098>, number of controlling flip flops: 1
+Enable signal <ceg_net1988>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_registers/n42766>, number of controlling flip flops: 8
+Enable signal <ceg_net1996>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_registers/n42772>, number of controlling flip flops: 46
+Enable signal <ceg_net2000>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_registers/n42782>, number of controlling flip flops: 34
+Enable signal <ceg_net3086>, number of controlling flip flops: 3
+Enable signal <ceg_net2008>, number of controlling flip flops: 1
+Enable signal <ceg_net2012>, number of controlling flip flops: 1
+Enable signal <ceg_net2015>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_registers/n29311>, number of controlling flip flops: 24
+Enable signal <ceg_net2019>, number of controlling flip flops: 1
+Enable signal <ceg_net2023>, number of controlling flip flops: 1
+Enable signal <ceg_net2027>, number of controlling flip flops: 1
+Enable signal <ceg_net2030>, number of controlling flip flops: 18
+Enable signal <ceg_net2034>, number of controlling flip flops: 1
+Enable signal <ceg_net2038>, number of controlling flip flops: 1
+Enable signal <ceg_net2042>, number of controlling flip flops: 1
+Enable signal <ceg_net5110>, number of controlling flip flops: 3
+Enable signal <vic_inst/vic_registers/n29315>, number of controlling flip flops: 3
+Enable signal <ceg_net5023>, number of controlling flip flops: 1
+Enable signal <ceg_net4116>, number of controlling flip flops: 9
+Enable signal <ceg_net4616>, number of controlling flip flops: 10
+Enable signal <ceg_net4712>, number of controlling flip flops: 42
+Enable signal <ceg_net5115>, number of controlling flip flops: 2
+Enable signal <ceg_net5033>, number of controlling flip flops: 9
+Enable signal <ceg_net5160>, number of controlling flip flops: 2
+Enable signal <ceg_net5233>, number of controlling flip flops: 3
+Enable signal <ceg_net4159>, number of controlling flip flops: 8
+Enable signal <ceg_net5176>, number of controlling flip flops: 8
+Enable signal <ceg_net4928>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/ff_2>, number of controlling flip flops: 11
+Enable signal <vic_inst/vic_registers/n29355>, number of controlling flip flops: 18
+Enable signal <vic_inst/vic_registers/n29357>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_registers/n43172>, number of controlling flip flops: 1
+Enable signal <ceg_net5068>, number of controlling flip flops: 7
+Enable signal <vic_inst/vic_registers/n45360>, number of controlling flip flops: 4
+Enable signal <vic_inst/vic_registers/n45380>, number of controlling flip flops: 4
+Enable signal <vic_inst/vic_registers/n45404>, number of controlling flip flops: 4
+Enable signal <vic_inst/vic_registers/n45436>, number of controlling flip flops: 4
+Enable signal <vic_inst/vic_registers/n45460>, number of controlling flip flops: 4
+Enable signal <vic_inst/vic_registers/n45480>, number of controlling flip flops: 4
+Enable signal <vic_inst/vic_registers/n45492>, number of controlling flip flops: 4
+Enable signal <vic_inst/vic_registers/n46058>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n45893>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n45944>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n45971>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n45998>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n46025>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n46052>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n43769>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n46112>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n46152>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n46192>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n46208>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n46248>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n46264>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n46280>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n44286>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_registers/n44346>, number of controlling flip flops: 8
+Enable signal <ceg_net5237>, number of controlling flip flops: 2
+Enable signal <vic_inst/vic_pixel_sequencer/n319>, number of controlling flip flops: 41
+Enable signal <vic_inst/vic_pixel_sequencer/n1024>, number of controlling flip flops: 3
+Enable signal <vic_inst/dot_rising[2]_2>, number of controlling flip flops: 24
+Enable signal <vic_inst/vic_pixel_sequencer/n1164>, number of controlling flip flops: 11
+Enable signal <ceg_net3600>, number of controlling flip flops: 3
+Enable signal <vic_inst/vic_pixel_sequencer/n1038>, number of controlling flip flops: 1
+Enable signal <~ceg_net67>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_hires_pixel_sequencer/n279>, number of controlling flip flops: 26
+Enable signal <ceg_net4944>, number of controlling flip flops: 7
+Enable signal <ceg_net4988>, number of controlling flip flops: 4
+Enable signal <ceg_net3615>, number of controlling flip flops: 4
+Enable signal <vic_inst/vic_hires_pixel_sequencer/n1107>, number of controlling flip flops: 1
+Enable signal <ceg_net3616>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_comp_sync/not_equal_175/n17>, number of controlling flip flops: 1
+Enable signal <vic_inst/vic_comp_sync/in_burst_2>, number of controlling flip flops: 8
+Enable signal <vic_inst/vic_comp_sync/n534>, number of controlling flip flops: 1
+Enable signal <rst_dvi_2>, number of controlling flip flops: 10
+Enable signal <vic_inst/vic_dvi_sync/n446>, number of controlling flip flops: 10
+Enable signal <vic_inst/vic_dvi_sync/n449>, number of controlling flip flops: 1
+### ### EFX_FF CE enables (end) ### ### ###
+
+### ### EFX_FF SR set/reset (begin) ### ### ###
+Total number of enable signals: 36
+SR signal <rst_2>, number of controlling flip flops: 253
+SR signal <vic_inst/equal_81/n17>, number of controlling flip flops: 1
+SR signal <vic_inst/irst_clr>, number of controlling flip flops: 1
+SR signal <vic_inst/vic_lightpen/n119>, number of controlling flip flops: 1
+SR signal <vic_inst/vic_lightpen/n14>, number of controlling flip flops: 1
+SR signal <vic_inst/vic_sprites/n6891>, number of controlling flip flops: 1
+SR signal <vic_inst/vic_sprites/n6998>, number of controlling flip flops: 1
+SR signal <vic_inst/vic_sprites/n7000>, number of controlling flip flops: 1
+SR signal <vic_inst/vic_sprites/n7002>, number of controlling flip flops: 1
+SR signal <vic_inst/vic_sprites/n7004>, number of controlling flip flops: 1
+SR signal <vic_inst/vic_sprites/n7006>, number of controlling flip flops: 1
+SR signal <vic_inst/vic_sprites/n7008>, number of controlling flip flops: 1
+SR signal <vic_inst/vic_sprites/n7010>, number of controlling flip flops: 1
+SR signal <vic_inst/phi_phase_start[0]_2>, number of controlling flip flops: 2
+SR signal <vic_inst/phi_phase_start[1]_2>, number of controlling flip flops: 1
+SR signal <vic_inst/vic_addressgen/pal_sr[1]_2>, number of controlling flip flops: 1
+SR signal <vic_inst/vic_addressgen/ntsc_sr[1]_2>, number of controlling flip flops: 1
+SR signal <vic_inst/vic_addressgen/pal_sr[0]_2>, number of controlling flip flops: 1
+SR signal <vic_inst/vic_addressgen/ntsc_sr[0]_2>, number of controlling flip flops: 1
+SR signal <~ceg_net1623>, number of controlling flip flops: 81
+SR signal <vic_inst/vic_registers/n29211>, number of controlling flip flops: 1
+SR signal <vic_inst/vic_registers/n29363>, number of controlling flip flops: 5
+SR signal <vic_inst/vic_registers/n29365>, number of controlling flip flops: 4
+SR signal <vic_inst/vic_registers/n29367>, number of controlling flip flops: 4
+SR signal <active_2>, number of controlling flip flops: 53
+SR signal <vic_inst/vic_registers/n45263>, number of controlling flip flops: 3
+SR signal <vic_inst/vic_comp_sync/n460>, number of controlling flip flops: 12
+SR signal <chip[0]_2>, number of controlling flip flops: 1
+SR signal <vic_inst/vic_comp_sync/n541>, number of controlling flip flops: 2
+SR signal <vic_inst/vic_comp_sync/vSync_16_2>, number of controlling flip flops: 4
+SR signal <vic_inst/vic_comp_sync/native_active_16_2>, number of controlling flip flops: 4
+SR signal <vic_inst/vic_comp_sync/equal_205/n7>, number of controlling flip flops: 6
+SR signal <vic_inst/enable_csync_2>, number of controlling flip flops: 1
+SR signal <dvi_tx0/serializer/n335>, number of controlling flip flops: 9
+SR signal <rst_dvi_2>, number of controlling flip flops: 10
+SR signal <dvi_tx0/serializer/tmds_control[0]_2>, number of controlling flip flops: 3
+### ### EFX_FF SR set/reset (end) ### ### ###
+
+### ### Sequential Elements Trimming Report (begin) ### ### ### 
+FF Output: vic_inst/hires_fvc[0](=0)
+FF Output: vic_inst/vic_registers/s_divider/divider_copy[31](=0)
+FF Output: vic_inst/vic_registers/u_divider/divider_copy[31](=0)
+FF Output: vic_inst/vic_registers/u_divider/negative_output(=0)
+FF Output: vic_inst/vic_pixel_sequencer/pixels_shifting[0](=0)
+FF Output: dvi_tx0/control_data[4](=0)
+FF instance: vic_inst/vic_registers/eeprom_w_addr[8]~FF(unreachable)
+FF instance: vic_inst/vic_registers/eeprom_w_addr[9]~FF(unreachable)
+FF instance: vic_inst/vic_registers/vic_inst/dma_addr[14]~FF(unreachable)
+FF instance: vic_inst/vic_registers/vic_inst/dma_addr[15]~FF(unreachable)
+### ### Sequential Elements Trimming Report (end) ### ### ### 
+
+### ### Module Resource Usage Distribution Estimates (begin) ### ###
+
+**Note: some resources maybe grouped under different hierarchy due to optimization and LUT mapping
+
+Module                                                     FFs        ADDs        LUTs      RAMs DSP/MULTs
+--------------------------------------------------         ---        ----        ----      ---- ---------
+top:top                                               3519(12)      348(0)     7943(1)    174(0)     11(0)
++vic_inst:vicii                                       3305(90)      297(2)   7749(177)    174(0)     11(0)
+ +vic_border:border                                       3(3)        0(0)        6(6)      0(0)      0(0)
+ +vic_lightpen:lightpen                                 21(21)        0(0)        9(9)      0(0)      0(0)
+ +vic_raster:raster                                     66(66)        0(0)    369(369)      0(0)      0(0)
+ +vic_matrix:matrix                                     24(24)        0(0)      52(52)      0(0)      0(0)
+ +vic_hires_matrix:hires_matrix                         48(48)        0(0)    124(124)      0(0)      0(0)
+ +vic_cycles:cycles                                     13(13)        0(0)    184(184)      0(0)      0(0)
+ +vic_sprites:sprites                                 835(835)        0(0)  1317(1317)      0(0)      0(0)
+ +vic_bus_access:bus_access                           102(102)        0(0)    103(103)      1(1)      0(0)
+ +vic_addressgen:addressgen                             91(91)        0(0)      34(34)      0(0)      0(0)
+ +vic_hires_addressgen:hires_addressgen                 33(33)        0(0)    111(111)      0(0)      0(0)
+ +vic_registers:registers                           1422(1276)    295(229)  4007(3683)    169(0)    11(11)
+  +video_ram:VIDEO_RAM                                    0(0)        0(0)    174(114)    128(0)      0(0)
+   +video_ram_0:VIDEO_RAM_EF                              0(0)        0(0)      10(10)    16(16)      0(0)
+   +video_ram_1:VIDEO_RAM_EF                              0(0)        0(0)        2(2)    16(16)      0(0)
+   +video_ram_2:VIDEO_RAM_EF                              0(0)        0(0)        8(8)    16(16)      0(0)
+   +video_ram_3:VIDEO_RAM_EF                              0(0)        0(0)        4(4)    16(16)      0(0)
+   +video_ram_4:VIDEO_RAM_EF                              0(0)        0(0)      10(10)    16(16)      0(0)
+   +video_ram_5:VIDEO_RAM_EF                              0(0)        0(0)        1(1)    16(16)      0(0)
+   +video_ram_6:VIDEO_RAM_EF                              0(0)        0(0)        8(8)    16(16)      0(0)
+   +video_ram_7:VIDEO_RAM_EF                              0(0)        0(0)      17(17)    16(16)      0(0)
+  +lbr1:rgb_RAM                                           0(0)        0(0)        0(0)    18(18)      0(0)
+  +lbr2:rgb_RAM                                           0(0)        0(0)        0(0)    18(18)      0(0)
+  +color_regs:COLOR_REGS                                  0(0)        0(0)        0(0)      3(3)      0(0)
+  +luma_regs:LUMA_REGS                                    0(0)        0(0)        2(2)      2(2)      0(0)
+  +u_divider:divide                                     63(63)      33(33)      64(64)      0(0)      0(0)
+  +s_divider:divide                                     83(83)      33(33)      84(84)      0(0)      0(0)
+ +vic_pixel_sequencer:pixel_sequencer                 220(220)        0(0)    120(120)      0(0)      0(0)
+ +vic_hires_pixel_sequencer:hires_pixel_sequencer     150(150)        0(0)    106(106)      0(0)      0(0)
+ +vic_comp_sync:comp_sync                             159(157)        0(0)    955(952)      0(0)      0(0)
+  +ueqp1:EqualizationPulse                                1(1)        0(0)        1(1)      0(0)      0(0)
+  +usep1:SerrationPulse                                   1(1)        0(0)        2(2)      0(0)      0(0)
+ +vic_dvi_sync:hires_dvi_sync                           28(28)        0(0)      75(75)      4(0)      0(0)
+  +line_buf_0:dvi_linebuf_RAM                             0(0)        0(0)        0(0)      2(2)      0(0)
+  +line_buf_1:dvi_linebuf_RAM                             0(0)        0(0)        0(0)      2(2)      0(0)
++dvi_tx0:dvi                                           202(20)       51(0)    193(102)      0(0)      0(0)
+ +tmds_channel0:tmds_channel                            25(25)      17(17)      20(20)      0(0)      0(0)
+ +tmds_channel1:tmds_channel(CN=1)                      20(20)      17(17)      21(21)      0(0)      0(0)
+ +tmds_channel2:tmds_channel(CN=2)                      23(23)      17(17)      22(22)      0(0)      0(0)
+ +serializer:serializer                               114(114)        0(0)      28(28)      0(0)      0(0)
+
+### ### Module Resource Usage Distribution Estimates (end) ### ###
+
+### ### Clock Load Distribution Report (begin) ### ###
+
+           Clock     Flip-Flops   Memory Ports    Multipliers
+           -----     ----------   ------------    -----------
+             n24            193             36              0
+  clk_dot4x_ntsc              1              0              0
+   clk_dot4x_pal              1              0              0
+    clk_dvi_ntsc              1              0              0
+ clk_dvi10x_ntsc              1              0              0
+     clk_dvi_pal              1              0              0
+  clk_dvi10x_pal              1              0              0
+ clk_col16x_ntsc              1              0              0
+  clk_col16x_pal              1              0              0
+             n16           2989            312              3
+             n22             68              0              0
+             n20            147              0              0
+             n26            114              0              0
+
+### ### Clock Load Distribution Report (end) ### ###
+
+### ### EFX Flow Options (begin) ### ### ###
+
+family : Trion
+device : T20F256
+project : vicii
+project-xml : /shared/Vivado/vicii-kawari/boards/rev_4G/vicii.xml
+root : top
+output-dir : outflow
+work-dir : work_syn
+write-efx-verilog : outflow/vicii.map.v
+binary-db : vicii.vdb
+insert-ios : 0
+max-carry-cascade : 240
+max_mult : -1
+max_ram : -1
+mode : speed
+veri_options : verilog_mode=verilog_2k,vhdl_mode=vhdl_2008
+
+### ### EFX Flow Options (end) ### ### ###
+
+### ### Resource Summary (begin) ### ### ### 
+INPUT  PORTS    : 	38
+OUTPUT PORTS    : 	68
+
+EFX_ADD         : 	348
+EFX_LUT4        : 	7943
+   1-2  Inputs  : 	1259
+   3    Inputs  : 	2579
+   4    Inputs  : 	4105
+EFX_MULT        : 	11
+EFX_FF          : 	3519
+EFX_RAM_5K      : 	41
+EFX_DPRAM_5K    : 	133
+EFX_GBUFCE      : 	13
+### ### Resource Summary (end) ### ### ###
+
+Plain synthesis (without verilog dump and post-map checks) time : 91s
+Elapsed synthesis time : 99s

@@ -1,0 +1,9 @@
+Running: efx_run_pt.py vicii Trion T20Q144
+Running: /home/rrossi/tools/efinity/2021.2/bin/python3 /home/rrossi/tools/efinity/2021.2/scripts/efx_run_pt.py vicii Trion T20Q144
+Writing out summary report file
+Writing out pinout file
+Writing out interface config file
+Writing out timing related file
+Writing out verilog template file
+Writing out option register file
+Writing out LPF

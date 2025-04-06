@@ -1,0 +1,447 @@
+
+///////////////////////////////////
+// Efinity Synthesis Started 
+// Jan 19, 2025 14:16:44
+///////////////////////////////////
+
+[EFX-0034 WARNING] Project XML file specified. Source files specified in the command line are ignored.
+[EFX-0012 VERI-INFO] default VHDL library search path is now "/home/rrossi/tools/efinity/2021.2/sim_models/vhdl/packages/vhdl_2008" (VHDL-1504) 
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/common.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/bus_access.v:19)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/rev_4H/../config.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/rev_4H/../common.vh:20)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/rev_4H/../common.vh' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/rev_4H/../common.vh:20)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/bus_access.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/bus_access.v:19)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/common.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/sprites.v:19)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/sprites.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/sprites.v:19)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/common.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/sinewave.v:19)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/sinewave.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/sinewave.v:19)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/common.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/border.v:19)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/border.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/border.v:19)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/common.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/lightpen.v:19)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/lightpen.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/lightpen.v:19)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/common.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/lumareg.v:19)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/lumareg.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/lumareg.v:19)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/common.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/cycles.v:19)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/cycles.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/cycles.v:19)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/common.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/matrix.v:19)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/matrix.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/matrix.v:19)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/common.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/comp_sync.v:17)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/comp_sync.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/comp_sync.v:17)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/common.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/vicii.v:19)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/vicii.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/vicii.v:19)
+[EFX-0012 VERI-INFO] undeclared symbol 'lumacode_p1', assumed default net type 'wire' (VERI-2561) (/shared/Vivado/vicii-kawari/hdl/vicii.v:1039)
+[EFX-0012 VERI-INFO] undeclared symbol 'lumacode_p2', assumed default net type 'wire' (VERI-2561) (/shared/Vivado/vicii-kawari/hdl/vicii.v:1040)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/common.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/registers.v:19)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/registers.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/registers.v:19)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/registers_eeprom.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/registers.v:450)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/registers.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/registers.v:450)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/registers_flash.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/registers.v:457)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/registers.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/registers.v:457)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/registers_ram.vi' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/registers.v:2207)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/registers.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/registers.v:2207)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/registers_eeprom.vi' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/registers.v:2211)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/registers.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/registers.v:2211)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/registers_flash.vi' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/registers.v:2218)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/registers.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/registers.v:2218)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/common.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/raster.v:19)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/raster.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/raster.v:19)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/common.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/serration.v:19)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/serration.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/serration.v:19)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/common.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/equalization.v:19)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/equalization.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/equalization.v:19)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/common.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v:19)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v:19)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/common.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/addressgen_efinix.v:19)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/addressgen_efinix.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/addressgen_efinix.v:19)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/rev_4H/../common.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/rev_4H/top.v:19)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/rev_4H/top.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/rev_4H/top.v:19)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/common.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/hires_pixel_sequencer.v:19)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/hires_pixel_sequencer.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/hires_pixel_sequencer.v:19)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/common.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/hires_addressgen.v:19)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/hires_addressgen.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/hires_addressgen.v:19)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/common.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/colorreg.v:19)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/colorreg.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/colorreg.v:19)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/common.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/hires_matrix.v:19)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/hires_matrix.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/hires_matrix.v:19)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/common.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/hires_vga_sync.v:17)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/hires_vga_sync.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/hires_vga_sync.v:17)
+[EFX-0012 VERI-INFO] analyzing included file '/shared/Vivado/vicii-kawari/hdl/common.vh' (VERI-1328) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:19)
+[EFX-0012 VERI-INFO] back to file '/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v' (VERI-2320) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:19)
+[EFX-0012 VERI-INFO] compiling module 'top' (VERI-1018) (/shared/Vivado/vicii-kawari/hdl/rev_4H/top.v:21)
+[EFX-0012 VERI-INFO] compiling module 'EFX_GBUFCE' (VERI-1018) (/home/rrossi/tools/efinity/2021.2/sim_models/maplib/efinix_maplib.v:46)
+[EFX-0012 VERI-INFO] compiling module 'vicii' (VERI-1018) (/shared/Vivado/vicii-kawari/hdl/vicii.v:42)
+[EFX-0012 VERI-INFO] compiling module 'border' (VERI-1018) (/shared/Vivado/vicii-kawari/hdl/border.v:22)
+[EFX-0012 VERI-INFO] compiling module 'lightpen' (VERI-1018) (/shared/Vivado/vicii-kawari/hdl/lightpen.v:21)
+[EFX-0012 VERI-INFO] compiling module 'raster' (VERI-1018) (/shared/Vivado/vicii-kawari/hdl/raster.v:22)
+[EFX-0012 VERI-INFO] compiling module 'matrix' (VERI-1018) (/shared/Vivado/vicii-kawari/hdl/matrix.v:22)
+[EFX-0012 VERI-INFO] compiling module 'hires_matrix' (VERI-1018) (/shared/Vivado/vicii-kawari/hdl/hires_matrix.v:28)
+[EFX-0012 VERI-INFO] compiling module 'cycles' (VERI-1018) (/shared/Vivado/vicii-kawari/hdl/cycles.v:22)
+[EFX-0012 VERI-INFO] compiling module 'sprites' (VERI-1018) (/shared/Vivado/vicii-kawari/hdl/sprites.v:48)
+[EFX-0012 VERI-INFO] extracting RAM for identifier 'sprite_cur_pixel1' (VERI-2571) (/shared/Vivado/vicii-kawari/hdl/sprites.v:109)
+[EFX-0012 VERI-INFO] extracting RAM for identifier 'sprite_cur_pixel2' (VERI-2571) (/shared/Vivado/vicii-kawari/hdl/sprites.v:110)
+[EFX-0012 VERI-INFO] extracting RAM for identifier 'sprite_cur_pixel3' (VERI-2571) (/shared/Vivado/vicii-kawari/hdl/sprites.v:111)
+[EFX-0012 VERI-INFO] extracting RAM for identifier 'sprite_cur_pixel4' (VERI-2571) (/shared/Vivado/vicii-kawari/hdl/sprites.v:112)
+[EFX-0012 VERI-INFO] extracting RAM for identifier 'sprite_cur_pixel5' (VERI-2571) (/shared/Vivado/vicii-kawari/hdl/sprites.v:113)
+[EFX-0012 VERI-INFO] extracting RAM for identifier 'sprite_cur_pixel6' (VERI-2571) (/shared/Vivado/vicii-kawari/hdl/sprites.v:114)
+[EFX-0012 VERI-INFO] extracting RAM for identifier 'sprite_mcbase' (VERI-2571) (/shared/Vivado/vicii-kawari/hdl/sprites.v:117)
+[EFX-0012 VERI-INFO] extracting RAM for identifier 'sprite_xe_ff' (VERI-2571) (/shared/Vivado/vicii-kawari/hdl/sprites.v:118)
+[EFX-0012 VERI-INFO] extracting RAM for identifier 'sprite_ye_ff' (VERI-2571) (/shared/Vivado/vicii-kawari/hdl/sprites.v:119)
+[EFX-0012 VERI-INFO] extracting RAM for identifier 'sprite_pixels_shifting' (VERI-2571) (/shared/Vivado/vicii-kawari/hdl/sprites.v:124)
+[EFX-0012 VERI-INFO] extracting RAM for identifier 'sprite_x_d' (VERI-2571) (/shared/Vivado/vicii-kawari/hdl/sprites.v:130)
+[EFX-0012 VERI-INFO] extracting RAM for identifier 'sprite_x_d2' (VERI-2571) (/shared/Vivado/vicii-kawari/hdl/sprites.v:131)
+[EFX-0012 VERI-INFO] compiling module 'bus_access' (VERI-1018) (/shared/Vivado/vicii-kawari/hdl/bus_access.v:27)
+[EFX-0012 VERI-INFO] extracting RAM for identifier 'char_buf' (VERI-2571) (/shared/Vivado/vicii-kawari/hdl/bus_access.v:49)
+[EFX-0012 VERI-INFO] compiling module 'addressgen' (VERI-1018) (/shared/Vivado/vicii-kawari/hdl/addressgen_efinix.v:99)
+[EFX-0012 VERI-INFO] compiling module 'hires_addressgen' (VERI-1018) (/shared/Vivado/vicii-kawari/hdl/hires_addressgen.v:33)
+[EFX-0012 VERI-INFO] compiling module 'registers' (VERI-1018) (/shared/Vivado/vicii-kawari/hdl/registers.v:21)
+[EFX-0012 VERI-INFO] compiling module 'VIDEO_RAM' (VERI-1018) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:75)
+[EFX-0012 VERI-INFO] compiling module 'VIDEO_RAM_EF' (VERI-1018) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:31)
+[EFX-0012 VERI-INFO] extracting RAM for identifier 'ram_dual_port' (VERI-2571) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:49)
+[EFX-0011 VERI-WARNING] actual bit length 32 differs from formal bit length 1 for port 'we_a' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:96)
+[EFX-0011 VERI-WARNING] actual bit length 16 differs from formal bit length 13 for port 'addr_a' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:97)
+[EFX-0011 VERI-WARNING] actual bit length 32 differs from formal bit length 1 for port 'we_b' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:100)
+[EFX-0011 VERI-WARNING] actual bit length 16 differs from formal bit length 13 for port 'addr_b' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:101)
+[EFX-0011 VERI-WARNING] actual bit length 32 differs from formal bit length 1 for port 'we_a' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:109)
+[EFX-0011 VERI-WARNING] actual bit length 16 differs from formal bit length 13 for port 'addr_a' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:110)
+[EFX-0011 VERI-WARNING] actual bit length 32 differs from formal bit length 1 for port 'we_b' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:113)
+[EFX-0011 VERI-WARNING] actual bit length 16 differs from formal bit length 13 for port 'addr_b' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:114)
+[EFX-0011 VERI-WARNING] actual bit length 32 differs from formal bit length 1 for port 'we_a' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:123)
+[EFX-0011 VERI-WARNING] actual bit length 16 differs from formal bit length 13 for port 'addr_a' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:124)
+[EFX-0011 VERI-WARNING] actual bit length 32 differs from formal bit length 1 for port 'we_b' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:127)
+[EFX-0011 VERI-WARNING] actual bit length 16 differs from formal bit length 13 for port 'addr_b' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:128)
+[EFX-0011 VERI-WARNING] actual bit length 32 differs from formal bit length 1 for port 'we_a' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:137)
+[EFX-0011 VERI-WARNING] actual bit length 16 differs from formal bit length 13 for port 'addr_a' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:138)
+[EFX-0011 VERI-WARNING] actual bit length 32 differs from formal bit length 1 for port 'we_b' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:141)
+[EFX-0011 VERI-WARNING] actual bit length 16 differs from formal bit length 13 for port 'addr_b' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:142)
+[EFX-0011 VERI-WARNING] actual bit length 32 differs from formal bit length 1 for port 'we_a' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:153)
+[EFX-0011 VERI-WARNING] actual bit length 16 differs from formal bit length 13 for port 'addr_a' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:154)
+[EFX-0011 VERI-WARNING] actual bit length 32 differs from formal bit length 1 for port 'we_b' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:157)
+[EFX-0011 VERI-WARNING] actual bit length 16 differs from formal bit length 13 for port 'addr_b' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:158)
+[EFX-0011 VERI-WARNING] actual bit length 32 differs from formal bit length 1 for port 'we_a' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:167)
+[EFX-0011 VERI-WARNING] actual bit length 16 differs from formal bit length 13 for port 'addr_a' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:168)
+[EFX-0011 VERI-WARNING] actual bit length 32 differs from formal bit length 1 for port 'we_b' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:171)
+[EFX-0011 VERI-WARNING] actual bit length 16 differs from formal bit length 13 for port 'addr_b' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:172)
+[EFX-0011 VERI-WARNING] actual bit length 32 differs from formal bit length 1 for port 'we_a' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:181)
+[EFX-0011 VERI-WARNING] actual bit length 16 differs from formal bit length 13 for port 'addr_a' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:182)
+[EFX-0011 VERI-WARNING] actual bit length 32 differs from formal bit length 1 for port 'we_b' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:185)
+[EFX-0011 VERI-WARNING] actual bit length 16 differs from formal bit length 13 for port 'addr_b' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:186)
+[EFX-0011 VERI-WARNING] actual bit length 32 differs from formal bit length 1 for port 'we_a' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:194)
+[EFX-0011 VERI-WARNING] actual bit length 16 differs from formal bit length 13 for port 'addr_a' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:195)
+[EFX-0011 VERI-WARNING] actual bit length 32 differs from formal bit length 1 for port 'we_b' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:198)
+[EFX-0011 VERI-WARNING] actual bit length 16 differs from formal bit length 13 for port 'addr_b' (VERI-1330) (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:199)
+[EFX-0012 VERI-INFO] compiling module 'COLOR_REGS' (VERI-1018) (/shared/Vivado/vicii-kawari/hdl/colorreg.v:25)
+[EFX-0012 VERI-INFO] extracting RAM for identifier 'ram_dual_port' (VERI-2571) (/shared/Vivado/vicii-kawari/hdl/colorreg.v:44)
+[EFX-0012 VERI-INFO] compiling module 'LUMA_REGS' (VERI-1018) (/shared/Vivado/vicii-kawari/hdl/lumareg.v:23)
+[EFX-0012 VERI-INFO] extracting RAM for identifier 'ram_dual_port' (VERI-2571) (/shared/Vivado/vicii-kawari/hdl/lumareg.v:41)
+[EFX-0012 VERI-INFO] compiling module 'divide' (VERI-1018) (/shared/Vivado/vicii-kawari/hdl/divide.v:20)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers_eeprom.vi:116)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers_eeprom.vi:127)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers_eeprom.vi:280)
+[EFX-0011 VERI-WARNING] expression size 4 truncated to fit in target size 3 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers_eeprom.vi:284)
+[EFX-0011 VERI-WARNING] expression size 4 truncated to fit in target size 3 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers_eeprom.vi:289)
+[EFX-0011 VERI-WARNING] expression size 4 truncated to fit in target size 3 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers_eeprom.vi:294)
+[EFX-0011 VERI-WARNING] expression size 4 truncated to fit in target size 3 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers_eeprom.vi:299)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers_eeprom.vi:331)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers_eeprom.vi:488)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers_eeprom.vi:510)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers_eeprom.vi:515)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers_flash.vi:54)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers_flash.vi:60)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers_flash.vi:69)
+[EFX-0011 VERI-WARNING] expression size 9 truncated to fit in target size 8 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers_flash.vi:103)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers_flash.vi:106)
+[EFX-0011 VERI-WARNING] expression size 32 truncated to fit in target size 16 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers_flash.vi:133)
+[EFX-0011 VERI-WARNING] expression size 9 truncated to fit in target size 8 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers_flash.vi:143)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers_flash.vi:149)
+[EFX-0011 VERI-WARNING] expression size 5 truncated to fit in target size 4 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers_flash.vi:157)
+[EFX-0011 VERI-WARNING] expression size 25 truncated to fit in target size 24 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers_flash.vi:162)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers_flash.vi:173)
+[EFX-0011 VERI-WARNING] expression size 9 truncated to fit in target size 8 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers_flash.vi:177)
+[EFX-0011 VERI-WARNING] expression size 17 truncated to fit in target size 16 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers_flash.vi:178)
+[EFX-0011 VERI-WARNING] expression size 5 truncated to fit in target size 4 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers_flash.vi:186)
+[EFX-0011 VERI-WARNING] expression size 25 truncated to fit in target size 24 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers_flash.vi:190)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers_flash.vi:210)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers_flash.vi:227)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers_flash.vi:243)
+[EFX-0011 VERI-WARNING] expression size 17 truncated to fit in target size 16 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers_flash.vi:251)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers_flash.vi:267)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers_flash.vi:289)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers_flash.vi:305)
+[EFX-0011 VERI-WARNING] expression size 17 truncated to fit in target size 16 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers_flash.vi:310)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers_flash.vi:327)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers.v:1300)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers.v:1764)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers.v:1766)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers.v:1767)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers.v:1777)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers.v:1778)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers.v:1803)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers.v:1805)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers.v:1821)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers.v:1823)
+[EFX-0011 VERI-WARNING] expression size 10 truncated to fit in target size 9 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers.v:1827)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers.v:1841)
+[EFX-0011 VERI-WARNING] expression size 32 truncated to fit in target size 3 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers.v:1859)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers.v:1860)
+[EFX-0011 VERI-WARNING] expression size 32 truncated to fit in target size 3 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers.v:1868)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers.v:1869)
+[EFX-0011 VERI-WARNING] expression size 32 truncated to fit in target size 3 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers.v:1877)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers.v:1878)
+[EFX-0011 VERI-WARNING] expression size 32 truncated to fit in target size 3 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers.v:1922)
+[EFX-0011 VERI-WARNING] expression size 11 truncated to fit in target size 10 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers.v:1923)
+[EFX-0011 VERI-WARNING] expression size 32 truncated to fit in target size 3 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers.v:1936)
+[EFX-0011 VERI-WARNING] expression size 4 truncated to fit in target size 3 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers.v:1937)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers.v:1938)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers.v:1939)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers.v:1940)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers.v:1945)
+[EFX-0011 VERI-WARNING] expression size 10 truncated to fit in target size 9 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers.v:1951)
+[EFX-0011 VERI-WARNING] expression size 11 truncated to fit in target size 10 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers.v:1958)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers.v:1959)
+[EFX-0011 VERI-WARNING] system task 'display' is ignored for synthesis (VERI-1142) (/shared/Vivado/vicii-kawari/hdl/registers.v:1966)
+[EFX-0011 VERI-WARNING] expression size 4 truncated to fit in target size 3 (VERI-1209) (/shared/Vivado/vicii-kawari/hdl/registers.v:1985)
+[EFX-0012 VERI-INFO] compiling module 'pixel_sequencer' (VERI-1018) (/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v:21)
+[EFX-0012 VERI-INFO] extracting RAM for identifier 'sprite_col_d1' (VERI-2571) (/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v:102)
+[EFX-0012 VERI-INFO] extracting RAM for identifier 'sprite_col_d2' (VERI-2571) (/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v:103)
+[EFX-0012 VERI-INFO] compiling module 'hires_pixel_sequencer' (VERI-1018) (/shared/Vivado/vicii-kawari/hdl/hires_pixel_sequencer.v:21)
+[EFX-0012 VERI-INFO] compiling module 'comp_sync' (VERI-1018) (/shared/Vivado/vicii-kawari/hdl/comp_sync.v:34)
+[EFX-0012 VERI-INFO] compiling module 'EqualizationPulse' (VERI-1018) (/shared/Vivado/vicii-kawari/hdl/equalization.v:21)
+[EFX-0012 VERI-INFO] compiling module 'SerrationPulse' (VERI-1018) (/shared/Vivado/vicii-kawari/hdl/serration.v:21)
+[EFX-0000 INFO] Setting Synthesis Option: mode=speed
+[EFX-0012 VERI-INFO] compiling module 'EFX_ADD' (VERI-1018) (/home/rrossi/tools/efinity/2021.2/sim_models/maplib/efinix_maplib.v:6)
+[EFX-0012 VERI-INFO] compiling module 'EFX_FF' (VERI-1018) (/home/rrossi/tools/efinity/2021.2/sim_models/maplib/efinix_maplib.v:19)
+[EFX-0012 VERI-INFO] compiling module 'EFX_COMB4' (VERI-1018) (/home/rrossi/tools/efinity/2021.2/sim_models/maplib/efinix_maplib.v:36)
+[EFX-0012 VERI-INFO] compiling module 'EFX_GBUFCE' (VERI-1018) (/home/rrossi/tools/efinity/2021.2/sim_models/maplib/efinix_maplib.v:46)
+[EFX-0012 VERI-INFO] compiling module 'EFX_IDDR' (VERI-1018) (/home/rrossi/tools/efinity/2021.2/sim_models/maplib/efinix_maplib.v:55)
+[EFX-0012 VERI-INFO] compiling module 'EFX_ODDR' (VERI-1018) (/home/rrossi/tools/efinity/2021.2/sim_models/maplib/efinix_maplib.v:69)
+[EFX-0012 VERI-INFO] compiling module 'EFX_IOBUF' (VERI-1018) (/home/rrossi/tools/efinity/2021.2/sim_models/maplib/efinix_maplib.v:85)
+[EFX-0012 VERI-INFO] compiling module 'EFX_LUT4' (VERI-1018) (/home/rrossi/tools/efinity/2021.2/sim_models/maplib/efinix_maplib.v:97)
+[EFX-0012 VERI-INFO] compiling module 'EFX_MULT' (VERI-1018) (/home/rrossi/tools/efinity/2021.2/sim_models/maplib/efinix_maplib.v:105)
+[EFX-0012 VERI-INFO] compiling module 'EFX_DSP48' (VERI-1018) (/home/rrossi/tools/efinity/2021.2/sim_models/maplib/efinix_maplib.v:140)
+[EFX-0012 VERI-INFO] compiling module 'EFX_DSP24' (VERI-1018) (/home/rrossi/tools/efinity/2021.2/sim_models/maplib/efinix_maplib.v:196)
+[EFX-0012 VERI-INFO] compiling module 'EFX_DSP12' (VERI-1018) (/home/rrossi/tools/efinity/2021.2/sim_models/maplib/efinix_maplib.v:249)
+[EFX-0012 VERI-INFO] compiling module 'EFX_RAM_4K' (VERI-1018) (/home/rrossi/tools/efinity/2021.2/sim_models/maplib/efinix_maplib.v:302)
+[EFX-0012 VERI-INFO] compiling module 'EFX_RAM_5K' (VERI-1018) (/home/rrossi/tools/efinity/2021.2/sim_models/maplib/efinix_maplib.v:362)
+[EFX-0012 VERI-INFO] compiling module 'EFX_DPRAM_5K' (VERI-1018) (/home/rrossi/tools/efinity/2021.2/sim_models/maplib/efinix_maplib.v:434)
+[EFX-0012 VERI-INFO] compiling module 'RAMB5' (VERI-1018) (/home/rrossi/tools/efinity/2021.2/sim_models/maplib/efinix_maplib.v:539)
+[EFX-0012 VERI-INFO] compiling module 'EFX_RAM_10K' (VERI-1018) (/home/rrossi/tools/efinity/2021.2/sim_models/maplib/efinix_maplib.v:601)
+[EFX-0012 VERI-INFO] compiling module 'EFX_RAM10' (VERI-1018) (/home/rrossi/tools/efinity/2021.2/sim_models/maplib/efinix_maplib.v:693)
+[EFX-0012 VERI-INFO] compiling module 'EFX_DPRAM10' (VERI-1018) (/home/rrossi/tools/efinity/2021.2/sim_models/maplib/efinix_maplib.v:794)
+[EFX-0012 VERI-INFO] compiling module 'EFX_SRL8' (VERI-1018) (/home/rrossi/tools/efinity/2021.2/sim_models/maplib/efinix_maplib.v:924)
+[EFX-0000 INFO] ... Pre-synthesis checks begin
+[EFX-0200 WARNING] Removing redundant signal : n[31]. (/shared/Vivado/vicii-kawari/hdl/sprites.v:99)
+[EFX-0200 WARNING] Removing redundant signal : n[30]. (/shared/Vivado/vicii-kawari/hdl/sprites.v:99)
+[EFX-0200 WARNING] Removing redundant signal : n[29]. (/shared/Vivado/vicii-kawari/hdl/sprites.v:99)
+[EFX-0200 WARNING] Removing redundant signal : n[28]. (/shared/Vivado/vicii-kawari/hdl/sprites.v:99)
+[EFX-0200 WARNING] Removing redundant signal : n[27]. (/shared/Vivado/vicii-kawari/hdl/sprites.v:99)
+[EFX-0200 WARNING] Removing redundant signal : n[26]. (/shared/Vivado/vicii-kawari/hdl/sprites.v:99)
+[EFX-0200 WARNING] Removing redundant signal : n[25]. (/shared/Vivado/vicii-kawari/hdl/sprites.v:99)
+[EFX-0200 WARNING] Removing redundant signal : n[24]. (/shared/Vivado/vicii-kawari/hdl/sprites.v:99)
+[EFX-0200 WARNING] Removing redundant signal : n[23]. (/shared/Vivado/vicii-kawari/hdl/sprites.v:99)
+[EFX-0200 WARNING] Removing redundant signal : n[22]. (/shared/Vivado/vicii-kawari/hdl/sprites.v:99)
+[EFX-0200 WARNING] Removing redundant signal : n[21]. (/shared/Vivado/vicii-kawari/hdl/sprites.v:99)
+[EFX-0200 WARNING] Removing redundant signal : n[20]. (/shared/Vivado/vicii-kawari/hdl/sprites.v:99)
+[EFX-0200 WARNING] Removing redundant signal : n[19]. (/shared/Vivado/vicii-kawari/hdl/sprites.v:99)
+[EFX-0200 WARNING] Removing redundant signal : n[18]. (/shared/Vivado/vicii-kawari/hdl/sprites.v:99)
+[EFX-0200 WARNING] Removing redundant signal : n[17]. (/shared/Vivado/vicii-kawari/hdl/sprites.v:99)
+[EFX-0200 WARNING] Removing redundant signal : n[16]. (/shared/Vivado/vicii-kawari/hdl/sprites.v:99)
+[EFX-0200 WARNING] Removing redundant signal : n[15]. (/shared/Vivado/vicii-kawari/hdl/sprites.v:99)
+[EFX-0200 WARNING] Removing redundant signal : n[14]. (/shared/Vivado/vicii-kawari/hdl/sprites.v:99)
+[EFX-0200 WARNING] Removing redundant signal : n[13]. (/shared/Vivado/vicii-kawari/hdl/sprites.v:99)
+[EFX-0200 WARNING] Removing redundant signal : n[12]. (/shared/Vivado/vicii-kawari/hdl/sprites.v:99)
+[EFX-0677 INFO] Zero initialization of uninitialized memory block 'sprite_cur_pixel1'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:109)
+[EFX-0677 INFO] Zero initialization of uninitialized memory block 'sprite_cur_pixel2'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:110)
+[EFX-0677 INFO] Zero initialization of uninitialized memory block 'sprite_cur_pixel3'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:111)
+[EFX-0677 INFO] Zero initialization of uninitialized memory block 'sprite_cur_pixel4'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:112)
+[EFX-0677 INFO] Zero initialization of uninitialized memory block 'sprite_cur_pixel5'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:113)
+[EFX-0677 INFO] Zero initialization of uninitialized memory block 'sprite_cur_pixel6'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:114)
+[EFX-0677 INFO] Zero initialization of uninitialized memory block 'sprite_mcbase'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:117)
+[EFX-0677 INFO] Zero initialization of uninitialized memory block 'sprite_xe_ff'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:118)
+[EFX-0677 INFO] Zero initialization of uninitialized memory block 'sprite_ye_ff'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:119)
+[EFX-0677 INFO] Zero initialization of uninitialized memory block 'sprite_pixels_shifting'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:124)
+[EFX-0677 INFO] Zero initialization of uninitialized memory block 'sprite_x_d'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:130)
+[EFX-0677 INFO] Zero initialization of uninitialized memory block 'sprite_x_d2'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:131)
+[EFX-0677 INFO] Zero initialization of uninitialized memory block 'char_buf'. (/shared/Vivado/vicii-kawari/hdl/bus_access.v:49)
+[EFX-0677 INFO] Zero initialization of uninitialized memory block 'ram_dual_port'. (/shared/Vivado/vicii-kawari/hdl/videoram_efinix.v:49)
+[EFX-0266 WARNING] Module Instance 'video_ram' input pin tied to constant (we_b=0).
+[EFX-0266 WARNING] Module Instance 'video_ram' input pin tied to constant (din_b[0]=0).
+[EFX-0266 WARNING] Module Instance 'video_ram' input pin tied to constant (din_b[1]=0).
+[EFX-0266 WARNING] Module Instance 'video_ram' input pin tied to constant (din_b[2]=0).
+[EFX-0266 WARNING] Module Instance 'video_ram' input pin tied to constant (din_b[3]=0).
+[EFX-0266 WARNING] Module Instance 'video_ram' input pin tied to constant (din_b[4]=0).
+[EFX-0266 WARNING] Module Instance 'video_ram' input pin tied to constant (din_b[5]=0).
+[EFX-0266 WARNING] Module Instance 'video_ram' input pin tied to constant (din_b[6]=0).
+[EFX-0266 WARNING] Module Instance 'video_ram' input pin tied to constant (din_b[7]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (we_b=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (addr_b[0]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (addr_b[1]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (addr_b[2]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (addr_b[3]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (din_b[0]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (din_b[1]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (din_b[2]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (din_b[3]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (din_b[4]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (din_b[5]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (din_b[6]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (din_b[7]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (din_b[8]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (din_b[9]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (din_b[10]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (din_b[11]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (din_b[12]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (din_b[13]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (din_b[14]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (din_b[15]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (din_b[16]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (din_b[17]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (din_b[18]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (din_b[19]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (din_b[20]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (din_b[21]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (din_b[22]=0).
+[EFX-0266 WARNING] Module Instance 'color_regs' input pin tied to constant (din_b[23]=0).
+[EFX-0266 WARNING] Module Instance 'luma_regs' input pin tied to constant (we_b=0).
+[EFX-0266 WARNING] Module Instance 'luma_regs' input pin tied to constant (din_b[0]=0).
+[EFX-0266 WARNING] Module Instance 'luma_regs' input pin tied to constant (din_b[1]=0).
+[EFX-0266 WARNING] Module Instance 'luma_regs' input pin tied to constant (din_b[2]=0).
+[EFX-0266 WARNING] Module Instance 'luma_regs' input pin tied to constant (din_b[3]=0).
+[EFX-0266 WARNING] Module Instance 'luma_regs' input pin tied to constant (din_b[4]=0).
+[EFX-0266 WARNING] Module Instance 'luma_regs' input pin tied to constant (din_b[5]=0).
+[EFX-0266 WARNING] Module Instance 'luma_regs' input pin tied to constant (din_b[6]=0).
+[EFX-0266 WARNING] Module Instance 'luma_regs' input pin tied to constant (din_b[7]=0).
+[EFX-0266 WARNING] Module Instance 'luma_regs' input pin tied to constant (din_b[8]=0).
+[EFX-0266 WARNING] Module Instance 'luma_regs' input pin tied to constant (din_b[9]=0).
+[EFX-0266 WARNING] Module Instance 'luma_regs' input pin tied to constant (din_b[10]=0).
+[EFX-0266 WARNING] Module Instance 'luma_regs' input pin tied to constant (din_b[11]=0).
+[EFX-0266 WARNING] Module Instance 'luma_regs' input pin tied to constant (din_b[12]=0).
+[EFX-0266 WARNING] Module Instance 'luma_regs' input pin tied to constant (din_b[13]=0).
+[EFX-0266 WARNING] Module Instance 'luma_regs' input pin tied to constant (din_b[14]=0).
+[EFX-0266 WARNING] Module Instance 'luma_regs' input pin tied to constant (din_b[15]=0).
+[EFX-0266 WARNING] Module Instance 'luma_regs' input pin tied to constant (din_b[16]=0).
+[EFX-0266 WARNING] Module Instance 'luma_regs' input pin tied to constant (din_b[17]=0).
+[EFX-0266 WARNING] Module Instance 'u_divider' input pin tied to constant (sign=0).
+[EFX-0266 WARNING] Module Instance 's_divider' input pin tied to constant (sign=1).
+[EFX-0677 INFO] Zero initialization of uninitialized memory block 'sprite_col_d1'. (/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v:102)
+[EFX-0677 INFO] Zero initialization of uninitialized memory block 'sprite_col_d2'. (/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v:103)
+[EFX-0000 INFO] ... Pre-synthesis checks end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 164848KB)
+[EFX-0000 INFO] ... NameSpace init begin
+[EFX-0000 INFO] ... NameSpace init end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 164848KB)
+[EFX-0000 INFO] ... Mapping design "top"
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "border" begin
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "border" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 164848KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "lightpen" begin
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "lightpen" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 164848KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "raster" begin
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "raster" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 164848KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "matrix" begin
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "matrix" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 164848KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "hires_matrix" begin
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "hires_matrix" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 164848KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "cycles" begin
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "cycles" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 164848KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "sprites" begin
+[EFX-0682 WARNING] Read/Write Port sizes (12w,17r) on ram-net 'sprite_pixels_shifting' cannot be packed in blockram and will be blasted into logic. (/shared/Vivado/vicii-kawari/hdl/sprites.v:124)
+[EFX-0682 WARNING] Read/Write Port sizes (8w,8r) on ram-net 'sprite_x_d' cannot be packed in blockram and will be blasted into logic. (/shared/Vivado/vicii-kawari/hdl/sprites.v:130)
+[EFX-0682 WARNING] Read/Write Port sizes (8w,8r) on ram-net 'sprite_x_d2' cannot be packed in blockram and will be blasted into logic. (/shared/Vivado/vicii-kawari/hdl/sprites.v:131)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "sprites" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 164848KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "bus_access" begin
+[EFX-0000 INFO] ... Clocked Read Port Synthesis for ram net: char_buf
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "bus_access" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 164848KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "addressgen" begin
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "addressgen" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 164848KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "hires_addressgen" begin
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "hires_addressgen" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 164848KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "VIDEO_RAM_EF" begin
+[EFX-0000 INFO] ... Clocked Read Port Synthesis for ram net: ram_dual_port
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "VIDEO_RAM_EF" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 164848KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "VIDEO_RAM" begin
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "VIDEO_RAM" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 164848KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "COLOR_REGS" begin
+[EFX-0000 INFO] ... Clocked Read Port Synthesis for ram net: ram_dual_port
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "COLOR_REGS" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 164848KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "LUMA_REGS" begin
+[EFX-0000 INFO] ... Clocked Read Port Synthesis for ram net: ram_dual_port
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "LUMA_REGS" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 164848KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "divide" begin
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "divide" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 164848KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "registers" begin
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "registers" end (Real time : 3s CPU user time : 5s CPU sys time : 0s MEM : 182172KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "pixel_sequencer" begin
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "pixel_sequencer" end (Real time : 0s CPU user time : 5s CPU sys time : 0s MEM : 182172KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "hires_pixel_sequencer" begin
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "hires_pixel_sequencer" end (Real time : 0s CPU user time : 5s CPU sys time : 0s MEM : 182172KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "EqualizationPulse" begin
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "EqualizationPulse" end (Real time : 0s CPU user time : 5s CPU sys time : 0s MEM : 182172KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "SerrationPulse" begin
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "SerrationPulse" end (Real time : 0s CPU user time : 5s CPU sys time : 0s MEM : 182172KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "comp_sync" begin
+[EFX-0000 INFO] ... Wide MUX mapping to ram-net, output: 'chroma9' select size : 12 output width: 9
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "comp_sync" end (Real time : 0s CPU user time : 5s CPU sys time : 0s MEM : 182172KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "vicii" begin
+[EFX-0682 WARNING] Read/Write Port sizes (12w,17r) on ram-net 'vic_sprites/sprite_pixels_shifting' cannot be packed in blockram and will be blasted into logic. (/shared/Vivado/vicii-kawari/hdl/sprites.v:124)
+[EFX-0682 WARNING] Read/Write Port sizes (8w,8r) on ram-net 'vic_sprites/sprite_x_d' cannot be packed in blockram and will be blasted into logic. (/shared/Vivado/vicii-kawari/hdl/sprites.v:130)
+[EFX-0682 WARNING] Read/Write Port sizes (8w,8r) on ram-net 'vic_sprites/sprite_x_d2' cannot be packed in blockram and will be blasted into logic. (/shared/Vivado/vicii-kawari/hdl/sprites.v:131)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "vicii" end (Real time : 2s CPU user time : 8s CPU sys time : 0s MEM : 184920KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "top" begin
+[EFX-0682 WARNING] Read/Write Port sizes (12w,17r) on ram-net 'vic_inst/vic_sprites/sprite_pixels_shifting' cannot be packed in blockram and will be blasted into logic. (/shared/Vivado/vicii-kawari/hdl/sprites.v:124)
+[EFX-0682 WARNING] Read/Write Port sizes (8w,8r) on ram-net 'vic_inst/vic_sprites/sprite_x_d' cannot be packed in blockram and will be blasted into logic. (/shared/Vivado/vicii-kawari/hdl/sprites.v:130)
+[EFX-0682 WARNING] Read/Write Port sizes (8w,8r) on ram-net 'vic_inst/vic_sprites/sprite_x_d2' cannot be packed in blockram and will be blasted into logic. (/shared/Vivado/vicii-kawari/hdl/sprites.v:131)
+[EFX-0655 WARNING] Mapping into logic memory block 'vic_inst/vic_sprites/sprite_cur_pixel1'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:109)
+[EFX-0655 WARNING] Mapping into logic memory block 'vic_inst/vic_sprites/sprite_cur_pixel2'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:110)
+[EFX-0655 WARNING] Mapping into logic memory block 'vic_inst/vic_sprites/sprite_cur_pixel3'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:111)
+[EFX-0655 WARNING] Mapping into logic memory block 'vic_inst/vic_sprites/sprite_cur_pixel4'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:112)
+[EFX-0655 WARNING] Mapping into logic memory block 'vic_inst/vic_sprites/sprite_cur_pixel5'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:113)
+[EFX-0655 WARNING] Mapping into logic memory block 'vic_inst/vic_sprites/sprite_cur_pixel6'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:114)
+[EFX-0655 WARNING] Mapping into logic memory block 'vic_inst/vic_sprites/sprite_mcbase'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:117)
+[EFX-0655 WARNING] Mapping into logic memory block 'vic_inst/vic_sprites/sprite_xe_ff'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:118)
+[EFX-0655 WARNING] Mapping into logic memory block 'vic_inst/vic_sprites/sprite_ye_ff'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:119)
+[EFX-0655 WARNING] Mapping into logic memory block 'vic_inst/vic_sprites/sprite_pixels_shifting'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:124)
+[EFX-0655 WARNING] Mapping into logic memory block 'vic_inst/vic_sprites/sprite_x_d'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:130)
+[EFX-0655 WARNING] Mapping into logic memory block 'vic_inst/vic_sprites/sprite_x_d2'. (/shared/Vivado/vicii-kawari/hdl/sprites.v:131)
+[EFX-0655 WARNING] Mapping into logic memory block 'vic_inst/vic_pixel_sequencer/sprite_col_d1'. (/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v:102)
+[EFX-0655 WARNING] Mapping into logic memory block 'vic_inst/vic_pixel_sequencer/sprite_col_d2'. (/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v:103)
+[EFX-0000 INFO] ... Clock Enable Synthesis Performed on 1128 flops.
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "top" end (Real time : 5s CPU user time : 12s CPU sys time : 0s MEM : 359228KB)
+[EFX-0000 INFO] ... Flat optimizations begin
+[EFX-0000 INFO] ... Flat optimizations end (Real time : 0s CPU user time : 12s CPU sys time : 0s MEM : 359228KB)
+[EFX-0000 INFO] ... Flat synthesis begin
+[EFX-0000 INFO] ... Flat synthesis end (Real time : 0s CPU user time : 12s CPU sys time : 0s MEM : 359228KB)
+[EFX-0000 INFO] ... Flat optimizations begin
+[EFX-0000 INFO] ... Flat optimizations end (Real time : 0s CPU user time : 13s CPU sys time : 0s MEM : 359228KB)
+[EFX-0000 INFO] ... Check and break combinational loops begin
+[EFX-0000 INFO] ... Check and break combinational loops end (Real time : 0s CPU user time : 13s CPU sys time : 0s MEM : 359228KB)
+[EFX-0000 INFO] ... Sequential Optimization begin
+[EFX-0000 INFO] ... Clock Network clk_dot4x with 3016 loads will be considered for sequential optimization.
+[EFX-0000 INFO] ... Clock Network clk_col16x with 147 loads will be considered for sequential optimization.
+[EFX-0000 INFO] ... Clock Network clk_col16x_4tm with 66 loads will be considered for sequential optimization.
+[EFX-0000 INFO] ... Sequential Optimization deduced 1490 equivalent points.
+[EFX-0000 INFO] ... Sequential Optimization end (Real time : 4s CPU user time : 18s CPU sys time : 0s MEM : 362252KB)
+[EFX-0000 INFO] ... SOP modeling begin
+[EFX-0000 INFO] ... SOP modeling end (Real time : 1s CPU user time : 18s CPU sys time : 0s MEM : 362252KB)
+[EFX-0000 INFO] ... LUT mapping begin
+[EFX-0000 INFO] ... LS, strategy: 3, nd: 7536, ed: 25480, lv: 7, pw: 11925.60
+[EFX-0000 INFO] ... LUT mapping end (Real time : 68s CPU user time : 84s CPU sys time : 2s MEM : 402808KB)
+[EFX-0000 INFO] ... Post-synthesis Verific netlist creation begin
+[EFX-0000 INFO] ... Post-synthesis Verific netlist creation end (Real time : 1s CPU user time : 84s CPU sys time : 2s MEM : 402808KB)
+[EFX-0000 INFO] ... Postmap Retiming Optimization begin
+[EFX-0000 INFO] ... Clock Network clk_dot4x with 2975 loads will be considered for retiming optimization.
+[EFX-0000 INFO] ... Clock Network clk_col16x with 147 loads will be considered for retiming optimization.
+[EFX-0000 INFO] ... Clock Network clk_col16x_4tm with 66 loads will be considered for retiming optimization.
+[EFX-0000 INFO] ... Inverted Clock Network clk_col16x_4tm with 2 loads will be considered for retiming optimization.
+[EFX-0000 INFO] ... Performed 7 retime moves.
+[EFX-0000 INFO] ... Postmap Retiming Optimization end (Real time : 0s CPU user time : 85s CPU sys time : 2s MEM : 402808KB)
+[EFX-0000 INFO] ... Post-synthesis Verific netlist unification/params processing begin
+[EFX-0000 INFO] ... Post-synthesis Verific netlist unification/params processing end (Real time : 1s CPU user time : 86s CPU sys time : 2s MEM : 402808KB)
+[EFX-0011 VERI-WARNING] Input/Inout Port clk_col4x_ntsc is unconnected and will be removed 
+[EFX-0011 VERI-WARNING] Input/Inout Port clk_col4x_pal is unconnected and will be removed 
+[EFX-0012 VERI-INFO] Found 2 warnings in the post-synthesis netlist. 
+[EFX-0000 INFO] Resource Summary 
+[EFX-0000 INFO] =============================== 
+[EFX-0000 INFO] EFX_ADD         : 	253
+[EFX-0000 INFO] EFX_LUT4        : 	7655
+[EFX-0000 INFO] EFX_MULT        : 	5
+[EFX-0000 INFO] EFX_FF          : 	3416
+[EFX-0000 INFO] EFX_RAM_5K      : 	4
+[EFX-0000 INFO] EFX_DPRAM_5K    : 	130
+[EFX-0000 INFO] EFX_GBUFCE      : 	7
+[EFX-0000 INFO] =============================== 

@@ -1,0 +1,199 @@
+
+Efinix FPGA Placement and Routing.
+Version: 2021.2.323.6.17 
+Date: Sun Jan 19 13:43:48 2025
+
+Copyright (C) 2013 - 2021 Efinix Inc. All rights reserved.
+ 
+Family: Trion 
+Device: T20Q144
+Top-level Entity Name: vicii
+Elapsed time for packing: 0 hours 0 minutes 0 seconds
+
+---------- Resource Summary (begin) ----------
+Inputs: 33 / 256 (12.89%)
+Outputs: 63 / 291 (21.65%)
+Clocks: 9 / 16 (56.25%)
+Logic Elements: 9411 / 19728 (47.70%)
+	LE: LUTs/Adders: 7847 / 19728 (39.78%)
+	LE: Registers: 3176 / 13920 (22.82%)
+Memory Blocks: 134 / 204 (65.69%)
+Multipliers: 5 / 36 (13.89%)
+---------- Resource Summary (end) ----------
+
+
+---------- DSP Block Information (begin) ----------
+
++---------------------------------------+-------+-------+-------+-----------+------------+-----------+------------+-----------+------------+
+|                 NAME                  | A_REG | B_REG | O_REG | RSTA_SYNC | RSTA_VALUE | RSTB_SYNC | RSTB_VALUE | RSTO_SYNC | RSTO_VALUE |
++---------------------------------------+-------+-------+-------+-----------+------------+-----------+------------+-----------+------------+
+| vic_inst/vic_registers/mult_19_pp_0x0 | false | false | false |   false   |   false    |   false   |   false    |   false   |   false    |
+|   vic_inst/vic_registers/mult_1974    | true  | true  | false |   true    |   false    |   true    |   false    |   false   |   false    |
+| vic_inst/vic_registers/mult_19_pp_0x1 | false | true  | false |   false   |   false    |   true    |   false    |   false   |   false    |
+| vic_inst/vic_registers/mult_19_pp_1x0 | true  | false | false |   true    |   false    |   false   |   false    |   false   |   false    |
+|    vic_inst/vic_registers/mult_13     | false | false | false |   false   |   false    |   false   |   false    |   false   |   false    |
++---------------------------------------+-------+-------+-------+-----------+------------+-----------+------------+-----------+------------+
+
+----------- DSP Block Information (end) ----------
+
+
+---------- Memory Block Information (begin) ----------
+
++-------------------------------------------------------+------+------------+-------------+-------------+------------+
+|                         NAME                          | MODE | READ_WIDTH | WRITE_WIDTH | WRITE_MODE  | OUTPUT_REG |
++-------------------------------------------------------+------+------------+-------------+-------------+------------+
+|           vic_inst/vic_bus_access/char_buf            | SDP  |     16     |     16      | WRITE_FIRST |   false    |
+| vic_inst/vic_registers/color_regs/ram_dual_port__D$b1 | SDP  |     8      |      8      | READ_FIRST  |   false    |
+| vic_inst/vic_registers/color_regs/ram_dual_port__D$2  | SDP  |     8      |      8      | READ_FIRST  |   false    |
+| vic_inst/vic_registers/color_regs/ram_dual_port__D$12 | SDP  |     8      |      8      | READ_FIRST  |   false    |
++-------------------------------------------------------+------+------------+-------------+-------------+------------+
+
++--------------------------------------------------------------------+------+--------------+---------------+--------------+--------------+--------------+---------------+--------------+--------------+
+|                                NAME                                | MODE | READ_WIDTH_A | WRITE_WIDTH_A | WRITE_MODE_A | OUTPUT_REG_A | READ_WIDTH_B | WRITE_WIDTH_B | WRITE_MODE_B | OUTPUT_REG_B |
++--------------------------------------------------------------------+------+--------------+---------------+--------------+--------------+--------------+---------------+--------------+--------------+
+|        vic_inst/vic_registers/luma_regs/ram_dual_port__D$2         | TDP  |      8       |       8       |  READ_FIRST  |    false     |      8       |       8       |  READ_FIRST  |     true     |
+| vic_inst/vic_registers/video_ram/video_ram_3/ram_dual_port__D$0d12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_3/ram_dual_port__D$0e12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+|  vic_inst/vic_registers/video_ram/video_ram_3/ram_dual_port__D$32  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_3/ram_dual_port__D$0b12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_3/ram_dual_port__D$3c12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_3/ram_dual_port__D$312  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_1/ram_dual_port__D$3f12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+|  vic_inst/vic_registers/video_ram/video_ram_2/ram_dual_port__D$02  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_0/ram_dual_port__D$0g1  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_3/ram_dual_port__D$3f12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_3/ram_dual_port__D$012  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_3/ram_dual_port__D$3g1  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_3/ram_dual_port__D$0g1  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_3/ram_dual_port__D$3b12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_3/ram_dual_port__D$0c12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_3/ram_dual_port__D$3d12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_4/ram_dual_port__D$3g1  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_2/ram_dual_port__D$3g1  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_4/ram_dual_port__D$312  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+|  vic_inst/vic_registers/video_ram/video_ram_4/ram_dual_port__D$02  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_4/ram_dual_port__D$012  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_4/ram_dual_port__D$0b12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_4/ram_dual_port__D$0c12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_4/ram_dual_port__D$0d12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_4/ram_dual_port__D$0e12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_2/ram_dual_port__D$3e12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+|  vic_inst/vic_registers/video_ram/video_ram_4/ram_dual_port__D$32  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_2/ram_dual_port__D$3c12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_2/ram_dual_port__D$3f12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_2/ram_dual_port__D$3d12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+|  vic_inst/vic_registers/video_ram/video_ram_3/ram_dual_port__D$02  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+|  vic_inst/vic_registers/video_ram/video_ram_0/ram_dual_port__D$02  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_4/ram_dual_port__D$3c12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_4/ram_dual_port__D$0f12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_4/ram_dual_port__D$3b12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_2/ram_dual_port__D$3b12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_4/ram_dual_port__D$3e12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_4/ram_dual_port__D$3f12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+|  vic_inst/vic_registers/video_ram/video_ram_2/ram_dual_port__D$32  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_2/ram_dual_port__D$312  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_0/ram_dual_port__D$012  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_5/ram_dual_port__D$3g1  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_2/ram_dual_port__D$0e12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_2/ram_dual_port__D$0d12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_2/ram_dual_port__D$0c12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_5/ram_dual_port__D$312  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_5/ram_dual_port__D$012  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_2/ram_dual_port__D$0b12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_2/ram_dual_port__D$012  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_2/ram_dual_port__D$0g1  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_5/ram_dual_port__D$0b12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_5/ram_dual_port__D$0c12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_5/ram_dual_port__D$0d12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_5/ram_dual_port__D$0e12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_5/ram_dual_port__D$0f12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+|  vic_inst/vic_registers/video_ram/video_ram_5/ram_dual_port__D$32  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_5/ram_dual_port__D$3b12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_2/ram_dual_port__D$0f12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_5/ram_dual_port__D$3c12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_5/ram_dual_port__D$3d12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_5/ram_dual_port__D$3e12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_5/ram_dual_port__D$3f12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_6/ram_dual_port__D$3g1  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_6/ram_dual_port__D$0b12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_0/ram_dual_port__D$3g1  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_4/ram_dual_port__D$3d12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+|  vic_inst/vic_registers/video_ram/video_ram_6/ram_dual_port__D$02  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_6/ram_dual_port__D$312  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_6/ram_dual_port__D$012  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_6/ram_dual_port__D$0c12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_6/ram_dual_port__D$0d12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_5/ram_dual_port__D$0g1  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_0/ram_dual_port__D$312  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+|  vic_inst/vic_registers/video_ram/video_ram_5/ram_dual_port__D$02  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_6/ram_dual_port__D$0e12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_6/ram_dual_port__D$0f12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+|  vic_inst/vic_registers/video_ram/video_ram_6/ram_dual_port__D$32  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_6/ram_dual_port__D$3b12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_6/ram_dual_port__D$3c12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_6/ram_dual_port__D$3d12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_6/ram_dual_port__D$3e12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_3/ram_dual_port__D$3e12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_0/ram_dual_port__D$0c12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_0/ram_dual_port__D$0d12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_1/ram_dual_port__D$3e12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_1/ram_dual_port__D$3g1  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_4/ram_dual_port__D$0g1  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_0/ram_dual_port__D$0b12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_1/ram_dual_port__D$3d12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_1/ram_dual_port__D$3c12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_3/ram_dual_port__D$0f12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_1/ram_dual_port__D$3b12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+|        vic_inst/vic_registers/luma_regs/ram_dual_port__D$1         | TDP  |      10      |      10       |  READ_FIRST  |    false     |      10      |      10       |  READ_FIRST  |     true     |
+|  vic_inst/vic_registers/video_ram/video_ram_1/ram_dual_port__D$32  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_1/ram_dual_port__D$312  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_7/ram_dual_port__D$3e12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_7/ram_dual_port__D$3d12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_7/ram_dual_port__D$3c12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_7/ram_dual_port__D$3b12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_7/ram_dual_port__D$312  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_7/ram_dual_port__D$3f12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_1/ram_dual_port__D$0g1  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_7/ram_dual_port__D$3g1  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_1/ram_dual_port__D$0d12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_1/ram_dual_port__D$0c12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_1/ram_dual_port__D$0b12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_1/ram_dual_port__D$012  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_1/ram_dual_port__D$0f12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+|  vic_inst/vic_registers/video_ram/video_ram_1/ram_dual_port__D$02  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_7/ram_dual_port__D$0g1  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_1/ram_dual_port__D$0e12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_7/ram_dual_port__D$0e12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_7/ram_dual_port__D$0d12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_7/ram_dual_port__D$0c12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_7/ram_dual_port__D$0b12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_7/ram_dual_port__D$012  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_7/ram_dual_port__D$0f12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_0/ram_dual_port__D$3e12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+|  vic_inst/vic_registers/video_ram/video_ram_7/ram_dual_port__D$02  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+|  vic_inst/vic_registers/video_ram/video_ram_7/ram_dual_port__D$32  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_0/ram_dual_port__D$3d12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_0/ram_dual_port__D$3c12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_0/ram_dual_port__D$3b12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+|  vic_inst/vic_registers/video_ram/video_ram_0/ram_dual_port__D$32  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_0/ram_dual_port__D$0f12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_0/ram_dual_port__D$0e12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_6/ram_dual_port__D$3f12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_0/ram_dual_port__D$3f12 | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
+| vic_inst/vic_registers/video_ram/video_ram_6/ram_dual_port__D$0g1  | TDP  |      1       |       1       |  READ_FIRST  |    false     |      1       |       1       |  READ_FIRST  |    false     |
++--------------------------------------------------------------------+------+--------------+---------------+--------------+--------------+--------------+---------------+--------------+--------------+
+
+----------- Memory Block Information (end) ----------
+
+
+---------- IO Interface Summary (begin) ----------
+
++------------------------+--------------+
+| Missing Interface Pins | Input/Output |
++------------------------+--------------+
+|      clk_dot_ext       |    Output    |
++------------------------+--------------+
+
+----------- IO Interface Summary (end) ----------
+
+Elapsed time for placement: 0 hours 2 minutes 1 seconds

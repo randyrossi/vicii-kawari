@@ -1,0 +1,12 @@
+**** Efinity Programming Tool Generation Report *****
+Time: 2025-01-22 19:24
+
+Generated Multi Image output file: /shared/Vivado/vicii-kawari/disks/util/flash/hex/single/1.19/kawari_1.19_1.19_multi_LH-DOTC-1.5.hex
+Device: T20Q144
+Image type: external
+CBSEL[1:0]  Flash Address  Length      Input Image File
+     2'b00  0x00000000     0x000a0364  /shared/Vivado/vicii-kawari/disks/util/flash/hex/single/1.19/LH-DOTC-1.5.hex
+     2'b01  0x000a1000     0x00000000  <blank>
+     2'b10  0x000a1000     0x000a0364  /shared/Vivado/vicii-kawari/disks/util/flash/hex/single/1.19/LH-DOTC-1.5.hex
+     2'b11  0x00142000     0x00000000  <blank>
+
