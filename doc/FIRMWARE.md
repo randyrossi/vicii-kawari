@@ -2,7 +2,7 @@ Back to [README.md](../README.md)
 
 # READ THIS BEFORE FLASHING!
 
-All boards have an **Active** image (the one that boots normally) and a **Fallback** image that can be triggered by shorting certain pads on the board.  The **Fallback** image is there in case the **Active** image fails for some reason.
+All boards have an **Active** image (the one that boots normally) and a **Fallback** image that can be triggered by shorting certain pads on the board.  The **Fallback** image is there in case the **Active** image fails for some reason. See [VARIANTS.md](VARIANTS.md) for jumper documentation.
 
 When using the individual .D64 files, please make sure you are actually able to swap disks! (using SD2IEC, Pi1541, etc).  For the Pi1541, you must mount ALL DISKS into your queue before starting the flash operation.  For the SD2IEC, please make sure your 'Next' button works as expected.  For the .D81, you can just press RETURN when prompted to swap disks.
 
