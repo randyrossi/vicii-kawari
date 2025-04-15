@@ -184,9 +184,15 @@ Although the board will (mostly) function if plugged into a C64-C 'short' board 
 
 1. It is difficult to close the machine. The 'Mini' PCB sits too high off the motherboard which presses up on the sheilding (required to be installed due to keyboard support brackets being attached).  The large also requires an extra socket to clear some motherboard components and causes the same issue with the sheild. If you are willing to replace the sheild with 3D printed keyboard support brackets (or other solutions), you may be able to get it to fit into a closed machine. However, this has not been tested.
 
-2. The 8562/8565 CAS/RAS timing is slightly different than the older generation 6567/6569 chips. You can try flashing an alternate firmware that adjusts the timing. However, there are still some issues that can cause some games/demos to fail. For this reason, I am not recommending VIC-II Kawari for C64-C short boards.
+2. The 8562/8565 CAS/RAS timing is slightly different than the older generation 6567/6569 chips. There are still some issues that can cause some games/demos to fail. For this reason, I am not recommending VIC-II Kawari for C64-C short boards.  I may investigate the cause of these issues and release a separate 8562/8656 firmware.
 
 NOTE: The VDD pin is not connected so there is no voltage compatibility issue like with the real 8562/8565 models. It won't damage the Kawari to plug it into a C64-C 'short' board. You may run into the issues described above, however.
+
+## What about EVO64 boards?
+There appear to be no issues on EVO64 boards, however I do not have one to test and rely on the community to report problems.
+
+## What about MK/MK2 Reloaded Boards?
+The Kawari is NOT compatible with the MK/MK2 Reloaded boards.
 
 ## Isn't the quality of 6567R56A composite video bad?
 The 6567R56A composite signal is known to be worse than the 6567R8. The cycle schedule (and hence timing) is slighly different in the 6567R56A. It generates a signal slightly out of range from the expected 15.734khz horizontal frequency for NTSC (it generates 15.980khz instead). Some composite LCD monitors don't like this and even the real chips produced unwanted artifacts on those types of displays. You will get the same unwanted artifacts from a VIC-II Kawari producing composite video when configured as a 6567R56A. Most CRTs, however, are more forgiving and you may not notice the difference. Some TVs still show a bad picture. When using DVI or RGB output, this is of no concern as long as your monitor can handle the frequency (the image will look just as good as any other mode). There may be _some_ NTSC programs that depend on 6567R56A to run properly due to the cycle schedule but I'm not aware of any.  The default config defines only 5 luminance levels for the 6567R56A.
