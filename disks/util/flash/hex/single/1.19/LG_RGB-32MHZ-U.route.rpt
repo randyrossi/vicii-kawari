@@ -1,12 +1,12 @@
 
 Efinix FPGA Placement and Routing.
 Version: 2021.2.323.6.17 
-Date: Sun Jan 19 19:23:56 2025
+Date: Tue Apr 15 10:03:00 2025
 
 Copyright (C) 2013 - 2021 Efinix Inc. All rights reserved.
  
 Family: Trion 
 Device: T20F256
 Top-level Entity Name: vicii
-Elapsed time for routing: 0 hours 0 minutes 33 seconds
-Elapsed time for entire flow: 0 hours 2 minutes 54 seconds
+Elapsed time for routing: 0 hours 0 minutes 51 seconds
+Elapsed time for entire flow: 0 hours 3 minutes 23 seconds

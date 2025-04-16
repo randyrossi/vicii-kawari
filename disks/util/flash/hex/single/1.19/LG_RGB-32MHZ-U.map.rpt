@@ -1,5 +1,5 @@
 Synthesis report for project vicii
-Generated at: Jan 19, 2025 19:13:59
+Generated at: Apr 15, 2025 09:34:27
 Copyright (C) 2013 - 2021 Efinix Inc. All rights reserved.
 
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
@@ -957,5 +957,5 @@ EFX_DPRAM_5K    : 	133
 EFX_GBUFCE      : 	7
 ### ### Resource Summary (end) ### ### ###
 
-Plain synthesis (without verilog dump and post-map checks) time : 89s
-Elapsed synthesis time : 96s
+Plain synthesis (without verilog dump and post-map checks) time : 90s
+Elapsed synthesis time : 100s

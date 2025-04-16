@@ -1,7 +1,7 @@
 
 ///////////////////////////////////
 // Efinity Synthesis Started 
-// Jan 19, 2025 19:13:58
+// Apr 15, 2025 09:34:26
 ///////////////////////////////////
 
 [EFX-0034 WARNING] Project XML file specified. Source files specified in the command line are ignored.
@@ -324,70 +324,70 @@
 [EFX-0677 INFO] Zero initialization of uninitialized memory block 'sprite_col_d1'. (/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v:102)
 [EFX-0677 INFO] Zero initialization of uninitialized memory block 'sprite_col_d2'. (/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v:103)
 [EFX-0677 INFO] Zero initialization of uninitialized memory block 'ram_single_port'. (/shared/Vivado/vicii-kawari/hdl/hires_vga_sync.v:37)
-[EFX-0000 INFO] ... Pre-synthesis checks end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165852KB)
+[EFX-0000 INFO] ... Pre-synthesis checks end (Real time : 1s CPU user time : 2s CPU sys time : 0s MEM : 165748KB)
 [EFX-0000 INFO] ... NameSpace init begin
-[EFX-0000 INFO] ... NameSpace init end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165852KB)
+[EFX-0000 INFO] ... NameSpace init end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165748KB)
 [EFX-0000 INFO] ... Mapping design "top"
 [EFX-0000 INFO] ... Hierarchical pre-synthesis "border" begin
-[EFX-0000 INFO] ... Hierarchical pre-synthesis "border" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165852KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "border" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165748KB)
 [EFX-0000 INFO] ... Hierarchical pre-synthesis "lightpen" begin
-[EFX-0000 INFO] ... Hierarchical pre-synthesis "lightpen" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165852KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "lightpen" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165748KB)
 [EFX-0000 INFO] ... Hierarchical pre-synthesis "raster" begin
-[EFX-0000 INFO] ... Hierarchical pre-synthesis "raster" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165852KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "raster" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165748KB)
 [EFX-0000 INFO] ... Hierarchical pre-synthesis "matrix" begin
-[EFX-0000 INFO] ... Hierarchical pre-synthesis "matrix" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165852KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "matrix" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165748KB)
 [EFX-0000 INFO] ... Hierarchical pre-synthesis "hires_matrix" begin
-[EFX-0000 INFO] ... Hierarchical pre-synthesis "hires_matrix" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165852KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "hires_matrix" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165748KB)
 [EFX-0000 INFO] ... Hierarchical pre-synthesis "cycles" begin
-[EFX-0000 INFO] ... Hierarchical pre-synthesis "cycles" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165852KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "cycles" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165748KB)
 [EFX-0000 INFO] ... Hierarchical pre-synthesis "sprites" begin
 [EFX-0682 WARNING] Read/Write Port sizes (12w,17r) on ram-net 'sprite_pixels_shifting' cannot be packed in blockram and will be blasted into logic. (/shared/Vivado/vicii-kawari/hdl/sprites.v:124)
 [EFX-0682 WARNING] Read/Write Port sizes (8w,8r) on ram-net 'sprite_x_d' cannot be packed in blockram and will be blasted into logic. (/shared/Vivado/vicii-kawari/hdl/sprites.v:130)
 [EFX-0682 WARNING] Read/Write Port sizes (8w,8r) on ram-net 'sprite_x_d2' cannot be packed in blockram and will be blasted into logic. (/shared/Vivado/vicii-kawari/hdl/sprites.v:131)
-[EFX-0000 INFO] ... Hierarchical pre-synthesis "sprites" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165852KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "sprites" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165748KB)
 [EFX-0000 INFO] ... Hierarchical pre-synthesis "bus_access" begin
 [EFX-0000 INFO] ... Clocked Read Port Synthesis for ram net: char_buf
-[EFX-0000 INFO] ... Hierarchical pre-synthesis "bus_access" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165852KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "bus_access" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165748KB)
 [EFX-0000 INFO] ... Hierarchical pre-synthesis "addressgen" begin
-[EFX-0000 INFO] ... Hierarchical pre-synthesis "addressgen" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165852KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "addressgen" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165748KB)
 [EFX-0000 INFO] ... Hierarchical pre-synthesis "hires_addressgen" begin
-[EFX-0000 INFO] ... Hierarchical pre-synthesis "hires_addressgen" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165852KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "hires_addressgen" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165748KB)
 [EFX-0000 INFO] ... Hierarchical pre-synthesis "VIDEO_RAM_EF" begin
 [EFX-0000 INFO] ... Clocked Read Port Synthesis for ram net: ram_dual_port
-[EFX-0000 INFO] ... Hierarchical pre-synthesis "VIDEO_RAM_EF" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165852KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "VIDEO_RAM_EF" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165748KB)
 [EFX-0000 INFO] ... Hierarchical pre-synthesis "VIDEO_RAM" begin
-[EFX-0000 INFO] ... Hierarchical pre-synthesis "VIDEO_RAM" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165852KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "VIDEO_RAM" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165748KB)
 [EFX-0000 INFO] ... Hierarchical pre-synthesis "COLOR_REGS" begin
 [EFX-0000 INFO] ... Clocked Read Port Synthesis for ram net: ram_dual_port
-[EFX-0000 INFO] ... Hierarchical pre-synthesis "COLOR_REGS" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165852KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "COLOR_REGS" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165748KB)
 [EFX-0000 INFO] ... Hierarchical pre-synthesis "LUMA_REGS" begin
 [EFX-0000 INFO] ... Clocked Read Port Synthesis for ram net: ram_dual_port
-[EFX-0000 INFO] ... Hierarchical pre-synthesis "LUMA_REGS" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165852KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "LUMA_REGS" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165748KB)
 [EFX-0000 INFO] ... Hierarchical pre-synthesis "divide" begin
-[EFX-0000 INFO] ... Hierarchical pre-synthesis "divide" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165852KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "divide" end (Real time : 0s CPU user time : 2s CPU sys time : 0s MEM : 165748KB)
 [EFX-0000 INFO] ... Hierarchical pre-synthesis "registers" begin
-[EFX-0000 INFO] ... Hierarchical pre-synthesis "registers" end (Real time : 3s CPU user time : 5s CPU sys time : 0s MEM : 183220KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "registers" end (Real time : 3s CPU user time : 5s CPU sys time : 0s MEM : 182900KB)
 [EFX-0000 INFO] ... Hierarchical pre-synthesis "pixel_sequencer" begin
-[EFX-0000 INFO] ... Hierarchical pre-synthesis "pixel_sequencer" end (Real time : 0s CPU user time : 5s CPU sys time : 0s MEM : 183220KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "pixel_sequencer" end (Real time : 0s CPU user time : 5s CPU sys time : 0s MEM : 182900KB)
 [EFX-0000 INFO] ... Hierarchical pre-synthesis "hires_pixel_sequencer" begin
-[EFX-0000 INFO] ... Hierarchical pre-synthesis "hires_pixel_sequencer" end (Real time : 0s CPU user time : 5s CPU sys time : 0s MEM : 183220KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "hires_pixel_sequencer" end (Real time : 0s CPU user time : 6s CPU sys time : 0s MEM : 182900KB)
 [EFX-0000 INFO] ... Hierarchical pre-synthesis "EqualizationPulse" begin
-[EFX-0000 INFO] ... Hierarchical pre-synthesis "EqualizationPulse" end (Real time : 0s CPU user time : 5s CPU sys time : 0s MEM : 183220KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "EqualizationPulse" end (Real time : 0s CPU user time : 6s CPU sys time : 0s MEM : 182900KB)
 [EFX-0000 INFO] ... Hierarchical pre-synthesis "SerrationPulse" begin
-[EFX-0000 INFO] ... Hierarchical pre-synthesis "SerrationPulse" end (Real time : 0s CPU user time : 5s CPU sys time : 0s MEM : 183220KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "SerrationPulse" end (Real time : 0s CPU user time : 6s CPU sys time : 0s MEM : 182900KB)
 [EFX-0000 INFO] ... Hierarchical pre-synthesis "comp_sync" begin
 [EFX-0000 INFO] ... Wide MUX mapping to ram-net, output: 'chroma9' select size : 12 output width: 9
-[EFX-0000 INFO] ... Hierarchical pre-synthesis "comp_sync" end (Real time : 0s CPU user time : 6s CPU sys time : 0s MEM : 183220KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "comp_sync" end (Real time : 0s CPU user time : 6s CPU sys time : 0s MEM : 182900KB)
 [EFX-0000 INFO] ... Hierarchical pre-synthesis "linebuf_RAM" begin
 [EFX-0000 INFO] ... Clocked Read Port Synthesis for ram net: ram_single_port
-[EFX-0000 INFO] ... Hierarchical pre-synthesis "linebuf_RAM" end (Real time : 0s CPU user time : 6s CPU sys time : 0s MEM : 183220KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "linebuf_RAM" end (Real time : 0s CPU user time : 6s CPU sys time : 0s MEM : 182900KB)
 [EFX-0000 INFO] ... Hierarchical pre-synthesis "hires_vga_sync" begin
-[EFX-0000 INFO] ... Hierarchical pre-synthesis "hires_vga_sync" end (Real time : 1s CPU user time : 6s CPU sys time : 0s MEM : 183220KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "hires_vga_sync" end (Real time : 0s CPU user time : 6s CPU sys time : 0s MEM : 182900KB)
 [EFX-0000 INFO] ... Hierarchical pre-synthesis "vicii" begin
 [EFX-0682 WARNING] Read/Write Port sizes (12w,17r) on ram-net 'vic_sprites/sprite_pixels_shifting' cannot be packed in blockram and will be blasted into logic. (/shared/Vivado/vicii-kawari/hdl/sprites.v:124)
 [EFX-0682 WARNING] Read/Write Port sizes (8w,8r) on ram-net 'vic_sprites/sprite_x_d' cannot be packed in blockram and will be blasted into logic. (/shared/Vivado/vicii-kawari/hdl/sprites.v:130)
 [EFX-0682 WARNING] Read/Write Port sizes (8w,8r) on ram-net 'vic_sprites/sprite_x_d2' cannot be packed in blockram and will be blasted into logic. (/shared/Vivado/vicii-kawari/hdl/sprites.v:131)
-[EFX-0000 INFO] ... Hierarchical pre-synthesis "vicii" end (Real time : 2s CPU user time : 8s CPU sys time : 0s MEM : 186432KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "vicii" end (Real time : 3s CPU user time : 8s CPU sys time : 0s MEM : 186104KB)
 [EFX-0000 INFO] ... Hierarchical pre-synthesis "top" begin
 [EFX-0682 WARNING] Read/Write Port sizes (12w,17r) on ram-net 'vic_inst/vic_sprites/sprite_pixels_shifting' cannot be packed in blockram and will be blasted into logic. (/shared/Vivado/vicii-kawari/hdl/sprites.v:124)
 [EFX-0682 WARNING] Read/Write Port sizes (8w,8r) on ram-net 'vic_inst/vic_sprites/sprite_x_d' cannot be packed in blockram and will be blasted into logic. (/shared/Vivado/vicii-kawari/hdl/sprites.v:130)
@@ -407,37 +407,37 @@
 [EFX-0655 WARNING] Mapping into logic memory block 'vic_inst/vic_pixel_sequencer/sprite_col_d1'. (/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v:102)
 [EFX-0655 WARNING] Mapping into logic memory block 'vic_inst/vic_pixel_sequencer/sprite_col_d2'. (/shared/Vivado/vicii-kawari/hdl/pixel_sequencer.v:103)
 [EFX-0000 INFO] ... Clock Enable Synthesis Performed on 1209 flops.
-[EFX-0000 INFO] ... Hierarchical pre-synthesis "top" end (Real time : 4s CPU user time : 12s CPU sys time : 0s MEM : 360424KB)
+[EFX-0000 INFO] ... Hierarchical pre-synthesis "top" end (Real time : 4s CPU user time : 12s CPU sys time : 0s MEM : 360012KB)
 [EFX-0000 INFO] ... Flat optimizations begin
-[EFX-0000 INFO] ... Flat optimizations end (Real time : 0s CPU user time : 13s CPU sys time : 0s MEM : 360424KB)
+[EFX-0000 INFO] ... Flat optimizations end (Real time : 1s CPU user time : 13s CPU sys time : 0s MEM : 360012KB)
 [EFX-0000 INFO] ... Flat synthesis begin
-[EFX-0000 INFO] ... Flat synthesis end (Real time : 0s CPU user time : 13s CPU sys time : 0s MEM : 360424KB)
+[EFX-0000 INFO] ... Flat synthesis end (Real time : 0s CPU user time : 13s CPU sys time : 0s MEM : 360012KB)
 [EFX-0000 INFO] ... Flat optimizations begin
-[EFX-0000 INFO] ... Flat optimizations end (Real time : 0s CPU user time : 13s CPU sys time : 0s MEM : 360424KB)
+[EFX-0000 INFO] ... Flat optimizations end (Real time : 0s CPU user time : 13s CPU sys time : 0s MEM : 360012KB)
 [EFX-0000 INFO] ... Check and break combinational loops begin
-[EFX-0000 INFO] ... Check and break combinational loops end (Real time : 0s CPU user time : 13s CPU sys time : 0s MEM : 360424KB)
+[EFX-0000 INFO] ... Check and break combinational loops end (Real time : 0s CPU user time : 13s CPU sys time : 0s MEM : 360012KB)
 [EFX-0000 INFO] ... Sequential Optimization begin
 [EFX-0000 INFO] ... Clock Network clk_dot4x with 3095 loads will be considered for sequential optimization.
 [EFX-0000 INFO] ... Clock Network clk_col16x with 147 loads will be considered for sequential optimization.
 [EFX-0000 INFO] ... Clock Network clk_col16x_4tm with 66 loads will be considered for sequential optimization.
 [EFX-0000 INFO] ... Sequential Optimization deduced 1536 equivalent points.
-[EFX-0000 INFO] ... Sequential Optimization end (Real time : 4s CPU user time : 18s CPU sys time : 0s MEM : 361472KB)
+[EFX-0000 INFO] ... Sequential Optimization end (Real time : 4s CPU user time : 18s CPU sys time : 0s MEM : 362444KB)
 [EFX-0000 INFO] ... SOP modeling begin
-[EFX-0000 INFO] ... SOP modeling end (Real time : 1s CPU user time : 19s CPU sys time : 0s MEM : 364876KB)
+[EFX-0000 INFO] ... SOP modeling end (Real time : 1s CPU user time : 19s CPU sys time : 0s MEM : 364340KB)
 [EFX-0000 INFO] ... LUT mapping begin
 [EFX-0000 INFO] ... LS, strategy: 3, nd: 8051, ed: 27222, lv: 7, pw: 12614.48
-[EFX-0000 INFO] ... LUT mapping end (Real time : 69s CPU user time : 86s CPU sys time : 2s MEM : 408944KB)
+[EFX-0000 INFO] ... LUT mapping end (Real time : 71s CPU user time : 87s CPU sys time : 3s MEM : 404868KB)
 [EFX-0000 INFO] ... Post-synthesis Verific netlist creation begin
-[EFX-0000 INFO] ... Post-synthesis Verific netlist creation end (Real time : 1s CPU user time : 86s CPU sys time : 2s MEM : 408944KB)
+[EFX-0000 INFO] ... Post-synthesis Verific netlist creation end (Real time : 0s CPU user time : 87s CPU sys time : 3s MEM : 404868KB)
 [EFX-0000 INFO] ... Postmap Retiming Optimization begin
 [EFX-0000 INFO] ... Clock Network clk_dot4x with 3048 loads will be considered for retiming optimization.
 [EFX-0000 INFO] ... Clock Network clk_col16x with 147 loads will be considered for retiming optimization.
 [EFX-0000 INFO] ... Clock Network clk_col16x_4tm with 66 loads will be considered for retiming optimization.
 [EFX-0000 INFO] ... Inverted Clock Network clk_col16x_4tm with 2 loads will be considered for retiming optimization.
 [EFX-0000 INFO] ... Performed 6 retime moves.
-[EFX-0000 INFO] ... Postmap Retiming Optimization end (Real time : 0s CPU user time : 87s CPU sys time : 2s MEM : 408944KB)
+[EFX-0000 INFO] ... Postmap Retiming Optimization end (Real time : 1s CPU user time : 87s CPU sys time : 3s MEM : 404868KB)
 [EFX-0000 INFO] ... Post-synthesis Verific netlist unification/params processing begin
-[EFX-0000 INFO] ... Post-synthesis Verific netlist unification/params processing end (Real time : 1s CPU user time : 87s CPU sys time : 2s MEM : 408944KB)
+[EFX-0000 INFO] ... Post-synthesis Verific netlist unification/params processing end (Real time : 0s CPU user time : 88s CPU sys time : 3s MEM : 404868KB)
 [EFX-0011 VERI-WARNING] Input/Inout Port clk_col4x_ntsc is unconnected and will be removed 
 [EFX-0011 VERI-WARNING] Input/Inout Port clk_col4x_pal is unconnected and will be removed 
 [EFX-0012 VERI-INFO] Found 2 warnings in the post-synthesis netlist. 

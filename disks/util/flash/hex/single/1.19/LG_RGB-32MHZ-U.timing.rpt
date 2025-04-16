@@ -1,7 +1,7 @@
 
 Efinix Static Timing Analysis Report
 Version: 2021.2.323.6.17 
-Date: Sun Jan 19 19:24:36 2025
+Date: Tue Apr 15 10:03:57 2025
 
 Copyright (C) 2013 - 2021 Efinix Inc. All rights reserved.
  
@@ -37,11 +37,11 @@ clk_col16x_pal          14.090          70.972         {0.000 7.045}        virt
 Maximum possible analyzed clocks frequency
 Clock Name         Period (ns)   Frequency (MHz)   Edge
 clk_dot4x_ntsc           0.976        1024.426     (R-R)
-clk_col16x_ntsc          0.972        1028.643     (R-R)
-clk_dot4x_pal           17.815          56.133     (R-R)
-clk_col16x_pal          11.268          88.745     (R-R)
+clk_col16x_ntsc          0.976        1024.428     (R-R)
+clk_dot4x_pal           15.645          63.917     (R-R)
+clk_col16x_pal          11.300          88.497     (R-R)
 
-Geomean max period: 3.715
+Geomean max period: 3.603
 
 ---------- Clock Frequency Summary (end) ---------------
 
@@ -50,20 +50,20 @@ Geomean max period: 3.715
 Setup (Max) Clock Relationship
 Launch Clock     Capture Clock    Constraint (ns)   Slack (ns)    Edge
 clk_dot4x_ntsc    clk_dot4x_ntsc        30.550        29.574     (R-R)
-clk_col16x_ntsc   clk_col16x_ntsc       17.460        16.488     (R-R)
-clk_dot4x_pal     clk_dot4x_pal         31.710        13.895     (R-R)
-clk_dot4x_pal     clk_dot4x_pal         15.855        12.953     (R-F)
-clk_col16x_pal    clk_col16x_pal        14.090         2.822     (R-R)
-clk_col16x_pal    clk_col16x_pal         7.045         5.226     (R-F)
+clk_col16x_ntsc   clk_col16x_ntsc       17.460        16.484     (R-R)
+clk_dot4x_pal     clk_dot4x_pal         31.710        16.065     (R-R)
+clk_dot4x_pal     clk_dot4x_pal         15.855        13.627     (R-F)
+clk_col16x_pal    clk_col16x_pal        14.090         2.790     (R-R)
+clk_col16x_pal    clk_col16x_pal         7.045         5.036     (R-F)
 
 Hold (Min) Clock Relationship
 Launch Clock     Capture Clock    Constraint (ns)   Slack (ns)    Edge
 clk_dot4x_ntsc    clk_dot4x_ntsc         0.000         0.309     (R-R)
-clk_col16x_ntsc   clk_col16x_ntsc        0.000         0.307     (R-R)
-clk_dot4x_pal     clk_dot4x_pal          0.000         0.119     (R-R)
-clk_dot4x_pal     clk_dot4x_pal        -15.855        16.374     (R-F)
+clk_col16x_ntsc   clk_col16x_ntsc        0.000         0.309     (R-R)
+clk_dot4x_pal     clk_dot4x_pal          0.000         0.086     (R-R)
+clk_dot4x_pal     clk_dot4x_pal        -15.855        16.706     (R-F)
 clk_col16x_pal    clk_col16x_pal         0.000         0.307     (R-R)
-clk_col16x_pal    clk_col16x_pal        -7.045         7.574     (R-F)
+clk_col16x_pal    clk_col16x_pal        -7.045         7.641     (R-F)
 
 NOTE: Values are in nanoseconds.
 
@@ -80,75 +80,75 @@ Path Detail Report (clk_col16x_pal vs clk_col16x_pal)
 ++++ Path 1 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Path Begin    : vic_inst/vic_comp_sync/sineROMAddr[6]~FF|CLK
-Path End      : vic_inst/vic_comp_sync/chroma[2]~FF|D
+Path End      : vic_inst/vic_comp_sync/chroma[0]~FF|D
 Launch Clock  : clk_col16x_pal (RISE)
 Capture Clock : clk_col16x_pal (RISE)
-Slack         : 10.291  (required time - arrival time)
-Delay         : 10.749
+Slack         : 12.060  (required time - arrival time)
+Delay         : 10.780
 
 Logic Level : 7
 Non-global nets on path : 7
 Global nets on path     : 0
 
-Launch Clock Path Delay        :  7.469
-+ Clock To Q + Data Path Delay : 11.148
+Launch Clock Path Delay        :  9.270
++ Clock To Q + Data Path Delay : 11.180
 --------------------------------------------
-End-of-path arrival time       : 18.618
+End-of-path arrival time       : 20.449
 
 Constraint                     : 14.090
-+ Capture Clock Path Delay     :  7.469
++ Capture Clock Path Delay     :  9.270
 - Clock Uncertainty            :  0.120
 --------------------------------------------
-End-of-path required time      : 21.439
+End-of-path required time      : 23.240
 
 
 Data Path
 pin name                                          model name    delay (ns)   cumulative delay (ns)    pins on net   location
 =============================================================================================================================
- vic_inst/vic_comp_sync/sineROMAddr[6]~FF|Q        ff               0.282                  0.282          98          (151,202)
- vic_inst/vic_comp_sync/sineROMAddr[6]~FF|O_seq    eft              2.588                  2.870          98          (151,202)
+ vic_inst/vic_comp_sync/sineROMAddr[6]~FF|Q        ff               0.282                  0.282          98          (157,203)
+ vic_inst/vic_comp_sync/sineROMAddr[6]~FF|O_seq    eft              2.343                  2.625          98          (157,203)
    Routing elements:  
-     Manhattan distance of X:96, Y:38
- LUT__18294|I[1]                                   eft              0.223                  3.093          98          (55,240)
- LUT__18294|in[1]                                  lut              0.000                  3.093          98          (55,240)
- LUT__18294|out                                    lut              0.000                  3.093          16          (55,240)
- LUT__18294|O                                      eft              1.417                  4.510          16          (55,240)
+     Manhattan distance of X:121, Y:20
+ LUT__18143|I[0]                                   efl              0.251                  2.875          98          (36,223)
+ LUT__18143|in[0]                                  lut              0.000                  2.876          98          (36,223)
+ LUT__18143|out                                    lut              0.000                  2.876          19          (36,223)
+ LUT__18143|O                                      efl              2.195                  5.071          19          (36,223)
    Routing elements:  
-     Manhattan distance of X:38, Y:1
- LUT__18418|I[1]                                   eft              0.223                  4.733          16          (93,239)
- LUT__18418|in[1]                                  lut              0.000                  4.733          16          (93,239)
- LUT__18418|out                                    lut              0.000                  4.733           4          (93,239)
- LUT__18418|O                                      eft              0.431                  5.164           4          (93,239)
+     Manhattan distance of X:85, Y:6
+ LUT__18527|I[1]                                   eft              0.223                  5.294          19          (121,217)
+ LUT__18527|in[1]                                  lut              0.000                  5.294          19          (121,217)
+ LUT__18527|out                                    lut              0.000                  5.294           2          (121,217)
+ LUT__18527|O                                      eft              1.040                  6.334           2          (121,217)
    Routing elements:  
-     Manhattan distance of X:6, Y:0
- LUT__19042|I[0]                                   eft              0.267                  5.431           4          (87,239)
- LUT__19042|in[0]                                  lut              0.000                  5.431           4          (87,239)
- LUT__19042|out                                    lut              0.000                  5.431           2          (87,239)
- LUT__19042|O                                      eft              1.253                  6.684           2          (87,239)
+     Manhattan distance of X:4, Y:14
+ LUT__18531|I[1]                                   eft              0.223                  6.558           2          (125,203)
+ LUT__18531|in[1]                                  lut              0.000                  6.558           2          (125,203)
+ LUT__18531|out                                    lut              0.000                  6.558           2          (125,203)
+ LUT__18531|O                                      eft              1.121                  7.679           2          (125,203)
    Routing elements:  
-     Manhattan distance of X:43, Y:0
- LUT__19043|I[1]                                   efl              0.222                  6.906           2          (44,239)
- LUT__19043|in[1]                                  lut              0.000                  6.906           2          (44,239)
- LUT__19043|out                                    lut              0.000                  6.906           2          (44,239)
- LUT__19043|O                                      efl              1.258                  8.165           2          (44,239)
+     Manhattan distance of X:16, Y:4
+ LUT__18540|I[2]                                   eft              0.161                  7.840           2          (141,207)
+ LUT__18540|in[2]                                  lut              0.000                  7.840           2          (141,207)
+ LUT__18540|out                                    lut              0.000                  7.840           2          (141,207)
+ LUT__18540|O                                      eft              1.123                  8.963           2          (141,207)
    Routing elements:  
-     Manhattan distance of X:19, Y:1
- LUT__19057|I[3]                                   eft              0.116                  8.281           2          (63,240)
- LUT__19057|in[3]                                  lut              0.000                  8.281           2          (63,240)
- LUT__19057|out                                    lut              0.000                  8.281           2          (63,240)
- LUT__19057|O                                      eft              0.370                  8.651           2          (63,240)
+     Manhattan distance of X:10, Y:17
+ LUT__18541|I[2]                                   eft              0.161                  9.124           2          (151,224)
+ LUT__18541|in[2]                                  lut              0.000                  9.124           2          (151,224)
+ LUT__18541|out                                    lut              0.000                  9.124           2          (151,224)
+ LUT__18541|O                                      eft              0.858                  9.982           2          (151,224)
    Routing elements:  
-     Manhattan distance of X:0, Y:13
- LUT__19058|I[1]                                   eft              0.223                  8.874           2          (63,227)
- LUT__19058|in[1]                                  lut              0.000                  8.874           2          (63,227)
- LUT__19058|out                                    lut              0.000                  8.874           2          (63,227)
- LUT__19058|O                                      eft              1.889                 10.763           2          (63,227)
+     Manhattan distance of X:5, Y:2
+ LUT__18608|I[0]                                   efl              0.251                 10.233           2          (146,226)
+ LUT__18608|in[0]                                  lut              0.000                 10.233           2          (146,226)
+ LUT__18608|out                                    lut              0.000                 10.233           2          (146,226)
+ LUT__18608|O                                      efl              0.713                 10.946           2          (146,226)
    Routing elements:  
-     Manhattan distance of X:52, Y:27
- vic_inst/vic_comp_sync/chroma[2]~FF|I[0]          eft              0.267                 11.030           2          (115,200)
- LUT__19059|in[0]                                  lut              0.000                 11.031           2          (115,200)
- LUT__19059|out                                    lut              0.000                 11.031           2          (115,200)
- vic_inst/vic_comp_sync/chroma[2]~FF|D             ff               0.118                 11.148           2          (115,200)
+     Manhattan distance of X:33, Y:0
+ vic_inst/vic_comp_sync/chroma[0]~FF|I[3]          eft              0.116                 11.062           2          (113,226)
+ LUT__18609|in[3]                                  lut              0.000                 11.062           2          (113,226)
+ LUT__18609|out                                    lut              0.000                 11.062           2          (113,226)
+ vic_inst/vic_comp_sync/chroma[0]~FF|D             ff               0.118                 11.180           2          (113,226)
 
 ######################################################################
 Path Detail Report (clk_dot4x_ntsc vs clk_dot4x_ntsc)
@@ -192,16 +192,16 @@ pin name               model name    delay (ns)   cumulative delay (ns)    pins 
  CLKBUF__1|I            gbuf            3.590                  4.110           3          (1,119)
  CLKBUF__1|O            gbuf            0.000                  4.110           2          (1,119)
  CLKBUF__1|clkout       gbuf_block      0.000                  4.110           2          (1,119)
- ntsc_dot_2_2~FF|CLK    ff              0.000                  4.110           2          (141,92)
+ ntsc_dot_2_2~FF|CLK    ff              0.000                  4.110           2          (7,168)
 
 Data Path
 pin name                 model name    delay (ns)   cumulative delay (ns)    pins on net   location
 ====================================================================================================
- ntsc_dot_2_2~FF|Q        ff               0.282                  0.282           2          (141,92)
- ntsc_dot_2_2~FF|O_seq    eft              0.341                  0.622           2          (141,92)
- ntsc_dot_2_2~FF|I[3]     eft              0.116                  0.738           2          (141,92)
- ntsc_dot_2_2~FF|in[3]    lut4             0.000                  0.738           2          (141,92)
- ntsc_dot_2_2~FF|D        ff               0.118                  0.856           2          (141,92)
+ ntsc_dot_2_2~FF|Q        ff               0.282                  0.282           2          (7,168)
+ ntsc_dot_2_2~FF|O_seq    eft              0.341                  0.622           2          (7,168)
+ ntsc_dot_2_2~FF|I[3]     eft              0.116                  0.738           2          (7,168)
+ ntsc_dot_2_2~FF|in[3]    lut4             0.000                  0.738           2          (7,168)
+ ntsc_dot_2_2~FF|D        ff               0.118                  0.856           2          (7,168)
 
 Capture Clock Path
 pin name               model name    delay (ns)   cumulative delay (ns)    pins on net   location
@@ -215,7 +215,7 @@ pin name               model name    delay (ns)   cumulative delay (ns)    pins 
  CLKBUF__1|I            gbuf            3.590                  4.110           3          (1,119)
  CLKBUF__1|O            gbuf            0.000                  4.110           2          (1,119)
  CLKBUF__1|clkout       gbuf_block      0.000                  4.110           2          (1,119)
- ntsc_dot_2_2~FF|CLK    ff              0.000                  4.110           2          (141,92)
+ ntsc_dot_2_2~FF|CLK    ff              0.000                  4.110           2          (7,168)
 
 ######################################################################
 Path Detail Report (clk_col16x_ntsc vs clk_col16x_ntsc)
@@ -228,17 +228,17 @@ Path Begin    : ntsc_col_2~FF|CLK
 Path End      : ntsc_col_2~FF|D
 Launch Clock  : clk_col16x_ntsc (RISE)
 Capture Clock : clk_col16x_ntsc (RISE)
-Slack         : 16.488  (required time - arrival time)
-Delay         : 0.453
+Slack         : 16.484  (required time - arrival time)
+Delay         : 0.457
 
 Logic Level : 0
 Non-global nets on path : 1
 Global nets on path     : 0
 
 Launch Clock Path Delay        :  4.110
-+ Clock To Q + Data Path Delay :  0.852
++ Clock To Q + Data Path Delay :  0.856
 --------------------------------------------
-End-of-path arrival time       :  4.962
+End-of-path arrival time       :  4.966
 
 Constraint                     : 17.460
 + Capture Clock Path Delay     :  4.110
@@ -255,20 +255,20 @@ pin name             model name    delay (ns)   cumulative delay (ns)    pins on
  clk_col16x_ntsc      io              0.000                  0.200           4          (0,120)
    Routing elements:  
      Manhattan distance of X:1, Y:0
- CLKBUF__3|IO_in      gbuf_block      0.320                  0.520           4          (1,120)
- CLKBUF__3|I          gbuf            3.590                  4.110           4          (1,120)
- CLKBUF__3|O          gbuf            0.000                  4.110           2          (1,120)
- CLKBUF__3|clkout     gbuf_block      0.000                  4.110           2          (1,120)
- ntsc_col_2~FF|CLK    ff              0.000                  4.110           2          (105,63)
+ CLKBUF__0|IO_in      gbuf_block      0.320                  0.520           4          (1,120)
+ CLKBUF__0|I          gbuf            3.590                  4.110           4          (1,120)
+ CLKBUF__0|O          gbuf            0.000                  4.110           2          (1,120)
+ CLKBUF__0|clkout     gbuf_block      0.000                  4.110           2          (1,120)
+ ntsc_col_2~FF|CLK    ff              0.000                  4.110           2          (45,149)
 
 Data Path
 pin name               model name    delay (ns)   cumulative delay (ns)    pins on net   location
 ==================================================================================================
- ntsc_col_2~FF|Q        ff               0.282                  0.282           2          (105,63)
- ntsc_col_2~FF|O_seq    eft              0.337                  0.618           2          (105,63)
- ntsc_col_2~FF|I[3]     eft              0.116                  0.734           2          (105,63)
- ntsc_col_2~FF|in[3]    lut4             0.000                  0.734           2          (105,63)
- ntsc_col_2~FF|D        ff               0.118                  0.852           2          (105,63)
+ ntsc_col_2~FF|Q        ff               0.282                  0.282           2          (45,149)
+ ntsc_col_2~FF|O_seq    eft              0.341                  0.622           2          (45,149)
+ ntsc_col_2~FF|I[3]     eft              0.116                  0.738           2          (45,149)
+ ntsc_col_2~FF|in[3]    lut4             0.000                  0.738           2          (45,149)
+ ntsc_col_2~FF|D        ff               0.118                  0.856           2          (45,149)
 
 Capture Clock Path
 pin name             model name    delay (ns)   cumulative delay (ns)    pins on net   location
@@ -278,11 +278,11 @@ pin name             model name    delay (ns)   cumulative delay (ns)    pins on
  clk_col16x_ntsc      io              0.000                  0.200           4          (0,120)
    Routing elements:  
      Manhattan distance of X:1, Y:0
- CLKBUF__3|IO_in      gbuf_block      0.320                  0.520           4          (1,120)
- CLKBUF__3|I          gbuf            3.590                  4.110           4          (1,120)
- CLKBUF__3|O          gbuf            0.000                  4.110           2          (1,120)
- CLKBUF__3|clkout     gbuf_block      0.000                  4.110           2          (1,120)
- ntsc_col_2~FF|CLK    ff              0.000                  4.110           2          (105,63)
+ CLKBUF__0|IO_in      gbuf_block      0.320                  0.520           4          (1,120)
+ CLKBUF__0|I          gbuf            3.590                  4.110           4          (1,120)
+ CLKBUF__0|O          gbuf            0.000                  4.110           2          (1,120)
+ CLKBUF__0|clkout     gbuf_block      0.000                  4.110           2          (1,120)
+ ntsc_col_2~FF|CLK    ff              0.000                  4.110           2          (45,149)
 
 ######################################################################
 Path Detail Report (clk_dot4x_pal vs clk_dot4x_pal)
@@ -291,76 +291,76 @@ Path Detail Report (clk_dot4x_pal vs clk_dot4x_pal)
 
 ++++ Path 1 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-Path Begin    : vic_inst/vic_registers/video_ram_addr_a[14]~FF|CLK
-Path End      : vic_inst/vic_registers/cfg_version[2]~FF|D
+Path Begin    : vic_inst/vic_registers/video_ram/video_ram_7/n75~FF|CLK
+Path End      : vic_inst/vic_registers/color_regs_wr_value[0]~FF|D
 Launch Clock  : clk_dot4x_pal (RISE)
 Capture Clock : clk_dot4x_pal (RISE)
-Slack         : 19.578  (required time - arrival time)
-Delay         : 17.295
+Slack         : 21.222  (required time - arrival time)
+Delay         : 15.126
 
 Logic Level : 7
 Non-global nets on path : 7
 Global nets on path     : 0
 
-Launch Clock Path Delay        :  5.683
-+ Clock To Q + Data Path Delay : 17.695
+Launch Clock Path Delay        :  5.157
++ Clock To Q + Data Path Delay : 15.525
 --------------------------------------------
-End-of-path arrival time       : 23.378
+End-of-path arrival time       : 20.683
 
 Constraint                     : 31.710
-+ Capture Clock Path Delay     :  5.683
++ Capture Clock Path Delay     :  5.157
 - Clock Uncertainty            :  0.120
 --------------------------------------------
-End-of-path required time      : 37.273
+End-of-path required time      : 36.747
 
 
 Data Path
-pin name                                                model name    delay (ns)   cumulative delay (ns)    pins on net   location
-===================================================================================================================================
- vic_inst/vic_registers/video_ram_addr_a[14]~FF|Q        ff               0.282                  0.282          24          (103,198)
- vic_inst/vic_registers/video_ram_addr_a[14]~FF|O_seq    eft              3.402                  3.684          24          (103,198)
+pin name                                                     model name    delay (ns)   cumulative delay (ns)    pins on net   location
+========================================================================================================================================
+ vic_inst/vic_registers/video_ram/video_ram_7/n75~FF|Q        ff               0.282                  0.282          45          (87,188)
+ vic_inst/vic_registers/video_ram/video_ram_7/n75~FF|O_seq    eft              3.399                  3.680          45          (87,188)
    Routing elements:  
-     Manhattan distance of X:47, Y:28
- LUT__14102|I[3]                                         efl              0.115                  3.799          24          (56,170)
- LUT__14102|in[3]                                        lut              0.000                  3.799          24          (56,170)
- LUT__14102|out                                          lut              0.000                  3.799          13          (56,170)
- LUT__14102|O                                            efl              2.656                  6.456          13          (56,170)
+     Manhattan distance of X:72, Y:29
+ LUT__14066|I[2]                                              eft              0.161                  3.841          45          (15,159)
+ LUT__14066|in[2]                                             lut              0.000                  3.841          45          (15,159)
+ LUT__14066|out                                               lut              0.000                  3.841          17          (15,159)
+ LUT__14066|O                                                 eft              2.355                  6.196          17          (15,159)
    Routing elements:  
-     Manhattan distance of X:18, Y:98
- LUT__14432|I[3]                                         efl              0.115                  6.571          13          (38,72)
- LUT__14432|in[3]                                        lut              0.000                  6.571          13          (38,72)
- LUT__14432|out                                          lut              0.000                  6.571           2          (38,72)
- LUT__14432|O                                            efl              2.047                  8.618           2          (38,72)
-   Routing elements:   feedthru(1)
-     Manhattan distance of X:0, Y:93
- LUT__14436|I[0]                                         efl              0.251                  8.869           2          (38,165)
- LUT__14436|in[0]                                        lut              0.000                  8.869           2          (38,165)
- LUT__14436|out                                          lut              0.000                  8.869           2          (38,165)
- LUT__14436|O                                            efl              0.968                  9.837           2          (38,165)
+     Manhattan distance of X:23, Y:107
+ LUT__14232|I[1]                                              efl              0.222                  6.418          17          (38,52)
+ LUT__14232|in[1]                                             lut              0.000                  6.419          17          (38,52)
+ LUT__14232|out                                               lut              0.000                  6.419           2          (38,52)
+ LUT__14232|O                                                 efl              1.364                  7.783           2          (38,52)
    Routing elements:  
-     Manhattan distance of X:6, Y:0
- LUT__14440|I[2]                                         efl              0.147                  9.984           2          (32,165)
- LUT__14440|in[2]                                        lut              0.000                  9.985           2          (32,165)
- LUT__14440|out                                          lut              0.000                  9.985           3          (32,165)
- LUT__14440|O                                            efl              1.842                 11.827           3          (32,165)
+     Manhattan distance of X:34, Y:38
+ LUT__14233|I[0]                                              efl              0.251                  8.034           2          (4,90)
+ LUT__14233|in[0]                                             lut              0.000                  8.034           2          (4,90)
+ LUT__14233|out                                               lut              0.000                  8.034           2          (4,90)
+ LUT__14233|O                                                 efl              1.213                  9.246           2          (4,90)
    Routing elements:  
-     Manhattan distance of X:1, Y:43
- vic_inst/vic_registers/mem_byte[2]~FF|I[2]              eft              0.161                 11.987           3          (31,208)
- LUT__14446|in[2]                                        lut              0.000                 11.988           3          (31,208)
- LUT__14446|out                                          lut              0.000                 11.988          15          (31,208)
- vic_inst/vic_registers/mem_byte[2]~FF|O                 eft              3.050                 15.038          14          (31,208)
+     Manhattan distance of X:0, Y:79
+ LUT__14239|I[0]                                              efl              0.251                  9.497           2          (4,169)
+ LUT__14239|in[0]                                             lut              0.000                  9.497           2          (4,169)
+ LUT__14239|out                                               lut              0.000                  9.497           2          (4,169)
+ LUT__14239|O                                                 efl              1.374                 10.872           2          (4,169)
    Routing elements:  
-     Manhattan distance of X:8, Y:73
- LUT__15408|I[3]                                         eft              0.116                 15.154          15          (39,135)
- LUT__15408|in[3]                                        lut              0.000                 15.154          15          (39,135)
- LUT__15408|out                                          lut              0.000                 15.154           6          (39,135)
- LUT__15408|O                                            eft              2.200                 17.354           6          (39,135)
+     Manhattan distance of X:41, Y:18
+ vic_inst/vic_registers/mem_byte[0]~FF|I[3]                   eft              0.116                 10.987           2          (45,187)
+ LUT__14243|in[3]                                             lut              0.000                 10.988           2          (45,187)
+ LUT__14243|out                                               lut              0.000                 10.988          23          (45,187)
+ vic_inst/vic_registers/mem_byte[0]~FF|O                      eft              3.196                 14.184          22          (45,187)
    Routing elements:  
-     Manhattan distance of X:16, Y:10
- vic_inst/vic_registers/cfg_version[2]~FF|I[1]           eft              0.223                 17.577           6          (55,125)
- LUT__15627|in[1]                                        lut              0.000                 17.577           6          (55,125)
- LUT__15627|out                                          lut              0.000                 17.577           2          (55,125)
- vic_inst/vic_registers/cfg_version[2]~FF|D              ff               0.118                 17.695           2          (55,125)
+     Manhattan distance of X:85, Y:48
+ LUT__14372|I[0]                                              efl              0.251                 14.434          23          (130,139)
+ LUT__14372|in[0]                                             lut              0.000                 14.435          23          (130,139)
+ LUT__14372|out                                               lut              0.000                 14.435           2          (130,139)
+ LUT__14372|O                                                 efl              0.706                 15.141           2          (130,139)
+   Routing elements:  
+     Manhattan distance of X:3, Y:0
+ vic_inst/vic_registers/color_regs_wr_value[0]~FF|I[0]        eft              0.267                 15.408           2          (127,139)
+ LUT__14376|in[0]                                             lut              0.000                 15.408           2          (127,139)
+ LUT__14376|out                                               lut              0.000                 15.408           2          (127,139)
+ vic_inst/vic_registers/color_regs_wr_value[0]~FF|D           ff               0.118                 15.525           2          (127,139)
 
 ######################################################################
 Path Detail Report (clk_dot4x_pal vs clk_dot4x_pal)
@@ -373,33 +373,33 @@ Path Begin    : vic_inst/phi_phase_start[1]~FF|CLK
 Path End      : vic_inst/vic_addressgen/pal_cas_d4x_n~FF|SR
 Launch Clock  : clk_dot4x_pal (RISE)
 Capture Clock : clk_dot4x_pal (FALL)
-Slack         : 18.636  (required time - arrival time)
-Delay         : 2.247
+Slack         : 18.785  (required time - arrival time)
+Delay         : 1.573
 
 Logic Level : 0
 Non-global nets on path : 1
 Global nets on path     : 0
 
-Launch Clock Path Delay        :  5.683
-+ Clock To Q + Data Path Delay :  2.782
+Launch Clock Path Delay        :  5.157
++ Clock To Q + Data Path Delay :  2.108
 --------------------------------------------
-End-of-path arrival time       :  8.465
+End-of-path arrival time       :  7.265
 
 Constraint                     : 15.855
-+ Capture Clock Path Delay     :  5.683
++ Capture Clock Path Delay     :  5.157
 - Clock Uncertainty            :  0.120
 --------------------------------------------
-End-of-path required time      : 21.418
+End-of-path required time      : 20.892
 
 
 Data Path
 pin name                                       model name    delay (ns)   cumulative delay (ns)    pins on net   location
 ==========================================================================================================================
- vic_inst/phi_phase_start[1]~FF|Q               ff               0.282                  0.282          34          (87,67)
- vic_inst/phi_phase_start[1]~FF|O_seq           eft              2.247                  2.528          34          (87,67)
+ vic_inst/phi_phase_start[1]~FF|Q               ff               0.282                  0.282          34          (103,103)
+ vic_inst/phi_phase_start[1]~FF|O_seq           eft              1.573                  1.854          34          (103,103)
    Routing elements:  
-     Manhattan distance of X:30, Y:27
- vic_inst/vic_addressgen/pal_cas_d4x_n~FF|SR    ff               0.253                  2.782          34          (57,94)
+     Manhattan distance of X:20, Y:5
+ vic_inst/vic_addressgen/pal_cas_d4x_n~FF|SR    ff               0.253                  2.108          34          (83,108)
 
 ######################################################################
 Path Detail Report (clk_col16x_pal vs clk_col16x_pal)
@@ -408,37 +408,37 @@ Path Detail Report (clk_col16x_pal vs clk_col16x_pal)
 
 ++++ Path 1 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-Path Begin    : vic_inst/vic_addressgen/pal_sr[1]~FF|CLK
-Path End      : vic_inst/vic_addressgen/pal_ras_c16x_n~FF|SR
+Path Begin    : vic_inst/vic_addressgen/pal_sr[3]~FF|CLK
+Path End      : vic_inst/vic_addressgen/pal_ras_c16x_n~FF|CE
 Launch Clock  : clk_col16x_pal (RISE)
 Capture Clock : clk_col16x_pal (FALL)
-Slack         : 12.666  (required time - arrival time)
-Delay         : 1.164
+Slack         : 13.551  (required time - arrival time)
+Delay         : 1.433
 
 Logic Level : 0
 Non-global nets on path : 1
 Global nets on path     : 0
 
-Launch Clock Path Delay        :  7.441
-+ Clock To Q + Data Path Delay :  1.699
+Launch Clock Path Delay        :  8.515
++ Clock To Q + Data Path Delay :  1.889
 --------------------------------------------
-End-of-path arrival time       :  9.140
+End-of-path arrival time       : 10.405
 
 Constraint                     :  7.045
-+ Capture Clock Path Delay     :  7.441
++ Capture Clock Path Delay     :  8.515
 - Clock Uncertainty            :  0.120
 --------------------------------------------
-End-of-path required time      : 14.366
+End-of-path required time      : 15.440
 
 
 Data Path
 pin name                                        model name    delay (ns)   cumulative delay (ns)    pins on net   location
 ===========================================================================================================================
- vic_inst/vic_addressgen/pal_sr[1]~FF|Q          ff               0.282                  0.282           3          (157,190)
- vic_inst/vic_addressgen/pal_sr[1]~FF|O_seq      eft              1.164                  1.446           3          (157,190)
+ vic_inst/vic_addressgen/pal_sr[3]~FF|Q          ff               0.282                  0.282           3          (145,204)
+ vic_inst/vic_addressgen/pal_sr[3]~FF|O_seq      eft              1.433                  1.715           3          (145,204)
    Routing elements:  
      Manhattan distance of X:0, Y:2
- vic_inst/vic_addressgen/pal_ras_c16x_n~FF|SR    ff               0.253                  1.699           3          (157,192)
+ vic_inst/vic_addressgen/pal_ras_c16x_n~FF|CE    ff               0.175                  1.889           3          (145,202)
 
 ---------- Path Details for Max Critical Paths (end) ---------------
 
@@ -452,37 +452,37 @@ Path Detail Report (clk_dot4x_pal vs clk_dot4x_pal)
 
 ++++ Path 1 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-Path Begin    : vic_inst/vic_registers/luma_regs_data_in_a[0]~FF|CLK
-Path End      : vic_inst/vic_registers/luma_regs/ram_dual_port__D$2|WDATAA[0]
+Path Begin    : vic_inst/vic_bus_access/char_buf_counter[0]~FF|CLK
+Path End      : vic_inst/vic_bus_access/char_buf|WADDR[0]
 Launch Clock  : clk_dot4x_pal (RISE)
 Capture Clock : clk_dot4x_pal (RISE)
-Slack         : -2.722  (arrival time - required time)
+Slack         : -2.493  (arrival time - required time)
 Delay         : 0.170
 
 Logic Level : 0
 Non-global nets on path : 1
 Global nets on path     : 0
 
-Launch Clock Path Delay        :  2.842
-+ Clock To Q + Data Path Delay :  0.179
+Launch Clock Path Delay        :  2.579
++ Clock To Q + Data Path Delay :  0.146
 --------------------------------------------
-End-of-path arrival time       :  3.021
+End-of-path arrival time       :  2.725
 
 Constraint                     :  0.000
-+ Capture Clock Path Delay     :  2.842
++ Capture Clock Path Delay     :  2.579
 + Clock Uncertainty            :  0.060
 --------------------------------------------
-End-of-path required time      :  2.902
+End-of-path required time      :  2.639
 
 
 Data Path
-pin name                                                         model name       delay (ns)   cumulative delay (ns)    pins on net   location
-===============================================================================================================================================
- vic_inst/vic_registers/luma_regs_data_in_a[0]~FF|Q               ff                  0.141                  0.141           2          (131,156)
- vic_inst/vic_registers/luma_regs_data_in_a[0]~FF|O_seq           eft                 0.170                  0.311           2          (131,156)
+pin name                                                model name     delay (ns)   cumulative delay (ns)    pins on net   location
+====================================================================================================================================
+ vic_inst/vic_bus_access/char_buf_counter[0]~FF|Q        ff                0.141                  0.141           7          (157,130)
+ vic_inst/vic_bus_access/char_buf_counter[0]~FF|O_seq    eft               0.170                  0.311           7          (157,130)
    Routing elements:  
-     Manhattan distance of X:2, Y:14
- vic_inst/vic_registers/luma_regs/ram_dual_port__D$2|WDATAA[0]    dpram_4096x20      -0.132                  0.179           2          (133,142)
+     Manhattan distance of X:2, Y:8
+ vic_inst/vic_bus_access/char_buf|WADDR[0]               ram_4096x20      -0.165                  0.146           7          (155,122)
 
 ######################################################################
 Path Detail Report (clk_dot4x_ntsc vs clk_dot4x_ntsc)
@@ -526,15 +526,15 @@ pin name               model name    delay (ns)   cumulative delay (ns)    pins 
  CLKBUF__1|I            gbuf            1.795                  2.055           3          (1,119)
  CLKBUF__1|O            gbuf            0.000                  2.055           2          (1,119)
  CLKBUF__1|clkout       gbuf_block      0.000                  2.055           2          (1,119)
- ntsc_dot_2_2~FF|CLK    ff              0.000                  2.055           2          (141,92)
+ ntsc_dot_2_2~FF|CLK    ff              0.000                  2.055           2          (7,168)
 
 Data Path
 pin name                 model name    delay (ns)   cumulative delay (ns)    pins on net   location
 ====================================================================================================
- ntsc_dot_2_2~FF|Q        ff               0.141                  0.141           2          (141,92)
- ntsc_dot_2_2~FF|O_seq    eft              0.170                  0.311           2          (141,92)
- ntsc_dot_2_2~FF|I[3]     eft              0.058                  0.369           2          (141,92)
- ntsc_dot_2_2~FF|in[3]    lut4             0.000                  0.369           2          (141,92)
+ ntsc_dot_2_2~FF|Q        ff               0.141                  0.141           2          (7,168)
+ ntsc_dot_2_2~FF|O_seq    eft              0.170                  0.311           2          (7,168)
+ ntsc_dot_2_2~FF|I[3]     eft              0.058                  0.369           2          (7,168)
+ ntsc_dot_2_2~FF|in[3]    lut4             0.000                  0.369           2          (7,168)
 
 Capture Clock Path
 pin name               model name    delay (ns)   cumulative delay (ns)    pins on net   location
@@ -548,7 +548,7 @@ pin name               model name    delay (ns)   cumulative delay (ns)    pins 
  CLKBUF__1|I            gbuf            1.795                  2.055           3          (1,119)
  CLKBUF__1|O            gbuf            0.000                  2.055           2          (1,119)
  CLKBUF__1|clkout       gbuf_block      0.000                  2.055           2          (1,119)
- ntsc_dot_2_2~FF|CLK    ff              0.000                  2.055           2          (141,92)
+ ntsc_dot_2_2~FF|CLK    ff              0.000                  2.055           2          (7,168)
 
 ######################################################################
 Path Detail Report (clk_col16x_ntsc vs clk_col16x_ntsc)
@@ -561,17 +561,17 @@ Path Begin    : ntsc_col_2~FF|CLK
 Path End      : ntsc_col_2~FF|D
 Launch Clock  : clk_col16x_ntsc (RISE)
 Capture Clock : clk_col16x_ntsc (RISE)
-Slack         : 0.307  (arrival time - required time)
-Delay         : 0.226
+Slack         : 0.309  (arrival time - required time)
+Delay         : 0.228
 
 Logic Level : 0
 Non-global nets on path : 1
 Global nets on path     : 0
 
 Launch Clock Path Delay        :  2.055
-+ Clock To Q + Data Path Delay :  0.367
++ Clock To Q + Data Path Delay :  0.369
 --------------------------------------------
-End-of-path arrival time       :  2.422
+End-of-path arrival time       :  2.424
 
 Constraint                     :  0.000
 + Capture Clock Path Delay     :  2.055
@@ -588,19 +588,19 @@ pin name             model name    delay (ns)   cumulative delay (ns)    pins on
  clk_col16x_ntsc      io              0.000                  0.100           4          (0,120)
    Routing elements:  
      Manhattan distance of X:1, Y:0
- CLKBUF__3|IO_in      gbuf_block      0.160                  0.260           4          (1,120)
- CLKBUF__3|I          gbuf            1.795                  2.055           4          (1,120)
- CLKBUF__3|O          gbuf            0.000                  2.055           2          (1,120)
- CLKBUF__3|clkout     gbuf_block      0.000                  2.055           2          (1,120)
- ntsc_col_2~FF|CLK    ff              0.000                  2.055           2          (105,63)
+ CLKBUF__0|IO_in      gbuf_block      0.160                  0.260           4          (1,120)
+ CLKBUF__0|I          gbuf            1.795                  2.055           4          (1,120)
+ CLKBUF__0|O          gbuf            0.000                  2.055           2          (1,120)
+ CLKBUF__0|clkout     gbuf_block      0.000                  2.055           2          (1,120)
+ ntsc_col_2~FF|CLK    ff              0.000                  2.055           2          (45,149)
 
 Data Path
 pin name               model name    delay (ns)   cumulative delay (ns)    pins on net   location
 ==================================================================================================
- ntsc_col_2~FF|Q        ff               0.141                  0.141           2          (105,63)
- ntsc_col_2~FF|O_seq    eft              0.168                  0.309           2          (105,63)
- ntsc_col_2~FF|I[3]     eft              0.058                  0.367           2          (105,63)
- ntsc_col_2~FF|in[3]    lut4             0.000                  0.367           2          (105,63)
+ ntsc_col_2~FF|Q        ff               0.141                  0.141           2          (45,149)
+ ntsc_col_2~FF|O_seq    eft              0.170                  0.311           2          (45,149)
+ ntsc_col_2~FF|I[3]     eft              0.058                  0.369           2          (45,149)
+ ntsc_col_2~FF|in[3]    lut4             0.000                  0.369           2          (45,149)
 
 Capture Clock Path
 pin name             model name    delay (ns)   cumulative delay (ns)    pins on net   location
@@ -610,11 +610,11 @@ pin name             model name    delay (ns)   cumulative delay (ns)    pins on
  clk_col16x_ntsc      io              0.000                  0.100           4          (0,120)
    Routing elements:  
      Manhattan distance of X:1, Y:0
- CLKBUF__3|IO_in      gbuf_block      0.160                  0.260           4          (1,120)
- CLKBUF__3|I          gbuf            1.795                  2.055           4          (1,120)
- CLKBUF__3|O          gbuf            0.000                  2.055           2          (1,120)
- CLKBUF__3|clkout     gbuf_block      0.000                  2.055           2          (1,120)
- ntsc_col_2~FF|CLK    ff              0.000                  2.055           2          (105,63)
+ CLKBUF__0|IO_in      gbuf_block      0.160                  0.260           4          (1,120)
+ CLKBUF__0|I          gbuf            1.795                  2.055           4          (1,120)
+ CLKBUF__0|O          gbuf            0.000                  2.055           2          (1,120)
+ CLKBUF__0|clkout     gbuf_block      0.000                  2.055           2          (1,120)
+ ntsc_col_2~FF|CLK    ff              0.000                  2.055           2          (45,149)
 
 ######################################################################
 Path Detail Report (clk_dot4x_pal vs clk_dot4x_pal)
@@ -627,32 +627,32 @@ Path Begin    : vic_inst/phi_phase_start[7]~FF|CLK
 Path End      : vic_inst/vic_addressgen/pal_cas_d4x_n~FF|CE
 Launch Clock  : clk_dot4x_pal (RISE)
 Capture Clock : clk_dot4x_pal (FALL)
-Slack         : 13.532  (arrival time - required time)
-Delay         : 0.438
+Slack         : 14.128  (arrival time - required time)
+Delay         : 0.771
 
 Logic Level : 0
 Non-global nets on path : 1
 Global nets on path     : 0
 
-Launch Clock Path Delay        :  2.842
-+ Clock To Q + Data Path Delay :  0.579
+Launch Clock Path Delay        :  2.579
++ Clock To Q + Data Path Delay :  0.911
 --------------------------------------------
-End-of-path arrival time       :  3.421
+End-of-path arrival time       :  3.490
 
 Constraint                     : -15.855
-+ Capture Clock Path Delay     :  2.842
++ Capture Clock Path Delay     :  2.579
 + Clock Uncertainty            :  0.060
 --------------------------------------------
-End-of-path required time      : -12.953
+End-of-path required time      : -13.216
 
 
 Data Path
 pin name                                       model name    delay (ns)   cumulative delay (ns)    pins on net   location
 ==========================================================================================================================
- vic_inst/phi_phase_start[7]~FF|Q               ff               0.141                  0.141           3          (57,96)
- vic_inst/phi_phase_start[7]~FF|O_seq           eft              0.438                  0.579           3          (57,96)
+ vic_inst/phi_phase_start[7]~FF|Q               ff               0.141                  0.141           3          (83,107)
+ vic_inst/phi_phase_start[7]~FF|O_seq           eft              0.771                  0.911           3          (83,107)
    Routing elements:  
-     Manhattan distance of X:0, Y:2
+     Manhattan distance of X:0, Y:1
 
 ######################################################################
 Path Detail Report (clk_col16x_pal vs clk_col16x_pal)
@@ -696,15 +696,15 @@ pin name            model name    delay (ns)   cumulative delay (ns)    pins on 
  CLKBUF__2|I         gbuf            1.795                  2.055           4          (1,125)
  CLKBUF__2|O         gbuf            0.000                  2.055           2          (1,125)
  CLKBUF__2|clkout    gbuf_block      0.000                  2.055           2          (1,125)
- pal_col_2~FF|CLK    ff              0.000                  2.055           2          (49,181)
+ pal_col_2~FF|CLK    ff              0.000                  2.055           2          (143,204)
 
 Data Path
 pin name              model name    delay (ns)   cumulative delay (ns)    pins on net   location
 =================================================================================================
- pal_col_2~FF|Q        ff               0.141                  0.141           2          (49,181)
- pal_col_2~FF|O_seq    eft              0.168                  0.309           2          (49,181)
- pal_col_2~FF|I[3]     eft              0.058                  0.367           2          (49,181)
- pal_col_2~FF|in[3]    lut4             0.000                  0.367           2          (49,181)
+ pal_col_2~FF|Q        ff               0.141                  0.141           2          (143,204)
+ pal_col_2~FF|O_seq    eft              0.168                  0.309           2          (143,204)
+ pal_col_2~FF|I[3]     eft              0.058                  0.367           2          (143,204)
+ pal_col_2~FF|in[3]    lut4             0.000                  0.367           2          (143,204)
 
 Capture Clock Path
 pin name            model name    delay (ns)   cumulative delay (ns)    pins on net   location
@@ -718,7 +718,7 @@ pin name            model name    delay (ns)   cumulative delay (ns)    pins on 
  CLKBUF__2|I         gbuf            1.795                  2.055           4          (1,125)
  CLKBUF__2|O         gbuf            0.000                  2.055           2          (1,125)
  CLKBUF__2|clkout    gbuf_block      0.000                  2.055           2          (1,125)
- pal_col_2~FF|CLK    ff              0.000                  2.055           2          (49,181)
+ pal_col_2~FF|CLK    ff              0.000                  2.055           2          (143,204)
 
 ######################################################################
 Path Detail Report (clk_col16x_pal vs clk_col16x_pal)
@@ -727,35 +727,35 @@ Path Detail Report (clk_col16x_pal vs clk_col16x_pal)
 
 ++++ Path 1 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-Path Begin    : vic_inst/vic_addressgen/pal_sr[3]~FF|CLK
-Path End      : vic_inst/vic_addressgen/pal_ras_c16x_n~FF|CE
+Path Begin    : vic_inst/vic_addressgen/pal_sr[1]~FF|CLK
+Path End      : vic_inst/vic_addressgen/pal_ras_c16x_n~FF|SR
 Launch Clock  : clk_col16x_pal (RISE)
 Capture Clock : clk_col16x_pal (FALL)
-Slack         : 3.853  (arrival time - required time)
-Delay         : 0.448
+Slack         : 3.383  (arrival time - required time)
+Delay         : 0.515
 
 Logic Level : 0
 Non-global nets on path : 1
 Global nets on path     : 0
 
-Launch Clock Path Delay        :  3.721
-+ Clock To Q + Data Path Delay :  0.589
+Launch Clock Path Delay        :  4.258
++ Clock To Q + Data Path Delay :  0.656
 --------------------------------------------
-End-of-path arrival time       :  4.309
+End-of-path arrival time       :  4.914
 
 Constraint                     : -7.045
-+ Capture Clock Path Delay     :  3.721
++ Capture Clock Path Delay     :  4.258
 + Clock Uncertainty            :  0.060
 --------------------------------------------
-End-of-path required time      : -3.264
+End-of-path required time      : -2.727
 
 
 Data Path
 pin name                                        model name    delay (ns)   cumulative delay (ns)    pins on net   location
 ===========================================================================================================================
- vic_inst/vic_addressgen/pal_sr[3]~FF|Q          ff               0.141                  0.141           3          (157,193)
- vic_inst/vic_addressgen/pal_sr[3]~FF|O_seq      eft              0.448                  0.589           3          (157,193)
+ vic_inst/vic_addressgen/pal_sr[1]~FF|Q          ff               0.141                  0.141           3          (145,199)
+ vic_inst/vic_addressgen/pal_sr[1]~FF|O_seq      eft              0.515                  0.656           3          (145,199)
    Routing elements:  
-     Manhattan distance of X:0, Y:1
+     Manhattan distance of X:0, Y:3
 
 ---------- Path Details for Min Critical Paths (end) ---------------
