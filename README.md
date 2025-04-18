@@ -9,6 +9,8 @@ This repository contains an open source VIC-II FPGA core written in Verilog. Thr
 
 The PCB interfaces with a real C64 address and data bus through the VIC-II socket on the C64 motherboard. The board can replace all the functions of a real VIC-II chip including DRAM refresh, light pen interrupts (real CRT only), PHI2 clock source for the CPU and, of course, video output.
 
+See [Compatible Motherboard Revisions](#what-motherboard-revisions-will-this-fit) for information about installation.
+
 ## Resources
 
 [Utility and Demo Disks](http://accentual.com/vicii-kawari/downloads/prog) - Utilty and demo disk download area<br>
@@ -16,10 +18,6 @@ The PCB interfaces with a real C64 address and data bus through the VIC-II socke
 [Report Issues](https://github.com/randyrossi/vicii-kawari/issues) - File bugs/issues<br>
 
 [Firmware Download Links](doc/FIRMWARE.md) | [Flashing Guide](doc/FLASHING.md) | [Jumpers](doc/VARIANTS.md) | [Programming](doc/REGISTERS.md)
-
-## Forking VIC-II Kawari?
-
-If you intend to fork VIC-II Kawari to add your own features, please read [FORKING.md](doc/FORKING.md)
 
 ## What kind of video output options are there?
 
@@ -29,40 +27,18 @@ Board Design | DVI | Analog RGB | Luma/Chroma | Extensions/Switching
 -------------|-----|------------|-------------|---------------------
 Kawari-Large | Yes | Yes        | Yes         | Yes
 Kawari-Mini  | No  | No         | Yes         | Yes
-Kawari-POV   | No  | No         | Yes         | No
-
-'POV' Stands for Plain Old VIC and is meant to be nothing more than a VIC-II replacement with no extra features other than the ability to flash the device.  Kawari-POV has never been produced but is possible using the Mini PCB design with some parts omitted.
 
 For a chart breaking down all features available or missing for a particular board design, please see [MODELS.md](doc/MODELS.md)
 
 Video Option | Connector  | Notes
 -------------|------------|-------
 DVI          | Micro HDMI |User must fish cable out of machine and provide strain relief
-Analog RGB   | Header     |User must build custom RGB connector, fish cable out of machine and provide strain relief, RGB:.7Vp-p (75 ohm termination) HV:TTL
+Analog RGB   | Analog Header |User must build custom RGB connector, fish cable out of machine and provide strain relief, RGB:.7Vp-p (75 ohm termination) HV:TTL
 Luma/Chroma  | A/V Jack   |Regular S/LUM output at rear of computer (composite or s-video)
 
 The core is flexible and can be configured to support all three or any subset of these video options provided the hardware can support it.
 
-By default, the DVI/RGB signals double the horizontal frequency from ~15.7khz to ~31.4khz (for 2X native height). The horizontal resolution is also doubled to support the 80 column mode.  The spartan boards support turning off scaling for both DVI and RGB output.  The Trion boards no longer support 1x scaling (either width/height). (NOTE: Turning off horizontal scaling will prevent hires modes from working properly.)
-
-### Spartan Large Board DVI & RGB Signals
-
-Video        |Sx|Sy|Width|Height|Horiz Freq |Vert Freq  |Pixel Clock
--------------|--|--|-----|------|-----------|-----------|-----------
-NTSC         |1x|1x|520  |263   |15.73khz   |59.82hz    |8.181 Mhz  
-NTSC(Old)    |1x|1x|512  |262   |15.98khz   |60.99hz    |8.181 Mhz  
-PAL-B        |1x|1x|504  |312   |15.63khz   |50.125hz   |7.881 Mhz  
-NTSC         |2x|1x|1040 |263   |15.73khz   |59.82hz    |16.363 Mhz 
-NTSC(Old)    |2x|1x|1024 |262   |15.98khz   |60.99hz    |16.363 Mhz 
-PAL-B        |2x|1x|1008 |312   |15.63khz   |50.125hz   |15.763 Mhz 
-NTSC         |1x|2x|520  |526   |31.46khz   |59.82hz    |16.363 Mhz 
-NTSC(Old)    |1x|2x|512  |524   |31.96khz   |60.99hz    |16.363 Mhz 
-PAL-B        |1x|2x|504  |624   |31.26khz   |50.125hz   |15.763 Mhz 
-NTSC         |2x|2x|1040 |526   |31.46khz   |59.82hz    |32.727 Mhz 
-NTSC(Old)    |2x|2x|1024 |524   |31.96khz   |60.99hz    |32.727 Mhz 
-PAL-B        |2x|2x|1008 |624   |31.26khz   |50.125hz   |31.527 Mhz 
-
-The Trion board RGB firmware has resolutions identical to the spartan table above.
+By default, the DVI/RGB signals double the horizontal frequency from ~15.7khz to ~31.4khz (for 2X native height). The horizontal resolution is also doubled to support the 80 column mode.  The spartan boards support turning off scaling for both DVI and RGB output.  The Trion boards (DVI) no longer support 1x scaling (either width/height). (NOTE: Turning off horizontal scaling will prevent hires modes from working properly.)
 
 ### Trion Large Board DVI Options
 
@@ -84,7 +60,6 @@ Video        |Sx|Sy|Vis. Width  |Vis. Height|Horiz Freq |Vert Freq  |Pixel Clock
 NTSC         |2x|2x|740         |500        |31.46khz   |59.82hz    |26.590 Mhz
 NTSC(Old)    |2x|2x|736         |498        |31.96khz   |60.99hz    |26.590 Mhz
 PAL-B        |2x|2x|782         |576        |31.26khz   |50.125hz   |29.557 Mhz
-
 
 Video        |Sample|Notes
 -------------|------|------
@@ -112,14 +87,31 @@ PAL-B        |![PAL Scaled](doc/images/6569-27MHZ-S.png "PAL Scaled")|Better com
 
 ### Analog RGB Output
 
-Both the Spartan & Trion PCBs have an unpopulated 10 pin analog header (1 +5V, 6 signal, 3 GND) that can wired to a monitor with a custom built cable.
+Video        |Sx|Sy|Width|Height|Horiz Freq |Vert Freq  |Pixel Clock
+-------------|--|--|-----|------|-----------|-----------|-----------
+NTSC         |1x|1x|520  |263   |15.73khz   |59.82hz    |8.181 Mhz  
+NTSC(Old)    |1x|1x|512  |262   |15.98khz   |60.99hz    |8.181 Mhz  
+PAL-B        |1x|1x|504  |312   |15.63khz   |50.125hz   |7.881 Mhz  
+NTSC         |2x|1x|1040 |263   |15.73khz   |59.82hz    |16.363 Mhz 
+NTSC(Old)    |2x|1x|1024 |262   |15.98khz   |60.99hz    |16.363 Mhz 
+PAL-B        |2x|1x|1008 |312   |15.63khz   |50.125hz   |15.763 Mhz 
+NTSC         |1x|2x|520  |526   |31.46khz   |59.82hz    |16.363 Mhz 
+NTSC(Old)    |1x|2x|512  |524   |31.96khz   |60.99hz    |16.363 Mhz 
+PAL-B        |1x|2x|504  |624   |31.26khz   |50.125hz   |15.763 Mhz 
+NTSC         |2x|2x|1040 |526   |31.46khz   |59.82hz    |32.727 Mhz 
+NTSC(Old)    |2x|2x|1024 |524   |31.96khz   |60.99hz    |32.727 Mhz 
+PAL-B        |2x|2x|1008 |624   |31.26khz   |50.125hz   |31.527 Mhz 
+
+FYI: The older Spartan6 board DVI firmware has resolutions identical to the spartan table above.
+
+The unpopulated 10 pin analog header at the top of the board (1 +5V, 6 signal, 3 GND) can wired to a monitor with a custom built cable.
 
     +5V CLK GND RED GRN
     GND VSY HSY BLU GND
 
 For 1080/1084-D monitors, a CSYNC option can be enabled to output composite sync over the horizontal sync pin.  1084-S monitors use the default separated HSYNC and VSYNC signals.
 
-NOTE: The CLK pin (dot clock) is disabled as it is not necessary for analog connections.  If you need it, it can be enabled with a firmware update.
+NOTE: The CLK pin (dot clock) can be used to export the dot clock back into the motherboard if the clock circuit has been disabled. This is only necessary for some specialty cartridges that need an in-sync dot clock to function.  It is not necessary for analog connections to monitors.
 
 #### FEMALE 6-PIN PORT AS VIEWED FROM REAR OF 1084-S
 
@@ -172,10 +164,10 @@ You can try the xrandr helper scripts inside [monitor_tests](util/monitor_tests)
 4. The quality of the mother board clock is not sufficient to derive the 40x dot clock required for the DVI signals.  It appears the high jitter on the crystal is the cause.  The motherboard clock was never meant to go through a clock multiplier to high frequencies.  This appears to cause sync loss especially on NTSC boards.  For this reason, the on-board oscillators should be used to drive the digital display modes.
 
 ## What chip models can this replace?
-The 'Large' and 'Mini' models can replace the 6567R8(NTSC),6567R56A(NTSC),6569R3(PAL-B),6569R1(PAL-B) models. They can assume the functionality of either video standard with a simple configuration change followed by a cold boot. This means your C64 can be both an NTSC and PAL machine. (PAL-N / PAL-M are not supported but it can be added with some hardware modifications.)  The 'POV' model cannot behave as 'old' chip models (R56A/R1) and are fixed to either a 6567R8 or 6569R3.
+The 'Large' and 'Mini' models can replace the 6567R8(NTSC),6567R56A(NTSC),6569R3(PAL-B),6569R1(PAL-B) models. They can assume the functionality of either video standard with a simple configuration change followed by a cold boot. This means your C64 can be both an NTSC and PAL machine. (PAL-N / PAL-M are not supported but it can be added with some hardware modifications.)
 
 ## What motherboard revisions will this fit?
-The 'Mini/POV' boards will fit into revisions 250407, 250425, 326298 & KU-14194HB. For 250425 boards, the RF sheild must be removed. For 250407, 326298 and KU-14194HB, the 'top' cover of the RF sheild compartment must be removed.
+The 'Mini' boards will fit into revisions 250407, 250425, 326298 & KU-14194HB. For 250425 boards, the RF sheild must be removed. For 250407, 326298 and KU-14194HB, the 'top' cover of the RF sheild compartment must be removed.
 
 The 'large" board will fit into revisions 250407, 250425, 326298 & KU-1419HB provided an extra socket is included to give the PCB enough height to clear some of the clock circuit components.  However, if present, the RF sheild surrounding the video circuitry will prevent an HDMI cable from being plugged in even with an extra socket.  For better HDMI port access, the large board is recommended for boards that do not have an RF sheild surrounding the video circuit.  Also, it is better if the RF modulator is unpopulated or replaced with a RF modulator bypass board.  This leaves room for a cable to be plugged in and exit the machine through unused holes at the back.  Strain relief is up to the user.
 
@@ -204,7 +196,7 @@ There are subtle differences between the PAL-B revisions mostly to do with lumin
 It is, in theory, possible to re-purpose one of the video standards to be a 6572 (South America PAL-N). It would require a firmware change and the board would have to be configured to use the motherboard's clock (or one of the oscillators changed to match PAL-N frequency).  Either NTSC or PAL-B could be replaced with PAL-N. As far as I can tell, the only reason to do this would be to get real Argentinian CRTs/TVs to display a composite signal correctly while being (mostly) compatible with NTSC software. (This is a lower priority project but if someone else wants to take on the challenge, it could appear as a fork.)
 
 ## Do I need a functioning clock circuit on my motherboard?
-This depends on how the VIC-II Kawari PCB has been populated and configured. The 'Large' and 'Mini' boards come with on-board oscillators for both NTSC and PAL-B standards. In that case, the motherboard's clock circuit can be bypassed. However, the board can be configured to use the motherboard's clock for the machine's 'native' standard via jumper config. In that case, one of the two video standards can be driven by the motherboard's clock.  Please see [Limitations/Caveats](#limitationscaveats) below regarding pin 6 of the cartridge port.  The 'POV' model must use the motherboard's clock and cannot switch video standards. Refer to the table below for C.SRC jumper settings.
+This depends on how the VIC-II Kawari PCB has been populated and configured. The 'Large' and 'Mini' boards come with on-board oscillators for both NTSC and PAL-B standards. In that case, the motherboard's clock circuit can be bypassed. However, the board can be configured to use the motherboard's clock for the machine's 'native' standard via jumper config. In that case, one of the two video standards can be driven by the motherboard's clock.  Please see [Limitations/Caveats](#limitationscaveats) below regarding pin 6 of the cartridge port. Refer to the table below for C.SRC jumper settings.
 
 ## How do the C.SRC jumpers work?
 
@@ -407,7 +399,7 @@ Super Mario Bros Turbo Option | If Kawari extensions are enabled, Super Mario Br
 
 ### Soft Reset + HiRes Modes / Color Registers
 
-Please note that if you change color registers or enable hi-res modes, Kawari will not revert back to the default palette or lo-res modes with a soft reset (or even RUN/STOP restore). If you want the Kawari 'Large' model to detect soft resets, you can connect the through hole pad labeled RST in the upper left corner of the board to the 6510's RESET pin (or any other RESET location) using a jumper wire and grabber.  The 'Mini' and 'POV' models cannot detect resets.
+Please note that if you change color registers or enable hi-res modes, Kawari will not revert back to the default palette or lo-res modes with a soft reset (or even RUN/STOP restore). If you want the Kawari 'Large' model to detect soft resets, you can connect the through hole pad labeled RST in the upper left corner of the board to the 6510's RESET pin (or any other RESET location) using a jumper wire and grabber.  The 'Mini' model cannot detect resets.
 
 ### Cartridges that use DOT clock pin (pin 6)
 
@@ -434,4 +426,8 @@ Without the lock jumpers, here are some ways a misbehaving program can make it l
 1. erase the flash memory making the device un-bootable (must be restored via JTAG/SPI programmer)
 2. change all colors to black and save them, making it look like a black screen fault (restored by shorting CFG jumper pad)
 3. change the hires modes to a resolution incompatible with your monitor, again making it look like a black screen fault (restored by shorting CFG jumper pad)
+
+## Forking VIC-II Kawari?
+
+If you intend to fork VIC-II Kawari to add your own features, please read [FORKING.md](doc/FORKING.md)
 
