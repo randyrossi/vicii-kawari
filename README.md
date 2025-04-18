@@ -1,6 +1,6 @@
 # VIC-II Kawari
 
-**IMPORTANT PSA! The v1.17 firmware on some Kawari large boards shipped from VGP recently contained a bug causing DVI video instability. If you received one of these devices, please flash the updated v1.17 firmware from the [FIRMWARE](doc/FIRMWARE.md) page to correct the issue. I apologize for the inconvenience. Refer to [FLASHING](doc/FLASHING.md) for instructions on how to update the firmware.**
+**IMPORTANT PSA! The v1.17 firmware on some Kawari large boards shipped around Sept 2023 from VGP contained a bug causing DVI video instability. If you received one of these devices, please flash the updated v1.17 firmware from the [FIRMWARE](doc/FIRMWARE.md) page to correct the issue. I apologize for the inconvenience. Refer to [FLASHING](doc/FLASHING.md) for instructions on how to update the firmware.**
 
 ## What is VIC-II Kawari?
 VIC-II Kawari is a hardware replacement for the VIC-II (Video Interface Chip II) found in Commodore 64 home computers. In addition to being compatible with the original VIC-II 6567/6569 chips, some extra features are also available. See [REGISTERS.md](doc/REGISTERS.md)
@@ -392,6 +392,7 @@ SaRuMan DRAM Replacement    | Lyonte LY62W1024RL-55SL 2010 I220111A08W1S - Works
 SaRuMan DRAM Replacement    | ISSI IS61C1024AL-12HLI DSK493X1 2239 - There was a batch of Saruman's made with these SRAM chips and it does not work with the Kawari.  Unfortunately, my attempts to meet the different timing of this device have failed (or introduced regressions).
 StrikeTerm w/ UP9600 Modem  | Must load 80col.kawari before selecting UP9600 modem
 SPL HD-64 HDMI Modulator    | Must use v1.19+ firmware, previous versions did not match refresh pattern of original chip and 'confused' this product
+c0pperdragon Video Mod      | Reported to work with v1.19+ firmware but unverified.
 
 ## Software Compatibility Matrix
 
