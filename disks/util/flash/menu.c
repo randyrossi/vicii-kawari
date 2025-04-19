@@ -21,15 +21,31 @@
 // down instead of up.
 #define MY_CFG_VERSION 0xfe
 
-// Program starts at 0x801.
-// 0x6000-0x9fff is used for 16k flash load space (or 4k for efinix)
-// 0xa004 is used first as scratch space for info file, then fast loader.
-// (A bit past a000 due to extra checksum bytes for 16k page sizes)
-// Program should not exceed ~20k to leave at least 2k heap space,
+// Memory layout is
+// 0x0801 : main code then heap
+// 0x6000-0x7003 : 4k flash load space + checksum
+// 0xa004 : fast loader (1334 bytes) 
+// 0xc000 : teensy wedge (2816 bytes)
+// 0xcfff : stack end (1k)
+//
+// The program should not exceed ~20k to leave at least 2k heap space,
 // otherwise heap may get corrupted by flash tmp writes since it
 // wants to grow upwards starting from the end of the code.
-// Stack starts at 0xcfff and grows down. End of available space
-// after scratch space and loader is approx 10k.
+// Stack starts at 0xcfff and grows down. If Teensy wedge is not
+// present, that leaves 10k of stack.  But if Teensy wedge is
+// installed, only 1k stack is available.
+//
+// TODO: Use a different c64.cfg to change memory to this:
+//
+// 0x0801 : main code then heap
+// 0xa000-0xb003 : 4k flash load space + checksum
+// 0xb004 : fast loader (1334 bytes)
+// 0xbfff : stack end (almost 2k)
+// 0xc000 : teensy wedge
+//
+// This would allow for 36k code and 2k heap and would guarantee
+// no collisions even with the teensy wedge (or other code at
+// $c000) installed. This would require a custom c64.cfg file.
 
 #define FLASH_VERSION_MAJOR 1
 #define FLASH_VERSION_MINOR 4
@@ -44,7 +60,6 @@
 // with flash image files that have been broken up. It
 // depends on the page size we used to split the bitstream
 // up.
-#define MAX_FILE_PER_DISK_16K 8
 #define MAX_FILE_PER_DISK_4K 34
 
 static struct regs r;
@@ -66,7 +81,7 @@ unsigned char smp_tmp[40];
 	mprintf(smp_tmp);
 
 #define SCRATCH_SIZE 32
-unsigned char filename[16];
+unsigned char filename[20];
 unsigned char scratch[SCRATCH_SIZE];
 unsigned char use_fast_loader;
 
@@ -198,7 +213,7 @@ void init_fast_loader(void) {
     _sys(&r);
 }
 
-// Fast load next 16k segment into $6000-$9FFF
+// Fast load next 4k segment into $6000-$9FFF
 // Return non-zero on failure to load file.
 unsigned char fast_load() {
     r.pc = 40967L; // $a007
@@ -220,7 +235,7 @@ int checksum_matches(unsigned long page_size)
    char c[4];
    char sc[4];
 
-   check_6000(page_size == 16384 ? 64 : 16);
+   check_6000(16); // page_size/16
        
    c[3] = chk1;
    c[2] = chk2;
@@ -230,10 +245,7 @@ int checksum_matches(unsigned long page_size)
 
    checksum = (unsigned long*) &c[0];
 
-   if (page_size == 16384)
-     location = 0xA000L; // $6000 + 16k
-   else
-     location = 0x7000L; // $6000 + 4k
+   location = 0x7000L; // $6000 + 4k
 
    sc[3] = PEEK(location);
    location++;
@@ -370,7 +382,7 @@ void begin_flash(long num_to_write, unsigned long start_addr, unsigned long page
     unsigned char filenum;
     unsigned char abs_filenum;
     unsigned int n;
-    unsigned int max_file = (page_size == 16384 ? MAX_FILE_PER_DISK_16K : MAX_FILE_PER_DISK_4K);
+    unsigned int max_file = MAX_FILE_PER_DISK_4K;
     unsigned int max_disk = num_disks - 1;
     unsigned char ret;
 
@@ -426,7 +438,7 @@ void begin_flash(long num_to_write, unsigned long start_addr, unsigned long page
        }
 
        // Transfer $6000 - $9fff into video memory @ $0000
-       copy_6000_0000(page_size == 16384 ? 64 : 16);
+       copy_6000_0000(16); // page_size / 256
 
        // Tell kawari to flash it from vmem 0x0000 to the flash address
        POKE(VIDEO_MEM_FLAGS, 0);
@@ -466,7 +478,7 @@ void begin_verify(long num_to_read, unsigned long start_addr, unsigned long page
     unsigned char filenum;
     unsigned char abs_filenum;
     unsigned int n;
-    unsigned int max_file = (page_size == 16384 ? MAX_FILE_PER_DISK_16K : MAX_FILE_PER_DISK_4K);
+    unsigned int max_file = MAX_FILE_PER_DISK_4K;
     unsigned int max_disk = num_disks - 1;
     unsigned char ret;
 
@@ -522,7 +534,7 @@ void begin_verify(long num_to_read, unsigned long start_addr, unsigned long page
        n = num_to_read >= page_size ? page_size : num_to_read;
 
 // For testing in sim
-//copy_6000_0000(page_size == 16384 ? 64 : 16);
+//copy_6000_0000(16); // page_size / 256
 
        POKE(0xfe,(n >> 8) & 0xff);
        POKE(0xfd,(n & 0xff));
@@ -691,7 +703,7 @@ void main_menu(void)
     num_disks = read_decimal(&tmp_addr);
     SMPRINTF_1 ("Num Disks    :%ld \n", num_disks);
 
-    if (page_size != 4096 && page_size != 16384) {
+    if (page_size != 4096) {
        mprintf ("\nERROR: Invalid page size\n");
        exit(0);
     }
@@ -737,17 +749,19 @@ void main_menu(void)
        } else {
           mprintf ("T - Skip drive reliability test\n");
        }
+#ifndef TEENSY
        if (use_fast_loader) {
           mprintf ("D - Disable fastloader\n");
        } else {
           mprintf ("E - Enable fastloader\n");
        }
+#endif
        mprintf ("F - Perform flash\n");
        mprintf ("V - Perform verify\n");
        mprintf ("R - Reset\n");
        WAITKEY;
        if (r.a == 'f') {
-          // Test 8 pages worth for 4k pages and 2 pages worth for 16k
+          // Test 8 pages
           if (!skip_reliability_test && test_disk(32768L, page_size) != 0) {
              mprintf ("Drive reliability check failed!\n");
              if (use_fast_loader) {
@@ -761,12 +775,16 @@ void main_menu(void)
           begin_flash(num_to_write, start_addr, page_size, num_disks);
        } else if (r.a == 'v') {
           begin_verify(num_to_write, start_addr, page_size, num_disks);
-       } else if (use_fast_loader && r.a == 'd') {
+       }
+#ifndef TEENSY
+       else if (use_fast_loader && r.a == 'd') {
           use_fast_loader = 0;
        } else if (!use_fast_loader && r.a == 'e') {
           use_fast_loader = 1;
           fast_start();
-       } else if (r.a == 'r') {
+       }
+#endif
+       else if (r.a == 'r') {
           mprintf ("\nConfirm reset? (y/N)");
           WAITKEY;
           if (r.a == 'y') sys64738();

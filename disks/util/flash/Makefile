@@ -4,9 +4,9 @@
 # Expects: kawari_$(TYPE)_$(VARIANT)_$(VERSION).bit
 # Requires: dasm and cc65
 
-# NOTE: The spartan6 builds separates golden from multiboot
-# into separate files but the efinix build makes one file and
-# we extract either the first or second bitstream from that one.
+# NOTE: Efinix builds have one .bit file for both
+# active and fallback images and we we extract either the
+# first or second bitstream from that one.
 # So in either case (golden vs multiboot) name the multi image
 # bin file to whatever name this tool expects (or have the
 # same file names as golden and multiboot)
@@ -15,9 +15,8 @@
 #NAME=kawari
 #VERSION=1.8
 #FPGA=efinix_t20
-#    One of: spartan6_x9 | spartan6_x16 | efinix_t8 | efinix_t20
+#    One of: efinix_t8 | efinix_t20
 #START_ADDRESS
-#    For Spartan6 LD: 0=golden, 512000=multiboot
 #    For Efinix   LH: 0=golden, 659456=multiboot
 #    For Efinix   LG: 0=golden, 679936=multiboot
 #START_ADDRESS=659456
@@ -31,7 +30,6 @@
 #VARIANT=MAINLH
 #PAGE_SIZE
 #     Must be 4096 for efinix
-#     Must be 16k for spartan
 #PAGE_SIZE=4096
 
 # Do not edit below this line
@@ -55,7 +53,7 @@ checkfile:
 	then echo "Missing $(SOURCE_IMG)"; exit 1; \
 	fi
 
-# Max 29 files to cover size of SpX16
+# Max 180 files
 FILENUMS=000 001 002 003 004 005 006 007 008 009 010 011 012 013 014 015 016 017 018 019 \
          020 021 022 023 024 025 026 027 028 029 030 031 032 033 034 035 036 037 038 039 \
          040 041 042 043 044 045 046 047 048 049 050 051 052 053 054 055 056 057 058 059 \
@@ -157,12 +155,6 @@ clean:
 	rm -rf *.o *.prg *.d64 *.d81 tmp stripped.bit multi_hex_to_bit autoswap.lst
 	$(MAKE) -C third_party clean
 
-# For Spartan6 devices, we need to skip over the first X
-# bytes for the header.  It's different depending on
-# the model.
-# X = 88 for x9
-# X = 89 for x16
-#
 # For Efinix devices, we have to isolate the one image
 # we want to update from the multi image.
 #
@@ -173,12 +165,6 @@ clean:
 # $6000 dest for every chunk
 image_files: load_bytes checksum
 	mkdir -p tmp
-	if [ "$(FPGA)" = "spartan6_x16" ]; then \
-	   dd skip=1 bs=89 if=$(SOURCE_IMG) > stripped.bit; \
-	fi
-	if [ "$(FPGA)" = "spartan6_x9" ]; then \
-	   dd skip=1 bs=88 if=$(SOURCE_IMG) > stripped.bit; \
-	fi
 	if [ "$(FPGA)" = "efinix_t8" -a "$(TYPE)" = "multiboot" ]; then \
 	   dd skip=1 bs=$(IMAGE_SIZE) if=$(SOURCE_IMG) > stripped.bit; \
 	fi
@@ -227,42 +213,24 @@ d64: flash.prg checksize third_party/covert/loader.prg image_files info_file
 	      c1541 -attach flash$$NUM.d64 -write info info; \
 	   fi \
 	done
-	if [ "$(PAGE_SIZE)" = "16384" ]; then \
-	for NUM in $(FILENUMS); do \
-           if [ -e tmp/img_$$NUM ]; then \
-		DN=`echo $$NUM / 8 + 1 | bc`; \
-		c1541 -attach flash$$DN.d64 -write tmp/img_d64_$$NUM i$$NUM; \
-	   fi \
-	done \
-	else \
 	for NUM in $(FILENUMS); do \
            if [ -e tmp/img_$$NUM ]; then \
 		DN=`echo $$NUM / 34 + 1 | bc`; \
 		c1541 -attach flash$$DN.d64 -write tmp/img_d64_$$NUM i$$NUM; \
 	   fi \
-	done \
-	fi
+	done
 
 d81: flash.prg checksize third_party/covert/loader.prg image_files info_file
 	c1541 -format 1,flash d81 flash.d81; \
 	c1541 -attach flash.d81 -write flash.prg flash; \
 	c1541 -attach flash.d81 -write third_party/covert/loader.prg loader; \
 	c1541 -attach flash.d81 -write info info; \
-	if [ "$(PAGE_SIZE)" = "16384" ]; then \
-	for NUM in $(FILENUMS); do \
-           if [ -e tmp/img_$$NUM ]; then \
-		DN=`echo $$NUM / 8 + 1 | bc`; \
-		c1541 -attach flash.d81 -write tmp/img_d64_$$NUM i$$NUM; \
-	   fi \
-	done \
-	else \
 	for NUM in $(FILENUMS); do \
            if [ -e tmp/img_$$NUM ]; then \
 		DN=`echo $$NUM / 34 + 1 | bc`; \
 		c1541 -attach flash.d81 -write tmp/img_d64_$$NUM i$$NUM; \
 	   fi \
-	done \
-	fi
+	done
 
 # We rename teensy_flash.prg to be just flash.prg in the archive
 teensy: teensy_flash.prg checksize third_party/covert/loader.prg image_files info_file
@@ -270,21 +238,12 @@ teensy: teensy_flash.prg checksize third_party/covert/loader.prg image_files inf
 	mkdir -p Kawari_TeensyROM_${VERSION}_${VARIANT}_$(TYPE); \
 	cp teensy_flash.prg Kawari_TeensyROM_${VERSION}_${VARIANT}_$(TYPE)/flash.prg; \
 	cp info Kawari_TeensyROM_${VERSION}_${VARIANT}_$(TYPE)/info; \
-	if [ "$(PAGE_SIZE)" = "16384" ]; then \
-	for NUM in $(FILENUMS); do \
-           if [ -e tmp/img_$$NUM ]; then \
-		DN=`echo $$NUM / 8 + 1 | bc`; \
-		cp tmp/img_d64_$$NUM Kawari_TeensyROM_${VERSION}_${VARIANT}_$(TYPE)/i$$NUM; \
-	   fi \
-	done \
-	else \
 	for NUM in $(FILENUMS); do \
            if [ -e tmp/img_$$NUM ]; then \
 		DN=`echo $$NUM / 34 + 1 | bc`; \
 		cp tmp/img_d64_$$NUM Kawari_TeensyROM_${VERSION}_${VARIANT}_$(TYPE)/i$$NUM; \
 	   fi \
-	done \
-	fi; \
+	done; \
 	zip -r Kawari_TeensyROM_${VERSION}_${VARIANT}_$(TYPE).zip Kawari_TeensyROM_${VERSION}_${VARIANT}_$(TYPE); \
 	rm -rf Kawari_TeensyROM__${VERSION}_${VARIANT}_$(TYPE)
 
