@@ -9,3 +9,5 @@ flash.d81
 flash*.d64
 autoswap.lst
 archive
+teensy_menu.c
+Kawari_TeensyROM*

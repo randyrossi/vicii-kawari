@@ -35,7 +35,7 @@
 #PAGE_SIZE=4096
 
 # Do not edit below this line
-all: checkfile subdirs ask d64 d81 tools
+all: checkfile subdirs ask d64 d81 teensy tools
 
 ask:
 	@echo -------------------------------------------
@@ -66,8 +66,12 @@ FILENUMS=000 001 002 003 004 005 006 007 008 009 010 011 012 013 014 015 016 017
          140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 \
          160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179
 
-OBJS=main.o menu.o ../common/util.o \
-     ../common/flash.o crt0.o loader_loader.o copy.o compare.o checksum_asm.o
+COMMON_OBJS=main.o ../common/util.o ../common/flash.o crt0.o loader_loader.o \
+            copy.o compare.o checksum_asm.o
+
+UNIVERSAL_OBJS=$(COMMON_OBJS) menu.o
+
+TEENSY_OBJS=$(COMMON_OBJS) teensy_menu.o teensy.o
 
 EXPERT_OBJS=main.o expert.o ../common/util.o ../common/flash.o copy.o
 
@@ -98,8 +102,12 @@ load_bytes: load_bytes.c
 checksum: checksum.c
 	gcc checksum.c -o checksum
 
-flash.prg: ${OBJS}
-	ld65 -o flash.prg ${OBJS} /usr/share/cc65/lib/c64.lib \
+flash.prg: ${UNIVERSAL_OBJS}
+	ld65 -o flash.prg ${UNIVERSAL_OBJS} /usr/share/cc65/lib/c64.lib \
+		-C /usr/share/cc65/cfg/c64.cfg
+
+teensy_flash.prg: ${TEENSY_OBJS}
+	ld65 -o teensy_flash.prg ${TEENSY_OBJS} /usr/share/cc65/lib/c64.lib \
 		-C /usr/share/cc65/cfg/c64.cfg
 
 expert.prg: ${EXPERT_OBJS}
@@ -114,6 +122,13 @@ crt0.o: crt0.s
 menu.o: menu.c ../include/util.h ../include/kawari.h
 	cl65 --include-dir ../include -c menu.c -o menu.o
 
+# Workaround for bug in cl65 that does not use -o properly to name
+# the output.  Have to copy menu.c to teensy_menu.c
+teensy_menu.o: menu.c ../include/util.h ../include/kawari.h
+	cp menu.c teensy_menu.c
+	cl65 --include-dir ../include -DTEENSY -c teensy_menu.c -o teensy_menu.o
+	rm -f teensy_menu.c
+
 expert.o: expert.c ../include/util.h ../include/kawari.h ../include/flash.h
 	cl65 --include-dir ../include -c expert.c -o expert.o
 
@@ -125,6 +140,9 @@ copy.o: copy.s
 
 compare.o: compare.s
 	ca65 compare.s -o compare.o
+
+teensy.o: teensy.s
+	ca65 teensy.s -o teensy.o
 
 checksum_asm.o: checksum_asm.s
 	ca65 checksum_asm.s -o checksum_asm.o
@@ -245,6 +263,30 @@ d81: flash.prg checksize third_party/covert/loader.prg image_files info_file
 	   fi \
 	done \
 	fi
+
+# We rename teensy_flash.prg to be just flash.prg in the archive
+teensy: teensy_flash.prg checksize third_party/covert/loader.prg image_files info_file
+	rm -rf Kawari_TeensyROM__${VERSION}_${VARIANT}_$(TYPE); \
+	mkdir -p Kawari_TeensyROM_${VERSION}_${VARIANT}_$(TYPE); \
+	cp teensy_flash.prg Kawari_TeensyROM_${VERSION}_${VARIANT}_$(TYPE)/flash.prg; \
+	cp info Kawari_TeensyROM_${VERSION}_${VARIANT}_$(TYPE)/info; \
+	if [ "$(PAGE_SIZE)" = "16384" ]; then \
+	for NUM in $(FILENUMS); do \
+           if [ -e tmp/img_$$NUM ]; then \
+		DN=`echo $$NUM / 8 + 1 | bc`; \
+		cp tmp/img_d64_$$NUM Kawari_TeensyROM_${VERSION}_${VARIANT}_$(TYPE)/i$$NUM; \
+	   fi \
+	done \
+	else \
+	for NUM in $(FILENUMS); do \
+           if [ -e tmp/img_$$NUM ]; then \
+		DN=`echo $$NUM / 34 + 1 | bc`; \
+		cp tmp/img_d64_$$NUM Kawari_TeensyROM_${VERSION}_${VARIANT}_$(TYPE)/i$$NUM; \
+	   fi \
+	done \
+	fi; \
+	zip -r Kawari_TeensyROM_${VERSION}_${VARIANT}_$(TYPE).zip Kawari_TeensyROM_${VERSION}_${VARIANT}_$(TYPE); \
+	rm -rf Kawari_TeensyROM__${VERSION}_${VARIANT}_$(TYPE)
 
 zip: all
 	zip kawari_flash_${VERSION}_${VARIANT}_${TYPE}.zip flash*.d64 flash.d81 autoswap.lst

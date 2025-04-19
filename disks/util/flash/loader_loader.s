@@ -1,8 +1,7 @@
-; The loader routine to load the fast loader loader.prg
-; TODO: We can do this directly from C. No need for this file.
-; $a004
+; The regular kernal loader routine to load a file
+; into memory according to its load byte header
 
-_load_loader:
+_kernal_load:
         jsr $FFBD ; SETNAM
         lda #4    ; logical num
         ldx DRIVENUM
@@ -23,5 +22,5 @@ error:
 DRIVENUM:
 .BYTE           08
 
-.export _load_loader
+.export _kernal_load
 

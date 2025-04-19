@@ -68,10 +68,16 @@ unsigned char smp_tmp[40];
 #define SCRATCH_SIZE 32
 unsigned char filename[16];
 unsigned char scratch[SCRATCH_SIZE];
-
 unsigned char use_fast_loader;
 
-void load_loader(void);
+#ifdef TEENSY
+unsigned char teensy_drive[5];
+#endif
+
+void kernal_load(void);
+#ifdef TEENSY
+void teensy_load(void);
+#endif
 void copy_6000_0000(unsigned char num_256b_pages);
 void compare(void);
 void check_6000(unsigned char num_iter);
@@ -174,7 +180,11 @@ void read_string(unsigned long* addr) {
 
 // Load the fast loader into $a004
 unsigned char slow_load(void) {
-    r.pc = (unsigned) &load_loader;
+#ifdef TEENSY
+    r.pc = (unsigned) &teensy_load;
+#else
+    r.pc = (unsigned) &kernal_load;
+#endif
     r.x = (unsigned char)(&filename[0]);
     r.y = (unsigned)(&filename[0]) >> 8;
     r.a = (unsigned char)strlen(filename);
@@ -278,10 +288,14 @@ void fast_start(void) {
 }
 
 // Zero indexed disk number
+#ifndef TEENSY
 void please_insert(int disk_num) {
    SMPRINTF_1("\nInsert disk #%d in drive 8.\n", disk_num + 1);
    press_any_key(TO_CONTINUE);
 }
+#else
+void please_insert(int) { }
+#endif
 
 void upgrade_eeprom(void) {
    unsigned char current_cfg_version;
@@ -322,7 +336,12 @@ int test_disk(long num_to_read, unsigned long page_size) {
     mprintf("few pages. Please be patient.\n");
 
     while (num_to_read > 0) {
+#ifdef TEENSY
+       sprintf (filename,"%skawari/i%03d", teensy_drive, abs_filenum);
+#else
        sprintf (filename,"i%03d", abs_filenum);
+#endif
+
        SMPRINTF_2("%ld:LOAD %s,", num_to_read, filename);
 
        ret = load(page_size);
@@ -374,7 +393,11 @@ void begin_flash(long num_to_write, unsigned long start_addr, unsigned long page
 
     while (num_to_write > 0) {
        // Set next filename
+#ifdef TEENSY
+       sprintf (filename,"%skawari/i%03d", teensy_drive, abs_filenum);
+#else
        sprintf (filename,"i%03d", abs_filenum);
+#endif
 
        while (1)
        {
@@ -430,8 +453,7 @@ void begin_flash(long num_to_write, unsigned long start_addr, unsigned long page
           if (disknum < max_disk && filenum == max_file) {
 	      filenum = 0;
 	      disknum++;
-	      SMPRINTF_1("Insert disk %d and press any key\n", disknum+1);
-	      WAITKEY;
+              please_insert(disknum);
           }
        }
     }
@@ -456,7 +478,11 @@ void begin_verify(long num_to_read, unsigned long start_addr, unsigned long page
 
     while (num_to_read > 0) {
        // Set next filename
+#ifdef TEENSY
+       sprintf (filename,"%skawari/i%03d", teensy_drive, abs_filenum);
+#else
        sprintf (filename,"i%03d", abs_filenum);
+#endif
 
        while (1)
        {
@@ -620,12 +646,31 @@ void main_menu(void)
 
     please_insert(0);
 
+#ifdef TEENSY
+    mprintf ("\nFiles must be in root 'kawari' dir\n");
+    do {
+       mprintf ("Are files on SD: or USB: (S/u)?");
+       WAITKEY;
+       if (r.a == 'u') sprintf (teensy_drive,"usb:");
+       else sprintf (teensy_drive,"sd:");
+
+       SMPRINTF_1("\nREAD Teensy %skawari/info\n", teensy_drive);
+       strcpy (filename, teensy_drive);
+       strcat (filename, "kawari/info");
+       if (slow_load()) {
+          printf ("Can't read info file.\n");
+          continue;
+       }
+       break;
+    } while (1);
+#else
     mprintf ("\nREAD IMAGE INFO\n");
     strcpy (filename,"info");
     while (slow_load()) {
        printf ("Can't read info file.\n");
        press_any_key(TO_TRY_AGAIN);
     }
+#endif
 
     // Info is now at $a004
     tmp_addr=0xa004;
@@ -664,8 +709,9 @@ void main_menu(void)
        }
     }
 
+    use_fast_loader = 0;
+#ifndef TEENSY
     mprintf ("\nUse fast loader (Y/n) ?");
-
     use_fast_loader = 1;
     for (;;) {
        WAITKEY;
@@ -679,6 +725,10 @@ void main_menu(void)
        mprintf ("N\n\n");
 
     fast_start();
+#else
+    mprintf ("\nNOTE: TeensyROM 0.6.7 or newer required\n");
+    press_any_key(TO_CONTINUE);
+#endif
 
     for (;;) {
        mprintf ("\n");
