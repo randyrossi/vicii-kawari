@@ -171,14 +171,31 @@ The 'Mini' boards will fit into revisions 250407, 250425, 326298 & KU-14194HB. F
 
 The 'large" board will fit into revisions 250407, 250425, 326298 & KU-1419HB provided an extra socket is included to give the PCB enough height to clear some of the clock circuit components.  However, if present, the RF sheild surrounding the video circuitry will prevent an HDMI cable from being plugged in even with an extra socket.  For better HDMI port access, the large board is recommended for boards that do not have an RF sheild surrounding the video circuit.  Also, it is better if the RF modulator is unpopulated or replaced with a RF modulator bypass board.  This leaves room for a cable to be plugged in and exit the machine through unused holes at the back.  Strain relief is up to the user.
 
-## Will this work in C64-C (short board) models?
-Although the board will (mostly) function if plugged into a C64-C 'short' board (i.e. 250469), the current versions of VIC-II Kawari are not recommended for these motherboards.
+## Will this work in C64-C (short board) models with 250466/250469?
 
-1. It is difficult to close the machine. The 'Mini' PCB sits too high off the motherboard which presses up on the sheilding (required to be installed due to keyboard support brackets being attached).  The large also requires an extra socket to clear some motherboard components and causes the same issue with the sheild. If you are willing to replace the sheild with 3D printed keyboard support brackets (or other solutions), you may be able to get it to fit into a closed machine. However, this has not been tested.
+I don't recommend the Kawari for motherboards inside C64-C cases and especially the 250469 revisions. See below for more details.
 
-2. The 8562/8565 CAS/RAS timing is slightly different than the older generation 6567/6569 chips. There are still some issues that can cause some games/demos to fail. For this reason, I am not recommending VIC-II Kawari for C64-C short boards.  I may investigate the cause of these issues and release a separate 8562/8656 firmware.
+NOTE: The VDD pin is not connected so there is no voltage compatibility issue like with the real 8562/8565 models. It won't damage the Kawari to plug it into a C64-C 'short' board. You may run into the issues described below, however.
 
-NOTE: The VDD pin is not connected so there is no voltage compatibility issue like with the real 8562/8565 models. It won't damage the Kawari to plug it into a C64-C 'short' board. You may run into the issues described above, however.
+### 250466 inside C64-C cases
+
+It is difficult to close the machine. The 'Mini' PCB sits too high off the motherboard which presses up on the sheilding (required to be installed due to keyboard support brackets being attached).  The large also requires an extra socket to clear some motherboard components and causes the same issue with the sheild. If you are willing to replace the sheild with 3D printed keyboard support brackets (or other solutions), you may be able to get it to fit into a closed machine. However, this has not been tested.  There are no known compatibility issues with this revision so if you place it into a breadbin case, it will likely work fine for you.  The C64-C case / keyboard is the main issue.
+
+### 250469 (in any case)
+
+The same space/fit issues exist as with the 250466 board in C64-C cases but there are two additional problems that occur regardless of case:
+
+1. The SuperPLA will hold the NMI line low due to a startup glitch. The precise cause of the glitch is not known but it is believed to be related to the time the Kawari takes to load the bitstream into the FPGA.  During this time, the clock is effectively decoupled from the bus and there is nothing to drive the signal high or low.  The SuperPLA took over the responsibility of the RESTORE key triggering NMI low.  However, more often than not, it gets stuck LOW on power up even after the clock signal eventaully starts.  This will cause any program that expects NMI from the CIA timer to not get triggered.  It appears the only way to get it 'unstuck' is to pulse the RESTORE input to the SuperPLA.  
+
+    Workarounds:
+
+    1. You can run a jumper wire from the Kawari's RST pad (located in the top left) to the RESTORE line where resistor R17 and C59 meet or on Pin 11 of U23 or pin 9 of the PLA U8. This involves soldering a wire to the Kawari pad.
+    2. Or....You can simply tap the RESTORE key on the keyboard after a cold boot. This effectively 'kicks' the SuperPLA to stop driving the NMI line low.
+    3. Or....You can replace the SuperPLA with a modern replacement such as [u251715 64 MMU](https://uni64.com/shop/index.php?find=u251715%2B64+MMU) from uni64.com (which appears to not exhibit the startup glitch as a genuine chip does)
+
+    Any one of the workarounds listed above will avoid the issue.
+
+2. The SuperPLA became gatekeeper for DRAM CE and R/W signals and does not allow DRAM to be selected for writes during the VIC2's cycle.  This means the extended feature of DMA transfers from video memory to DRAM do not function on the 250469.  This is not a concern unless you are running a Kawari specific application/demo that wants to use that extended feature.  This limitation does not affect 'regular' C64 programs in any way.
 
 ## What about EVO64 boards?
 There appear to be no issues on EVO64 boards, however I do not have one to test and rely on the community to report problems.
