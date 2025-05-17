@@ -195,7 +195,7 @@ The same space/fit issues exist as with the 250466 board in C64-C cases but ther
 
     Any one of the workarounds listed above will avoid the issue.
 
-2. The SuperPLA became gatekeeper for DRAM CE and R/W signals and does not allow DRAM to be selected for writes during the VIC2's cycle.  This means the extended feature of DMA transfers from video memory to DRAM do not function on the 250469.  This is not a concern unless you are running a Kawari specific application/demo that wants to use that extended feature.  This limitation does not affect 'regular' C64 programs in any way.
+2. The SuperPLA became gatekeeper for DRAM WE signal and does not allow DRAM to be go LOW during the VIC2's cycle.  This means the extended feature of DMA transfers from video memory to DRAM do not function on the 250469 without a hardware modification.  This is not a concern unless you are running a Kawari specific application/demo that wants to use that extended feature.  This limitation does not affect 'regular' C64 programs in any way.  If you want to allow the Kawari to write to DRAM, wire a jumper either from Pin 6 of U6 on the Kawari or Pin 11 of the VIC2 to the WE pin of one of the LH2464 DRAM chips.  U6 is the SN74LS05D located in the top left of the Kawari.  Note the orientation of U6 on the mini is opposite that of the large but the pin # to use is the same between them.
 
 ## What about EVO64 boards?
 There appear to be no issues on EVO64 boards, however I do not have one to test and rely on the community to report problems.
