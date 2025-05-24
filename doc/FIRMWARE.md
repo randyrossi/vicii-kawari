@@ -16,7 +16,7 @@ Board         | Firmware Link| Description
 Trion Mini    | [1.19](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.19_MAINLH_multiboot.zip) | For the 'Mini' board.
 Trion Large w/ DVI   | [1.19 with Non-Std DVI ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.19_MAINLG-DVI-29MHZ-U_multiboot.zip) | Enables DVI output via the micro-HDMI port. The RGB header is not enabled in this build (however, the CLK pin will be enabled with a dot clock signal). Regular Composite/S-Video out the regular rear jack is always available.
 Trion Large w/ DVI (480p/576p - Scaled) | [1.19 with 480p/576p DVI ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.19_MAINLG-DVI-27MHZ-S_multiboot.zip) | Same as above except uses more standard video modes and may result in better compatibility with some monitors that don't like to sync to the default firmware.  NOTE: Kawari extra hires (80col/640x200) modes will not work with this version due to the scaling required to meet standard resolutions.
-Trion Large w/ RGB   | [1.19 with RGB ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.19_MAINLG-RGB_multiboot.zip) | Enables RGB output via the RGB header. DVI output is disabled in this build. Regular Composite/S-Video out the regular rear jack is always available.
+Trion Large w/ RGB   | [1.19 with RGB ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.19_MAINLG-RGB-32MHZ-U_multiboot.zip) | Enables RGB output via the RGB header. DVI output is disabled in this build. Regular Composite/S-Video out the regular rear jack is always available.
 Spartan Large | [1.15](https://accentual.com/vicii-kawari/downloads/flash/LD/kawari_flash_1.15_MAINLD_multiboot.zip) | Only 7 of these boards were produced. Both DVI and RGB are enabled. (This model is unlikely to work with the EVO64)
 Spartan Large (Beta) | [1.15](https://accentual.com/vicii-kawari/downloads/flash/T/kawari_flash_1.15_MAIN_multiboot.zip) | Only 10 of these boards were produced. Both DVI and RGB are enabled. (This model is unlikely to work with the EVO64)
 # Fallback Image updates
@@ -28,6 +28,7 @@ Board         | Firmware Link| Description
 Trion Mini    | [1.19](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.19_MAINLH_golden.zip) | Fallback for the Mini board.
 Trion Large w/ DVI   | [1.19 with Non-Std DVI ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.19_MAINLG-DVI-29MHZ-U_golden.zip) | Fallback for the large board.  (There is no RGB enabled fallback, always DVI.)
 Trion Large w/ DVI (480p/576p - Scaled) | [1.19 with 480p/576p DVI ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.19_MAINLG-DVI-27MHZ-S_golden.zip) | Fallback for the large board but with the 'more standard' 480p/576p video modes.  (There is no RGB enabled fallback, always DVI.). Note: Kawari extra hires (80col/640x200) modes will not work with this version due to the scaling required to meet standard resolutions.
+Trion Large w/ RGB   | [1.19 with RGB ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.19_MAINLG-RGB-32MHZ-U_golden.zip) | Enables RGB output via the RGB header. DVI output is disabled in this build. Regular Composite/S-Video out the regular rear jack is always available.
 
 # Specialty Builds
 
