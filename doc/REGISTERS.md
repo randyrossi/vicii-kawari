@@ -254,20 +254,20 @@ COLOR_BASE      | Unused                                          |             
 ### Writing to video memory from main DRAM using auto increment
 
     LDA <ADDR
-    STA VIDEO_MEM_1_HI
-    LDA >ADDR
     STA VIDEO_MEM_1_LO
+    LDA >ADDR
+    STA VIDEO_MEM_1_HI
     LDA #1               ; Auto increment port 1
     STA VIDEO_MEM_FLAGS
     LDA #$55
-    STA VIDEO_MEM_A_VAL  ; write $55 to video mem ADDR
+    STA VIDEO_MEM_1_VAL  ; write $55 to video mem ADDR
 
     Sequential writes will auto increment the address:
 
     LDA #$56
-    STA VIDEO_MEM_A_VAL  ; write $56 to ADDR+1
+    STA VIDEO_MEM_1_VAL  ; write $56 to ADDR+1
     LDA #$57
-    STA VIDEO_MEM_A_VAL  ; write $57 to ADDR+2
+    STA VIDEO_MEM_1_VAL  ; write $57 to ADDR+2
     (...etc)
 
     * video mem hi/lo pairs will wrap as expected
@@ -275,17 +275,17 @@ COLOR_BASE      | Unused                                          |             
 ### Reading from video memory into main DRAM using auto increment
 
     LDA <ADDR
-    STA VIDEO_MEM_1_HI
-    LDA >ADDR
     STA VIDEO_MEM_1_LO
+    LDA >ADDR
+    STA VIDEO_MEM_1_HI
     LDA #1               ; Auto increment port 1
     STA VIDEO_MEM_FLAGS
-    LDA VIDEO_MEM_A_VAL  ; read the value
+    LDA VIDEO_MEM_1_VAL  ; read the value
 
     Sequential reads will auto increment the address:
 
-    LDA VIDEO_MEM_A_VAL ; read from ADDR+1
-    LDA VIDEO_MEM_A_VAL ; read from ADDR+2
+    LDA VIDEO_MEM_1_VAL ; read from ADDR+1
+    LDA VIDEO_MEM_1_VAL ; read from ADDR+2
     (...etc)
 
     * video mem hi/lo pairs will wrap as expected
@@ -296,20 +296,20 @@ Here is an example of moving memory within video RAM using the CPU.
 (A much more efficient way using block copy is shown below).
 
     LDA <SRC_ADDR
-    STA VIDEO_MEM_1_HI
-    LDA >SRC_ADDR
     STA VIDEO_MEM_1_LO
+    LDA >SRC_ADDR
+    STA VIDEO_MEM_1_HI
 
     LDA <DEST_ADDR
-    STA VIDEO_MEM_2_HI
-    LDA >DEST_ADDR
     STA VIDEO_MEM_2_LO
+    LDA >DEST_ADDR
+    STA VIDEO_MEM_2_HI
 
     LDA #5               ; Auto increment port 1 and 2
     STA VIDEO_MEM_FLAGS
 
-    LDA VIDEO_MEM_A_VAL  ; read from src
-    STA VIDEO_MEM_B_VAL  ; write to dest
+    LDA VIDEO_MEM_1_VAL  ; read from src
+    STA VIDEO_MEM_2_VAL  ; write to dest
 
     Sequential read/writes will auto increment/decrement the address as above.
 
@@ -343,16 +343,16 @@ NOTE: VIDEO_MEM_?_IDX only applies to RAM access, not the extended register
 
 You can perform high speed copy/fill operations by setting the vmem port 1 and 2 functions to DMA. NOTE: Both port 1 and 2 must be configured for DMA.
 
-Register       | Meaning
----------------|--------------
-VIDEO_MEM_1_LO | Dest Lo Byte
-VIDEO_MEM_1_HI | Dest Hi Byte
-VIDEO_MEM_2_LO | Src Lo Byte
-VIDEO_MEM_2_HI | Src Hi Byte
-VIDEO_MEM_1_IDX | Num Bytes Lo (Copy)
-VIDEO_MEM_2_IDX | Num Bytes Hi (Copy)
-VIDEO_MEM_1_VAL | Perform DMA Function (on write)
-VIDEO_MEM_2_VAL | Unused
+REG    | Name       | Meaning
+-------|------------|--------------
+0xd039 | VIDEO_MEM_1_LO | Dest Lo Byte
+0xd03a | VIDEO_MEM_1_HI | Dest Hi Byte
+0xd03c | VIDEO_MEM_2_LO | Src Lo Byte
+0xd03d | VIDEO_MEM_2_HI | Src Hi Byte
+0xd035 | VIDEO_MEM_1_IDX | Num Bytes Lo (Copy)
+0xd036 | VIDEO_MEM_2_IDX | Num Bytes Hi (Copy)
+0xd03b | VIDEO_MEM_1_VAL | Perform DMA Function (on write)
+0xd03e | VIDEO_MEM_2_VAL | Unused
 
 Perform DMA Function Value| Meaning
 --------------------------|--------------
@@ -381,14 +381,14 @@ D01A     |IRQEN |   |   |   |EDMA|ELP|EMMC|EMBC|ERST
 ### VMEM to VMEM Copy Example (DMA)
 
         LDA <SRC_ADDR
-        STA VIDEO_MEM_1_HI
-        LDA >SRC_ADDR
         STA VIDEO_MEM_1_LO
+        LDA >SRC_ADDR
+        STA VIDEO_MEM_1_HI
 
         LDA <DEST_ADDR
-        STA VIDEO_MEM_2_HI
-        LDA >DEST_ADDR
         STA VIDEO_MEM_2_LO
+        LDA >DEST_ADDR
+        STA VIDEO_MEM_2_HI
 
         LDA #15               ; Port 1 copy src, Port 2 copy dest
         STA VIDEO_MEM_FLAGS
@@ -427,23 +427,23 @@ Chip    | Non visible gfx lines | Cycles / line | Bytes Copied / Frame
 
 ### VMEM Fill (DMA)
 
-Register       | Meaning
----------------|--------------
-VIDEO_MEM_1_LO | Start Lo Byte
-VIDEO_MEM_1_HI | Start Hi Byte
-VIDEO_MEM_1_IDX | Num Bytes Lo
-VIDEO_MEM_2_IDX | Num Bytes Hi
-VIDEO_MEM_2_LO  | Byte for fill
-VIDEO_MEM_2_HI  | Unused
-VIDEO_MEM_1_VAL | 4 = Perform fill with byte stored in VIDEO_MEM_2_LO
-VIDEO_MEM_2_VAL | Unused
+REG    | Name           | Meaning
+-------|----------------|--------------
+0xd039 | VIDEO_MEM_1_LO | Start Lo Byte
+0xd03a | VIDEO_MEM_1_HI | Start Hi Byte
+0xd035 | VIDEO_MEM_1_IDX | Num Bytes Lo
+0xd036 | VIDEO_MEM_2_IDX | Num Bytes Hi
+0xd03c | VIDEO_MEM_2_LO  | Byte for fill
+0xd03d | VIDEO_MEM_2_HI  | Unused
+0xd03b | VIDEO_MEM_1_VAL | 4 = Perform fill with byte stored in VIDEO_MEM_2_LO
+0xd03e | VIDEO_MEM_2_VAL | Unused
 
 ### Fill Example
 
         LDA <DST_ADDR
-        STA VIDEO_MEM_1_HI
-        LDA >DST_ADDR
         STA VIDEO_MEM_1_LO
+        LDA >DST_ADDR
+        STA VIDEO_MEM_1_HI
 
         LDA #15               ; Port 1 DMA, Port 2 DMA
         STA VIDEO_MEM_FLAGS
@@ -482,19 +482,19 @@ Chip    | Non visible gfx lines | Cycles / line | Bytes Filled / Frame
 ### DRAM to VMEM copy example (DMA)
 
         LDA <VMEM_SRC_ADDR  ; vmem src
-        STA VIDEO_MEM_1_HI
-        LDA >VMEM_SRC_ADDR
         STA VIDEO_MEM_1_LO
+        LDA >VMEM_SRC_ADDR
+        STA VIDEO_MEM_1_HI
 
         LDA <DRAM_DST_ADDR  ; dram dest
-        STA VIDEO_MEM_2_HI
-        LDA >DRAM_DST_ADDR
         STA VIDEO_MEM_2_LO
+        LDA >DRAM_DST_ADDR
+        STA VIDEO_MEM_2_HI
 
         LDA #0
         STA VIDEO_MEM_1_IDX
         LDA #4
-        STA VIDEO_MEM_2_IDX ; size 2k
+        STA VIDEO_MEM_2_IDX ; size 1k
 
         LDA #15               ; Port 1 op DMA, Port 2 op DMA
         STA VIDEO_MEM_FLAGS
@@ -509,19 +509,19 @@ Chip    | Non visible gfx lines | Cycles / line | Bytes Filled / Frame
 ### VMEM to DRAM copy example (DMA)
 
         LDA <DRAM_SRC_ADDR  ; dram src
-        STA VIDEO_MEM_1_HI
-        LDA >DRAM_SRC_ADDR
         STA VIDEO_MEM_1_LO
+        LDA >DRAM_SRC_ADDR
+        STA VIDEO_MEM_1_HI
 
         LDA <VMEM_DST_ADDR  ; vmem dest
-        STA VIDEO_MEM_2_HI
-        LDA >VMEM_DST_ADDR
         STA VIDEO_MEM_2_LO
+        LDA >VMEM_DST_ADDR
+        STA VIDEO_MEM_2_HI
 
         LDA #0
         STA VIDEO_MEM_1_IDX
         LDA #4
-        STA VIDEO_MEM_2_IDX   ; size 2k
+        STA VIDEO_MEM_2_IDX   ; size 1k
 
         LDA #15               ; Port 1 op DMA, Port 2 op DMA
         STA VIDEO_MEM_FLAGS
