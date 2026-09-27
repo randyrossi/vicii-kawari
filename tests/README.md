@@ -11,6 +11,15 @@ An alternate search directory or offset limit can be supplied when needed:
 
     ./compare_screenshots.py path/to/screenshots --max-offset 1
 
+To compare just one program, pass its .prg file with --prg. This is handy
+after running a single test, for example:
+
+    ./run_tests.sh simple/simple.prg
+    ./compare_screenshots.py simple --prg simple.prg --max-offset 5
+
+The program file may also be qualified relative to the search directory
+(for example --prg simple/simple.prg).
+
 Make sure the roms are read by VICE correctly. This version
 used to test Kawari expects these:
 

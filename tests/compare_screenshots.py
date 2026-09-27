@@ -98,6 +98,25 @@ def counterpart(path: Path, old_prefix: str, new_prefix: str) -> Path:
     return path.with_name(new_prefix + removeprefix(path.name, old_prefix))
 
 
+def select_program(
+    paths: list[Path], root: Path, prefix: str, prg: Path
+) -> list[Path]:
+    """Keep only the screenshots belonging to the given program file."""
+    name = prg.name
+    if name.endswith(".png"):
+        name = name[: -len(".png")]
+    wanted = f"{prefix}{name}.png"
+
+    # A bare filename can live in any subdirectory; a qualified path (for
+    # example simple/simple.prg) restricts the search to that location.
+    if prg.parent == Path("."):
+        return [path for path in paths if path.name == wanted]
+    expected = prg.parent / wanted
+    if prg.is_absolute():
+        return [path for path in paths if path.resolve() == expected.resolve()]
+    return [path for path in paths if path.relative_to(root) == expected]
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
@@ -111,6 +130,15 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=Path(__file__).resolve().parent,
         help="directory to search (default: directory containing this program)",
+    )
+    parser.add_argument(
+        "--prg",
+        type=Path,
+        metavar="FILE",
+        help=(
+            "only compare the screenshots for this program file, for example "
+            "simple.prg (default: compare every program)"
+        ),
     )
     parser.add_argument(
         "--max-offset",
@@ -134,6 +162,9 @@ def main() -> int:
 
     fpga_paths = sorted(root.rglob(f"{FPGA_PREFIX}*{SCREENSHOT_SUFFIX}"))
     vice_paths = sorted(root.rglob(f"{VICE_PREFIX}*{SCREENSHOT_SUFFIX}"))
+    if args.prg is not None:
+        fpga_paths = select_program(fpga_paths, root, FPGA_PREFIX, args.prg)
+        vice_paths = select_program(vice_paths, root, VICE_PREFIX, args.prg)
     vice_set = set(vice_paths)
     paired_vice: set[Path] = set()
     errors = 0
@@ -175,7 +206,13 @@ def main() -> int:
             errors += 1
 
     if not fpga_paths and not vice_paths:
-        print(f"error: no screenshots found beneath {root}", file=sys.stderr)
+        if args.prg is not None:
+            print(
+                f"error: no screenshots found for {args.prg} beneath {root}",
+                file=sys.stderr,
+            )
+        else:
+            print(f"error: no screenshots found beneath {root}", file=sys.stderr)
         return 1
     return 1 if errors else 0
 
