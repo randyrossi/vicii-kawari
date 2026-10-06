@@ -331,23 +331,28 @@ static vluint64_t nextTick(Vtop* top, VerilatedVcdC* tfp, int chip) {
 
    nextClk += half4XDotPS;
 
-   top->V_DOT4X = ~top->V_DOT4X;
+   // Use ! not ~: these ports are CData (uint8_t), so ~ promotes to int and
+   // assigns back 0xFF/0x00 instead of 1/0. Verilator only reads bit 0 so the
+   // model still works, but its VCD writer (4.038 emitBit) does
+   // `'0' | (char)newval` with no masking, turning that 0xFF into a corrupt
+   // 0xFF byte in the waveform.
+   top->V_DOT4X = !top->V_DOT4X;
    
 #ifdef WITH_DVI
    // Emulate our dvi clock in the correct fraction of the dot4x clock
    if (chip & 1) {
       if (tick_scale_pal[tc])
-         top->V_CLK_DVI = ~top->V_CLK_DVI;
+         top->V_CLK_DVI = !top->V_CLK_DVI;
    } else {
       if (tick_scale_ntsc[tc])
-         top->V_CLK_DVI = ~top->V_CLK_DVI;
+         top->V_CLK_DVI = !top->V_CLK_DVI;
    }
 
    tc++;
    if (tc>=16) tc=0;
 #endif
 
-   top->V_COL4X = ~top->V_COL4X;
+   top->V_COL4X = !top->V_COL4X;
 
    // One tick of dot4x 
    // = 9/4 ticks of col16x for PAL, 7/4 ticks of col16x for NTSC
@@ -358,9 +363,9 @@ static vluint64_t nextTick(Vtop* top, VerilatedVcdC* tfp, int chip) {
        col16xtick += 7.0f/4.0d;
    }
 
-   next16XColClk = nextClk;
+   next16XColClk = ticks;   // start of this dot4x half-period
    while (col16xtick >= 1) {
-       top->V_COL16X = ~top->V_COL16X;
+       top->V_COL16X = !top->V_COL16X;
        top->eval();
 #if VM_TRACE
        if (tfp) tfp->dump(next16XColClk / TICKS_TO_TIMESCALE);
@@ -868,6 +873,10 @@ int main(int argc, char** argv, char** env) {
         VL_PRINTF("verilog tracing into session.vcd\n");
         tfp = new VerilatedVcdC;
         top->trace(tfp, 99);  // Trace 99 levels of hierarchy
+        // Dumps are ps ticks / TICKS_TO_TIMESCALE (1000) => nanoseconds,
+        // so label the VCD axis to match instead of Verilator's 1ps default.
+        tfp->set_time_unit("1ns");
+        tfp->set_time_resolution("1ns");
         tfp->open("session.vcd");  // Open the dump file
     }
 #endif
@@ -1043,9 +1052,6 @@ int main(int argc, char** argv, char** env) {
     while (top->V_RST) {
        top->eval();
        nextClkCnt = 0;
-#if VM_TRACE
-       if (tfp) tfp->dump(ticks / TICKS_TO_TIMESCALE);
-#endif
        STATE(top);
        STORE_PREV();
        ticks = nextTick(top, tfp, chip);
@@ -1146,9 +1152,6 @@ int main(int argc, char** argv, char** env) {
 				  top->V_RASTER_LINE == state->raster_line &&
 				  top->clk_phi) break;
 
-#if VM_TRACE
-	          if (tfp) tfp->dump(ticks / TICKS_TO_TIMESCALE);
-#endif
                   ticks = nextTick(top, tfp, chip);
                   STATE(top);
                   STORE_PREV();
@@ -1158,9 +1161,6 @@ int main(int argc, char** argv, char** env) {
                // and we will land one 'step' into our target cycle.
                for (int i=0; i< 3; i++) {
                   top->eval();
-#if VM_TRACE
-	          if (tfp) tfp->dump(ticks / TICKS_TO_TIMESCALE);
-#endif
                   ticks = nextTick(top, tfp, chip);
                   STATE(top);
                   STORE_PREV();
@@ -1218,10 +1218,6 @@ int main(int argc, char** argv, char** env) {
               CHECK(top, top->clk_phi, __LINE__);
            }
 	}
-
-#if VM_TRACE
-	if (tfp) tfp->dump(ticks / TICKS_TO_TIMESCALE);
-#endif
 
         if (showState) {
            STATE(top);
@@ -1518,6 +1514,12 @@ int main(int argc, char** argv, char** env) {
         // Advance simulation time. Each tick represents 1 picosecond.
         ticks = nextTick(top, tfp, chip);
     }
+
+#if VM_TRACE
+    // The outer per-tick dumps are gone, so flush the last loop iteration's
+    // state (the loop can break before the next nextTick()).
+    if (tfp) tfp->dump(ticks / TICKS_TO_TIMESCALE);
+#endif
 
     if (shadowVic) {
        ipc_close(ipc);
