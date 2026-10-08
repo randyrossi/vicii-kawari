@@ -63,6 +63,7 @@ static int lastXPos;
 static int firstXPos;
 static int numCycles;
 static int viceCaptureCycleCount;
+static int viceCaptureCycleCountNoRender;
 
 // Some utility macros
 // Use RISING/FALLING in combination with HASCHANGED
@@ -399,8 +400,11 @@ int adjustRasterLine(int chip, int rl)
    return rl;
 }
 static void drawTallPixel(SDL_Renderer* ren, int x,int y) {
-   SDL_RenderDrawPoint(ren, x,y*2);
-   SDL_RenderDrawPoint(ren, x,y*2+1);
+   if (viceCaptureCycleCountNoRender == 0)
+   {
+      SDL_RenderDrawPoint(ren, x,y*2);
+      SDL_RenderDrawPoint(ren, x,y*2+1);
+   }
 }
 
 static void drawSimulatedPixel(SDL_Renderer* ren, int x, int y)
@@ -986,6 +990,7 @@ int main(int argc, char** argv, char** env) {
 
     // Capture exactly the number of cycles for one frame minus the first 20 pixels
     viceCaptureCycleCount = (screenWidth * screenHeight * 8) - 160;
+    viceCaptureCycleCountNoRender = 0;
 
     if (showWindow) {
       SDL_DisplayMode current;
@@ -1362,11 +1367,17 @@ int main(int argc, char** argv, char** env) {
               if (viceCaptureCycleCount > 0) {
                   viceCaptureCycleCount--;
                   if (viceCaptureCycleCount == 0) {
-                    for (int q = 0; q< 8; q++) {
-                       ipc_receive_done(ipc);
-                       ipc_receive(ipc);
-                    }
-
+                      // Need this many more cycles without rendering for
+                      // VICE to advance far enough to screen cap + exit
+                      viceCaptureCycleCountNoRender = 8;
+                  }
+              }
+              if (viceCaptureCycleCount == 0) {
+                  // This many more iterations without rendering
+                  if (viceCaptureCycleCountNoRender > 0) {
+                      viceCaptureCycleCountNoRender--;
+                  }
+                  if (viceCaptureCycleCountNoRender == 0) {
                     // This is now a full frame capture synced with VICE
                     SDL_RenderPresent(ren);
                     state->flags |= VICII_OP_CAPTURE_ABORT;
