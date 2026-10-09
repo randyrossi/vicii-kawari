@@ -23,7 +23,7 @@ module matrix(
            input rst,
            input clk_phi,
            input clk_dot4x,
-           input phi_phase_start_1,
+           input phi_phase_start_0,
            input phi_phase_start_14,
            input [6:0] cycle_num,
            input [8:0] raster_line,
@@ -45,8 +45,11 @@ always @(posedge clk_dot4x)
         idle = `TRUE;
     end
     else begin
-        // Must be on [1] for cycle_num to be valid
-        if (clk_phi && phi_phase_start_1) begin
+        // cycle_num increments on phi_phase_start[0] of the clk_phi low
+        // phase, so it is stable for the whole high phase.  Using phase 0
+        // of the high phase therefore sees the same cycle_num phase 1 did,
+        // but makes vc/rc valid one tick earlier (by phi_phase_start[1]).
+        if (clk_phi && phi_phase_start_0) begin
             // Reset at start of frame
             if (cycle_num == 1 && raster_line == 9'd0) begin
                 vc_base <= 10'd0;

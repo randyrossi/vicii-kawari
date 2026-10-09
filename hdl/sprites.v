@@ -238,7 +238,7 @@ always @(posedge clk_dot4x)
             end
         end
         // sprite display check
-        if (clk_phi && phi_phase_start_1 && cycle_num == sprite_disp_chk) begin
+        if (clk_phi && phi_phase_start_dav && cycle_num == sprite_disp_chk) begin
             for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
                 sprite_mc[n] <= sprite_mcbase[n];
                 if (sprite_dma[n]) begin
@@ -251,10 +251,15 @@ always @(posedge clk_dot4x)
             end
         end
 
-        // Advance sprite byte offset while dma is happening (at end of cycle)
-        // Need to increment before cycle_type changes for the next half
-        // cycle.
-        if (phi_phase_start_1) begin
+        // Advance sprite byte offset while dma is happening.
+        //
+        // addressgen now latches the s-access row address on
+        // phi_phase_start[1] (D4X_MUX_ROW_P), so sprite_mc must be valid by
+        // then.  Move the increment one tick earlier to phi_phase_start_dav
+        // ([0]); at that phase the pre-edge cycle_type/sprite_cnt still hold
+        // the previous half-cycle's values, which is exactly what
+        // prev_cycle_type/prev_sprite_cnt held at [1] before.
+        if (phi_phase_start_dav) begin
             case (cycle_type)
                 `VIC_HS1,`VIC_LS2,`VIC_HS3:
                     if (sprite_dma[sprite_cnt])

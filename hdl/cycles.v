@@ -24,7 +24,7 @@ module cycles(
            input clk_dot4x,
            input clk_phi,
            input [1:0] chip,
-           input phi_phase_start_1,
+           input phi_phase_start_0,
            input [`NUM_SPRITES - 1:0] sprite_dma,
            input badline,
            input [6:0] cycle_num,
@@ -68,7 +68,7 @@ always @(posedge clk_dot4x)
         end
         sprite_cnt <= 3'd3;
         //refresh_cnt <= 3'd0;
-    end else if (phi_phase_start_1) begin
+    end else if (phi_phase_start_0) begin
         if (clk_phi == `TRUE) begin
             case (cycle_type)
                 `VIC_LP: begin
