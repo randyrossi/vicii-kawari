@@ -35,6 +35,8 @@
         <efx:design_file name="../../hdl/efinix_trion/dvi/serializer.v" version="default" library="default"/>
         <efx:design_file name="../../hdl/efinix_trion/dvi/tmds_channel.v" version="default" library="default"/>
         <efx:design_file name="../../hdl/videoram_efinix.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/cpu6502.v" version="default" library="default"/>
+        <efx:design_file name="../../hdl/videoram_cpu.v" version="default" library="default"/>
         <efx:top_vhdl_arch name=""/>
     </efx:design_info>
     <efx:constraint_info>

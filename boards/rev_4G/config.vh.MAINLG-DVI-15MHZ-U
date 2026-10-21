@@ -41,5 +41,6 @@
 `define OUTPUT_DOT_CLOCK 1
 `define PAL_15MHZ 1
 `define NTSC_16MHZ 1
+`define WITH_CPU_COPROC 1
 
 `endif // config_vh_

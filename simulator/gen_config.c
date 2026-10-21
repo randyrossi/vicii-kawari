@@ -52,6 +52,7 @@ enum DefineValues {
    WITH_4K,              // select 4K for ram
    WITH_BLITTER,         // include blitter
    LUMACODE,        // include lumacode
+   WITH_CPU_COPROC,      // include the 6502 co-processor executing from video RAM
 };
 
 Define defines[] = {
@@ -76,6 +77,7 @@ Define defines[] = {
   {WITH_4K ,0,0,"WITH_4K"},
   {WITH_BLITTER ,0,0,"WITH_BLITTER"},
   {LUMACODE ,0,0,"LUMACODE"},
+  {WITH_CPU_COPROC ,0,0,"WITH_CPU_COPROC"},
 };
 
 void printcfg(int d, int def) {
@@ -115,6 +117,11 @@ void with_math(int d) { printcfg(d, WITH_MATH); with_ext(d); }
 // TODO: Fix this and also math reg requirement.
 void with_blitter(int d) { printcfg(d, WITH_BLITTER); hires_modes(d); with_64k(d); with_math(d);}
 void lumacode(int d) { printcfg(d, LUMACODE); }
+// NOTE: the co-processor has a 16 bit address space that maps onto the whole
+// of video RAM, and it is controlled through the extra register overlay at
+// 0x20-0x2b, so it needs 64k and extensions. (CPU_COPROC_ENABLED in common.vh
+// silently omits the feature if any of those are missing.)
+void with_cpu_coproc(int d) { printcfg(d, WITH_CPU_COPROC); with_64k(d); with_ext(d); }
 
 int main(int argc, char* argv[]) {
 
@@ -192,6 +199,7 @@ int main(int argc, char* argv[]) {
 		    configurable_lumas(d);
 		    luma_sink(d);
 		    hires_modes(d);
+		    with_cpu_coproc(d);
 		    break;
 
             // TEST PATTERN
