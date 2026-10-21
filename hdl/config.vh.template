@@ -172,6 +172,24 @@
 // Requires HIRES_MODES.
 `define WITH_BLITTER
 
+// WITH_CPU_COPROC
+// ---------------
+// Adds a 6502 co-processor that executes out of the 64K extended video RAM.
+// The core is Arlet Ottens' 6502 (hdl/cpu6502.v) and it shares video RAM
+// port A with the 6510/DMA/blitter under automatic arbitration, so the
+// legacy side always wins and no software cooperation is required.
+//
+// Controlled from the extra register overlay at 0x20-0x2b:
+//   0x20/0x21  start (reset) vector low/high
+//   0x22       control: b0 reset, b1 irq, b2 nmi, b3 hold
+//   0x23-0x29  read back A, X, Y, SP, P, PC
+//   0x2a       status
+//   0x2b       access rate divider
+//
+// Requires WITH_EXTENSIONS, WITH_RAM and WITH_64K. Cost is roughly 850 LUT4
+// and 140 FF, no additional block RAM. See doc/CPU_COPROCESSOR_FEASIBILITY.md.
+//`define WITH_CPU_COPROC
+
 // OUTPUT_DOT_CLOCK
 // ----------------------
 // Activate the dotclock generation hack which.

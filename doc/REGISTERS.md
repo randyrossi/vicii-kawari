@@ -633,7 +633,8 @@ Location | Name | Since | Description | Capability Requirement | Can be saved?
 0x06 | DISPLAY_FLAGS2 | 1.12 | See below | HAVE_EEPROM | Y
 0x07 | CFG_VERSION | 1.12 | See below | HAVE_EEPROM | N
 0x1f | CHIP_MODEL | 1.4 | Chip Model Select (0=6567R8, 1=6569R3, 2=6567R56A, 3=6569R1) | NONE | Y
-0x20 - 0x3f | UNUSED | 1.4 | Unused | NONE | N/A
+0x20 - 0x2b | CPU_* | 1.20 | 6502 co-processor control/status (WITH_CPU_COPROC only) | NONE | N
+0x2c - 0x3f | UNUSED | 1.4 | Unused | NONE | N/A
 0x40 - 0x7f | PAL_RGB | 1.4 | 4x16 array of RGBx (4th byte unused) | CONFIG_RGB | Y
 0x80 | BLACK_LEVEL | 1.4 | Composite black level (0-63) | CONFIG_COMPOSITE | Y
 0x81 | BURST_AMPLITUDE | 1.4 | Composite color burst amplitude (1-15, 0 = no color burst) | CONFIG_COMPOSITE | Y
@@ -735,6 +736,82 @@ Bit 1-8 | Reserved
 ### Variant Name
 
 The extra register overlay area 0x0090 - 0xd09f is used to identify the Kawari variant name. This is a max 16 byte null terminated PETSCII string.  All forks should change this to something other than 'main' if they plan on releasing a bitstream. See [FORKING.md](FORKING.md)
+
+## 6502 Co-Processor (WITH_CPU_COPROC)
+
+When the bitstream is built with `WITH_CPU_COPROC`, VIC-II Kawari contains a
+second CPU: an Arlet Ottens 6502 that executes directly out of the 64K extended
+video RAM. It shares video RAM port A with the 6510/DMA/blitter under automatic
+arbitration, so there is no hold bit to raise before starting a DMA and existing
+software is unaffected. Registers 0x20-0x2b control it.
+
+REG    | Name | Description
+-------|------|-------------
+0x20 | CPU_START_LO | Start (reset) vector low byte
+0x21 | CPU_START_HI | Start (reset) vector high byte
+0x22 | CPU_CTRL | b0 RESET (1 = held in reset), b1 IRQ, b2 NMI, b3 HOLD
+0x23 | CPU_A | Accumulator (read only)
+0x24 | CPU_X | X index (read only)
+0x25 | CPU_Y | Y index (read only)
+0x26 | CPU_SP | Stack pointer (read only)
+0x27 | CPU_P | Flags NV-BDIZC (read only)
+0x28 | CPU_PC_LO | Program counter low (read only)
+0x29 | CPU_PC_HI | Program counter high (read only)
+0x2a | CPU_STATUS | b0 running, b1 held, b2 stalled by DMA/blitter (read only)
+0x2b | CPU_SPEED | Access rate divider: 0 = fastest, 1..3 progressively slower
+
+The co-processor starts held in reset. A typical hand-off is:
+
+        LDA #$20        ; VIDEO_MEM_FLAGS: enable the extra register overlay (bit 6)
+        STA $d03f
+
+        LDA #$20        ; overlay address of CPU_START_LO
+        STA $d039       ; VIDEO_MEM_1_LO
+        LDA #<PROG      ; PROG is the co-processor entry point
+        STA $d03b       ; VIDEO_MEM_1_VAL -> CPU_START_LO
+
+        LDA #$21        ; overlay address of CPU_START_HI
+        STA $d039
+        LDA #>PROG
+        STA $d03b       ; CPU_START_HI
+
+        LDA #$22        ; overlay address of CPU_CTRL
+        STA $d039
+        LDA #$00
+        STA $d03b       ; clear RESET: co-processor starts at PROG
+
+        ; then poll CPU_STATUS (overlay 0x2a) for it to finish
+    poll
+        LDA #$2a
+        STA $d039
+        LDA $d03b       ; CPU_STATUS
+        ...
+
+Like every other extra register these live in the **overlay** and are reached
+through the video memory port mechanism, with overlay mode enabled via bit 6 of
+VIDEO_MEM_FLAGS. They are *not* directly at `$d020`-`$d02b`. VIDEO_MEM_1_HI must
+stay 0 because the overlay is only the first 256 bytes of video memory.
+
+Notes:
+
+* The co-processor's 16-bit address space maps **directly onto the 64K of
+  video RAM**. Zero page and stack live in video RAM 0x0000-0x01ff.
+* While the extra-registers overlay is enabled (`VIDEO_MEM_FLAGS` bit 6) the
+  6510 sees the extended registers at 0x0000-0x00ff but the co-processor still
+  sees raw RAM there.
+* Video RAM `$fffc`/`$fffd` are the co-processor's reset vector and are
+  supplied from CPU_START_LO/HI rather than from RAM (shadowed).
+* `$fffa/$fffb` are the co-processors NMI vector
+* `$fffe/$ffff` are the co-processors IRQ/BRK vector
+* A co-processor bus cycle needs two `clk_dot4x` clocks, so it runs at roughly
+  16 MHz with CPU_SPEED 0 - about 16x the 6510. It is stalled whenever a DMA,
+  blit or fill is in progress, and briefly whenever the 6510 touches
+  $d02f-$d03f.
+* Port B, the hires scanout fetch, is never touched by the co-processor, so it
+  cannot disturb the picture.
+* The co-processor cannot reach the C64's DRAM, and it cannot write the extra
+  registers, so it cannot start a DMA or blit itself.  This must be done via
+  a custom mailbox implementation if required.
 
 ## Notes
 

@@ -216,6 +216,32 @@ task read_ram(
                     8'hd7:
                         dbo <= timing_v_bporch;
 `endif
+`ifdef CPU_COPROC_ENABLED
+                    `EXT_REG_CPU_START_LO:
+                        dbo <= cpu_start_lo;
+                    `EXT_REG_CPU_START_HI:
+                        dbo <= cpu_start_hi;
+                    `EXT_REG_CPU_CTRL:
+                        dbo <= {4'b0, cpu_hold, cpu_nmi, cpu_irq, cpu_reset};
+                    `EXT_REG_CPU_A:
+                        dbo <= cpu_a;
+                    `EXT_REG_CPU_X:
+                        dbo <= cpu_x;
+                    `EXT_REG_CPU_Y:
+                        dbo <= cpu_y;
+                    `EXT_REG_CPU_SP:
+                        dbo <= cpu_sp;
+                    `EXT_REG_CPU_P:
+                        dbo <= cpu_p;
+                    `EXT_REG_CPU_PC_LO:
+                        dbo <= cpu_pc[7:0];
+                    `EXT_REG_CPU_PC_HI:
+                        dbo <= cpu_pc[15:8];
+                    `EXT_REG_CPU_STATUS:
+                        dbo <= {5'b0, cpu_stalled, cpu_hold, ~cpu_reset};
+                    `EXT_REG_CPU_SPEED:
+                        dbo <= {6'b0, cpu_speed};
+`endif
                     default: ;
                 endcase
             end
@@ -477,6 +503,18 @@ task write_ram(
                         timing_v_bporch <= data;
                         persist_eeprom(do_persist, ram_lo, data);
                     end
+`endif
+`ifdef CPU_COPROC_ENABLED
+                    // Co-processor control. Never persisted: these are
+                    // volatile run-time controls, not configuration.
+                    `EXT_REG_CPU_START_LO:
+                        cpu_start_lo <= data;
+                    `EXT_REG_CPU_START_HI:
+                        cpu_start_hi <= data;
+                    `EXT_REG_CPU_CTRL:
+                        {cpu_hold, cpu_nmi, cpu_irq, cpu_reset} <= data[3:0];
+                    `EXT_REG_CPU_SPEED:
+                        cpu_speed <= data[1:0];
 `endif
                     default: ;
                 endcase

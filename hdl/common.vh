@@ -306,6 +306,37 @@
 // Registers above this value are per-chip registers
 `define PER_CHIP_REG_START           8'h20
 
+// 6502 co-processor control/status (WITH_CPU_COPROC). These sit in the
+// documented 0x20-0x3f UNUSED hole. They are volatile and are never passed to
+// persist_eeprom, so the per-chip persistence rule does not apply to them.
+`define EXT_REG_CPU_START_LO         8'h20 // start vector low  (reset vector)
+`define EXT_REG_CPU_START_HI         8'h21 // start vector high
+`define EXT_REG_CPU_CTRL             8'h22 // b0 RESET, b1 IRQ, b2 NMI, b3 HOLD
+`define EXT_REG_CPU_A                8'h23 // read only
+`define EXT_REG_CPU_X                8'h24 // read only
+`define EXT_REG_CPU_Y                8'h25 // read only
+`define EXT_REG_CPU_SP               8'h26 // read only
+`define EXT_REG_CPU_P                8'h27 // read only, NV-BDIZC
+`define EXT_REG_CPU_PC_LO            8'h28 // read only
+`define EXT_REG_CPU_PC_HI            8'h29 // read only
+`define EXT_REG_CPU_STATUS           8'h2a // read only
+`define EXT_REG_CPU_SPEED            8'h2b // b1-0 access rate divider
+
+// The co-processor needs the 64K video RAM, the extra register overlay and the
+// video RAM port A machinery. Collapse those requirements into one internal
+// macro so the rest of the design only ever tests CPU_COPROC_ENABLED and a
+// misconfigured variant silently omits the feature instead of failing to
+// elaborate on undeclared signals.
+`ifdef WITH_CPU_COPROC
+`ifdef WITH_RAM
+`ifdef WITH_EXTENSIONS
+`ifdef WITH_64K
+`define CPU_COPROC_ENABLED 1
+`endif
+`endif
+`endif
+`endif
+
 `define EXT_REG_BLANKING             8'h80 // since v.0xff
 `define EXT_REG_BURSTAMP             8'h81 // since v.0xff
 `define EXT_REG_VERSION_MAJOR        8'h83 // since v.0xff
