@@ -1,6 +1,6 @@
 # Download
 
-Download here: [Utility and Demo Disks](http://accentual.com/vicii-kawari/downloads/prog)
+Download here: [Utility and Demo Disks](https://github.com/randyrossi/vicii-kawari/releases)
 
 * NOTE: The Kawari Inside demo requires a 1541 (or Pi1541). SD2IEC devices are not compatible with the fast loader.
 
