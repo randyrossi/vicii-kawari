@@ -8,36 +8,40 @@ When using the individual .D64 files, please make sure you are actually able to 
 
 If you begin flashing and are unable to swap disks, soft reset the machine, fix the issue and try again.  If you power off the machine without a successfuly flash after it was started, you will have to boot into the **fallback** image to fix it.  See [FLASHING.md](FLASHING.md) for the different options on flashing these files.
 
+As of Nov 2026, all release files are hosted at github.com:
+
+[Release Files](https://github.com/randyrossi/vicii-kawari/releases)
+
 # Active Image updates
 
-These firmware files will update the **active** image on your board.  This is probably what you want to do...
-Board         | Firmware Link| Description
+The active firmware files will update the **active** image on your board.  This is probably what you want to do.
+
+Board         | Firmware File| Description
 --------------|------|---------
-Trion Mini    | [1.19](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.19_MAINLH_multiboot.zip) | For the 'Mini' board.
-Trion Large w/ DVI   | [1.19 with Non-Std DVI ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.19_MAINLG-DVI-29MHZ-U_multiboot.zip) | Enables DVI output via the micro-HDMI port. The RGB header is not enabled in this build (however, the CLK pin will be enabled with a dot clock signal). Regular Composite/S-Video out the regular rear jack is always available.
-Trion Large w/ DVI (480p/576p - Scaled) | [1.19 with 480p/576p DVI ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.19_MAINLG-DVI-27MHZ-S_multiboot.zip) | Same as above except uses more standard video modes and may result in better compatibility with some monitors that don't like to sync to the default firmware.  NOTE: Kawari extra hires (80col/640x200) modes will not work with this version due to the scaling required to meet standard resolutions.
-Trion Large w/ RGB   | [1.19 with RGB ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.19_MAINLG-RGB-32MHZ-U_multiboot.zip) | Enables RGB output via the RGB header. DVI output is disabled in this build. Regular Composite/S-Video out the regular rear jack is always available.
-Spartan Large | [1.15](https://accentual.com/vicii-kawari/downloads/flash/LD/kawari_flash_1.15_MAINLD_multiboot.zip) | Only 7 of these boards were produced. Both DVI and RGB are enabled. (This model is unlikely to work with the EVO64)
-Spartan Large (Beta) | [1.15](https://accentual.com/vicii-kawari/downloads/flash/T/kawari_flash_1.15_MAIN_multiboot.zip) | Only 10 of these boards were produced. Both DVI and RGB are enabled. (This model is unlikely to work with the EVO64)
+Trion Mini    | kawari_flash_1.19_MAINLH_multiboot.zip | For the 'Mini' board.
+Trion Large w/ DVI   | kawari_flash_1.19_MAINLG-DVI-29MHZ-U_multiboot.zip | Enables DVI output via the micro-HDMI port. The RGB header is not enabled in this build (however, the CLK pin will be enabled with a dot clock signal). Regular Composite/S-Video out the regular rear jack is always available.
+Trion Large w/ DVI (480p/576p - Scaled) | kawari_flash_1.19_MAINLG-DVI-27MHZ-S_multiboot.zip | Same as above except uses more standard video modes and may result in better compatibility with some monitors that don't like to sync to the default firmware.  NOTE: Kawari extra hires (80col/640x200) modes will not work with this version due to the scaling required to meet standard resolutions.
+Trion Large w/ RGB   | kawari_flash_1.19_MAINLG-RGB-32MHZ-U_multiboot.zip | Enables RGB output via the RGB header. DVI output is disabled in this build. Regular Composite/S-Video out the regular rear jack is always available.
+
 # Fallback Image updates
 
 These firmware files will update the **fallback** image on your board.  The fallback image is used to restore a failed active image and is booted only when certain pads are shorted during a cold boot.  Versions before 1.14 were not compatible with systems with SRAM.  If you intend on using the board with SRAM, it may be a good idea to also update your fallback image.  That way, the board will still boot into fallback mode on those systems.  To check what version your fallback image is, load the CONFIG util after booting the device into fallback mode.  You can boot the device into fallback mode by shorting the fallback pads together during a cold boot (see [VARIANTS.md](VARIANTS.md)) for how to do that on each device type.
 
-Board         | Firmware Link| Description
+Board         | Firmware FiLe| Description
 --------------|------|---------
-Trion Mini    | [1.19](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.19_MAINLH_golden.zip) | Fallback for the Mini board.
-Trion Large w/ DVI   | [1.19 with Non-Std DVI ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.19_MAINLG-DVI-29MHZ-U_golden.zip) | Fallback for the large board.  (There is no RGB enabled fallback, always DVI.)
-Trion Large w/ DVI (480p/576p - Scaled) | [1.19 with 480p/576p DVI ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.19_MAINLG-DVI-27MHZ-S_golden.zip) | Fallback for the large board but with the 'more standard' 480p/576p video modes.  (There is no RGB enabled fallback, always DVI.). Note: Kawari extra hires (80col/640x200) modes will not work with this version due to the scaling required to meet standard resolutions.
-Trion Large w/ RGB   | [1.19 with RGB ](https://accentual.com/vicii-kawari/downloads/flash/LG/kawari_flash_1.19_MAINLG-RGB-32MHZ-U_golden.zip) | Enables RGB output via the RGB header. DVI output is disabled in this build. Regular Composite/S-Video out the regular rear jack is always available.
+Trion Mini    | kawari_flash_1.19_MAINLH_golden.zip | Fallback for the Mini board.
+Trion Large w/ DVI   | kawari_flash_1.19_MAINLG-DVI-29MHZ-U_golden.zip | Fallback for the large board.  (There is no RGB enabled fallback, always DVI.)
+Trion Large w/ DVI (480p/576p - Scaled) | kawari_flash_1.19_MAINLG-DVI-27MHZ-S_golden.zip | Fallback for the large board but with the 'more standard' 480p/576p video modes.  (There is no RGB enabled fallback, always DVI.). Note: Kawari extra hires (80col/640x200) modes will not work with this version due to the scaling required to meet standard resolutions.
+Trion Large w/ RGB   | kawari_flash_1.19_MAINLG-RGB-32MHZ-U_golden.zip | Enables RGB output via the RGB header. DVI output is disabled in this build. Regular Composite/S-Video out the regular rear jack is always available.
 
 # Specialty Builds
 
 WARNING: These specialty builds are provided for fun/experimentation purposes only.  Please flash them only if you know exactly what you're doing.
 
-Board         | Firmware Link| Description
+Board         | Firmware File| Description
 --------------|------|---------
-Trion Mini (Board REV 1.2-1.4) | [1.19](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.19_MAINLH-DOTC-1.2_multiboot.zip) | A custom 'active' image build that exports a dot clock signal out Pin 3 of the 74LS06D chip.  This can be passed through a 33 Ohm resistor into the motherboard to provide a dot clock for both NTSC and PAL while still using the on board oscillators. Please only flash this if you know what you are doing.
-Trion Mini (Board REV 1.5) | [1.19](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.19_MAINLH-DOTC-1.5_multiboot.zip) | Same as above except the dedicated CLK pad is used instead of having to hack into the 74LS06D.  NOTE: A 33ohm resistor is already on this version of the board (unlike the large).  Please only flash this if you know what you are doing.
+Trion Mini (Board REV 1.2-1.4) | kawari_flash_1.19_MAINLH-DOTC-1.2_multiboot.zip | A custom 'active' image build that exports a dot clock signal out Pin 3 of the 74LS06D chip.  This can be passed through a 33 Ohm resistor into the motherboard to provide a dot clock for both NTSC and PAL while still using the on board oscillators. Please only flash this if you know what you are doing.
+Trion Mini (Board REV 1.5) | kawari_flash_1.19_MAINLH-DOTC-1.5_multiboot.zip | Same as above except the dedicated CLK pad is used instead of having to hack into the 74LS06D.  NOTE: A 33ohm resistor is already on this version of the board (unlike the large).  Please only flash this if you know what you are doing.
 
 # PSA - 2023/03/31
 

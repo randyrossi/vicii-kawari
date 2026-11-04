@@ -4,10 +4,6 @@ NOTE: The mod described on this page experimental. Try at your own risk!
 
 Kawari Mini firmare v1.17+ can generate LumaCode. LumaCode is an interface for transferring digital video from retro computers. To display a LumaCode video signal, an RGB2HDMI Raspberry Pi hat and analog companion board is required. For more information on LumaCode, see [LumaCode Overview](https://github.com/c0pperdragon/LumaCode/wiki/Overview).  I purchased my RGB2HDMI and Analog Board from [retrohackshack.com](https://retrohackshack.com/product/rgbtohdmi)
 
-Experimental Firmware: [Mini 1.17](https://accentual.com/vicii-kawari/downloads/flash/LH/kawari_flash_1.17_MAINLH_multiboot.zip)
-
-Utility Disk 1.6 with updated COMPED.PRG: [Utility_1.6](https://accentual.com/vicii-kawari/downloads/prog/kawari_util_1.6.d64)
-
 You do not need the VIC-II-dizer sub-board in the VIC-II socket as you would with a genuine VIC-II chip.  The Kawari can output a signal similar to what the VIC-II-dizer outputs directly from its luma output pin (15). It's unknown at this time whether the VIC-II-dizer will work with a Kawari (please report if you have one to try).
 
 # Switch to lumacode using COMPED

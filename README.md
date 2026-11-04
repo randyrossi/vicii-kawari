@@ -13,7 +13,7 @@ See [Compatible Motherboard Revisions](#what-motherboard-revisions-will-this-fit
 
 ## Resources
 
-[Utility and Demo Disks](http://accentual.com/vicii-kawari/downloads/prog) - Utilty and demo disk download area<br>
+[Utility and Demo Disks](https://github.com/randyrossi/vicii-kawari/releases) - Utilty and demo disk download area<br>
 [Discord Server](https://discord.gg/KZcRBfZh8z) - Chat about stuff, ask questions<br>
 [Report Issues](https://github.com/randyrossi/vicii-kawari/issues) - File bugs/issues<br>
 
