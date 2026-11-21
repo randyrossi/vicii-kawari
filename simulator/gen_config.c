@@ -107,8 +107,8 @@ void have_eeprom(int d) { printcfg(d, HAVE_EEPROM);with_spi(d); }
 void have_flash(int d) { printcfg(d, HAVE_FLASH);with_spi(d); with_ram(d); }
 void need_rgb(int d) { printcfg(d, NEED_RGB); }
 void gen_rgb(int d) { printcfg(d, GEN_RGB); need_rgb(d); }
-void with_dvi(int d) { printcfg(d, WITH_DVI);need_rgb(d); hires_modes(d);}
 void hires_modes(int d) { printcfg(d, HIRES_MODES);with_ext(d); with_ram(d); }
+void with_dvi(int d) { printcfg(d, WITH_DVI);need_rgb(d); hires_modes(d);}
 void hide_sync(int d) { printcfg(d, HIDE_SYNC); }
 void with_64k(int d) { printcfg(d, WITH_64K);  with_ram(d), with_ext(d); }
 void with_4k(int d) { printcfg(d, WITH_4K);  with_ram(d), with_ext(d); }
