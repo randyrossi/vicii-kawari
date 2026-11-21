@@ -150,6 +150,7 @@ BIT 8-6     | HIRES MODE
 HIRES MODE | Description
 -----------|------------
 000 | 80 Column Text
+001 | 640x200x16 8x8 color cells (low color nibble=foreground, d020 background)
 010 | 320x200x16
 011 | 640x200x4
 100 | 160x200x16
@@ -181,9 +182,10 @@ These bit controls the hires video mode.
 HIRES MODE | Description
 -----------|-------------
 000        | 80 Column Text 16 Colors (4K CharDef, 2K Matrix, 2K Color)
-100        | 160x200 Bitmap 16 Color (16K Bitmap, packed pixels, 2 pixels per byte)
+001        | 640x200 Bitmap 16 Colors (16K Bitmap, 2K Color - 8x8 color cells)
 010        | 320x200 Bitmap 16 Color (32K Bitmap, packed pixels, 2 pixels per byte)
 011        | 640x200 Bitmap 4 Color (32K Bitmap, packed pixels, 4 pixels per byte)
+100        | 160x200 Bitmap 16 Color (16K Bitmap, packed pixels, 2 pixels per byte)
 
 ### Mode 000 : 80 Column Text
 
@@ -204,6 +206,21 @@ COLOR_BASE      | Points to a 2k block for 80x25 color matrix     | XXXX0000-XXX
     Char Pixel Fetch Addr (15): CHAR_PIXEL_BASE(3) | CASE_BIT(1) | CHAR_NUM(8) | RC(3)
 
     There are no 'badlines' in hires modes since the video memory is dual port and can be accessed by hires pixel sequencer and the CPU at the same time.  However, yscroll will still trigger a reset of the row counter as it does in the legacy modes. (NOTE: Badlines for hires modes can be enabled/disabled. See BIT 4 of VIDEO_MODE1 register.  If disabled, an additional 6% (approximately) worth of 6510 cycles / frame becomes available for the CPU.)
+
+### Mode 001 : 640x200 16 color
+
+Base Pointer    | Description                                     | Range             | Restrictions
+----------------|-------------------------------------------------|-------------------|--------------
+CHAR_PIXEL_BASE | Unused                                          |                   |
+MATRIX_BASE     | Points to a 16k block 640x200 pixel data        | XXXXXX00-XXXXXX11 |
+COLOR_BASE      | Points to a 2k block for 80x25 color matrix     | XXXX0000-XXXX1111 | lower 32k only
+
+    Pixel data represents either forground color (determined by cell color) or background color. One
+    byte is fetched each half cycle giving 80 bytes per line.
+
+    FVC (14 bit counter)
+    Color Fetch Addr (15): COLOR_BASE(4) | VC(11)
+    Pixel Fetch Addr (16): MATRIX_BASE[1:0](2) | FVC
 
 ### Mode 010 : 320x200 16 color
 

@@ -7,7 +7,7 @@ do
 bd=`basename $curd`
 if [ $bd = "vicii-kawari" ]
 then
-   $curd/simulator/obj_dir/Vtop $*
+   SDL_RENDER_DRIVER=software $curd/simulator/obj_dir/Vtop $*
    exit
 fi
 
