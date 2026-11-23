@@ -720,6 +720,9 @@ sprites vic_sprites(
             .last_bus(last_bus),
             .dot_rising_1(dot_rising[1]),
             .dot_rising_2(dot_rising[2]),
+`ifdef HIRES_MODES
+            .dot_rising_3(dot_rising[3]),
+`endif
             .phi_phase_start_m2clr(phi_phase_start[`M2CLR_CHECK]),
             .phi_phase_start_1(phi_phase_start[1]),
             .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),

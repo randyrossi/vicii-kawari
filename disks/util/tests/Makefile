@@ -10,6 +10,7 @@ subdirs:
 	$(MAKE) -C dma
 	$(MAKE) -C blitter
 	$(MAKE) -C hires
+	$(MAKE) -C sprcoll
 
 clean:
 	$(MAKE) -C lumatest clean
@@ -21,3 +22,4 @@ clean:
 	$(MAKE) -C dma clean
 	$(MAKE) -C blitter clean
 	$(MAKE) -C hires clean
+	$(MAKE) -C sprcoll clean

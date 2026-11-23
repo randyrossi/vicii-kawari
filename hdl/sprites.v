@@ -54,6 +54,9 @@ module sprites(
            input [3:0] cycle_type,
            input dot_rising_1,
            input dot_rising_2,
+`ifdef HIRES_MODES
+           input dot_rising_3,
+`endif
            input phi_phase_start_m2clr,
            input phi_phase_start_1,
            input phi_phase_start_dav,
@@ -620,7 +623,22 @@ always @(posedge clk_dot4x)
         // This triggers at the same time the sprite stage of the pixel
         // sequencer works.  So sprite to data collisions happen on the
         // delayed sprite pixels that overwrite any gfx pixels.
+        //
+        // When a hires mode is enabled, there are two hires pixels under
+        // each sprite pixel. The hires sequencer updates its background
+        // flag on dot_rising[2] and dot_rising[0] so we sample one tick
+        // later on each (dot_rising[3] and dot_rising[1]).  These are the
+        // same ticks the two hires pixels overlayed by the current sprite
+        // pixel are latched for output. sprite_cur_pixel does not change
+        // until after dot_rising[1] so both samples are checked against
+        // the same sprite pixel. A sprite pixel collides if either half
+        // is a foreground pixel.
+`ifdef HIRES_MODES
+        if ((!hires_enabled && dot_rising_2) ||
+                (hires_enabled && (dot_rising_3 || dot_rising_1))) begin
+`else
         if (dot_rising_2) begin
+`endif
             for (n = 0; n < `NUM_SPRITES; n = n + 1) begin
                 if (((sprite_mmc_d[n] && sprite_cur_pixel[n] != 0) || // multicolor
                         (!sprite_mmc_d[n] && sprite_cur_pixel[n][1] != 0)) & // non multicolor

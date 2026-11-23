@@ -266,6 +266,53 @@ COLOR_BASE      | Unused                                          |             
     FVC (14 bit counter)
     Pixel Fetch Addr (16): MATRIX_BASE[1:0](2) | FVC
 
+## Sprite Collisions in Hires Modes
+
+Sprites are available in all hires modes and are still positioned in the legacy 320x200 coordinate space (the top left pixel of the display window is sprite X=24, Y=50). The same registers and interrupt bits are used for collisions as on a stock VIC-II.
+
+REG    | Name                         | Notes
+-------|------------------------------|-------------------
+0xd01e | Sprite to sprite collision   | No change in hires modes
+0xd01f | Sprite to background collision | Background is hires pixel data when HIRES ENABLE is set
+0xd019 | Interrupt status             | Value 2 = sprite to background, value 4 = sprite to sprite
+0xd01a | Interrupt enable             | Value 2 = sprite to background, value 4 = sprite to sprite
+
+### Sprite to Sprite Collisions
+
+There is no difference in any hires mode. Sprite to sprite collisions depend only on sprite pixels and behave exactly as they do on a stock VIC-II regardless of the HIRES ENABLE bit or HIRES MODE.
+
+### Sprite to Background Collisions (v1.20+)
+
+When the HIRES ENABLE bit of VIDEO_MODE1 is set, sprite pixels are tested against the hires pixels being displayed instead of the legacy 40 column/bitmap graphics data. When HIRES ENABLE is not set, behavior is identical to a stock VIC-II and the contents of video memory have no effect. The bit is evaluated as each pixel is drawn, so if HIRES ENABLE is changed part way down the frame (a raster split), a sprite collides with whichever graphics are being shown on each of its raster lines.
+
+What counts as a foreground pixel depends on the hires mode:
+
+HIRES MODE | Description      | A pixel is foreground (collides) when
+-----------|------------------|-------------------------------------
+000        | 80 Column Text   | The character pixel bit is 1 (see attribute notes below)
+001        | 640x200 16 color | The pixel bit is 1. The color of the 8x8 cell makes no difference.
+010        | 320x200 16 color | The pixel's color index is not equal to the background color (lower nibble of $d021)
+011        | 640x200 4 color  | The pixel's color, including the color bank from COLOR_BASE, is not equal to the background color (lower nibble of $d021)
+100        | 160x200 16 color | The pixel's color index is not equal to the background color (lower nibble of $d021)
+
+For the packed pixel modes (010, 011, 100) $d021 is not used to draw anything but it selects the one color that sprites pass over without colliding. Changing $d021 changes which pixels collide.
+
+Attributes in 80 column text mode:
+
+* Reverse video inverts the test. Pixels with a bit of 0 in a reversed cell are foreground and pixels with a bit of 1 are not.
+* All pixels on the last row (row 7) of an underlined cell are foreground.
+* Blink is ignored. A blinking character collides the same way whether it is currently visible or not.
+* The cursor is ignored.
+
+Other notes:
+
+* Triggering and clearing is the same as a stock VIC-II. A bit is set in $d01f for each sprite that collides and stays set until $d01f is read. Reading $d01f clears it. The interrupt status bit (value 2 in $d019) is set only by the first collision after $d01f was last read, so $d01f must be read to re-arm the interrupt.
+* The sprite to background priority register ($d01b) has no effect on whether a collision is detected.
+* In the 640 pixel wide modes (001, 011) and 80 column text mode, there are two hires pixels under each sprite pixel. A sprite pixel collides if either one of them is foreground.
+* In 320x200 16 color mode (010), pixels are displayed half a sprite pixel (one 640 pixel) to the right of sprite pixel boundaries. A single 320 pixel therefore lies under two adjacent sprite pixels and collides with both, and the last pixel on a line extends half a sprite pixel beyond the right edge of the display window.
+* Nothing outside the display window (the top, bottom, left or right borders in 40 column / 25 row mode) is ever foreground, no matter what $d021 is set to.
+* disks/util/tests/sprcoll is a test program that checks all of the above.
+
 ## Accessing Video Memory
 
 ### Writing to video memory from main DRAM using auto increment
@@ -655,7 +702,8 @@ Location | Name | Since | Description | Capability Requirement | Can be saved?
 0x40 - 0x7f | PAL_RGB | 1.4 | 4x16 array of RGBx (4th byte unused) | CONFIG_RGB | Y
 0x80 | BLACK_LEVEL | 1.4 | Composite black level (0-63) | CONFIG_COMPOSITE | Y
 0x81 | BURST_AMPLITUDE | 1.4 | Composite color burst amplitude (1-15, 0 = no color burst) | CONFIG_COMPOSITE | Y
-0x83 | VERSION | 1.4 | Version (high nibble major, low nibble minor) - Read Only | NONE | N/A
+0x83 | VERSION_MAJOR | 1.4 | Firmware major version (e.g. 1 for v1.20) - Read Only | NONE | N/A
+0x84 | VERSION_MINOR | 1.4 | Firmware minor version, a binary number (e.g. 20 for v1.20) - Read Only | NONE | N/A
 0x85 | CURSOR_LO | 1.4 | Hires Cursor lo byte | HIRES_MODES | N/A
 0x86 | CURSOR_HI | 1.4 | Hires Cursor hi byte | HIRES_MODES | N/A
 0x87 | CAP_LO    | 1.4 | Capability Bits lo byte (Read Only)| NONE | N/A

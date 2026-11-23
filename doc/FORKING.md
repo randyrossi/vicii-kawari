@@ -8,7 +8,7 @@ The VIC-II Kawari project supports developers who want to alter VIC-II Kawari to
 
 We ask that all forks do the following:
 
-1. Keep the extra register activation [REGISTERS.md](REGISTERS.md) (i.e POKEing "VIC2" into 0x3f) functional along with the 'reserved' 0x3b-0x3f extra mem access mechanism. The extra mem registers 0x83 (VERSION), 0x90-0x9f (VARIANT) should also remain functional. This will allow a single upstream configuration utilty to successfully talk to your variant and at least display the variant name and its version. You are free to use an additional extra register activation sequence for your own scheme.
+1. Keep the extra register activation [REGISTERS.md](REGISTERS.md) (i.e POKEing "VIC2" into 0x3f) functional along with the 'reserved' 0x3b-0x3f extra mem access mechanism. The extra mem registers 0x83-0x84 (VERSION_MAJOR, VERSION_MINOR), 0x90-0x9f (VARIANT) should also remain functional. This will allow a single upstream configuration utilty to successfully talk to your variant and at least display the variant name and its version. You are free to use an additional extra register activation sequence for your own scheme.
 
 2. The format for build strings is:
 

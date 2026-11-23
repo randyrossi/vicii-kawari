@@ -129,6 +129,12 @@ reg hires_pixel_value; // for text or 16k bitmap modes
 reg[3:0] hires2_pixel_value; // for 32k bitmap modes, up to 4 bits to determine color
 reg[1:0] hires_ff;
 reg main_border_stage0;
+// For sprite to background collisions. hires_shift_valid is true when
+// the shifter was loaded with real pixel data (inside the display
+// window). hires_pixel_valid follows the pixel value registers so the
+// flag and the value it qualifies always change together.
+reg hires_shift_valid;
+reg hires_pixel_valid;
 always @(posedge clk_dot4x)
 begin
     // stage 1
@@ -138,6 +144,7 @@ begin
         // load pixels when xscroll matches pixel 0-7
         if (xscroll_delayed == hires_cycle_bit) begin
             hires_ff <= 2'b0;
+            hires_shift_valid = !vborder && visible_d;
             if (!vborder && visible_d) begin
                 if (hires_mode == 3'b000 || hires_mode == 3'b001) begin
                    // Text or 16k bitmap with colors. We used both pixel and color data.
@@ -168,24 +175,28 @@ begin
            3'b000, 3'b001: begin
              // Text or 16k bitmap with color cells
              hires_pixel_value <= hires_pixels_shifting[7];
+             hires_pixel_valid <= hires_shift_valid;
              hires_pixels_shifting = {hires_pixels_shifting[6:0], 1'b0};
            end
            3'b010: begin
              // 320x200x16
              if (hires_ff[0]) begin
                 hires2_pixel_value <= hires2_pixels_shifting[15:12];
+                hires_pixel_valid <= hires_shift_valid;
                 hires2_pixels_shifting = {hires2_pixels_shifting[11:0], 4'b0};
              end
            end
            3'b011: begin
              // 640x200x4
              hires2_pixel_value <= hires2_pixels_shifting[15:12];
+             hires_pixel_valid <= hires_shift_valid;
              hires2_pixels_shifting = {hires2_pixels_shifting[13:0], 2'b0};
            end
            3'b100: begin
              // 160x200x16
              if (hires_ff == 2'b00) begin
                hires2_pixel_value <= hires2_pixels_shifting[15:12];
+               hires_pixel_valid <= hires_shift_valid;
                hires2_pixels_shifting = {hires2_pixels_shifting[11:0], 4'b0};
              end
            end
@@ -231,7 +242,6 @@ begin
                      (hires_pixel_value ^
                       (hires_color_shifting[`HIRES_RVRS_BIT] | hires_cursor_delayed)) ?
                      hires_color_shifting[3:0] : b0c_d2) : b0c_d2;
-                    hires_is_background_pixel <= !hires_pixel_value;
                 end
                 3'b001: begin
                     // 640x200 with 8x8 color cells. Uses only lower 4 bits of
@@ -239,21 +249,43 @@ begin
                     // shifting
                     hires_pixel_color1 <=
                         hires_pixel_value ? hires_color_shifting[3:0] : b0c_d2;
-                    hires_is_background_pixel <= !hires_pixel_value;
                 end 3'b010, 3'b100: begin
                   // 160x200x16 or 320x200x16
                   hires_pixel_color1 <= hires2_pixel_value[3:0];
-                  hires_is_background_pixel <= (hires2_pixel_value[3:0] != b0c_d2);
                 end
                 3'b011: begin
                   // 640x200x4
                   hires_pixel_color1 <= {color_base[1:0], hires2_pixel_value[3:2]};
-                  hires_is_background_pixel <= ({color_base[1:0], hires2_pixel_value[3:2]} != b0c_d2);
                 end
                 default:
                   ;
             endcase
         end
+
+        // Sprite to background collision flag. This is evaluated
+        // regardless of the border so collisions still happen under the
+        // side borders (as they do for the legacy modes) but never
+        // outside the display window where there is no pixel data.
+        //   text/color cell modes : foreground if the pixel bit is set
+        //       (text: also reverse video and underline; blink and
+        //        cursor are intentionally ignored)
+        //   packed pixel modes : foreground if color != background ($d021)
+        case (hires_mode)
+            3'b000:
+                hires_is_background_pixel <= !(hires_pixel_valid &&
+                    ((hires_color_shifting[`HIRES_UNDR_BIT] && hires_rc == 3'd7) ||
+                     (hires_pixel_value ^ hires_color_shifting[`HIRES_RVRS_BIT])));
+            3'b001:
+                hires_is_background_pixel <= !(hires_pixel_valid && hires_pixel_value);
+            3'b010, 3'b100:
+                hires_is_background_pixel <= !(hires_pixel_valid &&
+                    hires2_pixel_value[3:0] != b0c_d2);
+            3'b011:
+                hires_is_background_pixel <= !(hires_pixel_valid &&
+                    {color_base[1:0], hires2_pixel_value[3:2]} != b0c_d2);
+            default:
+                hires_is_background_pixel <= 1'b1;
+        endcase
     end
 end
 
