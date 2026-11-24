@@ -37,7 +37,6 @@ enum DefineValues {
    GEN_LUMA_CHROMA,      // output S/LUM and CHROMA signals
    CONFIGURABLE_RGB,     // has registers to change color palette (RGB)
    CONFIGURABLE_LUMAS,   // has registers to change color palette (LUMA/PHASE/AMP)
-   CONFIGURABLE_TIMING,  // has registers to change VGA/DVI timing (debugging only)
    HAVE_LUMA_SINK,       // has proper luma current sink for proper sync voltage level
    WITH_SPI,             // include spi CLK, MISO, MOSI lines
    HAVE_EEPROM,          // include EEPROM_S and eeprom save/restore logic
@@ -62,7 +61,6 @@ Define defines[] = {
   {GEN_LUMA_CHROMA ,0,0,"GEN_LUMA_CHROMA"},
   {CONFIGURABLE_RGB ,0,0,"CONFIGURABLE_RGB"},
   {CONFIGURABLE_LUMAS ,0,0,"CONFIGURABLE_LUMAS"},
-  {CONFIGURABLE_TIMING ,0,0,"CONFIGURABLE_TIMING"},
   {HAVE_LUMA_SINK ,0,0,"HAVE_LUMA_SINK"},
   {WITH_SPI ,0,0,"WITH_SPI"},
   {HAVE_EEPROM ,0,0,"HAVE_EEPROM"},
@@ -100,7 +98,6 @@ void test_pattern(int d) { printcfg(d, TEST_PATTERN); }
 void gen_luma_chroma(int d) { printcfg(d, GEN_LUMA_CHROMA); }
 void configurable_rgb(int d) { printcfg(d, CONFIGURABLE_RGB);with_ext(d); }
 void configurable_lumas(int d) { gen_luma_chroma(d); printcfg(d, CONFIGURABLE_LUMAS);with_ext(d); }
-void configurable_timing(int d) { printcfg(d, CONFIGURABLE_TIMING); with_ext(d); }
 void luma_sink(int d) { printcfg(d, HAVE_LUMA_SINK); }
 void with_spi(int d) { printcfg(d, WITH_SPI);with_ext(d); }
 void have_eeprom(int d) { printcfg(d, HAVE_EEPROM);with_spi(d); }

@@ -345,7 +345,7 @@
 `define EXT_REG_CURSOR_HI            8'h86 // since v.0xff
 `define EXT_REG_CAP_LO               8'h87 // since v.0xff
 `define EXT_REG_CAP_HI               8'h88 // since v.0xff
-`define EXT_REG_TIMING_CHANGE        8'h89 // since v.0xff
+                                     // 8'h89 unused
 
 `ifdef CONFIGURABLE_LUMAS
 `define EXT_REG_LUMA0                8'ha0 // since v.0xff
@@ -398,10 +398,7 @@
 `define EXT_REG_AMPL13               8'hcd // since v.0xff
 `define EXT_REG_AMPL14               8'hce // since v.0xff
 `define EXT_REG_AMPL15               8'hcf // since v.0xff
-
-`define EXT_REG_TIMING_REG_START     8'hd0 // since v.0xff
-`define EXT_REG_TIMING_REG_END       8'hef // since v.0xff
-
+                                     // 0xd0 - 0xef unused
 `endif
 
 // Bits in DISPLAY_FLAGS
@@ -506,15 +503,6 @@
 `endif
 `else
 `define HAS_CONFIG_LUMA_CAP 1'b0
-`endif
-
-`ifdef CONFIGURABLE_TIMING
-`define HAS_CONFIG_TIMING_CAP 1'b1
-`ifndef WITH_EXTENSIONS
-`define WITH_EXTENSIONS 1'b1
-`endif
-`else
-`define HAS_CONFIG_TIMING_CAP 1'b0
 `endif
 
 `ifdef HIRES_MODES

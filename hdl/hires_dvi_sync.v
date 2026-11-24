@@ -153,17 +153,6 @@ endmodule
         input hpolarity,
         input vpolarity,
         input enable_csync,
-`ifdef CONFIGURABLE_TIMING
-        input timing_change_in,
-        input [7:0] timing_h_blank,
-        input [7:0] timing_h_fporch,
-        input [7:0] timing_h_sync,
-        input [7:0] timing_h_bporch,
-        input [7:0] timing_v_blank,
-        input [7:0] timing_v_fporch,
-        input [7:0] timing_v_sync,
-        input [7:0] timing_v_bporch,
-`endif
         input wire rst,
         input wire rst_dvi,
         input [1:0] chip,
@@ -330,7 +319,6 @@ always @(posedge clk_dvi) begin
     pixel_color4 <= active_buf ? dout1 : dout0;
 end
 
-`ifndef CONFIGURABLE_TIMING
 `ifdef SIMULATOR_BOARD
 always @(posedge clk_dvi)
 `else
@@ -428,79 +416,4 @@ always @(chip)
             end
         endcase
     end
-`else
-// There are restrictions on the values that can be placed into the timing
-// registers that the TIMED program will not enforce.  For example, any
-// hs_sta value must end up being>=0. Otherwise, the range comparison
-// for hsync will not make sense.
-// Ranges must never straddle 0 for any chip.
-`ifdef SIMULATOR_BOARD
-always @(posedge clk_dvi)
-`else
-always @(chip, timing_change_in)
-`endif
-    begin
-        case (chip)
-            `CHIP6569R1, `CHIP6569R3: begin
-                ha_end = {3'b000, timing_h_blank} + `PAL_CONFIGURABLE_OFFSET;
-                hs_sta = ha_end + {3'b000, timing_h_fporch};
-                if (hs_sta >= `PAL_WIDTH) hs_sta = hs_sta - `PAL_WIDTH;
-                hs_end = hs_sta + {3'b000, timing_h_sync};
-                if (hs_end >= `PAL_WIDTH) hs_end = hs_end - `PAL_WIDTH;
-                ha_sta = hs_end + {3'b000, timing_h_bporch};
-                if (ha_sta >= `PAL_WIDTH) ha_sta = ha_sta - `PAL_WIDTH;
-                // WIDTH 882 or 945
-                va_end = {2'b10, timing_v_blank}; // starts at 512
-                vs_sta = va_end + {2'b00, timing_v_fporch};
-                if (vs_sta >= 624) vs_sta = vs_sta - 624;
-                vs_end = vs_sta + {2'b00, timing_v_sync};
-                if (vs_end >= 624) vs_end = vs_end - 624;
-                va_sta = vs_end + {2'b00, timing_v_bporch};
-                if (vs_sta >= 624) vs_sta = vs_sta - 624;
-                // HEIGHT 312(624)
-                max_height = 10'd623;
-                max_width = `PAL_MAX_WIDTH;
-                x_offset = `PAL_OFFSET;
-            end
-            `CHIP6567R8: begin
-                ha_end = {3'b000, timing_h_blank} + `NTSC_CONFIGURABLE_OFFSET;
-                hs_sta = ha_end + {3'b000, timing_h_fporch};
-                if (hs_sta >= `NTSCR8_WIDTH) hs_sta = hs_sta - `NTSCR8_WIDTH;
-                hs_end = hs_sta + {3'b000, timing_h_sync};
-                if (hs_end >= `NTSCR8_WIDTH) hs_end = hs_end - `NTSCR8_WIDTH;
-                ha_sta = hs_end + {3'b000, timing_h_bporch};
-                if (ha_sta >= `NTSCR8_WIDTH) ha_sta = ha_sta - `NTSCR8_WIDTH;
-                // WIDTH 845
-                va_end = {2'b00, timing_v_blank};
-                vs_sta = va_end + {2'b00, timing_v_fporch};
-                vs_end = vs_sta + {2'b00, timing_v_sync};
-                va_sta = vs_end + {2'b00, timing_v_bporch};
-                // HEIGHT 263(526)
-                max_height = 10'd525;
-                max_width = `NTSCR8_MAX_WIDTH;
-                x_offset = `NTSCR8_OFFSET;
-            end
-            `CHIP6567R56A: begin
-                ha_end = {3'b000, timing_h_blank} + `NTSC_CONFIGURABLE_OFFSET;
-                hs_sta = ha_end + {3'b000, timing_h_fporch};
-                if (hs_sta >= `NTSCR56_WIDTH) hs_sta = hs_sta - `NTSCR56_WIDTH;
-                hs_end = hs_sta + {3'b000, timing_h_sync};
-                if (hs_end >= `NTSCR56_WIDTH) hs_end = hs_end - `NTSCR56_WIDTH;
-                ha_sta = hs_end + {3'b000, timing_h_bporch};
-                if (ha_sta >= `NTSCR56_WIDTH) ha_sta = ha_sta - `NTSCR56_WIDTH;
-                // WIDTH 832
-                va_end = {2'b00, timing_v_blank};
-                vs_sta = va_end + {2'b00, timing_v_fporch};
-                vs_end = vs_sta + {2'b00, timing_v_sync};
-                va_sta = vs_end + {2'b00, timing_v_bporch};
-                // HEIGHT 262(524)
-                max_height = 10'd523;
-                max_width = `NTSCR56_MAX_WIDTH;
-                x_offset = `NTSCR56_OFFSET;
-            end
-        endcase
-
-    end
-`endif
-
 endmodule

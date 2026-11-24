@@ -191,17 +191,6 @@ module registers
            output reg [3:0] burst_amplitude,
 `endif
 `endif
-`ifdef CONFIGURABLE_TIMING
-           output reg timing_change,
-           output reg [7:0] timing_h_blank,
-           output reg [7:0] timing_h_fporch,
-           output reg [7:0] timing_h_sync,
-           output reg [7:0] timing_h_bporch,
-           output reg [7:0] timing_v_blank,
-           output reg [7:0] timing_v_fporch,
-           output reg [7:0] timing_v_sync,
-           output reg [7:0] timing_v_bporch,
-`endif
 `ifdef HIRES_MODES
            input [ram_width-1:0] video_ram_addr_b,
            output [7:0] video_ram_data_out_b,
@@ -804,24 +793,6 @@ begin
         blanking_level <= 6'd12;
         burst_amplitude <= 4'd12;
 `endif
-`endif
-`ifdef CONFIGURABLE_TIMING
-        timing_change <= 1'b0;
-`ifdef ANALOG_RGB_TIMING
-        timing_h_blank <= 126; // +384
-        timing_h_fporch <= 10;
-        timing_h_sync <= 70;
-        timing_h_bporch <= 20;
-`else
-        timing_h_blank <= 84;
-        timing_h_fporch <= 30;
-        timing_h_sync <= 64;
-        timing_h_bporch <= 68;
-`endif
-        timing_v_blank <= 74;
-        timing_v_fporch <= 38;
-        timing_v_sync <= 5;
-        timing_v_bporch <= 5;
 `endif
         //extra_regs_activation_ctr <= 2'b0;
 

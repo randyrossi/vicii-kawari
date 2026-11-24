@@ -191,33 +191,13 @@ task read_ram(
                            `HAS_COMP_CAP,
                            `HAS_CONFIG_RGB_CAP,
                            `HAS_CONFIG_LUMA_CAP,
-                           `HAS_CONFIG_TIMING_CAP,
+                           1'b0, // unused
                            `HAS_PERSIST_CAP,
                            `HAS_HIRES_CAP
                         };
                     end
                     `EXT_REG_CAP_HI:
                         dbo <= { 7'b0, `HAS_COPROC_CAP };
-`ifdef CONFIGURABLE_TIMING
-                    `EXT_REG_TIMING_CHANGE:
-                        dbo <= {7'b0, timing_change};
-                    8'hd0:
-                        dbo <= timing_h_blank;
-                    8'hd1:
-                        dbo <= timing_h_fporch;
-                    8'hd2:
-                        dbo <= timing_h_sync;
-                    8'hd3:
-                        dbo <= timing_h_bporch;
-                    8'hd4:
-                        dbo <= timing_v_blank;
-                    8'hd5:
-                        dbo <= timing_v_fporch;
-                    8'hd6:
-                        dbo <= timing_v_sync;
-                    8'hd7:
-                        dbo <= timing_v_bporch;
-`endif
 `ifdef CPU_COPROC_ENABLED
                     `EXT_REG_CPU_START_LO:
                         dbo <= cpu_start_lo;
@@ -469,43 +449,6 @@ task write_ram(
                     end
 `endif // configurable lumas
 `endif // gen luma chroma
-`ifdef CONFIGURABLE_TIMING
-                    `EXT_REG_TIMING_CHANGE:
-                        timing_change <= data[0];
-
-                    8'hd0: begin
-                        timing_h_blank <= data;
-                        persist_eeprom(do_persist, ram_lo, data);
-                    end
-                    8'hd1: begin
-                        timing_h_fporch <= data;
-                        persist_eeprom(do_persist, ram_lo, data);
-                    end
-                    8'hd2: begin
-                        timing_h_sync <= data;
-                        persist_eeprom(do_persist, ram_lo, data);
-                    end
-                    8'hd3: begin
-                        timing_h_bporch <= data;
-                        persist_eeprom(do_persist, ram_lo, data);
-                    end
-                    8'hd4: begin
-                        timing_v_blank <= data;
-                        persist_eeprom(do_persist, ram_lo, data);
-                    end
-                    8'hd5: begin
-                        timing_v_fporch <= data;
-                        persist_eeprom(do_persist, ram_lo, data);
-                    end
-                    8'hd6: begin
-                        timing_v_sync <= data;
-                        persist_eeprom(do_persist, ram_lo, data);
-                    end
-                    8'hd7: begin
-                        timing_v_bporch <= data;
-                        persist_eeprom(do_persist, ram_lo, data);
-                    end
-`endif
 `ifdef CPU_COPROC_ENABLED
                     // Co-processor control. Never persisted: these are
                     // volatile run-time controls, not configuration.

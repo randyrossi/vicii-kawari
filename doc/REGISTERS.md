@@ -708,21 +708,13 @@ Location | Name | Since | Description | Capability Requirement | Can be saved?
 0x86 | CURSOR_HI | 1.4 | Hires Cursor hi byte | HIRES_MODES | N/A
 0x87 | CAP_LO    | 1.4 | Capability Bits lo byte (Read Only)| NONE | N/A
 0x88 | CAP_HI    | 1.4 | Capability Bits hi byte (Read Only)| NONE | N/A
-0x89 | TIMING_CHANGE | 1.4 | HDMI/VGA Timing change signal - Bit 1  | CONFIG_TIMING | N
+0x89 |           | Unused | Unused  | NONE | N/A
 0x8a - 0x8f | Reserved | 1.4 | Reserved | NONE | N/A
 0x90 - 0x9f | VARIANT_NAME | 1.4 | Variant Name | NONE | N/A
 0xa0 - 0xaf | LUMA_LEVELS | 1.4 | Composite luma levels for colors (0-63) | CONFIG_COMPOSITE
 0xb0 - 0xbf | PHASE_VALUES | 1.4 | Composite phase values for colors (0-255 representing 0-359 degrees) | CONFIG_COMPOSITE | Y
 0xc0 - 0xcf | AMPL_VALUES | 1.4 | Composite amplitude values for colors (1-15, 0 = no modulation) | CONFIG_COMPOSITE | Y
-0xd0 | VGA_HBLANK | 1.4 | HDMI/VGA H blank start | CONFIG_TIMING | N
-0xd1 | VGA_FPORCH | 1.4 | HDMI/VGA H front porch | CONFIG_TIMING | N
-0xd2 | VGA_SPULSE | 1.4 | HDMI/VGA H sync pulse | CONFIG_TIMING | N
-0xd3 | VGA_BPORCH | 1.4 | HDMI/VGA H back porch | CONFIG_TIMING | N
-0xd4 | VGA_VBLANK | 1.4 | HDMI/VGA V blank start | CONFIG_TIMING | N
-0xd5 | VGA_FPORCH | 1.4 | HDMI/VGA V front porch | CONFIG_TIMING | N
-0xd6 | VGA_SPULSE | 1.4 | HDMI/VGA V sync pulse | CONFIG_TIMING | N
-0xd7 | VGA_BPORCH | 1.4 | HDMI/VGA V back porch | CONFIG_TIMING | N
-0xe0 - 0xff |   | UNUSED | Unused | NONE | N/A
+0xd0 - 0xff |   | UNUSED | Unused | NONE | N/A
 
 ### RGB Color Registers (For DVI/VGA)
 
@@ -790,7 +782,7 @@ Bit 2 | Has digital RGB out (DVI)
 Bit 3 | Has composite out (LUMA/CHROMA)
 Bit 4 | Has configurable RGB palette
 Bit 5 | Has configurable Luma/Chroma/Amplitude
-Bit 6 | Has configurable analog/digital RGB timing params
+Bit 6 | Unused
 Bit 7 | Has configuration persistance
 Bit 8 | Has hires modes available
 

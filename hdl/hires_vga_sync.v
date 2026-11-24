@@ -63,17 +63,6 @@ endmodule
         input hpolarity,
         input vpolarity,
         input enable_csync,
-`ifdef CONFIGURABLE_TIMING
-        input timing_change_in,
-        input [7:0] timing_h_blank,
-        input [7:0] timing_h_fporch,
-        input [7:0] timing_h_sync,
-        input [7:0] timing_h_bporch,
-        input [7:0] timing_v_blank,
-        input [7:0] timing_v_fporch,
-        input [7:0] timing_v_sync,
-        input [7:0] timing_v_bporch,
-`endif
         input wire rst,
         input [1:0] chip,
         input [9:0] raster_x, // native res counters
@@ -102,9 +91,6 @@ reg [9:0] vs_end; // compared against vcount which can be 2y
 reg [9:0] va_sta; // compared against vcount which can be 2y
 reg [9:0] va_end; // compared against vcount which can be 2y
 
-`ifdef CONFIGURABLE_TIMING
-reg timing_change;
-`endif
 reg is_native_x;
 reg is_native_y;
 reg [10:0] h_count;  // output x position
@@ -161,11 +147,7 @@ begin
         //h_count <= 0;
         //v_count <= 0;
         ff <= 2'b01;
-`ifdef CONFIGURABLE_TIMING
-        set_params_configurable();
-`else
         set_params();
-`endif
     end else begin
         // Resolution | advance on counter | pixel clock       | case
         // -------------------------------------------------------------------------
@@ -191,20 +173,11 @@ begin
         if (raster_x == 0 && raster_y == 0) begin
             //v_count <= max_height;
 
-            if (is_native_x_in != is_native_x || is_native_y_in != is_native_y
-`ifdef CONFIGURABLE_TIMING
-                    || timing_change_in != timing_change
-`endif
-               )
+            if (is_native_x_in != is_native_x || is_native_y_in != is_native_y)
             begin
                 is_native_x = is_native_x_in;
                 is_native_y = is_native_y_in;
-`ifdef CONFIGURABLE_TIMING
-                timing_change <= timing_change_in;
-                set_params_configurable();
-`else
                 set_params();
-`endif
             end
         end
     end
@@ -243,7 +216,6 @@ begin
     end
 end
 
-`ifndef CONFIGURABLE_TIMING
 task set_params();
     begin
         case (chip)
@@ -302,78 +274,4 @@ task set_params();
         end
     end
 endtask
-`else
-task set_params_configurable();
-    begin
-        case (chip)
-            `CHIP6569R1, `CHIP6569R3: begin
-                ha_end = {3'b000, timing_h_blank} + 11'd384;
-                hs_sta = ha_end + {3'b000, timing_h_fporch};
-                if (hs_sta >= 11'd504) hs_sta = hs_sta - 11'd504;
-                hs_end = hs_sta + {3'b000, timing_h_sync};
-                if (hs_end >= 11'd504) hs_end = hs_end - 11'd504;
-                ha_sta = hs_end + {3'b000, timing_h_bporch};
-                if (ha_sta >= 11'd504) ha_sta = ha_sta - 11'd504;
-                // WIDTH 504
-                va_end = {2'b01, timing_v_blank}; // starts at 256
-                vs_sta = va_end + {2'b00, timing_v_fporch};
-                vs_end = vs_sta + {2'b00, timing_v_sync};
-                va_sta = vs_end + {2'b00, timing_v_bporch};
-                // HEIGHT 312
-                max_height <= is_native_y ? 10'd311 : 10'd623;
-                max_width <= is_native_x ? 11'd503 : 11'd1007;
-                // Use this to generate code for static settings above
-            end
-            `CHIP6567R8: begin
-                ha_end = {3'b000, timing_h_blank} + 11'd384;
-                hs_sta = ha_end + {3'b000, timing_h_fporch};
-                if (hs_sta >= 11'd520) hs_sta = hs_sta - 11'd520;
-                hs_end = hs_sta + {3'b000, timing_h_sync};
-                if (hs_end >= 11'd520) hs_end = hs_end - 11'd520;
-                ha_sta = hs_end + {3'b000, timing_h_bporch};
-                if (ha_sta >= 11'd520) ha_sta = ha_sta - 11'd520;
-                // WIDTH 520
-                va_end = {2'b00, timing_v_blank};
-                vs_sta = va_end + {2'b00, timing_v_fporch};
-                vs_end = vs_sta + {2'b00, timing_v_sync};
-                va_sta = vs_end + {2'b00, timing_v_bporch};
-                // HEIGHT 263
-                max_height <= is_native_y ? 10'd262 : 10'd525;
-                max_width <= is_native_x ? 11'd519 : 11'd1039;
-            end
-            `CHIP6567R56A: begin
-                ha_end = {3'b000, timing_h_blank} + 11'd384;
-                hs_sta = ha_end + {3'b000, timing_h_fporch};
-                if (hs_sta >= 11'd512) hs_sta = hs_sta - 11'd512;
-                hs_end = hs_sta + {3'b000, timing_h_sync};
-                if (hs_end >= 11'd512) hs_end = hs_end - 11'd512;
-                ha_sta = hs_end + {3'b000, timing_h_bporch};
-                if (ha_sta >= 11'd512) ha_sta = ha_sta - 11'd512;
-                // WIDTH 512
-                va_end = {2'b00, timing_v_blank};
-                vs_sta = va_end + {2'b00, timing_v_fporch};
-                vs_end = vs_sta + {2'b00, timing_v_sync};
-                va_sta = vs_end + {2'b00, timing_v_bporch};
-                // HEIGHT 262
-                max_height <= is_native_y ? 10'd261 : 10'd523;
-                max_width <= is_native_x ? 11'd511 : 11'd1023;
-            end
-        endcase
-        // Adjust for 2x or 2y timing
-        if (!is_native_x) begin
-            ha_end = { ha_end[9:0], 1'b0 };
-            hs_sta = { hs_sta[9:0], 1'b0 };
-            hs_end = { hs_end[9:0], 1'b0 };
-            ha_sta = { ha_sta[9:0], 1'b0 };
-        end
-        if (!is_native_y) begin
-            va_end = { va_end[8:0], 1'b0 };
-            vs_sta = { vs_sta[8:0], 1'b0 };
-            vs_end = { vs_end[8:0], 1'b0 };
-            va_sta = { va_sta[8:0], 1'b0 };
-        end
-    end
-endtask
-`endif
-
 endmodule
