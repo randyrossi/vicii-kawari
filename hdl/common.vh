@@ -398,8 +398,12 @@
 `define EXT_REG_AMPL13               8'hcd // since v.0xff
 `define EXT_REG_AMPL14               8'hce // since v.0xff
 `define EXT_REG_AMPL15               8'hcf // since v.0xff
-                                     // 0xd0 - 0xef unused
+
 `endif
+
+`define EXT_REG_EXTENDED_PALETTE_START  8'hd0 // since 1.20
+`define EXT_REG_EXTENDED_PALETTE_END    8'hdf // since 1.20
+// 0xe0 - 0xff unused
 
 // Bits in DISPLAY_FLAGS
 `define SHOW_RASTER_LINES_BIT        0

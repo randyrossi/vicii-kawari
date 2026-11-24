@@ -87,6 +87,9 @@ task read_ram(
             end
             /* verilator lint_on WIDTH */
 `endif
+            else if (ram_lo >= `EXT_REG_EXTENDED_PALETTE_START && ram_lo <= `EXT_REG_EXTENDED_PALETTE_END) begin
+                dbo <= extended_palettes[((ram_lo - `EXT_REG_EXTENDED_PALETTE_START) * 8) +: 8];
+            end
             else begin
                 case (ram_lo)
                     `EXT_REG_CFG_VERSION:
@@ -324,6 +327,9 @@ task write_ram(
             end
             /* verilator lint_on WIDTH */
 `endif
+            else if (ram_lo >= `EXT_REG_EXTENDED_PALETTE_START && ram_lo <= `EXT_REG_EXTENDED_PALETTE_END) begin
+                extended_palettes[((ram_lo - `EXT_REG_EXTENDED_PALETTE_START) * 8) +: 8] <= data;
+            end
             else begin
                 // When we poke certain config registers, we
                 // persist them according to persist_eeprom

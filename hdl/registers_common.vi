@@ -174,6 +174,8 @@ module registers
 `endif
 
 `ifdef WITH_EXTENSIONS
+           output reg extra_regs_activated = 1'b0,
+           output reg [127:0] extended_palettes = 128'b0,
 
 `ifdef HAVE_FLASH
            output reg flash_s = 1'b1,
@@ -247,7 +249,6 @@ reg[7:0] magic_2;
 reg[7:0] magic_3;
 reg[7:0] magic_4;
 reg [1:0] extra_regs_activation_ctr;
-reg extra_regs_activated;
 reg [1:0] spi_reg_activation_ctr;
 reg spi_reg_activated;
 

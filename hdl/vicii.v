@@ -283,6 +283,8 @@ wire [9:0] vc; // video counter
 wire [2:0] rc; // row counter
 
 `ifdef WITH_EXTENSIONS
+wire extra_regs_activated;
+wire [127:0] extended_palettes;
 
 `ifdef HIRES_MODES
 wire [ram_width-1:0] video_ram_addr_b;
@@ -1039,6 +1041,8 @@ registers vic_registers(
 `endif
 
 `ifdef WITH_EXTENSIONS
+              .extra_regs_activated(extra_regs_activated),
+              .extended_palettes(extended_palettes),
 `ifdef HAVE_FLASH
               .flash_s(flash_s),
 `endif
@@ -1223,6 +1227,12 @@ pixel_sequencer vic_pixel_sequencer(
                     .pixel_color1(pixel_color1),
 `ifdef HIRES_MODES
                     .hires_sprite_active(hires_sprite_active),
+                    .hires_enabled(hires_enabled),
+                    .hires_mode(hires_mode),
+`endif
+`ifdef WITH_EXTENSIONS
+                    .extra_regs_activated(extra_regs_activated),
+                    .extended_palettes(extended_palettes),
 `endif
                     .active_sprite_d(active_sprite_d)
                 );
