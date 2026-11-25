@@ -283,6 +283,8 @@ wire [9:0] vc; // video counter
 wire [2:0] rc; // row counter
 
 `ifdef WITH_EXTENSIONS
+wire extra_regs_activated;
+wire [127:0] extended_palettes;
 
 `ifdef HIRES_MODES
 wire [ram_width-1:0] video_ram_addr_b;
@@ -600,7 +602,7 @@ matrix vic_matrix(
            .rst(rst),
            .clk_phi(clk_phi),
            .clk_dot4x(clk_dot4x),
-           .phi_phase_start_1(phi_phase_start[1]),
+           .phi_phase_start_0(phi_phase_start[0]),
            .phi_phase_start_14(phi_phase_start[14]),
            .cycle_num(cycle_num),
            .raster_line(raster_line),
@@ -682,7 +684,7 @@ cycles vic_cycles(
            .clk_dot4x(clk_dot4x),
            .clk_phi(clk_phi),
            .chip(chip),
-           .phi_phase_start_1(phi_phase_start[1]),
+           .phi_phase_start_0(phi_phase_start[0]),
            .sprite_dma(sprite_dma),
            .badline(badline),
            .cycle_num(cycle_num),
@@ -720,6 +722,9 @@ sprites vic_sprites(
             .last_bus(last_bus),
             .dot_rising_1(dot_rising[1]),
             .dot_rising_2(dot_rising[2]),
+`ifdef HIRES_MODES
+            .dot_rising_3(dot_rising[3]),
+`endif
             .phi_phase_start_m2clr(phi_phase_start[`M2CLR_CHECK]),
             .phi_phase_start_1(phi_phase_start[1]),
             .phi_phase_start_dav(phi_phase_start[`DATA_DAV]),
@@ -917,18 +922,6 @@ wire [3:0] burst_amplitude;
 `endif
 `endif
 
-`ifdef CONFIGURABLE_TIMING
-wire timing_change;
-wire [7:0] timing_h_blank;
-wire [7:0] timing_h_fporch;
-wire [7:0] timing_h_sync;
-wire [7:0] timing_h_bporch;
-wire [7:0] timing_v_blank;
-wire [7:0] timing_v_fporch;
-wire [7:0] timing_v_sync;
-wire [7:0] timing_v_bporch;
-`endif
-
 registers vic_registers(
               .rst(rst),
 `ifdef HIRES_RESET
@@ -1048,6 +1041,8 @@ registers vic_registers(
 `endif
 
 `ifdef WITH_EXTENSIONS
+              .extra_regs_activated(extra_regs_activated),
+              .extended_palettes(extended_palettes),
 `ifdef HAVE_FLASH
               .flash_s(flash_s),
 `endif
@@ -1062,17 +1057,6 @@ registers vic_registers(
               .blanking_level(blanking_level),
               .burst_amplitude(burst_amplitude),
 `endif
-`endif
-`ifdef CONFIGURABLE_TIMING
-              .timing_change(timing_change),
-              .timing_h_blank(timing_h_blank),
-              .timing_h_fporch(timing_h_fporch),
-              .timing_h_sync(timing_h_sync),
-              .timing_h_bporch(timing_h_bporch),
-              .timing_v_blank(timing_v_blank),
-              .timing_v_fporch(timing_v_fporch),
-              .timing_v_sync(timing_v_sync),
-              .timing_v_bporch(timing_v_bporch),
 `endif
 `ifdef HIRES_MODES
               .video_ram_addr_b(video_ram_addr_b),
@@ -1243,6 +1227,12 @@ pixel_sequencer vic_pixel_sequencer(
                     .pixel_color1(pixel_color1),
 `ifdef HIRES_MODES
                     .hires_sprite_active(hires_sprite_active),
+                    .hires_enabled(hires_enabled),
+                    .hires_mode(hires_mode),
+`endif
+`ifdef WITH_EXTENSIONS
+                    .extra_regs_activated(extra_regs_activated),
+                    .extended_palettes(extended_palettes),
 `endif
                     .active_sprite_d(active_sprite_d)
                 );
@@ -1312,9 +1302,7 @@ comp_sync vic_comp_sync(
 `ifdef NEED_RGB
 
 // For Efinix boards, the timing for analog RGB and DVI are different
-// so we use a different sync/pixel generator.  NOTE:  ANALOG_RGB_TIMING
-// must NOT be enabled for efinix, otherwise the ntsc timing will be
-// unusable.
+// so we use a different sync/pixel generator.
 `ifdef WITH_DVI
 `ifndef HIRES_MODES
 // Our DVI requires HIRES_MODES, see hires_dvi_sync*.v
@@ -1330,17 +1318,6 @@ hires_dvi_sync vic_dvi_sync(
                    .enable_csync(enable_csync),
                    .hpolarity(hpolarity),
                    .vpolarity(vpolarity),
-`ifdef CONFIGURABLE_TIMING
-                   .timing_change_in(timing_change),
-                   .timing_h_blank(timing_h_blank),
-                   .timing_h_fporch(timing_h_fporch),
-                   .timing_h_sync(timing_h_sync),
-                   .timing_h_bporch(timing_h_bporch),
-                   .timing_v_blank(timing_v_blank),
-                   .timing_v_fporch(timing_v_fporch),
-                   .timing_v_sync(timing_v_sync),
-                   .timing_v_bporch(timing_v_bporch),
-`endif // CONFIGURABLE_TIMING
                    .raster_x(raster_x),
                    .raster_y(raster_line),
                    .xpos(xpos),
@@ -1369,17 +1346,6 @@ hires_vga_sync vic_vga_sync(
                    .enable_csync(enable_csync),
                    .hpolarity(hpolarity),
                    .vpolarity(vpolarity),
-`ifdef CONFIGURABLE_TIMING
-                   .timing_change_in(timing_change),
-                   .timing_h_blank(timing_h_blank),
-                   .timing_h_fporch(timing_h_fporch),
-                   .timing_h_sync(timing_h_sync),
-                   .timing_h_bporch(timing_h_bporch),
-                   .timing_v_blank(timing_v_blank),
-                   .timing_v_fporch(timing_v_fporch),
-                   .timing_v_sync(timing_v_sync),
-                   .timing_v_bporch(timing_v_bporch),
-`endif // CONFIGURABLE_TIMING
                    .raster_x(raster_x),
                    .raster_y(raster_line),
                    .xpos(xpos),

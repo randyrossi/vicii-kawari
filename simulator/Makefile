@@ -95,12 +95,13 @@ VERILOG_SOURCES = ../hdl/simulator/top.v ../hdl/vicii.v ../hdl/common.vh \
 		  ../hdl/hires_matrix.v ../hdl/hires_addressgen.v ../hdl/hires_pixel_sequencer.v \
 		  ../hdl/efinix_trion/dvi/dvi.v \
 		  ../hdl/efinix_trion/dvi/tmds_channel.v \
-		  ../hdl/efinix_trion/dvi/serializer.v
+		  ../hdl/efinix_trion/dvi/serializer.v \
+		  ../hdl/cpu6502.v ../hdl/videoram_cpu.v
 
 VTOP_DEPS = vicii_ipc.o libvicii_ipc.so $(VERILOG_SOURCES) sim_main.cpp vicii_ipc.c vicii_ipc.h 
 
 
-VI_INC = ../hdl/registers_eeprom.vi ../hdl/registers_ram.vi ../hdl/registers_eeprom.vi ../hdl/registers_flash.vi
+VI_INC = ../hdl/registers_eeprom.vi ../hdl/registers_ram.vi ../hdl/registers_common.vi ../hdl/registers_eeprom.vi ../hdl/registers_flash.vi
 
 # Use -DHIRES_TEXT -DHIRES_BITMAP1 -DHIRES_BITMAP2 -DHIRES_BITMAP3 -DHIRES_BITMAP4 for other modes
 # Add -DVIC_ROLL=1 for vic_roll branch

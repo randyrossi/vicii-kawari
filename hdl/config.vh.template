@@ -43,7 +43,6 @@
 //    WITH_RAM
 //    CONFIGURABLE_LUMAS 
 //    CONFIGURABLE_RGB 
-//    CONFIGURABLE_TIMING 
 //    HAVE_EEPROM
 //    HAVE_FLASH
 //    HIRES_MODES
@@ -100,15 +99,6 @@
 // 18-bit RGB values for the 16 colors.  If RGB is not
 // configurable, a single static palette is used.
 `define CONFIGURABLE_RGB 1
-
-// CONFIGURABLE_TIMING
-// -------------------
-// Will automatically enable WITH_EXTENSIONS if enabled.
-// Uncomment to activate registers 0xd0-0xef to control HDMI/VGA
-// timings for all the supported resolutions.  This take up a lot
-// space on the device.  Not intended for the release, only to
-// be used as a tool to find correct timings.
-//`define CONFIGURABLE_TIMING 1
 
 // HAVE_EEPROM
 // ----------------
@@ -171,6 +161,24 @@
 // Adds the blitter operations.
 // Requires HIRES_MODES.
 `define WITH_BLITTER
+
+// WITH_CPU_COPROC
+// ---------------
+// Adds a 6502 co-processor that executes out of the 64K extended video RAM.
+// The core is Arlet Ottens' 6502 (hdl/cpu6502.v) and it shares video RAM
+// port A with the 6510/DMA/blitter under automatic arbitration, so the
+// legacy side always wins and no software cooperation is required.
+//
+// Controlled from the extra register overlay at 0x20-0x2b:
+//   0x20/0x21  start (reset) vector low/high
+//   0x22       control: b0 reset, b1 irq, b2 nmi, b3 hold
+//   0x23-0x29  read back A, X, Y, SP, P, PC
+//   0x2a       status
+//   0x2b       access rate divider
+//
+// Requires WITH_EXTENSIONS, WITH_RAM and WITH_64K. Cost is roughly 850 LUT4
+// and 140 FF, no additional block RAM. See doc/CPU_COPROCESSOR_FEASIBILITY.md.
+//`define WITH_CPU_COPROC
 
 // OUTPUT_DOT_CLOCK
 // ----------------------

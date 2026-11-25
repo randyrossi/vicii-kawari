@@ -37,7 +37,6 @@ enum DefineValues {
    GEN_LUMA_CHROMA,      // output S/LUM and CHROMA signals
    CONFIGURABLE_RGB,     // has registers to change color palette (RGB)
    CONFIGURABLE_LUMAS,   // has registers to change color palette (LUMA/PHASE/AMP)
-   CONFIGURABLE_TIMING,  // has registers to change VGA/DVI timing (debugging only)
    HAVE_LUMA_SINK,       // has proper luma current sink for proper sync voltage level
    WITH_SPI,             // include spi CLK, MISO, MOSI lines
    HAVE_EEPROM,          // include EEPROM_S and eeprom save/restore logic
@@ -52,6 +51,7 @@ enum DefineValues {
    WITH_4K,              // select 4K for ram
    WITH_BLITTER,         // include blitter
    LUMACODE,        // include lumacode
+   WITH_CPU_COPROC,      // include the 6502 co-processor executing from video RAM
 };
 
 Define defines[] = {
@@ -61,7 +61,6 @@ Define defines[] = {
   {GEN_LUMA_CHROMA ,0,0,"GEN_LUMA_CHROMA"},
   {CONFIGURABLE_RGB ,0,0,"CONFIGURABLE_RGB"},
   {CONFIGURABLE_LUMAS ,0,0,"CONFIGURABLE_LUMAS"},
-  {CONFIGURABLE_TIMING ,0,0,"CONFIGURABLE_TIMING"},
   {HAVE_LUMA_SINK ,0,0,"HAVE_LUMA_SINK"},
   {WITH_SPI ,0,0,"WITH_SPI"},
   {HAVE_EEPROM ,0,0,"HAVE_EEPROM"},
@@ -76,6 +75,7 @@ Define defines[] = {
   {WITH_4K ,0,0,"WITH_4K"},
   {WITH_BLITTER ,0,0,"WITH_BLITTER"},
   {LUMACODE ,0,0,"LUMACODE"},
+  {WITH_CPU_COPROC ,0,0,"WITH_CPU_COPROC"},
 };
 
 void printcfg(int d, int def) {
@@ -98,15 +98,14 @@ void test_pattern(int d) { printcfg(d, TEST_PATTERN); }
 void gen_luma_chroma(int d) { printcfg(d, GEN_LUMA_CHROMA); }
 void configurable_rgb(int d) { printcfg(d, CONFIGURABLE_RGB);with_ext(d); }
 void configurable_lumas(int d) { gen_luma_chroma(d); printcfg(d, CONFIGURABLE_LUMAS);with_ext(d); }
-void configurable_timing(int d) { printcfg(d, CONFIGURABLE_TIMING); with_ext(d); }
 void luma_sink(int d) { printcfg(d, HAVE_LUMA_SINK); }
 void with_spi(int d) { printcfg(d, WITH_SPI);with_ext(d); }
 void have_eeprom(int d) { printcfg(d, HAVE_EEPROM);with_spi(d); }
 void have_flash(int d) { printcfg(d, HAVE_FLASH);with_spi(d); with_ram(d); }
 void need_rgb(int d) { printcfg(d, NEED_RGB); }
 void gen_rgb(int d) { printcfg(d, GEN_RGB); need_rgb(d); }
-void with_dvi(int d) { printcfg(d, WITH_DVI);need_rgb(d); hires_modes(d);}
 void hires_modes(int d) { printcfg(d, HIRES_MODES);with_ext(d); with_ram(d); }
+void with_dvi(int d) { printcfg(d, WITH_DVI);need_rgb(d); hires_modes(d);}
 void hide_sync(int d) { printcfg(d, HIDE_SYNC); }
 void with_64k(int d) { printcfg(d, WITH_64K);  with_ram(d), with_ext(d); }
 void with_4k(int d) { printcfg(d, WITH_4K);  with_ram(d), with_ext(d); }
@@ -115,6 +114,11 @@ void with_math(int d) { printcfg(d, WITH_MATH); with_ext(d); }
 // TODO: Fix this and also math reg requirement.
 void with_blitter(int d) { printcfg(d, WITH_BLITTER); hires_modes(d); with_64k(d); with_math(d);}
 void lumacode(int d) { printcfg(d, LUMACODE); }
+// NOTE: the co-processor has a 16 bit address space that maps onto the whole
+// of video RAM, and it is controlled through the extra register overlay at
+// 0x20-0x2b, so it needs 64k and extensions. (CPU_COPROC_ENABLED in common.vh
+// silently omits the feature if any of those are missing.)
+void with_cpu_coproc(int d) { printcfg(d, WITH_CPU_COPROC); with_64k(d); with_ext(d); }
 
 int main(int argc, char* argv[]) {
 
@@ -192,6 +196,7 @@ int main(int argc, char* argv[]) {
 		    configurable_lumas(d);
 		    luma_sink(d);
 		    hires_modes(d);
+		    with_cpu_coproc(d);
 		    break;
 
             // TEST PATTERN

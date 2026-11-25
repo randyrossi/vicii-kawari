@@ -93,17 +93,6 @@ endmodule
         input hpolarity,
         input vpolarity,
         input enable_csync,
-`ifdef CONFIGURABLE_TIMING
-        input timing_change_in,
-        input [7:0] timing_h_blank,
-        input [7:0] timing_h_fporch,
-        input [7:0] timing_h_sync,
-        input [7:0] timing_h_bporch,
-        input [7:0] timing_v_blank,
-        input [7:0] timing_v_fporch,
-        input [7:0] timing_v_sync,
-        input [7:0] timing_v_bporch,
-`endif
         input wire rst,
         input wire rst_dvi,
         input [1:0] chip,
@@ -288,7 +277,6 @@ always @(posedge clk_dvi) begin
     pixel_color4 <= active_buf_2 ? dout1 : dout0;
 end
 
-`ifndef CONFIGURABLE_TIMING
 `ifdef SIMULATOR_BOARD
 always @(posedge clk_dvi)
 `else
@@ -363,83 +351,4 @@ always @(chip, is_native_y_in)
             va_sta = { va_sta[8:0], 1'b0 };
         end
     end
-`else
-`ifdef SIMULATOR_BOARD
-always @(posedge clk_dvi)
-`else
-always @(chip, is_native_y_in, timing_change_in)
-`endif
-    begin
-        case (chip)
-            `CHIP6569R1, `CHIP6569R3: begin
-                ha_end = {3'b000, timing_h_blank} + 11'd384;
-                hs_sta = ha_end + {3'b000, timing_h_fporch};
-                if (hs_sta >= 11'd504) hs_sta = hs_sta - 11'd504;
-                hs_end = hs_sta + {3'b000, timing_h_sync};
-                if (hs_end >= 11'd504) hs_end = hs_end - 11'd504;
-                ha_sta = hs_end + {3'b000, timing_h_bporch};
-                if (ha_sta >= 11'd504) ha_sta = ha_sta - 11'd504;
-                // WIDTH 504
-                va_end = {2'b01, timing_v_blank}; // starts at 256
-                vs_sta = va_end + {2'b00, timing_v_fporch};
-                vs_end = vs_sta + {2'b00, timing_v_sync};
-                va_sta = vs_end + {2'b00, timing_v_bporch};
-                // HEIGHT 312
-                max_height <= is_native_y_in ? 10'd311 : 10'd623;
-                max_width <= 11'd944;
-                x_offset <= 11'd32;
-            end
-            `CHIP6567R8: begin
-                ha_end = {3'b000, timing_h_blank} + 11'd384;
-                hs_sta = ha_end + {3'b000, timing_h_fporch};
-                if (hs_sta >= 11'd520) hs_sta = hs_sta - 11'd520;
-                hs_end = hs_sta + {3'b000, timing_h_sync};
-                if (hs_end >= 11'd520) hs_end = hs_end - 11'd520;
-                ha_sta = hs_end + {3'b000, timing_h_bporch};
-                if (ha_sta >= 11'd520) ha_sta = ha_sta - 11'd520;
-                // WIDTH 520
-                va_end = {2'b00, timing_v_blank};
-                vs_sta = va_end + {2'b00, timing_v_fporch};
-                vs_end = vs_sta + {2'b00, timing_v_sync};
-                va_sta = vs_end + {2'b00, timing_v_bporch};
-                // HEIGHT 263
-                max_height <= is_native_y_in ? 10'd262 : 10'd525;
-                max_width <= 11'd844;
-                x_offset <= 11'd142;
-            end
-            `CHIP6567R56A: begin
-                ha_end = {3'b000, timing_h_blank} + 11'd384;
-                hs_sta = ha_end + {3'b000, timing_h_fporch};
-                if (hs_sta >= 11'd512) hs_sta = hs_sta - 11'd512;
-                hs_end = hs_sta + {3'b000, timing_h_sync};
-                if (hs_end >= 11'd512) hs_end = hs_end - 11'd512;
-                ha_sta = hs_end + {3'b000, timing_h_bporch};
-                if (ha_sta >= 11'd512) ha_sta = ha_sta - 11'd512;
-                // WIDTH 512
-                va_end = {2'b00, timing_v_blank};
-                vs_sta = va_end + {2'b00, timing_v_fporch};
-                vs_end = vs_sta + {2'b00, timing_v_sync};
-                va_sta = vs_end + {2'b00, timing_v_bporch};
-                // HEIGHT 262
-                max_height <= is_native_y_in ? 10'd261 : 10'd523;
-                max_width <= 11'd831;
-                x_offset <= 11'd146;
-            end
-        endcase
-        // Adjust for 2x or 2y timing
-        // Always 2x
-            ha_end = { ha_end[9:0], 1'b0 };
-            hs_sta = { hs_sta[9:0], 1'b0 };
-            hs_end = { hs_end[9:0], 1'b0 };
-            ha_sta = { ha_sta[9:0], 1'b0 };
-
-        if (!is_native_y_in) begin
-            va_end = { va_end[8:0], 1'b0 };
-            vs_sta = { vs_sta[8:0], 1'b0 };
-            vs_end = { vs_end[8:0], 1'b0 };
-            va_sta = { va_sta[8:0], 1'b0 };
-        end
-    end
-`endif
-
 endmodule

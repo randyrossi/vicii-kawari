@@ -57,6 +57,12 @@ module pixel_sequencer(
            // flag essentially overrides the hires/lores multiplexer logic
            // and uses the pixel color from the lores sequencer.
            output reg hires_sprite_active,
+           input hires_enabled,
+           input [2:0] hires_mode,
+`endif
+`ifdef WITH_EXTENSIONS
+           input extra_regs_activated,
+           input [127:0] extended_palettes,
 `endif
            input [3:0] active_sprite_d
        );
@@ -280,15 +286,37 @@ begin
                 `MODE_STANDARD_CHAR:
                     pixel_color1 = pixel_value[1] ? char_shifting[11:8]:b0c_d2;
                 `MODE_MULTICOLOR_CHAR:
-                    if (char_shifting[11])
-                    case (pixel_value[1:0])
-                        2'b00: pixel_color1 = b0c_d2;
-                        2'b01: pixel_color1 = b1c_d2;
-                        2'b10: pixel_color1 = b2c_d2;
-                        2'b11: pixel_color1 = {1'b0, char_shifting[10:8]};
-                    endcase
-                    else
-                        pixel_color1 = pixel_value[1] ? {1'b0,char_shifting[10:8]}:b0c_d2;
+`ifdef HIRES_MODES
+                    if (~extra_regs_activated || hires_mode != 3'b111 || hires_enabled)
+                    begin
+`endif
+                        // Legacy multicolor char mode
+                        if (char_shifting[11])
+                        case (pixel_value[1:0])
+                            2'b00: pixel_color1 = b0c_d2;
+                            2'b01: pixel_color1 = b1c_d2;
+                            2'b10: pixel_color1 = b2c_d2;
+                            2'b11: pixel_color1 = {1'b0, char_shifting[10:8]};
+                        endcase
+                        else
+                            pixel_color1 = pixel_value[1] ? {1'b0,char_shifting[10:8]}:b0c_d2;
+`ifdef HIRES_MODES
+                    end else begin
+                        if (char_shifting[11]) begin
+                        // All four indices used in this mode
+                        case (pixel_value[1:0])
+                            2'b00: pixel_color1 = extended_palettes[(char_shifting[10:8]*16) +: 4];
+                            2'b01: pixel_color1 = extended_palettes[(char_shifting[10:8]*16+4) +: 4];
+                            2'b10: pixel_color1 = extended_palettes[(char_shifting[10:8]*16+8) +: 4];
+                            2'b11: pixel_color1 = extended_palettes[(char_shifting[10:8]*16+12) +: 4];
+                        endcase
+                        end else begin
+                            // Only first two indices out of four are used in this mode, idx 1 for color 1, idx 0 for color 2
+                            pixel_color1 = pixel_value[1] ?
+                                extended_palettes[(char_shifting[10:8]*16+4) +: 4] : extended_palettes[(char_shifting[10:8]*16) +: 4];
+                        end
+                    end
+`endif
                 `MODE_STANDARD_BITMAP:
                     pixel_color1 = pixel_value[1] ? char_shifting[7:4]:char_shifting[3:0];
                 `MODE_MULTICOLOR_BITMAP:
@@ -308,6 +336,7 @@ begin
                 endcase
                 `MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_CHAR:
                     pixel_color1 = `BLACK;
+
                 `MODE_INV_EXTENDED_BG_COLOR_MULTICOLOR_BITMAP:
                     pixel_color1 = `BLACK;
                 `MODE_INV_EXTENDED_BG_COLOR_STANDARD_BITMAP:

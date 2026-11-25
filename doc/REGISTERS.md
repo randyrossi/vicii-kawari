@@ -145,15 +145,20 @@ VIDEO_MODE1 | Description
 BIT 3-1     | CHAR_PIXEL_BASE
 BIT 4       | HIRES ALLOW BADLINES ON LORES MODES (0=no, 1=yes)
 BIT 5       | HIRES ENABLE
-BIT 8-6     | HIRES MODE
+BIT 8-6     | HIRES MODE (when hires enabled) or LEGACY ENHANCED MODE (when hires disabled)
 
 HIRES MODE | Description
 -----------|------------
 000 | 80 Column Text
+001 | 640x200x16 8x8 color cells (low color nibble=foreground, d020 background)
 010 | 320x200x16
 011 | 640x200x4
 100 | 160x200x16
 
+LEGACY ENHANCED MODE | Description
+-----------|------------
+000 | No legacy enhancements enabled
+111 | Enhanced multicolor character mode (see Extended Palette Indices)
 
 VIDEO_MODE2 | Description
 ------------|------------
@@ -181,9 +186,10 @@ These bit controls the hires video mode.
 HIRES MODE | Description
 -----------|-------------
 000        | 80 Column Text 16 Colors (4K CharDef, 2K Matrix, 2K Color)
-100        | 160x200 Bitmap 16 Color (16K Bitmap, packed pixels, 2 pixels per byte)
+001        | 640x200 Bitmap 16 Colors (16K Bitmap, 2K Color - 8x8 color cells)
 010        | 320x200 Bitmap 16 Color (32K Bitmap, packed pixels, 2 pixels per byte)
 011        | 640x200 Bitmap 4 Color (32K Bitmap, packed pixels, 4 pixels per byte)
+100        | 160x200 Bitmap 16 Color (16K Bitmap, packed pixels, 2 pixels per byte)
 
 ### Mode 000 : 80 Column Text
 
@@ -204,6 +210,21 @@ COLOR_BASE      | Points to a 2k block for 80x25 color matrix     | XXXX0000-XXX
     Char Pixel Fetch Addr (15): CHAR_PIXEL_BASE(3) | CASE_BIT(1) | CHAR_NUM(8) | RC(3)
 
     There are no 'badlines' in hires modes since the video memory is dual port and can be accessed by hires pixel sequencer and the CPU at the same time.  However, yscroll will still trigger a reset of the row counter as it does in the legacy modes. (NOTE: Badlines for hires modes can be enabled/disabled. See BIT 4 of VIDEO_MODE1 register.  If disabled, an additional 6% (approximately) worth of 6510 cycles / frame becomes available for the CPU.)
+
+### Mode 001 : 640x200 16 color
+
+Base Pointer    | Description                                     | Range             | Restrictions
+----------------|-------------------------------------------------|-------------------|--------------
+CHAR_PIXEL_BASE | Unused                                          |                   |
+MATRIX_BASE     | Points to a 16k block 640x200 pixel data        | XXXXXX00-XXXXXX11 |
+COLOR_BASE      | Points to a 2k block for 80x25 color matrix     | XXXX0000-XXXX1111 | lower 32k only
+
+    Pixel data represents either forground color (determined by cell color) or background color. One
+    byte is fetched each half cycle giving 80 bytes per line.
+
+    FVC (14 bit counter)
+    Color Fetch Addr (15): COLOR_BASE(4) | VC(11)
+    Pixel Fetch Addr (16): MATRIX_BASE[1:0](2) | FVC
 
 ### Mode 010 : 320x200 16 color
 
@@ -248,6 +269,53 @@ COLOR_BASE      | Unused                                          |             
 
     FVC (14 bit counter)
     Pixel Fetch Addr (16): MATRIX_BASE[1:0](2) | FVC
+
+## Sprite Collisions in Hires Modes
+
+Sprites are available in all hires modes and are still positioned in the legacy 320x200 coordinate space (the top left pixel of the display window is sprite X=24, Y=50). The same registers and interrupt bits are used for collisions as on a stock VIC-II.
+
+REG    | Name                         | Notes
+-------|------------------------------|-------------------
+0xd01e | Sprite to sprite collision   | No change in hires modes
+0xd01f | Sprite to background collision | Background is hires pixel data when HIRES ENABLE is set
+0xd019 | Interrupt status             | Value 2 = sprite to background, value 4 = sprite to sprite
+0xd01a | Interrupt enable             | Value 2 = sprite to background, value 4 = sprite to sprite
+
+### Sprite to Sprite Collisions
+
+There is no difference in any hires mode. Sprite to sprite collisions depend only on sprite pixels and behave exactly as they do on a stock VIC-II regardless of the HIRES ENABLE bit or HIRES MODE.
+
+### Sprite to Background Collisions (v1.20+)
+
+When the HIRES ENABLE bit of VIDEO_MODE1 is set, sprite pixels are tested against the hires pixels being displayed instead of the legacy 40 column/bitmap graphics data. When HIRES ENABLE is not set, behavior is identical to a stock VIC-II and the contents of video memory have no effect. The bit is evaluated as each pixel is drawn, so if HIRES ENABLE is changed part way down the frame (a raster split), a sprite collides with whichever graphics are being shown on each of its raster lines.
+
+What counts as a foreground pixel depends on the hires mode:
+
+HIRES MODE | Description      | A pixel is foreground (collides) when
+-----------|------------------|-------------------------------------
+000        | 80 Column Text   | The character pixel bit is 1 (see attribute notes below)
+001        | 640x200 16 color | The pixel bit is 1. The color of the 8x8 cell makes no difference.
+010        | 320x200 16 color | The pixel's color index is not equal to the background color (lower nibble of $d021)
+011        | 640x200 4 color  | The pixel's color, including the color bank from COLOR_BASE, is not equal to the background color (lower nibble of $d021)
+100        | 160x200 16 color | The pixel's color index is not equal to the background color (lower nibble of $d021)
+
+For the packed pixel modes (010, 011, 100) $d021 is not used to draw anything but it selects the one color that sprites pass over without colliding. Changing $d021 changes which pixels collide.
+
+Attributes in 80 column text mode:
+
+* Reverse video inverts the test. Pixels with a bit of 0 in a reversed cell are foreground and pixels with a bit of 1 are not.
+* All pixels on the last row (row 7) of an underlined cell are foreground.
+* Blink is ignored. A blinking character collides the same way whether it is currently visible or not.
+* The cursor is ignored.
+
+Other notes:
+
+* Triggering and clearing is the same as a stock VIC-II. A bit is set in $d01f for each sprite that collides and stays set until $d01f is read. Reading $d01f clears it. The interrupt status bit (value 2 in $d019) is set only by the first collision after $d01f was last read, so $d01f must be read to re-arm the interrupt.
+* The sprite to background priority register ($d01b) has no effect on whether a collision is detected.
+* In the 640 pixel wide modes (001, 011) and 80 column text mode, there are two hires pixels under each sprite pixel. A sprite pixel collides if either one of them is foreground.
+* In 320x200 16 color mode (010), pixels are displayed half a sprite pixel (one 640 pixel) to the right of sprite pixel boundaries. A single 320 pixel therefore lies under two adjacent sprite pixels and collides with both, and the last pixel on a line extends half a sprite pixel beyond the right edge of the display window.
+* Nothing outside the display window (the top, bottom, left or right borders in 40 column / 25 row mode) is ever foreground, no matter what $d021 is set to.
+* disks/util/tests/sprcoll is a test program that checks all of the above.
 
 ## Accessing Video Memory
 
@@ -633,29 +701,24 @@ Location | Name | Since | Description | Capability Requirement | Can be saved?
 0x06 | DISPLAY_FLAGS2 | 1.12 | See below | HAVE_EEPROM | Y
 0x07 | CFG_VERSION | 1.12 | See below | HAVE_EEPROM | N
 0x1f | CHIP_MODEL | 1.4 | Chip Model Select (0=6567R8, 1=6569R3, 2=6567R56A, 3=6569R1) | NONE | Y
-0x20 - 0x3f | UNUSED | 1.4 | Unused | NONE | N/A
+0x20 - 0x2b | CPU_* | 1.20 | 6502 co-processor control/status (WITH_CPU_COPROC only) | NONE | N
+0x2c - 0x3f | UNUSED | 1.4 | Unused | NONE | N/A
 0x40 - 0x7f | PAL_RGB | 1.4 | 4x16 array of RGBx (4th byte unused) | CONFIG_RGB | Y
 0x80 | BLACK_LEVEL | 1.4 | Composite black level (0-63) | CONFIG_COMPOSITE | Y
 0x81 | BURST_AMPLITUDE | 1.4 | Composite color burst amplitude (1-15, 0 = no color burst) | CONFIG_COMPOSITE | Y
-0x83 | VERSION | 1.4 | Version (high nibble major, low nibble minor) - Read Only | NONE | N/A
+0x83 | VERSION_MAJOR | 1.4 | Firmware major version (e.g. 1 for v1.20) - Read Only | NONE | N/A
+0x84 | VERSION_MINOR | 1.4 | Firmware minor version, a binary number (e.g. 20 for v1.20) - Read Only | NONE | N/A
 0x85 | CURSOR_LO | 1.4 | Hires Cursor lo byte | HIRES_MODES | N/A
 0x86 | CURSOR_HI | 1.4 | Hires Cursor hi byte | HIRES_MODES | N/A
 0x87 | CAP_LO    | 1.4 | Capability Bits lo byte (Read Only)| NONE | N/A
 0x88 | CAP_HI    | 1.4 | Capability Bits hi byte (Read Only)| NONE | N/A
-0x89 | TIMING_CHANGE | 1.4 | HDMI/VGA Timing change signal - Bit 1  | CONFIG_TIMING | N
+0x89 |           | Unused | Unused  | NONE | N/A
 0x8a - 0x8f | Reserved | 1.4 | Reserved | NONE | N/A
 0x90 - 0x9f | VARIANT_NAME | 1.4 | Variant Name | NONE | N/A
 0xa0 - 0xaf | LUMA_LEVELS | 1.4 | Composite luma levels for colors (0-63) | CONFIG_COMPOSITE
 0xb0 - 0xbf | PHASE_VALUES | 1.4 | Composite phase values for colors (0-255 representing 0-359 degrees) | CONFIG_COMPOSITE | Y
 0xc0 - 0xcf | AMPL_VALUES | 1.4 | Composite amplitude values for colors (1-15, 0 = no modulation) | CONFIG_COMPOSITE | Y
-0xd0 | VGA_HBLANK | 1.4 | HDMI/VGA H blank start | CONFIG_TIMING | N
-0xd1 | VGA_FPORCH | 1.4 | HDMI/VGA H front porch | CONFIG_TIMING | N
-0xd2 | VGA_SPULSE | 1.4 | HDMI/VGA H sync pulse | CONFIG_TIMING | N
-0xd3 | VGA_BPORCH | 1.4 | HDMI/VGA H back porch | CONFIG_TIMING | N
-0xd4 | VGA_VBLANK | 1.4 | HDMI/VGA V blank start | CONFIG_TIMING | N
-0xd5 | VGA_FPORCH | 1.4 | HDMI/VGA V front porch | CONFIG_TIMING | N
-0xd6 | VGA_SPULSE | 1.4 | HDMI/VGA V sync pulse | CONFIG_TIMING | N
-0xd7 | VGA_BPORCH | 1.4 | HDMI/VGA V back porch | CONFIG_TIMING | N
+0xd0 - 0xdf | EXTENDED_PALETTE_INDICES | 1.20 | Extended palette indices (see Extended Palette Indices) | HIRES_MODES | N
 0xe0 - 0xff |   | UNUSED | Unused | NONE | N/A
 
 ### RGB Color Registers (For DVI/VGA)
@@ -665,6 +728,52 @@ VIC-II Kawari has a configurable color palette. The 16 colors can be selected fr
 ### HSV Color Registers (For luma/chroma)
 
 Colors generated by the luma/chroma generator can be modified by changing registers 0xa0-0xaf (luma levels), 0xb0-0xbf (hue/phase angles) and 0xc0-0xcf (saturation/amplitude).  Luma levels are 6 bit values (0-63).  Phase angles are 0-255 (representing 0-359 degrees). Amplitudes are 4 bit values (0-15).  (NOTE: Blanking levels below 8 may not be accepted by some TV's/monitors and any color luma value should be at or above the blanking level or the CRT may lose sync.)
+
+### Extended Palette Indices
+
+An enhancement to the legacy multicolor character mode (ECM=0, BMM=0, MCM=1), since 1.20. A cell's color nibble selects one of 8 palettes of 4 color indices instead of using $D021-$D023 and the nibble's own color, so any cell can use any of the 16 colors. Everything else is unchanged from the legacy mode: character fetches, sprites, priority and collisions (foreground is pixel values 10 and 11 in 2x wide cells and set pixels in 1x wide cells).
+
+The mode is active when all of these are true:
+
+* Kawari extensions are activated ("VIC2" written to 0xd03f)
+* HIRES ENABLE is 0 and LEGACY ENHANCED MODE is 111 (write 0xe0 to VIDEO_MODE1, 0xd037)
+* The VIC-II is in multicolor character mode (0xd016 bit 4 set, 0xd011 bits 5 and 6 clear)
+
+In C parlance, the palettes are:
+
+    int4_t extended_palette[8][4]
+
+They are extra registers 0xd0-0xdf, read and written through the extra register overlay like any other extra register (0xd03f = 0x20, 0xd03a = 0, register number in 0xd039, value in 0xd03b). Two bytes per palette:
+
+Register | Low nibble | High nibble
+---------|------------|------------
+0xd0 + 2*p | extended_palette[p][0] | extended_palette[p][1]
+0xd1 + 2*p | extended_palette[p][2] | extended_palette[p][3]
+
+They are 0 after reset and are not saved to the EEPROM, so a program must set them every time it starts.
+
+As in the legacy mode, bit 3 of the cell's color nibble selects 2x wide or 1x wide pixels. In both cases p = color nibble & 0x7.
+
+For 2x wide pixels (color nibble bit 3 set), each pair of character bits selects an entry:
+
+    Char pixel value 00 : extended_palette[p][0]
+    Char pixel value 01 : extended_palette[p][1]
+    Char pixel value 10 : extended_palette[p][2]
+    Char pixel value 11 : extended_palette[p][3]
+
+For 1x wide pixels (color nibble bit 3 clear), each character bit selects an entry:
+
+    Char pixel value 0 : extended_palette[p][0] (background)
+    Char pixel value 1 : extended_palette[p][1] (foreground)
+    // entries 2 and 3 are unused
+
+Notes:
+
+* 0xd021-0xd023 are not used for character cells while the mode is active. The border (0xd020) and sprites are unaffected.
+* A cell with color nibble 0 and all bits clear shows extended_palette[0][0], so that entry is the color of an otherwise empty screen.
+* 2x wide and 1x wide cells with the same low 3 bits share a palette: 1x wide cells use its entries 0 and 1.
+* To use different palettes in the same cell position over time, or more than 8 palettes on screen, rewrite the registers (for example on a raster interrupt).
+* A working example and automated test is in `tests/enhanced-mc` of the top level Kawari directory (`enhmc.s`). The mode is simulated by `vicii-kawari-vice`.
 
 #### General Notes
 
@@ -724,7 +833,7 @@ Bit 2 | Has digital RGB out (DVI)
 Bit 3 | Has composite out (LUMA/CHROMA)
 Bit 4 | Has configurable RGB palette
 Bit 5 | Has configurable Luma/Chroma/Amplitude
-Bit 6 | Has configurable analog/digital RGB timing params
+Bit 6 | Unused
 Bit 7 | Has configuration persistance
 Bit 8 | Has hires modes available
 
@@ -735,6 +844,82 @@ Bit 1-8 | Reserved
 ### Variant Name
 
 The extra register overlay area 0x0090 - 0xd09f is used to identify the Kawari variant name. This is a max 16 byte null terminated PETSCII string.  All forks should change this to something other than 'main' if they plan on releasing a bitstream. See [FORKING.md](FORKING.md)
+
+## 6502 Co-Processor (WITH_CPU_COPROC)
+
+When the bitstream is built with `WITH_CPU_COPROC`, VIC-II Kawari contains a
+second CPU: an Arlet Ottens 6502 that executes directly out of the 64K extended
+video RAM. It shares video RAM port A with the 6510/DMA/blitter under automatic
+arbitration, so there is no hold bit to raise before starting a DMA and existing
+software is unaffected. Registers 0x20-0x2b control it.
+
+REG    | Name | Description
+-------|------|-------------
+0x20 | CPU_START_LO | Start (reset) vector low byte
+0x21 | CPU_START_HI | Start (reset) vector high byte
+0x22 | CPU_CTRL | b0 RESET (1 = held in reset), b1 IRQ, b2 NMI, b3 HOLD
+0x23 | CPU_A | Accumulator (read only)
+0x24 | CPU_X | X index (read only)
+0x25 | CPU_Y | Y index (read only)
+0x26 | CPU_SP | Stack pointer (read only)
+0x27 | CPU_P | Flags NV-BDIZC (read only)
+0x28 | CPU_PC_LO | Program counter low (read only)
+0x29 | CPU_PC_HI | Program counter high (read only)
+0x2a | CPU_STATUS | b0 running, b1 held, b2 stalled by DMA/blitter (read only)
+0x2b | CPU_SPEED | Access rate divider: 0 = fastest, 1..3 progressively slower
+
+The co-processor starts held in reset. A typical hand-off is:
+
+        LDA #$20        ; VIDEO_MEM_FLAGS: enable the extra register overlay (bit 6)
+        STA $d03f
+
+        LDA #$20        ; overlay address of CPU_START_LO
+        STA $d039       ; VIDEO_MEM_1_LO
+        LDA #<PROG      ; PROG is the co-processor entry point
+        STA $d03b       ; VIDEO_MEM_1_VAL -> CPU_START_LO
+
+        LDA #$21        ; overlay address of CPU_START_HI
+        STA $d039
+        LDA #>PROG
+        STA $d03b       ; CPU_START_HI
+
+        LDA #$22        ; overlay address of CPU_CTRL
+        STA $d039
+        LDA #$00
+        STA $d03b       ; clear RESET: co-processor starts at PROG
+
+        ; then poll CPU_STATUS (overlay 0x2a) for it to finish
+    poll
+        LDA #$2a
+        STA $d039
+        LDA $d03b       ; CPU_STATUS
+        ...
+
+Like every other extra register these live in the **overlay** and are reached
+through the video memory port mechanism, with overlay mode enabled via bit 6 of
+VIDEO_MEM_FLAGS. They are *not* directly at `$d020`-`$d02b`. VIDEO_MEM_1_HI must
+stay 0 because the overlay is only the first 256 bytes of video memory.
+
+Notes:
+
+* The co-processor's 16-bit address space maps **directly onto the 64K of
+  video RAM**. Zero page and stack live in video RAM 0x0000-0x01ff.
+* While the extra-registers overlay is enabled (`VIDEO_MEM_FLAGS` bit 6) the
+  6510 sees the extended registers at 0x0000-0x00ff but the co-processor still
+  sees raw RAM there.
+* Video RAM `$fffc`/`$fffd` are the co-processor's reset vector and are
+  supplied from CPU_START_LO/HI rather than from RAM (shadowed).
+* `$fffa/$fffb` are the co-processors NMI vector
+* `$fffe/$ffff` are the co-processors IRQ/BRK vector
+* A co-processor bus cycle needs two `clk_dot4x` clocks, so it runs at roughly
+  16 MHz with CPU_SPEED 0 - about 16x the 6510. It is stalled whenever a DMA,
+  blit or fill is in progress, and briefly whenever the 6510 touches
+  $d02f-$d03f.
+* Port B, the hires scanout fetch, is never touched by the co-processor, so it
+  cannot disturb the picture.
+* The co-processor cannot reach the C64's DRAM, and it cannot write the extra
+  registers, so it cannot start a DMA or blit itself.  This must be done via
+  a custom mailbox implementation if required.
 
 ## Notes
 

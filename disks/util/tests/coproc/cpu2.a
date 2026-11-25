@@ -1,0 +1,34 @@
+; This runs on the 6502 co-processor
+;
+; NOTE: this must NOT be at $0100.  The co-processor's stack lives in
+; $0100-$01ff, so code there is overwritten by its own stack the first time it
+; does a BRK or JSR.  Keep it clear of the stack page.
+
+VMEM = $8000
+
+PTR = $00
+SVAL = $02
+
+* = $0200
+begin
+	ldx #$80
+        ldy #$00
+	stx PTR+1
+	sty PTR
+
+page:
+	lda SVAL
+loop    
+	sta (PTR),y
+	clc
+        adc #1
+	iny
+	bne loop
+
+	inc PTR+1
+	lda PTR+1 ; check high byte so we stop at bf00
+	cmp #$BF
+	bne page
+
+	inc sval
+	jmp begin

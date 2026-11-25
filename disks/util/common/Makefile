@@ -1,4 +1,4 @@
-all: util.o init.o main.o flash.o color.o hires.o
+all: util.o init.o main.o flash.o color.o hires.o ops.o
 
 util.o: util.c ../include/util.h
 	cl65 --include-dir ../include -c util.c -o util.o
@@ -20,6 +20,9 @@ color.o: color.c ../include/color.h
 
 hires.o: hires.c ../include/color.h
 	cl65 --include-dir ../include -c hires.c -o hires.o
+
+ops.o: ops.c ../include/ops.h
+	cl65 --include-dir ../include -c ops.c -o ops.o
 
 clean:
 	rm -f *.o

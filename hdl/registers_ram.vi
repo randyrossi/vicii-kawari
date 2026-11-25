@@ -87,6 +87,9 @@ task read_ram(
             end
             /* verilator lint_on WIDTH */
 `endif
+            else if (ram_lo >= `EXT_REG_EXTENDED_PALETTE_START && ram_lo <= `EXT_REG_EXTENDED_PALETTE_END) begin
+                dbo <= extended_palettes[((ram_lo - `EXT_REG_EXTENDED_PALETTE_START) * 8) +: 8];
+            end
             else begin
                 case (ram_lo)
                     `EXT_REG_CFG_VERSION:
@@ -185,36 +188,44 @@ task read_ram(
                     // Advertise some capability bits
                     `EXT_REG_CAP_LO:
                     begin
-                        dbo[`CAP_RGB_BIT] <= `HAS_RGB_CAP;
-                        dbo[`CAP_DVI_BIT] <= `HAS_DVI_CAP;
-                        dbo[`CAP_COMP_BIT] <= `HAS_COMP_CAP;
-                        dbo[`CAP_CONFIG_RGB_BIT] <= `HAS_CONFIG_RGB_CAP;
-                        dbo[`CAP_CONFIG_LUMA_BIT] <= `HAS_CONFIG_LUMA_CAP;
-                        dbo[`CAP_CONFIG_TIMING_BIT] <= `HAS_CONFIG_TIMING_CAP;
-                        dbo[`CAP_PERSIST_BIT] <= `HAS_PERSIST_CAP;
-                        dbo[`CAP_HIRES_BIT] <= `HAS_HIRES_CAP;
+                        dbo <= {
+                           `HAS_RGB_CAP,
+                           `HAS_DVI_CAP,
+                           `HAS_COMP_CAP,
+                           `HAS_CONFIG_RGB_CAP,
+                           `HAS_CONFIG_LUMA_CAP,
+                           1'b0, // unused
+                           `HAS_PERSIST_CAP,
+                           `HAS_HIRES_CAP
+                        };
                     end
                     `EXT_REG_CAP_HI:
-                        dbo <= 8'b0; // reserved for now
-`ifdef CONFIGURABLE_TIMING
-                    `EXT_REG_TIMING_CHANGE:
-                        dbo <= {7'b0, timing_change};
-                    8'hd0:
-                        dbo <= timing_h_blank;
-                    8'hd1:
-                        dbo <= timing_h_fporch;
-                    8'hd2:
-                        dbo <= timing_h_sync;
-                    8'hd3:
-                        dbo <= timing_h_bporch;
-                    8'hd4:
-                        dbo <= timing_v_blank;
-                    8'hd5:
-                        dbo <= timing_v_fporch;
-                    8'hd6:
-                        dbo <= timing_v_sync;
-                    8'hd7:
-                        dbo <= timing_v_bporch;
+                        dbo <= { 7'b0, `HAS_COPROC_CAP };
+`ifdef CPU_COPROC_ENABLED
+                    `EXT_REG_CPU_START_LO:
+                        dbo <= cpu_start_lo;
+                    `EXT_REG_CPU_START_HI:
+                        dbo <= cpu_start_hi;
+                    `EXT_REG_CPU_CTRL:
+                        dbo <= {4'b0, cpu_hold, cpu_nmi, cpu_irq, cpu_reset};
+                    `EXT_REG_CPU_A:
+                        dbo <= cpu_a;
+                    `EXT_REG_CPU_X:
+                        dbo <= cpu_x;
+                    `EXT_REG_CPU_Y:
+                        dbo <= cpu_y;
+                    `EXT_REG_CPU_SP:
+                        dbo <= cpu_sp;
+                    `EXT_REG_CPU_P:
+                        dbo <= cpu_p;
+                    `EXT_REG_CPU_PC_LO:
+                        dbo <= cpu_pc[7:0];
+                    `EXT_REG_CPU_PC_HI:
+                        dbo <= cpu_pc[15:8];
+                    `EXT_REG_CPU_STATUS:
+                        dbo <= {5'b0, cpu_stalled, cpu_hold, ~cpu_reset};
+                    `EXT_REG_CPU_SPEED:
+                        dbo <= {6'b0, cpu_speed};
 `endif
                     default: ;
                 endcase
@@ -316,6 +327,9 @@ task write_ram(
             end
             /* verilator lint_on WIDTH */
 `endif
+            else if (ram_lo >= `EXT_REG_EXTENDED_PALETTE_START && ram_lo <= `EXT_REG_EXTENDED_PALETTE_END) begin
+                extended_palettes[((ram_lo - `EXT_REG_EXTENDED_PALETTE_START) * 8) +: 8] <= data;
+            end
             else begin
                 // When we poke certain config registers, we
                 // persist them according to persist_eeprom
@@ -441,42 +455,17 @@ task write_ram(
                     end
 `endif // configurable lumas
 `endif // gen luma chroma
-`ifdef CONFIGURABLE_TIMING
-                    `EXT_REG_TIMING_CHANGE:
-                        timing_change <= data[0];
-
-                    8'hd0: begin
-                        timing_h_blank <= data;
-                        persist_eeprom(do_persist, ram_lo, data);
-                    end
-                    8'hd1: begin
-                        timing_h_fporch <= data;
-                        persist_eeprom(do_persist, ram_lo, data);
-                    end
-                    8'hd2: begin
-                        timing_h_sync <= data;
-                        persist_eeprom(do_persist, ram_lo, data);
-                    end
-                    8'hd3: begin
-                        timing_h_bporch <= data;
-                        persist_eeprom(do_persist, ram_lo, data);
-                    end
-                    8'hd4: begin
-                        timing_v_blank <= data;
-                        persist_eeprom(do_persist, ram_lo, data);
-                    end
-                    8'hd5: begin
-                        timing_v_fporch <= data;
-                        persist_eeprom(do_persist, ram_lo, data);
-                    end
-                    8'hd6: begin
-                        timing_v_sync <= data;
-                        persist_eeprom(do_persist, ram_lo, data);
-                    end
-                    8'hd7: begin
-                        timing_v_bporch <= data;
-                        persist_eeprom(do_persist, ram_lo, data);
-                    end
+`ifdef CPU_COPROC_ENABLED
+                    // Co-processor control. Never persisted: these are
+                    // volatile run-time controls, not configuration.
+                    `EXT_REG_CPU_START_LO:
+                        cpu_start_lo <= data;
+                    `EXT_REG_CPU_START_HI:
+                        cpu_start_hi <= data;
+                    `EXT_REG_CPU_CTRL:
+                        {cpu_hold, cpu_nmi, cpu_irq, cpu_reset} <= data[3:0];
+                    `EXT_REG_CPU_SPEED:
+                        cpu_speed <= data[1:0];
 `endif
                     default: ;
                 endcase

@@ -91,9 +91,9 @@
 // [11] the characters will completely disappear.
 `define D4X_CAS_GLITCH_P 9
 // This can be this early because we calculate vic_addr in the same process
-// block as where ado is set.  It can't be earlier because cycle type needs
-// to be valid and it doesn't become valid until at least [2].
-`define D4X_MUX_ROW_P 2
+// block as where ado is set.  cycle_type and vc/rc are now updated on
+// phi_phase_start[0] and are therefore valid at [1].
+`define D4X_MUX_ROW_P 1
 
 // Address generation
 module addressgen(
@@ -170,7 +170,7 @@ begin
             vic_addr = {6'b111111, refc};
             vic_addr_now = vic_addr;
 
-            if (phi_phase_start[1] && !refc_hold)
+            if (phi_phase_start[0] && !refc_hold)
                 refc <= refc - 8'h01; // about to leave this cycle
         end
         `VIC_LG: begin

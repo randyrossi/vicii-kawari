@@ -32,6 +32,8 @@
         <efx:design_file name="../../hdl/hires_dvi_sync_scaled.v" version="default" library="default" />
         <efx:design_file name="../../hdl/divide.v" version="default" library="default" />
         <efx:design_file name="../../hdl/videoram_efinix.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/cpu6502.v" version="default" library="default" />
+        <efx:design_file name="../../hdl/videoram_cpu.v" version="default" library="default" />
         <efx:design_file name="../../hdl/efinix_trion/dvi/dvi.v" version="default" library="default" />
         <efx:design_file name="../../hdl/efinix_trion/dvi/serializer.v" version="default" library="default" />
         <efx:design_file name="../../hdl/efinix_trion/dvi/tmds_channel.v" version="default" library="default" />
