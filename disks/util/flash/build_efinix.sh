@@ -30,7 +30,7 @@ make multi_hex_to_bit
 
 ALL="hex/multi/${VER}/kawari_${VER}_${VER}_multi_LG_DVI-29MHZ-U.hex:multi:2460500:679936:MAINLG-DVI-29MHZ-U:Large-29MHZ_Unscaled \
   hex/multi/${VER}/kawari_${VER}_${VER}_multi_LG_DVI-27MHZ-S.hex:multi:2460500:679936:MAINLG-DVI-27MHZ-S:Large-27MHZ_Scaled \
-  hex/multi/${VER}/kawari_${VER}_${VER}_multi_LG_RGB-32MHZ-U.multi:yes:2460500:679936:MAINLG-RGB-32MHZ-U:Large-32MHZ_RGB \
+  hex/multi/${VER}/kawari_${VER}_${VER}_multi_LG_RGB-32MHZ-U.hex:multi:2460500:679936:MAINLG-RGB-32MHZ-U:Large-32MHZ_RGB \
   hex/multi/${VER}/kawari_${VER}_${VER}_multi_LH.hex:multi:2410500:659456:MAINLH:Mini \
   hex/multi/${VER}/kawari_${VER}_${VER}_multi_LH-DOTC-1.2.hex:multi:2410500:659456:MAINLH-DOTC-1.2:Mini-DOTC-1.2 \
   hex/multi/${VER}/kawari_${VER}_${VER}_multi_LH-DOTC-1.5.hex:multi:2410500:659456:MAINLH-DOTC-1.5:Mini-DOTC-1.5"
