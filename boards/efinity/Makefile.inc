@@ -13,7 +13,7 @@ vicii.hex:  config
 sweep:  config
 	efx_run_pnr_sweep.py vicii.xml sweep_seeds
 	@latest=$$(ls -td run_sweep_*/ 2>/dev/null | head -1); \
-	echo $VARIANT > $$latest/variant.txt
+	echo ${VARIANT} > $$latest/variant.txt
 
 clean:
 	rm -rf outflow ip work_pnr work_pt work_syn vicii.vdb
