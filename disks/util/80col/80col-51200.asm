@@ -1268,6 +1268,10 @@ CLRLN
 	LDA #4                ; execute fill function
         STA VMEM_FILL_FUNC
 
+WAIT3
+        LDA VMEM_FILL_NUM_LO  ; wait for copy to complete
+	BNE WAIT3
+
         ; fill screen ram
         STY VMEM_FILL_NUM_LO  ; num bytes to fill
         JSR PNT_TO_VMEM_A
@@ -1275,6 +1279,10 @@ CLRLN
 	STA VMEM_FILL_BYTE    ; set fill byte
 	LDA #4                ; execute fill function
         STA VMEM_FILL_FUNC
+
+WAIT4
+        LDA VMEM_FILL_NUM_LO  ; wait for copy to complete
+	BNE WAIT4
 
 	LDA #$00
 	STA KAWARI_PORT
